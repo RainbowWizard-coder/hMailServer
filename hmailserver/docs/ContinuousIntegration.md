@@ -3604,7 +3604,10 @@ which reads the four reports and refuses when:
 - `semgrep-sast` found something of severity Critical or High, fingerprinted the
   same way from GitLab's report (the rule, the file, the text of the line);
 - `dependency-scan` found a Critical or High vulnerability with a fixed version
-  that the VEX document does not dismiss;
+  that the VEX document does not dismiss - unless it is against a header-only
+  package of the CI image (`linux-libc-dev`; [Dependency
+  findings](#dependency-findings-the-vex-document-and-what-osv-cannot-answer)),
+  which is not affected: the gate says what it spared, and never holds it;
 
 and `.gitlab/security-exceptions.yml` does not accept that finding - `master`'s
 copy, which the job reads as it reads `master`'s allow-list, never the tagged
@@ -3759,8 +3762,8 @@ September 2026.
   failing test case per new finding, and a passing one per finding an exception
   accepts. `dependency-scan` writes one test case per lock file, for the CI image
   and for each vendored library, skipped when the answer is unknown; the CI
-  image's counts the advisories against `linux-libc-dev` apart from the rest
-  (below).
+  image's counts the advisories against `linux-libc-dev`, a header-only package,
+  apart from the rest, as not affected (below).
   `repo-hygiene` writes one per check, skipped when the answer is not public.
 - **The job log** prints each job's table: counts by tool and rule, every new
   finding, and every hole in the scan.
@@ -3925,21 +3928,39 @@ UNKNOWN (a skipped test case), not clean. On 25 September 2026:
 | 7-Zip (`7za.exe`) | 19.00 | UNKNOWN: 19.00 predates the upstream repository's first tag (22.01), so OSV cannot match it. The two advisories OSV has for 22.01 (CVE-2025-55188, CVE-2026-58052) reach back to the first commit. CVE-2023-31102 (a crafted 7z archive and the PPMd decoder, before 23.00) is in OSV only with a range it could not resolve, so no query by version finds it |
 | SQL Server Compact | 4.0 SP1 | UNKNOWN: no open database tracks it, and Microsoft ended its support in July 2021 |
 
-The CI image's scan counts the advisories against `linux-libc-dev` apart from
-the rest. That package is the kernel's user-space headers, which
-`build-essential` pulls in and which hold no kernel code, and Trivy files every
-advisory against the kernel's source package under it; the image holds no
-kernel, since its jobs run on their runner's. On 6 October 2026 (`master`'s
-pipeline at `a5a02b3be`) the image had 860 packages, 316 of them Ubuntu's, and
-3,608 advisories - 1 Critical, 81 High, 3,365 Medium and 161 Low - of which
-3,535 were against `linux-libc-dev` (1 Critical, 81 High, 3,323 Medium, 130 Low)
-and 73 against the image's other packages (42 Medium, 31 Low); none High or
-Critical with a fixed version. The job's test case for the image says so in one
-line, and every advisory stays in the reports and `findings.txt`: a fixable
-High one against `linux-libc-dev` holds the release like any other. On 25
+The CI image's scan treats `linux-libc-dev` as a header-only package: the rule
+`HEADER_ONLY` in `build/ci/dependency-scan.py`, a list of the image's packages
+that install headers alone and carry no code, with the reason for each. That
+package is the kernel's user-space API headers, which `build-essential` pulls in
+and which hold no kernel code; Trivy files every advisory against the kernel's
+source package under it, and the image holds no kernel, since its jobs run on
+their runner's. An advisory against it in the image's scan is listed in every
+report - `findings.txt`, the JUnit text and the GitLab report, whose record
+carries the status in its `details`, under the record's own id, so that the
+dashboard shows it - with the status "not affected: header-only package, the
+advisory is against the kernel it was built from"; the image's test case counts
+those apart from the image's other packages, each by severity, with how many of
+them would otherwise have held the release; and none of them is counted among
+the high or critical with a fixed version, by the scan or by
+`build/ci/security-gate.py`, which reads the same rule off the record's package
+and `location.file` and says in the release job's log what it spared. The rule
+reaches that name and no other (`libc6`, `linux-libc-dev-arm64-cross`) and the
+image's scan alone: the same name in a lock file would count as any package;
+both scripts' self-tests hold it. On 6 October 2026 (`master`'s pipeline at
+`a5a02b3be`) the image had 860 packages, 316 of them Ubuntu's, and 3,608
+advisories - 1 Critical, 81 High, 3,365 Medium and 161 Low - of which 3,535 were
+against `linux-libc-dev` (1 Critical, 81 High, 3,323 Medium, 130 Low) and 73
+against the image's other packages (42 Medium, 31 Low); none High or Critical
+with a fixed version, and the maintainers dismissed the 3,535 on the dashboard
+as not applicable with this reason. By 8 October Ubuntu had published
+`linux-libc-dev` 7.0.0-38.38, and `batch44`'s pipeline 2924313539 counted 60 of
+the kernel's advisories against the image's 7.0.0-34.34 as High or Critical with
+a fixed version (3,610 in all, 15 dismissed by the VEX document): the next
+release would have been held on headers, which is what the rule is for. On 25
 September 2026 there were 259 packages and 3,024 advisories, 2,953 of them
-against `linux-libc-dev`. A rebuild of the image
-(`build/ci/build-linux-image.sh`) takes Ubuntu's fixes when they come.
+against `linux-libc-dev`. A rebuild of the image (`build/ci/build-linux-image.sh
+--push`, [The image](#the-image)) takes Ubuntu's fixes when they come, as the 8
+October rebuild did.
 
 ### The repository checks, and the Scorecard checks left out
 

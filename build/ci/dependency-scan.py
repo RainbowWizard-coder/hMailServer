@@ -17,9 +17,13 @@ and Dependabot's alerts. Three scans, one report:
      ci-image-packages job copies out of it (Ubuntu's dpkg status and the .NET
      SDK's deps.json files). The Linux server is built in that image and links
      its OpenSSL, libpq, libldap and, statically, its Boost, so this is also the
-     Linux packages' native dependencies. Its summary counts the advisories
-     against linux-libc-dev, the kernel's user-space headers, apart from the
-     rest (image_summary): the report keeps every one of them.
+     Linux packages' native dependencies. An advisory against a header-only
+     package of the image (HEADER_ONLY, below: linux-libc-dev, the kernel's
+     user-space API headers, under which Trivy files every advisory against the
+     kernel's source package) is not affected: it stays in every report with
+     that status, the image's summary counts it apart (image_summary), and it
+     is never among the high or critical with a fixed version, nor held by the
+     release gate.
   3. The libraries the Windows server is built with, which no manifest names:
      OpenSSL, Boost and libpq at the versions hMailServer.vcxproj's include paths
      carry, zlib and QuickJS from their vendored sources, and MariaDB
@@ -63,7 +67,8 @@ of two on the first pipeline, "only one file can be sent as raw"), junit.xml (a
 test case per scanned target - the part GitLab's free tier shows) and
 findings.txt. Exits 1 when a high or
 critical vulnerability with a fixed version is found (SECURITY.md's threshold:
-fixed before the next release), 2 when a scan could not run, 0 otherwise.
+fixed before the next release; one against a header-only package of the CI image
+is not affected and is not one), 2 when a scan could not run, 0 otherwise.
 
 Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 
@@ -73,8 +78,8 @@ Usage, from the root of a checkout, in the aquasec/trivy image with python3:
 --image-root is the directory the ci-image-packages job left (ci-image-packages/
 by default; that scan is skipped, and says so, when it is not there). --self-test
 reads no network: the severities, the VEX document's matching, the version
-readers and the CI image's summary, against records and texts it makes, and the
-tree's own VEX document and pins against each other.
+readers, the header-only rule and the CI image's summary, against records and
+texts it makes, and the tree's own VEX document and pins against each other.
 """
 
 import os
@@ -258,9 +263,16 @@ def trivy(args, output, log):
 
 
 def trivy_findings(path, label, file_prefix=""):
-    """(findings, packages) from a Trivy JSON report."""
+    """(findings, packages) from a Trivy JSON report file."""
     with open(path, encoding="utf-8") as f:
-        report = json.load(f)
+        return report_findings(json.load(f), label, file_prefix)
+
+
+def report_findings(report, label, file_prefix=""):
+    """(findings, packages) from a Trivy report, loaded. Each finding's file is the
+    result's target behind file_prefix (IMAGE_PREFIX for the CI image's scan), and one
+    against a header-only package of the CI image carries not_affected, HEADER_ONLY's
+    status (header_only)."""
     findings, packages = [], []
     for result in report.get("Results", []) or []:
         target = file_prefix + result.get("Target", "")
@@ -287,6 +299,9 @@ def trivy_findings(path, label, file_prefix=""):
                 "status": "dismissed in the VEX document: " + str(v.get("Statement", "")),
                 "dismissed": True,
             })
+    for f in findings:
+        if header_only(f["package"], f["file"]):
+            f["not_affected"] = HEADER_ONLY_STATUS
     return findings, packages
 
 
@@ -498,6 +513,13 @@ def gitlab_report(scanner, name, version, findings, started, ended, status):
             item["solution"] = "Upgrade %s to %s." % (f["package"], f["fixed"])
         if f["url"].startswith(("http://", "https://")):
             item["links"] = [{"url": f["url"]}]
+        if f.get("not_affected"):
+            # The record GitLab's dashboard shows carries the status, in the report
+            # schema's details (a named text field): its id, name, severity and solution
+            # are those of any other finding, so it is the record the dashboard already
+            # holds, and nothing of it is hidden.
+            item["details"] = {"not_affected": {"name": "Not affected", "type": "text",
+                                                "value": "%s (%s)" % (f["not_affected"], HEADER_ONLY.get(f["package"], ""))}}
         vulnerabilities.append(item)
     return {
         "version": SCHEMA_VERSION,
@@ -512,20 +534,52 @@ def gitlab_report(scanner, name, version, findings, started, ended, status):
     }
 
 
-def blocking(f):
-    return not f.get("dismissed") and f["severity"] in ("Critical", "High") and bool(f["fixed"])
-
-
-# Ubuntu's linux-libc-dev is the kernel's user-space API headers (/usr/include/linux,
+# ---------------------------------------------------------------- the header-only rule
+#
+# HEADER_ONLY: the packages of the CI image that install headers alone - files under
+# /usr/include, no program and no library - built from a source package whose
+# advisories Trivy files under every binary package built from it. Ubuntu's
+# linux-libc-dev is the one: the kernel's user-space API headers (/usr/include/linux,
 # /usr/include/asm-generic and the rest), built from the kernel's source package, and
-# Trivy files every advisory against that source package under it: on 6 October 2026,
-# 3,535 of the CI image's 3,608. The headers hold no kernel code, and the image holds no
-# kernel (its jobs run on their runner's), so the image's summary counts them apart, and
-# the image's other packages - the userland the Linux packages are built against - can
-# be read. They stay in the reports, finding by finding, and a fixable High one among
-# them holds the release like any other: the project's vulnerability report records
-# them, and the maintainers dismissed the 3,535 there as not applicable.
-KERNEL_HEADERS = "linux-libc-dev"
+# every advisory against the kernel is filed under it - 3,535 of the image's 3,608 on
+# 6 October 2026, and on 8 October, Ubuntu having published 7.0.0-38.38 while the image
+# held 7.0.0-34.34, 60 of them High or Critical with a fixed version, which would have
+# held the next release on headers that hold no kernel code; the image holds no kernel
+# at all, since its jobs run on their runner's. So an advisory against a package named
+# here, found by the CI image's scan, is not affected (HEADER_ONLY_STATUS): it stays in
+# every report with that status - findings.txt, the JUnit text, and the record of the
+# GitLab report, whose details carry it, so that the dashboard shows it too - and the
+# image's summary counts it apart; but it is never among the high or critical with a
+# fixed version (blocking), and build/ci/security-gate.py, which applies this same rule
+# (header_only) to the report it reads, never holds a release on it. The rule reaches
+# the packages named here and no other - not linux-libc-dev-arm64-cross, not libc6 -
+# and the CI image's scan alone (IMAGE_PREFIX): the same name in a lock file counts as
+# any package. SECURITY.md, "Dependencies"; the maintainers dismissed the 3,535 of 6
+# October on the dashboard as not applicable with this reason.
+HEADER_ONLY = {
+    "linux-libc-dev": "the kernel's user-space API headers, built from the kernel's source package, whose advisories "
+                      "Trivy files under it",
+}
+HEADER_ONLY_STATUS = "not affected: header-only package, the advisory is against the kernel it was built from"
+# What the CI image's findings' file begins with (trivy_findings' file_prefix): the
+# GitLab report's location.file keeps it, and the gate reads the rule off it.
+IMAGE_PREFIX = "ci-image:"
+
+
+def header_only(package, file):
+    """Whether HEADER_ONLY's rule reaches an advisory against package, found at file - a
+    finding's file here, a record's location.file in the GitLab report: a package named
+    in HEADER_ONLY, in the CI image's scan, and nothing else."""
+    return (file or "").startswith(IMAGE_PREFIX) and package in HEADER_ONLY
+
+
+def blocking(f):
+    """Whether a finding holds the release (SECURITY.md's threshold): not dismissed in
+    the VEX document, not a header-only package's, Critical or High, with a fixed version."""
+    return (not f.get("dismissed") and not header_only(f["package"], f["file"])
+            and f["severity"] in ("Critical", "High") and bool(f["fixed"]))
+
+
 SEVERITY_ORDER = ("Critical", "High", "Medium", "Low", "Unknown")
 
 
@@ -540,17 +594,21 @@ def severities(findings):
 
 def image_summary(os_found, packages, live, fixable):
     """The CI image's test case text: its packages, its vulnerabilities by severity, those
-    against KERNEL_HEADERS and those against its other packages apart, and the ones that
-    hold the release, listed."""
+    against its header-only packages (HEADER_ONLY: not affected, and how many of them
+    would otherwise have held the release) and those against its other packages apart,
+    and the ones that hold the release, listed."""
     os_packages = sum(1 for p in packages if p[1] in ("ubuntu", "debian"))
-    headers = [f for f in live if f["package"] == KERNEL_HEADERS]
-    others = [f for f in live if f["package"] != KERNEL_HEADERS]
-    return ("%s %s: %d package(s), %d of them the distribution's; %d vulnerabilit%s (%s), %d of them against %s, the "
-            "kernel's user-space headers, which hold no kernel code (Trivy files the kernel source package's advisories "
-            "under it: %s), and %d against the image's other packages (%s); %d high or critical with a fixed version%s" % (
+    headers = [f for f in live if header_only(f["package"], f["file"])]
+    others = [f for f in live if not header_only(f["package"], f["file"])]
+    names = sorted({f["package"] for f in headers}) or sorted(HEADER_ONLY)
+    spared = [f for f in headers if f["severity"] in ("Critical", "High") and f["fixed"]]
+    return ("%s %s: %d package(s), %d of them the distribution's; %d vulnerabilit%s (%s), %d of them against %s (%s) - "
+            "%s - %s, %d of them high or critical with a fixed version, which hold nothing; and %d against the image's "
+            "other packages (%s); %d high or critical with a fixed version%s" % (
                 os_found.get("Family", "?"), os_found.get("Name", "?"), len(packages), os_packages,
-                len(live), "y" if len(live) == 1 else "ies", severities(live), len(headers), KERNEL_HEADERS,
-                severities(headers), len(others), severities(others), len(fixable),
+                len(live), "y" if len(live) == 1 else "ies", severities(live), len(headers), ", ".join(names),
+                severities(headers), "; ".join(HEADER_ONLY[n] for n in names), HEADER_ONLY_STATUS, len(spared),
+                len(others), severities(others), len(fixable),
                 (":\n" + "\n".join(describe(f) for f in fixable[:80])) if fixable else ""))
 
 
@@ -575,7 +633,8 @@ def junit(targets):
 
 def describe(f):
     fixed = (" fixed in " + f["fixed"]) if f["fixed"] else " (no fixed version)"
-    extra = ("  [" + f["status"] + "]") if f.get("dismissed") else ""
+    status = f["status"] if f.get("dismissed") else f.get("not_affected", "")
+    extra = ("  [" + status + "]") if status else ""
     return "%-8s %-22s %s %s in %s%s  - %s%s" % (f["severity"], f["id"], f["package"], f["version"], f["file"],
                                                  fixed, f["title"][:120], extra)
 
@@ -640,32 +699,93 @@ def self_test():
     expect(dismissal(statements, ["CVE-2026-0003"], "generic", "boost", "1.92.0") is None,
            "a statement that says affected dismisses nothing")
 
-    # The CI image's summary: the advisories against the kernel's user-space headers
-    # counted apart from the other packages', by name and not by a prefix, and every one
-    # still counted in the whole and listed when it holds the release.
-    def image_finding(package, severity, fixed=""):
-        return {"scanner": "trivy", "scan": "CI image", "file": "ci-image:ubuntu", "type": "ubuntu", "package": package,
-                "version": "1", "id": "CVE-2026-1", "severity": severity, "fixed": fixed, "title": "t",
-                "description": "", "url": "", "status": ""}
-    image_packages = [("ci-image:ubuntu", "ubuntu", KERNEL_HEADERS, "7.0.0-34.34"), ("ci-image:ubuntu", "ubuntu", "libc6", "2.43"),
-                      ("ci-image:usr/share/dotnet", "dotnet-core", "System.Text.Json", "10.0.0")]
-    image_live = ([image_finding(KERNEL_HEADERS, "Medium")] * 3 + [image_finding(KERNEL_HEADERS, "High")] +
+    # The header-only rule: it reaches the packages HEADER_ONLY names, by name and not by
+    # a prefix, in the CI image's scan and in no other; an advisory under it is not
+    # affected and never blocking, the GitLab report's record keeps its severity and
+    # solution and carries the status in its details, and the report's id for it is
+    # the one the dashboard already holds; a High with a fixed version against any
+    # other package of the image, or against the same name in a lock file, still counts.
+    KERNEL = "linux-libc-dev"
+    image_file = IMAGE_PREFIX + "ubuntu"
+    expect(KERNEL in HEADER_ONLY and HEADER_ONLY_STATUS.startswith("not affected: header-only package"),
+           "HEADER_ONLY names linux-libc-dev, and its status says not affected and why")
+    expect(header_only(KERNEL, image_file) and not header_only(KERNEL + "-arm64-cross", image_file)
+           and not header_only("libc6", image_file) and not header_only(KERNEL, "hmailserver/x/packages.lock.json")
+           and not header_only(KERNEL, "") and not header_only(KERNEL, None),
+           "the rule reaches the named package in the CI image's scan, and nothing else")
+    trivy_report = {"Results": [{"Target": "ubuntu", "Type": "ubuntu", "Class": "os-pkgs",
+                                 "Packages": [{"Name": KERNEL, "Version": "7.0.0-34.34"}, {"Name": "libc6", "Version": "2.43"}],
+                                 "Vulnerabilities": [
+                                     {"PkgName": KERNEL, "InstalledVersion": "7.0.0-34.34", "VulnerabilityID": "CVE-2026-1",
+                                      "Severity": "HIGH", "FixedVersion": "7.0.0-38.38", "Title": "kernel", "PrimaryURL": "https://x/1"},
+                                     {"PkgName": KERNEL, "InstalledVersion": "7.0.0-34.34", "VulnerabilityID": "CVE-2026-2",
+                                      "Severity": "CRITICAL", "FixedVersion": "7.0.0-38.38", "Title": "kernel"},
+                                     {"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-3",
+                                      "Severity": "HIGH", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]}]}
+    image_found, image_packages = report_findings(trivy_report, "CI image", IMAGE_PREFIX)
+    lock_found, _ = report_findings(trivy_report, "lock files")
+    kernel_found = [f for f in image_found if f["package"] == KERNEL]
+    libc_found = [f for f in image_found if f["package"] == "libc6"]
+    expect(len(kernel_found) == 2 and all(f.get("not_affected") == HEADER_ONLY_STATUS and not blocking(f) for f in kernel_found)
+           and all(f["file"] == image_file and f["severity"] in ("High", "Critical") and f["fixed"] for f in kernel_found),
+           "a Critical or High with a fixed version against linux-libc-dev in the CI image is not affected and holds nothing: %s"
+           % kernel_found)
+    expect(len(libc_found) == 1 and not libc_found[0].get("not_affected") and blocking(libc_found[0]),
+           "a High with a fixed version against any other package of the image still counts: %s" % libc_found)
+    expect(len(lock_found) == 3 and all(not f.get("not_affected") and blocking(f) for f in lock_found),
+           "the rule is the CI image's scan's alone: the same name in a lock file counts as any package: %s" % lock_found)
+    expect(describe(kernel_found[0]).endswith("  [" + HEADER_ONLY_STATUS + "]") and not describe(libc_found[0]).endswith("]"),
+           "findings.txt says the status on the finding's line: %s" % describe(kernel_found[0]))
+    report = gitlab_report("trivy", "Trivy", "1", image_found, "2026-10-08T00:00:00", "2026-10-08T00:00:01", "success")
+    records = dict((v["identifiers"][0]["value"], v) for v in report["vulnerabilities"])
+    expect(sorted(records) == ["CVE-2026-1", "CVE-2026-2", "CVE-2026-3"]
+           and all(records[i]["severity"] == s and records[i]["solution"] for i, s in
+                   (("CVE-2026-1", "High"), ("CVE-2026-2", "Critical"), ("CVE-2026-3", "High")))
+           and all(records[i]["details"]["not_affected"]["type"] == "text"
+                   and records[i]["details"]["not_affected"]["value"].startswith(HEADER_ONLY_STATUS) for i in ("CVE-2026-1", "CVE-2026-2"))
+           and "details" not in records["CVE-2026-3"],
+           "the GitLab report keeps every record, its severity and its solution, and the header-only ones carry the status "
+           "in their details: %s" % json.dumps(report["vulnerabilities"])[:600])
+    expect(records["CVE-2026-1"]["id"] == str(uuid.uuid5(ID_NAMESPACE, "|".join(["trivy", image_file, KERNEL, "7.0.0-34.34", "CVE-2026-1"])))
+           and records["CVE-2026-1"]["location"] == {"file": image_file, "dependency": {"package": {"name": KERNEL}, "version": "7.0.0-34.34"}},
+           "the record's id and location are the ones the dashboard already holds, so the rule hides nothing and moves nothing")
+    # The CI image's summary: the header-only packages' advisories counted apart from the
+    # other packages', by name and not by a prefix, with how many would have held the
+    # release, every one still counted in the whole, and the ones that do hold it listed.
+    def image_finding(package, severity, fixed="", file=image_file):
+        f = {"scanner": "trivy", "scan": "CI image", "file": file, "type": "ubuntu", "package": package,
+             "version": "1", "id": "CVE-2026-1", "severity": severity, "fixed": fixed, "title": "t",
+             "description": "", "url": "", "status": ""}
+        if header_only(package, file):
+            f["not_affected"] = HEADER_ONLY_STATUS
+        return f
+    image_packages = [(image_file, "ubuntu", KERNEL, "7.0.0-34.34"), (image_file, "ubuntu", "libc6", "2.43"),
+                      (IMAGE_PREFIX + "usr/share/dotnet", "dotnet-core", "System.Text.Json", "10.0.0")]
+    image_live = ([image_finding(KERNEL, "Medium")] * 3 + [image_finding(KERNEL, "High")] +
                   [image_finding("libc6", "Medium"), image_finding("patch", "Low"),
-                   image_finding(KERNEL_HEADERS + "-arm64-cross", "Low")])
+                   image_finding(KERNEL + "-arm64-cross", "Low")])
     summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, image_live, [])
     expect(summary == ("ubuntu 26.04: 3 package(s), 2 of them the distribution's; 7 vulnerabilities (High 1, Medium 4, "
-                       "Low 2), 4 of them against linux-libc-dev, the kernel's user-space headers, which hold no kernel code "
-                       "(Trivy files the kernel source package's advisories under it: High 1, Medium 3), and 3 against the "
-                       "image's other packages (Medium 1, Low 2); 0 high or critical with a fixed version"),
+                       "Low 2), 4 of them against linux-libc-dev (High 1, Medium 3) - the kernel's user-space API headers, "
+                       "built from the kernel's source package, whose advisories Trivy files under it - not affected: "
+                       "header-only package, the advisory is against the kernel it was built from, 0 of them high or "
+                       "critical with a fixed version, which hold nothing; and 3 against the image's other packages "
+                       "(Medium 1, Low 2); 0 high or critical with a fixed version"),
            "the CI image's summary counts linux-libc-dev's advisories apart, and only that package's: %s" % summary)
-    held = image_finding(KERNEL_HEADERS, "High", "7.0.0-35.35")
-    summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, image_live + [held], [held])
-    expect("8 vulnerabilities (High 2, Medium 4, Low 2), 5 of them against linux-libc-dev" in summary
-           and summary.endswith("1 high or critical with a fixed version:\n" + describe(held)),
-           "a fixable High advisory against linux-libc-dev is counted, and listed as one that holds the release: %s" % summary)
+    spared = image_finding(KERNEL, "High", "7.0.0-38.38")
+    held = image_finding("libc6", "High", "2.43-2ubuntu2.4")
+    fixable = [f for f in image_live + [spared, held] if blocking(f)]
+    summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, image_live + [spared, held], fixable)
+    expect(fixable == [held] and "9 vulnerabilities (High 3, Medium 4, Low 2), 5 of them against linux-libc-dev (High 2, Medium 3)" in summary
+           and ", 1 of them high or critical with a fixed version, which hold nothing; and 4 against the image's other packages "
+               "(High 1, Medium 1, Low 2); 1 high or critical with a fixed version:\n" + describe(held) in summary
+           and describe(spared) not in summary,
+           "a fixable High against linux-libc-dev is counted among the headers' and holds nothing, while one against libc6 "
+           "is listed as holding the release: %s" % summary)
     summary = image_summary({"Family": "ubuntu", "Name": "26.04"}, image_packages, [], [])
-    expect("0 vulnerabilities (none), 0 of them against linux-libc-dev" in summary
-           and "under it: none), and 0 against the image's other packages (none); 0 high" in summary,
+    expect("0 vulnerabilities (none), 0 of them against linux-libc-dev (none)" in summary
+           and ", 0 of them high or critical with a fixed version, which hold nothing; and 0 against the image's other "
+               "packages (none); 0 high or critical with a fixed version" in summary,
            "an image with no advisory says so in each count: %s" % summary)
 
     # The versions as each file pins them.
@@ -824,7 +944,7 @@ def main():
                 broken = True
                 targets.append(("trivy", "the CI image", "FAIL", "trivy rootfs exited %d; see trivy.log" % code))
             else:
-                found, packages = trivy_findings(image_json, "CI image", "ci-image:")
+                found, packages = trivy_findings(image_json, "CI image", IMAGE_PREFIX)
                 trivy_all += found
                 with open(image_json, encoding="utf-8") as f:
                     os_found = ((json.load(f).get("Metadata") or {}).get("OS") or {})
@@ -874,7 +994,10 @@ def main():
     with open(os.path.join(out, "junit.xml"), "w", encoding="utf-8") as f:
         f.write(junit(targets))
     order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3, "Unknown": 4, "Info": 5}
-    everything = sorted(trivy_all + osv_all, key=lambda f: (bool(f.get("dismissed")), order.get(f["severity"], 9), f["id"]))
+    # The findings that count first, then the header-only packages' (not affected), then
+    # the dismissed, each by severity.
+    everything = sorted(trivy_all + osv_all, key=lambda f: (bool(f.get("dismissed")), bool(f.get("not_affected")),
+                                                            order.get(f["severity"], 9), f["id"]))
     with open(os.path.join(out, "findings.txt"), "w", encoding="utf-8") as f:
         f.write("".join(describe(x) + "\n" for x in everything))
 
@@ -885,9 +1008,12 @@ def main():
         for line in text.split("\n")[:12]:
             print("           " + line)
     live = [f for f in everything if not f.get("dismissed")]
+    spared = [f for f in live if f.get("not_affected")]
     print("")
-    print("%d vulnerabilit%s in all (%d dismissed in the VEX document); %d high or critical with a fixed version." % (
-        len(live), "y" if len(live) == 1 else "ies", len(everything) - len(live), sum(1 for f in live if blocking(f))))
+    print("%d vulnerabilit%s in all (%d dismissed in the VEX document; %d against the CI image's header-only packages, %s, "
+          "%s); %d high or critical with a fixed version." % (
+              len(live), "y" if len(live) == 1 else "ies", len(everything) - len(live), len(spared),
+              ", ".join(sorted(HEADER_ONLY)), HEADER_ONLY_STATUS, sum(1 for f in live if blocking(f))))
     if broken:
         return 2
     return 1 if any(t[2] == "FAIL" for t in targets) else 0

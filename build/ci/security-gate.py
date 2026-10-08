@@ -19,7 +19,12 @@ management policy", "Before a release":
                     Critical or High;
   dependency-scan   Trivy and OSV (build/ci/dependency-scan.py): every vulnerability
                     of severity Critical or High with a fixed version that the VEX
-                    document (.gitlab/hmailserver.openvex.json) does not dismiss;
+                    document (.gitlab/hmailserver.openvex.json) does not dismiss - but
+                    not one against a header-only package of the CI image
+                    (dependency-scan.py's HEADER_ONLY: linux-libc-dev, the kernel's
+                    user-space headers, under which Trivy files the kernel's
+                    advisories), which the scan lists as not affected and this gate,
+                    by the same rule (header_only), says and never holds;
 
 each blocks the release unless .gitlab/security-exceptions.yml - master's, in the
 release job, as check_tag in release-chain.py fetched it - accepts it: an entry
@@ -147,6 +152,22 @@ def _load_findings():
 
 
 findings_module = _load_findings()
+
+_dependency_scan = []
+
+
+def dependency_scan_module():
+    """build/ci/dependency-scan.py, loaded the first time a release's dependency findings
+    are read: its header-only rule (HEADER_ONLY, header_only) spares a record here as it
+    spared the finding there, so that the scan and the gate read one rule. Not at
+    import: the change gate never needs it."""
+    if not _dependency_scan:
+        path = os.path.join(ROOT, "build", "ci", "dependency-scan.py")
+        spec = importlib.util.spec_from_file_location("dependency_scan", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _dependency_scan.append(module)
+    return _dependency_scan[0]
 
 
 # ---------------------------------------------------------------- the exceptions file
@@ -476,9 +497,16 @@ def gitlab_sast_scan(root, artifacts, accepted, scope=None, outside=None, own=No
     return blocking, taken, len(found)
 
 
-def dependency_scan(root, artifacts, accepted):
-    problems, blocking, taken = [], [], []
+def dependency_scan(root, artifacts, accepted, say=None):
+    """dependency-scan's two reports and its JUnit file: (blocking, accepted, total). A
+    Critical or High record with a solution (a fixed version) holds the release unless an
+    exception accepts it - or unless it is against a header-only package of the CI image
+    (dependency-scan.py's HEADER_ONLY, read off the record's package and location.file
+    by its header_only), which is not affected: said through say, when given, and never
+    held."""
+    problems, blocking, taken, spared = [], [], [], []
     excepted = dict(((e["finding"], e["package"]), e) for e in accepted)
+    rules = dependency_scan_module()
     total = 0
     for relative in DEPENDENCY_REPORTS:
         report, error = _read_json(os.path.join(artifacts, relative))
@@ -499,6 +527,9 @@ def dependency_scan(root, artifacts, accepted):
                     advisory = identifier["value"]
                     break
             package = (((v.get("location") or {}).get("dependency") or {}).get("package") or {}).get("name") or ""
+            if rules.header_only(package, (v.get("location") or {}).get("file") or ""):
+                spared.append((advisory or "an advisory", package))
+                continue
             if (advisory, package) in excepted:
                 taken.append((excepted[(advisory, package)], v))
                 continue
@@ -507,6 +538,10 @@ def dependency_scan(root, artifacts, accepted):
                                 v.get("severity"), advisory or "an advisory", package or "a package",
                                 (v.get("location") or {}).get("file", "unknown"), (v.get("name") or "")[:120],
                                 (v.get("solution") or "")[:120]))
+    if spared and say:
+        say("dependency-scan: %d Critical or High with a fixed version against %s in the CI image hold nothing - %s" % (
+            len(spared), ", ".join(sorted({p for _, p in spared})), rules.HEADER_ONLY_STATUS))
+        say("                 " + ", ".join(sorted({a for a, _ in spared})))
     # The CI image: the Linux packages are built against its libraries, and a scan
     # that could not read them has not said they are clean.
     junit_path = os.path.join(artifacts, DEPENDENCY_JUNIT)
@@ -566,7 +601,7 @@ def evaluate(root, artifacts, today=None, exceptions_text=None, say=print, not_b
         elif scan == "semgrep-sast":
             results[scan] = gitlab_sast_scan(root, artifacts, accepted, not_before=not_before)
         else:
-            results[scan] = dependency_scan(root, artifacts, accepted)
+            results[scan] = dependency_scan(root, artifacts, accepted, say=say)
     for scan in SCANS:
         found, taken, total = results[scan]
         say("%-16s %5d finding(s) in the report; %d accepted by an exception; %d holding the release" % (
@@ -1640,11 +1675,11 @@ def self_test():
                                          "identifiers": [{"type": "semgrep_id", "name": "c.strcpy", "value": "c.strcpy"}],
                                          "location": {"file": "src/a.cpp", "start_line": 2}}]}
 
-        def deps(severity="High", solution="Upgrade x to 2.", status="success"):
+        def deps(severity="High", solution="Upgrade x to 2.", status="success", package="zlib", file="lock"):
             return {"version": "15.2.5", "scan": {"status": status, "type": "dependency_scanning"},
-                    "vulnerabilities": [{"id": "u", "name": "CVE-2026-0001 in zlib 1.3", "severity": severity,
+                    "vulnerabilities": [{"id": "u", "name": "CVE-2026-0001 in %s 1.3" % package, "severity": severity,
                                          "identifiers": [{"type": "cve", "name": "CVE-2026-0001", "value": "CVE-2026-0001"}],
-                                         "location": {"file": "lock", "dependency": {"package": {"name": "zlib"}, "version": "1.3"}},
+                                         "location": {"file": file, "dependency": {"package": {"name": package}, "version": "1.3"}},
                                          "solution": solution}] if severity else []}
 
         junit_ok = ('<testsuites><testsuite><testcase classname="dependency-scan.image" name="i"/>'
@@ -1729,6 +1764,50 @@ def self_test():
         refuses("the CI image not scanned", r, "did not scan the CI image")
         r = clean(); r[DEPENDENCY_REPORTS[0]] = deps("High", solution="")
         expect(run(r) == [], "a High advisory with no fixed version is listed, not blocking (SECURITY.md's threshold)")
+        # The header-only rule, dependency-scan.py's: a Critical or High with a fixed
+        # version against linux-libc-dev in the CI image is not affected and holds
+        # nothing, said in the log; the same name in a lock file, or any other package
+        # of the image, holds as before; and a report dependency-scan.py itself writes
+        # for such findings passes.
+        scan = dependency_scan_module()
+        image = scan.IMAGE_PREFIX + "ubuntu"
+        for severity in ("High", "Critical"):
+            r = clean(); r[DEPENDENCY_REPORTS[0]] = deps(severity, package="linux-libc-dev", file=image)
+            expect(run(r) == [], "a %s advisory with a fixed version against linux-libc-dev in the CI image is not affected "
+                   "(header-only), and holds nothing: %s" % (severity, run(r)))
+        said = []
+        lay(r)
+        held = findings_module.ROOT
+        findings_module.ROOT = root
+        try:
+            evaluate(root, artifacts, today, empty, say=said.append)
+        finally:
+            findings_module.ROOT = held
+        expect(any("linux-libc-dev in the CI image hold nothing" in line and scan.HEADER_ONLY_STATUS in line for line in said)
+               and any(line.strip() == "CVE-2026-0001" for line in said),
+               "the gate says what the rule spared, with the status and the advisory: %s" % said)
+        r = clean(); r[DEPENDENCY_REPORTS[0]] = deps("High", package="linux-libc-dev", file="lock")
+        refuses("the same name in a lock file (the rule is the CI image's scan's alone)", r, "CVE-2026-0001 in linux-libc-dev")
+        r = clean(); r[DEPENDENCY_REPORTS[0]] = deps("High", package="libc6", file=image)
+        refuses("a High advisory with a fixed version against another package of the image", r, "CVE-2026-0001 in libc6")
+        r = clean(); r[DEPENDENCY_REPORTS[0]] = deps("High", package="linux-libc-dev-arm64-cross", file=image)
+        refuses("a package whose name begins with a header-only package's", r, "CVE-2026-0001 in linux-libc-dev-arm64-cross")
+        written, _ = scan.report_findings({"Results": [{"Target": "ubuntu", "Type": "ubuntu", "Vulnerabilities": [
+            {"PkgName": "linux-libc-dev", "InstalledVersion": "7.0.0-34.34", "VulnerabilityID": "CVE-2026-0002",
+             "Severity": "HIGH", "FixedVersion": "7.0.0-38.38", "Title": "kernel"},
+            {"PkgName": "linux-libc-dev", "InstalledVersion": "7.0.0-34.34", "VulnerabilityID": "CVE-2026-0003",
+             "Severity": "CRITICAL", "FixedVersion": "7.0.0-38.38", "Title": "kernel"},
+            {"PkgName": "libc6", "InstalledVersion": "2.43", "VulnerabilityID": "CVE-2026-0004",
+             "Severity": "MEDIUM", "FixedVersion": "2.43-2ubuntu2.4", "Title": "libc"}]}]}, "CI image", scan.IMAGE_PREFIX)
+        sample = scan.gitlab_report("trivy", "Trivy", "1", written, "2026-10-08T00:00:00", "2026-10-08T00:00:01", "success")
+        expect(len(sample["vulnerabilities"]) == 3 and sum(1 for v in sample["vulnerabilities"] if "details" in v) == 2,
+               "dependency-scan.py's report lists the header-only findings, two of them with the status")
+        r = clean(); r[DEPENDENCY_REPORTS[0]] = sample
+        expect(run(r) == [], "the release judgement over a report dependency-scan.py wrote for a High and a Critical with a "
+               "fixed version against linux-libc-dev in the CI image passes: %s" % run(r))
+        sample["vulnerabilities"][2]["severity"] = "High"
+        r = clean(); r[DEPENDENCY_REPORTS[0]] = sample
+        refuses("the same report with libc6's advisory High", r, "CVE-2026-0004 in libc6")
 
         def exception(scan, finding, expires="2027-03-01", reviewed="2026-09-26", package=None, reason=None):
             lines = ["exceptions:", "  - scan: %s" % scan, "    finding: %s" % finding]

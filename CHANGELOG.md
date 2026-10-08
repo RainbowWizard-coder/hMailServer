@@ -637,7 +637,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   October 2026, 3,535 were against `linux-libc-dev`, the kernel's user-space headers, which hold no kernel code:
   Trivy files every advisory against the kernel's source package under it. The CI image's test case now counts those
   apart from the 73 against the image's other packages, each by severity. Every advisory stays in the reports and
-  `findings.txt`, and a High one against the headers that has a fixed version still holds the release.
+  `findings.txt` (and, since the next entry, one against the headers that has a fixed version is not affected).
+- **`dependency-scan` and the release gate treat `linux-libc-dev` as a header-only package, whose advisories are
+  not affected.** Ubuntu published `linux-libc-dev` 7.0.0-38.38, and `batch44`'s pipeline 2924313539 (8 October
+  2026) counted 60 kernel advisories against the CI image's 7.0.0-34.34 headers as High or Critical with a fixed
+  version (3,610 in all, 15 dismissed by the VEX document), on which the release gate would have held the next
+  release: headers that hold no kernel code, in an image that holds no kernel, under which Trivy files every advisory
+  against the kernel's source package. The new rule `HEADER_ONLY` in `build/ci/dependency-scan.py` names the image's
+  header-only packages, that one today, with the reason: an advisory against one of them in the CI image's scan is
+  listed in every report with the status "not affected: header-only package, the advisory is against the kernel it
+  was built from" - the GitLab report's record carries it in its `details`, under the record's own id, so the
+  dashboard shows it - and counted apart in the image's test case, and it is never among the high or critical with a
+  fixed version, by the scan or by `build/ci/security-gate.py`, which reads the same rule off the record's package and
+  location and says in the release job's log what it spared. The rule reaches that name alone, and the image's scan
+  alone: a High with a fixed version against any other package, or against the same name in a lock file, counts as
+  before; both self-tests hold it ([SECURITY.md](SECURITY.md), "Dependencies").
 - **`build/ci/mirror-semgrep.sh` and `build/ci/mirror-tumbleweed.sh` handle no token.** `mirror-tumbleweed.sh` read a
   registry token from its standard input for `skopeo login`, and `repo-hygiene`'s Token-Permissions check failed on it,
   in `batch43`'s pipeline 2916285454, as a script that reads a token where no job runs it. Both now take a

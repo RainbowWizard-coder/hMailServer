@@ -625,7 +625,12 @@ scanning".
   It asks OSV (`api.osv.dev`) about the libraries the Windows server is built with and no manifest names - OpenSSL,
   Boost, libpq, zlib, QuickJS, MariaDB Connector/C, 7-Zip - at the versions the build uses, and says UNKNOWN, not
   clean, for a library OSV holds no usable data on (libpq, QuickJS, 7-Zip 19.00 and SQL Server Compact, today). It
-  honours the VEX document. It runs on the project's own runners for `master`, a release tag, and a `batch*` branch
+  honours the VEX document. An advisory against a header-only package of that image - `linux-libc-dev`, the kernel's
+  user-space API headers, which carry no code of the kernel's, under which Trivy files every advisory against the
+  kernel's source package - is not affected: the report lists it with that status, counted apart, and neither the scan
+  nor the release job counts it among the critical or high with a fixed version (`HEADER_ONLY` in
+  `build/ci/dependency-scan.py`, a list of that package alone today, with the reason; the rule reaches no other package
+  and no other scan). It runs on the project's own runners for `master`, a release tag, and a `batch*` branch
   that changes more than documents from `master`, and is `allow_failure`: a finding in the whole tree that no change
   brought must not stop an unrelated change, and it holds the release instead ([Before a
   release](#before-a-release)). Renovate (`renovate.json`, the `renovate` job, daily under its schedule) opens a
@@ -756,8 +761,9 @@ the release** while:
 - *static-analysis* (cppcheck, clang-tidy) or *semgrep* found something that is not in its committed baseline;
 - *semgrep-sast* found something of severity critical or high;
 - *dependency-scan* found a vulnerability of severity critical or high that has a fixed version and that the VEX
-  document does not dismiss as not affecting the project (one with no fixed version yet is read by hand:
-  [Dependencies](#dependencies-software-composition-analysis), "Before a release");
+  document does not dismiss as not affecting the project (one with no fixed version yet is read by hand, and one
+  against a header-only package of the CI image, `linux-libc-dev`, is not affected and is said, never held:
+  [Dependencies](#dependencies-software-composition-analysis));
 
 unless `.gitlab/security-exceptions.yml` declares that finding not exploitable ([Declaring a finding not
 exploitable](#declaring-a-finding-not-exploitable)) - `master`'s copy, which the job reads as it reads `master`'s
