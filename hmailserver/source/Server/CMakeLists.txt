@@ -972,6 +972,22 @@ add_executable(http-server-tests ${SERVER_DIR}/platform/http_server_tests_main.c
 target_link_libraries(http-server-tests PRIVATE hmailserver_core)
 set_target_properties(http-server-tests PROPERTIES OUTPUT_NAME http-server-tests)
 
+# ---------------------------------------------------------------- the REST API's OpenAPI document
+#
+# RestApiOpenApiTester (Common/Util/RestApiOpenApiTester.h) as a program of its
+# own, for the reason spf-tests is one: on Windows it runs inside the server
+# through ClassTester, which nothing reaches here. The document the server
+# serves as /api/v1/openapi.json, built from the same static functions, read by
+# a reader that refuses a member named twice in one object - a path written as
+# two entries, one a method, is that, and every reader keeps one of the two and
+# loses the other - its path items held to what OpenAPI lets them carry, every
+# operation it names given to the router and found known, and every route the
+# router can name found described. No database, configuration, file or
+# network. Milliseconds. Not installed; a bench tool.
+add_executable(openapi-tests ${SERVER_DIR}/platform/openapi_tests_main.cpp)
+target_link_libraries(openapi-tests PRIVATE hmailserver_core)
+set_target_properties(openapi-tests PROPERTIES OUTPUT_NAME openapi-tests)
+
 # ---------------------------------------------------------------- the live log
 #
 # The Logger's live log switched on and off while four threads log and one drains

@@ -489,6 +489,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   one column whose text ends in an ellipsis, no longer scroll sideways, and the list of rules, whose columns keep their
   widths and scroll sideways in a narrow window, keeps its vertical scroll bar, so that neither bar can turn the other
   on or off.
+- **Fixed: the REST API's OpenAPI document described either the listing of a folder's messages or the import of a
+  message into one, never both, and `GET /api/v1/status` twice.** `/api/v1/openapi.json` wrote
+  `/api/v1/me/folders/{id}/messages` as two entries, one holding the `GET` and one the `POST`, since the import
+  arrived on 11 September 2026, and `/api/v1/status` as two since 24 September, the second the description from
+  before the event-script languages were listed in it. JSON leaves a reader to do as it likes with a member named
+  twice in one object, and every reader keeps one of the two without a word: a browser's or Python's the last, so a
+  client generated from the document had the import and not the listing, and the older status description; the
+  server's own the first. Each path is now one entry carrying every method it answers, as the other paths with
+  several were written. Nothing changed in what the server answers, only in what it says it answers.
 
 ### IMAP, POP3 and the webmail
 
@@ -824,6 +833,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   A run that passes its last step says so, the limit not reached. `smtp-out` warns on Windows when asked for more than
   12,000 messages with the sink on the server's own machine. `loadgen.py self-test` holds the range's priority, the idle
   point, the last step and what a sink on the loopback is.
+
+- **The REST API's OpenAPI document is tested without the service, against the router that answers it.**
+  `RestApiOpenApiTester`, which `ClassTester` runs on Windows and the new `openapi-tests` program runs on Linux, in
+  `linux-build` and in the source packages' builds, reads the document `GET /api/v1/openapi.json` serves - built by
+  the same function, `RestApiServer::OpenApiDocument_`, without a listener - with a reader of its own that refuses a
+  member named twice in one object, which the server's reader and a browser's take without a word; holds every path
+  item to the fields OpenAPI 3.0 gives one and every operation to its summary and responses; gives every documented
+  operation, its templates made concrete, to `ParseRoute_` and fails on one the router does not know, the operations
+  `ProcessRequest_` answers before it parses a route excepted; and fails on a route kind the router can name that no
+  documented operation reaches, the two refusals' own kinds excepted. The reader is first proved on documents
+  written to fool it. With the two paths written twice put back, it fails naming `paths./api/v1/status` and
+  `paths./api/v1/me/folders/{id}/messages`; with a documented path misspelt, naming the operation the router does
+  not know.
 
 ### Documentation
 

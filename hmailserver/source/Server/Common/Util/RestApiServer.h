@@ -1358,6 +1358,11 @@ namespace HM
       // Request processing. Returns the full HTTP response.
       HttpResponse ProcessRequest_(const AnsiString &request, const IPAddress &peer_address);
 
+      // The OpenAPI tester (RestApiOpenApiTester.h) reads the document
+      // OpenApiDocument_ builds and asks ParseRoute_ about every operation
+      // it names.
+      friend class RestApiOpenApiTester;
+
       static void ParseRoute_(const AnsiString &method, const AnsiString &path, Route &route);
 
       // One path segment as the client sent it, with %XX turned back into the
@@ -2789,6 +2794,10 @@ namespace HM
       static bool IsServerWideReportSection_(const AnsiString &section);
       static AnsiString OpenApiReportsPaths_();
 
+      // The OpenAPI document, the same bytes for every caller: the literals
+      // in OpenApiDocument_ and every OpenApi*Paths_ function, joined.
+      // RestApiOpenApiTester reads it without a listener.
+      static AnsiString OpenApiDocument_();
       HttpResponse HandleOpenApi_();
 
       // True if the id names a message that is really in the delivery queue.

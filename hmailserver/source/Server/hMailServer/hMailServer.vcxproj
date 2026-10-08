@@ -767,6 +767,7 @@ EXIT 0
     <ClCompile Include="..\Common\Util\HttpCompression.cpp" />
     <ClCompile Include="..\Common\Util\HttpServer.cpp" />
     <ClCompile Include="..\Common\Util\RestApiServer.cpp" />
+    <ClCompile Include="..\Common\Util\RestApiOpenApiTester.cpp" />
     <ClCompile Include="..\Common\Util\RestApiPortal.cpp" />
     <ClCompile Include="..\Common\Util\InlineScriptHash.cpp" />
     <ClCompile Include="..\Common\Util\RestApiSettings.cpp" />
@@ -1783,6 +1784,7 @@ EXIT 0
     <ClInclude Include="..\Common\Util\Reports.h" />
     <ClInclude Include="..\Common\Util\SessionFollow.h" />
     <ClInclude Include="..\Common\Util\RestApiServer.h" />
+    <ClInclude Include="..\Common\Util\RestApiOpenApiTester.h" />
     <ClInclude Include="..\Common\Util\HelpPages.h" />
     <ClInclude Include="..\Common\Util\WebServicesServer.h" />
     <ClInclude Include="..\Common\Util\ContactStore.h" />

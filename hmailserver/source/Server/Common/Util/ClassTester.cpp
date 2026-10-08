@@ -158,6 +158,7 @@ namespace
 #include "../Util/EventTester.h"
 #include "../Util/HttpCompression.h"
 #include "../Util/HttpServer.h"
+#include "../Util/RestApiOpenApiTester.h"
 #include "../Persistence/PersistentMessageIndex.h"
 #include "../Util/UpdateChecker.h"
 #include "../Util/Language.h"
@@ -1536,6 +1537,15 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing HttpServer\n"));
       HttpServerTester httpServerTester;
       httpServerTester.Test();
+
+      // The REST API's OpenAPI document held to the router that answers it:
+      // one JSON value with no member named twice (a path written as two
+      // entries loses one of them in every reader), every path item as
+      // OpenAPI has it, every documented operation one the router knows, and
+      // every route the router names one the document describes.
+      OutputDebugString(_T("hMailServer: Testing RestApiOpenApi\n"));
+      RestApiOpenApiTester restApiOpenApiTester;
+      restApiOpenApiTester.Test();
 
       // What the full-text index's lookups prove: a message excluded only when
       // it is complete, not overflowed and some needle is in none of its terms
