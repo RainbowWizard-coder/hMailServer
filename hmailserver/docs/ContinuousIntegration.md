@@ -1284,9 +1284,14 @@ once; since 6 October 2026 it names it by digest:
   3.5.5-1ubuntu3.7), and pushed: the same tag, moved to
   `sha256:350484026f1ade2f1c8bb0b9248fcbb32bf45394c40e9a89af4f92445e31d2d6`,
   which `.linix` has named since, and both runners with the tag, linix and
-  server2, pull it by that digest. The 6 October digest stays in the registry,
-  with no tag, for the commits that name it: both answered an anonymous read on
-  8 October, and step 2 below says what an untagged manifest's keeping rests on.
+  server2, pull it by that digest. The 6 October digest was left with no tag,
+  which the registry does not keep: GitLab.com's registry removes an untagged
+  manifest that nothing references after 24 hours (its online garbage
+  collection; the cleanup policy, switched off, governs tags alone). Both
+  digests answered an anonymous read on 8 October, and the commits that name
+  the old one - `master` at 9b2001ce9, `batch44` - run from then on only on a
+  runner that still holds the image, which `if-not-present` never pulls again;
+  step 2 below says the rule.
 - **By its tag on the runner**, `hmailserver-ci/linux:26.04-<hash>`, found in
   the runner's own image store and never pulled: the only form until the second
   security review of 6.3.6 (SUP2-1), and the one `.gitlab-ci.yml` kept until the
@@ -1338,12 +1343,15 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
    image](#the-container-image), "What the owner sets on the registry").
    A Dockerfile that has not changed builds again to the same tag, and
    `--push` then gives that tag in the registry to the new image: the digest
-   an older commit names is left with no tag, and an image no tag names may
-   be removed by the registry's garbage collection. That is the rebuild rule,
-   for Ubuntu's updates between edits of the Dockerfile: a rebuild at the same
-   Dockerfile moves the tag to a new digest, the pin in `.linix` follows it in
-   a commit of its own, and the old digest stays for the commits that name it
-   (first on 8 October 2026, for the kernel-header and libc updates above).
+   an older commit names is left with no tag, and GitLab.com's registry removes
+   an untagged manifest that nothing references after 24 hours (its online
+   garbage collection, which no cleanup policy governs: a cleanup policy keeps
+   or removes tags). That is the rebuild rule, for Ubuntu's updates between
+   edits of the Dockerfile: a rebuild at the same Dockerfile moves the tag to a
+   new digest, the pin in `.linix` follows it in a commit of its own, and the
+   commits before that one keep their image only on a runner that already
+   holds it (first on 8 October 2026, for the kernel-header and libc updates
+   above).
    (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
    form.)
 3. Put that line into `.linix` in `.gitlab-ci.yml`, in the same commit as the
