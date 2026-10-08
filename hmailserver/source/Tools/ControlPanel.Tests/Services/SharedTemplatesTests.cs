@@ -97,16 +97,41 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The style is based on the theme's, so that the template, the colours and the
-      /// Normal weight stay WPF-UI's; without BasedOn the box would be WPF's stock one.
+      /// The style is based on WPF-UI's, named by its own key, so that the template, the
+      /// colours and the Normal weight stay WPF-UI's. Not on {StaticResource {x:Type CheckBox}}:
+      /// inside the dictionary that defines the implicit style, a StaticResource for the type
+      /// key finds the entry being defined and yields null, and a style based on nothing gave
+      /// every box the classic theme's 13-pixel square with a black tick.
       /// </summary>
       [Theory]
       [InlineData("CheckBox")]
       [InlineData("RadioButton")]
-      public void TheCaptionStyle_KeepsTheThemesTemplate(string kind)
+      public void TheCaptionStyle_IsBasedOnWpfUisStyleByItsKey(string kind)
       {
          XElement style = ImplicitStyle(kind);
-         Assert.Equal("{StaticResource {x:Type " + kind + "}}", (string)style.Attribute("BasedOn"));
+         string basedOn = (string)style.Attribute("BasedOn");
+         Assert.True("{StaticResource Default" + kind + "Style}" == basedOn,
+            "The " + kind + " style is based on " + (basedOn ?? "nothing") + " rather than WPF-UI's Default" + kind + "Style by its key; {StaticResource {x:Type " + kind + "}} inside the dictionary that defines the implicit style finds the entry being defined and yields null.");
+      }
+
+      /// <summary>
+      /// The same trap for every implicit style App.xaml's own dictionary declares: one
+      /// based on {StaticResource {x:Type T}}, T its own TargetType, is based on nothing.
+      /// The DataGrid style has been so since the shell was written and is left as it is
+      /// here - WPF-UI's DataGrid style would change every grid - so it is the one
+      /// exception, until that is done.
+      /// </summary>
+      [Fact]
+      public void NoImplicitStyle_IsBasedOnItsOwnTypeKey()
+      {
+         foreach (XElement style in App().Descendants(Wpf + "ResourceDictionary").Elements(Wpf + "Style").Where(s => s.Attribute(X + "Key") == null))
+         {
+            string target = TypeName((string)style.Attribute("TargetType"));
+            if (target == "DataGrid")
+               continue;
+            Assert.True((string)style.Attribute("BasedOn") != "{StaticResource {x:Type " + target + "}}",
+               "The implicit " + target + " style is based on {StaticResource {x:Type " + target + "}}, which inside the dictionary that defines it finds the entry being defined and yields null: name WPF-UI's style by its key.");
+         }
       }
 
       [Fact]
@@ -127,6 +152,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(style != null, "App.xaml has no implicit " + targetType + " style.");
          return style;
       }
+
+      private static string TypeName(string targetType)
+         => targetType.StartsWith("{x:Type ", StringComparison.Ordinal) ? targetType.Substring(8).TrimEnd('}') : targetType;
 
       private static XElement TabItemStyle() => ImplicitStyle("TabItem");
 

@@ -57,12 +57,13 @@ namespace hMailServer.ControlPanel.Views
       };
       // What the marked changes do, under the box rather than in its caption: a
       // caption of three lines is read by nobody, and a check box names itself to a
-      // screen reader by its whole caption.
+      // screen reader by its whole caption. Indented to the caption: WPF-UI's check
+      // box pads 11 before its 20-pixel box and keeps 8 between the box and the caption.
       private readonly TextBlock confirmNote_ = new()
       {
          Text = L("They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back."),
          TextWrapping = TextWrapping.Wrap,
-         Margin = new Thickness(28, 0, 0, 0),
+         Margin = new Thickness(39, 0, 0, 0),
          Visibility = Visibility.Collapsed
       };
 

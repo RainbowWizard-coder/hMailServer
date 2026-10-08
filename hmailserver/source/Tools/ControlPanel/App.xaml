@@ -246,16 +246,21 @@
                  box's automation name is still its caption. The box sits
                  beside the caption's first line: WPF-UI's check box is a
                  BulletDecorator, which aligns its bullet with the first line
-                 of an AccessText. BasedOn the theme's style so that the
-                 template, the colours and the Normal weight are WPF-UI's. -->
-            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                 of an AccessText. Based on WPF-UI's style under its own key,
+                 DefaultCheckBoxStyle, so that the template, the colours and
+                 the Normal weight are WPF-UI's - never on {x:Type CheckBox}:
+                 inside the dictionary that defines the implicit style, a
+                 StaticResource for the type key finds the entry being defined
+                 and yields null, and a style based on nothing gave every box
+                 the classic theme's 13-pixel square with a black tick. -->
+            <Style TargetType="CheckBox" BasedOn="{StaticResource DefaultCheckBoxStyle}">
                 <Style.Resources>
                     <DataTemplate DataType="{x:Type sys:String}">
                         <AccessText Text="{Binding}" TextWrapping="Wrap" />
                     </DataTemplate>
                 </Style.Resources>
             </Style>
-            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+            <Style TargetType="RadioButton" BasedOn="{StaticResource DefaultRadioButtonStyle}">
                 <Style.Resources>
                     <DataTemplate DataType="{x:Type sys:String}">
                         <AccessText Text="{Binding}" TextWrapping="Wrap" />
