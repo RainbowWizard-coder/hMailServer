@@ -10,6 +10,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:loc="clr-namespace:hMailServer.ControlPanel.Services"
     xmlns:svc="clr-namespace:hMailServer.ControlPanel.Services"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -186,10 +187,15 @@
                  scrolling strip of flat "pivot" tabs: a clear accent underline
                  marks the selected tab, hover gives a subtle fill, and the
                  header sits on a 1px divider so the underline reads cleanly.
-                 Implicit styles so every TabControl/TabItem picks them up. -->
+                 Implicit styles so every TabControl/TabItem picks them up.
+                 The selected tab's SemiBold and the strip's 14 px are set on
+                 the header's presenter alone, never on the TabItem: FontWeight
+                 and FontSize inherit, and a tab's page is the TabItem's logical
+                 child, so a setter on the item made every caption, hint and
+                 editor value on the open tab as heavy as its card titles, and
+                 gave them a size the pages without tabs do not get. -->
             <Style TargetType="TabItem">
                 <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                <Setter Property="FontSize" Value="14" />
                 <Setter Property="Cursor" Value="Hand" />
                 <Setter Property="Padding" Value="15,9" />
                 <Setter Property="Margin" Value="0,0,4,0" />
@@ -201,6 +207,7 @@
                                 <Grid>
                                     <ContentPresenter x:Name="Content" ContentSource="Header"
                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      TextElement.FontSize="14"
                                                       TextElement.Foreground="{TemplateBinding Foreground}" />
                                     <Border x:Name="Underline" Height="2.5" CornerRadius="2" Margin="2,0,2,-1"
                                             VerticalAlignment="Bottom" Background="{StaticResource BrandBrush}"
@@ -214,7 +221,7 @@
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
                                     <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
-                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter TargetName="Content" Property="TextElement.FontWeight" Value="SemiBold" />
                                     <Setter TargetName="Underline" Property="Opacity" Value="1" />
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
@@ -224,6 +231,36 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- A check box or radio button whose Content is a string shows it
+                 in an AccessText that wraps, so a long caption folds under
+                 itself instead of being cut mid-word at the edge of its card
+                 or dialog ("...or shorten how long data is kept on"). An
+                 AccessText rather than a TextBlock because the string's
+                 underscore is its Alt key, which a TextBlock would print. An
+                 implicit data template for strings in the style's resources,
+                 not a ContentTemplate, so that a box whose Content is an
+                 element of its own (FieldDialog's AccessText, a panel) is
+                 presented as before; and the Content stays the string, so the
+                 box's automation name is still its caption. The box sits
+                 beside the caption's first line: WPF-UI's check box is a
+                 BulletDecorator, which aligns its bullet with the first line
+                 of an AccessText. BasedOn the theme's style so that the
+                 template, the colours and the Normal weight are WPF-UI's. -->
+            <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                <Style.Resources>
+                    <DataTemplate DataType="{x:Type sys:String}">
+                        <AccessText Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </Style.Resources>
+            </Style>
+            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                <Style.Resources>
+                    <DataTemplate DataType="{x:Type sys:String}">
+                        <AccessText Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </Style.Resources>
             </Style>
 
             <!-- The chevrons that scroll an overflowing tab strip. Sized and

@@ -647,6 +647,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   expected result takes any answer but the list's own error codes; and the dialog's button says *Add* when it adds and
   *Save* when it edits.
 
+- **Fixed: on every tabbed page and dialog of the Control Panel, the selected tab's weight leaked into the whole
+  tab.** The tab strip made the selected tab's header SemiBold by setting the weight on the tab item itself, and a
+  tab's page is that item's child, so every description, field label, hint and editor value on the open tab that did
+  not set a weight of its own came out SemiBold, as heavy as its card titles - on the 31 tabs of the settings pages,
+  single-tab pages included, and in the domain, account, route and IP range dialogs - while a page without tabs showed
+  the same text Regular. The 14-pixel size set on the tab item reached the tab's page the same way. Both are now set
+  on the tab's header alone, so a tabbed page reads as the pages without tabs do.
+- **Fixed: a check box or radio button caption longer than its card or dialog was cut off mid-word.** A caption given
+  as text never wrapped: the setting profiles page's consent sentence ended at "...how long data is kept on" in every
+  language and at every window size, so its consequence was never seen; the account's auto-reply "Reply to colleagues
+  only..." and the API key dialog's "Read-only..." ended mid-word; the German backup page's verify caption was cut; and
+  the folder permission entry's "Post..." was wider than its dialog. Every such caption now wraps under itself, keeps
+  its Alt key and is still the box's name for a screen reader.
+
 ### IMAP, POP3 and the webmail
 
 - **Fixed: an answer of the HTTP listeners that its handler returned after the listener's request deadline was cut off
