@@ -6777,6 +6777,9 @@
   <data name="Not published" xml:space="preserve">
     <value>未发布</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>未读取</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>未重启</value>
   </data>
@@ -9987,6 +9990,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>成员不再收到邮件前窗口内的软退信数（1 到 100）</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>部分值无法读取：{0} 下面的各节可能不完整。</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>有人在猜测密码</value>
   </data>
@@ -10532,6 +10538,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>IP 范围 {0} 接受不经 TLS 的密码，而端口 {1} 没有客户端可以启动的 TLS：请先为这些端口配置证书和 STARTTLS，然后再要求从该范围登录时使用 TLS。</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>IP 范围无法读取。</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>选出应当拥有邮箱的人员的 LDAP 过滤器。默认值选取带有邮件地址的已启用 person 对象 - 这有意排除了已禁用的离职人员、服务账户和计算机，而更宽泛的过滤器会为这些全都预配邮箱。</value>
   </data>
@@ -10676,8 +10685,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>无法读取防病毒配置。</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>无法读取防病毒配置： </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>存档中没有此账户的邮件。</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>附件拦截设置无法读取。</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>附件被替换，邮件被投递。两个通知设置都不适用于此操作 — 服务器只在操作是删除邮件时才发送“邮件已删除”通知。</value>
@@ -10754,6 +10769,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>无法导出证书的公钥以进行比较。</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>证书无法读取。</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>监听器所出示的证书，以及通过 ACME 的自动续期。</value>
   </data>
@@ -10771,6 +10789,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>检查已完成，但该域发布的记录无法使用：两条记录、无效的机制、重定向循环、查询过多。重试也无济于事，因此从不延迟；严格的站点将其视为 fail，宽松的站点则忽略它。</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>密码套件列表无法读取。</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>在启用了 TLS 1.0 或 1.1 的同时，密码套件列表使用的是 AEAD-ONLY 预设。这些版本没有任何 AEAD 套件，因此它们会被通告，然后却无法完成握手 - 在客户端看来这像是一台损坏的服务器，而不是一项策略。</value>
@@ -10920,6 +10941,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>服务器返回给客户端的问候、退信和错误文本。</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>灰名单设置无法读取。</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>无法读取组成员: </value>
   </data>
@@ -11048,6 +11072,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>监听器已配置。剩下的是服务器之外的事: 为每个邮件域发布 autoconfig.&lt;domain&gt; 和 autodiscover.&lt;domain&gt; 记录，然后从一台客户端计算机进行测试。</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>监听器无法读取。</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>检查背后的列表</value>
@@ -11194,6 +11221,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The profile" xml:space="preserve">
     <value>配置方案</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>协议版本无法读取。</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>当不是本计算机的地址时，其他服务器看到的公共地址。</value>
@@ -11456,11 +11486,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>单一值 AEAD-ONLY (不区分大小写) 是一个具名预设而不是 OpenSSL 密码字符串: 只有前向保密的 AEAD 套件 (使用 AES-GCM 或 ChaCha20-Poly1305 的 ECDHE 或 DHE)，排除所有 CBC 模式套件 - Lucky13 填充预言机一族 - 以及静态 RSA 密钥交换。代价是: 只会 CBC 套件的 TLS 1.2 客户端无法连接，而 TLS 1.0/1.1 完全没有可用的密码，因此不要在它旁边启用这些协议。TLS 1.3 不受影响 - 其套件在设计上就是 AEAD，并在下面单独配置。拼错的预设名称会被拒绝并报告，而不是被悄悄忽略。</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>大小限制无法读取。</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>智能主机、其端口和凭据，以及投递的重试计划。</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>来源限制必须是一个地址 (10.0.0.5)、一个范围 (10.0.0.1-10.0.0.99) 或 CIDR (10.0.0.0/24)。留空则接受来自任何地址的密钥。</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>无法读取垃圾邮件配置： </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>无法以本页预期的格式 (YYYY-MM-DD HH:MM:SS) 读取存储的到期时间，因此从此处无法判断服务器是否仍接受此密钥。如果该行是手动编辑的，请更正它；否则请吊销该密钥并创建一个替代。</value>
@@ -11491,6 +11527,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>无法读取传输安全配置。</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>无法读取传输安全配置： </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>这两半的失败方式和原因都不同。在做任何其他事之前，先弄清楚您遇到的是哪一种。</value>
@@ -11590,6 +11629,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>无法从服务器读取这些设置。</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>这些设置无法读取。</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>为了让安装程序能够替换其文件，此控制面板会在助手启动后立即关闭；一分钟后请重新打开以查看结果。</value>
@@ -12295,8 +12337,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What happens to a message" xml:space="preserve">
     <value>邮件会发生什么</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>无法判断邮件会被如何处理：阈值无法读取。</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>受感染的邮件会发生什么</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>无法判断受感染邮件会被如何处理：部分设置无法读取。</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>本服务器之外必须存在的东西</value>
@@ -12330,6 +12378,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>邮件存储卷填满时服务器的做法。两个值都是绝对的兆字节而不是百分比，因为决定下一封邮件能否放下的是剩余多少字节，而不是它们占卷的比例。</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>无法读取服务器对受感染邮件的处理方式。</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>服务器写入其日志文件的内容 (可在“实时日志”页查看)。</value>
@@ -12427,14 +12478,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Where this server stands" xml:space="preserve">
     <value>本服务器的现状</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>无法判断此服务器的状况：监听器无法读取。</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>无法确定是否会提供 STARTTLS: 无法读取 TCP/IP 端口和证书。此监听器从支持 TLS 的 IMAP、POP3 或 SMTP 端口借用证书，自己没有证书。</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>是否存在 TLSA 记录以及您的区域是否经过 DNSSEC 签名，只能在 DNS 中看到。如果您从未为该区域设置过 DNSSEC，任何 TLSA 记录都不会通过验证。</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>无法读取没有任何扫描器能够检查的邮件是被暂留还是投递。</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>无法读取是否存储了密码短语 - 读取它需要服务器管理员账户。从此处保存新的密码短语仍然可以。</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>无法读取是否有 IP 范围要求身份验证使用 TLS。</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>查询是否可以由 Windows DNS 解析器缓存应答。关闭时，每次查询都走网络。在上面设置了覆盖 DNS 服务器时会被忽略 — 那些查询总是绕过系统缓存，因为缓存的应答会来自错误的解析器。</value>
@@ -14638,15 +14698,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>有 {0} 个值无法读取 — {1} 上面的项目可能不完整。</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>有 {0} 个值无法读取 — {1} 上面的行可能不完整，因此对于此处显示为不可用的扫描器，请当作尚未确认。</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>有 {0} 个值无法读取 — {1} 上面的行可能不完整。</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>有 {0} 个值无法读取 — {1} 下面的行可能不完整。</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>已创建 {0}：{1} 个邮箱，{2} 封邮件正在投递到其中。几秒钟后送达。 所有邮箱都使用密码 {3} 登录。它在此处只显示一次，请记下来，因为本服务器并未保存它。</value>

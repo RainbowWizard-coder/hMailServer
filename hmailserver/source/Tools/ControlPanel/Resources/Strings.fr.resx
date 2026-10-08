@@ -6777,6 +6777,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Not published" xml:space="preserve">
     <value>Non publié</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Non lu</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Non redémarré</value>
   </data>
@@ -9987,6 +9990,9 @@ Le redémarrer maintenant ?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Rebonds temporaires dans la fenêtre avant qu'un membre ne reçoive plus de courrier (1 à 100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Certaines valeurs n'ont pas pu être lues : {0} Les sections ci-dessous peuvent être incomplètes.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Quelqu'un devine des mots de passe</value>
   </data>
@@ -10532,6 +10538,9 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>La plage IP {0} accepte un mot de passe sans TLS, et le port {1} n'offre aucun TLS qu'un client pourrait démarrer : donnez d'abord à ces ports un certificat et STARTTLS, puis exigez TLS pour la connexion depuis la plage.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>Les plages IP n'ont pas pu être lues.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Le filtre LDAP qui sélectionne les personnes qui doivent avoir une boîte. Le filtre par défaut prend les objets personne activés qui portent une adresse de messagerie - ce qui exclut délibérément les partants désactivés, les comptes de service et les ordinateurs, à qui un filtre plus large créerait des boîtes.</value>
   </data>
@@ -10676,8 +10685,14 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>La configuration antivirus n'a pas pu être lue.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Impossible de lire la configuration antivirus : </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>L'archive ne contient aucun message pour ce compte.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Les réglages de blocage des pièces jointes n'ont pas pu être lus.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Les pièces jointes sont remplacées et le message est livré. Aucun des deux réglages de notification ne s'applique à cette action — le serveur n'envoie l'avis « message supprimé » que lorsque l'action consiste à supprimer le message.</value>
@@ -10754,6 +10769,9 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>La clé publique du certificat n'a pas pu être exportée pour comparaison.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Les certificats n'ont pas pu être lus.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Les certificats que présentent les écouteurs, et le renouvellement automatique via ACME.</value>
   </data>
@@ -10771,6 +10789,9 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>La vérification a abouti et l'enregistrement publié par le domaine est inutilisable : deux enregistrements, un mécanisme invalide, une boucle de redirection, trop de recherches. Réessayer n'y changera rien, donc il n'est jamais différé ; les sites stricts le traitent comme un échec et les sites indulgents l'ignorent.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>La liste de chiffrements n'a pas pu être lue.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>La liste de chiffrements est le préréglage AEAD-ONLY alors que TLS 1.0 ou 1.1 est activé. Ces versions n'ont aucune suite AEAD, elles sont donc annoncées puis ne peuvent pas mener une poignée de main à son terme - ce qui, pour le client, ressemble à un serveur cassé plutôt qu'à une politique.</value>
@@ -10920,6 +10941,9 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Les textes de salutation, de rebond et d'erreur que le serveur renvoie aux clients.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Les réglages de greylisting n'ont pas pu être lus.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Les membres du groupe n'ont pas pu être lus : </value>
   </data>
@@ -11048,6 +11072,9 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>L'écouteur est configuré. Ce qui reste est en dehors du serveur : publiez les enregistrements autoconfig.&lt;domain&gt; et autodiscover.&lt;domain&gt; pour chaque domaine de messagerie, puis testez depuis une machine cliente.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Les écouteurs n'ont pas pu être lus.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Les listes derrière les vérifications</value>
@@ -11194,6 +11221,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Le profil</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Les versions du protocole n'ont pas pu être lues.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>L'adresse publique que voient les autres serveurs, quand ce n'est pas une adresse de cette machine.</value>
@@ -11456,11 +11486,17 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>La valeur unique AEAD-ONLY (insensible à la casse) est un préréglage nommé plutôt qu'une chaîne de chiffrements OpenSSL : uniquement des suites AEAD à confidentialité persistante (ECDHE ou DHE avec AES-GCM ou ChaCha20-Poly1305), à l'exclusion de toute suite en mode CBC - la famille d'oracles de remplissage Lucky13 - et de l'échange de clés RSA statique. Le coût : les clients TLS 1.2 qui ne parlent que des suites CBC ne peuvent pas se connecter, et TLS 1.0/1.1 se retrouvent sans aucun chiffrement utilisable ; n'activez donc pas ces protocoles à côté de ce préréglage. TLS 1.3 n'est pas concerné - ses suites sont AEAD par construction et se configurent séparément ci-dessous. Un nom de préréglage mal orthographié est rejeté et signalé, pas ignoré en silence.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>La limite de taille n'a pas pu être lue.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Le smart host, son port et ses identifiants, et le calendrier de nouvelles tentatives pour la livraison.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>La restriction de source doit être une adresse (10.0.0.5), une plage (10.0.0.1-10.0.0.99) ou un CIDR (10.0.0.0/24). Laissez-la vide pour accepter la clé depuis n'importe quelle adresse.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Impossible de lire la configuration antispam : </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>L'expiration stockée n'a pas pu être lue dans la forme attendue par cette page (AAAA-MM-JJ HH:MM:SS) : on ne peut donc pas dire d'ici si le serveur accepte encore cette clé. Si la ligne a été modifiée à la main, corrigez-la ; sinon, révoquez la clé et créez-en une de remplacement.</value>
@@ -11491,6 +11527,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>La configuration de la sécurité de transport n'a pas pu être lue.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Impossible de lire la configuration de la sécurité du transport : </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Les deux moitiés échouent différemment et ont des causes différentes. Déterminez laquelle vous avez avant toute chose.</value>
@@ -11590,6 +11629,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Ces réglages n'ont pas pu être lus sur le serveur.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Ces réglages n'ont pas pu être lus.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Ce Control Panel se ferme dès que l'assistant a démarré, pour que l'installateur puisse remplacer ses fichiers ; rouvrez-le dans une minute pour voir le résultat.</value>
@@ -12295,8 +12337,14 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="What happens to a message" xml:space="preserve">
     <value>Ce qui arrive à un message</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Impossible de dire ce qui arrive à un message : les seuils n'ont pas pu être lus.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Ce qui arrive à un message infecté</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Impossible de dire ce qui arrive à un message infecté : certains réglages n'ont pas pu être lus.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Ce qui doit exister en dehors de ce serveur</value>
@@ -12330,6 +12378,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Ce que fait le serveur à mesure que le volume du magasin de messages se remplit. Les deux valeurs sont des mégaoctets absolus plutôt que des pourcentages, parce que ce qui décide si le prochain message tient, c'est le nombre d'octets restants, pas la fraction du volume qu'ils représentent.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Ce que le serveur fait d'un message infecté n'a pas pu être lu.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Ce que le serveur écrit dans ses fichiers journaux (consultable sur la page Journaux en direct).</value>
@@ -12427,14 +12478,23 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Where this server stands" xml:space="preserve">
     <value>Où en est ce serveur</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Impossible de dire où en est ce serveur : les écouteurs n'ont pas pu être lus.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Savoir si STARTTLS sera proposé n'a pas pu être déterminé : les ports TCP/IP et les certificats n'ont pas pu être lus. Cet écouteur emprunte son certificat à un port IMAP, POP3 ou SMTP capable de TLS et n'en a aucun qui lui soit propre.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Savoir si des enregistrements TLSA existent, et si votre zone est signée avec DNSSEC, ne peut se voir que dans le DNS. Si vous n'avez jamais mis en place DNSSEC pour la zone, aucun enregistrement TLSA ne se validera.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Impossible de lire si un message qu'aucun analyseur n'a pu examiner est retenu ou distribué.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Savoir si une phrase secrète est stockée n'a pas pu être lu - le lire nécessite le compte d'administrateur du serveur. En enregistrer une nouvelle depuis ici fonctionne tout de même.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Impossible de lire si une plage IP exige TLS pour l'authentification.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Si les recherches peuvent être satisfaites depuis le cache du résolveur DNS de Windows. Désactivé, chaque recherche part sur le réseau. Ignoré quand un serveur DNS de remplacement est défini ci-dessus — ces recherches contournent toujours le cache du système, parce que ses réponses viendraient du mauvais résolveur.</value>
@@ -14638,15 +14698,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} valeur(s) n'ont pas pu être lues — {1} Les éléments ci-dessus peuvent être incomplets.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} valeur(s) n'ont pas pu être lues — {1} Les lignes ci-dessus peuvent être incomplètes ; considérez donc comme non confirmé tout analyseur présenté ici comme inutilisable.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} valeur(s) n'ont pas pu être lues — {1} Les lignes ci-dessus peuvent être incomplètes.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} valeur(s) n'ont pas pu être lues — {1} Les lignes ci-dessous peuvent être incomplètes.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} a été créé : {1} boîtes, et {2} messages en route vers elles. Ils arrivent dans quelques secondes. Toutes les boîtes se connectent avec le mot de passe {3}. Il est affiché ici une seule fois : notez-le, car ce serveur ne l'a pas conservé.</value>

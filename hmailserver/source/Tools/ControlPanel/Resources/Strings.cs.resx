@@ -6777,6 +6777,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not published" xml:space="preserve">
     <value>Nepublikováno</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Nepřečteno</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Nerestartováno</value>
   </data>
@@ -9987,6 +9990,9 @@ Restartovat ji nyní?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Dočasné nedoručenky v okně, než člen přestane dostávat poštu (1 až 100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Některé hodnoty se nepodařilo přečíst: {0} Níže uvedené části mohou být neúplné.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Někdo hádá hesla</value>
   </data>
@@ -10532,6 +10538,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>Rozsah IP {0} přijímá heslo bez TLS a port {1} nenabízí žádné TLS, které by klient mohl spustit: nejdřív dejte těmto portům certifikát a STARTTLS, potom vyžadujte TLS pro přihlášení z tohoto rozsahu.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>Rozsahy IP se nepodařilo přečíst.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Filtr LDAP, který vybírá osoby, jež mají mít poštovní schránku. Výchozí filtr bere povolené objekty typu person, které nesou poštovní adresu – čímž záměrně vynechává zakázané odešlé zaměstnance, účty služeb a počítače, kterým by širší filtr poštovní schránky zřídil.</value>
   </data>
@@ -10676,8 +10685,14 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Nastavení antiviru nelze přečíst.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Nepodařilo se přečíst antivirovou konfiguraci: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Archiv pro tento účet neobsahuje žádné zprávy.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Nastavení blokování příloh se nepodařilo přečíst.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Přílohy se nahradí a zpráva se doručí. Na tuto akci se nevztahuje ani jedno z nastavení oznámení — upozornění „message deleted“ server odesílá pouze tehdy, když je akcí smazání zprávy.</value>
@@ -10754,6 +10769,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Veřejný klíč certifikátu nešlo exportovat k porovnání.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Certifikáty se nepodařilo přečíst.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Certifikáty, které listenery předkládají, a automatické obnovování přes ACME.</value>
   </data>
@@ -10771,6 +10789,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Kontrola se dokončila a zveřejněný záznam domény je nepoužitelný: dva záznamy, chybný mechanismus, smyčka přesměrování, příliš mnoho dotazů. Opakování to nespraví, takže se nikdy neodkládá; přísné servery to berou jako fail, shovívavé to ignorují.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>Seznam šifer se nepodařilo přečíst.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Seznam šifer je předvolba AEAD-ONLY, a přitom je povoleno TLS 1.0 nebo 1.1. Tyto verze nemají žádnou sadu AEAD, takže se inzerují a pak nedokážou dokončit handshake - což klientovi vypadá jako rozbitý server, ne jako politika.</value>
@@ -10920,6 +10941,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Texty pozdravu, nedoručenek a chyb, které server posílá zpět klientům.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Nastavení greylistingu se nepodařilo přečíst.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Členy skupiny nešlo přečíst: </value>
   </data>
@@ -11048,6 +11072,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Listener je nakonfigurován. Zbývá to, co je mimo server: publikujte záznamy autoconfig.&lt;domain&gt; a autodiscover.&lt;domain&gt; pro každou poštovní doménu a pak to otestujte z klientského počítače.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Listenery se nepodařilo přečíst.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Seznamy za kontrolami</value>
@@ -11194,6 +11221,9 @@ Přesto přidat?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profil</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Verze protokolu se nepodařilo přečíst.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Veřejná adresa, kterou vidí ostatní servery, když to není adresa tohoto počítače.</value>
@@ -11456,11 +11486,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Jediná hodnota AEAD-ONLY (bez ohledu na velikost písmen) je pojmenovaná předvolba, ne řetězec šifer OpenSSL: jen sady AEAD s dopřednou utajeností (ECDHE nebo DHE s AES-GCM nebo ChaCha20-Poly1305), s vyloučením každé sady v režimu CBC - rodiny padding-oracle Lucky13 - a statické výměny klíčů RSA. Cena: klienti TLS 1.2, kteří umí jen sady CBC, se nepřipojí, a TLS 1.0/1.1 zůstanou bez jakékoli použitelné šifry, takže tyto protokoly vedle ní nepovolujte. Na TLS 1.3 to nemá vliv - jeho sady jsou AEAD z principu a konfigurují se zvlášť níže. Překlep v názvu předvolby se odmítne a nahlásí, ne potichu ignoruje.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>Limit velikosti se nepodařilo přečíst.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smart host, jeho port a přihlašovací údaje a plán opakování doručování.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Omezení zdroje musí být adresa (10.0.0.5), rozsah (10.0.0.1-10.0.0.99) nebo CIDR (10.0.0.0/24). Nechte ho prázdné, aby se klíč přijímal z jakékoli adresy.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Nepodařilo se přečíst konfiguraci antispamu: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Uložené vypršení nešlo přečíst v podobě, kterou tato stránka očekává (RRRR-MM-DD HH:MM:SS), takže odsud nelze říct, zda server tento klíč ještě přijímá. Pokud byl řádek upraven ručně, opravte ho; jinak klíč odvolejte a vytvořte náhradu.</value>
@@ -11491,6 +11527,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfiguraci transportního zabezpečení nešlo přečíst.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Nepodařilo se přečíst konfiguraci zabezpečení přenosu: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Obě poloviny selhávají jinak a mají jiné příčiny. Než uděláte cokoli jiného, zjistěte, kterou z nich máte.</value>
@@ -11590,6 +11629,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Tato nastavení se ze serveru nepodařilo přečíst.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Tato nastavení se nepodařilo přečíst.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Tento Control Panel se zavře, jakmile se pomocník spustí, aby instalátor mohl nahradit jeho soubory; za minutu jej znovu otevřete a uvidíte výsledek.</value>
@@ -12295,8 +12337,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="What happens to a message" xml:space="preserve">
     <value>Co se stane se zprávou</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Co se s zprávou stane, nelze říci: prahové hodnoty se nepodařilo přečíst.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Co se stane s infikovanou zprávou</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Co se s infikovanou zprávou stane, nelze říci: některá nastavení se nepodařilo přečíst.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Co musí existovat mimo tento server</value>
@@ -12330,6 +12378,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Co server dělá, když se svazek s úložištěm zpráv zaplňuje. Obě hodnoty jsou absolutní megabajty, ne procenta, protože o tom, zda se další zpráva vejde, rozhoduje počet zbývajících bajtů, ne jejich podíl na svazku.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Co server dělá s infikovanou zprávou, se nepodařilo přečíst.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Co server zapisuje do souborů logu (k zobrazení na stránce Živé logy).</value>
@@ -12427,14 +12478,23 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Where this server stands" xml:space="preserve">
     <value>Kde tento server stojí</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Jak si tento server stojí, nelze říci: listenery se nepodařilo přečíst.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Nešlo určit, zda se bude STARTTLS nabízet: porty TCP/IP a certifikáty nešlo přečíst. Tento listener si půjčuje certifikát od portu IMAP, POP3 nebo SMTP s podporou TLS a vlastní nemá.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Zda záznamy TLSA existují a zda je vaše zóna podepsaná DNSSEC, je vidět jen v DNS. Pokud jste DNSSEC pro zónu nikdy nenastavili, žádný záznam TLSA se neověří.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Nepodařilo se přečíst, zda je zpráva, kterou žádný skener nemohl prověřit, zadržena nebo doručena.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Zda je uloženo přístupové heslo, nešlo přečíst - čtení vyžaduje účet správce serveru. Uložení nového odsud stále funguje.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Nepodařilo se přečíst, zda některý rozsah IP vyžaduje pro ověření TLS.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Zda se dotazy smějí zodpovídat z cache resolveru DNS Windows. Vypnuto - každý dotaz jde do sítě. Ignorováno, když je výše nastaven přepisující server DNS — ty dotazy systémovou cache vždy obcházejí, protože její odpovědi by pocházely od špatného resolveru.</value>
@@ -14638,15 +14698,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} hodnot nešlo přečíst — {1} Položky výše mohou být neúplné.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} hodnot nešlo přečíst — {1} Řádky výše mohou být neúplné, takže skener zde zobrazený jako nepoužitelný berte jako nepotvrzený.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} hodnot nešlo přečíst — {1} Řádky výše mohou být neúplné.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} hodnot nešlo přečíst — {1} Řádky níže mohou být neúplné.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} vytvořena: {1} schránek a {2} zpráv na cestě do nich. Dorazí za několik sekund. Všechny schránky se přihlašují heslem {3}. Zobrazuje se zde jen jednou - zapište si je, tento server si je neuložil.</value>

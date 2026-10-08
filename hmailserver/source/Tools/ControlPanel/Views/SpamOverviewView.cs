@@ -98,6 +98,11 @@ namespace hMailServer.ControlPanel.Views
       private int failedReads_;
       private string firstError_;
 
+      // Whether the anti-spam settings object could be opened at all. When it
+      // could not, every value in the snapshot is a default, and a page drawn
+      // from defaults says "both thresholds are 0" of a server it never asked.
+      private bool configRead_;
+
       /// <summary>
       /// Reads the anti-spam settings into a snapshot.
       ///
@@ -112,6 +117,7 @@ namespace hMailServer.ControlPanel.Views
       {
          failedReads_ = 0;
          firstError_ = null;
+         configRead_ = false;
 
          var config = new SpamPipelineConfig();
          dynamic settings = null;
@@ -121,59 +127,60 @@ namespace hMailServer.ControlPanel.Views
          {
             settings = ServerSession.Current.Application.Settings;
             antiSpam = settings.AntiSpam;
+            configRead_ = true;
 
-            config.MarkThreshold = Read(() => (int)antiSpam.SpamMarkThreshold);
-            config.DeleteThreshold = Read(() => (int)antiSpam.SpamDeleteThreshold);
-            config.MaxScanKilobytes = Read(() => (int)antiSpam.MaximumMessageSize);
-            config.BlockedSenderCount = Read(() => (int)antiSpam.BlockedSenders.Count);
+            config.MarkThreshold = Read(config, nameof(config.MarkThreshold), () => (int)antiSpam.SpamMarkThreshold);
+            config.DeleteThreshold = Read(config, nameof(config.DeleteThreshold), () => (int)antiSpam.SpamDeleteThreshold);
+            config.MaxScanKilobytes = Read(config, nameof(config.MaxScanKilobytes), () => (int)antiSpam.MaximumMessageSize);
+            config.BlockedSenderCount = Read(config, nameof(config.BlockedSenderCount), () => (int)antiSpam.BlockedSenders.Count);
 
-            config.AddSpamHeader = Read(() => (bool)antiSpam.AddHeaderSpam);
-            config.AddReasonHeader = Read(() => (bool)antiSpam.AddHeaderReason);
-            config.PrependSubject = Read(() => (bool)antiSpam.PrependSubject);
+            config.AddSpamHeader = Read(config, nameof(config.AddSpamHeader), () => (bool)antiSpam.AddHeaderSpam);
+            config.AddReasonHeader = Read(config, nameof(config.AddReasonHeader), () => (bool)antiSpam.AddHeaderReason);
+            config.PrependSubject = Read(config, nameof(config.PrependSubject), () => (bool)antiSpam.PrependSubject);
 
-            config.CheckHeloHost = Read(() => (bool)antiSpam.CheckHostInHelo);
-            config.HeloHostScore = Read(() => (int)antiSpam.CheckHostInHeloScore);
-            config.CheckPtr = Read(() => (bool)antiSpam.CheckPTR);
-            config.PtrScore = Read(() => (int)antiSpam.CheckPTRScore);
-            config.CheckSenderMx = Read(() => (bool)antiSpam.UseMXChecks);
-            config.SenderMxScore = Read(() => (int)antiSpam.UseMXChecksScore);
-            config.CheckSpf = Read(() => (bool)antiSpam.UseSPF);
-            config.SpfScore = Read(() => (int)antiSpam.UseSPFScore);
+            config.CheckHeloHost = Read(config, nameof(config.CheckHeloHost), () => (bool)antiSpam.CheckHostInHelo);
+            config.HeloHostScore = Read(config, nameof(config.HeloHostScore), () => (int)antiSpam.CheckHostInHeloScore);
+            config.CheckPtr = Read(config, nameof(config.CheckPtr), () => (bool)antiSpam.CheckPTR);
+            config.PtrScore = Read(config, nameof(config.PtrScore), () => (int)antiSpam.CheckPTRScore);
+            config.CheckSenderMx = Read(config, nameof(config.CheckSenderMx), () => (bool)antiSpam.UseMXChecks);
+            config.SenderMxScore = Read(config, nameof(config.SenderMxScore), () => (int)antiSpam.UseMXChecksScore);
+            config.CheckSpf = Read(config, nameof(config.CheckSpf), () => (bool)antiSpam.UseSPF);
+            config.SpfScore = Read(config, nameof(config.SpfScore), () => (int)antiSpam.UseSPFScore);
 
-            config.VerifyDkim = Read(() => (bool)antiSpam.DKIMVerificationEnabled);
-            config.DkimFailureScore = Read(() => (int)antiSpam.DKIMVerificationFailureScore);
-            config.EvaluateDmarc = Read(() => (bool)antiSpam.DMARCEnabled);
-            config.DmarcFailureScore = Read(() => (int)antiSpam.DMARCFailureScore);
+            config.VerifyDkim = Read(config, nameof(config.VerifyDkim), () => (bool)antiSpam.DKIMVerificationEnabled);
+            config.DkimFailureScore = Read(config, nameof(config.DkimFailureScore), () => (int)antiSpam.DKIMVerificationFailureScore);
+            config.EvaluateDmarc = Read(config, nameof(config.EvaluateDmarc), () => (bool)antiSpam.DMARCEnabled);
+            config.DmarcFailureScore = Read(config, nameof(config.DmarcFailureScore), () => (int)antiSpam.DMARCFailureScore);
 
-            config.SpamAssassinEnabled = Read(() => (bool)antiSpam.SpamAssassinEnabled);
-            config.SpamAssassinMergesScore = Read(() => (bool)antiSpam.SpamAssassinMergeScore);
-            config.SpamAssassinScore = Read(() => (int)antiSpam.SpamAssassinScore);
-            config.SpamAssassinHost = Read(() => (string)antiSpam.SpamAssassinHost) ?? "";
+            config.SpamAssassinEnabled = Read(config, nameof(config.SpamAssassinEnabled), () => (bool)antiSpam.SpamAssassinEnabled);
+            config.SpamAssassinMergesScore = Read(config, nameof(config.SpamAssassinMergesScore), () => (bool)antiSpam.SpamAssassinMergeScore);
+            config.SpamAssassinScore = Read(config, nameof(config.SpamAssassinScore), () => (int)antiSpam.SpamAssassinScore);
+            config.SpamAssassinHost = Read(config, nameof(config.SpamAssassinHost), () => (string)antiSpam.SpamAssassinHost) ?? "";
 
-            config.GreylistingEnabled = Read(() => (bool)antiSpam.GreyListingEnabled);
-            config.BypassGreylistingOnSpfPass = Read(() => (bool)antiSpam.BypassGreylistingOnSPFSuccess);
-            config.BypassGreylistingOnSenderMx = Read(() => (bool)antiSpam.BypassGreylistingOnMailFromMX);
+            config.GreylistingEnabled = Read(config, nameof(config.GreylistingEnabled), () => (bool)antiSpam.GreyListingEnabled);
+            config.BypassGreylistingOnSpfPass = Read(config, nameof(config.BypassGreylistingOnSpfPass), () => (bool)antiSpam.BypassGreylistingOnSPFSuccess);
+            config.BypassGreylistingOnSenderMx = Read(config, nameof(config.BypassGreylistingOnSenderMx), () => (bool)antiSpam.BypassGreylistingOnMailFromMX);
 
-            CountList(() => antiSpam.DNSBlackLists, true, out int dnsblActive, out int dnsblTotal);
+            CountList(config, nameof(config.ActiveDnsBlackLists), () => antiSpam.DNSBlackLists, true, out int dnsblActive, out int dnsblTotal);
             config.ActiveDnsBlackLists = dnsblActive;
             config.TotalDnsBlackLists = dnsblTotal;
 
-            CountList(() => antiSpam.SURBLServers, true, out int surblActive, out int surblTotal);
+            CountList(config, nameof(config.ActiveSurblServers), () => antiSpam.SURBLServers, true, out int surblActive, out int surblTotal);
             config.ActiveSurblServers = surblActive;
             config.TotalSurblServers = surblTotal;
 
             // No per-entry "active" flag on either white list, so every entry counts.
-            CountList(() => antiSpam.WhiteListAddresses, false, out _, out int whiteList);
+            CountList(config, nameof(config.WhiteListEntries), () => antiSpam.WhiteListAddresses, false, out _, out int whiteList);
             config.WhiteListEntries = whiteList;
 
-            CountList(() => antiSpam.GreyListingWhiteAddresses, false, out _, out int greyList);
+            CountList(config, nameof(config.GreylistWhiteListEntries), () => antiSpam.GreyListingWhiteAddresses, false, out _, out int greyList);
             config.GreylistWhiteListEntries = greyList;
 
             // Read on its own, as the allow and block list is: a server older than
             // the bypass list has no such collection, and the row then reads 0.
             try
             {
-               CountList(() => antiSpam.GreyListingBypassEntries, false, out _, out int greyBypass);
+               CountList(config, null, () => antiSpam.GreyListingBypassEntries, false, out _, out int greyBypass);
                config.GreylistBypassEntries = greyBypass;
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: an older server has no greylisting bypass list. */ }
@@ -182,7 +189,7 @@ namespace hMailServer.ControlPanel.Views
             // such collection, and the rest of the overview must not fail with it.
             try
             {
-               CountList(() => antiSpam.SenderList, false, out _, out int senderList);
+               CountList(config, null, () => antiSpam.SenderList, false, out _, out int senderList);
                config.SenderListEntries = senderList;
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: an older server has no allow and block list, and the row then reads 0 entries. */ }
@@ -209,7 +216,11 @@ namespace hMailServer.ControlPanel.Views
          return config;
       }
 
-      private T Read<T>(Func<T> read)
+      /// <summary>
+      /// One value, recorded against its property when it could not be read, so
+      /// that the row it feeds says "Not read" rather than showing the default.
+      /// </summary>
+      private T Read<T>(SpamPipelineConfig config, string property, Func<T> read)
       {
          try
          {
@@ -219,6 +230,8 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            if (property != null)
+               config.Unread.Add(property);
             return default;
          }
       }
@@ -257,7 +270,7 @@ namespace hMailServer.ControlPanel.Views
       /// lists have no per-entry flag at all, which is what
       /// <paramref name="entriesHaveAnActiveFlag"/> distinguishes.
       /// </summary>
-      private void CountList(Func<object> open, bool entriesHaveAnActiveFlag, out int active, out int total)
+      private void CountList(SpamPipelineConfig config, string property, Func<object> open, bool entriesHaveAnActiveFlag, out int active, out int total)
       {
          active = 0;
          total = 0;
@@ -292,6 +305,8 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            if (property != null)
+               config.Unread.Add(property);
          }
          finally
          {
@@ -306,6 +321,18 @@ namespace hMailServer.ControlPanel.Views
          SpamPipelineConfig config = ReadConfig();
 
          body_.Children.Clear();
+
+         // Nothing could be read: no cards, since every value in them would be a
+         // default drawn as a finding, and one Critical notice with Try again
+         // (Services/ReadFailure).
+         if (!configRead_)
+         {
+            ReadFailure.Show(readFailure_, null, null, L("The spam configuration could not be read: "), firstError_, Reload);
+            status_.Text = "";
+            return;
+         }
+
+         ReadFailure.Clear(readFailure_);
          body_.Children.Add(VerdictCard(config));
          body_.Children.Add(ChecksCard(config));
          body_.Children.Add(GreylistingCard(config));
@@ -317,9 +344,13 @@ namespace hMailServer.ControlPanel.Views
 
          status_.Text = L("Read from the server. Values are read again every time this page is opened.");
 
+         // Some values could not be read: their rows say "Not read" and the
+         // verdicts and notes that depend on them are left out, and this says so
+         // above the sections it is about.
+         readFailure_.Level = StatusLevel.Warning;
          readFailure_.Text = failedReads_ == 0
             ? null
-            : F("{0} value(s) could not be read — {1} The rows below may be incomplete.", failedReads_, firstError_);
+            : F("Some values could not be read: {0} The sections below may be incomplete.", firstError_);
          readFailure_.Visibility = failedReads_ == 0 ? Visibility.Collapsed : Visibility.Visible;
       }
 
@@ -339,14 +370,19 @@ namespace hMailServer.ControlPanel.Views
 
          content.Children.Add(Paragraph(SpamPipeline.Verdict(config), Typography.Body));
 
-         int stop = SpamPipeline.StopScore(config);
-         int? ceiling = SpamPipeline.HighestReachableScore(config);
+         // The stop score is the higher threshold: with a threshold unread it
+         // would be 0, and the sentence would say the server stops at once.
+         if (SpamPipeline.ThresholdsRead(config))
+         {
+            int stop = SpamPipeline.StopScore(config);
+            int? ceiling = SpamPipeline.HighestReachableScore(config);
 
-         content.Children.Add(Paragraph(F("The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run.", stop)
-            + (ceiling != null
-               ? F(" With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
-               : L(" The total is open-ended, because a list entry or SpamAssassin's own score can be any size.")),
-            Typography.Caption));
+            content.Children.Add(Paragraph(F("The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run.", stop)
+               + (ceiling != null
+                  ? F(" With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
+                  : L(" The total is open-ended, because a list entry or SpamAssassin's own score can be any size.")),
+               Typography.Caption));
+         }
 
          return card;
       }
@@ -414,8 +450,12 @@ namespace hMailServer.ControlPanel.Views
          // on the surrounding StackPanel - the obvious place - would set a property
          // nothing ever reads. The five columns are otherwise announced as five
          // unrelated fragments and the listener has to reassemble the row.
+         // "Not read" for a check whose settings the server did not answer: it
+         // is neither on nor off, and a score of 0 would be a finding.
+         string state = check.Unread ? L("Not read") : check.Enabled ? L("On") : L("Off");
+
          System.Windows.Automation.AutomationProperties.SetName(name,
-            F("{0}, {1}, score {2}. {3}", check.Name, check.Enabled ? L("On") : L("Off"), check.ScoreText, check.Detail));
+            F("{0}, {1}, score {2}. {3}", check.Name, state, check.ScoreText, check.Detail));
 
          text.Children.Add(name);
 
@@ -428,16 +468,16 @@ namespace hMailServer.ControlPanel.Views
 
          // "On"/"Off" as a pill: the word, the level's shape and the level's
          // colour together, with Off drawn in the neutral grey that says nothing.
-         var state = new StatusPill
+         var pill = new StatusPill
          {
             Level = check.Enabled ? StatusLevel.Good : StatusLevel.Normal,
-            Text = check.Enabled ? L("On") : L("Off"),
+            Text = state,
             Margin = new Thickness(0, 6, 14, 6),
             VerticalAlignment = VerticalAlignment.Top
          };
-         Grid.SetRow(state, row);
-         Grid.SetColumn(state, 2);
-         grid.Children.Add(state);
+         Grid.SetRow(pill, row);
+         Grid.SetColumn(pill, 2);
+         grid.Children.Add(pill);
 
          var score = new TextBlock
          {

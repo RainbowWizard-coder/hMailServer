@@ -35,15 +35,19 @@ namespace hMailServer.ControlPanel.Services
    public sealed class SpamCheck
    {
       internal SpamCheck(string key, int order, string name, SpamCheckPhase phase, bool enabled,
-         int? score, string scoreText, string detail, string page)
+         int? score, string scoreText, string detail, string page, bool unread = false)
       {
          Key = key;
          Order = order;
          Name = name;
          Phase = phase;
-         Enabled = enabled;
-         Score = score;
-         ScoreText = scoreText;
+         Unread = unread;
+         // A check whose settings could not be read is neither on nor off, and
+         // has no score to state: the row says "Not read", and nothing that
+         // follows from the check is said.
+         Enabled = !unread && enabled;
+         Score = unread ? null : score;
+         ScoreText = unread ? "…" : scoreText; // no-loc: an ellipsis where the score would be
          Detail = detail;
          Page = page;
       }
@@ -83,6 +87,12 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>The score as it should be shown, including the null cases.</summary>
       public string ScoreText { get; }
+
+      /// <summary>
+      /// Whether the check's settings could not be read, so that neither
+      /// <see cref="Enabled"/> nor <see cref="Score"/> is a fact about the server.
+      /// </summary>
+      public bool Unread { get; }
 
       /// <summary>One line: what the check looks at, and anything surprising about it.</summary>
       public string Detail { get; }
@@ -205,6 +215,28 @@ namespace hMailServer.ControlPanel.Services
       /// and named among the greylisting bypasses.
       /// </summary>
       public int DomainPolicyListEntries { get; set; }
+
+      /// <summary>
+      /// The properties that could not be read, by name, kept by the page that
+      /// fills this snapshot. A value that could not be read is the type's
+      /// default, which here is a real configuration - a threshold of 0, a check
+      /// that is off - so nothing that follows from one may be said as a fact:
+      /// the row is "Not read", the verdict is left out, and so is every note
+      /// that depends on it.
+      /// </summary>
+      public HashSet<string> Unread { get; } = new(StringComparer.Ordinal);
+
+      /// <summary>Whether every one of these properties was read.</summary>
+      public bool WasRead(params string[] properties)
+      {
+         foreach (string property in properties)
+         {
+            if (Unread.Contains(property))
+               return false;
+         }
+
+         return true;
+      }
    }
 
    /// <summary>
@@ -270,6 +302,12 @@ namespace hMailServer.ControlPanel.Services
          if (config == null)
             return Array.Empty<SpamCheck>();
 
+         // A check whose settings could not be read is "Not read", not off: the
+         // snapshot holds the type's default for a value the server did not
+         // answer, and a default drawn as a setting is the lie this page exists
+         // to expose.
+         bool Unread(params string[] properties) => !config.WasRead(properties);
+
          var checks = new List<SpamCheck>
          {
             // 1-6: SpamTest::PreTransmission. Run at MAIL FROM by default
@@ -284,34 +322,34 @@ namespace hMailServer.ControlPanel.Services
                config.BlockedSenderCount > 0
                   ? F("Matches the envelope sender against {0} blocked address(es) and domain(s); the score comes from the entry that matched.", config.BlockedSenderCount)
                   : L("No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state."),
-               "blockedsenders"),
+               "blockedsenders", Unread(nameof(config.BlockedSenderCount))),
 
             new SpamCheck("dnsbl", 2, L("DNS blacklists (DNSBL)"), SpamCheckPhase.BeforeTheBody,
                config.ActiveDnsBlackLists > 0, null,
                config.ActiveDnsBlackLists > 0 ? L("per list entry") : "-",
                DescribeList(L("Looks up the connecting address on each active blacklist; the score comes from the entry that matched"),
                   config.ActiveDnsBlackLists, config.TotalDnsBlackLists),
-               "dnsbl"),
+               "dnsbl", Unread(nameof(config.ActiveDnsBlackLists), nameof(config.TotalDnsBlackLists))),
 
             new SpamCheck("helo", 3, L("HELO host check"), SpamCheckPhase.BeforeTheBody,
                config.CheckHeloHost, config.HeloHostScore, Score(config.HeloHostScore),
                L("Fails when the name the client gave in HELO/EHLO does not resolve to the address it is connecting from."),
-               "antispam"),
+               "antispam", Unread(nameof(config.CheckHeloHost), nameof(config.HeloHostScore))),
 
             new SpamCheck("ptr", 4, L("PTR record check"), SpamCheckPhase.BeforeTheBody,
                config.CheckPtr, config.PtrScore, Score(config.PtrScore),
                L("Fails when the connecting address has no reverse DNS record."),
-               "antispam"),
+               "antispam", Unread(nameof(config.CheckPtr), nameof(config.PtrScore))),
 
             new SpamCheck("mx", 5, L("Sender MX check"), SpamCheckPhase.BeforeTheBody,
                config.CheckSenderMx, config.SenderMxScore, Score(config.SenderMxScore),
                L("Fails when the envelope sender's domain publishes no MX record."),
-               "antispam"),
+               "antispam", Unread(nameof(config.CheckSenderMx), nameof(config.SenderMxScore))),
 
             new SpamCheck("spf", 6, L("SPF"), SpamCheckPhase.BeforeTheBody,
                config.CheckSpf, config.SpfScore, Score(config.SpfScore),
                L("Checks the sender's SPF policy against the connecting address. A pass can also bypass greylisting."),
-               "antispam"),
+               "antispam", Unread(nameof(config.CheckSpf), nameof(config.SpfScore))),
 
             // 6-9: SpamTest::PostTransmission, run once the body has arrived.
             new SpamCheck("surbl", 7, L("SURBL servers"), SpamCheckPhase.AfterTheBody,
@@ -319,24 +357,24 @@ namespace hMailServer.ControlPanel.Services
                config.ActiveSurblServers > 0 ? L("per list entry") : "-",
                DescribeList(L("Looks up the domains of links found in the body on each active SURBL server"),
                   config.ActiveSurblServers, config.TotalSurblServers),
-               "surbl"),
+               "surbl", Unread(nameof(config.ActiveSurblServers), nameof(config.TotalSurblServers))),
 
             new SpamCheck("dkim", 8, L("DKIM verification"), SpamCheckPhase.AfterTheBody,
                config.VerifyDkim, config.DkimFailureScore, Score(config.DkimFailureScore),
                L("Scores only a permanent failure - a signature that is present and wrong. An unsigned message scores nothing."),
-               "antispam"),
+               "antispam", Unread(nameof(config.VerifyDkim), nameof(config.DkimFailureScore))),
 
             new SpamCheck("dmarc", 9, L("DMARC"), SpamCheckPhase.AfterTheBody,
                config.EvaluateDmarc, config.DmarcFailureScore, Score(config.DmarcFailureScore),
                L("Evaluates the From: domain's DMARC policy, using its own SPF and DKIM results."),
-               "antispam"),
+               "antispam", Unread(nameof(config.EvaluateDmarc), nameof(config.DmarcFailureScore))),
 
             new SpamCheck("spamassassin", 10, "SpamAssassin", SpamCheckPhase.AfterTheBody,
                config.SpamAssassinEnabled,
                config.SpamAssassinMergesScore ? (int?) null : config.SpamAssassinScore,
                config.SpamAssassinMergesScore ? L("SpamAssassin's own score") : Score(config.SpamAssassinScore),
                F("Scores only when SpamAssassin itself tags the message (X-Spam-Status: Yes). {0}", (config.SpamAssassinMergesScore ? L("Merging is on, so its own numeric score is added - which can be any size.") : L("Merging is off, so the fixed score is used however sure SpamAssassin was."))),
-               "antispam")
+               "antispam", Unread(nameof(config.SpamAssassinEnabled), nameof(config.SpamAssassinMergesScore), nameof(config.SpamAssassinScore)))
          };
 
          return checks;
@@ -350,6 +388,11 @@ namespace hMailServer.ControlPanel.Services
       {
          if (config == null)
             return "";
+
+         // A threshold that could not be read is 0 in the snapshot, and 0 is the
+         // one value that says "nothing happens": the verdict is not given.
+         if (!ThresholdsRead(config))
+            return L("What happens to a message cannot be said: the thresholds could not be read.");
 
          bool marks = config.MarkThreshold > 0;
          bool refuses = config.DeleteThreshold > 0;
@@ -399,6 +442,11 @@ namespace hMailServer.ControlPanel.Services
          if (config == null)
             return null;
 
+         // A check that could not be read may be on with any score: the ceiling
+         // is then unknown, as it is with a per-entry score.
+         if (Checks(config).Any(c => c.Unread))
+            return null;
+
          int total = 0;
 
          foreach (SpamCheck check in Checks(config).Where(c => c.Enabled))
@@ -421,6 +469,11 @@ namespace hMailServer.ControlPanel.Services
       {
          if (config == null)
             return "";
+
+         if (!config.WasRead(nameof(config.GreylistingEnabled), nameof(config.BypassGreylistingOnSpfPass),
+                nameof(config.BypassGreylistingOnSenderMx), nameof(config.GreylistWhiteListEntries),
+                nameof(config.GreylistBypassEntries), nameof(config.DomainPolicyListEntries)))
+            return L("The greylisting settings could not be read.");
 
          if (!config.GreylistingEnabled)
             return L("Off. No message is deferred on a first attempt.");
@@ -464,17 +517,21 @@ namespace hMailServer.ControlPanel.Services
          if (config == null)
             return notes;
 
-         bool marks = config.MarkThreshold > 0;
-         bool refuses = config.DeleteThreshold > 0;
+         // Nothing that follows from a value that could not be read is said: a
+         // threshold the server did not answer is 0 here, and 0 would make the
+         // worst note on the page.
+         bool thresholds = ThresholdsRead(config);
+         bool marks = thresholds && config.MarkThreshold > 0;
+         bool refuses = thresholds && config.DeleteThreshold > 0;
 
          // ---- cannot work -----------------------------------------------------
 
-         if (!marks && !refuses)
+         if (thresholds && !marks && !refuses)
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Critical,
                L("Both thresholds are 0, so no score can mark or refuse anything - the server tests them with \"greater than 0\" before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded.")));
          }
-         else if (!marks)
+         else if (thresholds && !marks)
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Warning,
                F("Nothing is ever marked as spam: marking needs a mark threshold above 0, and a 0 there means \"never\" rather than \"always\". Messages reaching {0} are still refused.", config.DeleteThreshold)));
@@ -505,19 +562,22 @@ namespace hMailServer.ControlPanel.Services
                F("{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off.", check.Name)));
          }
 
-         if (config.SpamAssassinEnabled && !config.SpamAssassinMergesScore && config.SpamAssassinScore <= 0)
+         bool spamAssassin = config.WasRead(nameof(config.SpamAssassinEnabled), nameof(config.SpamAssassinMergesScore), nameof(config.SpamAssassinScore), nameof(config.SpamAssassinHost));
+
+         if (spamAssassin && config.SpamAssassinEnabled && !config.SpamAssassinMergesScore && config.SpamAssassinScore <= 0)
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Warning,
                F("SpamAssassin's verdict is thrown away: with merging off, a message it tags as spam is given the fixed score, which is {0}.", config.SpamAssassinScore)));
          }
 
-         if (config.SpamAssassinEnabled && string.IsNullOrWhiteSpace(config.SpamAssassinHost))
+         if (spamAssassin && config.SpamAssassinEnabled && string.IsNullOrWhiteSpace(config.SpamAssassinHost))
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Warning,
                L("SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time.")));
          }
 
-         if (marks && !config.AddSpamHeader && !config.AddReasonHeader && !config.PrependSubject)
+         if (marks && config.WasRead(nameof(config.AddSpamHeader), nameof(config.AddReasonHeader), nameof(config.PrependSubject))
+             && !config.AddSpamHeader && !config.AddReasonHeader && !config.PrependSubject)
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Warning,
                L("A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way.")));
@@ -525,7 +585,7 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- true, invisible, and worth knowing ------------------------------
 
-         int stop = StopScore(config);
+         int stop = thresholds ? StopScore(config) : 0;
          if (stop > 0)
          {
             foreach (SpamCheckPhase phase in new[] { SpamCheckPhase.BeforeTheBody, SpamCheckPhase.AfterTheBody })
@@ -546,7 +606,11 @@ namespace hMailServer.ControlPanel.Services
             }
          }
 
-         if (config.MaxScanKilobytes > 0)
+         if (!config.WasRead(nameof(config.MaxScanKilobytes)))
+         {
+            // Said neither way: 0 would be "no limit", and the value is not known.
+         }
+         else if (config.MaxScanKilobytes > 0)
          {
             notes.Add(new SpamPipelineNote(StatusLevel.Information,
                F("Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered.", config.MaxScanKilobytes)));
@@ -557,11 +621,18 @@ namespace hMailServer.ControlPanel.Services
                F("There is no scan size limit, but messages over {0} MB still skip the body checks: the MIME parser cannot load them, and scanning without loading them would write an empty body over the message.", (ParserSizeLimitKilobytes / 1024))));
          }
 
-         notes.Add(new SpamPipelineNote(StatusLevel.Information,
-            F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list.", config.WhiteListEntries)));
+         if (config.WasRead(nameof(config.WhiteListEntries)))
+         {
+            notes.Add(new SpamPipelineNote(StatusLevel.Information,
+               F("None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list.", config.WhiteListEntries)));
+         }
 
          return notes;
       }
+
+      /// <summary>Whether both thresholds were read, without which no verdict can be given.</summary>
+      public static bool ThresholdsRead(SpamPipelineConfig config)
+         => config != null && config.WasRead(nameof(config.MarkThreshold), nameof(config.DeleteThreshold));
 
       /// <summary>The single worst note, for a one-line summary. Normal when there is nothing to say.</summary>
       public static StatusLevel WorstLevel(SpamPipelineConfig config)

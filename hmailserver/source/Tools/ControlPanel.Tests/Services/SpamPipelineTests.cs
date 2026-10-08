@@ -573,5 +573,60 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("spamoverview", pages);
       }
+
+      // ---- values that could not be read ---------------------------------------
+      //
+      // A value the server did not answer is the type's default in the snapshot,
+      // and here the defaults are findings: a threshold of 0 says nothing is ever
+      // refused, a check read as off is off. The spam overview drew those defaults
+      // as the configuration when the link was lost - "Nothing at all happens on
+      // score: both thresholds are 0", every check Off with a score of 0.
+
+      [Fact]
+      public void AnUnreadCheck_IsNeitherOnNorOff_AndHasNoScore()
+      {
+         SpamPipelineConfig config = Defaults();
+         config.CheckSpf = true;
+         config.SpfScore = 7;
+         config.Unread.Add(nameof(config.SpfScore));
+
+         SpamCheck spf = SpamPipeline.Checks(config).Single(c => c.Key == "spf");
+         Assert.True(spf.Unread);
+         Assert.False(spf.Enabled);
+         Assert.Null(spf.Score);
+         Assert.NotEqual("7", spf.ScoreText);
+
+         // A check that may be on with any score leaves the ceiling unknown, and
+         // nothing is said of it in the notes.
+         Assert.Null(SpamPipeline.HighestReachableScore(config));
+         Assert.DoesNotContain(SpamPipeline.Notes(config), n => n.Text.Contains("SPF"));
+      }
+
+      [Fact]
+      public void UnreadThresholds_GiveNoVerdict_AndNoNoteThatFollowsFromThem()
+      {
+         SpamPipelineConfig config = Defaults();
+         config.MarkThreshold = 0;
+         config.DeleteThreshold = 0;
+         config.Unread.Add(nameof(config.MarkThreshold));
+         config.Unread.Add(nameof(config.DeleteThreshold));
+
+         Assert.False(SpamPipeline.ThresholdsRead(config));
+         Assert.Contains("could not be read", SpamPipeline.Verdict(config));
+
+         IReadOnlyList<SpamPipelineNote> notes = SpamPipeline.Notes(config);
+         Assert.DoesNotContain(notes, n => n.Level == StatusLevel.Critical);
+         Assert.DoesNotContain(notes, n => n.Text.Contains("thresholds are 0"));
+         Assert.DoesNotContain(notes, n => n.Text.Contains("stops testing"));
+      }
+
+      [Fact]
+      public void AConfigurationReadInFull_HasNothingUnread()
+      {
+         SpamPipelineConfig config = Defaults();
+         Assert.True(SpamPipeline.ThresholdsRead(config));
+         Assert.DoesNotContain(SpamPipeline.Checks(config), c => c.Unread);
+         Assert.True(config.WasRead(nameof(config.MarkThreshold), nameof(config.GreylistingEnabled)));
+      }
    }
 }

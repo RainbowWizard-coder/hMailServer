@@ -6777,6 +6777,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not published" xml:space="preserve">
     <value>Ikke publisert</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Ikke lest</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Ikke startet på nytt</value>
   </data>
@@ -9987,6 +9990,9 @@ Starte den på nytt nå?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Myke returmeldinger innenfor vinduet før et medlem ikke lenger får post (1 til 100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Noen verdier kunne ikke leses: {0} Avsnittene nedenfor kan være ufullstendige.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Noen gjetter passord</value>
   </data>
@@ -10532,6 +10538,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>IP-området {0} tar imot et passord uten TLS, og port {1} har ingen TLS som en klient kan starte: gi først disse portene et sertifikat og STARTTLS, og krev deretter TLS for pålogging fra området.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>IP-områdene kunne ikke leses.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>LDAP-filteret som velger ut personene som skal ha en postboks. Standarden tar aktiverte person-objekter som bærer en e-postadresse - som bevisst utelukker deaktiverte sluttede, tjenestekontoer og datamaskiner, som et bredere filter ville provisjonert postbokser for.</value>
   </data>
@@ -10676,8 +10685,14 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Antiviruskonfigurasjonen kunne ikke leses.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Antiviruskonfigurasjonen kunne ikke leses: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkivet inneholder ingen meldinger for denne kontoen.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Innstillingene for blokkering av vedlegg kunne ikke leses.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Vedleggene erstattes og meldingen leveres. Ingen av varslingsinnstillingene gjelder for denne handlingen — serveren sender bare varselet "melding slettet" når handlingen er å slette meldingen.</value>
@@ -10754,6 +10769,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Sertifikatets offentlige nøkkel kunne ikke eksporteres for sammenligning.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Sertifikatene kunne ikke leses.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Sertifikatene lytterne presenterer, og automatisk fornyelse gjennom ACME.</value>
   </data>
@@ -10771,6 +10789,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Kontrollen ble ferdig, og domenets publiserte post er ubrukelig: to poster, en ugyldig mekanisme, en omdirigeringssløyfe, for mange oppslag. Et nytt forsøk løser det ikke, så det utsettes aldri; strenge nettsteder behandler det som en fail, og milde ignorerer det.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>Chifferlisten kunne ikke leses.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Chifferlisten er forhåndsinnstillingen AEAD-ONLY mens TLS 1.0 eller 1.1 er aktivert. De versjonene har ingen AEAD-suite i det hele tatt, så de annonseres og kan deretter ikke fullføre et håndtrykk - noe som for klienten ser ut som en ødelagt server, ikke en policy.</value>
@@ -10920,6 +10941,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Hilsen-, avvisnings- og feiltekstene serveren sender tilbake til klienter.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Grålisting-innstillingene kunne ikke leses.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Gruppemedlemmene kunne ikke leses: </value>
   </data>
@@ -11048,6 +11072,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Lytteren er konfigurert. Det som gjenstår, ligger utenfor serveren: publiser autoconfig.&lt;domain&gt;- og autodiscover.&lt;domain&gt;-oppføringer for hvert postdomene, og test så fra en klientmaskin.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Lytterne kunne ikke leses.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Listene bak kontrollene</value>
@@ -11194,6 +11221,9 @@ Legg til likevel?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profilen</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Protokollversjonene kunne ikke leses.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Den offentlige adressen andre servere ser, når det ikke er en adresse på denne maskinen.</value>
@@ -11456,11 +11486,17 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Den enkeltstående verdien AEAD-ONLY (uten forskjell på store og små bokstaver) er en navngitt forhåndsinnstilling, ikke en OpenSSL-chifferstreng: bare forward-secret AEAD-suiter (ECDHE eller DHE med AES-GCM eller ChaCha20-Poly1305), med hver CBC-modus-suite - Lucky13-familien av padding-oracle - og statisk RSA-nøkkelutveksling ekskludert. Kostnaden: TLS 1.2-klienter som bare snakker CBC-suiter, kan ikke koble til, og TLS 1.0/1.1 står igjen uten noe brukbart chiffer i det hele tatt, så ikke aktiver de protokollene sammen med den. TLS 1.3 påvirkes ikke - suitene der er AEAD av konstruksjon og konfigureres separat nedenfor. Et feilstavet navn på forhåndsinnstilling avvises og rapporteres, ikke ignoreres stille.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>Størrelsesgrensen kunne ikke leses.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smartverten, porten og legitimasjonen dens, og tidsplanen for nye leveringsforsøk.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Kildebegrensningen må være en adresse (10.0.0.5), et område (10.0.0.1-10.0.0.99) eller CIDR (10.0.0.0/24). La den stå tom for å godta nøkkelen fra enhver adresse.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Spamkonfigurasjonen kunne ikke leses: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Det lagrede utløpet kunne ikke leses i formen denne siden forventer (ÅÅÅÅ-MM-DD TT:MM:SS), så om serveren fortsatt godtar denne nøkkelen, kan ikke avgjøres herfra. Hvis linjen ble redigert for hånd, rett den; ellers tilbakekall nøkkelen og opprett en erstatning.</value>
@@ -11491,6 +11527,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfigurasjonen for transportsikkerhet kunne ikke leses.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Transportsikkerhetskonfigurasjonen kunne ikke leses: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De to halvdelene feiler forskjellig og har forskjellige årsaker. Finn ut hvilken du har før noe annet.</value>
@@ -11590,6 +11629,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Disse innstillingene kunne ikke leses fra serveren.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Disse innstillingene kunne ikke leses.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Dette Control Panel lukkes så snart hjelperen er startet, slik at installasjonsprogrammet kan erstatte filene sine; åpne det igjen om et minutt for å se utfallet.</value>
@@ -12295,8 +12337,14 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="What happens to a message" xml:space="preserve">
     <value>Hva som skjer med en melding</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Det kan ikke sies hva som skjer med en melding: tersklene kunne ikke leses.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Hva som skjer med en infisert melding</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Det kan ikke sies hva som skjer med en infisert melding: noen av innstillingene kunne ikke leses.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Hva som må finnes utenfor denne serveren</value>
@@ -12330,6 +12378,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Hva serveren gjør etter hvert som meldingslagervolumet fylles. Begge verdiene er absolutte megabyte, ikke prosenter, fordi det som avgjør om neste melding får plass, er hvor mange byte som er igjen, ikke hvilken brøkdel av volumet de utgjør.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Det kunne ikke leses hva serveren gjør med en infisert melding.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Hva serveren skriver til loggfilene sine (kan ses på siden Direktelogger).</value>
@@ -12427,14 +12478,23 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Where this server stands" xml:space="preserve">
     <value>Hvor denne serveren står</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Det kan ikke sies hvor denne serveren står: lytterne kunne ikke leses.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Om STARTTLS vil bli tilbudt, kunne ikke avgjøres: TCP/IP-portene og sertifikatene kunne ikke leses. Denne lytteren låner sertifikatet sitt fra en TLS-kapabel IMAP-, POP3- eller SMTP-port og har ingen egen.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Om TLSA-oppføringer finnes, og om sonen din er DNSSEC-signert, kan bare ses i DNS. Hvis du aldri har satt opp DNSSEC for sonen, vil ingen TLSA-oppføring validere.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Det kunne ikke leses om en melding ingen skanner kunne undersøke, holdes tilbake eller leveres.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Om en passfrase er lagret, kunne ikke leses - å lese den krever serveradministratorkontoen. Å lagre en ny herfra fungerer fortsatt.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Det kunne ikke leses om et IP-område krever TLS for autentisering.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Om oppslag kan besvares fra Windows' DNS-resolverbuffer. Av, går hvert oppslag til nettverket. Ignoreres når en overstyrende DNS-server er satt ovenfor — de oppslagene går alltid utenom systembufferen, fordi svarene dens ville kommet fra feil resolver.</value>
@@ -14638,15 +14698,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} verdi(er) kunne ikke leses — {1} Elementene ovenfor kan være ufullstendige.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} verdi(er) kunne ikke leses — {1} Radene ovenfor kan være ufullstendige, så behandle en skanner som vises som ubrukelig her, som ubekreftet.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} verdi(er) kunne ikke leses — {1} Radene ovenfor kan være ufullstendige.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} verdi(er) kunne ikke leses — {1} Radene nedenfor kan være ufullstendige.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} ble laget: {1} postkasser, og {2} meldinger på vei inn i dem. De kommer om få sekunder. Alle postkasser logger inn med passordet {3}. Det vises her én gang - skriv det ned, for denne serveren tok ikke vare på det.</value>

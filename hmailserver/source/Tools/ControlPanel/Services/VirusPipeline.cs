@@ -20,15 +20,19 @@ namespace hMailServer.ControlPanel.Services
    public sealed class VirusScannerEntry
    {
       internal VirusScannerEntry(string key, int order, string name, bool enabled, bool usable,
-         string detail, string problem, string page)
+         string detail, string problem, string page, bool unread = false)
       {
          Key = key;
          Order = order;
          Name = name;
-         Enabled = enabled;
-         Usable = usable;
-         Detail = detail;
-         Problem = problem;
+         Unread = unread;
+         // A scanner whose settings could not be read is neither on nor off, and
+         // neither usable nor broken: the row says "Not read", and nothing that
+         // follows from the scanner is said.
+         Enabled = !unread && enabled;
+         Usable = !unread && usable;
+         Detail = unread ? L("These settings could not be read.") : detail;
+         Problem = unread ? null : problem;
          Page = page;
       }
 
@@ -64,9 +68,15 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>Navigation key of the page that owns these settings.</summary>
       public string Page { get; }
 
-      /// <summary>"On", "Off" or "On, but cannot run" - the word a reader gets when the colour is not available.</summary>
+      /// <summary>
+      /// Whether the scanner's settings could not be read, so that neither
+      /// <see cref="Enabled"/> nor <see cref="Usable"/> is a fact about the server.
+      /// </summary>
+      public bool Unread { get; }
+
+      /// <summary>"On", "Off", "On, but cannot run" or "Not read" - the word a reader gets when the colour is not available.</summary>
       public string StateText =>
-         !Enabled ? L("Off") : Usable ? L("On") : L("On, but cannot run");
+         Unread ? L("Not read") : !Enabled ? L("Off") : Usable ? L("On") : L("On, but cannot run");
    }
 
    /// <summary>
@@ -162,6 +172,28 @@ namespace hMailServer.ControlPanel.Services
       /// admits it stopped looking.
       /// </summary>
       public bool FetchAccountScanIncomplete { get; set; }
+
+      /// <summary>
+      /// The properties that could not be read, by name, kept by the page that
+      /// fills this snapshot. A value that could not be read is the type's
+      /// default, which here is a real configuration - a threshold of 0, a check
+      /// that is off - so nothing that follows from one may be said as a fact:
+      /// the row is "Not read", the verdict is left out, and so is every note
+      /// that depends on it.
+      /// </summary>
+      public HashSet<string> Unread { get; } = new(StringComparer.Ordinal);
+
+      /// <summary>Whether every one of these properties was read.</summary>
+      public bool WasRead(params string[] properties)
+      {
+         foreach (string property in properties)
+         {
+            if (Unread.Contains(property))
+               return false;
+         }
+
+         return true;
+      }
    }
 
    /// <summary>
@@ -199,6 +231,12 @@ namespace hMailServer.ControlPanel.Services
          if (config == null)
             return scanners;
 
+         // A scanner whose settings could not be read is "Not read", not off and
+         // not broken: the snapshot holds a blank host or a false switch for a
+         // value the server did not answer, and a blank drawn as a setting would
+         // call a working scanner unusable.
+         bool Unread(params string[] properties) => !config.WasRead(properties);
+
          // 1. ClamWin. Two paths, and both are needed: ClamWinVirusScanner passes
          //    the database folder to the executable on the command line.
          bool clamWinUsable = !IsBlank(config.ClamWinExecutable) && !IsBlank(config.ClamWinDatabaseFolder);
@@ -213,7 +251,8 @@ namespace hMailServer.ControlPanel.Services
                   : IsBlank(config.ClamWinExecutable) ? L("No executable path is set.")
                   : IsBlank(config.ClamWinDatabaseFolder) ? L("No signature database folder is set.")
                   : null,
-            "antivirus"));
+            "antivirus",
+            Unread(nameof(config.ClamWinEnabled), nameof(config.ClamWinExecutable), nameof(config.ClamWinDatabaseFolder))));
 
          // 2. The custom scanner. Only the executable is required; the return value
          //    that means "infected" is a number and 0 is a legitimate choice, so it
@@ -228,7 +267,8 @@ namespace hMailServer.ControlPanel.Services
             config.CustomScannerEnabled && IsBlank(config.CustomScannerExecutable)
                ? L("No executable path is set.")
                : null,
-            "antivirus"));
+            "antivirus",
+            Unread(nameof(config.CustomScannerEnabled), nameof(config.CustomScannerExecutable), nameof(config.CustomScannerVirusReturnValue))));
 
          // 3. ClamAV over the network (clamd INSTREAM). A port of 0 is not a
          //    default, it is an address nothing listens on.
@@ -245,10 +285,15 @@ namespace hMailServer.ControlPanel.Services
                : config.ClamAvPort <= 0 ? L("The port is 0, which nothing can listen on.")
                : config.ClamAvPort > 65535 ? L("The port is outside the range 1-65535.")
                : null,
-            "antivirus"));
+            "antivirus",
+            Unread(nameof(config.ClamAvEnabled), nameof(config.ClamAvHost), nameof(config.ClamAvPort))));
 
          return scanners;
       }
+
+      /// <summary>Whether every scanner's settings were read, without which no verdict can be given.</summary>
+      public static bool ScannersRead(VirusPipelineConfig config)
+         => config != null && !Scanners(config).Any(scanner => scanner.Unread);
 
       /// <summary>
       /// One sentence answering "what will happen to an infected message", written
@@ -258,6 +303,12 @@ namespace hMailServer.ControlPanel.Services
       {
          if (config == null)
             return L("The anti-virus configuration could not be read.");
+
+         // A verdict from a value the server did not answer - a scanner read as
+         // off, a size limit read as 0 - is not given.
+         if (!ScannersRead(config) || !config.WasRead(nameof(config.Action), nameof(config.MaxScanKilobytes),
+                nameof(config.AttachmentBlockingEnabled), nameof(config.BlockedAttachmentPatterns)))
+            return L("What happens to an infected message cannot be said: some of the settings could not be read.");
 
          int usable = CountUsable(config);
 
@@ -288,6 +339,9 @@ namespace hMailServer.ControlPanel.Services
          if (config == null)
             return "";
 
+         if (!config.WasRead(nameof(config.Action), nameof(config.NotifySender), nameof(config.NotifyRecipient)))
+            return L("What the server does with an infected message could not be read.");
+
          if (config.Action == VirusAction.StripAttachments)
          {
             // Deliberately says what does NOT happen: this action is the one people
@@ -315,7 +369,9 @@ namespace hMailServer.ControlPanel.Services
       /// the page reports whether a scanner can run.
       /// </summary>
       public static string WhenNoScannerAnswers(VirusPipelineConfig config)
-         => config != null && config.HoldUnscanned
+         => config != null && !config.WasRead(nameof(config.HoldUnscanned))
+            ? L("Whether a message no scanner could examine is held or delivered could not be read.")
+            : config != null && config.HoldUnscanned
             ? L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on.")
             : L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on.");
 
@@ -329,6 +385,13 @@ namespace hMailServer.ControlPanel.Services
          IReadOnlyList<VirusScannerEntry> scanners = Scanners(config);
          int usable = CountUsable(config);
 
+         // Nothing that follows from a value that could not be read is said: a
+         // scanner the server did not answer for counts as neither usable nor
+         // not, and a switch read as off is not off.
+         bool scannersRead = ScannersRead(config);
+         bool blocking = config.WasRead(nameof(config.AttachmentBlockingEnabled), nameof(config.BlockedAttachmentPatterns));
+         bool action = config.WasRead(nameof(config.Action), nameof(config.NotifySender), nameof(config.NotifyRecipient));
+
          // ---- cannot work ------------------------------------------------------
 
          foreach (VirusScannerEntry scanner in scanners.Where(s => s.Enabled && !s.Usable))
@@ -338,12 +401,12 @@ namespace hMailServer.ControlPanel.Services
                : F("{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean.", scanner.Name, scanner.Problem)));
          }
 
-         if (usable == 0 && !config.AttachmentBlockingEnabled)
+         if (scannersRead && blocking && usable == 0 && !config.AttachmentBlockingEnabled)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Critical,
                L("Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived.")));
          }
-         else if (usable == 0)
+         else if (scannersRead && blocking && usable == 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Critical,
                L("No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive.")));
@@ -351,31 +414,31 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- works, but leaves a gap -----------------------------------------
 
-         if (usable > 0 && config.MaxScanKilobytes > 0)
+         if (scannersRead && usable > 0 && config.WasRead(nameof(config.MaxScanKilobytes)) && config.MaxScanKilobytes > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
                F("Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means \"no limit\" and is the setting that closes the gap.", Kilobytes(config.MaxScanKilobytes))));
          }
 
-         if (usable > 0 && config.Action == VirusAction.StripAttachments)
+         if (scannersRead && action && usable > 0 && config.Action == VirusAction.StripAttachments)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
                L("Infected messages are delivered with their attachments stripped rather than deleted. The recipient still receives the message body, which for most malicious mail is the part carrying the instructions telling them what to do next.")));
          }
 
-         if (usable > 0 && config.Action == VirusAction.DeleteMessage && config.NotifySender)
+         if (scannersRead && action && usable > 0 && config.Action == VirusAction.DeleteMessage && config.NotifySender)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
                L("A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list.")));
          }
 
-         if (config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns == 0)
+         if (blocking && config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns == 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
                L("Attachment blocking is switched on with no patterns to block, so it does nothing at all.")));
          }
 
-         if (config.FetchAccountsWithScanningOff > 0)
+         if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsWithScanningOff > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
                F("{0}{1} anti-virus turned off, so mail collected by {2} delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.{3}", (config.FetchAccountScanIncomplete ? L("At least ") : ""), Count(config.FetchAccountsWithScanningOff, L("external POP3 fetch account has"), L("external POP3 fetch accounts have")), (config.FetchAccountsWithScanningOff == 1 ? L("it is") : L("them is")), (config.FetchAccountScanIncomplete ? L(" There are more accounts on this server than this page walks, so there may be others.") : ""))));
@@ -383,25 +446,25 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- worth knowing ----------------------------------------------------
 
-         if (!config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns > 0)
+         if (blocking && !config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
                F("{0} configured but attachment blocking is switched off, so none of them is applied.", Count(config.BlockedAttachmentPatterns, L("blocked-attachment pattern is"), L("blocked-attachment patterns are")))));
          }
 
-         if (usable > 1)
+         if (scannersRead && usable > 1)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
                F("Every message goes through {0} in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its \"250 OK\".", Count(usable, L("scanner"), L("scanners")))));
          }
 
-         if (config.ClamWinEnabled && config.ClamAvEnabled)
+         if (scannersRead && config.ClamWinEnabled && config.ClamAvEnabled)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
                L("ClamWin and ClamAV both use the same signature database. Running both scans every message twice against the same definitions.")));
          }
 
-         if (usable > 0)
+         if (scannersRead && usable > 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Information,
                F("At most {0} scans run at once. Beyond that, delivery threads wait — and after 60 seconds of waiting the server gives up waiting and scans anyway, so a slow scanner shows up as slow mail rather than as unscanned mail.", MaxConcurrentScans)));

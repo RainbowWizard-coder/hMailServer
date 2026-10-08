@@ -468,6 +468,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   collection pages' notice sits under the header rather than under three hundred pixels of blank card, and a role
   that could not be given is a Critical failure rather than an amber warning. `ReadFailurePageTests` holds every page
   to the pattern.
+- **Fixed: the three read-only overviews drew defaults as findings when nothing could be read.** With the link to the
+  service lost, the spam filtering overview said "1 value(s) could not be read" and then that nothing at all happens on
+  score because both thresholds are 0, with every check Off at a score of 0; the virus scanning overview that no
+  message is scanned and everything is delivered as it arrives, with a size limit of 0; and the transport encryption
+  overview that no listeners, no certificates and no TLS version are configured - every one of them the type's default
+  for a value the server never answered, drawn as a verdict about the server. When the settings object cannot be
+  opened at all, each overview now draws no cards and shows one Critical notice with the reason and Try again. When
+  some values cannot be read, each snapshot records which (`Unread` on `SpamPipelineConfig`, `VirusPipelineConfig` and
+  `TlsPostureConfig`), the check or scanner they feed shows a neutral *Not read* pill with no score rather than Off, the
+  verdict sentence and every note that follows from an unread value are left out and say so instead, and the warning
+  above the cards reads "Some values could not be read: ... The sections below may be incomplete." - below, since the
+  notice is above the sections it describes, where the virus and transport overviews pointed at "the rows above". The
+  pipeline tests hold an unread check to neither on nor off, an unread threshold to no verdict and no threshold note,
+  an unread scanner to no "cannot run" and no "nothing examines incoming mail", and unread listeners, versions and
+  ranges to none of the notes that follow from them.
 
 ### Administration
 

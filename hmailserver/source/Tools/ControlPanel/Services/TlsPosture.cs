@@ -124,6 +124,28 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>Whether the certificate files could be examined from this machine at all.</summary>
       public bool CertificateFilesReadable { get; set; } = true;
+
+      /// <summary>
+      /// The properties that could not be read, by name, kept by the page that
+      /// fills this snapshot. A value that could not be read is the type's
+      /// default, which here is a real configuration - a threshold of 0, a check
+      /// that is off - so nothing that follows from one may be said as a fact:
+      /// the row is "Not read", the verdict is left out, and so is every note
+      /// that depends on it.
+      /// </summary>
+      public HashSet<string> Unread { get; } = new(StringComparer.Ordinal);
+
+      /// <summary>Whether every one of these properties was read.</summary>
+      public bool WasRead(params string[] properties)
+      {
+         foreach (string property in properties)
+         {
+            if (Unread.Contains(property))
+               return false;
+         }
+
+         return true;
+      }
    }
 
    /// <summary>
@@ -198,8 +220,9 @@ namespace hMailServer.ControlPanel.Services
          }
 
          // Every TLS listener shares one set of enabled protocol versions. With none
-         // of them enabled the handshake has nothing to agree on.
-         if (WantsTls(listener.Security) && !AnyVersionEnabled(config))
+         // of them enabled the handshake has nothing to agree on. Versions that
+         // could not be read are not "none enabled".
+         if (WantsTls(listener.Security) && VersionsRead(config) && !AnyVersionEnabled(config))
          {
             return new TlsListenerVerdict(listener, StatusLevel.Critical, L("Cannot negotiate"),
                L("No TLS version is enabled anywhere on this server, so no handshake on this port can succeed."));
@@ -234,11 +257,22 @@ namespace hMailServer.ControlPanel.Services
       private static bool AnyVersionEnabled(TlsPostureConfig config) =>
          config != null && (config.Tls10Enabled || config.Tls11Enabled || config.Tls12Enabled || config.Tls13Enabled);
 
+      /// <summary>
+      /// Whether the four version switches were read. A switch the server did not
+      /// answer is false in the snapshot, and four falses would say that no
+      /// handshake can succeed.
+      /// </summary>
+      public static bool VersionsRead(TlsPostureConfig config) =>
+         config != null && config.WasRead(nameof(config.Tls10Enabled), nameof(config.Tls11Enabled), nameof(config.Tls12Enabled), nameof(config.Tls13Enabled));
+
       /// <summary>The enabled protocol versions, newest first, as a readable list.</summary>
       public static string VersionSummary(TlsPostureConfig config)
       {
          if (config == null)
             return "";
+
+         if (!VersionsRead(config))
+            return L("The protocol versions could not be read.");
 
          var enabled = new List<string>();
          if (config.Tls13Enabled) enabled.Add(L("TLS 1.3"));
@@ -256,6 +290,11 @@ namespace hMailServer.ControlPanel.Services
       {
          if (config == null)
             return L("The transport security configuration could not be read.");
+
+         // Listeners that could not be read are not "no listeners": the verdict
+         // is not given.
+         if (!config.WasRead(nameof(config.Listeners)))
+            return L("Where this server stands cannot be said: the listeners could not be read.");
 
          IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
 
@@ -297,9 +336,15 @@ namespace hMailServer.ControlPanel.Services
 
          IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
 
+         // Nothing that follows from a value that could not be read is said: a
+         // version switch the server did not answer is false here, and four
+         // falses would make the worst note on the page.
+         bool versions = VersionsRead(config);
+         bool ranges = config.WasRead(nameof(config.RangesTotal), nameof(config.RangesRequiringTlsForAuth));
+
          // ---- cannot work ------------------------------------------------------
 
-         if (!AnyVersionEnabled(config) && listeners.Any(v => WantsTls(v.Listener.Security)))
+         if (versions && !AnyVersionEnabled(config) && listeners.Any(v => WantsTls(v.Listener.Security)))
          {
             notes.Add(new TlsPostureNote(StatusLevel.Critical,
                L("No TLS version is enabled, and there are listeners configured to use TLS. Not one of their handshakes can succeed until at least TLS 1.2 is switched on.")));
@@ -320,7 +365,7 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- weak, rather than absent -----------------------------------------
 
-         if (config.Tls10Enabled || config.Tls11Enabled)
+         if (versions && (config.Tls10Enabled || config.Tls11Enabled))
          {
             string which = config.Tls10Enabled && config.Tls11Enabled ? L("TLS 1.0 and TLS 1.1 are")
                : config.Tls10Enabled ? L("TLS 1.0 is") : L("TLS 1.1 is");
@@ -329,7 +374,7 @@ namespace hMailServer.ControlPanel.Services
                F("{0} enabled. Both are deprecated by RFC 8996 and are refused outright by current clients, so leaving them on rarely buys the compatibility they were kept for, and a client that does negotiate one gets materially weaker protection than the rest.", which)));
          }
 
-         if (IsAeadOnlyPreset(config.CipherList) && (config.Tls10Enabled || config.Tls11Enabled))
+         if (versions && config.WasRead(nameof(config.CipherList)) && IsAeadOnlyPreset(config.CipherList) && (config.Tls10Enabled || config.Tls11Enabled))
          {
             // From the cipher-list blurb on the SSL/TLS page, which says so in prose;
             // this is the same statement made about the configuration in front of you.
@@ -337,7 +382,7 @@ namespace hMailServer.ControlPanel.Services
                L("The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy.")));
          }
 
-         if (!config.Tls13Enabled && config.Tls12Enabled)
+         if (versions && !config.Tls13Enabled && config.Tls12Enabled)
          {
             notes.Add(new TlsPostureNote(StatusLevel.Information,
                L("TLS 1.3 is off. It is faster to negotiate than 1.2 and removes the older key exchanges outright; there is rarely a reason to leave it off.")));
@@ -352,10 +397,13 @@ namespace hMailServer.ControlPanel.Services
          if (optional.Count > 0)
          {
             notes.Add(new TlsPostureNote(StatusLevel.Warning,
-               F("STARTTLS is optional on {0}. A client that never asks for it, or one whose STARTTLS offer is stripped in transit, carries on unencrypted and neither end is told. {1}", Ports(optional), (config.RangesRequiringTlsForAuth > 0 ? L("Requiring TLS for authentication on the IP ranges closes the credential half of this.") : L("No IP range requires TLS for authentication either, so nothing else is closing this.")))));
+               F("STARTTLS is optional on {0}. A client that never asks for it, or one whose STARTTLS offer is stripped in transit, carries on unencrypted and neither end is told. {1}", Ports(optional),
+                  (!ranges ? L("Whether an IP range requires TLS for authentication could not be read.")
+                     : config.RangesRequiringTlsForAuth > 0 ? L("Requiring TLS for authentication on the IP ranges closes the credential half of this.")
+                     : L("No IP range requires TLS for authentication either, so nothing else is closing this.")))));
          }
 
-         if (config.RangesTotal > 0 && config.RangesRequiringTlsForAuth == 0 && optional.Count > 0)
+         if (ranges && config.RangesTotal > 0 && config.RangesRequiringTlsForAuth == 0 && optional.Count > 0)
          {
             notes.Add(new TlsPostureNote(StatusLevel.Warning,
                L("No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows.")));
@@ -397,7 +445,7 @@ namespace hMailServer.ControlPanel.Services
 
          // ---- outbound ---------------------------------------------------------
 
-         if (!config.VerifyRemoteCertificates)
+         if (config.WasRead(nameof(config.VerifyRemoteCertificates)) && !config.VerifyRemoteCertificates)
          {
             notes.Add(new TlsPostureNote(StatusLevel.Information,
                L("Certificates are not verified on the connections this server makes when delivering. That is the normal setting for mail between servers - most of the internet's SMTP certificates would fail verification and the mail would stop - but it does mean outbound TLS protects against a passive listener only, not against something in the path. DANE and MTA-STS are how a specific destination gets more than that.")));

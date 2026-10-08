@@ -372,5 +372,54 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(StatusLevel.Normal, VirusPipeline.WorstLevel(null));
          Assert.False(string.IsNullOrWhiteSpace(VirusPipeline.Verdict(null)));
       }
+
+      // ---- values that could not be read ---------------------------------------
+      //
+      // A value the server did not answer is the type's default in the snapshot:
+      // a scanner read as off, a host read as blank, a size limit read as 0. The
+      // virus overview drew those as the configuration when the link was lost -
+      // "No message is scanned for viruses. Everything is delivered as it arrives."
+
+      [Fact]
+      public void AnUnreadScanner_IsNotRead_AndTheVerdictIsNotGiven()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.ClamAvHost = "";
+         config.Unread.Add(nameof(config.ClamAvHost));
+
+         VirusScannerEntry clamAv = VirusPipeline.Scanners(config).Single(s => s.Key == "clamav");
+         Assert.True(clamAv.Unread);
+         Assert.False(clamAv.Enabled);
+         Assert.False(clamAv.Usable);
+         Assert.Null(clamAv.Problem);
+         Assert.Equal("Not read", clamAv.StateText);
+
+         Assert.False(VirusPipeline.ScannersRead(config));
+         Assert.Contains("could not be read", VirusPipeline.Verdict(config));
+
+         // Neither "cannot run" nor "nothing examines incoming mail" is said of a
+         // scanner that was not read.
+         Assert.DoesNotContain(VirusPipeline.Notes(config), n => n.Level == StatusLevel.Critical);
+      }
+
+      [Fact]
+      public void AnUnreadAction_LeavesWhatHappensToAnInfectedMessageUnsaid()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.NotifySender = true;
+         config.Unread.Add(nameof(config.Action));
+
+         Assert.Contains("could not be read", VirusPipeline.ActionSummary(config));
+         Assert.DoesNotContain(VirusPipeline.Notes(config), n => n.Text.Contains("backscatter"));
+      }
+
+      [Fact]
+      public void AConfigurationReadInFull_HasNothingUnread()
+      {
+         VirusPipelineConfig config = Scanning();
+         Assert.True(VirusPipeline.ScannersRead(config));
+         Assert.DoesNotContain(VirusPipeline.Scanners(config), s => s.Unread);
+         Assert.DoesNotContain("could not be read", VirusPipeline.Verdict(config));
+      }
    }
 }

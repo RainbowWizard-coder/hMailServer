@@ -102,7 +102,16 @@ namespace hMailServer.ControlPanel.Views
       private int failedReads_;
       private string firstError_;
 
-      private T Read<T>(Func<T> read)
+      // Whether the settings object could be opened at all. When it could not,
+      // every value in the snapshot is a default, and a page drawn from defaults
+      // says "No listeners are configured" of a server it never asked.
+      private bool configRead_;
+
+      /// <summary>
+      /// One value, recorded against its property when it could not be read, so
+      /// that the card it feeds says so rather than showing the default.
+      /// </summary>
+      private T Read<T>(TlsPostureConfig config, string property, Func<T> read)
       {
          try
          {
@@ -112,6 +121,8 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            if (property != null)
+               config.Unread.Add(property);
             return default;
          }
       }
@@ -120,6 +131,7 @@ namespace hMailServer.ControlPanel.Views
       {
          failedReads_ = 0;
          firstError_ = null;
+         configRead_ = false;
 
          var config = new TlsPostureConfig();
          dynamic settings = null;
@@ -127,18 +139,19 @@ namespace hMailServer.ControlPanel.Views
          try
          {
             settings = ServerSession.Current.Application.Settings;
+            configRead_ = true;
 
-            config.Tls10Enabled = Read(() => (bool)settings.TlsVersion10Enabled);
-            config.Tls11Enabled = Read(() => (bool)settings.TlsVersion11Enabled);
-            config.Tls12Enabled = Read(() => (bool)settings.TlsVersion12Enabled);
-            config.Tls13Enabled = Read(() => (bool)settings.TlsVersion13Enabled);
-            config.CipherList = Read(() => (string)settings.SslCipherList) ?? "";
-            config.VerifyRemoteCertificates = Read(() => (bool)settings.VerifyRemoteSslCertificate);
+            config.Tls10Enabled = Read(config, nameof(config.Tls10Enabled), () => (bool)settings.TlsVersion10Enabled);
+            config.Tls11Enabled = Read(config, nameof(config.Tls11Enabled), () => (bool)settings.TlsVersion11Enabled);
+            config.Tls12Enabled = Read(config, nameof(config.Tls12Enabled), () => (bool)settings.TlsVersion12Enabled);
+            config.Tls13Enabled = Read(config, nameof(config.Tls13Enabled), () => (bool)settings.TlsVersion13Enabled);
+            config.CipherList = Read(config, nameof(config.CipherList), () => (string)settings.SslCipherList) ?? "";
+            config.VerifyRemoteCertificates = Read(config, nameof(config.VerifyRemoteCertificates), () => (bool)settings.VerifyRemoteSslCertificate);
 
             // The certificate files live beside the server. Read remotely, the file
             // checks are meaningless - and quietly reporting "missing" for a file
             // that is simply on another machine would be the worst possible answer.
-            string host = Read(() => ServerSession.Current.Host) ?? "";
+            string host = Read(config, null, () => ServerSession.Current.Host) ?? "";
             config.CertificateFilesReadable = string.IsNullOrEmpty(host) || CertificateInspector.SessionIsLocal(host);
 
             // Certificates first: the listener pass resolves each port's certificate
@@ -216,6 +229,7 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            config.Unread.Add(nameof(config.Certificates));
          }
          finally
          {
@@ -291,6 +305,7 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            config.Unread.Add(nameof(config.Listeners));
          }
          finally
          {
@@ -355,6 +370,8 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            config.Unread.Add(nameof(config.RangesTotal));
+            config.Unread.Add(nameof(config.RangesRequiringTlsForAuth));
          }
          finally
          {
@@ -369,6 +386,18 @@ namespace hMailServer.ControlPanel.Views
          TlsPostureConfig config = ReadConfig();
 
          body_.Children.Clear();
+
+         // Nothing could be read: no cards, since every value in them would be a
+         // default drawn as a finding, and one Critical notice with Try again
+         // (Services/ReadFailure).
+         if (!configRead_)
+         {
+            ReadFailure.Show(readFailure_, null, null, L("The transport security configuration could not be read: "), firstError_, Reload);
+            status_.Text = "";
+            return;
+         }
+
+         ReadFailure.Clear(readFailure_);
          body_.Children.Add(VerdictCard(config));
          body_.Children.Add(ListenersCard(config));
          body_.Children.Add(CertificatesCard(config));
@@ -381,9 +410,13 @@ namespace hMailServer.ControlPanel.Views
 
          status_.Text = L("Read from the server. Values are read again every time this page is opened.");
 
+         // Some values could not be read: their cards say so and the verdicts and
+         // notes that depend on them are left out, and this says so above the
+         // sections it is about.
+         readFailure_.Level = StatusLevel.Warning;
          readFailure_.Text = failedReads_ == 0
             ? null
-            : F("{0} value(s) could not be read — {1} The rows above may be incomplete.", failedReads_, firstError_);
+            : F("Some values could not be read: {0} The sections below may be incomplete.", firstError_);
          readFailure_.Visibility = failedReads_ == 0 ? Visibility.Collapsed : Visibility.Visible;
       }
 
@@ -428,7 +461,10 @@ namespace hMailServer.ControlPanel.Views
 
          if (row == 0)
          {
-            content.Children.Add(Paragraph(L("No listeners are configured."), Typography.Body));
+            // Listeners that could not be read are not "no listeners".
+            content.Children.Add(Paragraph(config.WasRead(nameof(config.Listeners))
+               ? L("No listeners are configured.")
+               : L("The listeners could not be read."), Typography.Body));
          }
          else
          {
@@ -507,7 +543,10 @@ namespace hMailServer.ControlPanel.Views
 
          if (config.Certificates.Count == 0)
          {
-            content.Children.Add(Paragraph(L("No certificates are configured."), Typography.Body));
+            // Certificates that could not be read are not "no certificates".
+            content.Children.Add(Paragraph(config.WasRead(nameof(config.Certificates))
+               ? L("No certificates are configured.")
+               : L("The certificates could not be read."), Typography.Body));
          }
          else
          {
@@ -595,7 +634,9 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(F("Protocol versions enabled: {0}", TlsPosture.VersionSummary(config)), Typography.Body));
 
          content.Children.Add(Paragraph(
-            TlsPosture.IsAeadOnlyPreset(config.CipherList)
+            !config.WasRead(nameof(config.CipherList))
+               ? L("The cipher list could not be read.")
+               : TlsPosture.IsAeadOnlyPreset(config.CipherList)
                ? L("Cipher list: the AEAD-ONLY preset — forward-secret AEAD suites only, with every CBC-mode suite and static-RSA key exchange excluded. This governs TLS 1.2 and below; TLS 1.3 has its own list and is AEAD by construction.")
                : string.IsNullOrWhiteSpace(config.CipherList)
                   ? L("Cipher list: OpenSSL defaults for TLS 1.2 and below. TLS 1.3 has its own separate list.")
@@ -612,7 +653,9 @@ namespace hMailServer.ControlPanel.Views
          Card card = Section(L("Passwords, and what is allowed to carry them"), out StackPanel content);
 
          content.Children.Add(Paragraph(
-            config.RangesTotal == 0
+            !config.WasRead(nameof(config.RangesTotal), nameof(config.RangesRequiringTlsForAuth))
+               ? L("The IP ranges could not be read.")
+               : config.RangesTotal == 0
                ? L("No IP ranges are configured.")
                : config.RangesRequiringTlsForAuth == 0
                   ? F("None of the {0} IP range(s) requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.", config.RangesTotal)

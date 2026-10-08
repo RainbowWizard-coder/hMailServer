@@ -6777,6 +6777,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not published" xml:space="preserve">
     <value>Niet gepubliceerd</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Niet gelezen</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Niet herstart</value>
   </data>
@@ -9987,6 +9990,9 @@ Nu opnieuw starten?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Zachte bounces binnen het venster voordat een lid geen mail meer krijgt (1 tot 100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Sommige waarden konden niet worden gelezen: {0} De onderstaande secties kunnen onvolledig zijn.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Iemand is wachtwoorden aan het raden</value>
   </data>
@@ -10532,6 +10538,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>Het IP-bereik {0} accepteert een wachtwoord zonder TLS, en poort {1} biedt geen TLS dat een client kan starten: geef die poorten eerst een certificaat en STARTTLS, en vereis daarna TLS voor aanmelden vanuit het bereik.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>De IP-bereiken konden niet worden gelezen.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Het LDAP-filter dat de mensen selecteert die een postvak horen te hebben. De standaard neemt ingeschakelde person-objecten met een mailadres - wat bewust uitgeschakelde vertrekkers, serviceaccounts en computers uitsluit, waarvoor een ruimer filter allemaal postvakken zou aanmaken.</value>
   </data>
@@ -10676,8 +10685,14 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>De antivirusconfiguratie kon niet worden gelezen.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Kon de antivirusconfiguratie niet lezen: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Het archief bevat geen berichten voor dit account.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>De instellingen voor het blokkeren van bijlagen konden niet worden gelezen.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>De bijlagen worden vervangen en het bericht wordt bezorgd. Geen van beide meldingsinstellingen geldt voor deze actie — de server stuurt de melding "bericht verwijderd" alleen wanneer de actie is het bericht te verwijderen.</value>
@@ -10754,6 +10769,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>De openbare sleutel van het certificaat kon niet worden geëxporteerd om te vergelijken.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>De certificaten konden niet worden gelezen.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>De certificaten die de listeners aanbieden, en automatische verlenging via ACME.</value>
   </data>
@@ -10771,6 +10789,9 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>De controle is afgerond en het gepubliceerde record van het domein is onbruikbaar: twee records, een ongeldig mechanisme, een redirect-lus, te veel opzoekingen. Opnieuw proberen lost het niet op, dus het wordt nooit uitgesteld; strenge sites behandelen het als een fail en milde sites negeren het.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>De cipherlijst kon niet worden gelezen.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>De cipherlijst is de voorinstelling AEAD-ONLY terwijl TLS 1.0 of 1.1 is ingeschakeld. Die versies hebben helemaal geen AEAD-suite, dus ze worden aangekondigd en kunnen vervolgens geen handshake voltooien - wat voor de client eerder op een kapotte server lijkt dan op een beleid.</value>
@@ -10920,6 +10941,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>De begroetings-, bounce- en foutteksten die de server naar clients terugstuurt.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>De greylisting-instellingen konden niet worden gelezen.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>De groepsleden konden niet worden gelezen: </value>
   </data>
@@ -11048,6 +11072,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>De listener is geconfigureerd. Wat overblijft, ligt buiten de server: publiceer voor elk maildomein records voor autoconfig.&lt;domain&gt; en autodiscover.&lt;domain&gt;, en test daarna vanaf een clientmachine.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>De listeners konden niet worden gelezen.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>De lijsten achter de controles</value>
@@ -11194,6 +11221,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Het profiel</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>De protocolversies konden niet worden gelezen.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Het openbare adres dat andere servers zien, wanneer het geen adres van deze machine is.</value>
@@ -11456,11 +11486,17 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>De enkele waarde AEAD-ONLY (niet hoofdlettergevoelig) is een benoemde voorinstelling en geen OpenSSL-cipherstring: alleen forward-secret AEAD-suites (ECDHE of DHE met AES-GCM of ChaCha20-Poly1305), met uitsluiting van elke suite in CBC-modus - de Lucky13-familie van padding-orakels - en van statische RSA-sleuteluitwisseling. De prijs: TLS 1.2-clients die alleen CBC-suites spreken kunnen geen verbinding maken, en voor TLS 1.0/1.1 blijft er helemaal geen bruikbare cipher over, dus schakel die protocollen er niet naast in. TLS 1.3 blijft ongemoeid - zijn suites zijn per definitie AEAD en worden hieronder apart ingesteld. Een verkeerd gespelde naam van de voorinstelling wordt geweigerd en gemeld, niet stilzwijgend genegeerd.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>De maximumgrootte kon niet worden gelezen.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>De smart host, zijn poort en referenties, en het schema voor nieuwe bezorgpogingen.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>De bronbeperking moet een adres (10.0.0.5), een bereik (10.0.0.1-10.0.0.99) of CIDR (10.0.0.0/24) zijn. Laat leeg om de sleutel vanaf elk adres te accepteren.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Kon de spamconfiguratie niet lezen: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>De opgeslagen vervaldatum kon niet worden gelezen in de vorm die deze pagina verwacht (YYYY-MM-DD HH:MM:SS), dus hiervandaan valt niet te zeggen of de server deze sleutel nog accepteert. Is de regel met de hand bewerkt, corrigeer die dan; trek anders de sleutel in en maak een vervanger aan.</value>
@@ -11491,6 +11527,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>De configuratie voor transportbeveiliging kon niet worden gelezen.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Kon de transportbeveiligingsconfiguratie niet lezen: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>De twee helften falen op verschillende manieren en hebben verschillende oorzaken. Stel eerst vast welke van de twee u hebt.</value>
@@ -11590,6 +11629,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Deze instellingen konden niet van de server worden gelezen.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Deze instellingen konden niet worden gelezen.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Dit Control Panel sluit zodra de helper is gestart, zodat het installatieprogramma zijn bestanden kan vervangen; open het over een minuut opnieuw om de uitkomst te zien.</value>
@@ -12295,8 +12337,14 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="What happens to a message" xml:space="preserve">
     <value>Wat er met een bericht gebeurt</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Wat er met een bericht gebeurt, valt niet te zeggen: de drempels konden niet worden gelezen.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Wat er met een geïnfecteerd bericht gebeurt</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Wat er met een besmet bericht gebeurt, valt niet te zeggen: sommige instellingen konden niet worden gelezen.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Wat er buiten deze server moet bestaan</value>
@@ -12330,6 +12378,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Wat de server doet naarmate het volume met de berichtenopslag volloopt. Beide waarden zijn absolute megabytes en geen percentages, want wat bepaalt of het volgende bericht past, is hoeveel bytes er over zijn en niet welk deel van het volume dat is.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Wat de server met een besmet bericht doet, kon niet worden gelezen.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Wat de server naar zijn logbestanden schrijft (te bekijken op de pagina Live logboeken).</value>
@@ -12427,14 +12478,23 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Where this server stands" xml:space="preserve">
     <value>Hoe deze server ervoor staat</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Waar deze server staat, valt niet te zeggen: de listeners konden niet worden gelezen.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Of STARTTLS wordt aangeboden, kon niet worden bepaald: de TCP/IP-poorten en certificaten konden niet worden gelezen. Deze listener leent zijn certificaat van een IMAP-, POP3- of SMTP-poort die TLS aankan, en heeft er zelf geen.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Of er TLSA-records bestaan, en of uw zone DNSSEC-ondertekend is, is alleen in DNS te zien. Hebt u nooit DNSSEC voor de zone ingericht, dan valideert geen enkel TLSA-record.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Of een bericht dat geen enkele scanner kon onderzoeken wordt vastgehouden of bezorgd, kon niet worden gelezen.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Of er een wachtwoordzin is opgeslagen, kon niet worden gelezen - dat lezen vereist het beheerdersaccount van de server. Er hiervandaan een nieuwe opslaan werkt wel.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Of een IP-bereik TLS vereist voor verificatie, kon niet worden gelezen.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Of opzoekingen uit de cache van de Windows-DNS-resolver mogen worden beantwoord. Staat dit uit, dan gaat elke opzoeking naar het netwerk. Wordt genegeerd wanneer hierboven een afwijkende DNS-server is ingesteld — die opzoekingen omzeilen altijd de systeemcache, omdat de antwoorden daaruit van de verkeerde resolver zouden komen.</value>
@@ -14638,15 +14698,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} waarde(n) konden niet worden gelezen — {1} De items hierboven kunnen onvolledig zijn.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} waarde(n) konden niet worden gelezen — {1} De rijen hierboven kunnen onvolledig zijn, dus beschouw een scanner die hier als onbruikbaar wordt getoond als onbevestigd.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} waarde(n) konden niet worden gelezen — {1} De rijen hierboven kunnen onvolledig zijn.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} waarde(n) konden niet worden gelezen — {1} De rijen hieronder kunnen onvolledig zijn.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} is gemaakt: {1} postbussen, en {2} berichten onderweg ernaartoe. Ze komen binnen enkele seconden aan. Alle postbussen melden zich aan met het wachtwoord {3}. Het wordt hier één keer getoond - schrijf het op, want deze server heeft het niet bewaard.</value>

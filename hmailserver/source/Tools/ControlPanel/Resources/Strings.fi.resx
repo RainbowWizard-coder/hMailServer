@@ -6777,6 +6777,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not published" xml:space="preserve">
     <value>Ei julkaistu</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Ei luettu</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Ei käynnistetty uudelleen</value>
   </data>
@@ -9987,6 +9990,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Pehmeät palautukset ikkunan sisällä, ennen kuin jäsen ei enää saa postia (1–100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Joitakin arvoja ei voitu lukea: {0} Alla olevat osiot voivat olla puutteellisia.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Joku arvailee salasanoja</value>
   </data>
@@ -10532,6 +10538,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>IP-alue {0} ottaa vastaan salasanan ilman TLS:ää, eikä portti {1} tarjoa TLS:ää, jonka asiakas voisi aloittaa: anna ensin näille porteille varmenne ja STARTTLS, ja vaadi sitten TLS kirjautumiseen alueelta.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>IP-alueita ei voitu lukea.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>LDAP-suodatin, joka valitsee henkilöt, joilla pitäisi olla postilaatikko. Oletus ottaa käytössä olevat person-objektit, joilla on sähköpostiosoite - mikä jättää tarkoituksella pois poistetut lähteneet, palvelutilit ja tietokoneet, joille kaikille laajempi suodatin loisi postilaatikot.</value>
   </data>
@@ -10676,8 +10685,14 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virustorjunnan määritystä ei voitu lukea.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Virustorjunnan asetuksia ei voitu lukea: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkistossa ei ole viestejä tälle tilille.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Liitteiden eston asetuksia ei voitu lukea.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Liitteet korvataan ja viesti toimitetaan. Kumpikaan ilmoitusasetus ei koske tätä toimintoa — palvelin lähettää "viesti poistettu" -ilmoituksen vain, kun toiminto on viestin poistaminen.</value>
@@ -10754,6 +10769,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Varmenteen julkista avainta ei voitu viedä vertailua varten.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Varmenteita ei voitu lukea.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Kuuntelijoiden esittämät varmenteet ja automaattinen uusinta ACME:n kautta.</value>
   </data>
@@ -10771,6 +10789,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Tarkistus valmistui ja verkkotunnuksen julkaisema tietue on käyttökelvoton: kaksi tietuetta, virheellinen mekanismi, uudelleenohjaussilmukka, liikaa hakuja. Uusi yritys ei korjaa sitä, joten sitä ei koskaan lykätä; tiukat sivustot käsittelevät sen failina ja sallivat ohittavat sen.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>Salausluetteloa ei voitu lukea.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Salauslista on esiasetus AEAD-ONLY, vaikka TLS 1.0 tai 1.1 on käytössä. Näillä versioilla ei ole lainkaan AEAD-salausryhmää, joten ne ilmoitetaan, mutta kättely ei onnistu - asiakkaan silmin se näyttää rikkinäiseltä palvelimelta eikä käytännöltä.</value>
@@ -10920,6 +10941,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Tervehdys-, palautus- ja virhetekstit, jotka palvelin lähettää asiakkaille.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Harmaalistauksen asetuksia ei voitu lukea.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Ryhmän jäseniä ei voitu lukea: </value>
   </data>
@@ -11048,6 +11072,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Kuuntelija on määritetty. Jäljellä on palvelimen ulkopuolinen osuus: julkaise autoconfig.&lt;domain&gt;- ja autodiscover.&lt;domain&gt;-tietueet jokaiselle postiverkkotunnukselle ja testaa sitten asiakaskoneelta.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Kuuntelijoita ei voitu lukea.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Tarkistusten taustalla olevat luettelot</value>
@@ -11194,6 +11221,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profiili</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Protokollaversioita ei voitu lukea.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Julkinen osoite, jonka muut palvelimet näkevät, kun se ei ole tämän koneen osoite.</value>
@@ -11456,11 +11486,17 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Yksittäinen arvo AEAD-ONLY (kirjainkoosta riippumaton) on nimetty esiasetus eikä OpenSSL-salausmerkkijono: vain eteenpäin salaiset AEAD-salausryhmät (ECDHE tai DHE AES-GCM:llä tai ChaCha20-Poly1305:llä), poissulkien jokaisen CBC-tilan salausryhmän - Lucky13-täyteoraakkeliperheen - ja staattisen RSA-avaintenvaihdon. Hinta: vain CBC-salausryhmiä puhuvat TLS 1.2 -asiakkaat eivät voi yhdistää, ja TLS 1.0/1.1 jäävät kokonaan ilman käyttökelpoista salausta, joten älä ota näitä protokollia käyttöön sen rinnalla. Tämä ei vaikuta TLS 1.3:een - sen salausryhmät ovat rakenteeltaan AEAD ja ne määritetään erikseen alla. Väärin kirjoitettu esiasetuksen nimi hylätään ja raportoidaan, sitä ei ohiteta hiljaa.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>Kokorajaa ei voitu lukea.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smart host, sen portti ja tunnistetiedot sekä toimituksen uudelleenyritysten aikataulu.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Lähderajoituksen on oltava osoite (10.0.0.5), alue (10.0.0.1-10.0.0.99) tai CIDR (10.0.0.0/24). Jätä tyhjäksi hyväksyäksesi avaimen mistä tahansa osoitteesta.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Roskapostiasetuksia ei voitu lukea: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Tallennettua vanhenemisaikaa ei voitu lukea tämän sivun odottamassa muodossa (VVVV-KK-PP TT:MM:SS), joten täältä ei voi sanoa, hyväksyykö palvelin yhä tämän avaimen. Jos riviä muokattiin käsin, korjaa se; muutoin kumoa avain ja luo korvaava.</value>
@@ -11491,6 +11527,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Siirtoturvallisuuden määritystä ei voitu lukea.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Siirron suojausasetuksia ei voitu lukea: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Kaksi puoliskoa epäonnistuvat eri tavoin ja eri syistä. Selvitä ennen mitään muuta, kumpi sinulla on.</value>
@@ -11590,6 +11629,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Näitä asetuksia ei voitu lukea palvelimelta.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Näitä asetuksia ei voitu lukea.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Tämä Control Panel sulkeutuu heti, kun apuri on käynnistynyt, jotta asennusohjelma voi korvata sen tiedostot; avaa se uudelleen minuutin kuluttua nähdäksesi tuloksen.</value>
@@ -12295,8 +12337,14 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="What happens to a message" xml:space="preserve">
     <value>Mitä viestille tapahtuu</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Ei voida sanoa, mitä viestille tapahtuu: kynnysarvoja ei voitu lukea.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Mitä tartunnan saaneelle viestille tapahtuu</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Ei voida sanoa, mitä saastuneelle viestille tapahtuu: joitakin asetuksia ei voitu lukea.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Mitä tämän palvelimen ulkopuolella on oltava</value>
@@ -12330,6 +12378,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Mitä palvelin tekee viestivaraston taltion täyttyessä. Molemmat arvot ovat absoluuttisia megatavuja eivätkä prosentteja, koska sen, mahtuuko seuraava viesti, ratkaisee jäljellä olevien tavujen määrä, ei niiden osuus taltiosta.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Ei voitu lukea, mitä palvelin tekee saastuneelle viestille.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Mitä palvelin kirjoittaa lokitiedostoihinsa (katsottavissa Reaaliaikaiset lokit -sivulla).</value>
@@ -12427,14 +12478,23 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Where this server stands" xml:space="preserve">
     <value>Missä tämä palvelin on</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Ei voida sanoa, missä tilassa tämä palvelin on: kuuntelijoita ei voitu lukea.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Sitä, tarjotaanko STARTTLS, ei voitu määrittää: TCP/IP-portteja ja varmenteita ei voitu lukea. Tämä kuuntelija lainaa varmenteensa TLS-kykyiseltä IMAP-, POP3- tai SMTP-portilta, eikä sillä ole omaa.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Sen, onko TLSA-tietueita olemassa ja onko vyöhykkeesi DNSSEC-allekirjoitettu, näkee vain DNS:stä. Jos et ole koskaan määrittänyt DNSSEC:tä vyöhykkeelle, yksikään TLSA-tietue ei kelpaa.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Ei voitu lukea, pidätetäänkö vai toimitetaanko viesti, jota yksikään skanneri ei voinut tutkia.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Sitä, onko tunnuslause tallennettu, ei voitu lukea - sen lukeminen vaatii palvelimen järjestelmänvalvojan tilin. Uuden tallentaminen täältä toimii silti.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Ei voitu lukea, vaatiiko jokin IP-alue TLS:n todennukseen.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Voidaanko hakuihin vastata Windowsin DNS-nimiselvittimen välimuistista. Pois päältä: jokainen haku menee verkkoon. Ohitetaan, kun yllä on asetettu ohittava DNS-palvelin — nuo haut ohittavat aina järjestelmän välimuistin, koska sen vastaukset tulisivat väärältä nimiselvittimeltä.</value>
@@ -14638,15 +14698,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea — {1} Yllä olevat kohteet voivat olla puutteellisia.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} arvoa ei voitu lukea — {1} Yllä olevat rivit voivat olla puutteellisia, joten pidä täällä käyttökelvottomaksi näytettyä tarkistinta vahvistamattomana.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} arvoa ei voitu lukea — {1} Yllä olevat rivit voivat olla puutteellisia.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} arvoa ei voitu lukea — {1} Alla olevat rivit voivat olla puutteellisia.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} luotiin: {1} postilaatikkoa, ja {2} viestiä matkalla niihin. Ne saapuvat muutamassa sekunnissa. Kaikki postilaatikot kirjautuvat salasanalla {3}. Se näytetään tässä kerran - kirjoita se muistiin, sillä palvelin ei tallentanut sitä.</value>

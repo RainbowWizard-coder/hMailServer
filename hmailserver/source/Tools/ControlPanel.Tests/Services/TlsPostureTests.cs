@@ -385,5 +385,58 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("No listeners are configured", TlsPosture.Verdict(config));
       }
+
+      // ---- values that could not be read ---------------------------------------
+      //
+      // A value the server did not answer is the type's default in the snapshot:
+      // no listeners, no certificates, every version switch off. The transport
+      // encryption overview drew those as the configuration when the link was
+      // lost - "No listeners are configured", "No TLS version is enabled."
+
+      [Fact]
+      public void UnreadListeners_AreNotNoListeners()
+      {
+         TlsPostureConfig config = Healthy();
+         config.Listeners = new List<TlsListener>();
+         config.Unread.Add(nameof(config.Listeners));
+
+         Assert.Contains("could not be read", TlsPosture.Verdict(config));
+      }
+
+      [Fact]
+      public void UnreadVersions_AreNotNoVersions()
+      {
+         TlsPostureConfig config = Healthy();
+         config.Tls12Enabled = false;
+         config.Tls13Enabled = false;
+         foreach (string version in new[] { nameof(config.Tls10Enabled), nameof(config.Tls11Enabled), nameof(config.Tls12Enabled), nameof(config.Tls13Enabled) })
+            config.Unread.Add(version);
+
+         Assert.False(TlsPosture.VersionsRead(config));
+         Assert.Contains("could not be read", TlsPosture.VersionSummary(config));
+         Assert.DoesNotContain(TlsPosture.Listeners(config), v => v.Word == "Cannot negotiate");
+         Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Text.Contains("No TLS version is enabled"));
+      }
+
+      [Fact]
+      public void UnreadRanges_AreNotNoRanges()
+      {
+         TlsPostureConfig config = Healthy();
+         config.RangesTotal = 0;
+         config.RangesRequiringTlsForAuth = 0;
+         config.Unread.Add(nameof(config.RangesTotal));
+         config.Unread.Add(nameof(config.RangesRequiringTlsForAuth));
+
+         Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Text.Contains("No IP range requires TLS"));
+      }
+
+      [Fact]
+      public void AConfigurationReadInFull_HasNothingUnread()
+      {
+         TlsPostureConfig config = Healthy();
+         Assert.True(TlsPosture.VersionsRead(config));
+         Assert.True(config.WasRead(nameof(config.Listeners), nameof(config.Certificates), nameof(config.RangesTotal)));
+         Assert.DoesNotContain("could not be read", TlsPosture.Verdict(config));
+      }
    }
 }

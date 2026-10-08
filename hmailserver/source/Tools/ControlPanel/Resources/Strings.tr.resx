@@ -6777,6 +6777,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not published" xml:space="preserve">
     <value>Yayımlanmamış</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Okunmadı</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Yeniden başlatılmadı</value>
   </data>
@@ -9987,6 +9990,9 @@ Devam edilsin mi?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Bir üyenin posta almayı bırakmasından önce pencere içindeki geçici geri dönmeler (1 ile 100 arası)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Bazı değerler okunamadı: {0} Aşağıdaki bölümler eksik olabilir.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Biri parola tahmin ediyor</value>
   </data>
@@ -10532,6 +10538,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>{0} IP aralığı TLS olmadan parola kabul ediyor ve {1} bağlantı noktası bir istemcinin başlatabileceği TLS sunmuyor: önce bu bağlantı noktalarına bir sertifika ve STARTTLS verin, ardından aralıktan oturum açmak için TLS gerektirin.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>IP aralıkları okunamadı.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Posta kutusu olması gereken kişileri seçen LDAP süzgeci. Varsayılan, posta adresi taşıyan etkin person nesnelerini alır - bu, devre dışı bırakılmış ayrılanları, hizmet hesaplarını ve bilgisayarları bilerek dışlar; daha geniş bir süzgeç bunların hepsine posta kutusu sağlardı.</value>
   </data>
@@ -10676,8 +10685,14 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Virüsten koruma yapılandırması okunamadı.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Antivirüs yapılandırması okunamadı: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arşivde bu hesap için ileti yok.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Ek engelleme ayarları okunamadı.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Ekler değiştirilir ve ileti teslim edilir. Bu eyleme hiçbir bildirim ayarı uygulanmaz — sunucu "ileti silindi" bildirimini yalnızca eylem iletiyi silmek olduğunda gönderir.</value>
@@ -10754,6 +10769,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Sertifikanın ortak anahtarı karşılaştırma için dışa aktarılamadı.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Sertifikalar okunamadı.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Dinleyicilerin sunduğu sertifikalar ve ACME ile otomatik yenileme.</value>
   </data>
@@ -10771,6 +10789,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Denetim tamamlandı ve alan adının yayımladığı kayıt kullanılamaz durumda: iki kayıt, hatalı bir mekanizma, bir yönlendirme döngüsü, çok fazla sorgu. Yeniden denemek düzeltmez, bu yüzden asla ertelenmez; katı siteler bunu fail sayar, hoşgörülü siteler yok sayar.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>Şifre listesi okunamadı.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>TLS 1.0 veya 1.1 etkinken şifre listesi AEAD-ONLY ön ayarı. Bu sürümlerin hiç AEAD paketi yoktur; bu yüzden duyurulurlar ve sonra el sıkışmayı tamamlayamazlar - bu da istemciye bir ilke değil, bozuk bir sunucu gibi görünür.</value>
@@ -10920,6 +10941,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Sunucunun istemcilere geri gönderdiği karşılama, geri dönme ve hata metinleri.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Gri liste ayarları okunamadı.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Grup üyeleri okunamadı: </value>
   </data>
@@ -11048,6 +11072,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Dinleyici yapılandırıldı. Geriye sunucunun dışındaki iş kalıyor: her posta etki alanı için autoconfig.&lt;domain&gt; ve autodiscover.&lt;domain&gt; kayıtlarını yayımlayın, sonra bir istemci makinesinden sınayın.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Dinleyiciler okunamadı.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Denetimlerin arkasındaki listeler</value>
@@ -11194,6 +11221,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Profil</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Protokol sürümleri okunamadı.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Bu bilgisayarın adresi olmadığında, diğer sunucuların gördüğü ortak adres.</value>
@@ -11456,11 +11486,17 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Tek değer AEAD-ONLY (büyük/küçük harf duyarsız) bir OpenSSL şifre dizesi değil, adlandırılmış bir ön ayardır: yalnızca ileri gizlilikli AEAD paketleri (AES-GCM veya ChaCha20-Poly1305 ile ECDHE veya DHE); her CBC kipli paket - Lucky13 dolgu kâhini ailesi - ve statik RSA anahtar değişimi dışarıda bırakılır. Bedeli: yalnızca CBC paketlerini konuşan TLS 1.2 istemcileri bağlanamaz ve TLS 1.0/1.1 kullanılabilir hiçbir şifre olmadan kalır; bu yüzden bu protokolleri onunla birlikte etkinleştirmeyin. TLS 1.3 etkilenmez - paketleri yapısı gereği AEAD'dir ve aşağıda ayrı olarak yapılandırılır. Yanlış yazılmış bir ön ayar adı sessizce yok sayılmaz; reddedilir ve bildirilir.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>Boyut sınırı okunamadı.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Akıllı ana bilgisayar, portu ve kimlik bilgileri ile teslimat için yeniden deneme zamanlaması.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Kaynak kısıtlaması bir adres (10.0.0.5), bir aralık (10.0.0.1-10.0.0.99) veya CIDR (10.0.0.0/24) olmalı. Anahtarı her adresten kabul etmek için boş bırakın.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Spam yapılandırması okunamadı: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Saklanan süre sonu bu sayfanın beklediği biçimde (YYYY-AA-GG SS:DD:SS) okunamadı; bu yüzden sunucunun bu anahtarı hâlâ kabul edip etmediği buradan söylenemez. Satır elle düzenlendiyse düzeltin; aksi hâlde anahtarı iptal edip bir yenisini oluşturun.</value>
@@ -11491,6 +11527,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Taşıma güvenliği yapılandırması okunamadı.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Aktarım güvenliği yapılandırması okunamadı: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>İki yarı farklı biçimde başarısız olur ve nedenleri farklıdır. Başka bir şey yapmadan önce hangisine sahip olduğunuzu belirleyin.</value>
@@ -11590,6 +11629,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Bu ayarlar sunucudan okunamadı.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Bu ayarlar okunamadı.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Yükleyicinin dosyalarını değiştirebilmesi için bu Denetim Masası, yardımcı başlatılır başlatılmaz kapanır; sonucu görmek için bir dakika sonra yeniden açın.</value>
@@ -12295,8 +12337,14 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="What happens to a message" xml:space="preserve">
     <value>Bir iletiye ne olur</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Bir iletiye ne olacağı söylenemez: eşikler okunamadı.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Virüslü bir iletiye ne olur</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Virüslü bir iletiye ne olacağı söylenemez: ayarların bazıları okunamadı.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Bu sunucunun dışında nelerin var olması gerekir</value>
@@ -12330,6 +12378,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>İleti deposu birimi dolarken sunucunun ne yaptığı. Her iki değer de yüzde değil, mutlak megabayttır; çünkü bir sonraki iletinin sığıp sığmayacağına kalan bayt sayısı karar verir, birimin ne kadarı oldukları değil.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Sunucunun virüslü bir iletiyle ne yaptığı okunamadı.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Sunucunun günlük dosyalarına ne yazdığı (Canlı günlükler sayfasında görüntülenebilir).</value>
@@ -12427,14 +12478,23 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Where this server stands" xml:space="preserve">
     <value>Bu sunucunun durduğu yer</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Bu sunucunun durumu söylenemez: dinleyiciler okunamadı.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>STARTTLS'in sunulup sunulmayacağı belirlenemedi: TCP/IP portları ve sertifikalar okunamadı. Bu dinleyici sertifikasını TLS yeteneği olan bir IMAP, POP3 veya SMTP portundan ödünç alır ve kendine ait sertifikası yoktur.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>TLSA kayıtlarının var olup olmadığı ve bölgenizin DNSSEC imzalı olup olmadığı yalnızca DNS'te görülebilir. Bölge için hiç DNSSEC kurmadıysanız hiçbir TLSA kaydı doğrulanmaz.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Hiçbir tarayıcının inceleyemediği bir iletinin bekletilip bekletilmediği veya teslim edilip edilmediği okunamadı.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Bir parola ifadesinin saklanıp saklanmadığı okunamadı - okumak sunucu yöneticisi hesabı gerektirir. Buradan yenisini kaydetmek yine de çalışır.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Bir IP aralığının kimlik doğrulama için TLS gerektirip gerektirmediği okunamadı.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Aramaların Windows DNS çözümleyici önbelleğinden yanıtlanıp yanıtlanamayacağı. Kapalıyken her arama ağa gider. Yukarıda geçersiz kılan bir DNS sunucusu ayarlandığında yok sayılır — o aramalar sistem önbelleğini her zaman atlar, çünkü önbelleğin yanıtları yanlış çözümleyiciden gelirdi.</value>
@@ -14638,15 +14698,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} değer okunamadı — {1} Yukarıdaki öğeler eksik olabilir.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} değer okunamadı — {1} Yukarıdaki satırlar eksik olabilir; bu yüzden burada kullanılamaz görünen bir tarayıcıyı doğrulanmamış sayın.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} değer okunamadı — {1} Yukarıdaki satırlar eksik olabilir.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} değer okunamadı — {1} Aşağıdaki satırlar eksik olabilir.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} oluşturuldu: {1} posta kutusu ve onlara doğru yolda olan {2} ileti. Birkaç saniye içinde ulaşırlar. Tüm posta kutuları {3} parolasıyla oturum açar. Burada yalnızca bir kez gösterilir - not edin, çünkü bu sunucu onu saklamadı.</value>

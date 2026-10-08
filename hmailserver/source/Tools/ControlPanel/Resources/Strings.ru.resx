@@ -6777,6 +6777,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not published" xml:space="preserve">
     <value>Не опубликовано</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Не прочитано</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Не перезапущено</value>
   </data>
@@ -9987,6 +9990,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Временные отказы в окне, после которых участник перестаёт получать почту (от 1 до 100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Некоторые значения не удалось прочитать: {0} Разделы ниже могут быть неполными.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Кто-то подбирает пароли</value>
   </data>
@@ -10532,6 +10538,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>Диапазон IP {0} принимает пароль без TLS, а порт {1} не предлагает TLS, который клиент мог бы запустить: сначала дайте этим портам сертификат и STARTTLS, затем требуйте TLS для входа из этого диапазона.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>Диапазоны IP не удалось прочитать.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Фильтр LDAP, отбирающий тех людей, у которых должен быть почтовый ящик. Значение по умолчанию берёт включённые объекты person, у которых есть почтовый адрес, — тем самым намеренно исключаются отключённые уволившиеся, учётные записи служб и компьютеры, а для всех них более широкий фильтр создал бы почтовые ящики.</value>
   </data>
@@ -10676,8 +10685,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию антивируса.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Не удалось прочитать антивирусную конфигурацию: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архиве нет сообщений для этой учётной записи.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Параметры блокировки вложений не удалось прочитать.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Вложения заменяются, и сообщение доставляется. Ни один из параметров уведомления к этому действию не относится — уведомление «сообщение удалено» сервер отправляет только тогда, когда действием является удаление сообщения.</value>
@@ -10754,6 +10769,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Открытый ключ сертификата не удалось экспортировать для сравнения.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Сертификаты не удалось прочитать.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Сертификаты, которые предъявляют прослушиватели, и автоматическое обновление через ACME.</value>
   </data>
@@ -10771,6 +10789,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Проверка завершилась, а опубликованная доменом запись непригодна: две записи, неверный механизм, зацикленный redirect, слишком много запросов. Повтор этого не исправит, поэтому она никогда не откладывается; строгие серверы считают это fail, снисходительные игнорируют.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>Список шифров не удалось прочитать.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Список шифров - это предустановка AEAD-ONLY, при этом включён TLS 1.0 или 1.1. У этих версий нет ни одного набора AEAD, поэтому они объявляются, а затем не могут завершить рукопожатие - для клиента это выглядит как сломанный сервер, а не как политика.</value>
@@ -10920,6 +10941,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Тексты приветствия, возвратов и ошибок, которые сервер отправляет клиентам.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Параметры серых списков не удалось прочитать.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Не удалось прочитать участников группы: </value>
   </data>
@@ -11048,6 +11072,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Прослушиватель настроен. Осталось то, что вне сервера: опубликуйте записи autoconfig.&lt;domain&gt; и autodiscover.&lt;domain&gt; для каждого почтового домена, затем проверьте с клиентской машины.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Прослушиватели не удалось прочитать.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Списки, стоящие за проверками</value>
@@ -11194,6 +11221,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Профиль</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Версии протокола не удалось прочитать.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Публичный адрес, который видят другие серверы, когда это не адрес этого компьютера.</value>
@@ -11456,11 +11486,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Единственное значение AEAD-ONLY (без учёта регистра) - это именованная предустановка, а не строка шифров OpenSSL: только наборы AEAD с совершенной прямой секретностью (ECDHE или DHE с AES-GCM или ChaCha20-Poly1305), с исключением всех наборов в режиме CBC - семейства оракула дополнения Lucky13 - и статического обмена ключами RSA. Цена: клиенты TLS 1.2, говорящие только наборами CBC, не смогут подключиться, а TLS 1.0/1.1 остаются вовсе без пригодного шифра, поэтому не включайте эти протоколы вместе с ней. TLS 1.3 не затрагивается - его наборы являются AEAD по построению и настраиваются отдельно ниже. Имя предустановки с опечаткой отклоняется и сообщается, а не молча игнорируется.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>Ограничение размера не удалось прочитать.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Смарт-хост, его порт и учётные данные, а также расписание повторных попыток доставки.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Ограничение по источнику должно быть адресом (10.0.0.5), диапазоном (10.0.0.1-10.0.0.99) или CIDR (10.0.0.0/24). Оставьте пустым, чтобы принимать ключ с любого адреса.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Не удалось прочитать конфигурацию защиты от спама: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Сохранённый срок действия не удалось прочитать в форме, которую ожидает эта страница (ГГГГ-ММ-ДД ЧЧ:ММ:СС), поэтому отсюда нельзя сказать, принимает ли сервер ещё этот ключ. Если строка редактировалась вручную, исправьте её; иначе отзовите ключ и создайте замену.</value>
@@ -11491,6 +11527,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию транспортной безопасности.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Не удалось прочитать конфигурацию защиты транспорта: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Две половины отказывают по-разному и по разным причинам. Прежде всего разберитесь, какая из них у вас.</value>
@@ -11590,6 +11629,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Не удалось прочитать эти параметры с сервера.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Эти параметры не удалось прочитать.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Этот Control Panel закроется, как только запустится вспомогательная программа, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
@@ -12295,8 +12337,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What happens to a message" xml:space="preserve">
     <value>Что происходит с сообщением</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Нельзя сказать, что происходит с сообщением: пороги не удалось прочитать.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Что происходит с заражённым сообщением</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Нельзя сказать, что происходит с заражённым сообщением: некоторые параметры не удалось прочитать.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Что должно существовать вне этого сервера</value>
@@ -12330,6 +12378,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Что делает сервер по мере заполнения тома хранилища сообщений. Оба значения - абсолютные мегабайты, а не проценты, потому что вместится ли следующее сообщение, решает число оставшихся байтов, а не их доля от тома.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Не удалось прочитать, что сервер делает с заражённым сообщением.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Что сервер пишет в файлы журналов (смотреть на странице «Журналы в реальном времени»).</value>
@@ -12427,14 +12478,23 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Where this server stands" xml:space="preserve">
     <value>Где стоит этот сервер</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Нельзя сказать, в каком состоянии этот сервер: прослушиватели не удалось прочитать.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Не удалось определить, будет ли предлагаться STARTTLS: не удалось прочитать порты TCP/IP и сертификаты. Этот прослушиватель заимствует сертификат у порта IMAP, POP3 или SMTP с поддержкой TLS и своего не имеет.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Существуют ли записи TLSA и подписана ли ваша зона DNSSEC, можно увидеть только в DNS. Если вы никогда не настраивали DNSSEC для зоны, ни одна запись TLSA проверку не пройдёт.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Не удалось прочитать, задерживается или доставляется сообщение, которое не смог проверить ни один сканер.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Не удалось прочитать, сохранена ли парольная фраза - для чтения требуется учётная запись администратора сервера. Сохранить новую отсюда по-прежнему можно.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Не удалось прочитать, требует ли какой-либо диапазон IP TLS для аутентификации.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Могут ли запросы отвечаться из кеша резолвера DNS Windows. Выключено - каждый запрос уходит в сеть. Игнорируется, когда выше задан переопределяющий DNS-сервер — те запросы всегда обходят системный кеш, потому что его ответы приходили бы от не того резолвера.</value>
@@ -14638,15 +14698,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>Не удалось прочитать значений: {0} — {1} Пункты выше могут быть неполными.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>Не удалось прочитать значений: {0} — {1} Строки выше могут быть неполными, поэтому считайте сканер, показанный здесь как непригодный, неподтверждённым.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>Не удалось прочитать значений: {0} — {1} Строки выше могут быть неполными.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>Не удалось прочитать значений: {0} — {1} Строки ниже могут быть неполными.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} создан: {1} почтовых ящиков и {2} сообщений на пути к ним. Они придут через несколько секунд. Все почтовые ящики входят с паролем {3}. Он показан здесь один раз - запишите его, сервер его не сохранил.</value>

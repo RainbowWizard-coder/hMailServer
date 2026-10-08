@@ -103,6 +103,11 @@ namespace hMailServer.ControlPanel.Views
       private int failedReads_;
       private string firstError_;
 
+      // Whether the anti-virus settings object could be opened at all. When it
+      // could not, every value in the snapshot is a default, and a page drawn
+      // from defaults says "No message is scanned" of a server it never asked.
+      private bool configRead_;
+
       /// <summary>
       /// Reads the anti-virus settings into a snapshot.
       ///
@@ -117,6 +122,7 @@ namespace hMailServer.ControlPanel.Views
       {
          failedReads_ = 0;
          firstError_ = null;
+         configRead_ = false;
 
          var config = new VirusPipelineConfig();
          dynamic settings = null;
@@ -126,36 +132,37 @@ namespace hMailServer.ControlPanel.Views
          {
             settings = ServerSession.Current.Application.Settings;
             antiVirus = settings.AntiVirus;
+            configRead_ = true;
 
-            config.ClamAvEnabled = Read(() => (bool)antiVirus.ClamAVEnabled);
-            config.ClamAvHost = Read(() => (string)antiVirus.ClamAVHost) ?? "";
-            config.ClamAvPort = Read(() => (int)antiVirus.ClamAVPort);
+            config.ClamAvEnabled = Read(config, nameof(config.ClamAvEnabled), () => (bool)antiVirus.ClamAVEnabled);
+            config.ClamAvHost = Read(config, nameof(config.ClamAvHost), () => (string)antiVirus.ClamAVHost) ?? "";
+            config.ClamAvPort = Read(config, nameof(config.ClamAvPort), () => (int)antiVirus.ClamAVPort);
 
-            config.ClamWinEnabled = Read(() => (bool)antiVirus.ClamWinEnabled);
-            config.ClamWinExecutable = Read(() => (string)antiVirus.ClamWinExecutable) ?? "";
-            config.ClamWinDatabaseFolder = Read(() => (string)antiVirus.ClamWinDBFolder) ?? "";
+            config.ClamWinEnabled = Read(config, nameof(config.ClamWinEnabled), () => (bool)antiVirus.ClamWinEnabled);
+            config.ClamWinExecutable = Read(config, nameof(config.ClamWinExecutable), () => (string)antiVirus.ClamWinExecutable) ?? "";
+            config.ClamWinDatabaseFolder = Read(config, nameof(config.ClamWinDatabaseFolder), () => (string)antiVirus.ClamWinDBFolder) ?? "";
 
-            config.CustomScannerEnabled = Read(() => (bool)antiVirus.CustomScannerEnabled);
-            config.CustomScannerExecutable = Read(() => (string)antiVirus.CustomScannerExecutable) ?? "";
-            config.CustomScannerVirusReturnValue = Read(() => (int)antiVirus.CustomScannerReturnValue);
+            config.CustomScannerEnabled = Read(config, nameof(config.CustomScannerEnabled), () => (bool)antiVirus.CustomScannerEnabled);
+            config.CustomScannerExecutable = Read(config, nameof(config.CustomScannerExecutable), () => (string)antiVirus.CustomScannerExecutable) ?? "";
+            config.CustomScannerVirusReturnValue = Read(config, nameof(config.CustomScannerVirusReturnValue), () => (int)antiVirus.CustomScannerReturnValue);
 
-            config.MaxScanKilobytes = Read(() => (int)antiVirus.MaximumMessageSize);
+            config.MaxScanKilobytes = Read(config, nameof(config.MaxScanKilobytes), () => (int)antiVirus.MaximumMessageSize);
 
             // eAntivirusAction: 0 = delete the message, 1 = strip the attachments.
-            config.Action = Read(() => (int)antiVirus.Action) == 1
+            config.Action = Read(config, nameof(config.Action), () => (int)antiVirus.Action) == 1
                ? VirusAction.StripAttachments
                : VirusAction.DeleteMessage;
 
             // AVFailAction is a [Settings] key, not a COM property: read where every
             // INI row of the Anti-virus page reads it (IniFeatureStore - the file on
             // this machine, or the server's copy over COM).
-            config.HoldUnscanned = Read(() => new IniFeatureStore().Read("AVFailAction", "0").Trim() == "1");
+            config.HoldUnscanned = Read(config, nameof(config.HoldUnscanned), () => new IniFeatureStore().Read("AVFailAction", "0").Trim() == "1");
 
-            config.NotifySender = Read(() => (bool)antiVirus.NotifySender);
-            config.NotifyRecipient = Read(() => (bool)antiVirus.NotifyReceiver);
+            config.NotifySender = Read(config, nameof(config.NotifySender), () => (bool)antiVirus.NotifySender);
+            config.NotifyRecipient = Read(config, nameof(config.NotifyRecipient), () => (bool)antiVirus.NotifyReceiver);
 
-            config.AttachmentBlockingEnabled = Read(() => (bool)antiVirus.EnableAttachmentBlocking);
-            config.BlockedAttachmentPatterns = CountCollection(() => antiVirus.BlockedAttachments);
+            config.AttachmentBlockingEnabled = Read(config, nameof(config.AttachmentBlockingEnabled), () => (bool)antiVirus.EnableAttachmentBlocking);
+            config.BlockedAttachmentPatterns = CountCollection(config, nameof(config.BlockedAttachmentPatterns), () => antiVirus.BlockedAttachments);
 
             CountFetchAccounts(config);
          }
@@ -173,7 +180,11 @@ namespace hMailServer.ControlPanel.Views
          return config;
       }
 
-      private T Read<T>(Func<T> read)
+      /// <summary>
+      /// One value, recorded against its property when it could not be read, so
+      /// that the row it feeds says "Not read" rather than showing the default.
+      /// </summary>
+      private T Read<T>(VirusPipelineConfig config, string property, Func<T> read)
       {
          try
          {
@@ -183,11 +194,13 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            if (property != null)
+               config.Unread.Add(property);
             return default;
          }
       }
 
-      private int CountCollection(Func<object> open)
+      private int CountCollection(VirusPipelineConfig config, string property, Func<object> open)
       {
          dynamic collection = null;
          try
@@ -199,6 +212,8 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            if (property != null)
+               config.Unread.Add(property);
             return 0;
          }
          finally
@@ -304,6 +319,7 @@ namespace hMailServer.ControlPanel.Views
             // everything else, and the fetch-account note simply does not appear.
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            config.Unread.Add(nameof(config.FetchAccountsWithScanningOff));
          }
          finally
          {
@@ -318,6 +334,18 @@ namespace hMailServer.ControlPanel.Views
          VirusPipelineConfig config = ReadConfig();
 
          body_.Children.Clear();
+
+         // Nothing could be read: no cards, since every value in them would be a
+         // default drawn as a finding, and one Critical notice with Try again
+         // (Services/ReadFailure).
+         if (!configRead_)
+         {
+            ReadFailure.Show(readFailure_, null, null, L("The anti-virus configuration could not be read: "), firstError_, Reload);
+            status_.Text = "";
+            return;
+         }
+
+         ReadFailure.Clear(readFailure_);
          body_.Children.Add(VerdictCard(config));
          body_.Children.Add(ScannersCard(config));
          body_.Children.Add(WhatIsScannedCard(config));
@@ -330,9 +358,13 @@ namespace hMailServer.ControlPanel.Views
 
          status_.Text = L("Read from the server. Values are read again every time this page is opened.");
 
+         // Some values could not be read: their rows say "Not read" and the
+         // verdicts and notes that depend on them are left out, and this says so
+         // above the sections it is about.
+         readFailure_.Level = StatusLevel.Warning;
          readFailure_.Text = failedReads_ == 0
             ? null
-            : F("{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed.", failedReads_, firstError_);
+            : F("Some values could not be read: {0} The sections below may be incomplete.", firstError_);
          readFailure_.Visibility = failedReads_ == 0 ? Visibility.Collapsed : Visibility.Visible;
       }
 
@@ -433,7 +465,9 @@ namespace hMailServer.ControlPanel.Views
          // reason for this one.
          var state = new StatusPill
          {
-            Level = !scanner.Enabled ? StatusLevel.Normal
+            // "Not read" is the neutral grey, as Off is: it says nothing, which is
+            // exactly what is known.
+            Level = scanner.Unread || !scanner.Enabled ? StatusLevel.Normal
                : scanner.Usable ? StatusLevel.Good
                : StatusLevel.Critical,
             Text = scanner.StateText,
@@ -460,7 +494,9 @@ namespace hMailServer.ControlPanel.Views
          Card card = Section(L("What gets scanned"), out StackPanel content);
 
          content.Children.Add(Paragraph(
-            config.MaxScanKilobytes > 0
+            !config.WasRead(nameof(config.MaxScanKilobytes))
+               ? L("The size limit could not be read.")
+               : config.MaxScanKilobytes > 0
                ? F("Messages up to {0}. A larger message is delivered without being scanned — it is not refused, and nothing is logged.", VirusPipeline.Kilobytes(config.MaxScanKilobytes))
                : L("Every message, whatever its size. The size limit is 0, which here means \"no limit\"."),
             Typography.Body));
@@ -468,7 +504,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(L("Each message is scanned twice over: once as the whole file on disk, and then once per attachment, each written out to the temporary folder and handed to the scanner on its own. The second pass is what catches an attachment inside a structure the scanner does not decode for itself. If the message cannot be parsed as MIME the per-attachment pass is skipped and an error is logged."),
             Typography.Caption));
 
-         if (config.FetchAccountsTotal > 0)
+         if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsTotal > 0)
          {
             content.Children.Add(Paragraph(F("Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.", config.FetchAccountsWithScanningOff, config.FetchAccountsTotal)
                + (config.FetchAccountScanIncomplete
@@ -497,7 +533,9 @@ namespace hMailServer.ControlPanel.Views
          Card card = Section(L("Attachment blocking, which is separate"), out StackPanel content);
 
          content.Children.Add(Paragraph(
-            config.AttachmentBlockingEnabled
+            !config.WasRead(nameof(config.AttachmentBlockingEnabled), nameof(config.BlockedAttachmentPatterns))
+               ? L("The attachment blocking settings could not be read.")
+               : config.AttachmentBlockingEnabled
                ? (config.BlockedAttachmentPatterns == 1
                   ? F("{0} pattern is stripped from every message by file name, whatever the scanners say.", config.BlockedAttachmentPatterns)
                   : F("{0} patterns are stripped from every message by file name, whatever the scanners say.", config.BlockedAttachmentPatterns))

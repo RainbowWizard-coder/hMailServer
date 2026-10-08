@@ -6777,6 +6777,9 @@
   <data name="Not published" xml:space="preserve">
     <value>Не опубліковано</value>
   </data>
+  <data name="Not read" xml:space="preserve">
+    <value>Не прочитано</value>
+  </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Не перезапущено</value>
   </data>
@@ -9987,6 +9990,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Тимчасові відмови у вікні, після яких учасник перестає отримувати пошту (від 1 до 100)</value>
   </data>
+  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
+    <value>Деякі значення не вдалося прочитати: {0} Розділи нижче можуть бути неповними.</value>
+  </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Хтось підбирає паролі</value>
   </data>
@@ -10532,6 +10538,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The IP range {0} takes a password without TLS, and port {1} has no TLS a client could start: give those ports a certificate and STARTTLS first, then require TLS for sign-in from the range." xml:space="preserve">
     <value>Діапазон IP {0} приймає пароль без TLS, а порт {1} не пропонує TLS, який клієнт міг би запустити: спершу дайте цим портам сертифікат і STARTTLS, а потім вимагайте TLS для входу з цього діапазону.</value>
   </data>
+  <data name="The IP ranges could not be read." xml:space="preserve">
+    <value>Діапазони IP не вдалося прочитати.</value>
+  </data>
   <data name="The LDAP filter that selects the people who should have a mailbox. The default takes enabled person objects that carry a mail address - which deliberately excludes disabled leavers, service accounts and computers, all of which a broader filter would provision mailboxes for." xml:space="preserve">
     <value>Фільтр LDAP, який вибирає людей, у яких має бути поштова скринька. Типовий бере увімкнені об'єкти person, що мають поштову адресу - це навмисно виключає вимкнених колишніх працівників, облікові записи служб і комп'ютери, для всіх яких ширший фільтр створив би скриньки.</value>
   </data>
@@ -10676,8 +10685,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The anti-virus configuration could not be read." xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію захисту від вірусів.</value>
   </data>
+  <data name="The anti-virus configuration could not be read: " xml:space="preserve">
+    <value>Не вдалося прочитати антивірусну конфігурацію: </value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архіві немає повідомлень для цього облікового запису.</value>
+  </data>
+  <data name="The attachment blocking settings could not be read." xml:space="preserve">
+    <value>Параметри блокування вкладень не вдалося прочитати.</value>
   </data>
   <data name="The attachments are replaced and the message is delivered. Neither notification setting applies to this action — the server only sends the &quot;message deleted&quot; notice when the action is to delete the message." xml:space="preserve">
     <value>Вкладення замінюються, і повідомлення доставляється. Жоден із параметрів сповіщення до цієї дії не застосовується — сервер надсилає сповіщення «повідомлення видалено» лише тоді, коли дія - видалити повідомлення.</value>
@@ -10754,6 +10769,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Відкритий ключ сертифіката не вдалося експортувати для порівняння.</value>
   </data>
+  <data name="The certificates could not be read." xml:space="preserve">
+    <value>Сертифікати не вдалося прочитати.</value>
+  </data>
   <data name="The certificates the listeners present, and automatic renewal through ACME." xml:space="preserve">
     <value>Сертифікати, які пред'являють слухачі, та автоматичне поновлення через ACME.</value>
   </data>
@@ -10771,6 +10789,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Перевірка завершилася, а опублікований доменом запис непридатний: два записи, неправильний механізм, зациклений redirect, забагато запитів. Повтор цього не виправить, тому вона ніколи не відкладається; суворі сервери вважають це fail, поблажливі ігнорують.</value>
+  </data>
+  <data name="The cipher list could not be read." xml:space="preserve">
+    <value>Список шифрів не вдалося прочитати.</value>
   </data>
   <data name="The cipher list is the AEAD-ONLY preset while TLS 1.0 or 1.1 is enabled. Those versions have no AEAD suite at all, so they are advertised and then cannot complete a handshake - which looks to the client like a broken server rather than a policy." xml:space="preserve">
     <value>Список шифрів - це попереднє налаштування AEAD-ONLY, тоді як увімкнено TLS 1.0 або 1.1. У цих версій немає жодного набору AEAD, тому вони оголошуються, а потім не можуть завершити рукостискання - для клієнта це виглядає як зламаний сервер, а не як політика.</value>
@@ -10920,6 +10941,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The greeting, bounce and error texts the server sends back to clients." xml:space="preserve">
     <value>Тексти привітання, повернень і помилок, які сервер надсилає клієнтам.</value>
   </data>
+  <data name="The greylisting settings could not be read." xml:space="preserve">
+    <value>Параметри сірого списку не вдалося прочитати.</value>
+  </data>
   <data name="The group members could not be read: " xml:space="preserve">
     <value>Не вдалося прочитати учасників групи: </value>
   </data>
@@ -11048,6 +11072,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The listener is configured. What remains is outside the server: publish autoconfig.&lt;domain&gt; and autodiscover.&lt;domain&gt; records for each mail domain, then test from a client machine." xml:space="preserve">
     <value>Слухач налаштовано. Залишилося те, що поза сервером: опублікуйте записи autoconfig.&lt;domain&gt; і autodiscover.&lt;domain&gt; для кожного поштового домену, потім перевірте з клієнтського комп'ютера.</value>
+  </data>
+  <data name="The listeners could not be read." xml:space="preserve">
+    <value>Слухачі не вдалося прочитати.</value>
   </data>
   <data name="The lists behind the checks" xml:space="preserve">
     <value>Списки, що стоять за перевірками</value>
@@ -11194,6 +11221,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The profile" xml:space="preserve">
     <value>Профіль</value>
+  </data>
+  <data name="The protocol versions could not be read." xml:space="preserve">
+    <value>Версії протоколу не вдалося прочитати.</value>
   </data>
   <data name="The public address other servers see, when it is not an address of this machine." xml:space="preserve">
     <value>Публічна адреса, яку бачать інші сервери, коли це не адреса цього комп'ютера.</value>
@@ -11456,11 +11486,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The single value AEAD-ONLY (case-insensitive) is a named preset rather than an OpenSSL cipher string: forward-secret AEAD suites only (ECDHE or DHE with AES-GCM or ChaCha20-Poly1305), excluding every CBC-mode suite - the Lucky13 padding-oracle family - and static-RSA key exchange. The cost: TLS 1.2 clients that only speak CBC suites cannot connect, and TLS 1.0/1.1 are left with no usable cipher at all, so do not enable those protocols alongside it. TLS 1.3 is unaffected - its suites are AEAD by construction and are configured separately below. A misspelled preset name is rejected and reported, not silently ignored." xml:space="preserve">
     <value>Єдине значення AEAD-ONLY (без урахування регістру) - це іменоване попереднє налаштування, а не рядок шифрів OpenSSL: лише набори AEAD з досконалою прямою секретністю (ECDHE або DHE з AES-GCM або ChaCha20-Poly1305), з виключенням усіх наборів у режимі CBC - родини оракула доповнення Lucky13 - і статичного обміну ключами RSA. Ціна: клієнти TLS 1.2, що говорять лише наборами CBC, не зможуть підключитися, а TLS 1.0/1.1 залишаються зовсім без придатного шифру, тому не вмикайте ці протоколи разом із ним. TLS 1.3 не зачіпається - його набори є AEAD за побудовою і налаштовуються окремо нижче. Ім'я попереднього налаштування з помилкою відхиляється і повідомляється, а не мовчки ігнорується.</value>
   </data>
+  <data name="The size limit could not be read." xml:space="preserve">
+    <value>Обмеження розміру не вдалося прочитати.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Смарт-хост, його порт і облікові дані, а також розклад повторних спроб доставки.</value>
   </data>
   <data name="The source restriction has to be an address (10.0.0.5), a range (10.0.0.1-10.0.0.99) or CIDR (10.0.0.0/24). Leave it empty to accept the key from any address." xml:space="preserve">
     <value>Обмеження за джерелом має бути адресою (10.0.0.5), діапазоном (10.0.0.1-10.0.0.99) або CIDR (10.0.0.0/24). Залиште порожнім, щоб приймати ключ з будь-якої адреси.</value>
+  </data>
+  <data name="The spam configuration could not be read: " xml:space="preserve">
+    <value>Не вдалося прочитати конфігурацію захисту від спаму: </value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Збережений термін дії не вдалося прочитати у формі, якої очікує ця сторінка (РРРР-ММ-ДД ГГ:ХХ:СС), тому звідси не можна сказати, чи сервер ще приймає цей ключ. Якщо рядок редагували вручну, виправте його; інакше відкличте ключ і створіть заміну.</value>
@@ -11491,6 +11527,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію транспортної безпеки.</value>
+  </data>
+  <data name="The transport security configuration could not be read: " xml:space="preserve">
+    <value>Не вдалося прочитати конфігурацію захисту транспорту: </value>
   </data>
   <data name="The two halves fail differently and have different causes. Work out which one you have before anything else." xml:space="preserve">
     <value>Дві половини відмовляють по-різному і з різних причин. Насамперед з'ясуйте, яка з них у вас.</value>
@@ -11590,6 +11629,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="These settings could not be read from the server." xml:space="preserve">
     <value>Не вдалося прочитати ці параметри із сервера.</value>
+  </data>
+  <data name="These settings could not be read." xml:space="preserve">
+    <value>Ці параметри не вдалося прочитати.</value>
   </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Ця Панель керування закриється, щойно запуститься помічник, щоб інсталятор міг замінити її файли; відкрийте її знову за хвилину, щоб побачити результат.</value>
@@ -12295,8 +12337,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What happens to a message" xml:space="preserve">
     <value>Що відбувається з повідомленням</value>
   </data>
+  <data name="What happens to a message cannot be said: the thresholds could not be read." xml:space="preserve">
+    <value>Неможливо сказати, що відбувається з повідомленням: пороги не вдалося прочитати.</value>
+  </data>
   <data name="What happens to an infected message" xml:space="preserve">
     <value>Що відбувається із зараженим повідомленням</value>
+  </data>
+  <data name="What happens to an infected message cannot be said: some of the settings could not be read." xml:space="preserve">
+    <value>Неможливо сказати, що відбувається із зараженим повідомленням: деякі параметри не вдалося прочитати.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Що має існувати поза цим сервером</value>
@@ -12330,6 +12378,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="What the server does as the message-store volume fills. Both values are absolute megabytes rather than percentages, because what decides whether the next message fits is how many bytes are left, not what fraction of the volume they are." xml:space="preserve">
     <value>Що робить сервер у міру заповнення тому сховища повідомлень. Обидва значення - абсолютні мегабайти, а не відсотки, бо чи вміститься наступне повідомлення, вирішує кількість байтів, що залишилися, а не їхня частка від тому.</value>
+  </data>
+  <data name="What the server does with an infected message could not be read." xml:space="preserve">
+    <value>Не вдалося прочитати, що сервер робить із зараженим повідомленням.</value>
   </data>
   <data name="What the server writes to its log files (viewable on the Live logs page)." xml:space="preserve">
     <value>Що сервер пише у файли журналів (переглядати на сторінці «Живі журнали»).</value>
@@ -12427,14 +12478,23 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Where this server stands" xml:space="preserve">
     <value>Де стоїть цей сервер</value>
   </data>
+  <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
+    <value>Неможливо сказати, у якому стані цей сервер: слухачі не вдалося прочитати.</value>
+  </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Не вдалося визначити, чи пропонуватиметься STARTTLS: не вдалося прочитати порти TCP/IP і сертифікати. Цей слухач позичає сертифікат у порту IMAP, POP3 або SMTP з підтримкою TLS і власного не має.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Чи існують записи TLSA і чи підписана ваша зона DNSSEC, можна побачити лише в DNS. Якщо ви ніколи не налаштовували DNSSEC для зони, жоден запис TLSA перевірку не пройде.</value>
   </data>
+  <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
+    <value>Не вдалося прочитати, затримується чи доставляється повідомлення, яке не зміг перевірити жоден сканер.</value>
+  </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Не вдалося прочитати, чи збережено парольну фразу - для читання потрібен обліковий запис адміністратора сервера. Зберегти нову звідси, як і раніше, можна.</value>
+  </data>
+  <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
+    <value>Не вдалося прочитати, чи вимагає якийсь діапазон IP TLS для автентифікації.</value>
   </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Чи можуть запити отримувати відповідь із кешу розв'язувача DNS Windows. Вимкнено - кожен запит іде в мережу. Ігнорується, коли вище задано перевизначальний DNS-сервер — ті запити завжди оминають системний кеш, бо його відповіді надходили б від не того розв'язувача.</value>
@@ -14638,15 +14698,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} значень не вдалося прочитати — {1} Пункти вище можуть бути неповними.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete, so treat a scanner shown as unusable here as unconfirmed." xml:space="preserve">
-    <value>{0} значень не вдалося прочитати — {1} Рядки вище можуть бути неповними, тому сканер, показаний тут як непридатний, вважайте непідтвердженим.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows above may be incomplete." xml:space="preserve">
-    <value>{0} значень не вдалося прочитати — {1} Рядки вище можуть бути неповними.</value>
-  </data>
-  <data name="{0} value(s) could not be read — {1} The rows below may be incomplete." xml:space="preserve">
-    <value>{0} значень не вдалося прочитати — {1} Рядки нижче можуть бути неповними.</value>
   </data>
   <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
     <value>{0} створено: {1} скриньок і {2} повідомлень у дорозі до них. Вони надійдуть за кілька секунд. Усі скриньки входять з паролем {3}. Він показаний тут лише раз - запишіть його, бо цей сервер його не зберіг.</value>
