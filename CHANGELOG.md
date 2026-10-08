@@ -761,6 +761,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   boxes now, as the domain and account rows' buttons are, each saying which list it acts on in its tool tip and to a
   screen reader ("Properties of everyone@example.com"), so the address has about 170 pixels; the alias rows' trash
   button has the same box; and a test holds the page to the caption size.
+- **Fixed: in the Control Panel's distribution list members dialog the address box shrank to about 30 pixels in
+  German.** The add row was a star-width box and three buttons, and "Hinzufügen", "Aus AD hinzufügen…" and
+  "Ausgewählte entfernen" left the box 30 pixels, Japanese 100 and English 155, too narrow to read an address in. The
+  box has the dialog's width now but for Add beside it, and *Add from AD…* and *Remove selected* are under the list,
+  where they act, wrapping onto two lines in a language where they do not fit on one.
 
 ### IMAP, POP3 and the webmail
 

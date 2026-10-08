@@ -16,11 +16,11 @@ namespace hMailServer.ControlPanel.Views
 {
    /// <summary>
    /// Modal editor for the recipients of a distribution list, on the standard
-   /// frame: the list, the add row under it, what happened in a notice above,
-   /// and Close alone in the footer - the three buttons that act on the list
-   /// stay beside the list, and the one that ends the dialog stays apart from
-   /// them, because putting a "leave" next to a "delete" is how the wrong one
-   /// gets pressed.
+   /// frame: the list, the two buttons that act on it under it, the add row
+   /// under them, what happened in a notice above, and Close alone in the
+   /// footer - the buttons that act on the list stay by the list, and the one
+   /// that ends the dialog stays apart from them, because putting a "leave"
+   /// next to a "delete" is how the wrong one gets pressed.
    /// </summary>
    public class RecipientsDialog : FluentDialogWindow
    {
@@ -55,6 +55,29 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(listBox_, F("Recipients of {0}", listAddress));
          body.Children.Add(new Card { Padding = new Thickness(DesignTokens.Space.Sm), Content = listBox_ });
 
+         // The two buttons that act on the list, under it, where they act: in
+         // the add row beside the box and Add, the three buttons left the box
+         // about 30 pixels in German ("Hinzufügen", "Aus AD hinzufügen…",
+         // "Ausgewählte entfernen"), 100 in Japanese and 155 in English, which
+         // is too narrow to read an address in. A WrapPanel, so that in a
+         // language where the two do not fit on one line they take two.
+         var listActions = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0) };
+
+         var adButton = new Wpf.Ui.Controls.Button { Content = L("Add from A_D…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         adButton.Click += (s, e) => ImportFromActiveDirectory();
+         listActions.Children.Add(adButton);
+
+         // The list pages' one Delete style (ButtonStyles.DangerText): red words
+         // while there is a member to remove, the disabled grey while none is
+         // chosen - not the filled red of a confirmation, live over an empty list.
+         var removeButton = new Wpf.Ui.Controls.Button { Content = L("_Remove selected"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         ButtonStyles.DangerText(removeButton);
+         SelectionGate.Bind(listBox_, removeButton);
+         removeButton.Click += (s, e) => RemoveSelected();
+         listActions.Children.Add(removeButton);
+
+         body.Children.Add(listActions);
+
          delivery_.Items.Add(DialogFields.Combo(L("Each message"), 0));
          delivery_.Items.Add(DialogFields.Combo(L("The daily digest"), 1));
          delivery_.Items.Add(DialogFields.Combo(L("Nothing, while staying a member"), 2));
@@ -70,15 +93,14 @@ namespace hMailServer.ControlPanel.Views
                SaveDelivery_();
          };
 
+         // The add row: the box, with the dialog's width but for Add beside it.
          var bottom = new Grid { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
          bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-         bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-         bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          bottom.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
          // The box is captioned, as every other box on these dialogs is: it was a
          // bare box beside three buttons, which said what it was for to a screen
-         // reader and to nobody else. The buttons sit on its baseline.
+         // reader and to nobody else. The button sits on its baseline.
          AutomationProperties.SetName(addBox_, L("E-mail address to add to the list"));
 
          // Enter adds. Handled, so the keystroke cannot also reach a default button
@@ -97,7 +119,7 @@ namespace hMailServer.ControlPanel.Views
          bottom.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          bottom.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          TextBlock caption = DialogFields.Caption(L("E-mail address to add to the list"));
-         Grid.SetColumnSpan(caption, 4);
+         Grid.SetColumnSpan(caption, 2);
          bottom.Children.Add(caption);
          Grid.SetRow(addBox_, 1);
          bottom.Children.Add(addBox_);
@@ -107,28 +129,6 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(addButton, 1);
          Grid.SetRow(addButton, 1);
          bottom.Children.Add(addButton);
-
-         var adButton = new Wpf.Ui.Controls.Button { Content = L("Add from A_D…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0), VerticalAlignment = VerticalAlignment.Bottom };
-         adButton.Click += (s, e) => ImportFromActiveDirectory();
-         Grid.SetColumn(adButton, 2);
-         Grid.SetRow(adButton, 1);
-         bottom.Children.Add(adButton);
-
-         // The list pages' one Delete style (ButtonStyles.DangerText): red words
-         // while there is a member to remove, the disabled grey while none is
-         // chosen - not the filled red of a confirmation, live over an empty list.
-         var removeButton = new Wpf.Ui.Controls.Button
-         {
-            Content = L("_Remove selected"),
-            Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0),
-            VerticalAlignment = VerticalAlignment.Bottom
-         };
-         ButtonStyles.DangerText(removeButton);
-         SelectionGate.Bind(listBox_, removeButton);
-         removeButton.Click += (s, e) => RemoveSelected();
-         Grid.SetColumn(removeButton, 3);
-         Grid.SetRow(removeButton, 1);
-         bottom.Children.Add(removeButton);
 
          body.Children.Add(bottom);
 
