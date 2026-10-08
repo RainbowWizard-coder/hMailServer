@@ -2784,6 +2784,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Impossibile cambiare la modalità di corrispondenza: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Impossibile modificare il ruolo: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Impossibile copiare: </value>
   </data>
@@ -2877,9 +2880,6 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Impossibile caricare i permessi: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Impossibile caricare le cartelle pubbliche: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Impossibile caricare l'account: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Impossibile caricare questa pagina: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Impossibile caricare — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Impossibile spostare l'azione: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Impossibile aprire {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Impossibile leggere le impostazioni di backup: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Impossibile leggere gli intervalli IP: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Impossibile leggere gli account: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Impossibile leggere il registro di audit: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Impossibile leggere le impostazioni di backup: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Impossibile leggere il rapporto di coerenza: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Impossibile leggere i domini: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Impossibile leggere il file: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Impossibile leggere i relay in ingresso: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Impossibile leggere le regole di journaling: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Impossibile leggere la rotazione delle chiavi: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Impossibile leggere l'elenco: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Impossibile leggere lo stato della registrazione: {0}</value>
@@ -2954,8 +2972,29 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Non è stato possibile leggere la foto: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Impossibile leggere la coda: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Impossibile leggere le porte: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Impossibile leggere le cartelle pubbliche: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Impossibile leggere la quarantena: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Impossibile leggere la coda: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Impossibile leggere i ruoli: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Impossibile leggere le rotte: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Impossibile leggere le regole: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Impossibile leggere la lista di soppressione: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Impossibile leggere {0}: {1}</value>
@@ -13182,6 +13221,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="_To" xml:space="preserve">
     <value>_A</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Ripro_va</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Attiva adesso la registrazione di debug</value>

@@ -15,6 +15,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -32,7 +33,11 @@
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
-        <scaffold:Card Grid.Row="2" Padding="8">
+        <!-- A read that failed: Critical, with Try again, in place of the empty
+             state, which would say there are no routes (Services/ReadFailure). -->
+        <scaffold:InlineNotice x:Name="Notice" Grid.Row="2" Visibility="Collapsed" />
+
+        <scaffold:Card Grid.Row="3" Padding="8">
             <Grid>
                 <DataGrid x:Name="RouteGrid" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" MouseDoubleClick="Edit_Click"
@@ -57,7 +62,7 @@
 
         <!-- The add form: three fields in a row and the button that adds, on a
              card of its own under the grid so the grid keeps the height. -->
-        <scaffold:Card Grid.Row="3" Title="{loc:L 'Add route'}" Margin="0,12,0,0">
+        <scaffold:Card Grid.Row="4" Title="{loc:L 'Add route'}" Margin="0,12,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
@@ -74,7 +79,7 @@
                 <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Port'}" Margin="0,0,8,0">
                     <ui:TextBox x:Name="NewPort" Text="25" />
                 </scaffold:FieldRow>
-                <ui:Button Grid.Column="3" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
+                <ui:Button x:Name="AddRouteButton" Grid.Column="3" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
                            VerticalAlignment="Bottom" Margin="0" />
             </Grid>
         </scaffold:Card>

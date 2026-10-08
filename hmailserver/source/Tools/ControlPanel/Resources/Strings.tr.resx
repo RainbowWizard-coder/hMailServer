@@ -2784,6 +2784,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Eşleştirme kipi değiştirilemedi: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Rol değiştirilemedi: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kopyalanamadı: </value>
   </data>
@@ -2877,9 +2880,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>İzinler yüklenemedi: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Genel klasörler yüklenemedi: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Hesap yüklenemedi: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Bu sayfa yüklenemedi: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Yüklenemedi — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Eylem taşınamadı: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>{0} açılamadı: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Yedekleme ayarları okunamadı: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>IP aralıkları okunamadı: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Hesaplar okunamadı: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Denetim izi okunamadı: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Yedekleme ayarları okunamadı: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Tutarlılık raporu okunamadı: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Etki alanları okunamadı: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Dosya okunamadı: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Gelen aktarmalar okunamadı: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Günlükleme kuralları okunamadı: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Anahtar döndürme okunamadı: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Liste okunamadı: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Günlük durumu okunamadı: {0}</value>
@@ -2954,8 +2972,29 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotoğraf okunamadı: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Kuyruk okunamadı: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Portlar okunamadı: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Genel klasörler okunamadı: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Karantina okunamadı: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Kuyruk okunamadı: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Roller okunamadı: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Rotalar okunamadı: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Kurallar okunamadı: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Engelleme listesi okunamadı: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>{0} okunamadı: {1}</value>
@@ -13182,6 +13221,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>Ki_me</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>_Tekrar dene</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>Hata ayıklama günlüklemesini şimdi _aç</value>

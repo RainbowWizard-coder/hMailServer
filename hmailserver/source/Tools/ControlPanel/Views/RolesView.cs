@@ -87,6 +87,14 @@ namespace hMailServer.ControlPanel.Views
          Visibility = Visibility.Collapsed
       };
 
+      // A read that failed, above the cards, where the roles were; notice_ under
+      // the form is for what the form says (Services/ReadFailure).
+      private readonly InlineNotice readNotice_ = new() { Visibility = Visibility.Collapsed };
+
+      // Give the role and Take the role away wait for a read that works.
+      private Wpf.Ui.Controls.Button give_;
+      private Wpf.Ui.Controls.Button take_;
+
       public RolesView()
       {
          var root = new Grid();
@@ -109,6 +117,7 @@ namespace hMailServer.ControlPanel.Views
          });
 
          var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 980, HorizontalAlignment = HorizontalAlignment.Left };
+         cards.Children.Add(readNotice_);
 
          roleGrid_.Columns.Add(TextColumn_(L("Role"), nameof(RoleRow.Name), 150));
          roleGrid_.Columns.Add(TextColumn_(L("What it is for"), nameof(RoleRow.Purpose), 300));
@@ -147,26 +156,26 @@ namespace hMailServer.ControlPanel.Views
          form.Children.Add(FormField_(L("Role"), roleBox));
          form.Children.Add(FormField_(L("Domains"), domains_));
 
-         var give = new Wpf.Ui.Controls.Button
+         give_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Give the role"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Margin = new Thickness(0, 0, 8, 12),
             VerticalAlignment = VerticalAlignment.Bottom
          };
-         System.Windows.Automation.AutomationProperties.SetAutomationId(give, "roles-assign");
-         give.Click += (s, e) => Assign_();
-         form.Children.Add(give);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(give_, "roles-assign");
+         give_.Click += (s, e) => Assign_();
+         form.Children.Add(give_);
 
-         var take = new Wpf.Ui.Controls.Button
+         take_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Take the role away"),
             Margin = new Thickness(0, 0, 0, 12),
             VerticalAlignment = VerticalAlignment.Bottom
          };
-         System.Windows.Automation.AutomationProperties.SetAutomationId(take, "roles-unassign");
-         take.Click += (s, e) => Unassign_();
-         form.Children.Add(take);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(take_, "roles-unassign");
+         take_.Click += (s, e) => Unassign_();
+         form.Children.Add(take_);
 
          var held = new StackPanel();
          held.Children.Add(assignmentGrid_);
@@ -241,10 +250,19 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception why) when (!ExceptionPolicy.IsFatal(why))
          {
-            Warn_(ServerSession.DescribeComError(why));
+            // Neither the rows of the last read nor "Nobody has been given a role
+            // yet." is a fact this page has now: the roles, the assignments and
+            // the choice of role go, the notice above the cards says what
+            // happened, at Critical, with Try again, and the two buttons that
+            // write wait for a read that works (Services/ReadFailure).
+            ReadFailure.Show(readNotice_, empty_, assignmentGrid_, L("Could not read the roles: "), why, Reload_, give_, take_);
+            roleGrid_.ItemsSource = null;
+            roleChoice_.ItemsSource = null;
+            assignmentGrid_.Visibility = Visibility.Collapsed;
             return;
          }
 
+         ReadFailure.Clear(readNotice_, give_, take_);
          roleGrid_.ItemsSource = roles;
          roles_ = roles;
          assignmentGrid_.ItemsSource = assignments;
@@ -321,7 +339,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception why) when (!ExceptionPolicy.IsFatal(why))
          {
-            Warn_(ServerSession.DescribeComError(why));
+            Fail_(L("Could not change the role: ") + ServerSession.DescribeComError(why));
             return;
          }
 
@@ -330,9 +348,21 @@ namespace hMailServer.ControlPanel.Views
          Reload_();
       }
 
+      /// <summary>A prompt for the form: something to fill in first.</summary>
       private void Warn_(string message)
       {
          notice_.Level = StatusLevel.Warning;
+         notice_.Text = message;
+         notice_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// A write that failed, at Critical: it is a failure, not a prompt, and the
+      /// Groups page beside this one says the same kind of thing at that level.
+      /// </summary>
+      private void Fail_(string message)
+      {
+         notice_.Level = StatusLevel.Critical;
          notice_.Text = message;
          notice_.Visibility = Visibility.Visible;
       }

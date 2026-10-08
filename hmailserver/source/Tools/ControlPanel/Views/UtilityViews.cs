@@ -33,10 +33,22 @@ namespace hMailServer.ControlPanel.Views
       // which Wpf.Ui's SymbolIcon draws as a g with a caron (see RoutesView.xaml).
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Router24, Visibility = Visibility.Collapsed };
 
+      // A read that failed, above the list (Services/ReadFailure).
+      private readonly InlineNotice notice_ = new() { Visibility = Visibility.Collapsed };
+
+      private readonly Wpf.Ui.Controls.Button add_ = new()
+      {
+         Content = L("_Add"),
+         Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
+         VerticalAlignment = VerticalAlignment.Bottom,
+         Margin = new Thickness(0)
+      };
+
       public IncomingRelaysView()
       {
          var grid = new Grid();
          grid.SetResourceReference(MarginProperty, "AppPagePadding");
+         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -57,12 +69,16 @@ namespace hMailServer.ControlPanel.Views
          // Delete selected acts on the selected relay; it was a live red button
          // with an empty list, the only one of its kind on a list page.
          SelectionGate.Bind(list_, del);
+
+         Grid.SetRow(notice_, 1);
+         grid.Children.Add(notice_);
+
          var listHost = new Grid();
          listHost.Children.Add(list_);
          listHost.Children.Add(empty_);
          var listCard = new Card { Padding = new Thickness(10), Content = listHost };
          listCard.SetResourceReference(MarginProperty, "AppCardGap");
-         Grid.SetRow(listCard, 1);
+         Grid.SetRow(listCard, 2);
          grid.Children.Add(listCard);
 
          var row = new Grid();
@@ -79,19 +95,12 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(upperField, 2);
          row.Children.Add(upperField);
 
-         var add = new Wpf.Ui.Controls.Button
-         {
-            Content = L("_Add"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(0)
-         };
-         add.Click += (s, e) => Add();
-         Grid.SetColumn(add, 3);
-         row.Children.Add(add);
+         add_.Click += (s, e) => Add();
+         Grid.SetColumn(add_, 3);
+         row.Children.Add(add_);
 
          var addCard = new Card { Title = L("Add relay"), Content = row };
-         Grid.SetRow(addCard, 2);
+         Grid.SetRow(addCard, 3);
          grid.Children.Add(addCard);
 
          Content = grid;
@@ -106,22 +115,34 @@ namespace hMailServer.ControlPanel.Views
       private void Reload()
       {
          var rows = new List<string>();
-         dynamic relays = ServerSession.Current.Application.Settings.IncomingRelays;
          try
          {
-            int count = (int)relays.Count;
-            for (int i = 0; i < count; i++)
+            dynamic relays = ServerSession.Current.Application.Settings.IncomingRelays;
+            try
             {
-               dynamic relay = relays.Item[i];
-               rows.Add((string)relay.Name + "   (" + (string)relay.LowerIP + " - " + (string)relay.UpperIP + ")");
-               ServerSession.Release(relay);
+               int count = (int)relays.Count;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic relay = relays.Item[i];
+                  rows.Add((string)relay.Name + "   (" + (string)relay.LowerIP + " - " + (string)relay.UpperIP + ")");
+                  ServerSession.Release(relay);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(relays);
             }
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ServerSession.Release(relays);
+            // Neither the rows of the last read nor "No incoming relays." is a fact
+            // this page has now: both go, the notice says what happened, with Try
+            // again, and Add waits for a read that works (Services/ReadFailure).
+            ReadFailure.Show(notice_, empty_, list_, L("Could not read the incoming relays: "), ex, Reload, add_);
+            return;
          }
 
+         ReadFailure.Clear(notice_, add_);
          list_.ItemsSource = rows;
          StatusText.Show(empty_, null, rows.Count, null,
             L("No incoming relays. Add one only for a gateway in front of this server whose address you trust."));

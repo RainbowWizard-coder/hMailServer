@@ -124,6 +124,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = SymbolRegular.DocumentBulletList24, Visibility = Visibility.Collapsed };
 
+      // Add waits for a read that works (Services/ReadFailure); null for a
+      // collection that cannot be added to.
+      private Button addButton_;
+
       public CollectionEditorView(CollectionSpec spec) : this(spec, false)
       {
       }
@@ -157,14 +161,21 @@ namespace hMailServer.ControlPanel.Views
          else
             root.SetResourceReference(MarginProperty, "AppPagePadding");
 
+         // The header or the hint, the toolbar (embedded), the notice, then the
+         // grid with the rest of the height. The notice was under the grid, where
+         // a failed read put "Could not load" below three hundred pixels of blank
+         // card; it is above it now, under the header, as on every other list page.
+         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
          if (spec_.CanAdd)
-            actions.Children.Add(MakeButton(L("_Add"), ControlAppearance.Primary, SymbolRegular.Add24, (_, _) => OpenDialog(null)));
+         {
+            addButton_ = MakeButton(L("_Add"), ControlAppearance.Primary, SymbolRegular.Add24, (_, _) => OpenDialog(null));
+            actions.Children.Add(addButton_);
+         }
          var edit = MakeButton(L("_Edit"), ControlAppearance.Secondary, SymbolRegular.Edit24, (_, _) => EditSelected());
          actions.Children.Add(edit);
          Wpf.Ui.Controls.Button del = null;
@@ -215,7 +226,7 @@ namespace hMailServer.ControlPanel.Views
 
          // Grid in a card
          var card = new Card { Padding = new Thickness(6) };
-         Grid.SetRow(card, 2);
+         Grid.SetRow(card, 3);
 
          grid_.AutoGenerateColumns = false;
          grid_.IsReadOnly = true;
@@ -279,8 +290,7 @@ namespace hMailServer.ControlPanel.Views
          card.Content = host;
          root.Children.Add(card);
 
-         status_.Margin = new Thickness(0, 12, 0, 0);
-         Grid.SetRow(status_, 3);
+         Grid.SetRow(status_, 2);
          root.Children.Add(status_);
 
          Content = root;
@@ -339,14 +349,22 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            empty_.Visibility = Visibility.Collapsed;
-            Say_(StatusLevel.Critical, L("Could not load — ") + ServerSession.DescribeComError(ex));
+            // Neither the rows of the last read nor "Nothing here yet" nor a count
+            // of "0 SURBL servers" is a fact this page has now: the rows are
+            // cleared above, the empty state and the pill go, the notice says what
+            // happened, with Try again, and Add waits for a read that works
+            // (Services/ReadFailure).
+            ReadFailure.Show(status_, empty_, null, L("Could not read the list: "), ex, Reload, addButton_);
+            countBadge_.Visibility = Visibility.Collapsed;
+            return;
          }
          finally
          {
             ServerSession.Release((object)collection);
          }
 
+         ReadFailure.Clear(status_, addButton_);
+         countBadge_.Visibility = Visibility.Visible;
          countBadge_.Text = rows_.Count == 1
             ? "1 " + spec_.ItemNoun
             : rows_.Count + " " + Pluralize(spec_.ItemNoun);
@@ -355,6 +373,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>What the last action said, at its level.</summary>
       private void Say_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(status_);
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;

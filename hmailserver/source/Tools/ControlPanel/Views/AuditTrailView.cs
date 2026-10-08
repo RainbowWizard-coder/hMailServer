@@ -55,6 +55,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void Status_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(status_);
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;
@@ -62,6 +63,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload()
       {
+         ReadFailure.Clear(status_);
          status_.Visibility = Visibility.Collapsed;
 
          try
@@ -81,7 +83,7 @@ namespace hMailServer.ControlPanel.Views
 
             if (report.Error != null)
             {
-               Status_(StatusLevel.Critical, F("The server's answer could not be read: {0}", report.Error));
+               ReadFailure.Show(status_, empty_, rows_, null, F("The server's answer could not be read: {0}", report.Error), Reload);
                return;
             }
 
@@ -96,7 +98,10 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            // Neither the rows of the last read nor "Nothing has been recorded
+            // yet." is a fact this page has now: both go, and the notice says what
+            // happened, with Try again (Services/ReadFailure).
+            ReadFailure.Show(status_, empty_, rows_, L("Could not read the audit trail: "), ex, Reload);
          }
       }
 

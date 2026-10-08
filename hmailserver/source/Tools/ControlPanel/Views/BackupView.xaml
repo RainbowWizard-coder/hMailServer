@@ -20,7 +20,7 @@
             <!-- What the last action said: settings saved, a backup started. -->
             <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
-            <scaffold:Card Title="{loc:L 'Backup'}" Margin="{StaticResource AppCardGap}">
+            <scaffold:Card x:Name="BackupCard" Title="{loc:L 'Backup'}" Margin="{StaticResource AppCardGap}">
                 <StackPanel>
                     <scaffold:FieldRow Label="{loc:L 'Destination _folder (on the server)'}">
                         <Grid>

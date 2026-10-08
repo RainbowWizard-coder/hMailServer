@@ -2784,6 +2784,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Не удалось изменить режим сопоставления: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Не удалось изменить роль: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Не удалось скопировать: </value>
   </data>
@@ -2877,9 +2880,6 @@ Control Panel может читать файлы сообщений только
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Не удалось загрузить разрешения: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Не удалось загрузить общие папки: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Не удалось загрузить учётную запись: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Control Panel может читать файлы сообщений только
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Не удалось загрузить эту страницу: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Не удалось загрузить — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Не удалось переместить действие: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Control Panel может читать файлы сообщений только
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Не удалось открыть {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Не удалось прочитать параметры резервного копирования: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Не удалось прочитать диапазоны IP: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Не удалось прочитать учётные записи: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Не удалось прочитать журнал аудита: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Не удалось прочитать параметры резервного копирования: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не удалось прочитать отчёт о проверке целостности: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Не удалось прочитать домены: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Не удалось прочитать файл: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Не удалось прочитать входящие ретрансляции: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Не удалось прочитать правила журналирования: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Не удалось прочитать ротацию ключей: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Не удалось прочитать список: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Не удалось прочитать состояние журналирования: {0}</value>
@@ -2954,8 +2972,29 @@ Control Panel может читать файлы сообщений только
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Не удалось прочитать фотографию: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Не удалось прочитать очередь: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Не удалось прочитать порты: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Не удалось прочитать общие папки: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Не удалось прочитать карантин: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Не удалось прочитать очередь: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Не удалось прочитать роли: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Не удалось прочитать маршруты: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Не удалось прочитать правила: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Не удалось прочитать список подавления: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Не удалось прочитать {0}: {1}</value>
@@ -13182,6 +13221,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Повторить _попытку</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Включить отладочное журналирование сейчас</value>

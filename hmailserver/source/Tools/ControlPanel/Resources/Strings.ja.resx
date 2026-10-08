@@ -2784,6 +2784,9 @@
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>一致モードを変更できませんでした: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>ロールを変更できませんでした: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>コピーできませんでした: </value>
   </data>
@@ -2877,9 +2880,6 @@
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>権限を読み込めませんでした: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>公開フォルダーを読み込めませんでした: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>アカウントを読み込めませんでした: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>このページを読み込めませんでした: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>読み込めませんでした — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>アクションを移動できませんでした: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>{0} を開けませんでした: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>バックアップ設定を読み取れませんでした: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>IP 範囲を読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>アカウントを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>監査ログを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>バックアップ設定を読み取れませんでした: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>整合性レポートを読み取れませんでした: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>ドメインを読み取れませんでした: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>ファイルを読み取れませんでした: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>受信リレーを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>ジャーナリング ルールを読み取れませんでした: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>鍵のローテーションを読み取れませんでした: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>リストを読み取れませんでした: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>ログの状態を読み取れませんでした: {0}</value>
@@ -2954,8 +2972,29 @@
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>写真を読み取れませんでした: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>キューを読み取れませんでした: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>ポートを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>公開フォルダーを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>検疫を読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>キューを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>ロールを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>ルートを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>ルールを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>抑止リストを読み取れませんでした: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>{0} を読み取れませんでした: {1}</value>
@@ -13182,6 +13221,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_To" xml:space="preserve">
     <value>宛先(_T)</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>再試行(_T)</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>今すぐデバッグ ログを有効にする(_T)</value>

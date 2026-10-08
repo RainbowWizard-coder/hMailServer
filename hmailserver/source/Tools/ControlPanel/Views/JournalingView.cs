@@ -72,6 +72,13 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly InlineNotice notice_ = new() { Visibility = Visibility.Collapsed };
 
+      // A read that failed, above the cards, where the rules were; notice_ under
+      // the form is for what the form says (Services/ReadFailure).
+      private readonly InlineNotice readNotice_ = new() { Visibility = Visibility.Collapsed };
+
+      // Add the rule waits for a read that works.
+      private Wpf.Ui.Controls.Button add_;
+
       // The actions on the rule chosen in the list, shown while there is a list.
       private readonly StackPanel chosen_ = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
       private readonly EmptyState empty_ = new()
@@ -126,6 +133,8 @@ namespace hMailServer.ControlPanel.Views
          chosen_.Children.Add(remove);
          SelectionGate.Bind(rules_, toggle, remove);
 
+         cards.Children.Add(readNotice_);
+
          var listed = new StackPanel();
          listed.Children.Add(rules_);
          listed.Children.Add(empty_);
@@ -171,16 +180,16 @@ namespace hMailServer.ControlPanel.Views
          form.Children.Add(FormField_(L("Where it goes"), address_));
          form.Children.Add(FormField_(L("Note"), note_));
 
-         var add = new Wpf.Ui.Controls.Button
+         add_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Add the rule"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Margin = new Thickness(0, 0, 8, 12),
             VerticalAlignment = VerticalAlignment.Bottom
          };
-         System.Windows.Automation.AutomationProperties.SetAutomationId(add, "journal-add");
-         add.Click += (s, e) => Add_();
-         form.Children.Add(add);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(add_, "journal-add");
+         add_.Click += (s, e) => Add_();
+         form.Children.Add(add_);
 
          var editing = new StackPanel();
          editing.Children.Add(form);
@@ -269,20 +278,34 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (JsonException)
          {
-            Warn_(L("The server's answer could not be read."));
+            Unread_(null, L("The server's answer could not be read."));
             return;
          }
          catch (Exception why) when (!ExceptionPolicy.IsFatal(why))
          {
-            Warn_(ServerSession.DescribeComError(why));
+            Unread_(L("Could not read the journaling rules: "), ServerSession.DescribeComError(why));
             return;
          }
 
+         ReadFailure.Clear(readNotice_, add_);
          rules_.ItemsSource = rows;
          rules_.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
          chosen_.Visibility = rules_.Visibility;
          empty_.Text = L("No journaling rules. Nothing is copied anywhere, and the check costs one comparison for each message the server accepts.");
          empty_.Visibility = rows.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
+      }
+
+      /// <summary>
+      /// A read that failed: neither the rows of the last read nor "No journaling
+      /// rules." is a fact this page has now, so both go, the notice above the
+      /// list says what happened, with Try again, and Add the rule waits for a
+      /// read that works (Services/ReadFailure).
+      /// </summary>
+      private void Unread_(string prefix, string why)
+      {
+         ReadFailure.Show(readNotice_, empty_, rules_, prefix, why, Reload_, add_);
+         rules_.Visibility = Visibility.Collapsed;
+         chosen_.Visibility = Visibility.Collapsed;
       }
 
       private static string Text_(JsonElement item, string name)

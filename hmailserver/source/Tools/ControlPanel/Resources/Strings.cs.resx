@@ -2784,6 +2784,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Nepodařilo se změnit režim porovnávání: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Nepodařilo se změnit roli: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Nepodařilo se zkopírovat: </value>
   </data>
@@ -2877,9 +2880,6 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Nepodařilo se načíst oprávnění: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Nepodařilo se načíst veřejné složky: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Nepodařilo se načíst účet: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Nepodařilo se načíst tuto stránku: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Nepodařilo se načíst — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Nepodařilo se přesunout akci: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Nepodařilo se otevřít {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Nepodařilo se přečíst nastavení zálohování: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Nepodařilo se přečíst rozsahy IP: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Nepodařilo se přečíst účty: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Nepodařilo se přečíst auditní záznam: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Nepodařilo se přečíst nastavení zálohování: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst zprávu o konzistenci: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Nepodařilo se přečíst domény: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst soubor: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Nepodařilo se přečíst příchozí relaye: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Nepodařilo se přečíst pravidla žurnálování: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Rotaci klíčů nelze načíst: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Nepodařilo se přečíst seznam: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst stav logování: {0}</value>
@@ -2954,8 +2972,29 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Fotografii se nepodařilo přečíst: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Nepodařilo se přečíst frontu: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Nepodařilo se přečíst porty: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Nepodařilo se přečíst veřejné složky: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Nepodařilo se přečíst karanténu: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Nepodařilo se přečíst frontu: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Nepodařilo se přečíst role: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Nepodařilo se přečíst trasy: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Nepodařilo se přečíst pravidla: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Nepodařilo se přečíst seznam blokovaných: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Nepodařilo se přečíst {0}: {1}</value>
@@ -13182,6 +13221,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Komu</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Zkusit _znovu</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Zapnout ladicí logování nyní</value>

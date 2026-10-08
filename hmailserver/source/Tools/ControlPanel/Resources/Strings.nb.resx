@@ -2784,6 +2784,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Kunne ikke endre samsvarsmodus: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Kunne ikke endre rollen: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kunne ikke kopiere: </value>
   </data>
@@ -2877,9 +2880,6 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Kunne ikke laste tillatelser: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Kunne ikke laste offentlige mapper: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Kunne ikke laste kontoen: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Kunne ikke laste denne siden: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Kunne ikke laste — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Kunne ikke flytte handlingen: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kunne ikke åpne {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Kunne ikke lese innstillingene for sikkerhetskopiering: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Kunne ikke lese IP-områdene: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Kunne ikke lese kontoene: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Kunne ikke lese revisjonsloggen: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Kunne ikke lese innstillingene for sikkerhetskopiering: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kunne ikke lese konsistensrapporten: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Kunne ikke lese domenene: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Kunne ikke lese filen: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Kunne ikke lese de innkommende relayene: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Kunne ikke lese journalføringsreglene: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Kunne ikke lese nøkkelrotasjonen: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Kunne ikke lese listen: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Kunne ikke lese loggingstilstanden: {0}</value>
@@ -2954,8 +2972,29 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Bildet kunne ikke leses: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Kunne ikke lese køen: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Kunne ikke lese portene: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Kunne ikke lese de offentlige mappene: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Kunne ikke lese karantenen: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Kunne ikke lese køen: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Kunne ikke lese rollene: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Kunne ikke lese rutene: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Kunne ikke lese reglene: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Kunne ikke lese sperrelisten: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kunne ikke lese {0}: {1}</value>
@@ -13182,6 +13221,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Til</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Prøv _igjen</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Slå på feilsøkingslogging nå</value>

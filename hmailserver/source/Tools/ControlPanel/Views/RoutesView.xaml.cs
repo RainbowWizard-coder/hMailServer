@@ -42,29 +42,41 @@ namespace hMailServer.ControlPanel.Views
       private void Reload()
       {
          var rows = new List<RouteRow>();
-         dynamic routes = ServerSession.Current.Application.Settings.Routes;
          try
          {
-            int count = (int)routes.Count;
-            for (int i = 0; i < count; i++)
+            dynamic routes = ServerSession.Current.Application.Settings.Routes;
+            try
             {
-               dynamic route = routes.Item[i];
-               rows.Add(new RouteRow
+               int count = (int)routes.Count;
+               for (int i = 0; i < count; i++)
                {
-                  DomainName = (string)route.DomainName,
-                  TargetHost = (string)route.TargetSMTPHost,
-                  TargetPort = (int)route.TargetSMTPPort,
-                  Retries = (int)route.NumberOfTries,
-                  Auth = (bool)route.RelayerRequiresAuth ? L("Yes") : L("No")
-               });
-               ServerSession.Release(route);
+                  dynamic route = routes.Item[i];
+                  rows.Add(new RouteRow
+                  {
+                     DomainName = (string)route.DomainName,
+                     TargetHost = (string)route.TargetSMTPHost,
+                     TargetPort = (int)route.TargetSMTPPort,
+                     Retries = (int)route.NumberOfTries,
+                     Auth = (bool)route.RelayerRequiresAuth ? L("Yes") : L("No")
+                  });
+                  ServerSession.Release(route);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(routes);
             }
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ServerSession.Release(routes);
+            // Neither the rows of the last read nor "No routes defined yet." is a
+            // fact this page has now: both go, the notice says what happened, with
+            // Try again, and Add waits for a read that works (Services/ReadFailure).
+            ReadFailure.Show(Notice, EmptyStatus, RouteGrid, L("Could not read the routes: "), ex, Reload, AddRouteButton);
+            return;
          }
 
+         ReadFailure.Clear(Notice, AddRouteButton);
          RouteGrid.ItemsSource = rows;
          ListSearch.Apply(RouteGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No routes defined yet."));

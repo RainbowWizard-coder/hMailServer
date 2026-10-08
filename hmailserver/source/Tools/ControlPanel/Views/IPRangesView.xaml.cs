@@ -99,35 +99,56 @@ namespace hMailServer.ControlPanel.Views
          int? selectedId = keepChanges ? permsRow_.Id : (RangeGrid.SelectedItem as RangeRow)?.Id;
 
          var rows = new List<RangeRow>();
-         dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
          {
-            int count = (int)ranges.Count;
-            for (int i = 0; i < count; i++)
+            dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
+            try
             {
-               dynamic range = ranges.Item[i];
-               rows.Add(new RangeRow
+               int count = (int)ranges.Count;
+               for (int i = 0; i < count; i++)
                {
-                  Id = (int)range.ID,
-                  Name = (string)range.Name,
-                  LowerIP = (string)range.LowerIP,
-                  UpperIP = (string)range.UpperIP,
-                  Priority = (int)range.Priority,
-                  Smtp = (bool)range.AllowSMTPConnections ? L("Yes") : L("No"),
-                  Imap = (bool)range.AllowIMAPConnections ? L("Yes") : L("No"),
-                  Pop3 = (bool)range.AllowPOP3Connections ? L("Yes") : L("No")
-               });
-               ServerSession.Release(range);
+                  dynamic range = ranges.Item[i];
+                  rows.Add(new RangeRow
+                  {
+                     Id = (int)range.ID,
+                     Name = (string)range.Name,
+                     LowerIP = (string)range.LowerIP,
+                     UpperIP = (string)range.UpperIP,
+                     Priority = (int)range.Priority,
+                     Smtp = (bool)range.AllowSMTPConnections ? L("Yes") : L("No"),
+                     Imap = (bool)range.AllowIMAPConnections ? L("Yes") : L("No"),
+                     Pop3 = (bool)range.AllowPOP3Connections ? L("Yes") : L("No")
+                  });
+                  ServerSession.Release(range);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(ranges);
             }
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ServerSession.Release(ranges);
+            // Neither the rows of the last read nor "No IP ranges defined yet." is
+            // a fact this page has now: both go, the notice says what happened,
+            // with Try again, and Add and Restore defaults wait for a read that
+            // works - Restore defaults replaces every range, which is the last
+            // thing to offer over a list that could not be seen (Services/ReadFailure).
+            ReadFailure.Show(Notice, EmptyStatus, RangeGrid, L("Could not read the IP ranges: "), ex, Reload,
+               AddRangeButton, RestoreDefaultsButton);
+            // The permissions card keeps the edits it holds: a read that failed
+            // is no more a reason to lose them than an added range is, and the
+            // next read that works selects their range again. With none, the
+            // card shows no range, since the list shows none.
+            if (!keepChanges)
+               ShowNoRange();
+            return;
          }
 
          reloading_ = true;
          try
          {
+            ReadFailure.Clear(Notice, AddRangeButton, RestoreDefaultsButton);
             RangeGrid.ItemsSource = rows;
             ListSearch.Apply(RangeGrid, SearchBar.SearchText);
             StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges defined yet."));

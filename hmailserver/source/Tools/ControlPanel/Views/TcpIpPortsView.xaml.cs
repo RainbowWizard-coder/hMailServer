@@ -93,6 +93,25 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload()
       {
+         try
+         {
+            Read_();
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            // Neither the rows of the last read nor "No ports configured." is a
+            // fact this page has now: both go, with the listener summary that
+            // was read with them, the notice says what happened, with Try again,
+            // and Add and Restore defaults wait for a read that works
+            // (Services/ReadFailure).
+            ReadFailure.Show(Notice, EmptyStatus, PortGrid, L("Could not read the ports: "), ex, Reload,
+               AddPortButton, RestoreDefaultsButton);
+            ListenerSummary.Visibility = Visibility.Collapsed;
+         }
+      }
+
+      private void Read_()
+      {
          var rows = new List<PortRow>();
          var certNames = LoadCertNames();
 
@@ -146,6 +165,7 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(ports);
          }
 
+         ReadFailure.Clear(Notice, AddPortButton, RestoreDefaultsButton);
          PortGrid.ItemsSource = rows;
          ListSearch.Apply(PortGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No ports configured."));

@@ -53,6 +53,9 @@ namespace hMailServer.ControlPanel.Views
 
       private List<EntryView> all_ = new();
 
+      // Add waits for a read that works (Services/ReadFailure).
+      private Button addButton_;
+
       public DomainPolicyListView() => Build();
 
       // Read on entry rather than in the constructor, because the page cache keeps
@@ -66,6 +69,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void Status_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(status_);
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;
@@ -142,6 +146,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void Reload()
       {
+         ReadFailure.Clear(status_, addButton_);
          status_.Visibility = Visibility.Collapsed;
 
          try
@@ -161,12 +166,24 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (JsonException ex)
          {
-            Status_(StatusLevel.Critical, F("The server's answer could not be read: {0}", ex.Message));
+            Unread_(null, F("The server's answer could not be read: {0}", ex.Message));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            Unread_(L("Could not read the list: "), ServerSession.DescribeComError(ex));
          }
+      }
+
+      /// <summary>
+      /// A read that failed: neither the rows of the last read nor "The list is
+      /// empty" is a fact this page has now, so both go, the notice says what
+      /// happened, with Try again, and Add waits for a read that works
+      /// (Services/ReadFailure).
+      /// </summary>
+      private void Unread_(string prefix, string why)
+      {
+         all_ = new List<EntryView>();
+         ReadFailure.Show(status_, empty_, entries_, prefix, why, Reload, addButton_);
       }
 
       // A filter over the rows already here: the whole list is a handful of
@@ -271,7 +288,8 @@ namespace hMailServer.ControlPanel.Views
          toolbar_.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Present_(); };
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
-         actions.Children.Add(MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry()));
+         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
+         actions.Children.Add(addButton_);
          var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);

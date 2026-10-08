@@ -15,11 +15,22 @@
     <Grid Margin="{StaticResource AppPagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader Title="{loc:L 'Domains &amp; accounts'}"
                              Subtitle="{loc:L 'Manage the domains hosted by this server and their mailboxes.'}" />
+
+        <!-- A read that failed: Critical, with Try again, in place of the empty
+             state, which would say there are no domains, or no accounts
+             (Services/ReadFailure). At the page's width, not in the card whose
+             list it is about: in the domains card, 280 pixels wide, the sentence
+             stood beside its button as a column of two words a line. -->
+        <StackPanel Grid.Row="1">
+            <scaffold:InlineNotice x:Name="DomainNotice" Visibility="Collapsed" />
+            <scaffold:InlineNotice x:Name="AccountNotice" Visibility="Collapsed" />
+        </StackPanel>
 
         <!-- Every list takes the height the parts around it leave in the window,
              down to a floor of three rows, and below that the page scrolls; every
@@ -34,7 +45,7 @@
              280 pixels, the other 400 - the domains card goes above the accounts
              card and the three share one column, two, three and two
              (DomainsView.ArrangeColumns). -->
-        <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+        <ScrollViewer x:Name="PageScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled" Focusable="False">
         <Grid x:Name="PageColumns" SizeChanged="PageColumns_SizeChanged">
             <Grid.ColumnDefinitions>
@@ -136,7 +147,7 @@
                         <scaffold:FieldRow Label="{loc:L 'Domain'}" Margin="0,0,8,0">
                             <ui:TextBox x:Name="NewDomainBox" PlaceholderText="newdomain.com" />
                         </scaffold:FieldRow>
-                        <ui:Button Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
+                        <ui:Button x:Name="AddDomainButton" Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
                                    AutomationProperties.AutomationId="domains-add"
                                    VerticalAlignment="Bottom" Margin="0" />
                     </Grid>

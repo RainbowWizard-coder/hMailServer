@@ -60,6 +60,9 @@ namespace hMailServer.ControlPanel.Views
 
       private const int PageSize = 200;
 
+      // Add waits for a read that works (Services/ReadFailure).
+      private Button addButton_;
+
       public SuppressionListView() => Build();
 
       // Read on entry rather than in the constructor, because the page cache keeps
@@ -68,7 +71,13 @@ namespace hMailServer.ControlPanel.Views
       public void OnEnter()
       {
          string selected = domainChoice_.SelectedItem as string;
-         LoadDomains_();
+
+         // The domains could not be read: the page says so and nothing else. It
+         // went on to say "There are no domains, so there is no list to show",
+         // which is what a server with no domains looks like, not one that could
+         // not be asked.
+         if (!LoadDomains_())
+            return;
 
          if (selected != null && domainChoice_.Items.Contains(selected))
             domainChoice_.SelectedItem = selected;
@@ -84,16 +93,19 @@ namespace hMailServer.ControlPanel.Views
 
       private void Status_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(status_);
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;
       }
 
-      private void LoadDomains_()
+      /// <summary>Fills the domain list; false when the domains could not be read.</summary>
+      private bool LoadDomains_()
       {
          domainChoice_.Items.Clear();
 
          dynamic domains = null;
+         bool read = false;
 
          try
          {
@@ -124,10 +136,15 @@ namespace hMailServer.ControlPanel.Views
             names.Sort(StringComparer.OrdinalIgnoreCase);
             foreach (string name in names)
                domainChoice_.Items.Add(name);
+            read = true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            // The lists go with the domains, the notice says what happened, with
+            // Try again, and Add waits for a read that works (Services/ReadFailure).
+            ReadFailure.Show(status_, empty_, entries_, L("Could not read the domains: "), ex, OnEnter, addButton_);
+            counts_.ItemsSource = null;
+            processingOff_.Visibility = Visibility.Collapsed;
          }
          finally
          {
@@ -136,10 +153,13 @@ namespace hMailServer.ControlPanel.Views
 
          if (domainChoice_.Items.Count > 0 && domainChoice_.SelectedIndex < 0)
             domainChoice_.SelectedIndex = 0;
+
+         return read;
       }
 
       private void Reload()
       {
+         ReadFailure.Clear(status_, addButton_);
          status_.Visibility = Visibility.Collapsed;
          processingOff_.Visibility = Visibility.Collapsed;
 
@@ -171,7 +191,7 @@ namespace hMailServer.ControlPanel.Views
 
             if (list.Error != null || counts.Error != null)
             {
-               Status_(StatusLevel.Critical, F("The server's answer could not be read: {0}", list.Error ?? counts.Error));
+               Unread_(null, F("The server's answer could not be read: {0}", list.Error ?? counts.Error));
                return;
             }
 
@@ -195,8 +215,20 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            Unread_(L("Could not read the suppression list: "), ServerSession.DescribeComError(ex));
          }
+      }
+
+      /// <summary>
+      /// A read that failed: neither the entries of the last read nor "No address
+      /// is on this domain's suppression list" is a fact this page has now, so
+      /// both go with the counts, the notice says what happened, with Try again,
+      /// and Add waits for a read that works (Services/ReadFailure).
+      /// </summary>
+      private void Unread_(string prefix, string why)
+      {
+         ReadFailure.Show(status_, empty_, entries_, prefix, why, Reload, addButton_);
+         counts_.ItemsSource = null;
       }
 
       /// <summary>An entry as the grid shows it: the server's words turned into the reader's.</summary>
@@ -376,7 +408,8 @@ namespace hMailServer.ControlPanel.Views
          // A WrapPanel, so that in a narrow window Refresh moves to a second
          // line rather than off the edge.
          var actions = new WrapPanel { Orientation = Orientation.Horizontal };
-         actions.Children.Add(MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry()));
+         addButton_ = MakeButton(L("_Add…"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddEntry());
+         actions.Children.Add(addButton_);
          var remove = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => RemoveSelected());
          ButtonStyles.DangerText(remove);
          actions.Children.Add(remove);

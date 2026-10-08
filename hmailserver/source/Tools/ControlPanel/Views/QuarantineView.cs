@@ -132,6 +132,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>What the last action said, at its level.</summary>
       private void Status_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(status_);
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;
@@ -203,6 +204,7 @@ namespace hMailServer.ControlPanel.Views
                review_.Load(messages);
                Rebind_();
 
+               ReadFailure.Clear(status_);
                StatusText.Show(empty_, null, total, null,
                   L("Nothing is held. Quarantining is switched off - turn it on under Anti-spam settings - and until it is on, spam over the delete threshold is refused during the SMTP conversation rather than stored."));
 
@@ -220,7 +222,13 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            // Neither the rows of the last read nor "Nothing is held." is a fact
+            // this page has now - on the one page whose list is the only copy of
+            // what it shows: both go, and the notice says what happened, with Try
+            // again (Services/ReadFailure).
+            review_.Load(new List<HeldMessage>());
+            selectAll_.IsChecked = false;
+            ReadFailure.Show(status_, empty_, list_, L("Could not read the quarantine: "), ex, Reload);
          }
       }
 

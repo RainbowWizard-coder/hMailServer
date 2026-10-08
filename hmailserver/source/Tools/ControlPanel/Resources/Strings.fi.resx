@@ -2784,6 +2784,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Vastaavuustilaa ei voitu muuttaa: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Roolia ei voitu muuttaa: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Ei voitu kopioida: </value>
   </data>
@@ -2877,9 +2880,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Käyttöoikeuksia ei voitu ladata: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Julkisia kansioita ei voitu ladata: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Tiliä ei voitu ladata: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Tätä sivua ei voitu ladata: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Ei voitu ladata — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Toimintoa ei voitu siirtää: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kohdetta {0} ei voitu avata: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Varmuuskopioinnin asetuksia ei voitu lukea: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>IP-alueita ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Tilejä ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Tarkastuslokia ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Varmuuskopioinnin asetuksia ei voitu lukea: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Eheysraporttia ei voitu lukea: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Verkkotunnuksia ei voitu lukea: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Tiedostoa ei voitu lukea: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Saapuvia välityspalvelimia ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Journalointisääntöjä ei voitu lukea: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Avainten kierrätystä ei voitu lukea: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Luetteloa ei voitu lukea: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Lokituksen tilaa ei voitu lukea: {0}</value>
@@ -2954,8 +2972,29 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Kuvaa ei voitu lukea: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Jonoa ei voitu lukea: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Portteja ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Julkisia kansioita ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Karanteenia ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Jonoa ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Rooleja ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Reittejä ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Sääntöjä ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Estolistaa ei voitu lukea: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kohdetta {0} ei voitu lukea: {1}</value>
@@ -13182,6 +13221,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Vastaanottaja</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>_Yritä uudelleen</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Kytke virheenjäljityslokitus päälle nyt</value>

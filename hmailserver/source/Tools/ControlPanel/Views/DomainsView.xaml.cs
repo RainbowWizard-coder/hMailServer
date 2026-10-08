@@ -134,22 +134,41 @@ namespace hMailServer.ControlPanel.Views
          string previousSelection = select ?? SelectedDomainName();
 
          var rows = new List<DomainRow>();
-         dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
-            int count = (int)domains.Count;
-            for (int i = 0; i < count; i++)
+            dynamic domains = ServerSession.Current.Application.Domains;
+            try
             {
-               dynamic domain = domains.Item[i];
-               rows.Add(new DomainRow { Name = (string)domain.Name, Active = (bool)domain.Active });
-               ServerSession.Release(domain);
+               int count = (int)domains.Count;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic domain = domains.Item[i];
+                  rows.Add(new DomainRow { Name = (string)domain.Name, Active = (bool)domain.Active });
+                  ServerSession.Release(domain);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(domains);
             }
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ServerSession.Release(domains);
+            // Neither the domains of the last read nor "No domains yet." is a fact
+            // this page has now: both go, the notice says what happened, with Try
+            // again, Add domain waits for a read that works, and the three cards
+            // that hang off the selected domain hang off nothing
+            // (Services/ReadFailure).
+            ReadFailure.Show(DomainNotice, DomainStatus, DomainList, L("Could not read the domains: "), ex, () => ReloadDomains(), AddDomainButton);
+            ReloadAccounts();
+            ReloadAliases();
+            ReloadDistLists();
+            AliasStatus.Visibility = Visibility.Collapsed;
+            DistStatus.Visibility = Visibility.Collapsed;
+            return;
          }
 
+         ReadFailure.Clear(DomainNotice, AddDomainButton);
          DomainList.ItemsSource = rows;
          ListSearch.Apply(DomainList, DomainSearch.SearchText);
          StatusText.Show(DomainStatus, null, rows.Count, null, L("No domains yet. Add the first one to start receiving mail."));
@@ -454,9 +473,13 @@ namespace hMailServer.ControlPanel.Views
          string domainName = SelectedDomainName();
          if (domainName == null)
          {
+            // With no domain there is nothing to create an account in: the form
+            // waits for one, as it waits for a read that works.
+            ReadFailure.Clear(AccountNotice);
             AccountsCard.Title = L("Select a domain");
             AccountList.ItemsSource = null;
             AccountStatus.Visibility = Visibility.Collapsed;
+            AccountForm.IsEnabled = false;
             return;
          }
 
@@ -464,26 +487,39 @@ namespace hMailServer.ControlPanel.Views
          NewAccountBox.Text = "user@" + domainName;
 
          var rows = new List<AccountRow>();
-         dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
-            dynamic domain = domains.ItemByName[domainName];
-            dynamic accounts = domain.Accounts;
-            int count = (int)accounts.Count;
-            for (int i = 0; i < count; i++)
+            dynamic domains = ServerSession.Current.Application.Domains;
+            try
             {
-               dynamic account = accounts.Item[i];
-               rows.Add(new AccountRow { Address = (string)account.Address, Active = (bool)account.Active });
-               ServerSession.Release(account);
+               dynamic domain = domains.ItemByName[domainName];
+               dynamic accounts = domain.Accounts;
+               int count = (int)accounts.Count;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic account = accounts.Item[i];
+                  rows.Add(new AccountRow { Address = (string)account.Address, Active = (bool)account.Active });
+                  ServerSession.Release(account);
+               }
+               ServerSession.Release(accounts);
+               ServerSession.Release(domain);
             }
-            ServerSession.Release(accounts);
-            ServerSession.Release(domain);
+            finally
+            {
+               ServerSession.Release(domains);
+            }
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ServerSession.Release(domains);
+            // Neither the accounts of the last read nor "No accounts in this
+            // domain yet." is a fact this page has now: both go, the notice says
+            // what happened, with Try again, and the account form waits for a
+            // read that works (Services/ReadFailure).
+            ReadFailure.Show(AccountNotice, AccountStatus, AccountList, L("Could not read the accounts: "), ex, ReloadAccounts, AccountForm);
+            return;
          }
 
+         ReadFailure.Clear(AccountNotice, AccountForm);
          AccountList.ItemsSource = rows;
          ListSearch.Apply(AccountList, AccountSearch.SearchText);
          StatusText.Show(AccountStatus, null, rows.Count, null, L("No accounts in this domain yet."));

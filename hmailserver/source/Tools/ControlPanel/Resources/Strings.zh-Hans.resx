@@ -2784,6 +2784,9 @@
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>无法更改匹配模式：{0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>无法更改角色： </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>无法复制： </value>
   </data>
@@ -2877,9 +2880,6 @@
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>无法加载权限：{0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>无法加载公用文件夹：{0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>无法加载该账户：{0}</value>
   </data>
@@ -2910,9 +2910,6 @@
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>无法加载此页：{0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>无法加载 — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>无法移动该操作：{0}</value>
   </data>
@@ -2927,17 +2924,38 @@
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>无法打开 {0}：{1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>无法读取备份设置：{0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>无法读取 IP 范围： </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>无法读取账户： </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>无法读取审计记录： </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>无法读取备份设置： </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>无法读取一致性报告：{0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>无法读取域： </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>无法读取该文件：{0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>无法读取传入中继： </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>无法读取日志归档规则： </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>无法读取密钥轮换：{0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>无法读取列表： </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>无法读取日志记录状态：{0}</value>
@@ -2954,8 +2972,29 @@
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>无法读取照片：{0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>无法读取队列：{0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>无法读取端口： </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>无法读取公用文件夹： </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>无法读取隔离区： </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>无法读取队列： </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>无法读取角色： </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>无法读取路由： </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>无法读取规则： </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>无法读取抑制列表： </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>无法读取 {0}：{1}</value>
@@ -13182,6 +13221,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_To" xml:space="preserve">
     <value>收件人(_T)</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>重试(_T)</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>立即开启调试日志(_T)</value>

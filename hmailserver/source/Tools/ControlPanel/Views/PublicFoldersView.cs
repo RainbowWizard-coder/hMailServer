@@ -31,6 +31,9 @@ namespace hMailServer.ControlPanel.Views
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.FolderPeople24, Visibility = Visibility.Collapsed };
       private readonly TextBlock count_ = new() { Margin = new Thickness(0, 12, 0, 0) };
 
+      // Add folder waits for a read that works (Services/ReadFailure).
+      private Wpf.Ui.Controls.Button addButton_;
+
       public PublicFoldersView() => Build();
 
       public void OnEnter() => Reload();
@@ -50,7 +53,8 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(list_, L("Public folders"));
 
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
-         actions.Children.Add(MakeButton(L("_Add folder"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddFolder()));
+         addButton_ = MakeButton(L("_Add folder"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => AddFolder());
+         actions.Children.Add(addButton_);
          var permissions = MakeButton(L("_Permissions"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => EditPermissions());
          actions.Children.Add(permissions);
          var delete = MakeButton(L("_Delete"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => DeleteFolder());
@@ -90,6 +94,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>What the last action said, at its level.</summary>
       private void Notice_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(notice_);
          notice_.Level = level;
          notice_.Text = text;
          notice_.Visibility = Visibility.Visible;
@@ -98,33 +103,44 @@ namespace hMailServer.ControlPanel.Views
       private void Reload()
       {
          var names = new List<string>();
-         string error = null;
-         dynamic folders = ServerSession.Current.Application.Settings.PublicFolders;
          try
          {
-            int count = (int)folders.Count;
-            for (int i = 0; i < count; i++)
+            // Inside the try with the rest: the collection itself was read on the
+            // line before it, so a link that had gone threw past every catch here
+            // and the page kept "No public folders yet." and its count.
+            dynamic folders = ServerSession.Current.Application.Settings.PublicFolders;
+            try
             {
-               dynamic f = folders.Item[i];
-               names.Add((string)f.Name);
-               ServerSession.Release(f);
+               int count = (int)folders.Count;
+               for (int i = 0; i < count; i++)
+               {
+                  dynamic f = folders.Item[i];
+                  names.Add((string)f.Name);
+                  ServerSession.Release(f);
+               }
+               count_.Text = count == 1 ? L("1 public folder.") : F("{0} public folders.", count);
             }
-            count_.Text = count == 1 ? L("1 public folder.") : F("{0} public folders.", count);
+            finally
+            {
+               ServerSession.Release(folders);
+            }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            error = F("Could not load public folders: {0}", ex.Message);
+            // Neither the names of the last read nor "No public folders yet." nor
+            // a count is a fact this page has now: all three go, the notice says
+            // what happened, with Try again, and Add folder waits for a read that
+            // works (Services/ReadFailure).
+            ReadFailure.Show(notice_, empty_, list_, L("Could not read the public folders: "), ex, Reload, addButton_);
             count_.Text = "";
-         }
-         finally
-         {
-            ServerSession.Release(folders);
+            return;
          }
 
+         ReadFailure.Clear(notice_, addButton_);
          list_.ItemsSource = names;
          // The empty state says what to do, not only that there is nothing:
          // "0 public folders." left a first-time administrator with a blank card.
-         StatusText.Show(empty_, notice_, names.Count, error,
+         StatusText.Show(empty_, notice_, names.Count, null,
             L("No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it."));
       }
 

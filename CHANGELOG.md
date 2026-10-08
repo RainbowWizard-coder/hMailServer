@@ -450,6 +450,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   report a skipped host - "the MX RRset for ... failed DNSSEC validation", the TLSA one and the two indeterminate
   ones - end with the same reason in brackets ([DiagnosingStalledMail.md](hmailserver/docs/DiagnosingStalledMail.md)).
 
+### Control Panel
+
+- **Fixed: a list page whose read failed showed its empty state, the rows of its last visit or a count of zero as if
+  they were current.** When the link to the service was lost, the delivery queue said "The delivery queue is empty."
+  under its notice; the suppression list said there were no domains; the IP ranges, routes, rules, TCP/IP ports and
+  incoming relays pages read with no catch at all and kept "No IP ranges defined yet." or their old rows, with only
+  the shell's toast to say otherwise; the public folders page read its collection outside its catch; the audit trail
+  said nothing had been recorded, the journaling page that there were no rules, every collection page's pill that
+  there were "0 SURBL servers", the administrator roles page that nobody had been given a role, the domains page that
+  there were no domains, with its account form live; the backup page showed ticked defaults with Save enabled; and the
+  IP ranges page left Restore defaults live over a list that could not be seen. Every list page now shows a failed
+  read the one way (`Services/ReadFailure`): the list is emptied and its empty state hidden, since neither can be
+  trusted; a Critical notice above the list says what could not be read and why, with a Try again button that reads
+  again; and the controls that write - Add, Restore defaults, the account form, the backup card - are disabled until a
+  read works. The suppression list says there are no domains only after it has read that there are none, the
+  collection pages' notice sits under the header rather than under three hundred pixels of blank card, and a role
+  that could not be given is a Critical failure rather than an amber warning. `ReadFailurePageTests` holds every page
+  to the pattern.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -134,6 +134,7 @@ namespace hMailServer.ControlPanel.Views
 
             QueueGrid.ItemsSource = rows;
             ListSearch.Apply(QueueGrid, SearchBar.SearchText);
+            ReadFailure.Clear(Notice);
             StatusText.Show(EmptyStatus, Notice, rows.Count, null, L("The delivery queue is empty."));
             Header.Subtitle = rows.Count == 0
                ? L("Messages waiting for delivery.")
@@ -141,7 +142,11 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ShowNotice_(StatusLevel.Critical, F("Could not read the queue: {0}", ex.Message));
+            // Neither the rows of the last read nor "The delivery queue is empty."
+            // is a fact this page has now: both go, and the notice says what
+            // happened, with Try again (Services/ReadFailure).
+            ReadFailure.Show(Notice, EmptyStatus, QueueGrid, L("Could not read the queue: "), ex, Reload);
+            Header.Subtitle = L("Messages waiting for delivery.");
          }
       }
 
@@ -149,6 +154,7 @@ namespace hMailServer.ControlPanel.Views
       /// green, a failure in red, each with its shape and word.</summary>
       private void ShowNotice_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(Notice);
          Notice.Level = level;
          Notice.Text = text;
          Notice.Visibility = Visibility.Visible;

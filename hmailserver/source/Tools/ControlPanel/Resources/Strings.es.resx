@@ -2784,6 +2784,9 @@ Los detalles completos se escribieron en:
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>No se pudo cambiar el modo de coincidencia: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>No se pudo cambiar el rol: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>No se pudo copiar: </value>
   </data>
@@ -2877,9 +2880,6 @@ Los detalles completos se escribieron en:
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>No se pudieron cargar los permisos: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>No se pudieron cargar las carpetas públicas: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>No se pudo cargar la cuenta: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Los detalles completos se escribieron en:
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>No se pudo cargar esta página: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>No se pudo cargar — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>No se pudo mover la acción: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Los detalles completos se escribieron en:
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>No se pudo abrir {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>No se pudieron leer los ajustes de copia: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>No se pudieron leer los rangos de IP: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>No se pudieron leer las cuentas: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>No se pudo leer el registro de auditoría: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>No se pudieron leer los ajustes de copia: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>No se pudo leer el informe de consistencia: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>No se pudieron leer los dominios: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>No se pudo leer el archivo: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>No se pudieron leer los relés entrantes: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>No se pudieron leer las reglas de registro de correo: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>No se pudo leer la rotación de claves: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>No se pudo leer la lista: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>No se pudo leer el estado del registro: {0}</value>
@@ -2954,8 +2972,29 @@ Los detalles completos se escribieron en:
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>No se ha podido leer la foto: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>No se pudo leer la cola: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>No se pudieron leer los puertos: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>No se pudieron leer las carpetas públicas: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>No se pudo leer la cuarentena: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>No se pudo leer la cola: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>No se pudieron leer los roles: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>No se pudieron leer las rutas: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>No se pudieron leer las reglas: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>No se pudo leer la lista de supresión: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>No se pudo leer {0}: {1}</value>
@@ -13182,6 +13221,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Para</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>_Reintentar</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Activar ahora el registro de depuración</value>

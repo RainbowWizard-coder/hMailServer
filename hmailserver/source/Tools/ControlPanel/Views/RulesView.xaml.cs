@@ -181,28 +181,45 @@ namespace hMailServer.ControlPanel.Views
       private void Reload()
       {
          var rows = new List<RuleRow>();
-         dynamic rules = OpenRules();
          try
          {
-            int count = (int)rules.Count;
-            for (int i = 0; i < count; i++)
+            dynamic rules = OpenRules();
+            try
             {
-               dynamic rule = rules.Item[i];
-               rows.Add(new RuleRow
+               int count = (int)rules.Count;
+               for (int i = 0; i < count; i++)
                {
-                  Id = (int)rule.ID,
-                  Position = i + 1,
-                  Name = (string)rule.Name,
-                  Enabled = (bool)rule.Active ? L("Yes") : L("No")
-               });
-               ServerSession.Release(rule);
+                  dynamic rule = rules.Item[i];
+                  rows.Add(new RuleRow
+                  {
+                     Id = (int)rule.ID,
+                     Position = i + 1,
+                     Name = (string)rule.Name,
+                     Enabled = (bool)rule.Active ? L("Yes") : L("No")
+                  });
+                  ServerSession.Release(rule);
+               }
+            }
+            finally
+            {
+               ServerSession.Release(rules);
             }
          }
-         finally
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ServerSession.Release(rules);
+            // Neither the rows of the last read nor "No rules defined yet" is a
+            // fact this page has now: both go, with the criteria and actions of
+            // the rule that was selected, the notice says what happened, with
+            // Try again, and Add rule waits for a read that works (Services/ReadFailure).
+            ReadFailure.Show(Notice, EmptyStatus, RuleGrid, L("Could not read the rules: "), ex, Reload, AddRuleButton);
+            selectedRuleId_ = 0;
+            CriteriaGrid.ItemsSource = null;
+            ActionsGrid.ItemsSource = null;
+            HeaderPanel.Subtitle = L("Server-wide message rules, evaluated top to bottom.");
+            return;
          }
 
+         ReadFailure.Clear(Notice, AddRuleButton);
          RuleGrid.ItemsSource = rows;
          ListSearch.Apply(RuleGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No rules defined yet - create one below."));

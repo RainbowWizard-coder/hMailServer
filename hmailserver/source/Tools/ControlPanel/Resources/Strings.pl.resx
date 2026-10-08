@@ -2784,6 +2784,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Nie udało się zmienić trybu dopasowania: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Nie udało się zmienić roli: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Nie udało się skopiować: </value>
   </data>
@@ -2877,9 +2880,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Nie udało się wczytać uprawnień: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Nie udało się wczytać folderów publicznych: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Nie udało się wczytać konta: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Nie udało się wczytać tej strony: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Nie udało się wczytać — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Nie udało się przenieść akcji: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Nie udało się otworzyć {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Nie udało się odczytać ustawień kopii zapasowej: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Nie udało się odczytać zakresów adresów IP: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Nie udało się odczytać kont: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Nie udało się odczytać dziennika audytu: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Nie udało się odczytać ustawień kopii zapasowej: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Nie udało się odczytać raportu spójności: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Nie udało się odczytać domen: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Nie udało się odczytać pliku: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Nie udało się odczytać przekaźników przychodzących: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Nie udało się odczytać reguł dziennikowania: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Nie udało się odczytać rotacji kluczy: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Nie udało się odczytać listy: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Nie udało się odczytać stanu rejestrowania: {0}</value>
@@ -2954,8 +2972,29 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Nie udało się odczytać zdjęcia: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Nie udało się odczytać kolejki: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Nie udało się odczytać portów: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Nie udało się odczytać folderów publicznych: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Nie udało się odczytać kwarantanny: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Nie udało się odczytać kolejki: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Nie udało się odczytać ról: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Nie udało się odczytać tras: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Nie udało się odczytać reguł: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Nie udało się odczytać listy blokowanych: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Nie udało się odczytać {0}: {1}</value>
@@ -13182,6 +13221,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Do</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Spróbuj _ponownie</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Włącz teraz dziennik diagnostyczny</value>

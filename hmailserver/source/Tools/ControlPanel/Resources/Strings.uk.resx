@@ -2784,6 +2784,9 @@
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Не вдалося змінити режим зіставлення: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Не вдалося змінити роль: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Не вдалося скопіювати: </value>
   </data>
@@ -2877,9 +2880,6 @@
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Не вдалося завантажити дозволи: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Не вдалося завантажити публічні папки: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Не вдалося завантажити обліковий запис: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Не вдалося завантажити цю сторінку: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Не вдалося завантажити — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Не вдалося перемістити дію: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Не вдалося відкрити {0}: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Не вдалося прочитати параметри резервного копіювання: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Не вдалося прочитати діапазони IP: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Не вдалося прочитати облікові записи: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Не вдалося прочитати журнал аудиту: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Не вдалося прочитати параметри резервного копіювання: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не вдалося прочитати звіт про перевірку цілісності: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Не вдалося прочитати домени: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Не вдалося прочитати файл: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Не вдалося прочитати вхідні ретранслятори: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Не вдалося прочитати правила журналювання: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Не вдалося прочитати ротацію ключів: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Не вдалося прочитати список: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Не вдалося прочитати стан журналювання: {0}</value>
@@ -2954,8 +2972,29 @@
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>Не вдалося прочитати фотографію: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Не вдалося прочитати чергу: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Не вдалося прочитати порти: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Не вдалося прочитати публічні папки: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Не вдалося прочитати карантин: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Не вдалося прочитати чергу: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Не вдалося прочитати ролі: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Не вдалося прочитати маршрути: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Не вдалося прочитати правила: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Не вдалося прочитати список придушення: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Не вдалося прочитати {0}: {1}</value>
@@ -13182,6 +13221,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Повторити _спробу</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Увімкнути налагоджувальне журналювання зараз</value>

@@ -2784,6 +2784,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not change the match mode: {0}" xml:space="preserve">
     <value>Kon de overeenkomstmodus niet wijzigen: {0}</value>
   </data>
+  <data name="Could not change the role: " xml:space="preserve">
+    <value>Kon de rol niet wijzigen: </value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kon niet kopiëren: </value>
   </data>
@@ -2877,9 +2880,6 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not load permissions: {0}" xml:space="preserve">
     <value>Kon de machtigingen niet laden: {0}</value>
   </data>
-  <data name="Could not load public folders: {0}" xml:space="preserve">
-    <value>Kon de openbare mappen niet laden: {0}</value>
-  </data>
   <data name="Could not load the account: {0}" xml:space="preserve">
     <value>Kon het account niet laden: {0}</value>
   </data>
@@ -2910,9 +2910,6 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Kon deze pagina niet laden: {0}</value>
   </data>
-  <data name="Could not load — " xml:space="preserve">
-    <value>Kon niet laden — </value>
-  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Kon de actie niet verplaatsen: {0}</value>
   </data>
@@ -2927,17 +2924,38 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not open {0}: {1}" xml:space="preserve">
     <value>Kon {0} niet openen: {1}</value>
   </data>
-  <data name="Could not read the backup settings: {0}" xml:space="preserve">
-    <value>Kon de back-upinstellingen niet lezen: {0}</value>
+  <data name="Could not read the IP ranges: " xml:space="preserve">
+    <value>Kon de IP-bereiken niet lezen: </value>
+  </data>
+  <data name="Could not read the accounts: " xml:space="preserve">
+    <value>Kon de accounts niet lezen: </value>
+  </data>
+  <data name="Could not read the audit trail: " xml:space="preserve">
+    <value>Kon het auditlogboek niet lezen: </value>
+  </data>
+  <data name="Could not read the backup settings: " xml:space="preserve">
+    <value>Kon de back-upinstellingen niet lezen: </value>
   </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kon het consistentierapport niet lezen: {0}</value>
   </data>
+  <data name="Could not read the domains: " xml:space="preserve">
+    <value>Kon de domeinen niet lezen: </value>
+  </data>
   <data name="Could not read the file: {0}" xml:space="preserve">
     <value>Kon het bestand niet lezen: {0}</value>
   </data>
+  <data name="Could not read the incoming relays: " xml:space="preserve">
+    <value>Kon de inkomende relays niet lezen: </value>
+  </data>
+  <data name="Could not read the journaling rules: " xml:space="preserve">
+    <value>Kon de journalingregels niet lezen: </value>
+  </data>
   <data name="Could not read the key rotation: {0}" xml:space="preserve">
     <value>Kon de sleutelrotatie niet lezen: {0}</value>
+  </data>
+  <data name="Could not read the list: " xml:space="preserve">
+    <value>Kon de lijst niet lezen: </value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Kon de status van de logboekregistratie niet lezen: {0}</value>
@@ -2954,8 +2972,29 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not read the photo: {0}" xml:space="preserve">
     <value>De foto kon niet worden gelezen: {0}</value>
   </data>
-  <data name="Could not read the queue: {0}" xml:space="preserve">
-    <value>Kon de wachtrij niet lezen: {0}</value>
+  <data name="Could not read the ports: " xml:space="preserve">
+    <value>Kon de poorten niet lezen: </value>
+  </data>
+  <data name="Could not read the public folders: " xml:space="preserve">
+    <value>Kon de openbare mappen niet lezen: </value>
+  </data>
+  <data name="Could not read the quarantine: " xml:space="preserve">
+    <value>Kon de quarantaine niet lezen: </value>
+  </data>
+  <data name="Could not read the queue: " xml:space="preserve">
+    <value>Kon de wachtrij niet lezen: </value>
+  </data>
+  <data name="Could not read the roles: " xml:space="preserve">
+    <value>Kon de rollen niet lezen: </value>
+  </data>
+  <data name="Could not read the routes: " xml:space="preserve">
+    <value>Kon de routes niet lezen: </value>
+  </data>
+  <data name="Could not read the rules: " xml:space="preserve">
+    <value>Kon de regels niet lezen: </value>
+  </data>
+  <data name="Could not read the suppression list: " xml:space="preserve">
+    <value>Kon de onderdrukkingslijst niet lezen: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kon {0} niet lezen: {1}</value>
@@ -13182,6 +13221,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_To" xml:space="preserve">
     <value>Aa_n</value>
+  </data>
+  <data name="_Try again" xml:space="preserve">
+    <value>Opnieuw _proberen</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Debuglogging nu inschakelen</value>

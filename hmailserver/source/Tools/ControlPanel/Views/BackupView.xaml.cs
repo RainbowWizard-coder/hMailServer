@@ -92,6 +92,8 @@ namespace hMailServer.ControlPanel.Views
             encryptionPassphraseSet_ = (bool)backup.EncryptionPassphraseSet;
             ServerSession.Release(backup);
 
+            ReadFailure.Clear(Notice, BackupCard);
+            EncryptionNotice.Visibility = Visibility.Visible;
             CheckEncrypt.IsChecked = encryptionPassphraseSet_;
             PassphraseBox.Password = "";
             PassphraseAgainBox.Password = "";
@@ -99,7 +101,19 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ShowNotice_(StatusLevel.Critical, F("Could not read the backup settings: {0}", ex.Message));
+            // The card showed the values of the last read, or ticked defaults, with
+            // Save settings and Start backup now live - neither of which is a fact
+            // this page has: the editors are cleared and the card disabled until a
+            // read works, and the notice says what happened, with Try again
+            // (Services/ReadFailure).
+            DestinationBox.Text = "";
+            CheckDomains.IsChecked = CheckMessages.IsChecked = CheckSettings.IsChecked = CheckCompress.IsChecked = false;
+            encryptionPassphraseSet_ = false;
+            CheckEncrypt.IsChecked = false;
+            PassphraseBox.Password = "";
+            PassphraseAgainBox.Password = "";
+            EncryptionNotice.Visibility = Visibility.Collapsed;
+            ReadFailure.Show(Notice, null, null, L("Could not read the backup settings: "), ex, OnEnter, BackupCard);
          }
 
          RefreshScheduleStatus();
@@ -121,6 +135,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>What the last action said, at its level, above the cards.</summary>
       private void ShowNotice_(StatusLevel level, string text)
       {
+         ReadFailure.Clear(Notice);
          Notice.Level = level;
          Notice.Text = text;
          Notice.Visibility = Visibility.Visible;
