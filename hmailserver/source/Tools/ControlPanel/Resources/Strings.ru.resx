@@ -2214,6 +2214,12 @@ Control Panel может читать файлы сообщений только
   <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Отсюда определить нельзя. Файл hMailServer.INI недоступен с этого компьютера, поэтому раздел [LDAP] прочитать невозможно, — а решает, может ли запуск состояться, именно этот раздел, а не что-либо на этой странице. Нажмите «Предварительный просмотр»: он выполняется внутри сервера и точно скажет, чего не хватает, если чего-то не хватает.</value>
   </data>
+  <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Отсюда не определить. Не удалось прочитать hMailServer.ini, а возможность запуска решает раздел [LDAP] этого файла, а не что-либо на этой странице. Нажмите «Предварительный просмотр»: он выполняется внутри сервера и точно скажет, чего не хватает, если чего-то не хватает.</value>
+  </data>
+  <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
+    <value>Отсюда не определить: не удалось прочитать hMailServer.ini, а решает именно раздел [LDAP] этого файла. Запустите панель управления от имени администратора, чтобы увидеть его.</value>
+  </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Определить, когда выполнялось последнее резервное копирование, нельзя: параметры резервного копирования не удалось прочитать с сервера.</value>
   </data>
@@ -13693,6 +13699,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>Не удалось запустить hMailServer.exe: {0}</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Не удалось прочитать hMailServer.ini, поэтому этот выбор не показан и не может быть изменён здесь. «Предварительный просмотр» и «Применить» по-прежнему работают: они выполняются внутри сервера.</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
+    <value>Не удалось прочитать hMailServer.ini, поэтому эти параметры не показаны и не могут быть изменены здесь.</value>
+  </data>
+  <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
+    <value>Не удалось прочитать hMailServer.ini: {0} Начиная с 6.3.6 файл принадлежит администраторам. Закройте панель управления и запустите её через «Запуск от имени администратора», чтобы увидеть и изменить эти параметры.</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>Параметр BackupMessagesDBOnly в hMailServer.ini. При нём резервная копия фиксирует, какие сообщения существуют, но не их содержимое, а восстановление рассчитывает на то, что файлы по-прежнему лежат в папке данных. Действует для резервного копирования и восстановления.</value>

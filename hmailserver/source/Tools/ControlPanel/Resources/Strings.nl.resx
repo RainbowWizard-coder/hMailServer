@@ -2214,6 +2214,12 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Hiervandaan niet vast te stellen. hMailServer.INI is vanaf deze computer niet bereikbaar, dus de sectie [LDAP] kan niet worden gelezen - en het is die sectie, niet iets op deze pagina, die bepaalt of een run kan plaatsvinden. Druk op Voorbeeld: dat draait binnen de server en zegt precies wat er ontbreekt, als er iets ontbreekt.</value>
   </data>
+  <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Van hieruit niet te zeggen. hMailServer.ini kon niet worden gelezen, en het is de sectie [LDAP] van dat bestand, niet iets op deze pagina, die bepaalt of een run kan plaatsvinden. Druk op Voorbeeld: dat draait in de server en zegt precies wat er eventueel ontbreekt.</value>
+  </data>
+  <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
+    <value>Van hieruit niet te zeggen: hMailServer.ini kon niet worden gelezen, en het is de sectie [LDAP] van dat bestand die beslist. Start het Configuratiescherm als administrator om deze te zien.</value>
+  </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Niet vast te stellen wanneer de laatste back-up is gedraaid: de back-upinstellingen konden niet van de server worden gelezen.</value>
   </data>
@@ -13693,6 +13699,15 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe kon niet worden uitgevoerd: {0}</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>hMailServer.ini kon niet worden gelezen, dus deze selecties worden niet getoond en kunnen hier niet worden bewerkt. Voorbeeld en Toepassen werken nog: die draaien in de server.</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
+    <value>hMailServer.ini kon niet worden gelezen, dus deze instellingen worden niet getoond en kunnen hier niet worden bewerkt.</value>
+  </data>
+  <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
+    <value>hMailServer.ini kon niet worden gelezen: {0} Vanaf 6.3.6 is het bestand van de beheerders. Sluit het Configuratiescherm en start het met Als administrator uitvoeren om deze instellingen te zien en te wijzigen.</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini-instelling BackupMessagesDBOnly. De back-up legt dan vast welke berichten bestaan, maar niet hun inhoud, en een herstel verwacht dat de bestanden nog in de datamap staan. Geldt voor back-up en herstel.</value>

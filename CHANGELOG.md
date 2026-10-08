@@ -491,6 +491,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it says so and offers *Open Anti-spam settings*, the page that turns it on; and its glyph is the neutral inbox, since
   an empty quarantine is not a warning. `QuarantinePageTests` holds the page to reading the switch and to saying "off"
   only when it is off.
+- **Fixed: a Control Panel that could not read hMailServer.ini showed the directory pages as "LDAP off, nothing
+  set".** From 6.3.6 the file belongs to SYSTEM, the Administrators and the service (`hMailServer.exe
+  /ProtectFolders`), and the Control Panel asks for no elevation, so one started normally on such a server reads every
+  `[LDAP]` value as its fallback. Directory authentication then showed the switch off and every field empty, with
+  "Off. Directory-linked accounts are validated through Windows logon"; Directory synchronisation said "Not yet -
+  directory access is switched off", the misstatement its own code says the card must never make; and a save failed
+  with a message box. Both pages now ask whether the file can be read before they read anything, as the Live logs page
+  does, and when it cannot they fill no editor, disable the editors and *Save changes*, and say so in a Critical notice
+  above the cards: "hMailServer.ini could not be read: ... From 6.3.6 the file belongs to the administrators. Close the
+  Control Panel and start it with Run as administrator to see and change these settings." The authentication page's
+  state card says it cannot tell from here rather than "Off", the synchronisation page's takes the unread file through
+  the branch that says it cannot tell, and its *Preview* and *Apply* stay available, since they run inside the server.
+  `IniReadDeniedPageTests` holds both pages to asking before they read, and both state cards to never judging an
+  unread file.
 
 ### Administration
 

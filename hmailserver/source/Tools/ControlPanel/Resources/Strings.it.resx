@@ -2214,6 +2214,12 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Impossibile stabilirlo da qui. hMailServer.INI non è raggiungibile da questo computer, quindi la sezione [LDAP] non può essere letta - ed è quella sezione, non qualcosa in questa pagina, a decidere se un'esecuzione può avvenire. Premi Anteprima: viene eseguita all'interno del server e dirà esattamente cosa manca, se manca qualcosa.</value>
   </data>
+  <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Non si può dire da qui. Impossibile leggere hMailServer.ini, ed è la sezione [LDAP] di quel file, non qualcosa in questa pagina, a decidere se un'esecuzione può avvenire. Premere Anteprima: viene eseguita dentro il server e dirà esattamente cosa manca, se manca qualcosa.</value>
+  </data>
+  <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
+    <value>Non si può dire da qui: impossibile leggere hMailServer.ini, ed è la sezione [LDAP] di quel file a decidere. Avviare il Pannello di controllo come amministratore per vederla.</value>
+  </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Impossibile stabilire quando è stato eseguito l'ultimo backup: non è stato possibile leggere dal server le impostazioni di backup.</value>
   </data>
@@ -13693,6 +13699,15 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>Impossibile eseguire hMailServer.exe: {0}</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>Impossibile leggere hMailServer.ini, quindi queste selezioni non sono mostrate e non si possono modificare qui. Anteprima e Applica funzionano comunque: vengono eseguiti dentro il server.</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
+    <value>Impossibile leggere hMailServer.ini, quindi queste impostazioni non sono mostrate e non si possono modificare qui.</value>
+  </data>
+  <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
+    <value>Impossibile leggere hMailServer.ini: {0} Dalla 6.3.6 il file appartiene agli amministratori. Chiudere il Pannello di controllo e avviarlo con Esegui come amministratore per vedere e modificare queste impostazioni.</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>Impostazione BackupMessagesDBOnly di hMailServer.ini. Il backup registra allora quali messaggi esistono ma non il loro contenuto, e un ripristino si aspetta che i file siano ancora nella cartella dei dati. Si applica al backup e al ripristino.</value>

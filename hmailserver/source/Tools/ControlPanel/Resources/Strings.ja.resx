@@ -2214,6 +2214,12 @@
   <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>ここからは判断できません。hMailServer.INI にこのコンピューターから到達できないため、[LDAP] セクションを読み取れません。実行できるかどうかを決めるのは、このページのどの項目でもなく、そのセクションです。「プレビュー」を押してください。サーバー内部で実行され、不足しているものがあれば正確に報告します。</value>
   </data>
+  <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>ここからは判断できません。hMailServer.ini を読み取れず、実行できるかどうかを判断するのはこのページの内容ではなく、そのファイルの [LDAP] セクションです。「プレビュー」を押してください: サーバー内で実行され、不足があればその内容を正確に示します。</value>
+  </data>
+  <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
+    <value>ここからは判断できません: hMailServer.ini を読み取れず、判断するのはそのファイルの [LDAP] セクションです。確認するには、コントロール パネルを管理者として起動してください。</value>
+  </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>前回のバックアップの実行時刻を判断できません: バックアップ設定をサーバーから読み取れませんでした。</value>
   </data>
@@ -13693,6 +13699,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe を実行できませんでした: {0}</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>hMailServer.ini を読み取れなかったため、これらの選択は表示されず、ここでは編集できません。「プレビュー」と「適用」は引き続き使えます: サーバー内で実行されます。</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
+    <value>hMailServer.ini を読み取れなかったため、これらの設定は表示されず、ここでは編集できません。</value>
+  </data>
+  <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
+    <value>hMailServer.ini を読み取れませんでした: {0} 6.3.6 以降、このファイルは管理者のものです。これらの設定を表示・変更するには、コントロール パネルを閉じて「管理者として実行」で起動してください。</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini の設定 BackupMessagesDBOnly です。この場合、バックアップはどのメッセージが存在するかを記録しますが、その内容は記録せず、復元ではファイルがデータ フォルダーに残っていることを前提とします。バックアップと復元の両方に適用されます。</value>

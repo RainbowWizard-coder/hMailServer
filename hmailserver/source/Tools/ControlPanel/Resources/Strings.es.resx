@@ -2214,6 +2214,12 @@ Los detalles completos se escribieron en:
   <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>No se puede saber desde aquí. hMailServer.INI no es accesible desde este equipo, así que la sección [LDAP] no puede leerse - y es esa sección, no nada de esta página, la que decide si una ejecución puede ocurrir. Pulse Vista previa: se ejecuta dentro del servidor y dirá exactamente qué falta, si falta algo.</value>
   </data>
+  <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>No se puede saber desde aquí. No se pudo leer hMailServer.ini, y es la sección [LDAP] de ese archivo, no nada de esta página, la que decide si puede haber una ejecución. Pulse Vista previa: se ejecuta dentro del servidor y dirá exactamente qué falta, si falta algo.</value>
+  </data>
+  <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
+    <value>No se puede saber desde aquí: no se pudo leer hMailServer.ini, y es la sección [LDAP] de ese archivo la que decide. Inicie el Panel de control como administrador para verla.</value>
+  </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>No se puede saber cuándo se ejecutó la última copia: los ajustes de copia no pudieron leerse del servidor.</value>
   </data>
@@ -13693,6 +13699,15 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>No se pudo ejecutar hMailServer.exe: {0}</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>No se pudo leer hMailServer.ini, así que estas selecciones no se muestran y no se pueden editar aquí. Vista previa y Aplicar siguen funcionando: se ejecutan dentro del servidor.</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
+    <value>No se pudo leer hMailServer.ini, así que estos ajustes no se muestran y no se pueden editar aquí.</value>
+  </data>
+  <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
+    <value>No se pudo leer hMailServer.ini: {0} Desde 6.3.6 el archivo pertenece a los administradores. Cierre el Panel de control e inícielo con Ejecutar como administrador para ver y cambiar estos ajustes.</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>Ajuste BackupMessagesDBOnly de hMailServer.ini. La copia registra entonces qué mensajes existen, pero no su contenido, y una restauración espera que los archivos sigan en la carpeta de datos. Se aplica a la copia y a la restauración.</value>

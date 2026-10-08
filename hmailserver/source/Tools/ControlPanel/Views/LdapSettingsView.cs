@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -107,6 +108,21 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBlock footerStatus_ = new();
       private Wpf.Ui.Controls.Button saveButton_;
 
+      // ---- a file that cannot be read ----------------------------------------------
+
+      // Why hMailServer.ini is here and cannot be read, or null. From 6.3.6 the
+      // file belongs to SYSTEM, the Administrators and the service
+      // (hMailServer.exe /ProtectFolders), so a Control Panel the administrator
+      // did not run as administrator reads every [LDAP] value as its fallback:
+      // this page then showed the switch off and every field empty, and said
+      // "Off. Directory-linked accounts are validated through Windows logon" of a
+      // directory that was on. The page says that the file could not be read
+      // instead, in a Critical notice above the cards, fills no editor and
+      // disables them with Save.
+      private string denied_;
+      private readonly InlineNotice deniedNotice_ = new() { Level = StatusLevel.Critical, Visibility = Visibility.Collapsed };
+      private readonly List<Card> editing_ = new();
+
       /// <summary>Whether the INI already holds a ServicePassword. Only the fact is
       /// kept, never the value: the password is write-only on this page.</summary>
       private bool storedServicePassword_;
@@ -130,12 +146,14 @@ namespace hMailServer.ControlPanel.Views
          });
 
          var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(deniedNotice_, "ldap-ini-denied");
+         cards.Children.Add(deniedNotice_);
          cards.Children.Add(BuildStateCard_());
-         cards.Children.Add(BuildConnectionCard_());
-         cards.Children.Add(BuildBindMethodCard_());
-         cards.Children.Add(BuildLookupCard_());
-         cards.Children.Add(BuildServiceCredentialCard_());
-         cards.Children.Add(BuildFallbackCard_());
+         foreach (Card card in new[] { BuildConnectionCard_(), BuildBindMethodCard_(), BuildLookupCard_(), BuildServiceCredentialCard_(), BuildFallbackCard_() })
+         {
+            editing_.Add(card);
+            cards.Children.Add(card);
+         }
          cards.Children.Add(BuildPrerequisitesCard_());
          cards.Children.Add(BuildTestCard_());
 
@@ -643,6 +661,29 @@ namespace hMailServer.ControlPanel.Views
       {
          loading_ = true;
 
+         // Before any value is read: a file that is here and cannot be read
+         // answers every read with its fallback, which is a configuration this
+         // page must not show as the server's.
+         denied_ = store_.ReadDenied();
+         deniedNotice_.Text = denied_ == null ? null : F("hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings.", denied_);
+         deniedNotice_.Visibility = denied_ == null ? Visibility.Collapsed : Visibility.Visible;
+         foreach (Card card in editing_)
+            card.IsEnabled = denied_ == null;
+
+         if (denied_ != null)
+         {
+            saveButton_.IsEnabled = false;
+            footerStatus_.Text = L("hMailServer.ini could not be read, so these settings are not shown and cannot be edited here.");
+            ClearEditors_();
+            loading_ = false;
+            RefreshState_();
+            // The cleared editors are what was read, so nothing is unsaved: a
+            // reload that found the file unreadable after an earlier read that
+            // worked must not hold the cleared boxes against that read's values.
+            baseline_.Take(EditorValues_());
+            return;
+         }
+
          if (!store_.IsAvailable)
          {
             saveButton_.IsEnabled = false;
@@ -701,9 +742,38 @@ namespace hMailServer.ControlPanel.Views
          baseline_.Take(EditorValues_());
       }
 
+      /// <summary>
+      /// No editor filled: the values a file that cannot be read would give are its
+      /// fallbacks, and a fallback shown in a box reads as the setting.
+      /// </summary>
+      private void ClearEditors_()
+      {
+         enabled_.IsChecked = false;
+         server_.Text = "";
+         port_.Text = "";
+         SelectByTag_(security_, 2);
+         verifyCertificate_.IsChecked = true;
+         allowUnprotected_.IsChecked = false;
+         SelectByTag_(bindMethod_, 0);
+         searchBase_.Text = "";
+         userSearchFilter_.Text = "";
+         userDnTemplate_.Text = "";
+         serviceUsername_.Text = "";
+         storedServicePassword_ = false;
+         servicePassword_.Password = "";
+         servicePassword_.PlaceholderText = "";
+         clearServicePassword_.IsChecked = false;
+         timeout_.Text = "";
+         fallback_.IsChecked = false;
+         serviceDomainNote_.Text = "";
+      }
+
       /// <summary>Writes the [LDAP] section; true when it was written.</summary>
       private bool Save_()
       {
+         if (denied_ != null)
+            return false;
+
          if (!NumericField.TryValidate(port_.Text, L("Port"), 0, 65535, out int port, out bool hasPort, out string portError))
          {
             MessageBox.Show(portError, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -900,6 +970,19 @@ namespace hMailServer.ControlPanel.Views
       {
          if (loading_)
             return;
+
+         // The state is read off the editors, and with the file unread they hold
+         // nothing: the card says that, not "Off".
+         if (denied_ != null)
+         {
+            string unread = L("Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it.");
+            stateText_.Level = StatusLevel.Information;
+            stateText_.Text = unread;
+            System.Windows.Automation.AutomationProperties.SetName(stateText_, StatusSemantics.For(StatusLevel.Information).SeverityWord + ": " + unread);
+            stateDetail_.Text = "";
+            stateDetail_.Visibility = Visibility.Collapsed;
+            return;
+         }
 
          Snapshot config = CollectSnapshot_();
          bool complete = config.IsComplete(out string missing);

@@ -2214,6 +2214,12 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
     <value>Kan ikke avgjøres herfra. hMailServer.INI kan ikke nås fra denne datamaskinen, så seksjonen [LDAP] kan ikke leses - og det er den seksjonen, ikke noe på denne siden, som avgjør om en kjøring kan skje. Trykk Forhåndsvisning: den kjører inne i serveren og vil si nøyaktig hva som mangler, hvis noe gjør det.</value>
   </data>
+  <data name="Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is." xml:space="preserve">
+    <value>Kan ikke avgjøres herfra. hMailServer.ini kunne ikke leses, og det er filens [LDAP]-seksjon, ikke noe på denne siden, som avgjør om en kjøring kan skje. Trykk på Forhåndsvisning: den kjører inne i serveren og sier nøyaktig hva som eventuelt mangler.</value>
+  </data>
+  <data name="Cannot tell from here: hMailServer.ini could not be read, and it is the [LDAP] section of that file which decides. Start the Control Panel as administrator to see it." xml:space="preserve">
+    <value>Kan ikke avgjøres herfra: hMailServer.ini kunne ikke leses, og det er filens [LDAP]-seksjon som avgjør det. Start kontrollpanelet som administrator for å se den.</value>
+  </data>
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Kan ikke avgjøre når den siste sikkerhetskopieringen kjørte: innstillingene for sikkerhetskopiering kunne ikke leses fra serveren.</value>
   </data>
@@ -13693,6 +13699,15 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe kunne ikke kjøres: {0}</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
+    <value>hMailServer.ini kunne ikke leses, så disse valgene vises ikke og kan ikke redigeres her. Forhåndsvisning og Bruk virker fortsatt: de kjører inne i serveren.</value>
+  </data>
+  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
+    <value>hMailServer.ini kunne ikke leses, så disse innstillingene vises ikke og kan ikke redigeres her.</value>
+  </data>
+  <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
+    <value>hMailServer.ini kunne ikke leses: {0} Fra 6.3.6 tilhører filen administratorene. Lukk kontrollpanelet og start det med Kjør som administrator for å se og endre disse innstillingene.</value>
   </data>
   <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
     <value>hMailServer.ini-innstillingen BackupMessagesDBOnly. Sikkerhetskopien registrerer da hvilke meldinger som finnes, men ikke innholdet deres, og en gjenoppretting forventer at filene fortsatt ligger i datamappen. Gjelder sikkerhetskopiering og gjenoppretting.</value>

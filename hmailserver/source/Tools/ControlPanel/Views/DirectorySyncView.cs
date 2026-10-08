@@ -87,6 +87,18 @@ namespace hMailServer.ControlPanel.Views
       private readonly StackPanel rows_ = new();
       private readonly TextBlock footerStatus_ = new();
 
+      // Why hMailServer.ini is here and cannot be read, or null. From 6.3.6 the
+      // file belongs to SYSTEM, the Administrators and the service
+      // (hMailServer.exe /ProtectFolders), so a Control Panel the administrator
+      // did not run as administrator reads every [LDAP] value as its fallback -
+      // and "Enabled" as 0, which this page then reported as "directory access is
+      // switched off", the misstatement RefreshState_ says it must never make.
+      // The page says that the file could not be read instead, in a Critical
+      // notice above the cards, fills no editor and disables them with Save;
+      // Preview and Apply stay, since they run inside the server.
+      private string denied_;
+      private readonly InlineNotice deniedNotice_ = new() { Level = StatusLevel.Critical, Visibility = Visibility.Collapsed };
+
       /// <summary>
       /// The options the last successful preview was run with, or null when no preview
       /// has been run since the page was opened or since an option changed. This is
@@ -120,6 +132,8 @@ namespace hMailServer.ControlPanel.Views
          });
 
          var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 860, HorizontalAlignment = HorizontalAlignment.Left };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(deniedNotice_, "dirsync-ini-denied");
+         cards.Children.Add(deniedNotice_);
          cards.Children.Add(BuildStateCard_());
          cards.Children.Add(BuildSelectionCard_());
          cards.Children.Add(BuildRunCard_());
@@ -418,14 +432,33 @@ namespace hMailServer.ControlPanel.Views
 
          try
          {
-            filter_.Text = IniRead_("SyncFilter", "");
-            mailAttribute_.Text = IniRead_("SyncMailAttribute", "mail");
-            usernameAttribute_.Text = IniRead_("SyncUsernameAttribute", "sAMAccountName");
-            displayNameAttribute_.Text = IniRead_("SyncDisplayNameAttribute", "displayName");
-            maxUsers_.Text = IniRead_("SyncMaxUsers", "5000");
-            scheduleMinutes_.Text = IniRead_("SyncScheduleMinutes", "0");
+            // Before any value is read: a file that is here and cannot be read
+            // answers every read with its fallback, which is a selection this page
+            // must not show as the server's.
+            denied_ = store_.ReadDenied();
+            deniedNotice_.Text = denied_ == null ? null : F("hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings.", denied_);
+            deniedNotice_.Visibility = denied_ == null ? Visibility.Collapsed : Visibility.Visible;
 
-            bool editable = store_.IsAvailable;
+            if (denied_ != null)
+            {
+               filter_.Text = "";
+               mailAttribute_.Text = "";
+               usernameAttribute_.Text = "";
+               displayNameAttribute_.Text = "";
+               maxUsers_.Text = "";
+               scheduleMinutes_.Text = "";
+            }
+            else
+            {
+               filter_.Text = IniRead_("SyncFilter", "");
+               mailAttribute_.Text = IniRead_("SyncMailAttribute", "mail");
+               usernameAttribute_.Text = IniRead_("SyncUsernameAttribute", "sAMAccountName");
+               displayNameAttribute_.Text = IniRead_("SyncDisplayNameAttribute", "displayName");
+               maxUsers_.Text = IniRead_("SyncMaxUsers", "5000");
+               scheduleMinutes_.Text = IniRead_("SyncScheduleMinutes", "0");
+            }
+
+            bool editable = store_.IsAvailable && denied_ == null;
             filter_.IsEnabled = editable;
             mailAttribute_.IsEnabled = editable;
             usernameAttribute_.IsEnabled = editable;
@@ -440,7 +473,9 @@ namespace hMailServer.ControlPanel.Views
 
             footerStatus_.Text = editable
                ? ""
-               : L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server.");
+               : denied_ != null
+                  ? L("hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server.")
+                  : L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server.");
          }
          finally
          {
@@ -454,7 +489,7 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>Writes the six settings; true when they were written.</summary>
       private bool Save_()
       {
-         if (!store_.IsAvailable)
+         if (!store_.IsAvailable || denied_ != null)
             return false;
 
          try
@@ -572,6 +607,12 @@ namespace hMailServer.ControlPanel.Views
          // there would send an administrator to turn on something that is already on.
          // The same for the domain list: a server this page cannot talk to has no
          // readable domains, which is not the same fact as having no linked ones.
+         if (denied_ != null)
+         {
+            State_(StatusLevel.Information, L("Cannot tell from here. hMailServer.ini could not be read, and it is the [LDAP] section of that file, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is."));
+            return;
+         }
+
          if (!store_.IsAvailable)
          {
             State_(StatusLevel.Information, L("Cannot tell from here. hMailServer.INI is not reachable from this computer, so the [LDAP] section cannot be read - and it is that section, not anything on this page, which decides whether a run can happen. Press Preview: it runs inside the server and will say exactly what is missing, if anything is."));
