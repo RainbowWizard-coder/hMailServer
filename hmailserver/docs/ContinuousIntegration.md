@@ -1373,10 +1373,10 @@ the step, which would refuse it. So an edit to the Dockerfile goes like this:
    the pin in `.linix` follows it in a commit of its own, and the commits
    before that one keep their image under the dated tag (first on 8 October
    2026, for the kernel-header and libc updates above, when the 6 October
-   digest was kept by hand, as `26.04-52e9976e73bf-20261006`, a day after the
-   tag moved off it). `build/check-ci-image.py` holds the script to those
-   steps, in their order, and its self-test runs the script against a docker
-   of its own and a registry of files.
+   digest was kept by hand, as `26.04-52e9976e73bf-20261006`, within the hour
+   after the tag moved off it). `build/check-ci-image.py` holds the script to
+   those steps, in their order, and its self-test runs the script against a
+   docker of its own and a registry of files.
    (Without `--push` it builds `hmailserver-ci/linux:<tag>` alone, the earlier
    form.)
 3. Put that line into `.linix` in `.gitlab-ci.yml`, in the same commit as the
@@ -2690,13 +2690,14 @@ pattern:
    repository's metadata from, which `container-image-artifacthub` pushes again
    with each release), `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}$` (the Linux CI
    image's tags in `ci-linux`, `<Ubuntu release>-<hash>`, which `.linix` names
-   with the digest), `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}-[0-9]{8}$` (the dated
-   tags in `ci-linux`, `<that tag>-<YYYYMMDD>`, under which
-   `build/ci/build-linux-image.sh --push` keeps the digest the tag named
-   before a rebuild moved it, [The image](#the-image); a second rebuild's
-   `-2` is outside the pattern) and `^[0-9]{8}-(amd64|arm64)$` (the Tumbleweed
-   mirror's in `mirror/opensuse-tumbleweed`, `<YYYYMMDD>-<arch>`, whose images
-   the RPM jobs pin by digest), so that, switched on, it never deletes a
+   with the digest), `^[0-9]{8}-(amd64|arm64)$` (the Tumbleweed mirror's in
+   `mirror/opensuse-tumbleweed`, `<YYYYMMDD>-<arch>`, whose images the RPM
+   jobs pin by digest) and, ninth and last as the API lists them,
+   `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}-[0-9]{8}$` (the dated tags in `ci-linux`,
+   `<that tag>-<YYYYMMDD>`, under which `build/ci/build-linux-image.sh --push`
+   keeps the digest the tag named before a rebuild moved it,
+   [The image](#the-image); a second rebuild's `-2` is outside the pattern),
+   so that, switched on, it never deletes a
    release's tags, their signatures, that tag, or an image a commit's CI files
    name; it would remove every other tag older than 90 days and beyond the
    newest ten of its repository, every week. The API gave only the first two

@@ -724,13 +724,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   removes an untagged manifest about 24 hours after nothing references it (its online garbage collection; the cleanup
   policy governs tags alone) - is kept under a dated tag, `26.04-<hash>-<yyyymmdd>`, for the commits that name it.
   The 6 October digest, `sha256:4eead001…`, was kept so by hand on 8 October, as
-  `ci-linux:26.04-52e9976e73bf-20261006`, a day after the tag moved off it, by a copy inside the registry that
-  preserves the digest; `master` at 9b2001ce9 and `batch44`, which name it, pull it as before. `--push` now does that
-  itself, before the push: it reads the digest the tag names (`skopeo inspect --raw`, without credentials, hashed),
-  gives it the dated tag by `skopeo copy --all --preserve-digests` with the login's file mounted read-only for the
-  destination alone, as `mirror-semgrep.sh` does, reads it back and holds it to the digest, then pushes and prints the
-  pin line with the dated tag; a second rebuild the same day takes `-2` on when the dated tag names another digest and
-  does nothing more when it names this one; and it stops before the push when the registry cannot be read.
+  `ci-linux:26.04-52e9976e73bf-20261006`, within the hour after the tag moved off it, by a copy inside the registry
+  that preserves the digest; `master` at 9b2001ce9 and `batch44`, which name it, pull it as before. `--push` now does
+  that itself, before the push: it reads the digest the tag names (`skopeo inspect --raw`, without credentials,
+  hashed), gives it the dated tag by `skopeo copy --all --preserve-digests` with the login's file mounted read-only
+  for the destination alone, as `mirror-semgrep.sh` does, reads it back and holds it to the digest, then pushes and
+  prints the pin line with the dated tag; a second rebuild the same day takes `-2` on when the dated tag names another
+  digest and does nothing more when it names this one; and it stops before the push when the registry cannot be read.
   `build/check-ci-image.py` holds the script to those steps in their order, and its self-test runs the script with a
   docker of its own. The registry's cleanup policy keeps the dated tags by name, its ninth pattern,
   `^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}-[0-9]{8}$`

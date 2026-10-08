@@ -56,9 +56,9 @@
 # keep; and when the copy's read-back is not the digest, it stops too. The registry's
 # cleanup policy keeps the dated tags by name (^[0-9]{2}\.[0-9]{2}-[0-9a-f]{12}-[0-9]{8}$;
 # a -2 is outside that pattern, and the policy is switched off). On 8 October 2026
-# the 6 October digest was kept so by hand, as 26.04-52e9976e73bf-20261006, a day
-# after the rebuild moved the tag off it; build/check-ci-image.py holds this script
-# to the steps, and its self-test runs them against a docker of its own.
+# the 6 October digest was kept so by hand, as 26.04-52e9976e73bf-20261006, within
+# the hour after the rebuild moved the tag off it; build/check-ci-image.py holds
+# this script to the steps, and its self-test runs them against a docker of its own.
 #
 # For the copy, the script hands the file the docker login wrote -
 # $DOCKER_CONFIG/config.json, or ~/.docker/config.json when DOCKER_CONFIG is not set -
