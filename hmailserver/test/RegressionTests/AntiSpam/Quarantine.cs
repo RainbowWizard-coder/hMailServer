@@ -392,14 +392,19 @@ namespace RegressionTests.AntiSpam
             _recipient.ForwardKeepOriginal = true;
             _recipient.Save();
 
+            // What is addressed to the recipient, and not everything: the forward's envelope
+            // is rewritten to the recipient's address, and a domain's rules act on the mail
+            // its addresses send (RuleApplier::DomainRuleScopes), so a rule holding every
+            // message would hold the forward the release makes too, and nothing would reach
+            // the route.
             var rule = _domain.Rules.Add();
-            rule.Name = "Hold everything";
+            rule.Name = "Hold what is addressed to the recipient";
             rule.Active = true;
             var criteria = rule.Criterias.Add();
             criteria.UsePredefined = true;
-            criteria.PredefinedField = eRulePredefinedField.eFTMessageSize;
-            criteria.MatchType = eRuleMatchType.eMTGreaterThan;
-            criteria.MatchValue = "0";
+            criteria.PredefinedField = eRulePredefinedField.eFTRecipientList;
+            criteria.MatchType = eRuleMatchType.eMTContains;
+            criteria.MatchValue = _recipient.Address;
             criteria.Save();
             var hold = rule.Actions.Add();
             hold.Type = eRuleActionType.eRAQuarantine;
