@@ -19,15 +19,24 @@ run's fsync policy is part of the result and must be stated.
 which may have been there before the run, and MessageStoreFsync as the run set
 it: hmailserver/docs/PublishedNumbers.md gives the two commands that put them
 back.
+
+The range's priority is one above every other range that holds an address of
+it, and 20 at least. A connection takes the range of the highest priority that
+holds its address (PersistentSecurityRange::ReadMatchingIP), and every
+installation has "My computer", 127.0.0.1 at priority 30 with spam and virus
+protection on: a range of 20, as this made until 8 October 2026, was passed
+over for a generator on the server's own machine, which the Windows bench is.
 """
 
 import base64
 import http.client
+import ipaddress
 import json
 import ssl
 import urllib.parse
 
 RANGE_NAME = "loadgen"
+RANGE_PRIORITY = 20
 
 
 class Rest(object):
@@ -96,6 +105,32 @@ def remove_range(rest, say):
             say("IP range %s removed: HTTP %s" % (RANGE_NAME, rest.call("DELETE", "/api/v1/ipranges/%s" % item["id"])[0]))
 
 
+def range_priority(ranges, lower, upper):
+    """(priority, the ranges it is above): one above the highest priority of
+    every range but this tool's own that holds an address from lower to upper,
+    and RANGE_PRIORITY at least. A range whose addresses do not parse, or are
+    of the other IP version, holds none of them."""
+    try:
+        low, high = ipaddress.ip_address(lower), ipaddress.ip_address(upper)
+    except ValueError:
+        return RANGE_PRIORITY, []
+    over = []
+    for item in ranges:
+        if item.get("name") == RANGE_NAME or not isinstance(item.get("priority"), int):
+            continue
+        try:
+            first, last = ipaddress.ip_address(item.get("lower", "")), ipaddress.ip_address(item.get("upper", ""))
+        except ValueError:
+            continue
+        if first.version != low.version or last.version != low.version:
+            continue
+        if first <= high and low <= last:
+            over.append(item)
+    if not over:
+        return RANGE_PRIORITY, []
+    return max(RANGE_PRIORITY, max(item["priority"] for item in over) + 1), over
+
+
 def prepare(rest, args, password, say):
     """Idempotent: a route to the same domain and a range of the same name
     are removed before they are made again, and the accounts made afresh."""
@@ -126,9 +161,15 @@ def prepare(rest, args, password, say):
         ok = ok and status in (200, 201)
     if args.client_range:
         lower, _, upper = args.client_range.partition("-")
+        lower, upper = lower.strip(), (upper or lower).strip()
         remove_range(rest, say)
+        status, data = rest.call("GET", "/api/v1/ipranges")
+        priority, over = range_priority([item for item in _objects(data) if "priority" in item], lower, upper)
+        if over:
+            say("IP range %s: priority %d, above %s" % (RANGE_NAME, priority, ", ".join(
+                "%s (%s)" % (item.get("name"), item.get("priority")) for item in over)))
         status, data = rest.call("POST", "/api/v1/ipranges", {
-            "name": RANGE_NAME, "lower": lower.strip(), "upper": (upper or lower).strip(), "priority": 20,
+            "name": RANGE_NAME, "lower": lower, "upper": upper, "priority": priority,
             "allow_smtp": True, "allow_imap": True, "allow_pop3": False,
             "deliver_local_to_local": True, "deliver_local_to_remote": True,
             "deliver_remote_to_local": True, "deliver_remote_to_remote": False,

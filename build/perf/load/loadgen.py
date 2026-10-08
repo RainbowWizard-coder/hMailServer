@@ -30,11 +30,24 @@ Modes:
   smtp-out        the same clients send to a remote domain the server relays to
                   the sink this tool runs (--sink-listen); relayed messages per
                   second measured AT THE SINK, and the end-to-end latency from
-                  the client's MAIL FROM to the sink's receipt.
+                  the client's MAIL FROM to the sink's receipt. On Windows,
+                  with the sink on the server's own machine, each relayed
+                  message's connection holds one of the loopback's dynamic
+                  ports in TIME_WAIT for two minutes, 16,384 ports by default:
+                  20,000 messages ran out of them on the Windows bench and
+                  some 4.5% bounced, so PublishedNumbers.md runs 12,000 there,
+                  with the ports given back between two runs, and the tool
+                  says so when it is asked for more.
   imap-sessions   N concurrent IMAP sessions (LOGIN, SELECT, then FETCH, NOOP
                   and IDLE by weight), N stepped up until a latency percentile
                   passes its limit: the most sessions per core that stayed
-                  under it, and the server's memory per session.
+                  under it, and the server's memory per session. The idle
+                  point the memory is fitted through is taken once the
+                  server's memory has stopped falling (--idle-wait), and a
+                  run whose idle point is above its first step's - a server
+                  still holding the last run's sessions - says its memory
+                  figure is not valid. A run that passes its last step says
+                  so: the limit was not reached.
   imaptest        Dovecot's imaptest in a benchmark profile against any server.
   sink            the sink alone: accept and discard, count, report.
   machine         the machine this runs on, as JSON (for the server's machine,
@@ -91,6 +104,12 @@ import smtpload  # noqa: E402
 TOOL = "build/perf/load/loadgen.py"
 DEFAULT_SIZES = "2k:25,8k:35,32k:25,128k:10,1m:5"
 DEFAULT_OPS = "noop:3,fetch-flags:3,fetch-header:2,fetch-body:1,idle:1"
+
+# The most messages smtp-out relays on Windows to a sink on the server's own
+# machine before the tool warns: the runs on server1 of 7 October 2026 relayed
+# 12,000 whole eight times, two minutes and more apart, and 20,000 three times
+# with 824 to 940 bounced (PublishedNumbers.md).
+WINDOWS_LOOPBACK_MESSAGES = 12000
 
 
 def say(text):
@@ -311,6 +330,13 @@ def cmd_smtp_in(args):
     return 0 if merged["accepted"] and not merged["failed"] else 1
 
 
+def loopback_sink(host):
+    """True when the sink listens where a server on this machine reaches it
+    over the loopback: a loopback address, every address, or no address."""
+    host = host.strip("[]")
+    return host in ("", "0.0.0.0", "::", "::1", "localhost") or host.startswith("127.")
+
+
 def cmd_smtp_out(args):
     run_id = uuid.uuid4().hex[:12]
     cfg = smtp_config(args, run_id)
@@ -318,6 +344,11 @@ def cmd_smtp_out(args):
     parameters["sink"] = args.sink_listen
     doc = document_for(args, "smtp-out", parameters)
     host, _, port = args.sink_listen.rpartition(":")
+    if os.name == "nt" and args.messages > WINDOWS_LOOPBACK_MESSAGES and loopback_sink(host):
+        say("smtp-out: on Windows each message relayed to a sink on the server's own machine holds one of the "
+            "loopback's dynamic ports in TIME_WAIT for two minutes (16,384 ports by default); %d messages may run "
+            "out of them, and on the Windows bench 20,000 did, some 4.5%% bouncing. PublishedNumbers.md runs %d "
+            "there, two minutes or more apart." % (args.messages, WINDOWS_LOOPBACK_MESSAGES))
     parent, child = multiprocessing.Pipe()
     sink = multiprocessing.Process(target=smtpload.sink_process, args=(host or "0.0.0.0", int(port), run_id, child))
     sink.start()
@@ -410,6 +441,51 @@ def cmd_sink(args):
 
 # ---------------------------------------------------------------- IMAP
 
+def settle(sampler, most_seconds, span=None):
+    """The idle server's memory, taken once it has stopped falling: windows of
+    three samples one after another until one is no more than 1 per cent
+    below the one before it, for at most most_seconds (0: the first window
+    alone, as every run took it until 8 October 2026). A server that has just
+    closed the last run's sessions is still giving their memory back, and an
+    idle point taken then is a busy server's. (window, how it was taken)."""
+    span = span if span is not None else max(3.0, 3 * sampler.interval)
+    began = time.time()
+    previous = None
+    figures = []
+    while True:
+        started = time.time()
+        time.sleep(span)
+        window = sampler.window(started, time.time())
+        figure, _ = sampling.memory_figure(window)
+        figures.append(figure)
+        if figure is None:
+            settled = None
+        elif previous is not None and figure >= previous * 0.99:
+            settled = True
+        elif time.time() - began >= most_seconds:
+            # Still falling when the time ran out; or not asked to wait.
+            settled = False if most_seconds > 0 else None
+        else:
+            previous = figure
+            continue
+        return window, {"seconds": round(time.time() - began, 1), "settled": settled, "figures": figures}
+
+
+def idle_point_problem(idle_figure, first_step_figure, first_step_sessions, settled):
+    """Why the memory per session of a run is not valid, or None. The idle
+    point is the server with no session of the run's: above the first step's
+    memory, the server still held something the steps then gave back - on
+    7 October 2026 a run begun ten seconds after the last held its 1,600
+    sessions, 526 MiB against 238 MiB at the first step - and a slope fitted
+    through it is pulled down."""
+    if idle_figure is not None and first_step_figure is not None and idle_figure > first_step_figure:
+        return ("the idle server's memory (%s MiB) is above the first step's (%s MiB at %d sessions): the server was not "
+                "idle when the run began" % (report.mib(idle_figure), report.mib(first_step_figure), first_step_sessions))
+    if settled is False:
+        return "the idle server's memory was still falling when the run began (--idle-wait)"
+    return None
+
+
 def cmd_imap_sessions(args):
     steps = [int(s) for s in args.steps.split(",") if s.strip()]
     imapload.parse_ops(args.ops)
@@ -425,16 +501,18 @@ def cmd_imap_sessions(args):
         "user_template": args.user_template, "connect_rate": args.connect_rate,
         "latency_limit_ms": args.latency_limit_ms, "latency_percentile": args.latency_percentile,
         "max_error_rate": args.max_error_rate, "processes": args.processes, "seed": args.seed,
+        "idle_wait": args.idle_wait,
     }
     doc = document_for(args, "imap-sessions", parameters)
     cores = server_cores(args, doc)
     sampler = sampling.from_arguments(args)
     sampler.start()
     baseline_window = None
+    baseline_taken = None
     if sampler.enabled:
-        started = time.time()
-        time.sleep(max(3.0, 3 * sampler.interval))
-        baseline_window = sampler.window(started, time.time())
+        baseline_window, baseline_taken = settle(sampler, args.idle_wait)
+        say("imap-sessions: the idle server sampled after %s s%s" % (
+            baseline_taken["seconds"], {True: ", its memory steady", False: ", its memory STILL FALLING"}.get(baseline_taken["settled"], "")))
     workers = max(1, args.processes)
     pipes = []
     processes = []
@@ -537,15 +615,29 @@ def cmd_imap_sessions(args):
         spread_x = sum((p[0] - mean_x) ** 2 for p in points)
         if spread_x > 0:
             per_session = sum((p[0] - mean_x) * (p[1] - mean_y) for p in points) / spread_x
+    first_figure = sampling.memory_figure(results[0]["server"])[0] if results else None
+    memory_warning = idle_point_problem(base_figure, first_figure, results[0]["sessions"] if results else 0,
+                                        baseline_taken["settled"] if baseline_taken else None)
+    if memory_warning and per_session is not None:
+        say("imap-sessions: memory per session not valid: " + memory_warning)
+    # Every step passed: the procedure did not find the limit, and the most
+    # sessions it can show is its last step's.
+    at_last_step = bool(best) and best is results[-1] and best["sessions"] == steps[-1]
 
+    memory_cell = "not sampled"
+    if per_session is not None:
+        memory_cell = "%s KiB" % round(per_session / 1024.0, 1)
+        if memory_warning:
+            memory_cell = "not valid (%s KiB fitted): %s" % (round(per_session / 1024.0, 1), memory_warning)
     rows = [
         ("Latency limit", "p%g of every operation at most %s ms, no errors, every session alive" % (
             args.latency_percentile, args.latency_limit_ms)),
-        ("Most sessions under the limit", str(best["sessions"]) if best else "none: the first step failed"),
+        ("Most sessions under the limit", (str(best["sessions"]) + (", the last step: the limit was not reached" if at_last_step else ""))
+         if best else "none: the first step failed"),
         ("Server cores (logical)", str(cores)),
-        ("Sessions per core", report.cell(round(best["sessions"] / float(cores), 1)) if best else "-"),
-        ("Memory per session (%s, slope over the steps)" % (figure_name or "not sampled"),
-         ("%s KiB" % round(per_session / 1024.0, 1)) if per_session is not None else "not sampled"),
+        ("Sessions per core", (report.cell(round(best["sessions"] / float(cores), 1)) + (", at the last step" if at_last_step else ""))
+         if best else "-"),
+        ("Memory per session (%s, slope over the steps)" % (figure_name or "not sampled"), memory_cell),
     ]
     if best and best.get("server") and best["server"].get("cpu_cores_used") is not None:
         rows.append(("Server CPU at that step", "%s cores" % best["server"]["cpu_cores_used"]))
@@ -560,8 +652,10 @@ def cmd_imap_sessions(args):
     doc["results"] = {
         "server_cores": cores, "best_sessions": best["sessions"] if best else None,
         "sessions_per_core": round(best["sessions"] / float(cores), 2) if best else None,
+        "best_is_last_step": at_last_step,
         "memory_per_session_bytes": int(per_session) if per_session is not None else None,
-        "memory_figure": figure_name, "memory_points": points, "baseline": baseline_window,
+        "memory_warning": memory_warning,
+        "memory_figure": figure_name, "memory_points": points, "baseline": baseline_window, "baseline_taken": baseline_taken,
         "steps": results, "server": {"sampler": sampler.describe()},
     }
     report.write(doc, rows, args.json, args.markdown)
@@ -696,6 +790,54 @@ def cmd_self_test(args):
     check("machine collected", bool((info.get("cpu") or {}).get("logical_cores")) and bool(info.get("os")),
           "%s, %s" % ((info.get("cpu") or {}).get("model"), (info.get("os") or {}).get("pretty")))
 
+    # The generator's IP range above every range holding its addresses: the
+    # shipped "My computer" (127.0.0.1, priority 30) and "Internet" (10), not a
+    # range elsewhere, nor this tool's own from a run before.
+    import hmprepare
+    shipped = [{"name": "My computer", "lower": "127.0.0.1", "upper": "127.0.0.1", "priority": 30},
+               {"name": "Internet", "lower": "0.0.0.0", "upper": "255.255.255.255", "priority": 10},
+               {"name": "Elsewhere", "lower": "10.0.0.0", "upper": "10.0.0.255", "priority": 500},
+               {"name": "loadgen", "lower": "127.0.0.1", "upper": "127.0.0.1", "priority": 900},
+               {"name": "IPv6", "lower": "::", "upper": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", "priority": 700}]
+    loopback = hmprepare.range_priority(shipped, "127.0.0.1", "127.0.0.1")
+    lab = hmprepare.range_priority(shipped, "172.18.0.1", "172.18.0.1")
+    check("prepare-hmailserver: the range's priority above the ranges holding its addresses",
+          loopback[0] == 31 and [r["name"] for r in loopback[1]] == ["My computer", "Internet"]
+          and lab[0] == 20 and hmprepare.range_priority([], "127.0.0.1", "127.0.0.1")[0] == 20,
+          "127.0.0.1: %d, 172.18.0.1: %d" % (loopback[0], lab[0]))
+
+    # The idle point of imap-sessions: a server still holding the last run's
+    # sessions (7 October 2026, run 2: 526.4 MiB idle, 238.5 MiB at 25
+    # sessions) voids the memory figure; one that had let them go does not.
+    mib = 1048576
+    check("imap-sessions: a busy idle point voids the memory per session",
+          idle_point_problem(526.4 * mib, 238.5 * mib, 25, True) is not None
+          and idle_point_problem(234.2 * mib, 258.0 * mib, 25, True) is None
+          and idle_point_problem(234.2 * mib, 258.0 * mib, 25, False) is not None
+          and idle_point_problem(None, 258.0 * mib, 25, None) is None)
+
+    class Falling(object):
+        """A sampler whose server gives memory back for three windows, then holds it."""
+        interval = 0.01
+
+        def __init__(self, figures):
+            self.figures = list(figures)
+
+        def window(self, start, end):
+            figure = self.figures.pop(0) if len(self.figures) > 1 else self.figures[0]
+            return {"private_bytes_mean": figure}
+
+    window, taken = settle(Falling([526 * mib, 400 * mib, 260 * mib, 235 * mib, 234.5 * mib]), 60, span=0.01)
+    still, still_taken = settle(Falling([526 * mib, 400 * mib, 300 * mib, 200 * mib, 100 * mib]), 0.03, span=0.02)
+    at_once, at_once_taken = settle(Falling([526 * mib, 100 * mib]), 0, span=0.01)
+    check("smtp-out: a sink the server reaches over the loopback",
+          all(loopback_sink(h) for h in ("127.0.0.1", "0.0.0.0", "", "::1", "[::1]", "localhost", "127.0.0.2"))
+          and not any(loopback_sink(h) for h in ("192.168.11.150", "10.0.0.20", "172.18.0.1")))
+    check("imap-sessions: the idle point waits for the memory to stop falling",
+          taken["settled"] is True and window["private_bytes_mean"] == 234.5 * mib and len(taken["figures"]) == 5
+          and still_taken["settled"] is False and at_once_taken["settled"] is None and len(at_once_taken["figures"]) == 1,
+          "%s; %s; %s" % (taken, still_taken, at_once_taken))
+
     work = tempfile.mkdtemp(prefix="loadgen-selftest-")
     smtp_port, imap_port, sink_port = free_port(), free_port(), free_port()
     env = dict(os.environ, HMLOAD_PASSWORD="selftest-password")
@@ -744,9 +886,10 @@ def cmd_self_test(args):
         code, doc, text = run("imap-sessions", ["--port", str(imap_port), "--steps", "5,10", "--step-seconds", "4",
                                                 "--settle-seconds", "1", "--think-ms", "200", "--idle-seconds", "0.5",
                                                 "--user-template", "load{n}@toy.test", "--users", "5",
-                                                "--latency-limit-ms", "500"])
+                                                "--latency-limit-ms", "500", "--idle-wait", "15"])
         ok = doc is not None and doc["results"]["best_sessions"] == 10 and all(s["operations"] > 0 for s in doc["results"]["steps"])
-        check("imap-sessions: two steps passed with operations recorded", ok and code == 0,
+        ok = ok and doc["results"]["best_is_last_step"] is True and (doc["results"]["baseline_taken"] or {}).get("settled") is not None
+        check("imap-sessions: two steps passed with operations recorded, the last step and the idle point said", ok and code == 0,
               "sessions per core %s, memory per session %s bytes (%s)" % (
                   doc["results"]["sessions_per_core"], doc["results"]["memory_per_session_bytes"],
                   doc["results"]["memory_figure"]) if doc else text[-600:])
@@ -780,7 +923,9 @@ def cmd_self_test(args):
                 if self.command == "GET" and self.path == "/api/v1/routes":
                     self.answer(200, {"routes": [{"id": 7, "domain_name": "sink.test"}, {"id": 8, "domain_name": "other.test"}]})
                 elif self.command == "GET" and self.path == "/api/v1/ipranges":
-                    self.answer(200, [{"id": 3, "name": "loadgen"}, {"id": 1, "name": "Internet"}])
+                    self.answer(200, [{"id": 3, "name": "loadgen", "lower": "172.18.0.1", "upper": "172.18.0.1", "priority": 99},
+                                      {"id": 1, "name": "Internet", "lower": "0.0.0.0", "upper": "255.255.255.255", "priority": 10},
+                                      {"id": 4, "name": "Lab network", "lower": "172.18.0.0", "upper": "172.18.255.255", "priority": 30}])
                 elif self.command == "GET":
                     self.answer(200, {"name": "MessageStoreFsync", "value": "1"})
                 else:
@@ -807,6 +952,7 @@ def cmd_self_test(args):
         check("prepare-hmailserver: the REST calls", completed.returncode == 0 and len(made) == 3
               and all(w in seen for w in wanted) and ("DELETE", "/api/v1/routes/8") not in seen
               and ranges and ranges[0]["lower"] == "172.18.0.1" and ranges[0]["spam_protection"] is False
+              and ranges[0]["priority"] == 31
               and made[0][2]["password"] == "selftest-password" and all(c[3].startswith("Basic ") for c in calls),
               "%d calls" % len(calls) if completed.returncode == 0 else completed.stdout.decode("utf-8", "replace")[-400:])
 
@@ -865,6 +1011,8 @@ def main(argv=None):
     p.add_argument("--max-error-rate", type=float, default=0.0)
     p.add_argument("--server-cores", type=int, default=0, help="the server's logical cores (default: from the machine details)")
     p.add_argument("--keep-going", action="store_true", help="run every step even after one fails")
+    p.add_argument("--idle-wait", type=float, default=120.0,
+                   help="seconds the idle server's memory may take to stop falling before it is sampled (default 120; 0 takes it at once)")
     p.set_defaults(func=cmd_imap_sessions)
 
     p = commands.add_parser("imaptest", help="Dovecot's imaptest in a benchmark profile")
