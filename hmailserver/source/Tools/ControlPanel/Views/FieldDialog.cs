@@ -81,8 +81,17 @@ namespace hMailServer.ControlPanel.Views
          ok.Click += (_, _) =>
          {
             DialogFields.ClearErrors(rows_.ToArray());
-            if (committers_.Any(commit => !commit()))
+
+            // Every committer runs, so that every field refused is marked on
+            // this press and not one a press; the keyboard goes to the first.
+            if (!FieldDialogRules.AllAccept(committers_))
+            {
+               FieldRow first = rows_.FirstOrDefault(r => r.Error != null);
+               if (first != null)
+                  DialogFields.ShowError(first, first.Error);
                return;
+            }
+
             DialogResult = true;
             Close();
          };
@@ -208,10 +217,12 @@ namespace hMailServer.ControlPanel.Views
                   committers_.Add(() =>
                   {
                      // A field the entry is useless without is refused empty, on
-                     // the field, with the keyboard put in it (review finding F174).
+                     // the field (review finding F174). Marked here; the keyboard
+                     // is put in the first field refused once every committer has
+                     // run, by the button's handler.
                      if (f.Required && string.IsNullOrWhiteSpace(box.Text))
                      {
-                        DialogFields.ShowError(row, FieldDialogRules.RequiredMessage(f.Label));
+                        row.Error = FieldDialogRules.RequiredMessage(f.Label);
                         return false;
                      }
                      Result[prop] = box.Text;

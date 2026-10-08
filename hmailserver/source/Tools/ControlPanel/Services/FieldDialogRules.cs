@@ -20,11 +20,30 @@ namespace hMailServer.ControlPanel.Services
    /// fields that say what the entry is now, on the short specs that ask for it
    /// (CollectionSpec.TickBoxesLast: an external account's Enabled is the master
    /// switch of a dialog that scrolls, and stays first), and a field the entry
-   /// is useless without is refused empty, on the field. Held by
-   /// BlockListDialogTests.
+   /// is useless without is refused empty, on the field - every such field on
+   /// one press, not one a press. Held by BlockListDialogTests.
    /// </summary>
    public static class FieldDialogRules
    {
+      /// <summary>
+      /// Whether every committer accepts its field. Every one runs, whatever
+      /// the ones before it said, so that a dialog with two required fields
+      /// left empty marks both on one press of Add rather than the second only
+      /// after the first is filled; the dialog then puts the keyboard in the
+      /// first field refused.
+      /// </summary>
+      public static bool AllAccept(IEnumerable<Func<bool>> committers)
+      {
+         bool all = true;
+         foreach (Func<bool> commit in committers)
+         {
+            if (!commit())
+               all = false;
+         }
+
+         return all;
+      }
+
       /// <summary>
       /// The fields in the order the dialog lays them out: the run of tick boxes
       /// that leads the spec moved after the rest, each run in its own order. A

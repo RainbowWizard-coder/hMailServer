@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
@@ -74,8 +75,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Required = true", Field(WithheldRowTests.MemberText(specs, "public static CollectionEditorView SurblServers()"), "ExpectedResult"), StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Every committer runs whatever the ones before it said, so that a dialog
+      /// with two required fields left empty marks both on one press: with Any()
+      /// over the committers only the DNS host was marked, and the expected
+      /// result only on the next press, after the host was filled.
+      /// </summary>
       [Fact]
-      public void TheDialog_SaysAddWhenItAdds_LaysTickBoxesLast_AndRefusesARequiredFieldEmpty()
+      public void EveryCommitterRuns_SoEveryRefusalIsMarkedAtOnce()
+      {
+         var ran = new List<string>();
+         Func<bool> refuses(string name) => () => { ran.Add(name); return false; };
+         Func<bool> accepts(string name) => () => { ran.Add(name); return true; };
+
+         Assert.False(FieldDialogRules.AllAccept(new[] { refuses("host"), accepts("reject"), refuses("expected"), accepts("score") }));
+         Assert.Equal("host,reject,expected,score", string.Join(",", ran));
+
+         ran.Clear();
+         Assert.True(FieldDialogRules.AllAccept(new[] { accepts("host"), accepts("expected") }));
+         Assert.Equal("host,expected", string.Join(",", ran));
+
+         Assert.True(FieldDialogRules.AllAccept(Array.Empty<Func<bool>>()));
+      }
+
+      [Fact]
+      public void TheDialog_SaysAddWhenItAdds_LaysTickBoxesLast_AndRefusesEveryRequiredFieldEmpty()
       {
          string dialog = ReadSource("FieldDialog.cs");
 
@@ -83,10 +107,17 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("FieldDialogRules.TickBoxesAfterTheRest(", dialog, StringComparison.Ordinal);
 
          int required = dialog.IndexOf("if (f.Required && string.IsNullOrWhiteSpace(box.Text))", StringComparison.Ordinal);
-         int refused = dialog.IndexOf("DialogFields.ShowError(row, FieldDialogRules.RequiredMessage(f.Label));", StringComparison.Ordinal);
+         int refused = dialog.IndexOf("row.Error = FieldDialogRules.RequiredMessage(f.Label);", StringComparison.Ordinal);
          int written = dialog.IndexOf("Result[prop] = box.Text;", required < 0 ? 0 : required, StringComparison.Ordinal);
          Assert.True(required >= 0 && refused > required && written > refused, "The dialog writes a required text field before it refuses it empty.");
          Assert.Contains("DialogFields.ClearErrors(rows_.ToArray());", dialog, StringComparison.Ordinal);
+
+         // Every committer runs on a press, and the keyboard goes to the first
+         // field refused: an Any() over them stopped at the first refusal.
+         Assert.DoesNotContain("committers_.Any(", dialog, StringComparison.Ordinal);
+         Assert.Contains("if (!FieldDialogRules.AllAccept(committers_))", dialog, StringComparison.Ordinal);
+         Assert.Contains("rows_.FirstOrDefault(r => r.Error != null)", dialog, StringComparison.Ordinal);
+         Assert.Contains("DialogFields.ShowError(first, first.Error);", dialog, StringComparison.Ordinal);
       }
 
       /// <summary>

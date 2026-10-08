@@ -544,8 +544,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   added `zen.spamhaus.org` and pressed Save had added a list that was never asked, or never counted. A new entry is
   active now, its tick box after the fields that say what the entry is - on these two short dialogs and an account
   rule's, where a long dialog such as an external account's keeps its switch first, in sight; the DNS host and, on a
-  DNS blacklist, the expected result are required, and refused empty on the field; each field says under it what it
-  wants - example
+  DNS blacklist, the expected result are required, and refused empty on the field - both at once when both are
+  empty, the keyboard put in the first; each field says under it what it wants - example
   hosts, the `127.0.0.2`, `127.0.0.2-11`, `127.0.0.*` and `|` forms the server reads, and that a SURBL server with no
   expected result takes any answer but the list's own error codes; and the dialog's button says *Add* when it adds and
   *Save* when it edits.
