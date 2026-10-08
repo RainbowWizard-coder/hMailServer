@@ -435,6 +435,12 @@ namespace hMailServer.ControlPanel.Views
          /// </summary>
          public bool OfferGenerate;
 
+         /// <summary>
+         /// A warning that stays under the field, whatever is typed: for a secret
+         /// whose change does harm of its own - the password pepper's.
+         /// </summary>
+         public string Warning;
+
          private hMailServer.ControlPanel.Views.PasswordField box_;
          private bool hasStored_;
 
@@ -479,7 +485,7 @@ namespace hMailServer.ControlPanel.Views
             {
                box_.Width = EditorWidth;
                box_.HorizontalAlignment = HorizontalAlignment.Left;
-               return Row(box_, Label, hint: hint);
+               return Warned_(Row(box_, Label, hint: hint));
             }
 
             var row = new Grid { Width = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
@@ -505,7 +511,27 @@ namespace hMailServer.ControlPanel.Views
             Grid.SetColumn(generate, 1);
             row.Children.Add(generate);
 
-            return Row(row, Label, box_, hint);
+            return Warned_(Row(row, Label, box_, hint));
+         }
+
+         /// <summary>
+         /// The row, with <see cref="Warning"/> as a notice close under it when there
+         /// is one - a notice and not a hint, because it is a warning to be seen
+         /// before anything is typed, in the level's colour, mark and word.
+         /// </summary>
+         private FrameworkElement Warned_(FieldRow row)
+         {
+            if (string.IsNullOrEmpty(Warning))
+               return row;
+
+            row.Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm);
+            var notice = new InlineNotice { Level = StatusLevel.Warning, Text = Warning, MaxWidth = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
+            notice.SetResourceReference(MarginProperty, "AppFieldGap");
+            AutomationProperties.SetAutomationId(notice, Key + "Warning"); // no-loc
+            var panel = new StackPanel();
+            panel.Children.Add(row);
+            panel.Children.Add(notice);
+            return panel;
          }
 
          public override void Save(IniFeatureStore store)
@@ -2640,7 +2666,10 @@ namespace hMailServer.ControlPanel.Views
                            (5, L("Argon2id or scrypt only"))
                         }
                      },
-                     new SecretSetting { Key = "PasswordPepper", Label = L("Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords"), Hint = L("Server-wide secret mixed into password hashes") },
+                     // A plain caption and a warning under the field that says what a
+                     // change does, and a question at Save (PepperChange): the caption
+                     // that shouted about it was the only safeguard (review finding F169).
+                     new SecretSetting { Key = "PasswordPepper", Label = L("Password pepper"), Hint = L("Server-wide secret mixed into password hashes"), Warning = PepperChange.Warning },
                      new TextSetting { Key = "PasswordHashIterations", Default = "0", Placeholder = "0 = 210,000", Label = L("PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)") },
                      new TextSetting { Key = "PasswordHashMemoryKB", Default = "0", Placeholder = "0 = 19,456", Label = L("Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)") },
                      new TextSetting { Key = "PasswordHashTimeCost", Default = "0", Placeholder = "0 = 2", Label = L("Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)") }
@@ -2992,6 +3021,11 @@ namespace hMailServer.ControlPanel.Views
          if (!store_.IsAvailable)
             return false;
 
+         // A new password pepper stops passwords working: asked about before anything
+         // on the page is written, and a No writes nothing.
+         if (!ConfirmPepperChange_())
+            return false;
+
          try
          {
             foreach (CardDef card in cards_)
@@ -3060,6 +3094,74 @@ namespace hMailServer.ControlPanel.Views
          }
 
          return true;
+      }
+
+      /// <summary>
+      /// Asks before a save writes a new password pepper on a server with accounts
+      /// (Services/PepperChange), with the number of accounts when they can be
+      /// counted and Cancel the answer Enter gives. True when there is nothing to ask
+      /// about or the change was chosen.
+      /// </summary>
+      private bool ConfirmPepperChange_()
+      {
+         if (FindSetting_(PepperChange.Key) is not SecretSetting pepper || !pepper.IsChanged)
+            return true;
+
+         string typed = pepper.LiveValue;
+         string stored = store_.Read(PepperChange.Key, "");
+         if (string.IsNullOrEmpty(typed) || string.Equals(typed, stored ?? "", StringComparison.Ordinal))
+            return true;
+
+         int? accounts = CountAccounts_();
+         if (!PepperChange.AsksFirst(typed, stored, accounts))
+            return true;
+
+         return MessageBox.Confirm(PepperChange.Question(accounts), L("Control Panel"), L("_Change the pepper"),
+            destructive: true, cancelByDefault: true);
+      }
+
+      /// <summary>
+      /// How many accounts the server has, across its domains; null when they could
+      /// not be counted, which the pepper's question takes as some.
+      /// </summary>
+      private static int? CountAccounts_()
+      {
+         dynamic domains = null;
+         try
+         {
+            domains = ServerSession.Current?.Application?.Domains;
+            if (domains == null)
+               return null;
+
+            int total = 0;
+            int count = (int)domains.Count;
+            for (int i = 0; i < count; i++)
+            {
+               dynamic domain = null;
+               dynamic accounts = null;
+               try
+               {
+                  domain = domains.Item[i];
+                  accounts = domain.Accounts;
+                  total += (int)accounts.Count;
+               }
+               finally
+               {
+                  ServerSession.Release((object)accounts);
+                  ServerSession.Release((object)domain);
+               }
+            }
+
+            return total;
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return null;
+         }
+         finally
+         {
+            ServerSession.Release((object)domains);
+         }
       }
 
       private async void RestartService()

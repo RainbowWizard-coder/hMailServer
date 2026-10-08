@@ -200,7 +200,7 @@ namespace hMailServer.ControlPanel.Services
          new SettingEntry("Expected token issuer (iss)", "OAuth2Issuer", "authentication"),
          new SettingEntry("JWK Set URL (the provider's published signing keys; empty = the key file only)", "OAuth2JwksUrl", "authentication"),
          new SettingEntry("Password hash for new or changed account passwords", "PreferredHashAlgorithm", "authentication"),
-         new SettingEntry("Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords", "PasswordPepper", "authentication"),
+         new SettingEntry("Password pepper", "PasswordPepper", "authentication"),
          new SettingEntry("PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)", "PasswordHashIterations", "authentication"),
          new SettingEntry("Reject logins using a weaker stored hash than", "MinimumAcceptedHashAlgorithm", "authentication"),
          new SettingEntry("Require TLS for token authentication", "OAuth2RequireTLS", "authentication"),

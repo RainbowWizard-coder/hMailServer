@@ -99,6 +99,8 @@
     <!-- What the administrator password dialog asks of the three boxes before it
          asks the server, and the sentences it says. -->
     <Compile Include="..\ControlPanel\Services\AdministratorPasswordChange.cs" />
+    <!-- When a save of a new password pepper asks first, and the words. -->
+    <Compile Include="..\ControlPanel\Services\PepperChange.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

@@ -2292,6 +2292,15 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Endrer hva som skjer ved sletteterskelen. Av: en melding over den avvises under SMTP-samtalen med 550, og avsenderen får beskjed. På: den godtas med 250 og holdes tilbake for gjennomgang i stedet - avsenderen tror den ble levert og prøver ikke på nytt, som er det som gjør en falsk positiv gjenopprettbar uten å avvise til en returvei som sannsynligvis er forfalsket, og som også betyr at gjennomgangskøen blir det eneste stedet meldingen finnes. Gjelder for kontroller som kjører etter at meldingskroppen er mottatt; en avgjørelse tatt før det (en svartelistet tilkoblende IP, en dårlig HELO) har ingen melding å holde tilbake og forblir en avvisning.</value>
   </data>
+  <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
+    <value>Endres pepperen etter at det finnes kontoer, slutter hvert passord som er lagret som en Argon2id- eller scrypt-hash, å virke, og hver slik konto trenger da et nytt passord. PBKDF2-hasher, standarden, får ikke pepper.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password." xml:space="preserve">
+    <value>Endres pepperen, slutter hvert postbokspassord som er lagret som en Argon2id- eller scrypt-hash, å virke, og hver slik konto vil trenge et nytt passord.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}." xml:space="preserve">
+    <value>Endres pepperen, slutter hvert postbokspassord som er lagret som en Argon2id- eller scrypt-hash, å virke, og hver slik konto vil trenge et nytt passord. Kontoer på denne serveren: {0}.</value>
+  </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Å endre innstillinger for tofaktorautentisering krever administratorrettigheter. Start Control Panel på nytt som administrator og prøv igjen.</value>
   </data>
@@ -7506,8 +7515,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Passordhash for nye eller endrede kontopassord</value>
   </data>
-  <data name="Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords" xml:space="preserve">
-    <value>Passordpepper — ADVARSEL: sett det før kontoer opprettes; å endre det senere ugyldiggjør ALLE eksisterende passord</value>
+  <data name="Password pepper" xml:space="preserve">
+    <value>Passordpepper</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Passordlagring</value>
@@ -12711,6 +12720,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Bla gjennom…</value>
+  </data>
+  <data name="_Change the pepper" xml:space="preserve">
+    <value>_Endre pepperen</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Kontroller syntaks</value>

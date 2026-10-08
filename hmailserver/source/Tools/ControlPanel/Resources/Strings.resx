@@ -2292,6 +2292,15 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal.</value>
   </data>
+  <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
+    <value>Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password." xml:space="preserve">
+    <value>Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}." xml:space="preserve">
+    <value>Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}.</value>
+  </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again.</value>
   </data>
@@ -7506,8 +7515,8 @@ Nothing already there is removed.</value>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Password hash for new or changed account passwords</value>
   </data>
-  <data name="Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords" xml:space="preserve">
-    <value>Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords</value>
+  <data name="Password pepper" xml:space="preserve">
+    <value>Password pepper</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Password storage</value>
@@ -12711,6 +12720,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Browse…</value>
+  </data>
+  <data name="_Change the pepper" xml:space="preserve">
+    <value>_Change the pepper</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Check syntax</value>

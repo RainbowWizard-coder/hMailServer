@@ -2292,6 +2292,15 @@
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Змінює те, що відбувається на порозі видалення. Якщо вимкнено, повідомлення з оцінкою понад цей поріг відхиляється під час SMTP-діалогу кодом 550, і відправникові про це повідомляють. Якщо ввімкнено, воно натомість приймається з кодом 250 й утримується для перегляду — відправник вважає, що повідомлення доставлено, і не повторює спроби, а саме це дає змогу виправити хибне спрацювання, не надсилаючи відмову на зворотну адресу, яка, найімовірніше, підроблена; це також означає, що черга перегляду стає єдиним місцем, де це повідомлення існує. Стосується перевірок, які виконуються після отримання тіла повідомлення; висновок, зроблений раніше (заблокована IP-адреса підключення, хибний HELO), не має повідомлення, яке можна утримати, і залишається відмовою.</value>
   </data>
+  <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
+    <value>Якщо змінити «перець» після створення облікових записів, перестане працювати кожен пароль, збережений як хеш Argon2id або scrypt, і кожному такому обліковому запису знадобиться новий пароль. До хешів PBKDF2, типових, «перець» не застосовується.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password." xml:space="preserve">
+    <value>Зміна «перцю» зупинить роботу кожного пароля поштової скриньки, збереженого як хеш Argon2id або scrypt, і кожному такому обліковому запису знадобиться новий пароль.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}." xml:space="preserve">
+    <value>Зміна «перцю» зупинить роботу кожного пароля поштової скриньки, збереженого як хеш Argon2id або scrypt, і кожному такому обліковому запису знадобиться новий пароль. Облікових записів на цьому сервері: {0}.</value>
+  </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Зміна параметрів двофакторної автентифікації потребує прав адміністратора. Перезапустіть Панель керування від імені адміністратора й повторіть спробу.</value>
   </data>
@@ -7506,8 +7515,8 @@
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Хеш паролів для нових або змінених паролів облікових записів</value>
   </data>
-  <data name="Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords" xml:space="preserve">
-    <value>«Перець» паролів — УВАГА: задайте до створення облікових записів; подальша зміна робить недійсними ВСІ наявні паролі</value>
+  <data name="Password pepper" xml:space="preserve">
+    <value>«Перець» паролів</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Зберігання паролів</value>
@@ -12711,6 +12720,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Огляд…</value>
+  </data>
+  <data name="_Change the pepper" xml:space="preserve">
+    <value>_Змінити «перець»</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Перевірити синтаксис</value>

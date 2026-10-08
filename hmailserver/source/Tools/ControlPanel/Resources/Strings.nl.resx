@@ -2292,6 +2292,15 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Verandert wat er bij de verwijderdrempel gebeurt. Staat dit uit, dan wordt een bericht daarboven tijdens het SMTP-gesprek geweigerd met een 550 en krijgt de afzender dat te horen. Staat het aan, dan wordt het in plaats daarvan geaccepteerd met een 250 en vastgehouden voor beoordeling - de afzender denkt dat het is bezorgd en probeert het niet opnieuw, en juist dat maakt een vals positief herstelbaar zonder te bouncen naar een return path dat waarschijnlijk vervalst is; het betekent ook dat de beoordelingswachtrij de enige plek wordt waar dat bericht bestaat. Geldt voor controles die draaien nadat de berichttekst is ontvangen; een oordeel dat daarvóór valt (een verbindend IP op een zwarte lijst, een slechte HELO) heeft geen bericht om vast te houden en blijft een weigering.</value>
   </data>
+  <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
+    <value>Als de peper wordt gewijzigd terwijl er al accounts zijn, werkt geen enkel wachtwoord meer dat als Argon2id- of scrypt-hash is opgeslagen, en elk zo'n account heeft dan een nieuw wachtwoord nodig. PBKDF2-hashes, de standaard, krijgen geen peper.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password." xml:space="preserve">
+    <value>Als de peper wordt gewijzigd, werkt geen enkel postvakwachtwoord meer dat als Argon2id- of scrypt-hash is opgeslagen, en elk zo'n account heeft een nieuw wachtwoord nodig.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}." xml:space="preserve">
+    <value>Als de peper wordt gewijzigd, werkt geen enkel postvakwachtwoord meer dat als Argon2id- of scrypt-hash is opgeslagen, en elk zo'n account heeft een nieuw wachtwoord nodig. Accounts op deze server: {0}.</value>
+  </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Het wijzigen van instellingen voor tweefactorauthenticatie vereist beheerdersrechten. Start het Control Panel opnieuw als beheerder en probeer het opnieuw.</value>
   </data>
@@ -7506,8 +7515,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Wachtwoordhash voor nieuwe of gewijzigde accountwachtwoorden</value>
   </data>
-  <data name="Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords" xml:space="preserve">
-    <value>Wachtwoordpeper — WAARSCHUWING: stel dit in vóór het aanmaken van accounts; het later wijzigen maakt ALLE bestaande wachtwoorden ongeldig</value>
+  <data name="Password pepper" xml:space="preserve">
+    <value>Wachtwoordpeper</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Wachtwoordopslag</value>
@@ -12711,6 +12720,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Bladeren…</value>
+  </data>
+  <data name="_Change the pepper" xml:space="preserve">
+    <value>Peper _wijzigen</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Syntaxis controleren</value>

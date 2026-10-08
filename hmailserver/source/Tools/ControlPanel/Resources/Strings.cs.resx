@@ -2292,6 +2292,15 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Mění, co se stane na hranici pro smazání. Vypnuto: zpráva nad ní je odmítnuta během SMTP konverzace odpovědí 550 a odesílatel se to dozví. Zapnuto: zpráva je místo toho přijata odpovědí 250 a pozdržena k posouzení – odesílatel věří, že byla doručena, a nezkusí to znovu, což je právě to, co dělá falešně pozitivní verdikt napravitelným bez odeslání nedoručenky na zpáteční adresu, která je nejspíš falešná, a zároveň to znamená, že fronta k posouzení je jediné místo, kde ta zpráva existuje. Platí pro kontroly, které běží po přijetí těla zprávy; verdikt vynesený dříve (připojující se IP na blacklistu, špatné HELO) nemá co pozdržet a zůstává odmítnutím.</value>
   </data>
+  <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
+    <value>Změna pepperu poté, co existují účty, způsobí, že žádné heslo uložené jako hash Argon2id nebo scrypt nebude fungovat, a každý takový účet pak potřebuje nové heslo. Na hashe PBKDF2, které jsou výchozí, se pepper nepoužívá.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password." xml:space="preserve">
+    <value>Změna pepperu způsobí, že žádné heslo schránky uložené jako hash Argon2id nebo scrypt nebude fungovat, a každý takový účet bude potřebovat nové heslo.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}." xml:space="preserve">
+    <value>Změna pepperu způsobí, že žádné heslo schránky uložené jako hash Argon2id nebo scrypt nebude fungovat, a každý takový účet bude potřebovat nové heslo. Účty na tomto serveru: {0}.</value>
+  </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Změna nastavení dvoufaktorového ověřování vyžaduje práva správce. Spusťte Control Panel znovu jako správce a zkuste to znovu.</value>
   </data>
@@ -7506,8 +7515,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Hash hesla pro nová nebo změněná hesla účtů</value>
   </data>
-  <data name="Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords" xml:space="preserve">
-    <value>Pepper hesel — VAROVÁNÍ: nastavte před vytvořením účtů; pozdější změna zneplatní VŠECHNA existující hesla</value>
+  <data name="Password pepper" xml:space="preserve">
+    <value>Pepper hesel</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Ukládání hesel</value>
@@ -12711,6 +12720,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Procházet…</value>
+  </data>
+  <data name="_Change the pepper" xml:space="preserve">
+    <value>_Změnit pepper</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Zkontrolovat syntaxi</value>

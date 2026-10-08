@@ -2292,6 +2292,15 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a blacklisted connecting IP, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Muda o que acontece no limite de exclusão. Desligado, uma mensagem acima dele é recusada durante a conversa SMTP com um 550 e o remetente é avisado. Ligado, ela é aceita com um 250 e retida para revisão - o remetente acredita que foi entregue e não tentará de novo, o que é o que torna um falso positivo recuperável sem devolver para um caminho de retorno que provavelmente é forjado, e também significa que a fila de revisão passa a ser o único lugar onde essa mensagem existe. Vale para as verificações que rodam depois que o corpo da mensagem foi recebido; um veredito alcançado antes disso (um IP conectando que está em lista negra, um HELO ruim) não tem mensagem para reter e continua sendo uma recusa.</value>
   </data>
+  <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
+    <value>Alterar o pepper depois que já existem contas faz parar de funcionar toda senha armazenada como hash Argon2id ou scrypt, e cada uma dessas contas passa a precisar de uma nova senha. Os hashes PBKDF2, o padrão, não usam pepper.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password." xml:space="preserve">
+    <value>Alterar o pepper faz parar de funcionar toda senha de caixa armazenada como hash Argon2id ou scrypt, e cada uma dessas contas vai precisar de uma nova senha.</value>
+  </data>
+  <data name="Changing the pepper stops every mailbox password stored as an Argon2id or scrypt hash from working, and each such account will need a new password. Accounts on this server: {0}." xml:space="preserve">
+    <value>Alterar o pepper faz parar de funcionar toda senha de caixa armazenada como hash Argon2id ou scrypt, e cada uma dessas contas vai precisar de uma nova senha. Contas neste servidor: {0}.</value>
+  </data>
   <data name="Changing two-factor authentication settings requires administrator rights. Restart the Control Panel as an administrator and try again." xml:space="preserve">
     <value>Alterar as configurações de autenticação de dois fatores exige direitos de administrador. Reinicie o Control Panel como administrador e tente de novo.</value>
   </data>
@@ -7506,8 +7515,8 @@ Nada do que já está lá é removido.</value>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Hash de senha para senhas de conta novas ou alteradas</value>
   </data>
-  <data name="Password pepper — WARNING: set before creating accounts; changing it later invalidates ALL existing passwords" xml:space="preserve">
-    <value>Pepper de senha — AVISO: defina antes de criar contas; alterá-lo depois invalida TODAS as senhas existentes</value>
+  <data name="Password pepper" xml:space="preserve">
+    <value>Pepper de senha</value>
   </data>
   <data name="Password storage" xml:space="preserve">
     <value>Armazenamento de senhas</value>
@@ -12711,6 +12720,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Procurar…</value>
+  </data>
+  <data name="_Change the pepper" xml:space="preserve">
+    <value>_Alterar o pepper</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Verificar sintaxe</value>

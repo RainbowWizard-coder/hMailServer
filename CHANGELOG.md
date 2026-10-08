@@ -523,6 +523,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   says afterwards that the password was changed and to use the new one at the next sign-in, in scripts and in REST API
   clients. A Control Panel signed in as the administrator goes on with the new password, after a service restart and
   for the settings it reads over the REST API.
+- **Changed: the Control Panel asks before it saves a new password pepper on a server with accounts.** The pepper was
+  an ordinary secret among the hashing fields of the *Authentication* page, captioned *Password pepper — WARNING: set
+  before creating accounts; changing it later invalidates ALL existing passwords*, and *Save changes* wrote whatever was
+  typed into it. The server mixes the pepper into Argon2id and scrypt hashes only, so a new pepper - or one set for the
+  first time - stops every password stored that way from working, while PBKDF2 hashes, the default, are not peppered.
+  The field is captioned *Password pepper* now, with a warning under it that says just that, and a save that would
+  write a new pepper on a server with accounts asks first, naming how many accounts the server has, with Cancel the
+  answer Enter gives; a No writes nothing on the page.
 
 ### IMAP, POP3 and the webmail
 
