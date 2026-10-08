@@ -2397,6 +2397,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Choose a preset…" xml:space="preserve">
     <value>Wybierz gotowe ustawienie…</value>
   </data>
+  <data name="Choose a role" xml:space="preserve">
+    <value>Wybierz rolę</value>
+  </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>Wybierz rolę do nadania.</value>
   </data>
@@ -4592,6 +4595,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Give the printer's address its own IP range with authentication not required." xml:space="preserve">
     <value>Adresowi drukarki należy nadać własny zakres adresów IP z wyłączonym wymaganiem uwierzytelnienia.</value>
+  </data>
+  <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
+    <value>Przypisać kontu {0} rolę {1}, która ma wszystkie uprawnienia we wszystkich domenach?</value>
   </data>
   <data name="Global rules" xml:space="preserve">
     <value>Reguły globalne</value>

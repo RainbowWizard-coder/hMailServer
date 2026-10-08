@@ -2397,6 +2397,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Choose a preset…" xml:space="preserve">
     <value>Scegli una preimpostazione…</value>
   </data>
+  <data name="Choose a role" xml:space="preserve">
+    <value>Scegli un ruolo</value>
+  </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>Scegli un ruolo da assegnare.</value>
   </data>
@@ -4592,6 +4595,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Give the printer's address its own IP range with authentication not required." xml:space="preserve">
     <value>Assegna all'indirizzo della stampante un proprio intervallo IP in cui l'autenticazione non è richiesta.</value>
+  </data>
+  <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
+    <value>Assegnare a {0} il ruolo {1}, che può tutto, in ogni dominio?</value>
   </data>
   <data name="Global rules" xml:space="preserve">
     <value>Regole globali</value>

@@ -2397,6 +2397,9 @@
   <data name="Choose a preset…" xml:space="preserve">
     <value>プリセットを選択…</value>
   </data>
+  <data name="Choose a role" xml:space="preserve">
+    <value>ロールを選択</value>
+  </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>割り当てるロールを選んでください。</value>
   </data>
@@ -4592,6 +4595,9 @@
   </data>
   <data name="Give the printer's address its own IP range with authentication not required." xml:space="preserve">
     <value>プリンターのアドレスに、認証を必須としない専用の IP 範囲を与えてください。</value>
+  </data>
+  <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
+    <value>{0} にロール {1} を割り当てますか? このロールはすべてのドメインですべての権限を持ちます。</value>
   </data>
   <data name="Global rules" xml:space="preserve">
     <value>グローバル ルール</value>

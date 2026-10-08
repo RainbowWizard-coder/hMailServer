@@ -101,6 +101,8 @@
     <Compile Include="..\ControlPanel\Services\AdministratorPasswordChange.cs" />
     <!-- When a save of a new password pepper asks first, and the words. -->
     <Compile Include="..\ControlPanel\Services\PepperChange.cs" />
+    <!-- Which roles hand out the whole server, asked about before one is given. -->
+    <Compile Include="..\ControlPanel\Services\RoleGrant.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

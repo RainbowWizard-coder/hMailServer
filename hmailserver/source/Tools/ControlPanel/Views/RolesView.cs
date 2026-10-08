@@ -49,7 +49,24 @@ namespace hMailServer.ControlPanel.Views
          public string Purpose { get; set; }
          public string BuiltIn { get; set; }
          public string Permissions { get; set; }
+
+         // The permissions as the server lists them, for RoleGrant.ReachesEverything.
+         public string Tokens { get; set; }
       }
+
+      // The roles as the last reload read them, by name: what Give the role asks
+      // about before it gives one that reaches everything.
+      private List<RoleRow> roles_ = new();
+
+      // "Choose a role" over the empty box: the box opens on no role, and a
+      // combo box has no placeholder of its own.
+      private readonly TextBlock rolePlaceholder_ = new()
+      {
+         IsHitTestVisible = false,
+         VerticalAlignment = VerticalAlignment.Center,
+         Margin = new Thickness(11, 0, 32, 0),
+         TextTrimming = TextTrimming.CharacterEllipsis
+      };
 
       private sealed class AssignmentRow
       {
@@ -118,7 +135,16 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(domains_, L("Domains, comma separated"));
          address_.Margin = roleChoice_.Margin = domains_.Margin = new Thickness(0);
          form.Children.Add(FormField_(L("Account"), address_));
-         form.Children.Add(FormField_(L("Role"), roleChoice_));
+         // The box opens on no role: it opened on the first the server lists,
+         // serveradmin, beside the primary Give the role (review finding F055).
+         rolePlaceholder_.Text = L("Choose a role");
+         rolePlaceholder_.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorTertiaryBrush");
+         System.Windows.Automation.AutomationProperties.SetHelpText(roleChoice_, L("Choose a role"));
+         roleChoice_.SelectionChanged += (s, e) => ShowRolePlaceholder_();
+         var roleBox = new Grid();
+         roleBox.Children.Add(roleChoice_);
+         roleBox.Children.Add(rolePlaceholder_);
+         form.Children.Add(FormField_(L("Role"), roleBox));
          form.Children.Add(FormField_(L("Domains"), domains_));
 
          var give = new Wpf.Ui.Controls.Button
@@ -193,7 +219,8 @@ namespace hMailServer.ControlPanel.Views
                   Name = parts[0],
                   BuiltIn = parts[1] == "1" ? L("Yes") : "",
                   Purpose = parts[2],
-                  Permissions = parts[3].Replace(",", ", ")
+                  Permissions = parts[3].Replace(",", ", "),
+                  Tokens = parts[3]
                });
             }
 
@@ -219,18 +246,23 @@ namespace hMailServer.ControlPanel.Views
          }
 
          roleGrid_.ItemsSource = roles;
+         roles_ = roles;
          assignmentGrid_.ItemsSource = assignments;
 
          assignmentGrid_.Visibility = assignments.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
          empty_.Text = L("Nobody has been given a role yet. An account without one holds the authority its admin level gives it, exactly as before roles existed.");
          empty_.Visibility = assignments.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
 
+         // A role chosen before stays chosen while the server still has it; none is
+         // chosen for anybody.
          object chosen = roleChoice_.SelectedItem;
          roleChoice_.ItemsSource = roles.ConvertAll(r => r.Name);
          roleChoice_.SelectedItem = chosen;
-         if (roleChoice_.SelectedItem == null && roles.Count > 0)
-            roleChoice_.SelectedIndex = 0;
+         ShowRolePlaceholder_();
       }
+
+      private void ShowRolePlaceholder_()
+         => rolePlaceholder_.Visibility = roleChoice_.SelectedItem == null ? Visibility.Visible : Visibility.Collapsed;
 
       private static IEnumerable<string> Lines_(string value)
          => (value ?? "").Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
@@ -251,7 +283,15 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         Write_(address, (string)roleChoice_.SelectedItem, (domains_.Text ?? "").Trim());
+         // A role that reaches everything is asked about first, Cancel being the
+         // answer Enter gives.
+         string role = (string)roleChoice_.SelectedItem;
+         string tokens = roles_.Find(r => string.Equals(r.Name, role, StringComparison.Ordinal))?.Tokens;
+         if (RoleGrant.ReachesEverything(role, tokens) &&
+             !Dialogs.Confirm(RoleGrant.Question(address, role), L("Control Panel"), L("_Give the role"), destructive: true, cancelByDefault: true))
+            return;
+
+         Write_(address, role, (domains_.Text ?? "").Trim());
       }
 
       private void Unassign_()

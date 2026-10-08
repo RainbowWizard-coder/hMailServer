@@ -358,7 +358,9 @@ Giving somebody a role
 
 **In the Control Panel:** *Accounts & domains → Administrator roles* lists the roles
 and who holds them. Type an address, choose a role, optionally name the domains, and
-*Give the role*; select a row and *Take the role away*.
+*Give the role*; select a row and *Take the role away*. The role box starts with no
+role chosen, and `serveradmin` - the role that holds `administer_server`, everything in
+every domain - is asked about before it is given, Cancel being the answer Enter gives.
 
 **In the Control Deck:** the *Roles* view does the same.
 

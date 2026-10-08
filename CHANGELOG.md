@@ -531,6 +531,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   The field is captioned *Password pepper* now, with a warning under it that says just that, and a save that would
   write a new pepper on a server with accounts asks first, naming how many accounts the server has, with Cancel the
   answer Enter gives; a No writes nothing on the page.
+- **Fixed: the Control Panel's Administrator roles page offered the whole server by default.** Its role box opened on
+  the first role the server lists, `serveradmin` - *Everything, in every domain* - beside the primary *Give the role*,
+  so an address typed and that button pressed handed the account full authority over the server, without a question.
+  The box opens on no role now, saying *Choose a role*, and `serveradmin` - the role that holds `administer_server`,
+  everything in every domain - is asked about before it is given, naming the account and the role, with Cancel the
+  answer Enter gives.
 
 ### IMAP, POP3 and the webmail
 

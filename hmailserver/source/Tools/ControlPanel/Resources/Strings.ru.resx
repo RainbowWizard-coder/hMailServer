@@ -2397,6 +2397,9 @@ Control Panel может читать файлы сообщений только
   <data name="Choose a preset…" xml:space="preserve">
     <value>Выберите готовый набор…</value>
   </data>
+  <data name="Choose a role" xml:space="preserve">
+    <value>Выберите роль</value>
+  </data>
   <data name="Choose a role to give." xml:space="preserve">
     <value>Выберите роль для назначения.</value>
   </data>
@@ -4592,6 +4595,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Give the printer's address its own IP range with authentication not required." xml:space="preserve">
     <value>Выделите адресу принтера собственный диапазон IP, в котором аутентификация не требуется.</value>
+  </data>
+  <data name="Give {0} the role {1}, which holds everything, in every domain?" xml:space="preserve">
+    <value>Назначить {0} роль {1}, у которой есть всё, во всех доменах?</value>
   </data>
   <data name="Global rules" xml:space="preserve">
     <value>Глобальные правила</value>
