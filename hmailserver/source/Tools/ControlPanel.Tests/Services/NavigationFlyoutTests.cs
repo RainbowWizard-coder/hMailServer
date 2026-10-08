@@ -80,8 +80,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("e.Key == Key.Enter", flyout, StringComparison.Ordinal);
          Assert.Contains("e.Key == Key.Escape", flyout, StringComparison.Ordinal);
          Assert.Contains("StaysOpen = false", flyout, StringComparison.Ordinal);
-         Assert.Contains("groupFlyout_.Closed += (s, e) => (groupFlyout_.PlacementTarget as UIElement)?.Focus()", flyout, StringComparison.Ordinal);
+         Assert.Contains("groupFlyout_.Closed += (s, e) => FocusAfterFlyout_()", flyout, StringComparison.Ordinal);
          Assert.Contains("PreviewMouseLeftButtonUp", flyout, StringComparison.Ordinal);
+
+         // Enter opens the row the keyboard is on, and only failing that the
+         // selected one: the flyout focuses its first row without selecting it,
+         // a ListBox selects a focused row only when the keyboard came from
+         // inside the list, and it ignores Enter without AcceptsReturn - so an
+         // Enter that read the selection alone did nothing in every group but
+         // the one holding the page on screen.
+         int enter = flyout.IndexOf("e.Key == Key.Enter", StringComparison.Ordinal);
+         int focused = flyout.IndexOf("Keyboard.FocusedElement as ListBoxItem", enter, StringComparison.Ordinal);
+         int selected = flyout.IndexOf("groupFlyoutList_.SelectedItem as ListBoxItem", enter, StringComparison.Ordinal);
+         Assert.True(focused > enter && selected > focused, "Enter in the flyout no longer opens the row the keyboard is on before the selected one.");
+
+         // Popup.Closed is raised from a timer, after a page chosen from the
+         // breadcrumb's flyout has rebuilt the breadcrumb and detached the group
+         // button that anchored it: the keyboard goes to the anchor while it is
+         // on screen, else to the breadcrumb's rebuilt button of the same id,
+         // else to the rail glyph that is marked.
+         string back = WithheldRowTests.MemberText(flyout, "private void FocusAfterFlyout_()");
+         Assert.True(back != null, "MainWindow.FocusAfterFlyout_ is gone.");
+         int anchor = back.IndexOf("anchor.IsVisible && anchor.Focus()", StringComparison.Ordinal);
+         int rebuilt = back.IndexOf("BreadcrumbHost.Children.OfType<UIElement>().FirstOrDefault(child => AutomationProperties.GetAutomationId(child) == id)", StringComparison.Ordinal);
+         int glyph = back.IndexOf("railItems_.FirstOrDefault(item => item.IsChecked == true)?.Focus()", StringComparison.Ordinal);
+         Assert.True(anchor >= 0 && rebuilt > anchor && glyph > rebuilt, "After the flyout closes the keyboard no longer goes to the anchor, then the rebuilt breadcrumb button, then the marked rail glyph.");
 
          // Opened, a row takes the keyboard: the page on screen's, or the first.
          Assert.Contains("first?.Focus()", flyout, StringComparison.Ordinal);

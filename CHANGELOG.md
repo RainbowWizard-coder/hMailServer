@@ -821,9 +821,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   group button did the same. In a maximised window narrower than that - 1280 by 800 at 150 % scaling is 853 pixels -
   the sidebar toggle could not widen the window either, and the only ways to another page were Ctrl+K and the
   *Related* links. While the rail shows, a glyph now opens the group's pages in a list beside it, and the breadcrumb's
-  group button under itself: the arrow keys move through the list, Enter or a click opens the page, Escape or a click
-  outside closes it and puts the keyboard back on the glyph, and the rail's mark stays on the group of the page on
-  screen. Above the threshold a glyph expands the sidebar on its group, as before.
+  group button under itself: the arrow keys move through the list, Enter opens the page the keyboard is on and a click
+  the one under the pointer, Escape or a click outside closes it, the keyboard goes back to the glyph or to the
+  breadcrumb's group button - the one the breadcrumb was rebuilt with, where a page was chosen from it - and the rail's
+  mark stays on the group of the page on screen. Above the threshold a glyph expands the sidebar on its group, as before.
 - **Fixed: on the Control Panel's Domains & accounts page, a domain, an account, an alias or a distribution list could
   not be opened, deleted or managed from the keyboard.** The four lists put their verbs in buttons inside each row,
   which Tab never reaches - a list is entered on its selected row and left on the next Tab, and the arrow keys only

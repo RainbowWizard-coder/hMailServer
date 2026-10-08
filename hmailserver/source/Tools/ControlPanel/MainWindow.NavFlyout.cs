@@ -152,10 +152,25 @@ namespace hMailServer.ControlPanel
          ScrollViewer.SetHorizontalScrollBarVisibility(groupFlyoutList_, ScrollBarVisibility.Disabled);
          groupFlyoutList_.PreviewKeyDown += (s, e) =>
          {
-            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None && groupFlyoutList_.SelectedItem is ListBoxItem row && row.Tag is string key)
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.None)
             {
-               e.Handled = true;
-               OpenFromFlyout_(key);
+               // The row the keyboard is on, and only failing that the selected
+               // one. Focus is not selection here: the pill means the page on
+               // screen, so the flyout puts the keyboard on its first row without
+               // selecting it, and a ListBox selects a row that took the focus
+               // only when the keyboard moved there from inside the list, and
+               // answers Enter only with KeyboardNavigation.AcceptsReturn - so an
+               // Enter on the first row of every group but the one holding the
+               // page on screen used to do nothing.
+               ListBoxItem row = Keyboard.FocusedElement as ListBoxItem;
+               if (row == null || !ReferenceEquals(ItemsControl.ItemsControlFromItemContainer(row), groupFlyoutList_))
+                  row = groupFlyoutList_.SelectedItem as ListBoxItem;
+
+               if (row?.Tag is string key)
+               {
+                  e.Handled = true;
+                  OpenFromFlyout_(key);
+               }
             }
             else if (e.Key == Key.Escape)
             {
@@ -190,7 +205,34 @@ namespace hMailServer.ControlPanel
 
          // The keyboard goes back to the glyph or the button that opened the
          // flyout, whichever way it closed: Escape, a choice, or a click outside.
-         groupFlyout_.Closed += (s, e) => (groupFlyout_.PlacementTarget as UIElement)?.Focus();
+         groupFlyout_.Closed += (s, e) => FocusAfterFlyout_();
+      }
+
+      /// <summary>
+      /// Puts the keyboard back on what opened the flyout. A Popup raises Closed
+      /// from a timer after IsOpen went false (Popup.HideWindow), so a page chosen
+      /// from the breadcrumb's flyout is on screen by then and the group button
+      /// that anchored the flyout has gone with the breadcrumb NavigateTo rebuilt:
+      /// focusing it failed, nothing else took the keyboard, and the next Tab
+      /// started from the window's first stop. The rebuilt breadcrumb carries the
+      /// group's button again, found by its automation id; failing that, the rail
+      /// glyph that is marked is the group of the page on screen. A rail glyph
+      /// outlives the navigation and takes the keyboard itself.
+      /// </summary>
+      private void FocusAfterFlyout_()
+      {
+         var anchor = groupFlyout_.PlacementTarget as UIElement;
+         if (anchor != null && anchor.IsVisible && anchor.Focus())
+            return;
+
+         string id = anchor == null ? null : AutomationProperties.GetAutomationId(anchor);
+         UIElement rebuilt = string.IsNullOrEmpty(id) || BreadcrumbHost == null
+            ? null
+            : BreadcrumbHost.Children.OfType<UIElement>().FirstOrDefault(child => AutomationProperties.GetAutomationId(child) == id);
+         if (rebuilt != null && rebuilt.IsVisible && rebuilt.Focus())
+            return;
+
+         railItems_.FirstOrDefault(item => item.IsChecked == true)?.Focus();
       }
    }
 }
