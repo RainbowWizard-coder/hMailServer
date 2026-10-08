@@ -552,7 +552,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(Caption_(L("What it may do")));
          var readOnly = new RadioButton
          {
-            Content = L("_Read-only - can list and read, and is refused every request that changes something"),
+            Content = L("_Read-only - can list and read; every change is refused"),
             IsChecked = true,
             Margin = new Thickness(0, 0, 0, 4)
          };

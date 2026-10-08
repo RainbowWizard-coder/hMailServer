@@ -5010,8 +5010,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og sortlister op (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
-    <value>Jeg be_kræfter ændringerne markeret ovenfor: de lukker en lytter, stoler på et adresseområde, slår et filter eller en kontrol fra eller forkorter, hvor længe data gemmes på denne server - og hvad et kortere vindue sletter, bringer en tilbagesætning ikke tilbage.</value>
+  <data name="I _confirm the changes marked above." xml:space="preserve">
+    <value>Jeg be_kræfter ændringerne markeret ovenfor.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push-mail)</value>
@@ -7431,6 +7431,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
     <value>Udgående webhooks sender hændelser til de modtagere, der abonnerer i Control Deck eller via REST-API'et. Et abonnement, der ikke nævner noget domæne, dækker alle domæner, og at slå dette fra tager domænet ud af dem alle. Serverens egen kontakt er på siden Logføring.</value>
   </data>
+  <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
+    <value>Afsendere udefra får intet, eller domænets tekst, når dets tilsidesættelse er slået til.</value>
+  </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Tilsidesæt DNS-server (tomt = de navneservere, Windows bruger)</value>
   </data>
@@ -7751,8 +7754,11 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Ports…" xml:space="preserve">
     <value>Porte…</value>
   </data>
-  <data name="Post - and send as this mailbox's address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)" xml:space="preserve">
-    <value>Send - og send som denne postkasses adresse over SMTP (Send-As, når SmtpAuthenticatedSenderCheck er slået til)</value>
+  <data name="Post" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
+    <value>Send lader også kontoen sende som denne postkasses adresse over SMTP (Send-As), når SmtpAuthenticatedSenderCheck er slået til.</value>
   </data>
   <data name="Pr_operties…" xml:space="preserve">
     <value>Ege_nskaber…</value>
@@ -8551,8 +8557,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Reply su_bject" xml:space="preserve">
     <value>Svar_emne</value>
   </data>
-  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
-    <value>Svar kun k_olleger - afsendere udefra får intet, eller domænets tekst, når dets tilsidesættelse er slået til</value>
+  <data name="Reply to colleagues _only" xml:space="preserve">
+    <value>Svar kun k_olleger</value>
   </data>
   <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
     <value>Rapport_postkasse (én adresse i et domæne, denne server hoster; tom læser intet)</value>
@@ -11648,6 +11654,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="These settings could not be read." xml:space="preserve">
     <value>Disse indstillinger kunne ikke læses.</value>
   </data>
+  <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
+    <value>De lukker en lytter, stoler på et adresseområde, slår et filter eller en kontrol fra eller forkorter, hvor længe data gemmes. Hvad et kortere vindue sletter, bringer en tilbagesætning af indstillingerne ikke tilbage.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Dette Control Panel lukker, så snart hjælperen er startet, så installationsprogrammet kan erstatte dets filer; åbn det igen om et minut for at se resultatet.</value>
   </data>
@@ -13216,8 +13225,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Udløs webhook-hændelser om domænets post og konti</value>
   </data>
-  <data name="_Read-only - can list and read, and is refused every request that changes something" xml:space="preserve">
-    <value>_Skrivebeskyttet - kan liste og læse og nægtes hver forespørgsel, der ændrer noget</value>
+  <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
+    <value>_Skrivebeskyttet - kan liste og læse; enhver ændring nægtes</value>
   </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Opd_atér</value>

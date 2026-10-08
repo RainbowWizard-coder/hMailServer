@@ -29,20 +29,22 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class FolderPermissionsDialog : FluentDialogWindow
    {
-      // eACLPermission bit flags.
-      private static readonly (string Label, int Bit)[] Flags =
+      // eACLPermission bit flags. The label is the check box's caption in the entry
+      // dialog and, its first word, the right's name in an entry's row; a note is
+      // the sentence under the box for a right that does more than its name says.
+      private static readonly (string Label, int Bit, string Note)[] Flags =
       {
-         (L("Lookup (folder is visible)"), 1),
-         (L("Read messages"), 2),
-         (L("Keep seen/unseen state"), 4),
-         (L("Set flags"), 8),
-         (L("Insert / append messages"), 16),
-         (L("Post - and send as this mailbox's address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)"), 32),
-         (L("Create sub-folders"), 64),
-         (L("Delete folder"), 128),
-         (L("Delete messages"), 256),
-         (L("Expunge"), 512),
-         (L("Administer (manage ACL)"), 1024)
+         (L("Lookup (folder is visible)"), 1, null),
+         (L("Read messages"), 2, null),
+         (L("Keep seen/unseen state"), 4, null),
+         (L("Set flags"), 8, null),
+         (L("Insert / append messages"), 16, null),
+         (L("Post"), 32, L("Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on.")),
+         (L("Create sub-folders"), 64, null),
+         (L("Delete folder"), 128, null),
+         (L("Delete messages"), 256, null),
+         (L("Expunge"), 512, null),
+         (L("Administer (manage ACL)"), 1024, null)
       };
 
       private static readonly (int Value, string Label)[] Types =
@@ -133,7 +135,7 @@ namespace hMailServer.ControlPanel.Views
          };
          int value = (int)p.Value;
          var rights = new List<string>();
-         foreach ((string label, int bit) in Flags)
+         foreach ((string label, int bit, _) in Flags)
             if ((value & bit) != 0)
                rights.Add(label.Split(' ')[0]);
          return subject + "   —   " + (rights.Count == 0 ? L("no rights") : string.Join(", ", rights));
@@ -301,7 +303,7 @@ namespace hMailServer.ControlPanel.Views
       public string Subject { get; private set; }
       public int Value { get; private set; }
 
-      public PermissionEditDialog(Window owner, (int Value, string Label)[] types, (string Label, int Bit)[] flags)
+      public PermissionEditDialog(Window owner, (int Value, string Label)[] types, (string Label, int Bit, string Note)[] flags)
       {
          Owner = owner;
          Title = L("Access-control entry");
@@ -317,11 +319,16 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(subjectRow_);
 
          body.Children.Add(DialogFields.Caption(L("Permissions")));
-         foreach ((string label, int bit) in flags)
+         foreach ((string label, int bit, string note) in flags)
          {
             var cb = new CheckBox { Content = label, Margin = new Thickness(0, DesignTokens.Space.Xs, 0, DesignTokens.Space.Xs) };
             flagBoxes_.Add((cb, bit));
             body.Children.Add(cb);
+            // Under the box, not in its caption: "Post - and send as this mailbox's
+            // address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)"
+            // was wider than the dialog.
+            if (note != null)
+               body.Children.Add(DialogFields.Note(note));
          }
 
          // Enter saves, Escape cancels.

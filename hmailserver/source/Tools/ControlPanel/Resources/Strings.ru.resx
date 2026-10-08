@@ -5010,8 +5010,8 @@ Control Panel может читать файлы сообщений только
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Как этот сервер выполняет запросы MX, PTR, SPF, DKIM, DMARC и списков блокировки (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
-    <value>Я _подтверждаю отмеченные выше изменения: они закрывают прослушивающую службу, доверяют диапазону адресов, отключают фильтр или проверку либо сокращают срок хранения данных на этом сервере - и то, что удалит более короткий срок, возврат не восстановит.</value>
+  <data name="I _confirm the changes marked above." xml:space="preserve">
+    <value>Я _подтверждаю отмеченные выше изменения.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (доставка push)</value>
@@ -7431,6 +7431,9 @@ Control Panel может читать файлы сообщений только
   <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
     <value>Исходящие веб-хуки отправляют события получателям, подписанным в Control Deck или через REST API. Подписка, в которой не указан домен, охватывает все домены, а выключение этого исключает домен из всех них. Собственный переключатель сервера — на странице «Журналирование».</value>
   </data>
+  <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
+    <value>Посторонние отправители не получают ничего или получают текст домена, если его переопределение включено.</value>
+  </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Переопределить DNS-сервер (пусто — серверы имён, которые использует Windows)</value>
   </data>
@@ -7751,8 +7754,11 @@ Control Panel может читать файлы сообщений только
   <data name="Ports…" xml:space="preserve">
     <value>Порты…</value>
   </data>
-  <data name="Post - and send as this mailbox's address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)" xml:space="preserve">
-    <value>Отправка — и отправка от имени адреса этого почтового ящика по SMTP (Send-As, когда включён SmtpAuthenticatedSenderCheck)</value>
+  <data name="Post" xml:space="preserve">
+    <value>Отправка</value>
+  </data>
+  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
+    <value>Отправка также позволяет учётной записи отправлять от имени адреса этого почтового ящика по SMTP (Send-As), когда включён SmtpAuthenticatedSenderCheck.</value>
   </data>
   <data name="Pr_operties…" xml:space="preserve">
     <value>С_войства…</value>
@@ -8551,8 +8557,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Reply su_bject" xml:space="preserve">
     <value>_Тема ответа</value>
   </data>
-  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
-    <value>Отвечать только _коллегам — посторонние отправители не получают ничего или получают текст домена, если его переопределение включено</value>
+  <data name="Reply to colleagues _only" xml:space="preserve">
+    <value>Отвечать только _коллегам</value>
   </data>
   <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
     <value>Почтовый ящик для отчётов (один адрес в домене, который обслуживает этот сервер; пусто — ничего не читается) (_M)</value>
@@ -11648,6 +11654,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="These settings could not be read." xml:space="preserve">
     <value>Эти параметры не удалось прочитать.</value>
   </data>
+  <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
+    <value>Они закрывают прослушивающую службу, доверяют диапазону адресов, отключают фильтр или проверку либо сокращают срок хранения данных. То, что удалит более короткий срок, возврат настроек не восстановит.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Этот Control Panel закроется, как только запустится вспомогательная программа, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
   </data>
@@ -13216,8 +13225,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Генерировать события веб-хуков о почте и учётных записях этого домена</value>
   </data>
-  <data name="_Read-only - can list and read, and is refused every request that changes something" xml:space="preserve">
-    <value>_Только чтение — можно просматривать и читать, а любой запрос, который что-то изменяет, отклоняется</value>
+  <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
+    <value>_Только чтение — можно просматривать и читать; любое изменение отклоняется</value>
   </data>
   <data name="_Refresh" xml:space="preserve">
     <value>О_бновить</value>

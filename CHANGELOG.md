@@ -659,7 +659,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   language and at every window size, so its consequence was never seen; the account's auto-reply "Reply to colleagues
   only..." and the API key dialog's "Read-only..." ended mid-word; the German backup page's verify caption was cut; and
   the folder permission entry's "Post..." was wider than its dialog. Every such caption now wraps under itself, keeps
-  its Alt key and is still the box's name for a screen reader.
+  its Alt key and is still the box's name for a screen reader. And the four captions that needed more than a line say
+  less, with what they meant in a note under the box: the profiles page's box reads "I confirm the changes marked
+  above." and its note says what the marked changes do and that what a shorter window deletes, putting the settings
+  back does not bring back; the auto-reply's "Reply to colleagues only" has the outside senders' fate under it; the
+  API key's read-only choice reads "can list and read; every change is refused"; and the permission entry's "Post" has
+  the Send-As rule under it.
 
 ### IMAP, POP3 and the webmail
 

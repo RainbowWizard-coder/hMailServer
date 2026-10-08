@@ -86,7 +86,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox vacationDays_ = NewInput();
       private readonly TextBox vacationInternalSubject_ = NewInput();
       private readonly TextBox vacationInternalMessage_ = NewMemo();
-      private readonly CheckBox vacationInternalOnly_ = new() { Content = L("Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on") };
+      private readonly CheckBox vacationInternalOnly_ = new() { Content = L("Reply to colleagues _only") };
 
       // Signature
       private readonly CheckBox signatureOn_ = new() { Content = L("_Add signature to outgoing messages") };
@@ -346,6 +346,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(Label(L("Subject for _colleagues (empty = same as above)"), vacationInternalSubject_));
          panel.Children.Add(Label(L("Message for colleag_ues (empty = same as above)"), vacationInternalMessage_));
          panel.Children.Add(DialogFields.Check(vacationInternalOnly_));
+         panel.Children.Add(DialogFields.Note(L("Outside senders get nothing, or the domain's text when its override is on.")));
          return DialogFields.Scroll(panel);
       }
 

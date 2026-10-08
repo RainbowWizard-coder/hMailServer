@@ -5010,8 +5010,8 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Comment ce serveur résout les recherches MX, PTR, SPF, DKIM, DMARC et de listes noires (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
-    <value>Je _confirme les changements signalés ci-dessus : ils ferment un écouteur, font confiance à une plage d'adresses, désactivent un filtre ou une vérification, ou raccourcissent la durée de conservation des données sur ce serveur - et ce qu'une durée plus courte supprime, un rétablissement ne le ramène pas.</value>
+  <data name="I _confirm the changes marked above." xml:space="preserve">
+    <value>Je _confirme les changements signalés ci-dessus.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (courrier en push)</value>
@@ -7431,6 +7431,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
     <value>Les webhooks sortants envoient des événements aux destinataires abonnés dans le Control Deck ou par l'API REST. Un abonnement qui ne nomme aucun domaine couvre tous les domaines, et désactiver ceci retire le domaine de tous. L'interrupteur du serveur lui-même est sur la page Journalisation.</value>
   </data>
+  <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
+    <value>Les expéditeurs extérieurs ne reçoivent rien, ou le texte du domaine quand sa substitution est activée.</value>
+  </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Serveur DNS de remplacement (vide = les serveurs de noms qu'utilise Windows)</value>
   </data>
@@ -7751,8 +7754,11 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Ports…" xml:space="preserve">
     <value>Ports…</value>
   </data>
-  <data name="Post - and send as this mailbox's address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)" xml:space="preserve">
-    <value>Poster - et envoyer avec l'adresse de cette boîte via SMTP (Send-As, quand SmtpAuthenticatedSenderCheck est activé)</value>
+  <data name="Post" xml:space="preserve">
+    <value>Poster</value>
+  </data>
+  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
+    <value>Poster permet aussi au compte d'envoyer avec l'adresse de cette boîte via SMTP (Send-As), quand SmtpAuthenticatedSenderCheck est activé.</value>
   </data>
   <data name="Pr_operties…" xml:space="preserve">
     <value>Pr_opriétés…</value>
@@ -8551,8 +8557,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Reply su_bject" xml:space="preserve">
     <value>O_bjet de la réponse</value>
   </data>
-  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
-    <value>Répondre aux c_ollègues seulement - les expéditeurs extérieurs ne reçoivent rien, ou le texte du domaine quand sa substitution est activée</value>
+  <data name="Reply to colleagues _only" xml:space="preserve">
+    <value>Répondre aux c_ollègues seulement</value>
   </data>
   <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
     <value>_Boîte de rapports (une adresse d'un domaine hébergé par ce serveur ; vide ne lit rien)</value>
@@ -11648,6 +11654,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="These settings could not be read." xml:space="preserve">
     <value>Ces réglages n'ont pas pu être lus.</value>
   </data>
+  <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
+    <value>Ils ferment un écouteur, font confiance à une plage d'adresses, désactivent un filtre ou une vérification, ou raccourcissent la durée de conservation des données. Ce qu'une durée plus courte supprime, le rétablissement des réglages ne le ramène pas.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Ce Control Panel se ferme dès que l'assistant a démarré, pour que l'installateur puisse remplacer ses fichiers ; rouvrez-le dans une minute pour voir le résultat.</value>
   </data>
@@ -13216,8 +13225,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Déclencher des événements webhook sur le courrier et les comptes de ce domaine</value>
   </data>
-  <data name="_Read-only - can list and read, and is refused every request that changes something" xml:space="preserve">
-    <value>_Lecture seule - peut lister et lire, et se voit refuser toute requête qui change quelque chose</value>
+  <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
+    <value>_Lecture seule - peut lister et lire ; tout changement est refusé</value>
   </data>
   <data name="_Refresh" xml:space="preserve">
     <value>_Rafraîchir</value>

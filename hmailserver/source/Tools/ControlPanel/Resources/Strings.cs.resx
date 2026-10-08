@@ -5010,8 +5010,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and blacklist lookups (hMailServer.INI)." xml:space="preserve">
     <value>Jak tento server řeší dotazy MX, PTR, SPF, DKIM, DMARC a blacklistů (hMailServer.INI).</value>
   </data>
-  <data name="I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back." xml:space="preserve">
-    <value>Po_tvrzuji změny označené výše: zavírají naslouchací službu, důvěřují rozsahu adres, vypínají filtr nebo kontrolu, nebo zkracují dobu uchování dat na tomto serveru - a co kratší lhůta smaže, vrácení nevrátí.</value>
+  <data name="I _confirm the changes marked above." xml:space="preserve">
+    <value>Po_tvrzuji změny označené výše.</value>
   </data>
   <data name="IDLE (push mail)" xml:space="preserve">
     <value>IDLE (push pošta)</value>
@@ -7431,6 +7431,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page." xml:space="preserve">
     <value>Odchozí webhooky posílají události příjemcům přihlášeným v Control Deck nebo přes REST API. Odběr, který neuvádí žádnou doménu, pokrývá všechny domény, a vypnutí tohoto nastavení doménu ze všech vyřadí. Vlastní přepínač serveru je na stránce Logování.</value>
   </data>
+  <data name="Outside senders get nothing, or the domain's text when its override is on." xml:space="preserve">
+    <value>Odesílatelé zvenčí nedostanou nic, nebo text domény, je-li její přepsání zapnuté.</value>
+  </data>
   <data name="Override DNS server (empty = the name servers Windows uses)" xml:space="preserve">
     <value>Přepsat DNS server (prázdné = jmenné servery, které používají Windows)</value>
   </data>
@@ -7751,8 +7754,11 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Ports…" xml:space="preserve">
     <value>Porty…</value>
   </data>
-  <data name="Post - and send as this mailbox's address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)" xml:space="preserve">
-    <value>Vkládat – a odesílat přes SMTP z adresy této schránky (Send-As, když je zapnuto SmtpAuthenticatedSenderCheck)</value>
+  <data name="Post" xml:space="preserve">
+    <value>Vkládat</value>
+  </data>
+  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
+    <value>Vkládat také umožňuje účtu odesílat přes SMTP z adresy této schránky (Send-As), když je zapnuto SmtpAuthenticatedSenderCheck.</value>
   </data>
   <data name="Pr_operties…" xml:space="preserve">
     <value>Vl_astnosti…</value>
@@ -8551,8 +8557,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Reply su_bject" xml:space="preserve">
     <value>Před_mět odpovědi</value>
   </data>
-  <data name="Reply to colleagues _only - outside senders get nothing, or the domain's text when its override is on" xml:space="preserve">
-    <value>Odpovídat _pouze kolegům - odesílatelé zvenčí nedostanou nic, nebo text domény, je-li její přepsání zapnuté</value>
+  <data name="Reply to colleagues _only" xml:space="preserve">
+    <value>Odpovídat _pouze kolegům</value>
   </data>
   <data name="Report _mailbox (one address in a domain this server hosts; empty reads nothing)" xml:space="preserve">
     <value>Schránka pro _zprávy (jedna adresa v doméně, kterou tento server hostuje; prázdná nečte nic)</value>
@@ -11648,6 +11654,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="These settings could not be read." xml:space="preserve">
     <value>Tato nastavení se nepodařilo přečíst.</value>
   </data>
+  <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
+    <value>Zavírají naslouchací službu, důvěřují rozsahu adres, vypínají filtr nebo kontrolu, nebo zkracují dobu uchování dat. Co kratší lhůta smaže, vrácení nastavení nevrátí.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Tento Control Panel se zavře, jakmile se pomocník spustí, aby instalátor mohl nahradit jeho soubory; za minutu jej znovu otevřete a uvidíte výsledek.</value>
   </data>
@@ -13216,8 +13225,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Vyvolávat události webhooků o poště a účtech této domény</value>
   </data>
-  <data name="_Read-only - can list and read, and is refused every request that changes something" xml:space="preserve">
-    <value>_Pouze pro čtení – může vypisovat a číst a každý požadavek, který něco mění, je odmítnut</value>
+  <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
+    <value>_Pouze pro čtení – může vypisovat a číst; každá změna je odmítnuta</value>
   </data>
   <data name="_Refresh" xml:space="preserve">
     <value>O_bnovit</value>

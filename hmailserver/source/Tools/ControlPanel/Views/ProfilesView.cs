@@ -51,8 +51,18 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBlock steps_ = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
       private readonly CheckBox confirm_ = new()
       {
-         Content = L("I _confirm the changes marked above: they close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept on this server - and what a shorter window deletes, a revert does not bring back."),
+         Content = L("I _confirm the changes marked above."),
          Margin = new Thickness(0, 8, 0, 0),
+         Visibility = Visibility.Collapsed
+      };
+      // What the marked changes do, under the box rather than in its caption: a
+      // caption of three lines is read by nobody, and a check box names itself to a
+      // screen reader by its whole caption.
+      private readonly TextBlock confirmNote_ = new()
+      {
+         Text = L("They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back."),
+         TextWrapping = TextWrapping.Wrap,
+         Margin = new Thickness(28, 0, 0, 0),
          Visibility = Visibility.Collapsed
       };
 
@@ -240,6 +250,7 @@ namespace hMailServer.ControlPanel.Views
          steps_.Text = "";
          confirm_.IsChecked = false;
          confirm_.Visibility = Visibility.Collapsed;
+         confirmNote_.Visibility = Visibility.Collapsed;
          apply_.IsEnabled = false;
          changes_ = 0;
          needsConfirmation_ = false;
@@ -307,6 +318,7 @@ namespace hMailServer.ControlPanel.Views
             diffToken_ = Text_(root, "diff_token");
             needsConfirmation_ = root.TryGetProperty("confirmation_needed", out JsonElement needed) && needed.ValueKind == JsonValueKind.Array && needed.GetArrayLength() > 0;
             confirm_.Visibility = needsConfirmation_ ? Visibility.Visible : Visibility.Collapsed;
+            confirmNote_.Visibility = confirm_.Visibility;
 
             bool applicable = root.TryGetProperty("applicable", out JsonElement a) && a.ValueKind == JsonValueKind.True;
             apply_.IsEnabled = applicable;
@@ -524,6 +536,8 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(summary_);
          var bottom = new StackPanel();
          bottom.Children.Add(confirm_);
+         confirmNote_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
+         bottom.Children.Add(confirmNote_);
          bottom.Children.Add(steps_);
          DockPanel.SetDock(bottom, Dock.Bottom);
          body.Children.Add(bottom);
