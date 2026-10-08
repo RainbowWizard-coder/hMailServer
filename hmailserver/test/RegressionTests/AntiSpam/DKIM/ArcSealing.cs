@@ -377,6 +377,11 @@ namespace RegressionTests.AntiSpam.DKIM
       // What reaches external@example.com through the route after send, with the test
       // domain signing and ARC sealing on, and the envelope of a forward rewritten to the
       // forwarder, so that the forwarding domain seals it.
+      //
+      // The route is removed again before this returns: a test may deliver through it
+      // more than once, each time to a simulator of its own, and a second route for
+      // example.com is refused (COM: "Another route with this name already exists",
+      // REST: 409).
       private string DeliveredToTheRoute(Action send)
       {
          try
@@ -394,14 +399,20 @@ namespace RegressionTests.AntiSpam.DKIM
                smtpServer.AddRecipientResult(new Dictionary<string, int> { { "external@example.com", 250 } });
                smtpServer.StartListen();
 
-               Signing.AddRoutePointingAtLocalhost(5, port);
+               var route = Signing.AddRoutePointingAtLocalhost(5, port);
+               try
+               {
+                  send();
 
-               send();
+                  CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+                  smtpServer.WaitForCompletion();
 
-               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
-               smtpServer.WaitForCompletion();
-
-               return smtpServer.MessageData;
+                  return smtpServer.MessageData;
+               }
+               finally
+               {
+                  _settings.Routes.DeleteByDBID(route.ID);
+               }
             }
          }
          finally
@@ -656,7 +667,8 @@ namespace RegressionTests.AntiSpam.DKIM
 
       // What reaches external@example.com through the route after send, with ARC
       // sealing on and neither a forward's envelope rewritten nor X-Original-Rcpt-To
-      // written by this server.
+      // written by this server. The route is removed again, as DeliveredToTheRoute
+      // removes it.
       private string RelayedWithoutRewrite(Action send)
       {
          try
@@ -674,14 +686,20 @@ namespace RegressionTests.AntiSpam.DKIM
                smtpServer.AddRecipientResult(new Dictionary<string, int> { { "external@example.com", 250 } });
                smtpServer.StartListen();
 
-               Signing.AddRoutePointingAtLocalhost(5, port);
+               var route = Signing.AddRoutePointingAtLocalhost(5, port);
+               try
+               {
+                  send();
 
-               send();
+                  CustomAsserts.AssertRecipientsInDeliveryQueue(0);
+                  smtpServer.WaitForCompletion();
 
-               CustomAsserts.AssertRecipientsInDeliveryQueue(0);
-               smtpServer.WaitForCompletion();
-
-               return smtpServer.MessageData;
+                  return smtpServer.MessageData;
+               }
+               finally
+               {
+                  _settings.Routes.DeleteByDBID(route.ID);
+               }
             }
          }
          finally
