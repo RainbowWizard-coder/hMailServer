@@ -3461,6 +3461,18 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Delete IP range '{0}'?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Delete _account</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Delete _alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Delete _domain</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Delete _list</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Delete alias</value>
   </data>
@@ -13012,6 +13024,9 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Edit criterion…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Edit…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>_Empty mailbox</value>
   </data>
@@ -13236,6 +13251,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Properties</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Properties…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocol</value>

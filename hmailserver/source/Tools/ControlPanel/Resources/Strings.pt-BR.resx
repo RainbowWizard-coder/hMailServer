@@ -3461,6 +3461,18 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Excluir a faixa de IP '{0}'?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Excluir _conta</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Excluir _alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Excluir _domínio</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Excluir _lista de distribuição</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Excluir alias</value>
   </data>
@@ -13012,6 +13024,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Editar critério…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Editar…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>Esvaziar a _caixa</value>
   </data>
@@ -13236,6 +13251,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Propriedades</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Propriedades…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocolo</value>

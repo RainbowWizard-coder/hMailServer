@@ -17,8 +17,10 @@ letter and registers the key for the editor.
 What is checked
   * XAML views: every Button, CheckBox and RadioButton with a literal Content,
     outside a DataTemplate (a caption repeated per row cannot have a unique
-    key, and the rows are reached with the arrow keys). The scope for
-    uniqueness is the file: a view is one page, all of it on screen at once.
+    key; the rows are reached with the arrow keys, and their verbs with Enter,
+    Delete and a context menu, whose captions do carry keys - DomainsRowVerbsTests
+    holds the domains page's). The scope for uniqueness is the file: a view is
+    one page, all of it on screen at once.
   * Code-built views and dialogs: every Button/CheckBox/RadioButton initialised
     with a literal Content, every MakeButton("..."), every Label("...", editor)
     and Labelled*_("...", editor) caption, and every "<something>Button.Content =

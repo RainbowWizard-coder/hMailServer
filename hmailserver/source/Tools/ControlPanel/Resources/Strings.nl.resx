@@ -3461,6 +3461,18 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>IP-bereik '{0}' verwijderen?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>_Account verwijderen</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>_Alias verwijderen</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>_Domein verwijderen</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Distributielijst _verwijderen</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Alias verwijderen</value>
   </data>
@@ -13012,6 +13024,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Edit criterion…" xml:space="preserve">
     <value>Criterium _bewerken…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Bewerken…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>_Postvak legen</value>
   </data>
@@ -13236,6 +13251,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Eigenschappen</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Eigenschappen…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocol</value>

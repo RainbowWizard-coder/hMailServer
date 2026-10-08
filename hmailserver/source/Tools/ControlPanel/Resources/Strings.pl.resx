@@ -3461,6 +3461,18 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Usunąć zakres adresów IP „{0}”?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Usuń _konto</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Usuń _alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Usuń _domenę</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Usuń _listę dystrybucyjną</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Usuń alias</value>
   </data>
@@ -13012,6 +13024,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Edytuj kryterium…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Edytuj…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>Opróżnij _skrzynkę pocztową</value>
   </data>
@@ -13236,6 +13251,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Właściwości</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Właściwości…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokół</value>

@@ -3461,6 +3461,18 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Slet IP-interval '{0}'?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Slet _konto</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Slet _alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Slet _domæne</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Slet distributions_liste</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Slet alias</value>
   </data>
@@ -13012,6 +13024,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Redigér kriterium…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Redigér…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>Tøm _postkasse</value>
   </data>
@@ -13236,6 +13251,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Egenskaber</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Egenskaber…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokol</value>

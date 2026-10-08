@@ -3461,6 +3461,18 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Smazat IP rozsah „{0}“?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>_Odstranit účet</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>_Smazat alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Odstranit _doménu</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Odstranit distribuční _seznam</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Smazat alias</value>
   </data>
@@ -13012,6 +13024,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Upravit kritérium…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Upravit…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>_Vyprázdnit poštovní schránku</value>
   </data>
@@ -13236,6 +13251,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Vlastnosti</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Vlastnosti…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokol</value>

@@ -3461,6 +3461,18 @@
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>IP 範囲 '{0}' を削除しますか?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>アカウントを削除(_A)</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>エイリアスを削除(_A)</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>ドメインを削除(_D)</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>配布リストを削除(_L)</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>エイリアスを削除</value>
   </data>
@@ -13012,6 +13024,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Edit criterion…" xml:space="preserve">
     <value>条件を編集(_E)…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>編集(_E)…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>メールボックスを空にする(_E)</value>
   </data>
@@ -13236,6 +13251,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>プロパティ(_P)</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>プロパティ(_P)…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>プロトコル(_P)</value>

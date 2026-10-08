@@ -824,6 +824,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   group button under itself: the arrow keys move through the list, Enter or a click opens the page, Escape or a click
   outside closes it and puts the keyboard back on the glyph, and the rail's mark stays on the group of the page on
   screen. Above the threshold a glyph expands the sidebar on its group, as before.
+- **Fixed: on the Control Panel's Domains & accounts page, a domain, an account, an alias or a distribution list could
+  not be opened, deleted or managed from the keyboard.** The four lists put their verbs in buttons inside each row,
+  which Tab never reaches - a list is entered on its selected row and left on the next Tab, and the arrow keys only
+  move the selection - and nothing answered Enter, Delete, a double-click or the right mouse button. Each list now
+  opens the selected row's properties on Enter and on a double-click, deletes it on Delete with the confirmation the
+  button asks, and offers the same verbs - *Properties…*, *Members…* for a distribution list, *Delete domain*, *Delete
+  account*, *Delete alias* or *Delete list* - on a context menu from Shift+F10, the Menu key or the right mouse button;
+  after each, the keyboard is back on the row that is selected, where the reload that follows used to leave it
+  nowhere. The buttons stay for the mouse, and both roads lead to one method per verb.
 - **Fixed: the Control Panel's notices were silent to screen readers.** Every notice, loading state, empty state,
   field error and result line declared itself a live region, which only promises an announcement: a reader says the
   region when the element raises the live-region event, and nothing in the Control Panel raised it, so "Released 3

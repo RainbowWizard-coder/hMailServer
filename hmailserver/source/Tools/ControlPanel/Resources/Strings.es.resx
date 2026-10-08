@@ -3461,6 +3461,18 @@ Los detalles completos se escribieron en:
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>¿Borrar el rango de IP '{0}'?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Borrar _cuenta</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Borrar _alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Borrar _dominio</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Borrar _lista de distribución</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Borrar alias</value>
   </data>
@@ -13012,6 +13024,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Editar criterio…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Editar…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>_Vaciar el buzón</value>
   </data>
@@ -13236,6 +13251,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Propiedades</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Propiedades…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protocolo</value>

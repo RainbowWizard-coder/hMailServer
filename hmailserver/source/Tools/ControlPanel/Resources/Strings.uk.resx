@@ -3461,6 +3461,18 @@
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Видалити IP-діапазон «{0}»?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Видалити _обліковий запис</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Видалити _псевдонім</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Видалити _домен</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Видалити список _розсилки</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Видалити псевдонім</value>
   </data>
@@ -13012,6 +13024,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Змінити критерій…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Змінити…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>_Спорожнити поштову скриньку</value>
   </data>
@@ -13236,6 +13251,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Властивості</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Властивості…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Протокол</value>

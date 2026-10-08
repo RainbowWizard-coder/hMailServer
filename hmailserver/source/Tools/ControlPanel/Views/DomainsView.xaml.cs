@@ -34,6 +34,7 @@ namespace hMailServer.ControlPanel.Views
       public DomainsView()
       {
          InitializeComponent();
+         WireRows_();
       }
 
       public void OnEnter() => ReloadDomains();
@@ -346,8 +347,13 @@ namespace hMailServer.ControlPanel.Views
 
       private void DeleteAlias_Click(object sender, RoutedEventArgs e)
       {
-         string name = (sender as FrameworkElement)?.Tag as string;
-         if (name == null || DomainList.SelectedItem == null)
+         if ((sender as FrameworkElement)?.Tag is string name)
+            DeleteAlias_(name);
+      }
+
+      private void DeleteAlias_(string name)
+      {
+         if (DomainList.SelectedItem == null)
             return;
 
          if (MessageBox.Show(F("Delete the alias {0}?", name), L("Control Panel"),
@@ -421,9 +427,14 @@ namespace hMailServer.ControlPanel.Views
 
       private void EditRecipients_Click(object sender, RoutedEventArgs e)
       {
-         string address = (sender as FrameworkElement)?.Tag as string;
+         if ((sender as FrameworkElement)?.Tag is string address)
+            EditRecipients_(address);
+      }
+
+      private void EditRecipients_(string address)
+      {
          string domainName = SelectedDomainName();
-         if (address == null || domainName == null)
+         if (domainName == null)
             return;
 
          new RecipientsDialog(Window.GetWindow(this), domainName, address).ShowDialog();
@@ -431,9 +442,14 @@ namespace hMailServer.ControlPanel.Views
 
       private void EditDistList_Click(object sender, RoutedEventArgs e)
       {
-         string address = (sender as FrameworkElement)?.Tag as string;
+         if ((sender as FrameworkElement)?.Tag is string address)
+            EditDistList_(address);
+      }
+
+      private void EditDistList_(string address)
+      {
          string domainName = SelectedDomainName();
-         if (address == null || domainName == null)
+         if (domainName == null)
             return;
 
          new DistributionListDialog(Window.GetWindow(this), domainName, address).ShowDialog();
@@ -442,8 +458,13 @@ namespace hMailServer.ControlPanel.Views
 
       private void DeleteDistList_Click(object sender, RoutedEventArgs e)
       {
-         string address = (sender as FrameworkElement)?.Tag as string;
-         if (address == null || DomainList.SelectedItem == null)
+         if ((sender as FrameworkElement)?.Tag is string address)
+            DeleteDistList_(address);
+      }
+
+      private void DeleteDistList_(string address)
+      {
+         if (DomainList.SelectedItem == null)
             return;
 
          if (MessageBox.Show(F("Delete the distribution list {0}?", address), L("Control Panel"),
@@ -541,10 +562,12 @@ namespace hMailServer.ControlPanel.Views
 
       private void EditDomain_Click(object sender, RoutedEventArgs e)
       {
-         string name = (sender as FrameworkElement)?.Tag as string;
-         if (name == null)
-            return;
+         if ((sender as FrameworkElement)?.Tag is string name)
+            EditDomain_(name);
+      }
 
+      private void EditDomain_(string name)
+      {
          new DomainDialog(Window.GetWindow(this), name).ShowDialog();
          ReloadDomains();
       }
@@ -557,10 +580,12 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void DeleteDomain_Click(object sender, RoutedEventArgs e)
       {
-         string name = (sender as FrameworkElement)?.Tag as string;
-         if (name == null)
-            return;
+         if ((sender as FrameworkElement)?.Tag is string name)
+            DeleteDomain_(name);
+      }
 
+      private void DeleteDomain_(string name)
+      {
          dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
@@ -697,9 +722,14 @@ namespace hMailServer.ControlPanel.Views
 
       private void EditAccount_Click(object sender, RoutedEventArgs e)
       {
-         string address = (sender as FrameworkElement)?.Tag as string;
+         if ((sender as FrameworkElement)?.Tag is string address)
+            EditAccount_(address);
+      }
+
+      private void EditAccount_(string address)
+      {
          string domainName = SelectedDomainName();
-         if (address == null || domainName == null)
+         if (domainName == null)
             return;
 
          new AccountDialog(Window.GetWindow(this), domainName, address).ShowDialog();
@@ -708,9 +738,14 @@ namespace hMailServer.ControlPanel.Views
 
       private void DeleteAccount_Click(object sender, RoutedEventArgs e)
       {
-         string address = (sender as FrameworkElement)?.Tag as string;
+         if ((sender as FrameworkElement)?.Tag is string address)
+            DeleteAccount_(address);
+      }
+
+      private void DeleteAccount_(string address)
+      {
          string domainName = SelectedDomainName();
-         if (address == null || domainName == null)
+         if (domainName == null)
             return;
 
          if (MessageBox.Show(F("Delete {0}?", address), L("Control Panel"),

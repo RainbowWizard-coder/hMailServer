@@ -3461,6 +3461,18 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>'{0}' IP aralığı silinsin mi?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>_Hesabı sil</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>_Diğer adı sil</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>_Etki alanını sil</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Dağıtım _listesini sil</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Diğer adı sil</value>
   </data>
@@ -13012,6 +13024,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="_Edit criterion…" xml:space="preserve">
     <value>Ölçütü _düzenle…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Düzenle…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>Posta kutusunu _boşalt</value>
   </data>
@@ -13236,6 +13251,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Özellikler</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Özellikler…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokol</value>

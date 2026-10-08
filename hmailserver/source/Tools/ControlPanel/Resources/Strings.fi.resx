@@ -3461,6 +3461,18 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Poistetaanko IP-alue '{0}'?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Poista _tili</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Poista _alias</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Poista _verkkotunnus</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Poista jakelu_lista</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Poista alias</value>
   </data>
@@ -13012,6 +13024,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Muokkaa ehtoa…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Muokkaa…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>_Tyhjennä postilaatikko</value>
   </data>
@@ -13236,6 +13251,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Ominaisuudet</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Ominaisuudet…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Protokolla</value>

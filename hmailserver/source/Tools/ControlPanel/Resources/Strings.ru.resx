@@ -3461,6 +3461,18 @@ Control Panel может читать файлы сообщений только
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>Удалить диапазон IP «{0}»?</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>Удалить _учётную запись</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>Удалить _псевдоним</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>Удалить _домен</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>Удалить список _рассылки</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>Удалить псевдоним</value>
   </data>
@@ -13012,6 +13024,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Edit criterion…" xml:space="preserve">
     <value>_Изменить критерий…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>_Изменить…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>Очистить _почтовый ящик</value>
   </data>
@@ -13236,6 +13251,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>_Свойства</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>_Свойства…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>_Протокол</value>

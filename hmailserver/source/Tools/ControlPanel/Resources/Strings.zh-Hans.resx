@@ -3461,6 +3461,18 @@
   <data name="Delete IP range '{0}'?" xml:space="preserve">
     <value>是否删除 IP 范围 '{0}'？</value>
   </data>
+  <data name="Delete _account" xml:space="preserve">
+    <value>删除账户(_A)</value>
+  </data>
+  <data name="Delete _alias" xml:space="preserve">
+    <value>删除别名(_A)</value>
+  </data>
+  <data name="Delete _domain" xml:space="preserve">
+    <value>删除域(_D)</value>
+  </data>
+  <data name="Delete _list" xml:space="preserve">
+    <value>删除分发列表(_L)</value>
+  </data>
   <data name="Delete alias" xml:space="preserve">
     <value>删除别名</value>
   </data>
@@ -13012,6 +13024,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Edit criterion…" xml:space="preserve">
     <value>编辑条件(_E)…</value>
   </data>
+  <data name="_Edit…" xml:space="preserve">
+    <value>编辑(_E)…</value>
+  </data>
   <data name="_Empty mailbox" xml:space="preserve">
     <value>清空邮箱(_E)</value>
   </data>
@@ -13236,6 +13251,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Properties" xml:space="preserve">
     <value>属性(_P)</value>
+  </data>
+  <data name="_Properties…" xml:space="preserve">
+    <value>属性(_P)…</value>
   </data>
   <data name="_Protocol" xml:space="preserve">
     <value>协议(_P)</value>
