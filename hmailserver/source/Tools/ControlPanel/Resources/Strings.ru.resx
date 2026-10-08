@@ -1121,6 +1121,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Добавьте чёрный список DNS; подключения с перечисленных в нём адресов получают оценку или отклоняются.</value>
   </data>
+  <data name="Add a _domain" xml:space="preserve">
+    <value>Добавить до_мен</value>
+  </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Добавлять _заголовок, который читатель показывает полосой</value>
   </data>
@@ -6004,11 +6007,11 @@ Control Panel может читать файлы сообщений только
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Отсчитывается от создания записи, поэтому уменьшение действует и на уже существующие записи. Запись, добавленная вручную, сохраняет собственный срок.</value>
   </data>
-  <data name="Members" xml:space="preserve">
-    <value>Участники</value>
-  </data>
   <data name="Members - " xml:space="preserve">
     <value>Участники — </value>
+  </data>
+  <data name="Members of {0}" xml:space="preserve">
+    <value>Участники {0}</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>Запрос участников (пусто = только получатели) (_Q)</value>
@@ -7867,6 +7870,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Свойства</value>
+  </data>
+  <data name="Properties of {0}" xml:space="preserve">
+    <value>Свойства {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Защищать хранимые секреты с помощью Windows DPAPI</value>

@@ -105,6 +105,29 @@
                 <scaffold:FillPanel>
                     <scaffold:Toolbar x:Name="DomainSearch" SearchPlaceholder="{loc:L 'Search domains'}"
                                       SearchTextChanged="DomainSearch_TextChanged" Margin="0,0,0,8" />
+                    <!-- The add form at the top of the card, under the search, and
+                         the list under it - on every card of this page. At the foot
+                         of a card that fills the window, the form was the first
+                         thing a short window hid: in a 1280 by 800 window the detail
+                         column's floors are taller than the page, so the page
+                         scrolls, the domains card stretches to the column's height,
+                         and its Domain box and Add domain sat in the hidden bottom
+                         90 pixels; on an empty server the card said "No domains
+                         yet. Add the first one" with nothing to press on screen.
+                         At the top, the thing to do is on screen whatever the
+                         window's height. -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <scaffold:FieldRow Label="{loc:L 'Domain'}" Margin="0,0,8,0">
+                            <ui:TextBox x:Name="NewDomainBox" PlaceholderText="newdomain.com" />
+                        </scaffold:FieldRow>
+                        <ui:Button x:Name="AddDomainButton" Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
+                                   AutomationProperties.AutomationId="domains-add"
+                                   VerticalAlignment="Bottom" Margin="0" />
+                    </Grid>
                     <!-- The list's floor is three rows of 40 pixels, the pixel a
                          ListView keeps above and below its rows and one for layout
                          rounding, 123 (at 120 it held two whole rows, and scrolled
@@ -167,20 +190,14 @@
                                 </ListView.ItemTemplate>
                             </ListView>
                         </scaffold:FillPanel>
+                        <!-- The empty state's action puts the keyboard in the Domain
+                             box above, the next thing to do on an empty server. -->
                         <scaffold:EmptyState x:Name="DomainStatus" Icon="Globe24" Visibility="Collapsed"
-                                             Padding="12" AutomationProperties.LiveSetting="Polite" />
-                    </Grid>
-                    <Grid Margin="0,12,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <scaffold:FieldRow Label="{loc:L 'Domain'}" Margin="0,0,8,0">
-                            <ui:TextBox x:Name="NewDomainBox" PlaceholderText="newdomain.com" />
-                        </scaffold:FieldRow>
-                        <ui:Button x:Name="AddDomainButton" Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
-                                   AutomationProperties.AutomationId="domains-add"
-                                   VerticalAlignment="Bottom" Margin="0" />
+                                             Padding="12" AutomationProperties.LiveSetting="Polite">
+                            <scaffold:EmptyState.Action>
+                                <ui:Button Content="{loc:L 'Add a _domain'}" Click="AddDomainAction_Click" />
+                            </scaffold:EmptyState.Action>
+                        </scaffold:EmptyState>
                     </Grid>
                 </scaffold:FillPanel>
             </scaffold:Card>
@@ -195,6 +212,41 @@
                 <scaffold:FillPanel>
                     <scaffold:Toolbar x:Name="AccountSearch" SearchPlaceholder="{loc:L 'Search accounts'}"
                                       SearchTextChanged="AccountSearch_TextChanged" Margin="0,0,0,8" />
+
+                    <!-- The address has the card's width, on a line of its own:
+                         beside the password and both buttons it was squeezed to
+                         "user@ex" in a 1000-pixel window, and an address is what a
+                         new administrator most needs to see whole. The password
+                         keeps Generate and Create account beside it while they fit
+                         beside a password box of 120 pixels, and they go on a line
+                         of their own under it where they do not
+                         (AccountForm_SizeChanged): in the narrowest window Create
+                         account ran off the card's right edge. Above the list, as
+                         every form on this page is. -->
+                    <Grid x:Name="AccountForm" Margin="0,0,0,12" SizeChanged="AccountForm_SizeChanged">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Address'}">
+                            <ui:TextBox x:Name="NewAccountBox" PlaceholderText="user@domain" />
+                        </scaffold:FieldRow>
+                        <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L 'Password'}" Margin="0,0,8,0">
+                            <local:PasswordField x:Name="NewAccountPassword" />
+                        </scaffold:FieldRow>
+                        <WrapPanel x:Name="AccountButtons" Grid.Row="1" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                            <ui:Button Content="{loc:L '_Generate'}" Margin="0,0,8,0"
+                                       Click="GenerateAccountPassword_Click"
+                                       ToolTip="{loc:L 'Generate a strong password (copied to clipboard)'}" />
+                            <ui:Button Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
+                                       AutomationProperties.AutomationId="domains-accounts" Margin="0" />
+                        </WrapPanel>
+                    </Grid>
 
                     <!-- The floor: three rows of 38 pixels, the list's own pixel above and below them, and one for layout rounding. -->
                     <Grid scaffold:FillPanel.Fill="True">
@@ -231,40 +283,6 @@
                         <scaffold:EmptyState x:Name="AccountStatus" Icon="Person24" Visibility="Collapsed"
                                              Padding="12" AutomationProperties.LiveSetting="Polite" />
                     </Grid>
-
-                    <!-- The address has the card's width, on a line of its own:
-                         beside the password and both buttons it was squeezed to
-                         "user@ex" in a 1000-pixel window, and an address is what a
-                         new administrator most needs to see whole. The password
-                         keeps Generate and Create account beside it while they fit
-                         beside a password box of 120 pixels, and they go on a line
-                         of their own under it where they do not
-                         (AccountForm_SizeChanged): in the narrowest window Create
-                         account ran off the card's right edge. -->
-                    <Grid x:Name="AccountForm" Margin="0,12,0,0" SizeChanged="AccountForm_SizeChanged">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Address'}">
-                            <ui:TextBox x:Name="NewAccountBox" PlaceholderText="user@domain" />
-                        </scaffold:FieldRow>
-                        <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L 'Password'}" Margin="0,0,8,0">
-                            <local:PasswordField x:Name="NewAccountPassword" />
-                        </scaffold:FieldRow>
-                        <WrapPanel x:Name="AccountButtons" Grid.Row="1" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                            <ui:Button Content="{loc:L '_Generate'}" Margin="0,0,8,0"
-                                       Click="GenerateAccountPassword_Click"
-                                       ToolTip="{loc:L 'Generate a strong password (copied to clipboard)'}" />
-                            <ui:Button Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
-                                       AutomationProperties.AutomationId="domains-accounts" Margin="0" />
-                        </WrapPanel>
-                    </Grid>
                 </scaffold:FillPanel>
             </scaffold:Card>
 
@@ -278,41 +296,16 @@
 
                 <scaffold:Card x:Name="AliasCard" Title="{loc:L 'Aliases'}" Padding="12" Margin="0,0,6,0">
                     <scaffold:FillPanel>
-                        <!-- The floor: three rows of 31 pixels, the list's own pixel above and below them, and one for layout rounding. -->
-                        <Grid scaffold:FillPanel.Fill="True">
-                            <scaffold:FillPanel>
-                                <ListView x:Name="AliasList" scaffold:FillPanel.Fill="True" MinHeight="96" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
-                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                          AutomationProperties.Name="{loc:L 'Aliases'}">
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid Margin="4,3">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Display}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Delete24}" Padding="6,2" Margin="6,0,0,0"
-                                                           Style="{StaticResource DangerTextButton}"
-                                                           ToolTip="{loc:L 'Delete alias'}" AutomationProperties.Name="{loc:L 'Delete alias'}"
-                                                           Tag="{Binding Name}" Click="DeleteAlias_Click" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-                            </scaffold:FillPanel>
-                            <scaffold:EmptyState x:Name="AliasStatus" Visibility="Collapsed" Padding="12"
-                                                 AutomationProperties.LiveSetting="Polite" />
-                        </Grid>
                         <!-- Captioned, as the account row above is. The example
                              placeholders were the whole caption of these two boxes,
                              and half a card is too narrow for them: they read
                              "alias@domai" and "target@anyw", and at 1000 pixels
                              "alia" and "targ", with nothing to name either box.
                              One above the other, so that each box has the card's
-                             width however narrow the window. -->
-                        <Grid Margin="0,8,0,0">
+                             width however narrow the window. Above the list: at
+                             the foot of the card the form was below the fold in a
+                             1280 by 800 window. -->
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -331,45 +324,43 @@
                                        VerticalAlignment="Bottom" Margin="0"
                                        AutomationProperties.Name="{loc:L 'Add alias'}" />
                         </Grid>
-                    </scaffold:FillPanel>
-                </scaffold:Card>
-
-                <scaffold:Card x:Name="DistCard" Title="{loc:L 'Distribution lists'}" Padding="12" Margin="6,0,0,0">
-                    <scaffold:FillPanel>
-                        <!-- The floor: three rows of 31 pixels, the list's own pixel above and below them, and one for layout rounding. -->
+                        <!-- The floor: three rows of 34 pixels (a row is its 24-pixel
+                             button and the margins around it), the list's own pixel
+                             above and below them, and one for layout rounding. -->
                         <Grid scaffold:FillPanel.Fill="True">
                             <scaffold:FillPanel>
-                                <ListView x:Name="DistList" scaffold:FillPanel.Fill="True" MinHeight="96" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
+                                <ListView x:Name="AliasList" scaffold:FillPanel.Fill="True" MinHeight="105" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                          AutomationProperties.Name="{loc:L 'Distribution lists'}">
+                                          AutomationProperties.Name="{loc:L 'Aliases'}">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Margin="4,3">
+                                            <Grid Margin="4,2">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
+                                                <TextBlock Text="{Binding Display}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                                <ui:Button Grid.Column="1" Content="{loc:L 'Properties'}" FontSize="10" Padding="6,2" Margin="6,0,4,0"
-                                                           Tag="{Binding}" Click="EditDistList_Click" />
-                                                <ui:Button Grid.Column="2" Content="{loc:L 'Members'}" FontSize="10" Padding="6,2" Margin="0,0,4,0"
-                                                           Tag="{Binding}" Click="EditRecipients_Click" />
-                                                <ui:Button Grid.Column="3" Icon="{ui:SymbolIcon Delete24}" Padding="6,2"
+                                                <!-- A 24-pixel box at least, as the domain and account rows' buttons are. -->
+                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,0,0"
                                                            Style="{StaticResource DangerTextButton}"
-                                                           ToolTip="{loc:L 'Delete distribution list'}" AutomationProperties.Name="{loc:L 'Delete distribution list'}"
-                                                           Tag="{Binding}" Click="DeleteDistList_Click" />
+                                                           ToolTip="{loc:L 'Delete alias'}" AutomationProperties.Name="{loc:L 'Delete alias'}"
+                                                           Tag="{Binding Name}" Click="DeleteAlias_Click" />
                                             </Grid>
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
                             </scaffold:FillPanel>
-                            <scaffold:EmptyState x:Name="DistStatus" Visibility="Collapsed" Padding="12"
+                            <scaffold:EmptyState x:Name="AliasStatus" Visibility="Collapsed" Padding="12"
                                                  AutomationProperties.LiveSetting="Polite" />
                         </Grid>
-                        <Grid Margin="0,8,0,0">
+                    </scaffold:FillPanel>
+                </scaffold:Card>
+
+                <scaffold:Card x:Name="DistCard" Title="{loc:L 'Distribution lists'}" Padding="12" Margin="6,0,0,0">
+                    <scaffold:FillPanel>
+                        <!-- Above the list, as the alias form is. -->
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -380,6 +371,50 @@
                             <ui:Button Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
                                        VerticalAlignment="Bottom" Margin="0"
                                        AutomationProperties.Name="{loc:L 'Add distribution list'}" />
+                        </Grid>
+                        <!-- The floor: three rows of 34 pixels, the list's own pixel
+                             above and below them, and one for layout rounding. -->
+                        <Grid scaffold:FillPanel.Fill="True">
+                            <scaffold:FillPanel>
+                                <ListView x:Name="DistList" scaffold:FillPanel.Fill="True" MinHeight="105" BorderThickness="0" Background="Transparent" HorizontalContentAlignment="Stretch"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                          AutomationProperties.Name="{loc:L 'Distribution lists'}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- The address is the row's one datum, and three
+                                                 buttons took most of a half-width card from it:
+                                                 beside Properties and Members as words, at 10
+                                                 pixels, the rows read "everyone@e..." and
+                                                 "board@exa..." in a 1280 by 800 window. The
+                                                 three are glyphs in 24-pixel boxes, as the domain
+                                                 and account rows' buttons are, each named for its
+                                                 row in its tool tip and to a screen reader. -->
+                                            <Grid Margin="4,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Address}" Style="{StaticResource GridTrimmedText}" FontSize="12" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                <ui:Button Grid.Column="1" Icon="{ui:SymbolIcon Settings24}" Padding="4" MinWidth="24" MinHeight="24" Margin="6,0,4,0"
+                                                           ToolTip="{Binding PropertiesName}" AutomationProperties.Name="{Binding PropertiesName}"
+                                                           Tag="{Binding Address}" Click="EditDistList_Click" />
+                                                <ui:Button Grid.Column="2" Icon="{ui:SymbolIcon People24}" Padding="4" MinWidth="24" MinHeight="24" Margin="0,0,4,0"
+                                                           ToolTip="{Binding MembersName}" AutomationProperties.Name="{Binding MembersName}"
+                                                           Tag="{Binding Address}" Click="EditRecipients_Click" />
+                                                <ui:Button Grid.Column="3" Icon="{ui:SymbolIcon Delete24}" Padding="4" MinWidth="24" MinHeight="24"
+                                                           Style="{StaticResource DangerTextButton}"
+                                                           ToolTip="{loc:L 'Delete distribution list'}" AutomationProperties.Name="{loc:L 'Delete distribution list'}"
+                                                           Tag="{Binding Address}" Click="DeleteDistList_Click" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </scaffold:FillPanel>
+                            <scaffold:EmptyState x:Name="DistStatus" Visibility="Collapsed" Padding="12"
+                                                 AutomationProperties.LiveSetting="Polite" />
                         </Grid>
                     </scaffold:FillPanel>
                 </scaffold:Card>

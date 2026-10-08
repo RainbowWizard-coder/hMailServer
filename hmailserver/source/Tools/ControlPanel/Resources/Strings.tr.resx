@@ -1121,6 +1121,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Bir DNS kara listesi ekleyin; listedeki adreslerden gelen bağlantılar puan kazanır veya reddedilir.</value>
   </data>
+  <data name="Add a _domain" xml:space="preserve">
+    <value>Bir etki alanı ek_le</value>
+  </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Okuyucunun şerit olarak gösterdiği bir _başlık ekle</value>
   </data>
@@ -6004,11 +6007,11 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Kaydın oluşturulduğu andan itibaren ölçülür, bu yüzden değeri düşürmek zaten var olan kayıtlara da uygulanır. Elle eklenen bir kayıt kendi süresini korur.</value>
   </data>
-  <data name="Members" xml:space="preserve">
-    <value>Üyeler</value>
-  </data>
   <data name="Members - " xml:space="preserve">
     <value>Üyeler - </value>
+  </data>
+  <data name="Members of {0}" xml:space="preserve">
+    <value>{0} üyeleri</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>Ü_yelik sorgusu (boş = yalnızca alıcılar)</value>
@@ -7867,6 +7870,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Özellikler</value>
+  </data>
+  <data name="Properties of {0}" xml:space="preserve">
+    <value>{0} özellikleri</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Saklanan gizli anahtarları Windows DPAPI ile koru</value>

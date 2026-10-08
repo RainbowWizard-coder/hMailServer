@@ -255,9 +255,23 @@ namespace hMailServer.ControlPanel.Views
             L("Couldn't load aliases: "));
       }
 
+      /// <summary>
+      /// A distribution list in the lists card: its address, and the names of the
+      /// row's Properties and Members buttons, which are glyphs and say which list
+      /// each acts on in their tool tips and to a screen reader. ToString carries
+      /// the address to a ListViewItem's accessible name, as AliasRow does.
+      /// </summary>
+      public class DistRow
+      {
+         public string Address { get; set; }
+         public string PropertiesName => F("Properties of {0}", Address);
+         public string MembersName => F("Members of {0}", Address);
+         public override string ToString() => Address;
+      }
+
       private void ReloadDistLists()
       {
-         var rows = new List<string>();
+         var rows = new List<DistRow>();
          string error = null;
          if (DomainList.SelectedItem != null)
          {
@@ -270,7 +284,7 @@ namespace hMailServer.ControlPanel.Views
                for (int i = 0; i < count; i++)
                {
                   dynamic list = lists.Item[i];
-                  rows.Add((string)list.Address);
+                  rows.Add(new DistRow { Address = (string)list.Address });
                   ServerSession.Release(list);
                }
                ServerSession.Release(lists);
@@ -584,6 +598,13 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ReloadDomains();
+      }
+
+      /// <summary>The empty state's action: the keyboard goes to the Domain box, the next thing to do on an empty server.</summary>
+      private void AddDomainAction_Click(object sender, RoutedEventArgs e)
+      {
+         NewDomainBox.Focus();
+         NewDomainBox.SelectAll();
       }
 
       private void AddDomain_Click(object sender, RoutedEventArgs e)

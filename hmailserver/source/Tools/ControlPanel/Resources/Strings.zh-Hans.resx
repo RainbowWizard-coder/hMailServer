@@ -1121,6 +1121,9 @@
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>添加一个 DNS 黑名单；来自被列出地址的连接会增加分数或被拒绝。</value>
   </data>
+  <data name="Add a _domain" xml:space="preserve">
+    <value>添加一个域(_D)</value>
+  </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>添加读者显示为横幅的邮件头(_H)</value>
   </data>
@@ -6004,11 +6007,11 @@
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>从条目创建时开始计算，因此调低此值也会作用于已有条目。手动添加的条目保留其自身的过期时间。</value>
   </data>
-  <data name="Members" xml:space="preserve">
-    <value>成员</value>
-  </data>
   <data name="Members - " xml:space="preserve">
     <value>成员 - </value>
+  </data>
+  <data name="Members of {0}" xml:space="preserve">
+    <value>{0} 的成员</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>成员查询（留空 = 仅收件人） (_Q)</value>
@@ -7867,6 +7870,9 @@
   </data>
   <data name="Properties" xml:space="preserve">
     <value>属性</value>
+  </data>
+  <data name="Properties of {0}" xml:space="preserve">
+    <value>{0} 的属性</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>用 Windows DPAPI 保护存储的机密</value>

@@ -1121,6 +1121,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Legg til en DNS-svarteliste; tilkoblinger fra oppførte adresser får poeng eller avvises.</value>
   </data>
+  <data name="Add a _domain" xml:space="preserve">
+    <value>Legg til et _domene</value>
+  </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Legg til en _header som leseren viser som et banner</value>
   </data>
@@ -6004,11 +6007,11 @@ Hvert Web Push-abonnement under det nåværende paret slutter å virke med en ga
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Måles fra da oppføringen ble laget, så en senkning gjelder også oppføringene som allerede finnes. En oppføring lagt til for hånd beholder sin egen utløpstid.</value>
   </data>
-  <data name="Members" xml:space="preserve">
-    <value>Medlemmer</value>
-  </data>
   <data name="Members - " xml:space="preserve">
     <value>Medlemmer - </value>
+  </data>
+  <data name="Members of {0}" xml:space="preserve">
+    <value>Medlemmer av {0}</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>M_edlemsspørring (tom = bare mottakerne)</value>
@@ -7867,6 +7870,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Egenskaper</value>
+  </data>
+  <data name="Properties of {0}" xml:space="preserve">
+    <value>Egenskaper for {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Beskytt lagrede hemmeligheter med Windows DPAPI</value>

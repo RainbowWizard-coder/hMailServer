@@ -1121,6 +1121,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Añadir una lista negra DNS; las conexiones desde direcciones listadas ganan puntuación o se rechazan.</value>
   </data>
+  <data name="Add a _domain" xml:space="preserve">
+    <value>Añadir un _dominio</value>
+  </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Añadir una ca_becera que el lector muestra como franja</value>
   </data>
@@ -6004,11 +6007,11 @@ Cada suscripción de Web Push hecha con el par actual deja de funcionar al momen
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Se mide desde que se creó la entrada, así que reducirlo se aplica a las entradas que ya hay. Una entrada añadida a mano conserva su propia caducidad.</value>
   </data>
-  <data name="Members" xml:space="preserve">
-    <value>Miembros</value>
-  </data>
   <data name="Members - " xml:space="preserve">
     <value>Miembros - </value>
+  </data>
+  <data name="Members of {0}" xml:space="preserve">
+    <value>Miembros de {0}</value>
   </data>
   <data name="Membership _query (empty = the recipients alone)" xml:space="preserve">
     <value>_Consulta de miembros (vacío = solo los destinatarios)</value>
@@ -7867,6 +7870,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Properties" xml:space="preserve">
     <value>Propiedades</value>
+  </data>
+  <data name="Properties of {0}" xml:space="preserve">
+    <value>Propiedades de {0}</value>
   </data>
   <data name="Protect stored secrets with Windows DPAPI" xml:space="preserve">
     <value>Proteger los secretos guardados con DPAPI de Windows</value>

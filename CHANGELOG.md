@@ -734,6 +734,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   routes and domain white and black list pages' toolbar actions wrap in a narrow window, as the IP ranges page's do,
   rather than running off the right edge, and the bounce counts are a titled card, as the discovery page's lines are.
   `ControlPanel.Tests` holds every one of the eleven pages to the shape.
+- **Fixed: on the Control Panel's Domains & accounts page, the Add domain form and the alias and list forms were below
+  the fold in a 1280 by 800 window.** The detail column's floors are taller than the page, so the page scrolls, the
+  domains card stretched to the column's height, and its Domain box and Add domain sat at the foot of the card in the
+  hidden bottom 90 pixels - on an empty server the card said "No domains yet. Add the first one to start receiving
+  mail." with nothing to press on screen - and the alias form was cut at its caption and the list form was off screen.
+  Every card's add form is at the top of the card now, under its search where it has one, with the list under it, so
+  the thing to do is on screen whatever the window's height; and the empty domains state offers *Add a domain*, which
+  puts the keyboard in the Domain box.
+- **Fixed: the Control Panel's distribution lists card cut every address to about ten characters beside two
+  10-pixel word buttons.** Properties and Members were words at 10 pixels, the only text in the Control Panel below
+  the 12-pixel caption size, and with the trash button took most of a half-width card from the address, the row's
+  one datum, which read "everyone@e..." and "board@exa..." in a 1280 by 800 window. The three are glyphs in 24-pixel
+  boxes now, as the domain and account rows' buttons are, each saying which list it acts on in its tool tip and to a
+  screen reader ("Properties of everyone@example.com"), so the address has about 170 pixels; the alias rows' trash
+  button has the same box; and a test holds the page to the caption size.
 
 ### IMAP, POP3 and the webmail
 
