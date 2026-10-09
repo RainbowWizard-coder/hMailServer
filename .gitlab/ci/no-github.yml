@@ -5,14 +5,15 @@
 # The no-GitHub rule, enforced inside a job: included from .gitlab-ci.yml.
 #
 # The project downloads nothing from GitHub (docs/ContinuousIntegration.md, "Nothing
-# from GitHub"). The runners are to enforce it for every job: linix's runner entries
-# map github.com and its five hosts below to 0.0.0.0 (extra_hosts), and bench150's
-# hosts file does the same, so a tool that quietly reaches for GitHub fails by name.
-# That covers what runs on the project's own runners, and only in an image whose C
-# library reads /etc/hosts before it asks DNS. It does not cover a job on GitLab's
-# hosted runners - a merge request's checks - whose configuration is GitLab's; nor,
-# while linix's and server2's entries are still to be made (neither config.toml maps a
-# GitHub host on 9 October 2026), a job on them; nor an image with no
+# from GitHub"). The runners are to enforce it for every job: the runner entries of
+# linix and server2 are to map github.com and its five hosts below to 0.0.0.0
+# (extra_hosts), as bench150's hosts file has since 29 September 2026, so that a tool
+# that quietly reaches for GitHub fails by name. That would cover what runs on the
+# project's own runners, and only in an image whose C library reads /etc/hosts
+# before it asks DNS. It does not cover a job on GitLab's hosted runners - a merge
+# request's checks - whose configuration is GitLab's; nor, while linix's and
+# server2's entries are still to be made (neither config.toml maps a GitHub host on 9
+# October 2026), a job on them; nor an image with no
 # /etc/nsswitch.conf, such as Docker Hub's nixos/nix: glibc's default for a missing
 # file is "dns [!UNAVAIL=return] files", so curl, git and nix itself in such an
 # image ask DNS first and never read the runner's entries (the image was read on 28
