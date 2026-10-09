@@ -1729,12 +1729,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   so a second click ran the checks twice; the MX query wrote "Query failed" and "no mail servers" into its box as
   plain text, and both pages' Copy was enabled with nothing to copy. Each check is now a row - a Passed or Did not
   pass pill, its name, and what the server found under it - below a summary at the level of the worst ("3 of 4 checks
-  passed. Failed: Outbound port 25."), Run and Query wait while a run is in progress, with the loading state in the
-  results' place, a failed run is a Critical notice, the MX answer is a summary at its level (the mail servers found,
-  none found, or the query failed) above the servers it names, and Copy waits for an answer. The message-store
-  consistency card says No problems found at Good only for a scan under two hours old of a check that is switched on;
-  a scan of a check that is off is Information, with how old it is and a button to the Server limits & expert settings
-  page, and one of a check that is on but has not scanned since is a Warning that says how old it is.
+  passed. Failed: Outbound port 25."), a check that did not pass being Critical in its pill and in the summary alike,
+  Run and Query wait while a run is in progress, with the loading state in the results' place, a failed run is a
+  Critical notice, the MX answer is a summary at its level (the mail servers found, none found, or the query failed)
+  above the servers it names, and Copy waits for an answer. The message-store consistency card says No problems found
+  at Good only for a scan under two hours old of a check that is switched on; a scan of a check that is off is
+  Information, with how old it is and a button to the Server limits & expert settings page, and one of a check that is
+  on but has not scanned since is a Warning that says how old it is.
 
 - **Fixed: Server status worked the uptime out from the Control Panel's clock, its statistics had no period, and the
   counters had other names on the Dashboard.** The uptime was the server's local start time subtracted from the clock

@@ -77,13 +77,20 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string show = WithheldRowTests.MemberText(view, "private void ShowResults_(List<CheckResult> checks)");
          Assert.True(show != null, "DiagnosticsView.ShowResults_ is gone.");
-         Assert.Contains("Say_(StatusLevel.Warning, F(\"{0} of {1} checks passed. Failed: {2}.\"", show, StringComparison.Ordinal);
+         // A check that did not pass is Critical in the summary as in its row's pill: one
+         // level for one outcome, where the summary was a Warning over a red pill.
+         Assert.Contains("Say_(LevelOf_(false), F(\"{0} of {1} checks passed. Failed: {2}.\"", show, StringComparison.Ordinal);
+         string level = WithheldRowTests.MemberText(view, "private static StatusLevel LevelOf_(bool? passed)");
+         Assert.True(level != null, "DiagnosticsView.LevelOf_ is gone.");
+         Assert.Contains("passed == false ? StatusLevel.Critical", level, StringComparison.Ordinal);
+         Assert.DoesNotContain("Say_(StatusLevel.Warning, F(\"{0} of {1} checks passed.", view, StringComparison.Ordinal);
          Assert.Contains("Say_(StatusLevel.Good,", show, StringComparison.Ordinal);
          Assert.Contains("rows_.Children.Add(CheckRow_(check));", show, StringComparison.Ordinal);
 
          string row = WithheldRowTests.MemberText(view, "private static FrameworkElement CheckRow_(CheckResult check)");
          Assert.True(row != null, "DiagnosticsView.CheckRow_ is gone.");
          Assert.Contains("new StatusPill", row, StringComparison.Ordinal);
+         Assert.Contains("Level = LevelOf_(check.Passed),", row, StringComparison.Ordinal);
       }
 
       [Fact]

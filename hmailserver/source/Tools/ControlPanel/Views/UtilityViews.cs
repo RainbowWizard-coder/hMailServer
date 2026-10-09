@@ -904,8 +904,8 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The summary at the level of the worst check - Good when every one passed,
-      /// Warning when one failed, naming it - and a row per check; and the same as
-      /// text for Copy.
+      /// Critical when one failed, naming it, the level of its row's pill (LevelOf_) -
+      /// and a row per check; and the same as text for Copy.
       /// </summary>
       private void ShowResults_(List<CheckResult> checks)
       {
@@ -919,7 +919,7 @@ namespace hMailServer.ControlPanel.Views
          int passed = checks.Count(c => c.Passed == true);
          List<string> failed = checks.Where(c => c.Passed == false).Select(c => c.Name).ToList();
          if (failed.Count > 0)
-            Say_(StatusLevel.Warning, F("{0} of {1} checks passed. Failed: {2}.", passed, checks.Count, string.Join(", ", failed)));
+            Say_(LevelOf_(false), F("{0} of {1} checks passed. Failed: {2}.", passed, checks.Count, string.Join(", ", failed)));
          else if (passed < checks.Count)
             Say_(StatusLevel.Information, F("{0} of {1} checks passed; the server gave no result for the others.", passed, checks.Count));
          else
@@ -950,12 +950,20 @@ namespace hMailServer.ControlPanel.Views
       private static string CheckWord_(CheckResult check)
          => check.Passed == true ? L("Passed") : check.Passed == false ? L("Did not pass") : L("Unknown");
 
+      /// <summary>
+      /// A check's level: a check that did not pass is a failure, Critical, in its row's
+      /// pill and in the summary over the rows alike (the design system's "Critical: a
+      /// failure"), where the summary said Warning over a red pill.
+      /// </summary>
+      private static StatusLevel LevelOf_(bool? passed)
+         => passed == true ? StatusLevel.Good : passed == false ? StatusLevel.Critical : StatusLevel.Normal;
+
       /// <summary>One check: its pill and name, what the server found under them.</summary>
       private static FrameworkElement CheckRow_(CheckResult check)
       {
          var pill = new StatusPill
          {
-            Level = check.Passed == true ? StatusLevel.Good : check.Passed == false ? StatusLevel.Critical : StatusLevel.Normal,
+            Level = LevelOf_(check.Passed),
             Text = CheckWord_(check),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center
