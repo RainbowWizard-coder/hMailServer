@@ -16,8 +16,12 @@ namespace hMailServer.ControlPanel.Views
    /// Property editor for one distribution list (the membership list is edited
    /// separately via <see cref="RecipientsDialog"/>). On the standard frame: the
    /// list's address is the heading, every field a <see cref="FieldRow"/> with
-   /// its note under it, a save that fails says so in a notice above the fields
-   /// and leaves the dialog open with what was typed.
+   /// its note under it, a save that fails says so in a notice above the fields,
+   /// brought into view, and leaves the dialog open with what was typed. The
+   /// address and the two numbers are checked on their fields before anything is
+   /// written (review finding F077): a number that was no number went to the
+   /// server as -1, and a refusal appeared at the top of a body scrolled to its
+   /// end, out of sight.
    /// </summary>
    public class DistributionListDialog : FluentDialogWindow
    {
@@ -48,6 +52,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox owner_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
+      // The rows that say a value refused on their box.
+      private readonly FieldRow addressRow_;
+      private readonly FieldRow archiveDaysRow_;
+      private readonly FieldRow digestHourRow_;
+
       public DistributionListDialog(Window owner, string domainName, string address)
       {
          domainName_ = domainName;
@@ -59,7 +68,11 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(notice_);
 
          body.Children.Add(DialogFields.Field(null, active_));
-         body.Children.Add(Label(L("_List address"), addressBox_));
+         // Saying it here, as the account dialog's Address caption does: a new
+         // address renames the list.
+         addressRow_ = Label(L("_List address"), addressBox_)
+            .WithHint(L("Changing it renames the list; its members and settings stay."));
+         body.Children.Add(addressRow_);
 
          // Four modes, not five. There used to be a fifth - "Anyone with a server
          // account can send", mode 4 - and it was the most dangerous entry in this
@@ -114,10 +127,12 @@ namespace hMailServer.ControlPanel.Views
          archive_.Items.Add(DialogFields.Combo(L("For the members"), 1));
          archive_.Items.Add(DialogFields.Combo(L("Public"), 2));
          body.Children.Add(Label(L("Ar_chive"), archive_));
-         body.Children.Add(Label(L("Keep archived messages for (_days, 0 = for ever)"), archiveDays_));
+         archiveDaysRow_ = Label(L("Keep archived messages for (_days, 0 = for ever)"), archiveDays_);
+         body.Children.Add(archiveDaysRow_);
 
          body.Children.Add(DialogFields.Field(null, digest_));
-         body.Children.Add(Label(L("Digest _hour (0-23)"), digestHour_));
+         digestHourRow_ = Label(L("Digest _hour (0-23)"), digestHour_);
+         body.Children.Add(digestHourRow_);
          body.Children.Add(DialogFields.Field(null, replyToList_));
          body.Children.Add(Label(L("Subject _prefix"), prefix_));
          body.Children.Add(Label(L("_Footer"), footer_));
@@ -131,6 +146,7 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => Close();
 
          UseFrame(address, body, save, cancel, width: 520);
+         KeepRoomForFieldErrors(3);
          Loaded += (s, e) => Load();
       }
 
@@ -186,13 +202,27 @@ namespace hMailServer.ControlPanel.Views
       {
          notice_.Hide();
 
+         // The address and the two numbers on their fields, all on one press, the
+         // keyboard in the first, before anything is written: the server would
+         // refuse a number out of its range in its own sentence at the top of the
+         // body, and a box that was no number went to it as -1. Ranges as the
+         // server's own (InterfaceDistributionList::put_ArchiveDays, put_DigestHour).
+         DialogFields.ClearErrors(addressRow_, archiveDaysRow_, digestHourRow_);
+         if (addressBox_.Text.Trim().Length == 0)
+            addressRow_.Error = L("Enter the list's address.");
+         if (!InlineFormChecks.TryWholeNumber(archiveDays_.Text, 0, 3650, out int archiveDays))
+            archiveDaysRow_.Error = L("Enter a number of days from 0 (for ever) to 3650.");
+         if (!InlineFormChecks.TryWholeNumber(digestHour_.Text, 0, 23, out int digestHour))
+            digestHourRow_.Error = L("Enter an hour from 0 to 23.");
+         if (DialogFields.ShowFirstError(addressRow_, archiveDaysRow_, digestHourRow_))
+            return;
+
          dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
             dynamic l = OpenList(domains);
             l.Active = active_.IsChecked is true;
-            if (addressBox_.Text.Trim().Length > 0)
-               l.Address = addressBox_.Text.Trim();
+            l.Address = addressBox_.Text.Trim();
             l.Mode = DialogFields.ComboValue(mode_);
             l.RequireSMTPAuth = requireAuth_.IsChecked is true;
             l.RequireSenderAddress = requireSender_.Text.Trim();
@@ -202,9 +232,9 @@ namespace hMailServer.ControlPanel.Views
             l.Managed = managed_.IsChecked is true;
             l.SubscribePolicy = DialogFields.ComboValue(subscribe_);
             l.Archive = DialogFields.ComboValue(archive_);
-            l.ArchiveDays = WholeNumber(archiveDays_.Text, 0);
+            l.ArchiveDays = archiveDays;
             l.Digest = digest_.IsChecked is true;
-            l.DigestHour = WholeNumber(digestHour_.Text, 7);
+            l.DigestHour = digestHour;
             l.ReplyToList = replyToList_.IsChecked is true;
             l.SubjectPrefix = prefix_.Text.Trim();
             l.Footer = footer_.Text;
@@ -216,7 +246,10 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
+            // In view: the notice is the first thing in a body that may have been
+            // scrolled to its end when Save was pressed.
             notice_.Show(StatusLevel.Critical, F("Could not save the list: {0}", ServerSession.DescribeComError(ex)));
+            notice_.BringIntoView();
          }
          finally
          {
@@ -230,21 +263,5 @@ namespace hMailServer.ControlPanel.Views
       /// itself.
       /// </summary>
       private static FieldRow Label(string text, FrameworkElement editor) => DialogFields.Field(text, editor);
-
-      /// <summary>
-      /// A whole number typed into a box, or the fallback for an empty box. A
-      /// number out of range is passed on as it is, so the server refuses it with
-      /// its own sentence rather than this dialog guessing a nearer value.
-      /// </summary>
-      private static int WholeNumber(string text, int fallback)
-      {
-         var trimmed = (text ?? "").Trim();
-         if (trimmed.Length == 0)
-            return fallback;
-
-         return int.TryParse(trimmed, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var value)
-            ? value
-            : -1;
-      }
    }
 }

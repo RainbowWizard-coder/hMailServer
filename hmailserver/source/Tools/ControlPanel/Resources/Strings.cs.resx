@@ -2317,6 +2317,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Mění, co se stane na hranici pro smazání. Vypnuto: zpráva nad ní je odmítnuta během SMTP konverzace odpovědí 550 a odesílatel se to dozví. Zapnuto: zpráva je místo toho přijata odpovědí 250 a pozdržena k posouzení – odesílatel věří, že byla doručena, a nezkusí to znovu, což je právě to, co dělá falešně pozitivní verdikt napravitelným bez odeslání nedoručenky na zpáteční adresu, která je nejspíš falešná, a zároveň to znamená, že fronta k posouzení je jediné místo, kde ta zpráva existuje. Platí pro kontroly, které běží po přijetí těla zprávy; verdikt vynesený dříve (připojující se IP na blokovacím seznamu DNS, špatné HELO) nemá co pozdržet a zůstává odmítnutím.</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>Změnou se seznam přejmenuje; jeho členové a nastavení zůstanou.</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Změna pepperu poté, co existují účty, způsobí, že žádné heslo uložené jako hash Argon2id nebo scrypt nebude fungovat, a každý takový účet pak potřebuje nové heslo. Na hashe PBKDF2, které jsou výchozí, se pepper nepoužívá.</value>
   </data>
@@ -4358,6 +4361,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>Zadejte název relay.</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>Zadejte počet dní od 0 (navždy) do 3650.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Zadejte heslo, nebo stiskněte Generovat.</value>
   </data>
@@ -4393,6 +4399,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Zadejte adresu a vyhledejte. Trasování nezaznamenává vůbec nic, dokud není trasování zpráv zapnuto na stránce Logování – ve výchozím nastavení je vypnuto, protože ukládá, kdo si s kým dopisuje.</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>Zadejte hodinu od 0 do 23.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Zadejte část jména a stiskněte Hledat, nebo hledejte s prázdným polem pro výpis všech uživatelů.</value>

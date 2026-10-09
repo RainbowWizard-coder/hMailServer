@@ -2293,6 +2293,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Muuttaa sitä, mitä poistokynnyksellä tapahtuu. Pois päältä: sen ylittävä viesti hylätään SMTP-keskustelun aikana koodilla 550 ja lähettäjälle kerrotaan. Päällä: se hyväksytään koodilla 250 ja pidätetään tarkastukseen - lähettäjä uskoo sen toimitetun eikä yritä uudelleen, minkä ansiosta väärä positiivinen on palautettavissa palauttamatta viestiä todennäköisesti väärennettyyn paluupolkuun, ja mikä tarkoittaa myös, että tarkastusjonosta tulee ainoa paikka, jossa viesti on olemassa. Koskee tarkistuksia, jotka ajetaan viestin rungon vastaanottamisen jälkeen; sitä ennen tehdyllä tuomiolla (DNS-estolistalla oleva yhdistävä IP, huono HELO) ei ole pidätettävää viestiä, ja se pysyy hylkäyksenä.</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>Muutos nimeää listan uudelleen; sen jäsenet ja asetukset säilyvät.</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Pepperin vaihtaminen tilien luomisen jälkeen lopettaa jokaisen Argon2id- tai scrypt-tiivisteenä tallennetun salasanan toimimisen, ja jokainen tällainen tili tarvitsee sen jälkeen uuden salasanan. PBKDF2-tiivisteisiin, oletukseen, pepperiä ei käytetä.</value>
   </data>
@@ -4312,6 +4315,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>Anna välitykselle nimi.</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>Anna päivien määrä 0:sta (ikuisesti) 3650:een.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Anna salasana tai paina Luo.</value>
   </data>
@@ -4347,6 +4353,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Anna osoite ja hae. Jäljitys ei tallenna mitään ennen kuin viestien jäljitys otetaan käyttöön Lokitus-sivulla – se on oletuksena pois käytöstä, koska se tallentaa, kuka kirjoittaa kenelle.</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>Anna tunti väliltä 0–23.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Anna osa nimestä ja paina Hae, tai hae tyhjällä kentällä luetellaksesi kaikki käyttäjät.</value>

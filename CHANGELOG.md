@@ -1910,6 +1910,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   box holding 100, where it was a text box, and its address is required, each with a sentence under it saying what it
   does. The dialog keeps room for its messages, so that Add and Cancel stay where they are.
 
+- **Fixed: the distribution list dialog sent a number that was no number as -1, and said a refused save where it
+  could not be seen.** "Keep archived messages for" and "Digest hour (0-23)" were text boxes whose text, when it was
+  no number, went to the server as -1 for it to refuse, and the refusal appeared at the top of a body that had been
+  scrolled to the archive fields, so that Save seemed to do nothing; an emptied List address kept the old one without
+  a word, and a new one renamed the list without saying so. The address and the two numbers are checked on their
+  fields before anything is written - "Enter a number of days from 0 (for ever) to 3650.", "Enter an hour from 0 to
+  23.", the ranges the server takes - with the field scrolled into view and the keyboard in it; a refusal of the
+  server is brought into view; and List address says under it that changing it renames the list and keeps its members
+  and settings. In every dialog a field refused below the fold is now scrolled to with its message.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

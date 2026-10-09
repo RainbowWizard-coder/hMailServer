@@ -2293,6 +2293,9 @@
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>削除しきい値で何が起きるかを変更します。オフの場合、しきい値を超えたメッセージは SMTP のやり取り中に 550 で拒否され、送信者にそれが伝わります。オンの場合は 250 で受け入れられ、代わりに確認のために保留されます。送信者は配信されたと思い再試行しないため、おそらく偽装されている返信パスにバウンスすることなく誤検知から回復できますが、同時に、確認キューがそのメッセージの唯一の存在場所になります。メッセージ本文の受信後に実行されるチェックに適用されます。それより前に下された判定 (DNS ブロック リストに載った接続元 IP、不正な HELO) には保留すべきメッセージがないため、拒否のままです。</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>変更するとリストの名前が変わります。メンバーと設定はそのまま残ります。</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>アカウント作成後にペッパーを変更すると、Argon2id または scrypt ハッシュとして保存されたパスワードはすべて使えなくなり、そうしたアカウントにはそれぞれ新しいパスワードが必要になります。既定の PBKDF2 ハッシュにはペッパーは使われません。</value>
   </data>
@@ -4312,6 +4315,9 @@
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>リレーの名前を入力してください。</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>0 (無期限) から 3650 までの日数を入力してください。</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>パスワードを入力するか、「生成」を押してください。</value>
   </data>
@@ -4347,6 +4353,9 @@
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>アドレスを入力して検索してください。メッセージ トレースはログ ページでオンにするまで何も記録しません。誰と誰がやり取りしたかを保存するため、既定ではオフになっています。</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>0 から 23 までの時刻を入力してください。</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>名前の一部を入力して「検索」を押すか、空のまま検索してすべてのユーザーを一覧表示してください。</value>

@@ -2317,6 +2317,9 @@
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Змінює те, що відбувається на порозі видалення. Якщо вимкнено, повідомлення з оцінкою понад цей поріг відхиляється під час SMTP-діалогу кодом 550, і відправникові про це повідомляють. Якщо ввімкнено, воно натомість приймається з кодом 250 й утримується для перегляду — відправник вважає, що повідомлення доставлено, і не повторює спроби, а саме це дає змогу виправити хибне спрацювання, не надсилаючи відмову на зворотну адресу, яка, найімовірніше, підроблена; це також означає, що черга перегляду стає єдиним місцем, де це повідомлення існує. Стосується перевірок, які виконуються після отримання тіла повідомлення; висновок, зроблений раніше (IP-адреса підключення зі списку блокування DNS, хибний HELO), не має повідомлення, яке можна утримати, і залишається відмовою.</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>Зміна перейменовує список; його учасники й параметри залишаються.</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Якщо змінити «перець» після створення облікових записів, перестане працювати кожен пароль, збережений як хеш Argon2id або scrypt, і кожному такому обліковому запису знадобиться новий пароль. До хешів PBKDF2, типових, «перець» не застосовується.</value>
   </data>
@@ -4358,6 +4361,9 @@
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>Введіть назву ретранслятора.</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>Введіть кількість днів від 0 (назавжди) до 3650.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Введіть пароль або натисніть «Згенерувати».</value>
   </data>
@@ -4393,6 +4399,9 @@
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Введіть адресу та виконайте пошук. Трасування нічого не записує, доки трасування повідомлень не буде ввімкнено на сторінці «Журналювання», – типово воно вимкнене, бо зберігає, хто з ким листується.</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>Введіть годину від 0 до 23.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Введіть частину імені й натисніть «Пошук», або шукайте з порожнім полем, щоб перелічити всіх користувачів.</value>

@@ -2293,6 +2293,9 @@
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>更改在删除阈值处发生的事情。关闭时，超过该阈值的邮件会在 SMTP 会话期间以 550 拒绝，并告知发件方。打开时，它会以 250 接受并转为暂挂等待审核 - 发件方以为已投递而不会重试，正因如此，误判才能在不退信到一个很可能伪造的返回路径的情况下得以挽回，但这也意味着审核队列成为该邮件唯一存在的地方。适用于在邮件正文接收完毕之后运行的检查；在此之前得出的判定（连接 IP 被列入 DNS 拦截列表、HELO 不正确）没有邮件可暂挂，仍然是拒绝。</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>更改后列表即改名；其成员和设置保持不变。</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>账户创建后更改 pepper，会使每个以 Argon2id 或 scrypt 哈希存储的密码失效，每个这样的账户随后都需要新密码。默认的 PBKDF2 哈希不使用 pepper。</value>
   </data>
@@ -4312,6 +4315,9 @@
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>请输入中继的名称。</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>请输入 0（永久）到 3650 之间的天数。</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>请输入密码，或按“生成”。</value>
   </data>
@@ -4347,6 +4353,9 @@
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>输入地址并搜索。在“日志记录”页面开启邮件跟踪之前，跟踪不会记录任何内容 - 它默认关闭，因为它会存储谁与谁通信。</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>请输入 0 到 23 之间的小时。</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>输入名称的一部分并按“搜索”，或者用空白框搜索以列出所有用户。</value>

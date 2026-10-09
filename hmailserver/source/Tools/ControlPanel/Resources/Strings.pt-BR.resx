@@ -2293,6 +2293,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Muda o que acontece no limite de exclusão. Desligado, uma mensagem acima dele é recusada durante a conversa SMTP com um 550 e o remetente é avisado. Ligado, ela é aceita com um 250 e retida para revisão - o remetente acredita que foi entregue e não tentará de novo, o que é o que torna um falso positivo recuperável sem devolver para um caminho de retorno que provavelmente é forjado, e também significa que a fila de revisão passa a ser o único lugar onde essa mensagem existe. Vale para as verificações que rodam depois que o corpo da mensagem foi recebido; um veredito alcançado antes disso (um IP conectando que está em uma lista de bloqueio DNS, um HELO ruim) não tem mensagem para reter e continua sendo uma recusa.</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>Alterá-lo renomeia a lista; seus membros e configurações permanecem.</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Alterar o pepper depois que já existem contas faz parar de funcionar toda senha armazenada como hash Argon2id ou scrypt, e cada uma dessas contas passa a precisar de uma nova senha. Os hashes PBKDF2, o padrão, não usam pepper.</value>
   </data>
@@ -4312,6 +4315,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>Informe um nome para o relay.</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>Informe um número de dias de 0 (para sempre) a 3650.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Informe uma senha ou pressione Gerar.</value>
   </data>
@@ -4347,6 +4353,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Digite um endereço e pesquise. O rastreamento não registra nada até que o rastreamento de mensagens seja ativado na página Registro em log – está desativado por padrão porque armazena quem se corresponde com quem.</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>Informe uma hora de 0 a 23.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Informe parte de um nome e pressione Buscar, ou busque com a caixa vazia para listar todos os usuários.</value>

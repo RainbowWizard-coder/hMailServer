@@ -130,9 +130,14 @@ namespace hMailServer.ControlPanel.Views
             if (SizeToContent != SizeToContent.Height || (Content as DialogFrame)?.Body is not FrameworkElement body)
                return;
 
+            // Only what the window can still grow: at the cap the body scrolls,
+            // and a floor past it would only be blank to scroll through.
             double room = lines * FieldRow.ErrorLineHeight(this);
             double grows = Math.Max(0, Math.Min(room, MaxHeight - ActualHeight));
-            body.MinHeight = body.ActualHeight + room;
+            if (grows <= 0)
+               return;
+
+            body.MinHeight = body.ActualHeight + grows;
 
             // Centred as it was placed: the room it grows by is shared above and below.
             if (WindowStartupLocation != WindowStartupLocation.Manual)

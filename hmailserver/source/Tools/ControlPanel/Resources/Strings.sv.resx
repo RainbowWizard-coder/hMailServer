@@ -2293,6 +2293,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Ändrar vad som händer vid borttagningströskeln. Av: ett meddelande över den avvisas under SMTP-konversationen med 550 och avsändaren får veta det. På: det godtas med 250 och hålls för granskning i stället - avsändaren tror att det levererades och försöker inte om, vilket är det som gör en falsk träff möjlig att återställa utan att studsa till en returväg som troligen är förfalskad, och som också betyder att granskningskön blir den enda plats där meddelandet finns. Gäller kontroller som körs efter att meddelandetexten tagits emot; en dom som nås före det (en anslutande IP på en DNS-spärrlista, ett dåligt HELO) har inget meddelande att hålla kvar och förblir en avvisning.</value>
   </data>
+  <data name="Changing it renames the list; its members and settings stay." xml:space="preserve">
+    <value>En ändring byter namn på listan; dess medlemmar och inställningar finns kvar.</value>
+  </data>
   <data name="Changing the pepper after accounts exist stops every password stored as an Argon2id or scrypt hash from working, and each such account then needs a new password. PBKDF2 hashes, the default, are not peppered." xml:space="preserve">
     <value>Ändras pepparn efter att konton finns slutar varje lösenord som lagrats som en Argon2id- eller scrypt-hash att fungera, och varje sådant konto behöver då ett nytt lösenord. PBKDF2-hashar, standarden, får ingen peppar.</value>
   </data>
@@ -4312,6 +4315,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter a name for the relay." xml:space="preserve">
     <value>Ange ett namn på reläet.</value>
   </data>
+  <data name="Enter a number of days from 0 (for ever) to 3650." xml:space="preserve">
+    <value>Ange ett antal dagar från 0 (för alltid) till 3650.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Ange ett lösenord eller tryck på Generera.</value>
   </data>
@@ -4347,6 +4353,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Ange en adress och sök. Spårningen registrerar ingenting förrän meddelandespårning slås på på sidan Loggning – den är av som standard eftersom den lagrar vem som brevväxlar med vem.</value>
+  </data>
+  <data name="Enter an hour from 0 to 23." xml:space="preserve">
+    <value>Ange en timme från 0 till 23.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Ange en del av ett namn och tryck på Sök, eller sök med tom ruta för att lista alla användare.</value>

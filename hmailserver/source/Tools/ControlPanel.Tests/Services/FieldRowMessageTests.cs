@@ -120,7 +120,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          string window = Normalise(ReadControlPanelFile(Path.Join("Views", "FluentDialogWindow.cs")));
          Assert.Contains("public void KeepRoomForFieldErrors(int lines = 1)", window, StringComparison.Ordinal);
          Assert.Contains("double room = lines * FieldRow.ErrorLineHeight(this);", window, StringComparison.Ordinal);
-         Assert.Contains("body.MinHeight = body.ActualHeight + room;", window, StringComparison.Ordinal);
+         Assert.Contains("double grows = Math.Max(0, Math.Min(room, MaxHeight - ActualHeight));", window, StringComparison.Ordinal);
+         Assert.Contains("body.MinHeight = body.ActualHeight + grows;", window, StringComparison.Ordinal);
       }
 
       // ---- helpers -------------------------------------------------------------------------

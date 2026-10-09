@@ -116,9 +116,11 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// Puts a message on the field it is about, brings the tab that holds the
-      /// field to the front and puts the keyboard in the editor - so a save that
-      /// stops on a bad number lands the administrator on the number, where a
-      /// message box left them on the Save button with a sentence to remember.
+      /// field to the front, puts the keyboard in the editor and brings the field
+      /// into view with its message - so a save that stops on a bad number lands
+      /// the administrator on the number, where a message box left them on the
+      /// Save button with a sentence to remember, and a field below the fold of a
+      /// scrolled dialog is scrolled to.
       /// </summary>
       public static void ShowError(FieldRow row, string error)
       {
@@ -143,6 +145,7 @@ namespace hMailServer.ControlPanel.Views
                control.Focus();
             else
                editor.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            row.BringIntoView();
          }));
       }
 
