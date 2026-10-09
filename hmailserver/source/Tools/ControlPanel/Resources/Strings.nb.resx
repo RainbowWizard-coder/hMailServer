@@ -9158,6 +9158,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Role" xml:space="preserve">
     <value>Rolle</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roller</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Roter nå…</value>
   </data>
@@ -13223,6 +13226,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Hvem som endret hva, når, over hvilket grensesnitt og hvorfra - hver administrativ endring som én rad i en hashkjede - og en innstilling satt tilbake til verdien den hadde.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Hvem som har en rolle</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Hvem som _får delta</value>

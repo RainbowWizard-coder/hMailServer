@@ -9158,6 +9158,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Role" xml:space="preserve">
     <value>Ruolo</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Ruoli</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Ruota ora…</value>
   </data>
@@ -13223,6 +13226,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Chi ha cambiato cosa, quando, tramite quale interfaccia e da dove - ogni modifica amministrativa come una riga di una catena di hash - e un'impostazione ripristinata al valore che aveva.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Chi ha un ruolo</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>C_hi può iscriversi</value>

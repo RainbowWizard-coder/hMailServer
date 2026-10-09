@@ -9158,6 +9158,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Role" xml:space="preserve">
     <value>Roll</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roller</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>R_otera nu…</value>
   </data>
@@ -13223,6 +13226,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Vem som ändrade vad, när, över vilket gränssnitt och varifrån - varje administrativ ändring som en rad i en hashkedja - och en inställning tillbakasatt till värdet den hade.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Vem som har en roll</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Vem _får gå med</value>

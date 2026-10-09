@@ -9158,6 +9158,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Role" xml:space="preserve">
     <value>Role</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Rotate _now…</value>
   </data>
@@ -13223,6 +13226,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Who holds a role</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Who may _join</value>

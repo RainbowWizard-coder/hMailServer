@@ -9158,6 +9158,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Role" xml:space="preserve">
     <value>Rooli</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roolit</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Kierrätä _nyt…</value>
   </data>
@@ -13223,6 +13226,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kuka muutti mitä, milloin, minkä rajapinnan kautta ja mistä - jokainen hallinnollinen muutos yhtenä rivinä hajautusketjussa - ja asetus palautettuna arvoon, joka sillä oli.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Kenellä on rooli</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Kuka saa liitty_ä</value>

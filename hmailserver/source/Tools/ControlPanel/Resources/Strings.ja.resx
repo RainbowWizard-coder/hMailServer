@@ -9158,6 +9158,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Role" xml:space="preserve">
     <value>ロール</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>ロール</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>今すぐローテーション(_N)…</value>
   </data>
@@ -13223,6 +13226,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>誰が何をいつ、どのインターフェースでどこから変更したか (すべての管理上の変更をハッシュチェーンの 1 行として)、そして設定を以前の値に戻します。</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>ロールを持つアカウント</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>参加できる人(_J)</value>

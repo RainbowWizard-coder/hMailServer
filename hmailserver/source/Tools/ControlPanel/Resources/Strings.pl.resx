@@ -9242,6 +9242,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Role" xml:space="preserve">
     <value>Rola</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Role</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Rot_uj teraz…</value>
   </data>
@@ -13378,6 +13381,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kto zmienił co, kiedy, przez jaki interfejs i skąd - każda zmiana administracyjna jako jeden wiersz łańcucha skrótów - oraz ustawienie przywrócone do wartości, jaką miało.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Kto ma przypisaną rolę</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Kt_o może dołączyć</value>

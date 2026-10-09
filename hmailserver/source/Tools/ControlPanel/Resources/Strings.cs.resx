@@ -9242,6 +9242,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Role" xml:space="preserve">
     <value>Role</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Role</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Rotovat _nyní…</value>
   </data>
@@ -13378,6 +13381,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kdo změnil co, kdy, přes jaké rozhraní a odkud - každá administrativní změna jako jeden řádek v hašovacím řetězu - a nastavení vrácené na hodnotu, kterou mělo.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Kdo má přidělenou roli</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Kdo se smí př_ipojit</value>

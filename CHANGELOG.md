@@ -1441,6 +1441,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `PaletteAnnouncementTests` holds the position, which counts the rows that can be chosen and not the section
   captions, the sentence and the wiring.
 
+- **Fixed: the administrator roles page's two lists had no names, no titles, and rows a screen reader called by a
+  class name.** Neither grid had an accessible name, the two cards no title - only the column headers told the roles
+  from who holds one - and neither row class said anything of itself, so a reader announced each row as
+  "hMailServer.ControlPanel.Views.RolesView+RoleRow". The cards are titled Roles and Who holds a role, the grids are
+  named the same, and a row says its role and what it is for, or the account, its role and its domains
+  (`Services/RowSpeech`). `RowSpeechTests` holds the sentences and the page.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

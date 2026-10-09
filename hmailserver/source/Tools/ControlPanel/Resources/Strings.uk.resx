@@ -9242,6 +9242,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Role" xml:space="preserve">
     <value>Роль</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Ролі</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Виконати ротацію зараз…</value>
   </data>
@@ -13378,6 +13381,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Хто що змінив, коли, через який інтерфейс і звідки — кожна адміністративна зміна як один рядок хеш-ланцюга — і налаштування, повернуте до значення, яке воно мало.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Хто має роль</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Хт_о може приєднатися</value>

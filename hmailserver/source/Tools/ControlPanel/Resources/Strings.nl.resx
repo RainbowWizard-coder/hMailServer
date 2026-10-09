@@ -9158,6 +9158,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Rollen</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Nu roteren…</value>
   </data>
@@ -13223,6 +13226,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Wie wat wanneer wijzigde, via welke interface en van waar - elke beheerwijziging als één rij in een hashketen - en een instelling teruggezet naar de waarde die ze had.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Wie een rol heeft</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>W_ie mag deelnemen</value>

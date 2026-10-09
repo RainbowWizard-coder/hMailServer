@@ -9158,6 +9158,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Role" xml:space="preserve">
     <value>角色</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>角色</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>立即轮换(_N)…</value>
   </data>
@@ -13223,6 +13226,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>谁在何时通过哪个接口从哪里更改了什么（每项管理更改都是哈希链中的一行），以及将设置恢复为原有的值。</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>谁拥有角色</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>谁可以加入(_J)</value>

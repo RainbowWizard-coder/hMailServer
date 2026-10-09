@@ -52,6 +52,10 @@ namespace hMailServer.ControlPanel.Views
 
          // The permissions as the server lists them, for RoleGrant.ReachesEverything.
          public string Tokens { get; set; }
+
+         // What a screen reader says for the row: the role and what it is for, not
+         // the name of this class, which is what a grid row is announced as otherwise.
+         public override string ToString() => RowSpeech.Of(Name, Purpose);
       }
 
       // The roles as the last reload read them, by name: what Give the role asks
@@ -73,6 +77,9 @@ namespace hMailServer.ControlPanel.Views
          public string Address { get; set; }
          public string Role { get; set; }
          public string Domains { get; set; }
+
+         // The account, its role and its domains, as one statement.
+         public override string ToString() => RowSpeech.Of(Address, Role, Domains);
       }
 
       private readonly DataGrid roleGrid_ = new() { AutoGenerateColumns = false, IsReadOnly = true };
@@ -124,7 +131,11 @@ namespace hMailServer.ControlPanel.Views
          roleGrid_.Columns.Add(TextColumn_(L("What it is for"), nameof(RoleRow.Purpose), 300));
          roleGrid_.Columns.Add(TextColumn_(L("Built in"), nameof(RoleRow.BuiltIn), 80));
          roleGrid_.Columns.Add(TextColumn_(L("Permissions"), nameof(RoleRow.Permissions), 380));
-         cards.Children.Add(new Card { Content = roleGrid_ });
+         // Each card and its grid say what they hold: only the column headers told
+         // the roles from who holds one, and neither grid had a name.
+         System.Windows.Automation.AutomationProperties.SetName(roleGrid_, L("Roles"));
+         System.Windows.Automation.AutomationProperties.SetName(assignmentGrid_, L("Who holds a role"));
+         cards.Children.Add(new Card { Title = L("Roles"), Content = roleGrid_ });
 
          assignmentGrid_.Columns.Add(TextColumn_(L("Account"), nameof(AssignmentRow.Address), 260));
          assignmentGrid_.Columns.Add(TextColumn_(L("Role"), nameof(AssignmentRow.Role), 150));
@@ -193,7 +204,7 @@ namespace hMailServer.ControlPanel.Views
          held.Children.Add(empty_);
          held.Children.Add(form);
          held.Children.Add(notice_);
-         cards.Children.Add(new Card { Content = held, Margin = new Thickness(0, 12, 0, 0) });
+         cards.Children.Add(new Card { Title = L("Who holds a role"), Content = held, Margin = new Thickness(0, 12, 0, 0) });
 
          var scroll = new ScrollViewer { Content = cards, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
          Grid.SetRow(scroll, 1);

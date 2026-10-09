@@ -9158,6 +9158,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Role" xml:space="preserve">
     <value>Rolle</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roller</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Rotér nu…</value>
   </data>
@@ -13223,6 +13226,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Hvem der ændrede hvad, hvornår, over hvilken grænseflade og hvorfra - hver administrativ ændring som én række i en hashkæde - og en indstilling sat tilbage til den værdi, den havde.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Hvem der har en rolle</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Hvem må _deltage</value>

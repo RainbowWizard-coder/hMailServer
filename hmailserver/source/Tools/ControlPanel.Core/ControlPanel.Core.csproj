@@ -115,6 +115,9 @@
          the window's parts in, and the list the palette's Keyboard shortcuts row
          shows: one table, held by KeyboardShortcutsTests. -->
     <Compile Include="..\ControlPanel\Services\KeyboardShortcuts.cs" />
+    <!-- What a screen reader says for a list's row: its cells, a bare value with
+         its column's name. Held by RowSpeechTests. -->
+    <Compile Include="..\ControlPanel\Services\RowSpeech.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

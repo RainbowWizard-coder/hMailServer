@@ -9158,6 +9158,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Role" xml:space="preserve">
     <value>Função</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Funções</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Fazer a rotação agora…</value>
   </data>
@@ -13223,6 +13226,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Quem alterou o quê, quando, por qual interface e de onde - cada alteração administrativa como uma linha de uma cadeia de hash - e uma configuração restaurada ao valor que tinha.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Quem tem uma função</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Q_uem pode participar</value>

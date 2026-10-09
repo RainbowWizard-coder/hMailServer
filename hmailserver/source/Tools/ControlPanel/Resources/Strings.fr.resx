@@ -9158,6 +9158,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Role" xml:space="preserve">
     <value>Rôle</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Rôles</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Faire la rotation maintenant…</value>
   </data>
@@ -13223,6 +13226,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Qui a changé quoi, quand, par quelle interface et d'où - chaque modification administrative comme une ligne d'une chaîne de hachage - et un réglage remis à la valeur qu'il avait.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Qui détient un rôle</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Qu_i peut rejoindre</value>

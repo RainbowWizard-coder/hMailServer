@@ -9158,6 +9158,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>_Rotar ahora…</value>
   </data>
@@ -13223,6 +13226,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Quién cambió qué, cuándo, por qué interfaz y desde dónde - cada cambio administrativo como una fila de una cadena de hash - y un ajuste restablecido al valor que tenía.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Quién tiene un rol</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Quié_n puede unirse</value>

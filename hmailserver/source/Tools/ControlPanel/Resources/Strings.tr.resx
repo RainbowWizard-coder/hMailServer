@@ -9158,6 +9158,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Role" xml:space="preserve">
     <value>Rol</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roller</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Şi_mdi döndür…</value>
   </data>
@@ -13223,6 +13226,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Kim neyi ne zaman, hangi arayüz üzerinden ve nereden değiştirdi - her yönetimsel değişiklik bir karma zincirinde bir satır olarak - ve bir ayar sahip olduğu değere geri alındı.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Kimin bir rolü var</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Kimle_r katılabilir</value>

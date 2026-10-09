@@ -9158,6 +9158,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="Role" xml:space="preserve">
     <value>Rolle</value>
   </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Rollen</value>
+  </data>
   <data name="Rotate _now…" xml:space="preserve">
     <value>Je_tzt rotieren…</value>
   </data>
@@ -13223,6 +13226,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had." xml:space="preserve">
     <value>Wer was wann geändert hat, über welche Schnittstelle und von wo - jede administrative Änderung als eine Zeile in einer Hash-Kette - und eine Einstellung auf den Wert zurückgesetzt, den sie hatte.</value>
+  </data>
+  <data name="Who holds a role" xml:space="preserve">
+    <value>Wer eine Rolle hat</value>
   </data>
   <data name="Who may _join" xml:space="preserve">
     <value>Wer _darf beitreten</value>
