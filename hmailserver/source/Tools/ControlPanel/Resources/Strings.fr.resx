@@ -8492,7 +8492,7 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
     <value>Réinitialiser le serveur maintenant ? Tous les services s'arrêtent et redémarrent sur place, donc les clients connectés sont déconnectés puis se reconnectent.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
-    <value>Appliqué à la réinitialisation</value>
+    <value>S'applique à la réinitialisation</value>
   </data>
   <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Réinitialisé - les réglages enregistrés sont en vigueur.</value>
@@ -8838,7 +8838,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Redémarrer le _service…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
-    <value>Appliqué au redémarrage</value>
+    <value>S'applique au redémarrage</value>
   </data>
   <data name="Restarting the hMailServer service..." xml:space="preserve">
     <value>Redémarrage du service hMailServer...</value>
