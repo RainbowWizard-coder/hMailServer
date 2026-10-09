@@ -6973,6 +6973,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Aucun groupe pour l'instant. Un groupe donne les mêmes permissions de dossier à plusieurs comptes à la fois, et Membres choisit lesquels.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Aucun message retenu ne contient « {0} » dans l'expéditeur, les destinataires, l'objet ou le motif.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Aucun nom d'hôte n'est défini : ce serveur annonce donc son nom d'ordinateur Windows, qu'aucun DNS sur Internet ne connaît.</value>
   </data>
@@ -7167,6 +7170,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Aucune des {0} plages IP n'exige TLS avant l'authentification : un mot de passe en clair est donc accepté partout où un port en permet un.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Aucun des {0} messages retenus les plus récents ne contient « {1} » dans l'expéditeur, les destinataires, l'objet ou le motif. Le serveur n'en liste pas davantage.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Rien de tout cela ne s'applique à une session authentifiée - la protection anti-spam est entièrement ignorée pour un client qui s'est connecté, pour les connexions venant d'une plage IP dont la protection anti-spam est désactivée, et pour les expéditeurs et plages IP des exemptions anti-spam (entrées : {0}).</value>
@@ -9991,6 +9997,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Rechercher des règles</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Rechercher l'expéditeur, le destinataire, l'objet ou le motif</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Rechercher dans la file de livraison</value>
@@ -16201,6 +16210,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, de {1}, score {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, de {1}, score {2}, retenu parce que : {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, non disponible</value>

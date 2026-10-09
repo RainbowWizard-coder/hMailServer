@@ -1164,8 +1164,8 @@ namespace hMailServer.ControlPanel.Views
          if (!fresh && age is TimeSpan old)
          {
             when += " " + (enabled
-               ? F("That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed.", DescribeScanAge_(old))
-               : F("That scan was {0}.", DescribeScanAge_(old)));
+               ? F("That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed.", AgeWords.Ago(old))
+               : F("That scan was {0}.", AgeWords.Ago(old)));
          }
 
          if (report.MissingCount == 0)
@@ -1189,30 +1189,6 @@ namespace hMailServer.ControlPanel.Views
                when, truncated, enabledNote,
                L("The check is read-only: the server does not delete or repair anything."))
          };
-      }
-
-      /// <summary>The age of a scan in words, as the backup page says the age of its last run.</summary>
-      private static string DescribeScanAge_(TimeSpan age)
-      {
-         if (age < TimeSpan.Zero)
-            age = TimeSpan.Zero;
-
-         if (age.TotalMinutes < 1)
-            return L("less than a minute ago");
-
-         if (age.TotalHours < 1)
-         {
-            int minutes = (int)age.TotalMinutes;
-            return minutes == 1 ? L("1 minute ago") : F("{0} minutes ago", minutes);
-         }
-
-         if (age.TotalDays < 2)
-         {
-            int hours = (int)age.TotalHours;
-            return hours == 1 ? L("1 hour ago") : F("{0} hours ago", hours);
-         }
-
-         return F("{0} days ago", (int)age.TotalDays);
       }
 
       /// <summary>The page that turns the periodic check on, while it is off.</summary>

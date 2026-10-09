@@ -34,6 +34,9 @@
          and the Quarantine.Bulk request and answer. No WPF, so the tests hold
          what the page shows and what it sends without a window. -->
     <Compile Include="..\ControlPanel\Services\QuarantineReview.cs" />
+    <!-- How long ago something was, in catalogued words: the quarantine's held
+         times and the message-store consistency card's scan. -->
+    <Compile Include="..\ControlPanel\Services\AgeWords.cs" />
     <!-- How much time a chart covers, in words: one of a unit is a sentence of its
          own. No WPF, so the tests hold every count's words. -->
     <Compile Include="..\ControlPanel\Services\ChartWindowWords.cs" />

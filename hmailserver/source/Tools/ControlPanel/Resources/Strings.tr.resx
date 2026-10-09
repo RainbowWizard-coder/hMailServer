@@ -6973,6 +6973,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Henüz grup yok. Bir grup birkaç hesaba aynı klasör izinlerini tek seferde verir; hangilerine verileceğini Üyeler seçer.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Gönderen, alıcılar, konu veya nedeninde "{0}" geçen bekletilen ileti yok.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Ana bilgisayar adı ayarlanmamış; bu yüzden bu sunucu, İnternet'teki hiçbir DNS'in bilmediği Windows bilgisayar adını duyuruyor.</value>
   </data>
@@ -7167,6 +7170,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} IP aralığının hiçbiri kimlik doğrulamasından önce TLS gerektirmiyor; bu yüzden bir portun izin verdiği her yerde düz metin parola kabul ediliyor.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>En son bekletilen {0} iletinin hiçbirinin gönderen, alıcılar, konu veya nedeninde "{1}" geçmiyor. Sunucu bunlardan fazlasını listelemez.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Bunların hiçbiri kimliği doğrulanmış bir oturuma uygulanmaz - oturum açmış bir istemci için, spam koruması kapatılmış bir IP aralığından gelen bağlantılar için ve spam istisnalarındaki gönderenler ile IP aralıkları için (kayıt: {0}) spam koruması tümüyle atlanır.</value>
@@ -9991,6 +9997,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Kuralları ara</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Gönderen, alıcı, konu veya nedende ara</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Teslim kuyruğunda ara</value>
@@ -16201,6 +16210,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, {1} kaynaklı, puan {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, {1} kaynaklı, puan {2}, bekletilme nedeni: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, kullanılamıyor</value>

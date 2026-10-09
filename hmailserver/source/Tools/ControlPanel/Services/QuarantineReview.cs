@@ -58,11 +58,16 @@ namespace hMailServer.ControlPanel.Services
    {
       private bool? isChecked_;
 
-      internal QuarantineRow(HeldMessage message, bool indented)
+      internal QuarantineRow(HeldMessage message, bool indented, DateTime? agesFrom = null)
       {
          Message = message;
          Indented = indented;
+         agesFrom_ = agesFrom;
       }
+
+      // The time a held message's age is counted from: this computer's clock where
+      // it is the server's, which wrote CreatedTime; null where it is not.
+      private readonly DateTime? agesFrom_;
 
       internal QuarantineRow(string key, IReadOnlyList<HeldMessage> members, bool expanded)
       {
@@ -106,7 +111,14 @@ namespace hMailServer.ControlPanel.Services
       public string GroupTitle => IsGroup ? (GroupKey.Length == 0 ? L("(no domain)") : GroupKey) : "";
       public string GroupCount => !IsGroup ? "" : Plural(Members.Count, "{0} message", "{0} messages");
 
-      public string Held => Message?.CreatedTime ?? "";
+      /// <summary>
+      /// When the message was held: how long ago, where the server's clock is this
+      /// computer's (review finding F247's rule), and the reader's short date and time
+      /// where it is not - the database's raw string, the same in every language, it
+      /// was. The tool tip is the whole time, marked as the server's.
+      /// </summary>
+      public string Held => Message == null ? "" : QuarantineReview.HeldText(Message.CreatedTime, agesFrom_);
+      public string HeldTip => Message == null ? null : QuarantineReview.HeldTip(Message.CreatedTime);
       public string Helo => Message?.Helo ?? "";
       public string HeloTip => Message == null ? null : Message.Helo.Length == 0 ? L("No HELO name was recorded") : Message.Helo;
 
@@ -150,10 +162,17 @@ namespace hMailServer.ControlPanel.Services
       public const string PreviewKey = "P"; // no-loc: a key's name
       public const string HeadersKey = "H"; // no-loc: a key's name
 
-      /// <summary>What a screen reader says for the row: the group and its size, or who sent what.</summary>
+      /// <summary>
+      /// What a screen reader says for the row: the group and its size, or who sent
+      /// what and why it was held - the question the page exists to answer, which
+      /// was in the row's tool tip alone, where no keyboard or screen reader reaches
+      /// (review finding F261).
+      /// </summary>
       public string AccessibleName => IsGroup
          ? GroupTitle + ", " + GroupCount
-         : F("{0}, from {1}, score {2}", Subject, Sender, Score);
+         : Message.Reason.Length == 0
+         ? F("{0}, from {1}, score {2}", Subject, Sender, Score)
+         : F("{0}, from {1}, score {2}, held because: {3}", Subject, Sender, Score, Message.Reason);
 
       /// <summary>The same, wherever the row is shown without the grid's row style.</summary>
       public override string ToString() => AccessibleName;
@@ -187,6 +206,66 @@ namespace hMailServer.ControlPanel.Services
 
       public IReadOnlyList<HeldMessage> Messages => messages_;
       public IReadOnlyList<QuarantineRow> Rows => rows_;
+
+      /// <summary>
+      /// What the search box holds: a message is shown while its sender, its
+      /// recipients, its subject or why it was held contains it, in any case.
+      /// Empty shows every message (review finding F261: there was no search).
+      /// </summary>
+      public string Filter { get; private set; } = "";
+
+      /// <summary>The messages the filter shows, in the server's order.</summary>
+      public IReadOnlyList<HeldMessage> Shown => string.IsNullOrWhiteSpace(Filter) ? messages_ : messages_.Where(m => Matches(m, Filter)).ToList();
+
+      /// <summary>The time held messages' ages are counted from, or null where they are not shown (QuarantineRow.Held).</summary>
+      public DateTime? AgesFrom { get; set; }
+
+      public void SetFilter(string filter)
+      {
+         Filter = (filter ?? "").Trim();
+         Rebuild();
+      }
+
+      /// <summary>Whether a message's sender, recipients, subject or reason contains the text, in any case.</summary>
+      public static bool Matches(HeldMessage message, string filter)
+      {
+         if (message == null)
+            return false;
+
+         string wanted = (filter ?? "").Trim();
+         if (wanted.Length == 0)
+            return true;
+
+         return (message.Sender ?? "").Contains(wanted, StringComparison.OrdinalIgnoreCase)
+            || (message.Recipients ?? "").Contains(wanted, StringComparison.OrdinalIgnoreCase)
+            || (message.Subject ?? "").Contains(wanted, StringComparison.OrdinalIgnoreCase)
+            || (message.Reason ?? "").Contains(wanted, StringComparison.OrdinalIgnoreCase);
+      }
+
+      /// <summary>
+      /// A held time as the Held column shows it: its age where
+      /// <paramref name="agesFrom"/> is the server's clock, which is short enough to
+      /// leave the addresses and the subject their room, and the reader's short date
+      /// and time where it is not; the text as it came where it is not a time. The
+      /// whole time is the tool tip (HeldTip).
+      /// </summary>
+      public static string HeldText(string createdTime, DateTime? agesFrom)
+      {
+         DateTime held = HeldAt_(createdTime);
+         if (held == DateTime.MinValue)
+            return createdTime ?? "";
+
+         return agesFrom is DateTime now ? AgeWords.Ago(now - held) : held.ToString("g", CultureInfo.CurrentCulture);
+      }
+
+      /// <summary>The whole held time, marked as the server's.</summary>
+      public static string HeldTip(string createdTime)
+      {
+         DateTime held = HeldAt_(createdTime);
+         return held == DateTime.MinValue
+            ? createdTime ?? ""
+            : F("{0} (server time)", held.ToString("G", CultureInfo.CurrentCulture));
+      }
 
       /// <summary>
       /// The held messages, as the server listed them. Checks on messages that are
@@ -271,12 +350,13 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The header's box: every message on when any was off, all off when all were on.</summary>
       public void ToggleAll()
       {
-         bool all = messages_.Count > 0 && messages_.All(m => checked_.Contains(m.Id));
+         IReadOnlyList<HeldMessage> shown = Shown;
+         bool all = shown.Count > 0 && shown.All(m => checked_.Contains(m.Id));
          checked_.Clear();
 
          if (!all)
          {
-            foreach (HeldMessage message in messages_)
+            foreach (HeldMessage message in shown)
                checked_.Add(message.Id);
          }
 
@@ -284,7 +364,7 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>The header box's state: true, false, or null when some are checked.</summary>
-      public bool? AllChecked => ThreeState_(messages_);
+      public bool? AllChecked => ThreeState_(Shown);
 
       /// <summary>The checked messages' ids, in the order the page shows them.</summary>
       public IReadOnlyList<int> CheckedIds => Ordered_().Where(m => checked_.Contains(m.Id)).Select(m => m.Id).ToList();
@@ -512,7 +592,7 @@ namespace hMailServer.ControlPanel.Services
       private IEnumerable<HeldMessage> Ordered_()
       {
          if (Grouping == QuarantineGrouping.None)
-            return Sorted_(messages_);
+            return Sorted_(Shown);
 
          return Groups_().SelectMany(g => Sorted_(g.members));
       }
@@ -525,7 +605,7 @@ namespace hMailServer.ControlPanel.Services
 
          // The server lists newest first, so the order in which the keys are first
          // met is the order of their newest messages.
-         foreach (HeldMessage message in messages_)
+         foreach (HeldMessage message in Shown)
          {
             string key = GroupKeyOf(message, Grouping);
 
@@ -548,7 +628,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (Grouping == QuarantineGrouping.None)
          {
-            rows.AddRange(Sorted_(messages_).Select(m => new QuarantineRow(m, false)));
+            rows.AddRange(Sorted_(Shown).Select(m => new QuarantineRow(m, false, AgesFrom)));
          }
          else
          {
@@ -558,7 +638,7 @@ namespace hMailServer.ControlPanel.Services
                rows.Add(new QuarantineRow(key, members, expanded));
 
                if (expanded)
-                  rows.AddRange(Sorted_(members).Select(m => new QuarantineRow(m, true)));
+                  rows.AddRange(Sorted_(members).Select(m => new QuarantineRow(m, true, AgesFrom)));
             }
          }
 

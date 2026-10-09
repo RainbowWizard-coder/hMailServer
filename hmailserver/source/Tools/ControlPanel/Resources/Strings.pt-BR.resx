@@ -6973,6 +6973,9 @@ Nada do que já está lá é removido.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Ainda não há grupos. Um grupo dá a várias contas as mesmas permissões de pasta de uma só vez, e Membros escolhe quais.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Nenhuma mensagem retida tem "{0}" no remetente, nos destinatários, no assunto ou no motivo.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Nenhum nome de host está definido, então este servidor anuncia seu nome de computador Windows, que nenhum DNS na internet conhece.</value>
   </data>
@@ -7167,6 +7170,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Nenhuma das {0} faixas de IP exige TLS antes da autenticação, então uma senha em texto claro é aceita onde quer que uma porta a permita.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Nenhuma das {0} mensagens retidas mais recentes tem "{1}" no remetente, nos destinatários, no assunto ou no motivo. O servidor não lista mais do que essas.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Nada disso vale para uma sessão autenticada - a proteção contra spam é totalmente ignorada para um cliente que fez login, para conexões vindas de uma faixa de IP com a proteção contra spam desligada, e para os remetentes e faixas de IP das exceções antispam (entradas: {0}).</value>
@@ -9991,6 +9997,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Buscar regras</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Buscar remetente, destinatário, assunto ou motivo</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Buscar na fila de entrega</value>
@@ -16201,6 +16210,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, de {1}, pontuação {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, de {1}, pontuação {2}, retida porque: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, não disponível</value>

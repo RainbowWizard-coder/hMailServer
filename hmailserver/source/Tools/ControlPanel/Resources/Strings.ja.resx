@@ -6973,6 +6973,9 @@
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>グループはまだありません。グループは複数のアカウントに同じフォルダー権限を一度に与えます。どのアカウントかは [メンバー] で選びます。</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>送信者、受信者、件名、理由に「{0}」を含む保留中のメッセージはありません。</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>ホスト名が設定されていないため、このサーバーは Windows コンピューター名を名乗っています。この名前は、インターネット上のどの DNS も知りません。</value>
   </data>
@@ -7167,6 +7170,9 @@
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 件の IP 範囲のいずれも認証前に TLS を必須としていないため、ポートが許可する場所では平文のパスワードが受け入れられます。</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>最新の保留中メッセージ {0} 件のうち、送信者、受信者、件名、理由に「{1}」を含むものはありません。サーバーはそれ以上を一覧表示しません。</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>認証済みのセッションにはこのいずれも当てはまりません。ログオンしたクライアント、スパム対策がオフの IP 範囲からの接続、およびスパム対策の除外にある送信者と IP 範囲 (エントリ数: {0}) については、スパム対策は完全にスキップされます。</value>
@@ -9991,6 +9997,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>ルールを検索</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>送信者、受信者、件名、理由を検索</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>配信キューを検索</value>
@@ -16201,6 +16210,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}、{1} から、スコア {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}、{1} から、スコア {2}、保留の理由: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}、利用できません</value>

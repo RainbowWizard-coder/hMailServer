@@ -7036,6 +7036,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Brak jeszcze grup. Grupa nadaje kilku kontom naraz te same uprawnienia do folderów, a Członkowie wybiera, którym.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Żadna wstrzymana wiadomość nie zawiera „{0}” w nadawcy, odbiorcach, temacie ani powodzie.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Nie ustawiono nazwy hosta, więc ten serwer ogłasza swoją nazwę komputera w systemie Windows, której nie zna żaden DNS w internecie.</value>
   </data>
@@ -7239,6 +7242,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Żaden z {0} zakresów adresów IP nie wymaga TLS przed uwierzytelnieniem, więc hasło przesyłane jawnym tekstem jest przyjmowane wszędzie tam, gdzie port na to pozwala.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Żadna z najnowszych wstrzymanych wiadomości (łącznie: {0}) nie zawiera „{1}” w nadawcy, odbiorcach, temacie ani powodzie. Serwer nie wyświetla ich więcej.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Nic z tego nie dotyczy sesji uwierzytelnionej - ochrona antyspamowa jest całkowicie pomijana dla klienta, który się zalogował, dla połączeń z zakresu adresów IP z wyłączoną ochroną antyspamową oraz dla nadawców i zakresów IP z wyjątków antyspamowych (wpisy: {0}).</value>
@@ -10099,6 +10105,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Szukaj reguł</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Szukaj nadawcy, odbiorcy, tematu lub powodu</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Przeszukaj kolejkę dostarczania</value>
@@ -16566,6 +16575,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, od {1}, wynik {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, od {1}, wynik {2}, wstrzymana z powodu: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, niedostępne</value>

@@ -100,6 +100,34 @@ namespace hMailServer.ControlPanel.Views
       // Remove expired, which deletes everything held longer than the retention
       // window and so can be pressed only while there is one: 0 keeps everything.
       private Button removeExpired_;
+
+      // Why the selected message was held, under the list (review finding F261):
+      // the row's tool tip was the one place it was said, which no keyboard or
+      // screen reader reaches. A polite live region, said as the selection moves.
+      private readonly TextBlock why_ = new() { TextWrapping = TextWrapping.Wrap };
+      private readonly Card whyCard_ = new() { Visibility = Visibility.Collapsed };
+
+      // The search over what the page holds: sender, recipients, subject and why
+      // each was held (QuarantineReview.Filter).
+      private readonly Toolbar search_ = new();
+
+      // What the empty state says with no search, and how many are held and were
+      // listed, so that a search that matches nothing can say so and give the
+      // state back when it is cleared.
+      private string emptyText_ = "";
+      private object emptyAction_;
+      private int total_;
+
+      // The HELO column, left out where the window is narrower than the sidebar's
+      // threshold, so that Sender and Subject keep their room.
+      private DataGridColumn heloColumn_;
+
+      // Held and Score at the width of their widest word, set as the rows are bound
+      // (SizeFixedColumns_). As Auto columns they grew after the star columns had
+      // shared the width out, and the grid cut Subject, its last column, to a few
+      // letters.
+      private DataGridColumn heldColumn_;
+      private DataGridColumn scoreColumn_;
       // A neutral glyph: an empty quarantine is not a warning, and the warning
       // glyph it had read as one.
       private readonly EmptyState empty_ = new() { Icon = SymbolRegular.MailInbox24, Visibility = Visibility.Collapsed };
@@ -217,6 +245,9 @@ namespace hMailServer.ControlPanel.Views
                   }
                }
 
+               // A held time's age is counted only where the server's clock is this
+               // computer's: CreatedTime is the server's local time.
+               review_.AgesFrom = ServerSession.IsLocalSession ? DateTime.Now : null;
                review_.Load(messages);
                Rebind_();
 
@@ -232,6 +263,10 @@ namespace hMailServer.ControlPanel.Views
                StatusText.Show(empty_, null, total, null, quarantining
                   ? L("Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted.")
                   : L("Nothing is held. Quarantining is switched off: until it is turned on under Anti-spam settings, spam over the delete threshold is refused during the SMTP conversation rather than stored."));
+               emptyText_ = empty_.Text;
+               emptyAction_ = empty_.Action;
+               total_ = total;
+               ShowSearchState_();
 
                if (total == 0)
                   status_.Visibility = Visibility.Collapsed;
@@ -269,6 +304,8 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The rows again, after a regroup, a sort, a fold or a reload - with the sort arrow on its column.</summary>
       private void Rebind_()
       {
+         whyCard_.Visibility = Visibility.Collapsed;
+         SizeFixedColumns_();
          list_.ItemsSource = review_.Rows;
          selectAll_.IsChecked = review_.AllChecked;
 
@@ -543,19 +580,32 @@ namespace hMailServer.ControlPanel.Views
             // never narrower than the word naming it.
             Width = DataGridLength.Auto
          };
+         // The reader's date and time and how long ago; the whole time, as the
+         // server's, in the tool tip.
+         var heldText = new Style(typeof(TextBlock));
+         heldText.Setters.Add(new Setter(ToolTipProperty, new Binding(nameof(QuarantineRow.HeldTip))));
+         held.ElementStyle = heldText;
+         heldColumn_ = held;
          list_.Columns.Add(held);
 
-         list_.Columns.Add(TemplateColumn_(L("HELO"),
+         // Sender twice and Recipients one and a half times the HELO name, the
+         // sender never under 140 pixels: at 1280 the three shared alike and the
+         // addresses were cut ("sender0@mas...") while Subject had room to spare
+         // (review finding F261).
+         heloColumn_ = TemplateColumn_(L("HELO"),
             WithIcon_("headers", SymbolRegular.DocumentHeader24, nameof(QuarantineRow.HeadersTip), nameof(QuarantineRow.Helo), nameof(QuarantineRow.HeloTip), nameof(QuarantineRow.HeadersKeyTip), QuarantineRow.HeadersKey),
-            new DataGridLength(1, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Helo)));
+            new DataGridLength(1, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Helo));
+         list_.Columns.Add(heloColumn_);
 
-         list_.Columns.Add(TemplateColumn_(L("Sender"),
+         DataGridTemplateColumn sender = TemplateColumn_(L("Sender"),
             Trimmed_(nameof(QuarantineRow.Sender), nameof(QuarantineRow.SenderTip)),
-            new DataGridLength(1, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Sender)));
+            new DataGridLength(2, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Sender));
+         sender.MinWidth = 140;
+         list_.Columns.Add(sender);
 
          list_.Columns.Add(TemplateColumn_(L("Recipients"),
             Trimmed_(nameof(QuarantineRow.Recipients), nameof(QuarantineRow.RecipientsTip)),
-            new DataGridLength(1, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Recipients)));
+            new DataGridLength(1.5, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Recipients)));
 
          var score = new DataGridTextColumn
          {
@@ -565,6 +615,7 @@ namespace hMailServer.ControlPanel.Views
             Width = DataGridLength.Auto
          };
          GridStyles.Number(score);
+         scoreColumn_ = score;
          list_.Columns.Add(score);
 
          list_.Columns.Add(TemplateColumn_(L("Subject"),
@@ -1239,6 +1290,17 @@ namespace hMailServer.ControlPanel.Views
 
          parts.Children.Add(status_);
 
+         // The search, over what the page holds.
+         search_.SearchPlaceholder = L("Search sender, recipient, subject or reason");
+         search_.SearchTextChanged += (_, _) =>
+         {
+            review_.SetFilter(search_.SearchText);
+            Rebind_();
+            ShowSearchState_();
+         };
+         search_.SetResourceReference(MarginProperty, "AppCardGap");
+         parts.Children.Add(search_);
+
          BuildColumns();
          BuildFlyout();
          AutomationProperties.SetName(list_, L("Quarantine"));
@@ -1267,7 +1329,95 @@ namespace hMailServer.ControlPanel.Views
          // (Views/RowDetailStrip).
          parts.Children.Add(RowDetailStrip.For(list_, _ => L("Why it was held"), row => row is QuarantineRow { IsMessage: true } held ? held.Message.Reason : null));
 
+         // Why the selected message was held, under the list.
+         why_.SetResourceReference(StyleProperty, "TextBody");
+         AutomationProperties.SetLiveSetting(why_, System.Windows.Automation.AutomationLiveSetting.Polite);
+         AutomationProperties.SetAutomationId(whyCard_, "quarantine-why");
+         whyCard_.Content = why_;
+         whyCard_.SetResourceReference(MarginProperty, "AppCardGap");
+         parts.Children.Add(whyCard_);
+         list_.SelectionChanged += (_, _) => ShowWhy_();
+
+         // The HELO column goes where the window is narrower than the sidebar's
+         // threshold, where the four address columns could not all be read.
+         SizeChanged += (_, _) =>
+         {
+            double window = Window.GetWindow(this)?.ActualWidth ?? double.MaxValue;
+            if (heloColumn_ != null)
+               heloColumn_.Visibility = window < DesignTokens.Shell.CollapseSidebarBelow ? Visibility.Collapsed : Visibility.Visible;
+         };
+
          Content = root;
+      }
+
+      /// <summary>
+      /// Held and Score as wide as their headers - with room for the sort arrow - and
+      /// their widest words, so that the star columns share what is left of the width
+      /// and Subject keeps its share.
+      /// </summary>
+      private void SizeFixedColumns_()
+      {
+         const double SortArrow = 16;
+         if (heldColumn_ != null)
+         {
+            double held = GridStyles.HeaderWidth(L("Held")) + SortArrow;
+            foreach (QuarantineRow row in review_.Rows)
+            {
+               if (row.IsMessage)
+                  held = Math.Max(held, GridStyles.CellWidth(row.Held));
+            }
+            heldColumn_.Width = new DataGridLength(Math.Ceiling(held));
+         }
+
+         if (scoreColumn_ != null)
+            scoreColumn_.Width = new DataGridLength(Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("Score")) + SortArrow, GridStyles.CellWidth("1000")))); // no-loc: the widest score
+      }
+
+      /// <summary>Why the selected message was held, or nothing for a group or no selection.</summary>
+      private void ShowWhy_()
+      {
+         if (list_.SelectedItem is QuarantineRow { IsMessage: true } row && row.Message.Reason.Length > 0)
+         {
+            why_.Text = row.HeldBecause;
+            whyCard_.Visibility = Visibility.Visible;
+            Announce.Request(why_);
+         }
+         else
+         {
+            whyCard_.Visibility = Visibility.Collapsed;
+         }
+      }
+
+      /// <summary>
+      /// The empty state for the search: a search that matches nothing says so - and,
+      /// where the server listed only the most recent, that it looked at those - and
+      /// a search cleared gives back what the page says with nothing held.
+      /// </summary>
+      private void ShowSearchState_()
+      {
+         // A read that failed has neither: its notice says what happened, and the
+         // empty state stays hidden (Services/ReadFailure).
+         if (ReadFailure.IsShown(status_))
+            return;
+
+         if (string.IsNullOrWhiteSpace(review_.Filter) || review_.Messages.Count == 0)
+         {
+            empty_.Action = emptyAction_;
+            StatusText.Show(empty_, null, total_, null, emptyText_);
+            return;
+         }
+
+         empty_.Action = null;
+         if (review_.Shown.Count > 0)
+         {
+            empty_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         empty_.Text = review_.Messages.Count < total_
+            ? F("None of the {0} most recent held messages has \"{1}\" in its sender, recipients, subject or reason. The server lists no more than those.", review_.Messages.Count, review_.Filter)
+            : F("No held message has \"{0}\" in its sender, recipients, subject or reason.", review_.Filter);
+         empty_.Visibility = Visibility.Visible;
       }
 
       private static Button MakeButton(string text, ControlAppearance appearance, RoutedEventHandler onClick)

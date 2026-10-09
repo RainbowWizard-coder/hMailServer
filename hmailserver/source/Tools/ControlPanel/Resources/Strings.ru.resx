@@ -7036,6 +7036,9 @@ Control Panel может читать файлы сообщений только
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Групп пока нет. Группа даёт нескольким учётным записям одинаковые права на папки сразу, а кнопка «Участники» выбирает, каким.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Ни в одном задержанном сообщении нет «{0}» в отправителе, получателях, теме или причине.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Имя узла не задано, поэтому этот сервер сообщает имя своего компьютера Windows, которое не знает ни один DNS в интернете.</value>
   </data>
@@ -7239,6 +7242,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Ни один из {0} диапазонов IP не требует TLS перед аутентификацией, поэтому пароль открытым текстом принимается везде, где его допускает порт.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Ни в одном из последних задержанных сообщений (всего: {0}) нет «{1}» в отправителе, получателях, теме или причине. Больше сервер не перечисляет.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Ничто из этого не относится к аутентифицированному сеансу: защита от спама полностью пропускается для клиента, который вошёл в систему, для подключений из диапазона IP с отключённой защитой от спама и для отправителей и диапазонов IP из исключений антиспама (записей: {0}).</value>
@@ -10099,6 +10105,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Поиск по правилам</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Поиск по отправителю, получателю, теме или причине</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Поиск по очереди доставки</value>
@@ -16566,6 +16575,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, от {1}, баллы {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, от {1}, баллы {2}, задержано, потому что: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, нет данных</value>

@@ -6973,6 +6973,9 @@ Nothing already there is removed.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>No held message has "{0}" in its sender, recipients, subject or reason.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows.</value>
   </data>
@@ -7167,6 +7170,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>None of the {0} most recent held messages has "{1}" in its sender, recipients, subject or reason. The server lists no more than those.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0}).</value>
@@ -9991,6 +9997,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Search rules</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Search sender, recipient, subject or reason</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Search the delivery queue</value>
@@ -16201,6 +16210,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, from {1}, score {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, from {1}, score {2}, held because: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, not available</value>

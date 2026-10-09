@@ -7036,6 +7036,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Zatím žádné skupiny. Skupina dává několika účtům najednou stejná oprávnění ke složkám a tlačítko Členové určuje kterým.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Žádná zadržená zpráva nemá „{0}“ v odesílateli, příjemcích, předmětu ani v důvodu.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Není nastaven žádný název hostitele, takže tento server oznamuje název svého počítače Windows, který žádný DNS na internetu nezná.</value>
   </data>
@@ -7239,6 +7242,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Ani jeden z {0} IP rozsahů nevyžaduje TLS před ověřením, takže heslo v otevřeném textu se přijme všude, kde je port povolí.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Žádná z nejnovějších zadržených zpráv (celkem {0}) nemá „{1}“ v odesílateli, příjemcích, předmětu ani v důvodu. Server jich víc nevypisuje.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Nic z toho se netýká ověřené relace – u klienta, který se přihlásil, u připojení z IP rozsahu s vypnutou ochranou proti spamu a u odesílatelů a rozsahů IP z výjimek z antispamu (položek: {0}) se ochrana proti spamu přeskakuje úplně.</value>
@@ -10099,6 +10105,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Hledat v pravidlech</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Hledat odesílatele, příjemce, předmět nebo důvod</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Hledat v doručovací frontě</value>
@@ -16566,6 +16575,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, od {1}, skóre {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, od {1}, skóre {2}, pozdrženo, protože: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, není k dispozici</value>

@@ -6973,6 +6973,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Inga grupper än. En grupp ger flera konton samma mappbehörigheter på en gång, och Medlemmar väljer vilka.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Inget kvarhållet meddelande har ”{0}” i avsändare, mottagare, ämne eller orsak.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Inget värdnamn är satt, så den här servern annonserar sitt Windows-datornamn, som ingen DNS på internet känner till.</value>
   </data>
@@ -7167,6 +7170,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Inget av de {0} IP-intervallen kräver TLS före autentisering, så ett klartextlösenord godtas överallt där en port tillåter ett.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Inget av de {0} senaste kvarhållna meddelandena har ”{1}” i avsändare, mottagare, ämne eller orsak. Servern listar inte fler än dem.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Inget av detta gäller en autentiserad session - skräppostskyddet hoppas över helt för en klient som loggat in, för anslutningar från ett IP-intervall med skräppostskyddet avstängt, och för avsändare och IP-intervall bland skräppostundantagen (poster: {0}).</value>
@@ -9991,6 +9997,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Sök regler</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Sök avsändare, mottagare, ämne eller orsak</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Sök i leveranskön</value>
@@ -16201,6 +16210,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, från {1}, poäng {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, från {1}, poäng {2}, kvarhållet eftersom: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, inte tillgängligt</value>

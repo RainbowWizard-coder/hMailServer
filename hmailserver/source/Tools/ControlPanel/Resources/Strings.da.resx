@@ -6973,6 +6973,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Ingen grupper endnu. En gruppe giver flere konti de samme mappetilladelser på én gang, og Medlemmer vælger hvilke.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Ingen tilbageholdt meddelelse har "{0}" i afsender, modtagere, emne eller årsag.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Der er ikke angivet noget værtsnavn, så denne server annoncerer sit Windows-computernavn, som ingen DNS på internettet kender.</value>
   </data>
@@ -7167,6 +7170,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Intet af de {0} IP-intervaller kræver TLS før godkendelse, så en adgangskode i klartekst accepteres overalt, hvor en port tillader en.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Ingen af de {0} seneste tilbageholdte meddelelser har "{1}" i afsender, modtagere, emne eller årsag. Serveren viser ikke flere end dem.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Intet af dette gælder for en godkendt session - spambeskyttelse springes helt over for en klient, der er logget på, for forbindelser fra et IP-interval med spambeskyttelse slået fra, og for afsendere og IP-områder blandt spamundtagelserne (poster: {0}).</value>
@@ -9991,6 +9997,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Søg i regler</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Søg i afsender, modtager, emne eller årsag</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Søg i leveringskøen</value>
@@ -16201,6 +16210,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, fra {1}, score {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, fra {1}, score {2}, tilbageholdt fordi: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, ikke tilgængelig</value>

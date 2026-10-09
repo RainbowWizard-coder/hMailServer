@@ -6973,6 +6973,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Ei vielä ryhmiä. Ryhmä antaa usealle tilille kerralla samat kansio-oikeudet, ja Jäsenet valitsee, mille.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Missään pidätetyssä viestissä ei ole merkkijonoa "{0}" lähettäjässä, vastaanottajissa, aiheessa tai syyssä.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Konenimeä ei ole asetettu, joten tämä palvelin ilmoittaa Windows-tietokonenimensä, jota mikään internetin DNS ei tunne.</value>
   </data>
@@ -7167,6 +7170,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Yksikään {0} IP-alueesta ei vaadi TLS:ää ennen todennusta, joten selväkielinen salasana hyväksytään kaikkialla, missä portti sallii sellaisen.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Yhdessäkään {0} uusimmasta pidätetystä viestistä ei ole merkkijonoa "{1}" lähettäjässä, vastaanottajissa, aiheessa tai syyssä. Palvelin ei luettele niitä enempää.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Mikään tästä ei koske todennettua istuntoa - roskapostisuojaus ohitetaan kokonaan kirjautuneelta asiakkaalta, yhteyksiltä IP-alueelta, jolla roskapostisuojaus on pois päältä, sekä roskapostipoikkeusten lähettäjiltä ja IP-alueilta (merkintöjä: {0}).</value>
@@ -9991,6 +9997,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Hae säännöistä</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Hae lähettäjää, vastaanottajaa, aihetta tai syytä</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Hae toimitusjonosta</value>
@@ -16201,6 +16210,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, lähettäjä {1}, pisteet {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, lähettäjä {1}, pisteet {2}, pidätetty, koska: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, ei saatavilla</value>

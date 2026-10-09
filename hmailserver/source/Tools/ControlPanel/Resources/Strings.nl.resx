@@ -6973,6 +6973,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Nog geen groepen. Een groep geeft meerdere accounts tegelijk dezelfde maprechten, en Leden kiest welke.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Geen enkel vastgehouden bericht bevat "{0}" in de afzender, de ontvangers, het onderwerp of de reden.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Er is geen hostnaam ingesteld, dus deze server kondigt zijn Windows-computernaam aan, die geen enkele DNS op internet kent.</value>
   </data>
@@ -7167,6 +7170,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Geen van de {0} IP-bereiken vereist TLS vóór authenticatie, dus een wachtwoord in klare tekst wordt overal geaccepteerd waar een poort dat toestaat.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Geen van de {0} recentste vastgehouden berichten bevat "{1}" in de afzender, de ontvangers, het onderwerp of de reden. De server toont er niet meer dan die.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Niets hiervan geldt voor een geauthenticeerde sessie - spambescherming wordt volledig overgeslagen voor een client die zich heeft aangemeld, voor verbindingen vanuit een IP-bereik waarin spambescherming is uitgeschakeld, en voor de afzenders en IP-bereiken in de spamuitzonderingen (vermeldingen: {0}).</value>
@@ -9991,6 +9997,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Regels doorzoeken</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Zoeken op afzender, ontvanger, onderwerp of reden</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>De bezorgwachtrij doorzoeken</value>
@@ -16201,6 +16210,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, van {1}, score {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, van {1}, score {2}, vastgehouden omdat: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, niet beschikbaar</value>

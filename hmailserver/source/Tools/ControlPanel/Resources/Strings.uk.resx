@@ -7036,6 +7036,9 @@
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Груп ще немає. Група надає кільком обліковим записам однакові дозволи на папки одразу, а кнопка «Учасники» вибирає, яким.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Жодне утримане повідомлення не містить «{0}» у відправнику, одержувачах, темі чи причині.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Ім'я вузла не задано, тому цей сервер оголошує ім'я свого комп'ютера Windows, якого не знає жоден DNS в інтернеті.</value>
   </data>
@@ -7239,6 +7242,9 @@
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.|few" xml:space="preserve">
     <value>Жоден із {0} діапазонів IP не вимагає TLS перед автентифікацією, тому пароль відкритим текстом приймається всюди, де його дозволяє порт.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Жодне з найновіших утриманих повідомлень (усього: {0}) не містить «{1}» у відправнику, одержувачах, темі чи причині. Більше сервер не перелічує.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Ніщо з цього не стосується автентифікованого сеансу — захист від спаму повністю пропускається для клієнта, який увійшов, для підключень із діапазону IP з вимкненим захистом від спаму та для відправників і діапазонів IP з винятків антиспаму (записів: {0}).</value>
@@ -10099,6 +10105,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Пошук правил</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Пошук за відправником, одержувачем, темою чи причиною</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Пошук у черзі доставки</value>
@@ -16566,6 +16575,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, від {1}, бали {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, від {1}, бали {2}, утримано, бо: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, немає даних</value>

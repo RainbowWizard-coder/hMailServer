@@ -6973,6 +6973,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Noch keine Gruppen. Eine Gruppe gibt mehreren Konten auf einmal dieselben Ordnerberechtigungen, und Mitglieder legt fest, welchen.</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>Keine zurückgehaltene Nachricht enthält „{0}“ in Absender, Empfängern, Betreff oder Grund.</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Es ist kein Hostname gesetzt, dieser Server kündigt also seinen Windows-Computernamen an, den kein DNS im Internet kennt.</value>
   </data>
@@ -7167,6 +7170,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>Keiner der {0} IP-Bereiche verlangt TLS vor der Authentifizierung, ein Klartextpasswort wird also überall dort angenommen, wo ein Port eins erlaubt.</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>Keine der {0} neuesten zurückgehaltenen Nachrichten enthält „{1}“ in Absender, Empfängern, Betreff oder Grund. Mehr als diese listet der Server nicht.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>Nichts davon gilt für eine authentifizierte Sitzung - der Spamschutz wird für einen angemeldeten Client vollständig übersprungen, ebenso für Verbindungen aus einem IP-Bereich mit abgeschaltetem Spamschutz und für die Absender und IP-Bereiche unter den Spam-Ausnahmen (Einträge: {0}).</value>
@@ -9991,6 +9997,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>Regeln durchsuchen</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>Absender, Empfänger, Betreff oder Grund durchsuchen</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Die Zustellwarteschlange durchsuchen</value>
@@ -16201,6 +16210,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, von {1}, Bewertung {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}, von {1}, Punktzahl {2}, zurückgehalten, weil: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, nicht verfügbar</value>

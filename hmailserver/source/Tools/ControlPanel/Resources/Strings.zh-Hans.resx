@@ -6973,6 +6973,9 @@
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>还没有组。组可一次为多个账户授予相同的文件夹权限，由“成员”选择哪些账户。</value>
   </data>
+  <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
+    <value>没有任何暂留邮件的发件人、收件人、主题或原因中包含“{0}”。</value>
+  </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>未设置主机名，因此本服务器通告的是其 Windows 计算机名，互联网上没有任何 DNS 知道这个名称。</value>
   </data>
@@ -7167,6 +7170,9 @@
   </data>
   <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
     <value>{0} 个 IP 范围中没有一个要求在身份验证之前使用 TLS，因此只要端口允许，明文密码就会被接受。</value>
+  </data>
+  <data name="None of the {0} most recent held messages has &quot;{1}&quot; in its sender, recipients, subject or reason. The server lists no more than those." xml:space="preserve">
+    <value>最近的 {0} 封暂留邮件中，没有任何一封的发件人、收件人、主题或原因包含“{1}”。服务器列出的不超过这些。</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the senders and IP ranges in the spam exemptions (entries: {0})." xml:space="preserve">
     <value>这些都不适用于已通过身份验证的会话 - 对于已登录的客户端、来自关闭了垃圾邮件防护的 IP 范围的连接，以及反垃圾邮件豁免中的发件人和 IP 范围（条目：{0}），垃圾邮件防护会被完全跳过。</value>
@@ -9991,6 +9997,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Search rules" xml:space="preserve">
     <value>搜索规则</value>
+  </data>
+  <data name="Search sender, recipient, subject or reason" xml:space="preserve">
+    <value>搜索发件人、收件人、主题或原因</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>搜索投递队列</value>
@@ -16201,6 +16210,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}，来自 {1}，分数 {2}</value>
+  </data>
+  <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
+    <value>{0}，来自 {1}，分数 {2}，暂挂原因：{3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}，不可用</value>
