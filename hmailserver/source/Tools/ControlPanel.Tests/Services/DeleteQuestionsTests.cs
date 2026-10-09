@@ -313,6 +313,20 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AnEmptyMessage_IsNotSent(string body, bool sent)
          => Assert.Equal(sent, SendoutAudience.HasBody(body));
 
+      [Fact]
+      public void EachSendoutPress_StartsWithNoOutcomeOnThePage()
+      {
+         // The warning that the wildcard reached nobody stayed through the next press
+         // and a cancelled question, under a form that now reached some accounts.
+         string send = WithheldRowTests.MemberText(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "UtilityViews.cs")), "private void Send()");
+         Assert.True(send != null, "SendoutView.Send is gone.");
+         int clears = send.IndexOf("status_.Visibility = Visibility.Collapsed;", StringComparison.Ordinal);
+         Assert.True(clears >= 0, "SendoutView.Send does not hide the last outcome.");
+         Assert.DoesNotContain("return;", send.Substring(0, clears), StringComparison.Ordinal);
+         Assert.True(clears < send.IndexOf("Confirmations.SendoutToNobody(", StringComparison.Ordinal), "SendoutView.Send hides its outcome only after the warning.");
+         Assert.True(clears < send.IndexOf("MessageBox.Confirm(", StringComparison.Ordinal), "SendoutView.Send hides its outcome only after the question.");
+      }
+
       [Theory]
       [InlineData("FolderPermissionsDialog.cs", "private void DeleteSelected()", "Confirmations.RemoveFolderPermission(", "perms.DeleteByDBID(id)")]
       [InlineData("QuarantineView.cs", "private void SweepExpired()", "Confirmations.DeleteExpiredQuarantine(days)", "quarantine.DeleteExpired()")]

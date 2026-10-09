@@ -427,6 +427,11 @@ namespace hMailServer.ControlPanel.Views
 
       private void Send()
       {
+         // Each press starts with no outcome on the page: a warning that the wildcard
+         // reached nobody, or the last sendout's result, would otherwise stand under a
+         // form that may no longer say it, through a question cancelled.
+         status_.Visibility = Visibility.Collapsed;
+
          if (fromAddress_.Text.Trim().Length == 0 || subject_.Text.Trim().Length == 0)
          {
             MessageBox.Show(L("From address and subject are required."), L("Control Panel"));
