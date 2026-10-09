@@ -1419,6 +1419,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Ook uitgeschakeld door een limiet van 0 hieronder, wat dit vakje ook zegt.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Pijl-links, Alt+Pijl-rechts</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+onderstreepte letter</value>
   </data>
@@ -1863,6 +1866,12 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Back" xml:space="preserve">
     <value>Terug</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Terug naar {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Terug naar {0} (Alt+Pijl-links)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Back-up van _domeinen (accounts, aliassen, lijsten)</value>
@@ -4978,6 +4987,12 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Forward-proxy voor elke webaanvraag die deze server doet - de feed, de downloads ervan, JWKS, tokenintrospectie (host:port; leeg = rechtstreeks; geen proxy-inloggegevens)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Vooruit naar {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Vooruit naar {0} (Alt+Pijl-rechts)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Doorgestuurde mail en bouncebescherming (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globale regels vergelijken met het bericht en voeren een actie uit - verplaatsen, markeren, antwoorden of weigeren.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Teruggaan</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Terug naar de eerder geopende pagina, of weer vooruit; de terug- en vooruitknoppen van de muis doen hetzelfde</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Vooruitgaan</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Ga naar de bijbehorende pagina {0}</value>

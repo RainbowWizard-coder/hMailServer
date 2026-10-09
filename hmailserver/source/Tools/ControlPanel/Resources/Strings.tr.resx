@@ -1419,6 +1419,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Bu kutuda ne yazarsa yazsın, aşağıdaki 0 sınırı da bunu kapatır.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Sol ok, Alt+Sağ ok</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+altı çizili harf</value>
   </data>
@@ -1863,6 +1866,12 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Back" xml:space="preserve">
     <value>Geri</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>{0} sayfasına geri dön</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>{0} sayfasına geri dön (Alt+Sol ok)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>_Etki alanlarını yedekle (hesaplar, diğer adlar, listeler)</value>
@@ -4978,6 +4987,12 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Bu sunucunun yaptığı her web isteği için iletme proxy'si - besleme, indirmeleri, JWKS, belirteç introspection (host:port; boş = doğrudan; proxy kimlik bilgileri yok)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>{0} sayfasına ilerle</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>{0} sayfasına ilerle (Alt+Sağ ok)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>İletilen posta ve geri dönme koruması (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Genel kurallar iletiyle eşleşir ve bir eylem uygular - taşıma, etiketleme, yanıtlama ya da reddetme.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Geri git</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Önceden açılan sayfaya geri dön veya yeniden ileri git; farenin geri ve ileri düğmeleri de aynısını yapar</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>İleri git</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>İlgili {0} sayfasına git</value>

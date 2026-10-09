@@ -1431,6 +1431,9 @@ Control Panel может читать файлы сообщений только
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Также отключается ограничением 0 ниже, независимо от состояния этого флажка.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Стрелка влево, Alt+Стрелка вправо</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+подчёркнутая буква</value>
   </data>
@@ -1884,6 +1887,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Back" xml:space="preserve">
     <value>Назад</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Назад к странице {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Назад к странице {0} (Alt+Стрелка влево)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Резервное копирование _доменов (учётные записи, псевдонимы, списки)</value>
@@ -5042,6 +5051,12 @@ Control Panel может читать файлы сообщений только
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Прокси-сервер для каждого веб-запроса этого сервера — ленты, её загрузок, JWKS, интроспекции токенов (host:port; пусто — прямое подключение; без учётных данных прокси)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Вперёд к странице {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Вперёд к странице {0} (Alt+Стрелка вправо)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Пересылаемая почта и защита от подделки отчётов о недоставке (SRS / BATV)</value>
   </data>
@@ -5134,6 +5149,15 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Глобальные правила сопоставляются с сообщением и выполняют действие — переместить, пометить, ответить или отклонить.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Вернуться назад</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Вернуться к странице, открытой раньше, или снова вперёд; кнопки «назад» и «вперёд» мыши делают то же</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Перейти вперёд</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Перейти на связанную страницу {0}</value>

@@ -31,15 +31,19 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("S", true, false, false, ShellCommand.Save)]
       [InlineData("F6", false, false, false, ShellCommand.NextPart)]
       [InlineData("F6", false, true, false, ShellCommand.PreviousPart)]
+      [InlineData("Left", false, false, true, ShellCommand.Back)]
+      [InlineData("Right", false, false, true, ShellCommand.Forward)]
+      [InlineData("BrowserBack", false, false, false, ShellCommand.Back)]
+      [InlineData("BrowserForward", false, false, false, ShellCommand.Forward)]
       public void EachKey_IsItsCommand(string key, bool control, bool shift, bool alt, ShellCommand expected)
       {
          Assert.Equal(expected, KeyboardShortcuts.Resolve(key, control, shift, alt));
       }
 
       /// <summary>
-      /// A key with a modifier it does not take is somebody else's: Alt is the
-      /// access keys', Ctrl+F5 and Ctrl+Shift+S are not ours, and a bare K, F or S
-      /// is typing.
+      /// A key with a modifier it does not take is somebody else's: Alt with a
+      /// letter is the access keys', Ctrl+F5 and Ctrl+Shift+S are not ours, a bare
+      /// K, F or S is typing, and a bare arrow moves in the control that has it.
       /// </summary>
       [Theory]
       [InlineData("K", false, false, false)]
@@ -52,6 +56,12 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("F6", true, false, false)]
       [InlineData("K", true, false, true)]
       [InlineData("F6", false, false, true)]
+      [InlineData("B", false, false, true)]
+      [InlineData("Left", false, false, false)]
+      [InlineData("Right", false, false, false)]
+      [InlineData("Left", true, false, true)]
+      [InlineData("Right", false, true, true)]
+      [InlineData("BrowserBack", true, false, false)]
       [InlineData("Enter", false, false, false)]
       [InlineData("", true, false, false)]
       [InlineData(null, true, false, false)]
@@ -110,7 +120,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheList_NamesEveryKeyTheWindowAnswers()
       {
          string keys = string.Join("\n", KeyboardShortcuts.Listed.Select(s => s.Keys));
-         foreach (string key in new[] { "Ctrl+K", "F1", "F5", "Ctrl+F", "Ctrl+S", "F6, Shift+F6", "Esc" })
+         foreach (string key in new[] { "Ctrl+K", "F1", "F5", "Ctrl+F", "Ctrl+S", "F6, Shift+F6", "Alt+Left, Alt+Right", "Esc" })
             Assert.Contains(key, keys, StringComparison.Ordinal);
 
          Assert.All(KeyboardShortcuts.Listed, s =>

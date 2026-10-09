@@ -1419,6 +1419,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Kytkeytyy pois myös alla olevalla rajalla 0, riippumatta siitä mitä tämä valintaruutu sanoo.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Vasen nuoli, Alt+Oikea nuoli</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+alleviivattu kirjain</value>
   </data>
@@ -1863,6 +1866,12 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Back" xml:space="preserve">
     <value>Takaisin</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Takaisin sivulle {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Takaisin sivulle {0} (Alt+Vasen nuoli)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Varmuuskopioi _verkkotunnukset (tilit, aliakset, listat)</value>
@@ -4978,6 +4987,12 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Välityspalvelin jokaiselle tämän palvelimen verkkopyynnölle - syötteelle, sen latauksille, JWKS:lle, tokenin introspektiolle (host:port; tyhjä = suora yhteys; ei välityspalvelimen tunnuksia)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Eteenpäin sivulle {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Eteenpäin sivulle {0} (Alt+Oikea nuoli)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Edelleenlähetetty posti ja suojaus palautuksilta (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Yleiset säännöt täsmäävät viestiin ja suorittavat toiminnon - siirto, merkintä, vastaus tai hylkäys.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Siirry takaisin</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Palaa aiemmin avattuun sivuun tai siirry taas eteenpäin; hiiren taakse- ja eteenpäin-painikkeet tekevät saman</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Siirry eteenpäin</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Siirry liittyvälle sivulle {0}</value>

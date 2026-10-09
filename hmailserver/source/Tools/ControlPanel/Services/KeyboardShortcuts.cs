@@ -32,7 +32,13 @@ namespace hMailServer.ControlPanel.Services
       NextPart,
 
       /// <summary>Shift+F6: the part before.</summary>
-      PreviousPart
+      PreviousPart,
+
+      /// <summary>Alt+Left, the keyboard's Back key and the mouse's back button: the page opened before.</summary>
+      Back,
+
+      /// <summary>Alt+Right, the keyboard's Forward key and the mouse's forward button: the page Back left.</summary>
+      Forward
    }
 
    /// <summary>
@@ -80,14 +86,24 @@ namespace hMailServer.ControlPanel.Services
    {
       /// <summary>
       /// The command for a key, by the key's name as WPF's Key enumeration spells
-      /// it ("K", "F5"). Alt is never ours: it is the access keys'. A key with a
-      /// modifier it does not take is no command, so that Ctrl+F5 or Shift+Ctrl+S
-      /// fall through to whatever else answers them.
+      /// it ("K", "F5"). Alt with a letter is never ours: it is the access keys'.
+      /// Alt with an arrow is no access key, and is Back and Forward, as in every
+      /// browser and in File Explorer (review finding F013), and so are the
+      /// keyboard's own Back and Forward keys. A key with a modifier it does not
+      /// take is no command, so that Ctrl+F5 or Shift+Ctrl+S fall through to
+      /// whatever else answers them.
       /// </summary>
       public static ShellCommand Resolve(string key, bool control, bool shift, bool alt)
       {
-         if (alt || string.IsNullOrEmpty(key))
+         if (string.IsNullOrEmpty(key))
             return ShellCommand.None;
+
+         if (alt)
+         {
+            if (control || shift)
+               return ShellCommand.None;
+            return key == "Left" ? ShellCommand.Back : key == "Right" ? ShellCommand.Forward : ShellCommand.None;
+         }
 
          switch (key)
          {
@@ -105,6 +121,10 @@ namespace hMailServer.ControlPanel.Services
                if (control)
                   return ShellCommand.None;
                return shift ? ShellCommand.PreviousPart : ShellCommand.NextPart;
+            case "BrowserBack":
+               return !control && !shift ? ShellCommand.Back : ShellCommand.None;
+            case "BrowserForward":
+               return !control && !shift ? ShellCommand.Forward : ShellCommand.None;
             default:
                return ShellCommand.None;
          }
@@ -163,6 +183,7 @@ namespace hMailServer.ControlPanel.Services
          new KeyboardShortcut(N("Ctrl+F"), N("Go to the search box of this page")),
          new KeyboardShortcut(N("Ctrl+S"), N("Save the changes on this page")),
          new KeyboardShortcut(N("F6, Shift+F6"), N("Move to the next or the previous part of the window: the command bar, the navigation, the page and the help")),
+         new KeyboardShortcut(N("Alt+Left, Alt+Right"), N("Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same")),
          new KeyboardShortcut(N("Esc"), N("Close the help while the keyboard is in it, close a dialog, and empty a form on a page")),
          new KeyboardShortcut(N("Enter, F2"), N("Open the selected row of a list")),
          new KeyboardShortcut(N("Del"), N("Delete the selected row of a list, after asking")),

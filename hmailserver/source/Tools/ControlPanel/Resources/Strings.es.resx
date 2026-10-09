@@ -1419,6 +1419,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>También lo desactiva un límite de 0 abajo, diga lo que diga esta casilla.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Flecha izquierda, Alt+Flecha derecha</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+letra subrayada</value>
   </data>
@@ -1863,6 +1866,12 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Back" xml:space="preserve">
     <value>Atrás</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Volver a {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Volver a {0} (Alt+Flecha izquierda)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Copiar _dominios (cuentas, alias, listas)</value>
@@ -4978,6 +4987,12 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Proxy de reenvío para cada petición web que hace este servidor - la fuente, sus descargas, JWKS, la introspección de tokens (host:port; vacío = directo; sin credenciales de proxy)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Avanzar a {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Avanzar a {0} (Alt+Flecha derecha)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Correo reenviado y protección contra rebotes (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Las reglas globales se aplican al mensaje y ejecutan una acción - mover, etiquetar, responder o rechazar.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Volver</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Volver a la página abierta antes, o avanzar de nuevo; los botones de atrás y adelante del ratón hacen lo mismo</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Avanzar</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Ir a la página relacionada {0}</value>

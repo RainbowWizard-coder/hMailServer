@@ -121,6 +121,9 @@
          the window's parts in, and the list the palette's Keyboard shortcuts row
          shows: one table, held by KeyboardShortcutsTests. -->
     <Compile Include="..\ControlPanel\Services\KeyboardShortcuts.cs" />
+    <!-- Back and Forward: the pages since sign-in, each with its scroll offset and
+         its tab (review finding F013). Held by NavigationHistoryTests. -->
+    <Compile Include="..\ControlPanel\Services\NavigationHistory.cs" />
     <!-- What a screen reader says for a list's row: its cells, a bare value with
          its column's name. Held by RowSpeechTests. -->
     <Compile Include="..\ControlPanel\Services\RowSpeech.cs" />

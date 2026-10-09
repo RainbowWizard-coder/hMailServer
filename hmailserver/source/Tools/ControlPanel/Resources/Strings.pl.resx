@@ -1431,6 +1431,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Wyłączane także przez limit 0 poniżej, niezależnie od stanu tego pola.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Strzałka w lewo, Alt+Strzałka w prawo</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+podkreślona litera</value>
   </data>
@@ -1884,6 +1887,12 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Back" xml:space="preserve">
     <value>Wstecz</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Wróć do strony {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Wróć do strony {0} (Alt+Strzałka w lewo)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Kopia zapasowa _domen (konta, aliasy, listy)</value>
@@ -5042,6 +5051,12 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Serwer proxy dla każdego żądania sieciowego tego serwera - źródła, jego pobrań, JWKS, introspekcji tokenów (host:port; puste = połączenie bezpośrednie; bez poświadczeń serwera proxy)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Dalej do strony {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Dalej do strony {0} (Alt+Strzałka w prawo)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Przekazywana poczta i ochrona przed odbiciami (SRS / BATV)</value>
   </data>
@@ -5134,6 +5149,15 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Reguły globalne dopasowują się do wiadomości i wykonują akcję - przeniesienie, oznaczenie, odpowiedź lub odrzucenie.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Wróć</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Wróć do strony otwartej wcześniej albo znów przejdź dalej; przyciski wstecz i dalej myszy działają tak samo</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Przejdź dalej</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Przejdź do powiązanej strony {0}</value>

@@ -1419,6 +1419,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Slås også av hvis grensen nedenfor er 0, uansett hva denne boksen sier.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Venstrepil, Alt+Høyrepil</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+understreket bokstav</value>
   </data>
@@ -1863,6 +1866,12 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Back" xml:space="preserve">
     <value>Tilbake</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Tilbake til {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Tilbake til {0} (Alt+Venstrepil)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Sikkerhetskopier _domener (kontoer, aliaser, lister)</value>
@@ -4978,6 +4987,12 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Videresendingsproxy for hver nettforespørsel denne serveren gjør - feeden, nedlastingene, JWKS, token-introspeksjon (host:port; tom = direkte; ingen proxy-legitimasjon)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Fram til {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Fram til {0} (Alt+Høyrepil)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Videresendt post og beskyttelse mot avvisninger (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globale regler matcher på meldingen og utfører en handling - flytt, merk, svar eller avvis.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Gå tilbake</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Gå tilbake til siden som var åpen før, eller fram igjen; musens tilbake- og framknapper gjør det samme</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Gå fram</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Gå til den relaterte siden {0}</value>

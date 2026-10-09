@@ -1431,6 +1431,9 @@
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Також вимикається обмеженням 0 нижче, хоч би що показував цей прапорець.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Стрілка вліво, Alt+Стрілка вправо</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+підкреслена літера</value>
   </data>
@@ -1884,6 +1887,12 @@
   </data>
   <data name="Back" xml:space="preserve">
     <value>Назад</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Назад до сторінки {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Назад до сторінки {0} (Alt+Стрілка вліво)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>_Копіювати домени (облікові записи, псевдоніми, списки)</value>
@@ -5042,6 +5051,12 @@
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Проксі-сервер для кожного вебзапиту цього сервера — стрічки, її завантажень, JWKS, інтроспекції токенів (host:port; порожньо — пряме з'єднання; без облікових даних проксі)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Вперед до сторінки {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Вперед до сторінки {0} (Alt+Стрілка вправо)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Переслана пошта та захист від повернень (SRS / BATV)</value>
   </data>
@@ -5134,6 +5149,15 @@
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Глобальні правила зіставляють повідомлення і виконують дію - перемістити, позначити, відповісти або відхилити.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Повернутися назад</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Повернутися до сторінки, відкритої раніше, або знову вперед; кнопки «назад» і «вперед» миші роблять те саме</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Перейти вперед</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Перейти до пов'язаної сторінки {0}</value>

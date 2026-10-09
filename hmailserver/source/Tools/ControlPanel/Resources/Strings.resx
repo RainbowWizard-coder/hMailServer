@@ -1419,6 +1419,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Also turned off by a limit of 0 below, whatever this box says.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Left, Alt+Right</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+underlined letter</value>
   </data>
@@ -1863,6 +1866,12 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Back" xml:space="preserve">
     <value>Back</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Back to {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Back to {0} (Alt+Left)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Back up _domains (accounts, aliases, lists)</value>
@@ -4978,6 +4987,12 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Forward to {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Forward to {0} (Alt+Right)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Forwarded mail &amp; bounce protection (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Global rules match on the message and take an action - move, tag, reply or refuse.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Go back</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Go forward</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Go to the related page {0}</value>

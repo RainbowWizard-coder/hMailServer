@@ -1419,6 +1419,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Disattivato anche da un limite di 0 qui sotto, qualunque cosa dica questa casella.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Freccia sinistra, Alt+Freccia destra</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+lettera sottolineata</value>
   </data>
@@ -1863,6 +1866,12 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Back" xml:space="preserve">
     <value>Indietro</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Torna a {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Torna a {0} (Alt+Freccia sinistra)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Backup dei _domini (account, alias, liste)</value>
@@ -4978,6 +4987,12 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Proxy in uscita per ogni richiesta web di questo server - il feed, i suoi download, JWKS, l'introspezione dei token (host:port; vuoto = diretto; nessuna credenziale del proxy)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Avanti a {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Avanti a {0} (Alt+Freccia destra)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Posta inoltrata e protezione dai bounce (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Le regole globali si applicano al messaggio ed eseguono un'azione - spostare, etichettare, rispondere o rifiutare.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Torna indietro</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Torna alla pagina aperta prima, o vai di nuovo avanti; i pulsanti indietro e avanti del mouse fanno lo stesso</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Vai avanti</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Vai alla pagina correlata {0}</value>

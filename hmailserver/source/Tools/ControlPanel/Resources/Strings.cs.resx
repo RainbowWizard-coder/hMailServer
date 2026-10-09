@@ -1431,6 +1431,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Vypíná to i limit 0 níže, ať už toto políčko říká cokoli.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Šipka vlevo, Alt+Šipka vpravo</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+podtržené písmeno</value>
   </data>
@@ -1884,6 +1887,12 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Back" xml:space="preserve">
     <value>Zpět</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Zpět na stránku {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Zpět na stránku {0} (Alt+Šipka vlevo)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Zálohovat _domény (účty, aliasy, seznamy)</value>
@@ -5042,6 +5051,12 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Předsazený proxy server pro každý webový požadavek tohoto serveru - zdroj, jeho stahování, JWKS, introspekci tokenů (host:port; prázdné = přímé připojení; bez přihlašovacích údajů proxy)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Vpřed na stránku {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Vpřed na stránku {0} (Alt+Šipka vpravo)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Přeposílaná pošta a ochrana proti vráceným zprávám (SRS / BATV)</value>
   </data>
@@ -5134,6 +5149,15 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globální pravidla porovnávají zprávu a provádějí akci - přesun, označení, odpověď nebo odmítnutí.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Přejít zpět</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Přejít zpět na dříve otevřenou stránku nebo znovu vpřed; totéž dělají tlačítka myši zpět a vpřed</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Přejít vpřed</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Přejít na související stránku {0}</value>

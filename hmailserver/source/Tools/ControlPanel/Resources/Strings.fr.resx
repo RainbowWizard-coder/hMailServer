@@ -1419,6 +1419,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Également désactivé par une limite de 0 ci-dessous, quoi que dise cette case.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Flèche gauche, Alt+Flèche droite</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+lettre soulignée</value>
   </data>
@@ -1863,6 +1866,12 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Back" xml:space="preserve">
     <value>Retour</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Revenir à {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Revenir à {0} (Alt+Flèche gauche)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Sauvegarder les _domaines (comptes, alias, listes)</value>
@@ -4978,6 +4987,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Proxy sortant pour chaque requête web de ce serveur - le flux, ses téléchargements, JWKS, l'introspection de jetons (host:port ; vide = connexion directe ; aucun identifiant de proxy)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Avancer vers {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Avancer vers {0} (Alt+Flèche droite)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Courrier transféré et protection contre les rebonds (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Les règles globales s'appliquent au message et prennent une action - déplacer, étiqueter, répondre ou refuser.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Revenir</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Revenir à la page ouverte avant, ou avancer de nouveau ; les boutons précédent et suivant de la souris font de même</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Avancer</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Aller à la page associée {0}</value>

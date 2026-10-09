@@ -1419,6 +1419,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Também desligado por um limite de 0 abaixo, diga o que disser esta caixa.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Seta para a esquerda, Alt+Seta para a direita</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+letra sublinhada</value>
   </data>
@@ -1863,6 +1866,12 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Back" xml:space="preserve">
     <value>Voltar</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Voltar para {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Voltar para {0} (Alt+Seta para a esquerda)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Fazer backup dos _domínios (contas, aliases, listas)</value>
@@ -4978,6 +4987,12 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Proxy de encaminhamento para cada requisição web deste servidor - o feed, seus downloads, JWKS, a introspecção de tokens (host:port; vazio = direto; sem credenciais de proxy)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Avançar para {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Avançar para {0} (Alt+Seta para a direita)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>E-mails encaminhados e proteção contra bounces (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>As regras globais comparam a mensagem e executam uma ação - mover, marcar, responder ou recusar.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Voltar</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Voltar à página aberta antes, ou avançar de novo; os botões voltar e avançar do mouse fazem o mesmo</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Avançar</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Ir para a página relacionada {0}</value>

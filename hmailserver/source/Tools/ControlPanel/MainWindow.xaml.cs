@@ -174,13 +174,16 @@ namespace hMailServer.ControlPanel
          // leave it, and Escape only while the keyboard is already inside the
          // card, so the page keeps its own - then the keys the window answers on
          // every page (MainWindow.Keys.cs): Ctrl+K for the palette, F1 for the
-         // help, F5, Ctrl+F, Ctrl+S and F6.
+         // help, F5, Ctrl+F, Ctrl+S and F6, and Alt+Left and Alt+Right for Back
+         // and Forward (MainWindow.History.cs, which also takes the mouse's side
+         // buttons).
          PreviewKeyDown += (s, e) =>
          {
             if (HandleTourKey_(e) || HandleShellKey_(e))
                e.Handled = true;
          };
          WireShellKeys_();
+         WireHistory_();
 
          // Opened again by hMailServer.Updater after an administrator's install of an
          // update (docs/ServiceAccount.md, "The live update"): sign in with the
@@ -791,6 +794,7 @@ namespace hMailServer.ControlPanel
 
          BreadcrumbHost.Children.Clear();
          RelatedHost.Children.Clear();
+         UpdateHistoryButtons_();
 
          IReadOnlyList<NavNode> trail = NavigationMap.PathTo(key);
          if (trail.Count == 0)
@@ -1037,6 +1041,7 @@ namespace hMailServer.ControlPanel
             // and return to the connect screen instead of revealing the UI.
             connected_ = false;
             EndTour(record: false);
+            history_.Clear();
             NavTree.IsEnabled = false;
             NavRail.IsEnabled = false;
             SearchButton.IsEnabled = false;
@@ -1098,6 +1103,10 @@ namespace hMailServer.ControlPanel
          // flag set would then stop counting every genuine visit for the rest of the
          // session.
          automaticNavigation_ = true;
+
+         // The history is this sign-in's: the pages the last credential opened are
+         // not this one's to go back to.
+         history_.Clear();
 
          try
          {
@@ -1234,6 +1243,12 @@ namespace hMailServer.ControlPanel
             pageCache_[key] = page;
          }
 
+         // The history (MainWindow.History.cs): how the page on screen is being
+         // left, then this visit, or the Back or Forward step that asked for it.
+         // Here, once the page may be left and the page to open exists, so that
+         // Stay and a key with no page move nothing.
+         HistoryEntry returningTo = RecordVisit_(key, ContentHost.Content as DependencyObject);
+
          if (ContentHost.Content is IPageLifecycle oldPage)
          {
             try
@@ -1271,6 +1286,7 @@ namespace hMailServer.ControlPanel
          }
 
          EnterPage(page);
+         RestoreVisit_(returningTo, page);
 
          // A page's help button starts the tour that visits it, where one
          // does; and a running tour follows the page, because the control its

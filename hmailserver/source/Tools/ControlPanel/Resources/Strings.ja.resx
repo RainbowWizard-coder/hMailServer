@@ -1419,6 +1419,9 @@
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>下の制限を 0 にした場合も、このチェックボックスの状態にかかわらず無効になります。</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+左方向キー、Alt+右方向キー</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+下線付きの文字</value>
   </data>
@@ -1863,6 +1866,12 @@
   </data>
   <data name="Back" xml:space="preserve">
     <value>戻る</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>{0} に戻る</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>{0} に戻る (Alt+左方向キー)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>ドメインをバックアップする (アカウント、エイリアス、リスト)(_D)</value>
@@ -4978,6 +4987,12 @@
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>このサーバーが行うすべての Web 要求 (フィード、そのダウンロード、JWKS、トークンのイントロスペクション) の転送プロキシ (host:port。空 = 直接接続。プロキシの資格情報は使いません)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>{0} に進む</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>{0} に進む (Alt+右方向キー)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>転送メールとバウンス保護 (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>グローバル ルールはメッセージに一致するとアクション (移動、タグ付け、返信、拒否) を実行します。</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>前のページに戻る</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>前に開いたページに戻る、またはもう一度進む。マウスの戻るボタンと進むボタンでも同じ</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>次のページに進む</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>関連ページ {0} に移動</value>

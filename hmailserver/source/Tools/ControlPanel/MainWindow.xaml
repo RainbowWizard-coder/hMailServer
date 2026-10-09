@@ -306,13 +306,38 @@
                             AutomationProperties.Name="{loc:L 'Location'}">
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <WrapPanel x:Name="BreadcrumbHost" Orientation="Horizontal"
+                            <!-- Back and Forward (MainWindow.History.cs): the page opened
+                                 before and the one Back left, named in the tool tip and
+                                 the accessible name by UpdateHistoryButtons_, which also
+                                 disables a button with nothing its way. Alt+Left,
+                                 Alt+Right and the mouse's two side buttons do the same. -->
+                            <StackPanel x:Name="HistoryButtons" Orientation="Horizontal" VerticalAlignment="Center"
+                                        Margin="-8,0,8,0">
+                                <ui:Button x:Name="BackButton" Appearance="Transparent" Padding="6,3" IsEnabled="False"
+                                           AutomationProperties.AutomationId="history-back"
+                                           AutomationProperties.AcceleratorKey="Alt+Left"
+                                           Click="Back_Click">
+                                    <ui:Button.Icon>
+                                        <ui:SymbolIcon Symbol="ArrowLeft24" FontSize="14" />
+                                    </ui:Button.Icon>
+                                </ui:Button>
+                                <ui:Button x:Name="ForwardButton" Appearance="Transparent" Padding="6,3" IsEnabled="False"
+                                           AutomationProperties.AutomationId="history-forward"
+                                           AutomationProperties.AcceleratorKey="Alt+Right"
+                                           Click="Forward_Click">
+                                    <ui:Button.Icon>
+                                        <ui:SymbolIcon Symbol="ArrowRight24" FontSize="14" />
+                                    </ui:Button.Icon>
+                                </ui:Button>
+                            </StackPanel>
+                            <WrapPanel x:Name="BreadcrumbHost" Grid.Column="1" Orientation="Horizontal"
                                        VerticalAlignment="Center"
                                        AutomationProperties.AutomationId="breadcrumb" />
-                            <WrapPanel x:Name="RelatedHost" Grid.Column="1" Orientation="Horizontal"
+                            <WrapPanel x:Name="RelatedHost" Grid.Column="2" Orientation="Horizontal"
                                        VerticalAlignment="Center" HorizontalAlignment="Right"
                                        AutomationProperties.AutomationId="breadcrumb-related" />
                         </Grid>

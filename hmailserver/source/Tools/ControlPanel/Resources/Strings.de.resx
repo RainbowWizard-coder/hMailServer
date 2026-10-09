@@ -1419,6 +1419,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Wird auch durch eine Grenze von 0 unten abgeschaltet, egal was dieses Kästchen sagt.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Nach-links, Alt+Nach-rechts</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+unterstrichener Buchstabe</value>
   </data>
@@ -1863,6 +1866,12 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Back" xml:space="preserve">
     <value>Zurück</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Zurück zu {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Zurück zu {0} (Alt+Nach-links)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>_Domains sichern (Konten, Aliase, Listen)</value>
@@ -4978,6 +4987,12 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Forward-Proxy für jede Webanfrage dieses Servers - den Feed, dessen Downloads, JWKS, Token-Introspektion (host:port; leer = direkt; keine Proxy-Anmeldedaten)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Vorwärts zu {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Vorwärts zu {0} (Alt+Nach-rechts)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Weitergeleitete Mail und Bounce-Schutz (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globale Regeln greifen auf die Nachricht und führen eine Aktion aus - verschieben, markieren, antworten oder ablehnen.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Zurückgehen</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Zur zuvor geöffneten Seite zurückgehen oder wieder vorwärts; die Zurück- und Vorwärtstasten der Maus tun dasselbe</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Vorwärtsgehen</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Zur verwandten Seite {0} gehen</value>

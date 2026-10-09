@@ -1419,6 +1419,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Stängs också av med gränsen 0 nedan, oavsett vad den här rutan säger.</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+Vänsterpil, Alt+Högerpil</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+understruken bokstav</value>
   </data>
@@ -1863,6 +1866,12 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Back" xml:space="preserve">
     <value>Tillbaka</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>Tillbaka till {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>Tillbaka till {0} (Alt+Vänsterpil)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>Säkerhetskopiera _domäner (konton, alias, listor)</value>
@@ -4978,6 +4987,12 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>Vidarebefordrande proxy för varje webbförfrågan servern gör - flödet, dess hämtningar, JWKS, tokenintrospektion (host:port; tom = direkt; inga proxyuppgifter)</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>Framåt till {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>Framåt till {0} (Alt+Högerpil)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>Vidarebefordrad post &amp; studsskydd (SRS / BATV)</value>
   </data>
@@ -5070,6 +5085,15 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>Globala regler matchar på meddelandet och vidtar en åtgärd - flytta, märk, svara eller avvisa.</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>Gå tillbaka</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>Gå tillbaka till sidan som öppnades före, eller framåt igen; musens bakåt- och framåtknappar gör detsamma</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>Gå framåt</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>Gå till den relaterade sidan {0}</value>

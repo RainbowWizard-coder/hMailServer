@@ -2094,6 +2094,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   build/check-mnemonics.py holds a read-only row's caption (DialogFields.ReadOnlyField) to carrying no key, in English
   and in every catalogue.
 
+- **Fixed: nothing in the Control Panel went back to the page the administrator came from.** Opening a page
+  replaced the one on screen and recorded nothing, so after following one of the links between pages - the
+  Dashboard's attention list, the setup checklist's buttons, an overview's rows, the stalled-mail steps, a Related
+  link, a palette result - the only way back was to find the page again in the sidebar or the palette. The
+  breadcrumb bar now starts with Back and Forward, each naming the page it opens in its tool tip ("Back to Delivery
+  queue (Alt+Left)") and its accessible name, and neither pressable when there is nothing that way; Alt+Left and
+  Alt+Right, the keyboard's own Back and Forward keys and the mouse's two side buttons do the same, and the
+  palette's Keyboard shortcuts list names them. The history holds the pages opened since sign-in, fifty at most,
+  each with where it was scrolled and the tab it was on, so that Back returns to the place as well as to the page; a
+  step asks about unsaved changes as every way to another page does, and Stay leaves the page and the history as
+  they were.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

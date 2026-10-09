@@ -1419,6 +1419,9 @@
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>无论此复选框如何设置，下面的限制为 0 也会将其关闭。</value>
   </data>
+  <data name="Alt+Left, Alt+Right" xml:space="preserve">
+    <value>Alt+向左键、Alt+向右键</value>
+  </data>
   <data name="Alt+underlined letter" xml:space="preserve">
     <value>Alt+带下划线的字母</value>
   </data>
@@ -1863,6 +1866,12 @@
   </data>
   <data name="Back" xml:space="preserve">
     <value>上一步</value>
+  </data>
+  <data name="Back to {0}" xml:space="preserve">
+    <value>返回到 {0}</value>
+  </data>
+  <data name="Back to {0} (Alt+Left)" xml:space="preserve">
+    <value>返回到 {0} (Alt+向左键)</value>
   </data>
   <data name="Back up _domains (accounts, aliases, lists)" xml:space="preserve">
     <value>备份域(_D)（账户、别名、列表）</value>
@@ -4978,6 +4987,12 @@
   <data name="Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)" xml:space="preserve">
     <value>本服务器发出的所有 Web 请求（源、其下载、JWKS、令牌内省）所用的正向代理（host:port；留空 = 直连；不使用代理凭据）</value>
   </data>
+  <data name="Forward to {0}" xml:space="preserve">
+    <value>前进到 {0}</value>
+  </data>
+  <data name="Forward to {0} (Alt+Right)" xml:space="preserve">
+    <value>前进到 {0} (Alt+向右键)</value>
+  </data>
   <data name="Forwarded mail &amp; bounce protection (SRS / BATV)" xml:space="preserve">
     <value>转发邮件与退信保护（SRS / BATV）</value>
   </data>
@@ -5070,6 +5085,15 @@
   </data>
   <data name="Global rules match on the message and take an action - move, tag, reply or refuse." xml:space="preserve">
     <value>全局规则对邮件进行匹配并执行操作 - 移动、标记、回复或拒绝。</value>
+  </data>
+  <data name="Go back" xml:space="preserve">
+    <value>后退</value>
+  </data>
+  <data name="Go back to the page opened before, or forward again; the mouse's back and forward buttons do the same" xml:space="preserve">
+    <value>返回之前打开的页面，或再次前进；鼠标的后退和前进按钮作用相同</value>
+  </data>
+  <data name="Go forward" xml:space="preserve">
+    <value>前进</value>
   </data>
   <data name="Go to the related page {0}" xml:space="preserve">
     <value>转到相关页面 {0}</value>

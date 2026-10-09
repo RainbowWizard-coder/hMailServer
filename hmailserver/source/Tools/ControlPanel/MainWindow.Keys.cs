@@ -24,7 +24,9 @@ namespace hMailServer.ControlPanel
    /// help pane only by tabbing through all of them (review finding F014). Escape
    /// with the keyboard in the help pane closes the pane and puts the keyboard on
    /// the Help button that opens it, where the pane closed before only by its own
-   /// button or a second F1.
+   /// button or a second F1. Alt+Left and Alt+Right, and the keyboard's own Back
+   /// and Forward keys, step through the pages opened since sign-in
+   /// (MainWindow.History.cs, review finding F013).
    /// </summary>
    public partial class MainWindow
    {
@@ -95,6 +97,14 @@ namespace hMailServer.ControlPanel
                   return false;
                PageCommands.Press(ContentHost.Content as DependencyObject, PageCommand.Save);
                return true;
+
+            case ShellCommand.Back:
+               // The page opened before, or the key goes on to whatever else
+               // answers it when there is none.
+               return GoBack_();
+
+            case ShellCommand.Forward:
+               return GoForward_();
 
             case ShellCommand.Search:
                if (!connected_)
