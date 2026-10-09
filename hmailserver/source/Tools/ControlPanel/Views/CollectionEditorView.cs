@@ -753,49 +753,57 @@ namespace hMailServer.ControlPanel.Views
 
       private void OpenDialog(Row existing)
       {
-         var dlg = new FieldDialog(spec_, existing, Window.GetWindow(this));
-         if (dlg.ShowDialog() != true)
-            return;
-
-         dynamic collection = null;
-         dynamic item = null;
          int savedId = 0;
          bool saved = false;
          bool gone = false;
-         try
+
+         // The write happens while the dialog is open: a refusal of the server is
+         // said on the dialog's field and the dialog keeps what was typed, where
+         // the dialog closed first and a refused save lost everything to a message
+         // box (review finding F209). An entry gone from the server closes it, and
+         // the page says so.
+         var dlg = new FieldDialog(spec_, existing, Window.GetWindow(this), values =>
          {
-            collection = spec_.GetCollection();
-            item = existing == null ? collection.Add() : FindById(collection, existing.Id);
-            if (item == null)
+            dynamic collection = null;
+            dynamic item = null;
+            try
             {
-               gone = true;
-            }
-            else
-            {
-               foreach (KeyValuePair<string, object> kv in dlg.Result)
+               collection = spec_.GetCollection();
+               item = existing == null ? collection.Add() : FindById(collection, existing.Id);
+               if (item == null)
+               {
+                  gone = true;
+                  return null;
+               }
+
+               foreach (KeyValuePair<string, object> kv in values)
                   SetProp(item, kv.Key, kv.Value);
 
                item.Save();
                savedId = existing?.Id ?? TryGetId(item);
                saved = true;
+               return null;
             }
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            MessageBox.Show(F("Could not save: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
-         }
-         finally
-         {
-            ServerSession.Release((object)item);
-            ServerSession.Release((object)collection);
-         }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               return new FieldDialog.Refusal(F("Could not save: {0}", ServerSession.DescribeComError(ex)));
+            }
+            finally
+            {
+               ServerSession.Release((object)item);
+               ServerSession.Release((object)collection);
+            }
+         });
+
+         if (dlg.ShowDialog() != true)
+            return;
 
          // The list first, then the outcome: the read hides the notice of the
          // last read, and said before it the outcome was never seen. The entry
          // saved is selected, in view and has the keyboard; the sentence names
-         // it. A save that failed keeps the row it was asked about selected - the
-         // one edited, or the one selected before an Add - as a delete that
-         // failed does, where the list was read with nothing selected.
+         // it. An entry gone from the server keeps the row it was asked about
+         // selected - the one edited, or the one selected before an Add - as a
+         // delete that failed does, where the list was read with nothing selected.
          int keep = saved ? savedId : existing?.Id ?? (grid_.SelectedItem as Row)?.Id ?? 0;
          Load_(keep, -1, focus: saved);
          if (ReadFailure.IsShown(status_))

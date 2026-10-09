@@ -1125,6 +1125,9 @@
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>此列表匹配时计入邮件的垃圾邮件分数</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>计入邮件的垃圾邮件分数；默认值 100 会在 SMTP 会话期间拒收邮件。</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>地址</value>
   </data>
@@ -1430,6 +1433,9 @@
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>只有当地址的某个反向名称被覆盖、并且该名称正向解析回此地址时，地址才会被豁免，因为任何持有地址的人都能自行写入其反向名称。自下一次封禁起生效。</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>spammer@example.com 这样的地址只表示该地址；example.com 这样的域表示该域及其子域。</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>本服务器托管的地址会被拒绝：列表只适用于离开服务器的邮件。</value>

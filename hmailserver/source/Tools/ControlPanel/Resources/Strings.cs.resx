@@ -1131,6 +1131,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Přičte se ke skóre spamu zprávy, když tento seznam odpovídá</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>Přičte se ke skóre spamu zprávy; výchozích 100 zprávu odmítne už během konverzace SMTP.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresa</value>
   </data>
@@ -1442,6 +1445,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Adresa je ušetřena jen tehdy, když je jeden z jejích reverzních názvů pokryt A ZÁROVEŇ se překládá zpět na tuto adresu, protože kdokoli, kdo má adresu, si může její reverzní název napsat sám. Platí od dalšího zákazu.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>Adresa jako spammer@example.com je jen tato adresa; doména jako example.com je doména se všemi subdoménami.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Adresa, kterou tento server hostuje, je odmítnuta: seznam platí jen pro poštu opouštějící server.</value>

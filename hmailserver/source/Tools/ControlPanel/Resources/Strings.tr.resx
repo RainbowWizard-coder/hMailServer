@@ -1125,6 +1125,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Bu liste eşleştiğinde iletinin spam puanına eklenir</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>İletinin spam puanına eklenir; varsayılan 100, iletiyi SMTP görüşmesi sırasında reddeder.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -1430,6 +1433,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Bir adres yalnızca ters adlarından biri kapsanıyor VE adrese geri çözümleniyorsa korunur; çünkü bir adrese sahip olan herkes onun ters adını kendisi yazabilir. Bir sonraki yasaklamadan itibaren geçerlidir.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>spammer@example.com gibi bir adres yalnızca o adrestir; example.com gibi bir etki alanı, etki alanı ve alt etki alanlarıdır.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Bu sunucunun barındırdığı bir adres reddedilir: liste yalnızca sunucudan çıkan postaya uygulanır.</value>

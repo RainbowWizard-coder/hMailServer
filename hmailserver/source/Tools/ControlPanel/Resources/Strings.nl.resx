@@ -1125,6 +1125,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Wordt bij de spamscore van het bericht opgeteld wanneer deze lijst overeenkomt</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>Wordt bij de spamscore van het bericht opgeteld; 100, de standaard, weigert het bericht tijdens het SMTP-gesprek.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
@@ -1430,6 +1433,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Een adres wordt alleen gespaard als een van zijn reverse-namen gedekt is EN terug verwijst naar het adres, want wie een adres heeft, kan de reverse-naam ervan zelf schrijven. Geldt vanaf de volgende ban.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>Een adres zoals spammer@example.com is alleen dat adres; een domein zoals example.com is het domein met zijn subdomeinen.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Een adres dat deze server host, wordt geweigerd: de lijst geldt alleen voor mail die de server verlaat.</value>

@@ -1899,6 +1899,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Add form the boxes and the button line up whatever a caption wraps to, and a message under one box moves none of
   the others.
 
+- **Fixed: the Add and Edit dialog of every list page closed before the server was asked, so that a refused save lost
+  everything typed.** The dialog behind SURBL servers, DNS block lists, the exemption lists, blocked senders, blocked
+  attachments, remote domains and the rest closed on Add or Save, and the page then wrote the entry and reported a
+  refusal in a message box, "Could not save: ...", with what was typed gone; the quarantine's digest settings did the
+  same. The dialog writes with itself open now, and a refusal is said under the field it names - or under the first
+  field - with every value kept, so that the entry can be put right and saved again. Every field's caption has an Alt
+  key, assigned so that none is another's or a button's, in Japanese and Chinese as "(_D)" after the caption; a
+  number box is as wide as a number, where it stretched to 412 pixels for a score; Blocked senders' Score is a number
+  box holding 100, where it was a text box, and its address is required, each with a sentence under it saying what it
+  does. The dialog keeps room for its messages, so that Add and Cancel stay where they are.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

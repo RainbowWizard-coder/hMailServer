@@ -29,6 +29,14 @@ namespace hMailServer.ControlPanel.Views
    /// was a TextBlock placed above the control with nothing connecting the two, so
    /// every box in every one of those dialogs was announced as an unnamed "edit".
    /// Every field is a <see cref="FieldRow"/> now, on the standard frame.
+   ///
+   /// The write happens while the dialog is open, through the save the page
+   /// passes in: a refusal of the server is said on the field it names, or on the
+   /// first field, and the dialog keeps everything typed, where every committer
+   /// returned true, the dialog closed, and the page's write after it reported a
+   /// refusal in a message box with all that was typed gone (review finding
+   /// F209). Every caption carries an Alt key, assigned here, since the specs'
+   /// captions carry none; a number box is as wide as a number, not the dialog.
    /// </summary>
    internal sealed class FieldDialog : FluentDialogWindow
    {
@@ -39,8 +47,36 @@ namespace hMailServer.ControlPanel.Views
       // Every field's row, so that a refusal on one is cleared before the next try.
       private readonly List<FieldRow> rows_ = new();
 
+      // The rows in the order the fields are laid out, with their captions and
+      // properties, for the field a refusal of the server names.
+      private readonly List<CollectionEditorView.FieldSpec> laidOut_ = new();
+
+      // The page's write of the values: null when it saved, or the refusal to say.
+      private readonly Func<Dictionary<string, object>, Refusal> save_;
+
+      /// <summary>
+      /// Why the page's write refused the values: the sentence the dialog says, and
+      /// the property of the field it is said on, where the page knows it - or
+      /// null, and the dialog says it on the field the sentence names, or on its
+      /// first field.
+      /// </summary>
+      public sealed record Refusal(string Text, string Prop = null);
+
       public FieldDialog(CollectionEditorView.CollectionSpec spec, CollectionEditorView.Row existing, Window owner)
+         : this(spec, existing, owner, null)
       {
+      }
+
+      /// <param name="save">
+      /// Writes the values to the server while the dialog is open: null when they
+      /// are saved and the dialog may close, or the sentence that says why not,
+      /// which the dialog says on the field it names and stays open. Null closes
+      /// the dialog on the press, the values in <see cref="Result"/>.
+      /// </param>
+      public FieldDialog(CollectionEditorView.CollectionSpec spec, CollectionEditorView.Row existing, Window owner,
+                         Func<Dictionary<string, object>, Refusal> save)
+      {
+         save_ = save;
          Owner = owner;
          Title = L(existing == null ? spec.AddTitle : spec.EditTitle);
          AutomationProperties.SetName(this, Title);
@@ -63,6 +99,16 @@ namespace hMailServer.ControlPanel.Views
          IReadOnlyList<string> names = AccessibleNames.Resolve(
             fields.Select(f => new LabelledEditor(f.Label, spec.ItemNoun, f.Prop)).ToList());
 
+         // The button says what it does: Add on an Add dialog, Save on an Edit one.
+         var ok = new Button { Content = existing == null ? L("_Add") : L("_Save"), Appearance = ControlAppearance.Primary, MinWidth = 88 };
+
+         // An Alt key on every caption, none of them the button's: the specs'
+         // captions carry none, and in Japanese no field of these dialogs had one.
+         string okCaption = (string)ok.Content;
+         List<string> captions = FieldDialogRules.WithAccessKeys(
+            fields.Select(f => f.Label).ToList(), fields.Select(f => f.Prop).ToList(),
+            FieldDialogRules.KeysOf(new[] { okCaption, L("Cancel") }), FieldDialogRules.MarksKeyAfter(okCaption));
+
          for (int i = 0; i < fields.Count; i++)
          {
             CollectionEditorView.FieldSpec f = fields[i];
@@ -71,16 +117,16 @@ namespace hMailServer.ControlPanel.Views
                ? v
                : f.Default;
 
-            FieldRow row = BuildField(f, current, names[i]);
+            FieldRow row = BuildField(f, captions[i], current, names[i]);
             rows_.Add(row);
+            laidOut_.Add(f);
             panel.Children.Add(row);
          }
 
-         // The button says what it does: Add on an Add dialog, Save on an Edit one.
-         var ok = new Button { Content = existing == null ? L("_Add") : L("_Save"), Appearance = ControlAppearance.Primary, MinWidth = 88 };
          ok.Click += (_, _) =>
          {
             DialogFields.ClearErrors(rows_.ToArray());
+            Result.Clear();
 
             // Every committer runs, so that every field refused is marked on
             // this press and not one a press; the keyboard goes to the first.
@@ -92,6 +138,14 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
+            // The write, with the dialog open: a refusal stays here, on its field.
+            Refusal refusal = save_?.Invoke(Result);
+            if (refusal != null)
+            {
+               DialogFields.ShowError(RowFor_(refusal), refusal.Text);
+               return;
+            }
+
             DialogResult = true;
             Close();
          };
@@ -99,9 +153,36 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (_, _) => Close();
 
          UseFrame(Title, panel, ok, cancel, width: 460);
+
+         // Room under the fields for the messages a press can bring - one for each
+         // required field, or the one a refusal of the server says - so that Add
+         // and Cancel stay where they are.
+         KeepRoomForFieldErrors(Math.Max(1, fields.Count(f => f.Required)));
       }
 
-      private FieldRow BuildField(CollectionEditorView.FieldSpec f, object current, string accessibleName)
+      /// <summary>
+      /// The row a refusal of the server is said on: the field the page named, the
+      /// field whose caption or property the refusal names, or the first field that
+      /// is not a tick box.
+      /// </summary>
+      private FieldRow RowFor_(Refusal refusal)
+      {
+         int named = refusal.Prop != null
+            ? laidOut_.FindIndex(f => f.Prop == refusal.Prop)
+            : FieldDialogRules.FieldNamedIn(refusal.Text, laidOut_.Select(f => f.Label).ToList(), laidOut_.Select(f => f.Prop).ToList());
+         if (named >= 0)
+            return rows_[named];
+
+         for (int i = 0; i < laidOut_.Count; i++)
+         {
+            if (laidOut_[i].Kind != CollectionEditorView.FieldKind.Bool)
+               return rows_[i];
+         }
+
+         return rows_[0];
+      }
+
+      private FieldRow BuildField(CollectionEditorView.FieldSpec f, string caption, object current, string accessibleName)
       {
          string prop = f.Prop;
 
@@ -116,7 +197,7 @@ namespace hMailServer.ControlPanel.Views
                TextWrapping = TextWrapping.Wrap
             };
             Describe(shown, prop, accessibleName);
-            return DialogFields.Field(f.Label, shown, f.Hint);
+            return DialogFields.Field(caption, shown, f.Hint);
          }
 
          switch (f.Kind)
@@ -127,8 +208,8 @@ namespace hMailServer.ControlPanel.Views
                   // what the option does ("Deliver each message to the accounts its
                   // headers name (a mailbox shared by several people)") was cut off at
                   // its edge. AccessText keeps the access key a string caption had.
-                  var caption = new AccessText { Text = f.Label, TextWrapping = TextWrapping.Wrap };
-                  var box = new CheckBox { Content = caption, IsChecked = current is bool b && b };
+                  var words = new AccessText { Text = caption, TextWrapping = TextWrapping.Wrap };
+                  var box = new CheckBox { Content = words, IsChecked = current is bool b && b };
                   // Named by its caption, or by the qualified name when that tells it
                   // from an identically worded field elsewhere in the dialog. The
                   // caption is no longer a string Content, so the name is set.
@@ -161,7 +242,7 @@ namespace hMailServer.ControlPanel.Views
                      Result[prop] = combo.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : 0;
                      return true;
                   });
-                  return DialogFields.Field(f.Label, combo, f.Hint);
+                  return DialogFields.Field(caption, combo, f.Hint);
                }
             case CollectionEditorView.FieldKind.Multiline:
                {
@@ -185,35 +266,39 @@ namespace hMailServer.ControlPanel.Views
                      Result[prop] = box.Text;
                      return true;
                   });
-                  return DialogFields.Field(f.Label, box, f.Hint);
+                  return DialogFields.Field(caption, box, f.Hint);
                }
             case CollectionEditorView.FieldKind.Password:
                {
                   var box = new hMailServer.ControlPanel.Views.PasswordField { Password = Convert.ToString(current) ?? "" };
                   Describe(box, prop, accessibleName);
                   committers_.Add(() => { Result[prop] = box.Password; return true; });
-                  return DialogFields.Field(f.Label, box, f.Hint);
+                  return DialogFields.Field(caption, box, f.Hint);
                }
             case CollectionEditorView.FieldKind.Number:
                {
                   double cur = 0;
                   try { cur = Convert.ToDouble(current ?? 0); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { cur = 0; }
+                  // As wide as a number and its spin buttons, at the start of the
+                  // row: across the dialog, 412 pixels held a one-to-three digit score.
                   var box = new Wpf.Ui.Controls.NumberBox
                   {
                      Value = cur,
                      MaxDecimalPlaces = 0,
                      SmallChange = 1,
-                     LargeChange = 10
+                     LargeChange = 10,
+                     Width = 160,
+                     HorizontalAlignment = HorizontalAlignment.Left
                   };
                   Describe(box, prop, accessibleName);
                   committers_.Add(() => { Result[prop] = (int)(box.Value ?? 0); return true; });
-                  return DialogFields.Field(f.Label, box, f.Hint);
+                  return DialogFields.Field(caption, box, f.Hint);
                }
             default:
                {
                   var box = new TextBox { Text = Convert.ToString(current) ?? "" };
                   Describe(box, prop, accessibleName);
-                  FieldRow row = DialogFields.Field(f.Label, box, f.Hint);
+                  FieldRow row = DialogFields.Field(caption, box, f.Hint);
                   committers_.Add(() =>
                   {
                      // A field the entry is useless without is refused empty, on

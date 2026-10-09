@@ -1279,15 +1279,28 @@ namespace hMailServer.ControlPanel.Views
                }
             };
 
-            var dialog = new FieldDialog(spec, current, Window.GetWindow(this));
+            // Written while the dialog is open, in this order so that a refused
+            // address - the server insists on an absolute http or https URL - stops
+            // before the hours are touched, and each refusal is said on its own
+            // field with what was typed kept, where the dialog closed first and the
+            // refusal went under the list (review finding F209).
+            var dialog = new FieldDialog(spec, current, Window.GetWindow(this), values =>
+            {
+               string prop = "QuarantineDigestBaseUrl"; // no-loc: the property the refusal is about
+               try
+               {
+                  settings.QuarantineDigestBaseUrl = ((string)values["QuarantineDigestBaseUrl"] ?? "").Trim();
+                  prop = "QuarantineDigestLinkHours"; // no-loc: the property the refusal is about
+                  settings.QuarantineDigestLinkHours = (int)values["QuarantineDigestLinkHours"];
+                  return null;
+               }
+               catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+               {
+                  return new FieldDialog.Refusal(ServerSession.DescribeComError(ex), prop);
+               }
+            });
             if (dialog.ShowDialog() != true)
                return;
-
-            // Written in this order so that a refused address - the server insists
-            // on an absolute http or https URL - stops before the hours are
-            // touched, and the message says which of the two was wrong.
-            settings.QuarantineDigestBaseUrl = ((string)dialog.Result["QuarantineDigestBaseUrl"] ?? "").Trim();
-            settings.QuarantineDigestLinkHours = (int)dialog.Result["QuarantineDigestLinkHours"];
 
             Status_(StatusLevel.Good, L("Digest settings saved. Which domains send a digest, and at what hour, is set on each domain's Quarantine digest tab."));
          }

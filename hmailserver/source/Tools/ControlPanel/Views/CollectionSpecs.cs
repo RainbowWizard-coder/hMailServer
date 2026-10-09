@@ -143,8 +143,10 @@ namespace hMailServer.ControlPanel.Views
          GetCollection = () => AntiSpam.BlockedSenders,
          Fields =
          {
-            new FieldSpec { Prop = "Address", Label = L("Address or domain"), GridWidth = 260 },
-            new FieldSpec { Prop = "Score", Label = L("Score"), GridWidth = 80, Default = "100" },
+            new FieldSpec { Prop = "Address", Label = L("Address or domain"), GridWidth = 260, Required = true, Hint = L("An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains.") },
+            // A number, as the server's property is, where it was a text box whose
+            // default was the string "100" (review finding F209).
+            new FieldSpec { Prop = "Score", Label = L("Score"), Kind = FieldKind.Number, GridWidth = 80, Default = 100, Hint = L("Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation.") },
             new FieldSpec { Prop = "Description", Label = L("Description") }
          }
       });

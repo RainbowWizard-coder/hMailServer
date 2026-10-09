@@ -1125,6 +1125,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Läggs till meddelandets skräppostpoäng när den här listan matchar</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>Läggs till meddelandets skräppostpoäng; standardvärdet 100 avvisar meddelandet under SMTP-samtalet.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adress</value>
   </data>
@@ -1430,6 +1433,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>En adress skonas bara när ett av dess omvända namn omfattas OCH pekar tillbaka på adressen, eftersom den som har en adress kan skriva dess omvända namn själv. Gäller från nästa spärr.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>En adress som spammer@example.com är bara den adressen; en domän som example.com är domänen och dess underdomäner.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>En adress som den här servern har avvisas: listan gäller bara e-post som lämnar servern.</value>

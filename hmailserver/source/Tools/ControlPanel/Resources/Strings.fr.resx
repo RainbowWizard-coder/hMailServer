@@ -1125,6 +1125,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Ajouté au score de spam du message quand cette liste correspond</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>Ajouté au score de spam du message ; 100, la valeur par défaut, refuse le message pendant la conversation SMTP.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -1430,6 +1433,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Une adresse n'est épargnée que si l'un de ses noms inverses est couvert ET se résout vers l'adresse, car quiconque détient une adresse peut écrire lui-même son nom inverse. S'applique au prochain bannissement.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>Une adresse comme spammer@example.com désigne cette seule adresse ; un domaine comme example.com désigne le domaine et ses sous-domaines.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Une adresse hébergée par ce serveur est refusée : la liste ne s'applique qu'au courrier qui quitte le serveur.</value>

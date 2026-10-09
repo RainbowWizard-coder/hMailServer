@@ -1131,6 +1131,9 @@
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Додається до балу спаму повідомлення, коли цей список збігається</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>Додається до балу спаму повідомлення; типове значення 100 відхиляє повідомлення ще під час сеансу SMTP.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Адреса</value>
   </data>
@@ -1442,6 +1445,9 @@
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>Адресу звільняють лише тоді, коли одне з її зворотних імен покрито І воно розв'язується назад у цю адресу, адже будь-хто, хто має адресу, може сам записати її зворотне ім'я. Діє з наступного бану.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>Адреса на кшталт spammer@example.com означає лише цю адресу; домен на кшталт example.com означає домен і його піддомени.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>Адресу, яку обслуговує цей сервер, відхиляють: список діє лише для пошти, що залишає сервер.</value>

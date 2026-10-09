@@ -1125,6 +1125,9 @@
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>このリストに一致したときにメッセージのスパムスコアに加算されます</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>メッセージのスパムスコアに加算されます。既定の 100 では SMTP のやり取りの間にメッセージを拒否します。</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>アドレス</value>
   </data>
@@ -1430,6 +1433,9 @@
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>アドレスが免除されるのは、逆引き名のいずれかが対象に含まれ、かつその名前がアドレスに正引きで戻る場合だけです。アドレスを持つ人なら誰でも逆引き名を自分で書けるためです。次の BAN から適用されます。</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>spammer@example.com のようなアドレスはそのアドレスだけを、example.com のようなドメインはそのドメインとサブドメインを表します。</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>このサーバーがホストするアドレスは拒否されます。リストはサーバーから出ていくメールにだけ適用されます。</value>

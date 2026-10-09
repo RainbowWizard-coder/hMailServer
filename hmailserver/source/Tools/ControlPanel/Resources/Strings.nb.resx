@@ -1125,6 +1125,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Added to the message's spam score when this list matches" xml:space="preserve">
     <value>Legges til meldingens spampoengsum når denne listen treffer</value>
   </data>
+  <data name="Added to the message's spam score; 100, the default, refuses the message during the SMTP conversation." xml:space="preserve">
+    <value>Legges til meldingens spampoengsum; standardverdien 100 avviser meldingen under SMTP-samtalen.</value>
+  </data>
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
@@ -1430,6 +1433,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="An address is spared only when one of its reverse names is covered AND resolves back to the address, since anybody who holds an address can write its reverse name. It applies to the next ban." xml:space="preserve">
     <value>En adresse spares bare når ett av dens omvendte navn er dekket OG peker tilbake til adressen, for den som har en adresse, kan selv skrive dens omvendte navn. Gjelder fra neste utestenging.</value>
+  </data>
+  <data name="An address such as spammer@example.com is that address alone; a domain such as example.com is the domain and its subdomains." xml:space="preserve">
+    <value>En adresse som spammer@example.com er bare den adressen; et domene som example.com er domenet og underdomenene.</value>
   </data>
   <data name="An address this server hosts is refused: the list only applies to mail leaving the server." xml:space="preserve">
     <value>En adresse denne serveren er vert for, avvises: listen gjelder bare e-post som forlater serveren.</value>
