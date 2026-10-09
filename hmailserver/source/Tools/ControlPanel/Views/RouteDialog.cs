@@ -56,7 +56,7 @@ namespace hMailServer.ControlPanel.Views
       {
          domainName_ = domainName;
          Owner = owner;
-         Title = L("Route - ") + domainName;
+         Title = F("Route - {0}", domainName);
 
          var tabs = new TabControl { Background = System.Windows.Media.Brushes.Transparent, BorderThickness = new Thickness(0) };
          tabs.Items.Add(new TabItem { Header = L("General"), Content = BuildGeneral() });

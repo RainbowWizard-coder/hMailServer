@@ -106,6 +106,15 @@ namespace hMailServer.ControlPanel.Views
          public bool CanDelete = true;
          public string ItemNoun = L("item");
 
+         // The add and edit dialogs' titles, each one whole catalogued text
+         // marked with N() and translated where it is shown: "Add a SURBL
+         // server", "Edit the SURBL server". "Add {0}" with the noun put in
+         // gave Japanese "SURBL サーバー を追加" with the noun's own spacing,
+         // and a language that marks the object of the verb - German "einen",
+         // Polish's accusative - had nothing to mark (review finding F283).
+         public string AddTitle = N("Add an entry");
+         public string EditTitle = N("Edit the entry");
+
          // The dialog lays the tick boxes that lead the spec - Active, Enabled,
          // the grid's first column - after the fields that say what the entry
          // is, so that an Add dialog opens on the host and not on a tick

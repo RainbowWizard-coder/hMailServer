@@ -336,11 +336,11 @@ namespace hMailServer.ControlPanel.Views
             switch (type)
             {
                case 2: text += " -> " + (string)a.To; break;
-               case 3: text += F(" (subject '{0}')", (string)a.Subject); break;
+               case 3: text = F("{0} (subject '{1}')", text, (string)a.Subject); break;
                case 4: text += " '" + (string)a.IMAPFolder + "'"; break;
                case 5: text += " " + (string)a.ScriptFunction; break;
                case 7: text += " " + (string)a.HeaderName + "=" + (string)a.Value; break;
-               case 8: text += F(" (route #{0})", (int)a.RouteID); break;
+               case 8: text = F("{0} (route #{1})", text, (int)a.RouteID); break;
                case 10: text += " " + (string)a.Value; break;
             }
          }

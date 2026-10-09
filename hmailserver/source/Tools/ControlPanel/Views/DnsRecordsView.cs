@@ -193,7 +193,7 @@ namespace hMailServer.ControlPanel.Views
          {
             domainCombo_.Items.Add(new ComboBoxItem
             {
-               Content = domain.Name + (domain.Active ? "" : L(" (inactive)")),
+               Content = domain.Active ? domain.Name : F("{0} (inactive)", domain.Name),
                Tag = domain.Name,
                FontSize = Typography.Body
             });
@@ -393,7 +393,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private Card MxCard(DomainInfo domain)
       {
-         Card card = Section(L("MX — which server takes the mail for ") + domain.Name, out StackPanel content);
+         Card card = Section(F("MX - which server takes the mail for {0}", domain.Name), out StackPanel content);
 
          content.Children.Add(Paragraph(L("Other mail servers look up the domain's MX record to find where to deliver its mail; without one, mail to its addresses does not arrive here. The server the record names needs an address record (A, and AAAA for IPv6) pointing at this server's public IP address - the one your router or firewall forwards port 25 to."),
             Typography.Caption));
@@ -429,7 +429,7 @@ namespace hMailServer.ControlPanel.Views
                if (exchanges.Count == 0)
                {
                   block.SetResult(StatusLevel.Warning, L("Not published"),
-                     F("No MX record was found for {0} through this machine's resolver. ", domainName) + PropagationAdvice);
+                     Sentences(F("No MX record was found for {0} through this machine's resolver.", domainName), PropagationAdvice));
                }
                else if (host.Length > 0 && exchanges.Contains(host))
                {
@@ -466,7 +466,7 @@ namespace hMailServer.ControlPanel.Views
 
       private Card SpfCard(DomainInfo domain)
       {
-         Card card = Section(L("SPF — which machines may send mail as ") + domain.Name, out StackPanel content);
+         Card card = Section(F("SPF - which machines may send mail as {0}", domain.Name), out StackPanel content);
 
          content.Children.Add(Paragraph(F("This server only CHECKS SPF on incoming mail; publishing the record is for everyone else - it tells receiving servers which machines are allowed to send mail claiming to be from {0}.", domain.Name),
             Typography.Caption));
@@ -558,7 +558,7 @@ namespace hMailServer.ControlPanel.Views
 
       private Card DkimCard(DomainInfo domain)
       {
-         Card card = Section(F("DKIM — the public key receivers verify {0}'s signatures against", domain.Name), out StackPanel content);
+         Card card = Section(F("DKIM - the public key receivers verify {0}'s signatures against", domain.Name), out StackPanel content);
 
          bool configured = domain.DkimSelector.Length > 0 && domain.DkimKeyFile.Length > 0;
 
@@ -627,11 +627,12 @@ namespace hMailServer.ControlPanel.Views
                .FirstOrDefault();
          }
 
-         content.Children.Add(Paragraph(F("Derived from the domain's configured key: selector \"{0}\", private key file {1}. Signing is currently ", domain.DkimSelector, domain.DkimKeyFile)
-            + (domain.DkimEnabled ? L("ON.") : L("OFF - it can be switched on below once the record is confirmed published."))
-            + (domain.DkimEnabled && expected == null
-               ? L(" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made.")
-               : ""),
+         content.Children.Add(Paragraph(Sentences(
+               F("Derived from the domain's configured key: selector \"{0}\", private key file {1}.", domain.DkimSelector, domain.DkimKeyFile),
+               domain.DkimEnabled ? L("Signing is currently ON.") : L("Signing is currently OFF - it can be switched on below once the record is confirmed published."),
+               domain.DkimEnabled && expected == null
+                  ? L("The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made.")
+                  : null),
             Typography.Caption));
 
          RecordBlock block = BuildRecordBlock(content, "dns-records-dkim", L("DKIM"),
@@ -740,8 +741,8 @@ namespace hMailServer.ControlPanel.Views
                {
                   case DnsTxtLookup.MatchStatus.FoundAndMatches:
                      block.SetResult(StatusLevel.Good, L("Published and correct"),
-                        F("The record at {0} carries this key's public key.", host)
-                        + (enableButton != null ? L(" It is safe to enable signing.") : ""));
+                        Sentences(F("The record at {0} carries this key's public key.", host),
+                           enableButton != null ? L("It is safe to enable signing.") : null));
                      break;
                   case DnsTxtLookup.MatchStatus.NoRecord:
                      block.SetResult(StatusLevel.Warning, L("Not published"), NotFoundAdvice(host));
@@ -865,7 +866,7 @@ namespace hMailServer.ControlPanel.Views
 
       private Card DmarcCard(DomainInfo domain)
       {
-         Card card = Section(L("DMARC — what receivers should do with mail that fails SPF and DKIM"), out StackPanel content);
+         Card card = Section(L("DMARC - what receivers should do with mail that fails SPF and DKIM"), out StackPanel content);
 
          // rua= is only offered when the domain has a postmaster address to send
          // reports to; inventing a mailbox would produce a record that asks the
@@ -951,11 +952,11 @@ namespace hMailServer.ControlPanel.Views
                else if (policy.Equals("none", StringComparison.OrdinalIgnoreCase))
                {
                   block.SetResult(StatusLevel.Good, L("Published and correct"),
-                     F("A DMARC record with p=none is live at {0}.", host)
-                     + (ParseTag(record, "rua") == null
-                        ? L(" It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it.")
-                        : "")
-                     + F(" Published: {0}", record));
+                     Sentences(F("A DMARC record with p=none is live at {0}.", host),
+                        ParseTag(record, "rua") == null
+                           ? L("It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it.")
+                           : null,
+                        F("Published: {0}", record)));
                }
                else if (policy.Equals("quarantine", StringComparison.OrdinalIgnoreCase)
                      || policy.Equals("reject", StringComparison.OrdinalIgnoreCase))
@@ -977,7 +978,7 @@ namespace hMailServer.ControlPanel.Views
 
       private Card MtaStsCard(DomainInfo domain)
       {
-         Card card = Section(L("MTA-STS — require TLS from servers delivering to ") + domain.Name, out StackPanel content);
+         Card card = Section(F("MTA-STS - require TLS from servers delivering to {0}", domain.Name), out StackPanel content);
 
          content.Children.Add(Paragraph(F("Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name.", domain.Name),
             Typography.Caption));
@@ -1080,9 +1081,9 @@ namespace hMailServer.ControlPanel.Views
                : L("Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults."));
 
          if (iniReadable && !hosting)
-            caveat += L(" NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all.");
+            caveat = Sentences(caveat, L("NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all."));
          else if (iniReadable && httpsPort <= 0)
-            caveat += L(" NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves.");
+            caveat = Sentences(caveat, L("NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves."));
 
          List<string> mxHosts = null;
          string mxNote;
@@ -1262,7 +1263,7 @@ namespace hMailServer.ControlPanel.Views
 
       private Card TlsRptCard(DomainInfo domain)
       {
-         Card card = Section(L("TLS-RPT — ask other servers to report TLS failures when delivering to ") + domain.Name, out StackPanel content);
+         Card card = Section(F("TLS-RPT - ask other servers to report TLS failures when delivering to {0}", domain.Name), out StackPanel content);
 
          content.Children.Add(Paragraph(F("Publishing this record asks every server that delivers to {0} to e-mail you a daily report when TLS to you fails or is downgraded. The reports go to the rua= mailbox, which must exist and accept mail from strangers. This works regardless of any hMailServer setting - the senders do the reporting.", domain.Name),
             Typography.Caption));
@@ -1421,7 +1422,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private Card PtrCard()
       {
-         Card card = Section(L("Reverse DNS (PTR) and the HELO name — set by whoever owns your IP address"), out StackPanel content);
+         Card card = Section(L("Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address"), out StackPanel content);
 
          content.Children.Add(Paragraph(L("Receivers look up the PTR record of the connecting IP address and compare it with the name the server announces in HELO/EHLO; this server judges incoming mail by the same standard when the PTR and HELO checks on Anti-spam settings are on. Unlike every other record on this page, the PTR is NOT published in your domain's zone: it lives in the reverse zone of the IP address, which belongs to whoever owns the address - usually your hosting provider or ISP. Ask them to set it; there is nothing to paste into your own DNS console."),
             Typography.Caption));
@@ -1442,8 +1443,9 @@ namespace hMailServer.ControlPanel.Views
          else
          {
             heloName = IsLocalServer() ? Environment.MachineName : L("(the server's Windows computer name)");
-            heloNote = F("The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.",
-               IsLocalServer() ? L(" - shown above as this machine's name") : L(", which cannot be read from this machine"));
+            heloNote = IsLocalServer()
+               ? L("The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.")
+               : L("The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first.");
          }
 
          content.Children.Add(Label(L("Host name this server announces (give this to the IP's owner for the PTR):")));
@@ -1531,7 +1533,7 @@ namespace hMailServer.ControlPanel.Views
             var notice = new InlineNotice
             {
                Level = StatusLevel.Warning,
-               Text = L("Before you copy — ") + copyWarning,
+               Text = F("Before you copy: {0}", copyWarning),
                Margin = new Thickness(0, 4, 0, 8)
             };
             System.Windows.Automation.AutomationProperties.SetName(notice, F("Warning before copying. {0}", copyWarning));
@@ -1637,7 +1639,7 @@ namespace hMailServer.ControlPanel.Views
          L("Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again.");
 
       private static string NotFoundAdvice(string host)
-         => F("No TXT record was found at {0}. ", host) + PropagationAdvice;
+         => Sentences(F("No TXT record was found at {0}.", host), PropagationAdvice);
 
       /// <summary>Shows what IS published beside any mismatch verdict - the
       /// administrator cannot fix a difference they cannot see.</summary>

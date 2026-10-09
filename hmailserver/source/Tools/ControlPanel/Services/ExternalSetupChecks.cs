@@ -967,7 +967,7 @@ namespace hMailServer.ControlPanel.Services
          {
             foreach (DomainDkim domain in signing)
             {
-               string label = domain.Name + (domain.Active ? "" : L(" (domain is inactive)"));
+               string label = domain.Active ? domain.Name : F("{0} (domain is inactive)", domain.Name);
 
                if (domain.Selector.Length == 0 || domain.KeyFile.Length == 0)
                {
@@ -1586,15 +1586,17 @@ namespace hMailServer.ControlPanel.Services
                      // Verified: a plaintext port never performs a handshake, so
                      // the policy can never run; for Require the listener is not
                      // even started (error 6142).
-                     item.Add(SetupItemState.ActionNeeded,
-                        F("{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off.", label, (policy == 2 ? L(" and the listener is not started (server error 6142).") : L(" and the policy verifies nothing."))));
+                     item.Add(SetupItemState.ActionNeeded, policy == 2
+                        ? F("{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens and the listener is not started (server error 6142). Enable connection security on the port, or set the policy to off.", label)
+                        : F("{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens and the policy verifies nothing. Enable connection security on the port, or set the policy to off.", label));
                      continue;
                   }
 
                   if (caFile.Length == 0)
                   {
-                     item.Add(SetupItemState.ActionNeeded,
-                        F("{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}", label, (policy == 2 ? L(" and the listener will not start (server error 6140).") : ".")));
+                     item.Add(SetupItemState.ActionNeeded, policy == 2
+                        ? F("{0}: no CA file is set, so there is no trust anchor to verify client certificates against and the listener will not start (server error 6140).", label)
+                        : F("{0}: no CA file is set, so there is no trust anchor to verify client certificates against.", label));
                      continue;
                   }
 

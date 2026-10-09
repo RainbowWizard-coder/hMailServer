@@ -232,6 +232,57 @@ namespace hMailServer.ControlPanel.Services
       public static string PluralF(long count, string one, string other, params object[] args)
          => string.Format(CultureInfo.CurrentCulture, PluralForm(count, one, other), args);
 
+      /// <summary>
+      /// Whole sentences, each already translated, joined into one paragraph in
+      /// the order given: with a space after a sentence that ends in a Latin or
+      /// Cyrillic stop, and with nothing after one that ends in a full-width
+      /// stop such as Japanese and Chinese 。, which carries its own room. Null,
+      /// empty and blank sentences are left out, and each is trimmed.
+      ///
+      /// A sentence joined to another is a catalogue key of its own with no
+      /// white space at either edge (review finding F283): where the key was
+      /// " It is safe to enable signing.", added to the sentence before it, the
+      /// space was the translator's to keep, Japanese kept it after its 。, and
+      /// the key read as a piece of something else. build/check-localisation.py refuses a
+      /// marked text that begins with white space, or ends with it after
+      /// anything but the colon of a label.
+      /// </summary>
+      public static string Sentences(params string[] sentences)
+      {
+         var joined = new System.Text.StringBuilder();
+         foreach (string sentence in sentences ?? Array.Empty<string>())
+         {
+            if (string.IsNullOrWhiteSpace(sentence))
+               continue;
+            if (joined.Length > 0 && !EndsFullWidth_(joined[joined.Length - 1]))
+               joined.Append(' ');
+            joined.Append(sentence.Trim());
+         }
+         return joined.ToString();
+      }
+
+      // A full-width or CJK character: the ideographic stop and comma, the
+      // full-width forms of ! ? ) and the closing CJK brackets, and the
+      // ideographs themselves, after which Japanese and Chinese put no space.
+      private static bool EndsFullWidth_(char c)
+         => (c >= '\u3000' && c <= '\u303F') || (c >= '\uFF00' && c <= '\uFFEF') || (c >= '\u3040' && c <= '\u9FFF');
+
+      /// <summary>
+      /// Names of which any one will do, as one text: "RS384", "RS384 or
+      /// PS256", "RS384 or PS256 or HS512". Each pair is the catalogue's
+      /// whole "{0} or {1}", so that a language puts its word for "or" where
+      /// its grammar wants it, where the word was a key of its own with a
+      /// space each side, which Japanese and Chinese had to keep (review
+      /// finding F283).
+      /// </summary>
+      public static string JoinOr(IEnumerable<string> names)
+      {
+         string joined = null;
+         foreach (string name in names ?? Array.Empty<string>())
+            joined = joined == null ? name : F("{0} or {1}", joined, name);
+         return joined ?? "";
+      }
+
       /// <summary>The translated form of <see cref="Plural"/> for <paramref name="count"/>, unformatted.</summary>
       public static string PluralForm(long count, string one, string other)
       {

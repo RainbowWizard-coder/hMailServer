@@ -935,6 +935,7 @@ namespace hMailServer.ControlPanel.Views
             var spec = new CollectionEditorView.CollectionSpec
             {
                ItemNoun = L("digest settings"),
+               EditTitle = N("Edit the digest settings"),
                Fields =
                {
                   new CollectionEditorView.FieldSpec { Prop = "QuarantineDigestBaseUrl", Label = L("Address the release links point at, such as https://mail.example.com (empty sends no digest)") },

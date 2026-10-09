@@ -4052,18 +4052,18 @@ namespace hMailServer.ControlPanel.Views
 
          if (builtInDatabase)
          {
-            poolNote += L("  THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL.");
+            poolNote = Sentences(poolNote, L("THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL."));
          }
 
          var database = Card(L("Database connections"),
-            L("How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart.")
-            + (databaseType.Length > 0 ? F("  Configured database type: {0}.", databaseType) : ""));
+            Sentences(L("How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart."),
+               databaseType.Length > 0 ? F("Configured database type: {0}.", databaseType) : null));
 
          database.Settings.Add(new SectionIniNumber
          {
             Section = "Database", // no-loc
             Path = "NumberOfConnections",
-            Label = L("Connections in the pool") + (builtInDatabase ? L(" (ignored: this server uses the built-in database)") : ""),
+            Label = builtInDatabase ? L("Connections in the pool (ignored: this server uses the built-in database)") : L("Connections in the pool"),
             Default = 5,
             MinimumValue = 1,
             Blurb = poolNote,
@@ -5395,16 +5395,13 @@ namespace hMailServer.ControlPanel.Views
                }
                else
                {
-                  line += F("{0}% of lookups answered from memory, using {1} KB", rate, sizeKb.ToString("N0", System.Globalization.CultureInfo.CurrentCulture));
-
-                  if (capKb > 0)
-                  {
-                     line += F(" of {0} KB", capKb.ToString("N0", System.Globalization.CultureInfo.CurrentCulture));
-                     if (sizeKb >= capKb)
-                        line += L(" - at its cap, so entries are being evicted");
-                  }
-
-                  line += ".";
+                  // One whole sentence for each state, so that a language can
+                  // put the size and its cap where its grammar wants them.
+                  string size = sizeKb.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
+                  string cap = capKb.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
+                  line += capKb <= 0 ? F("{0}% of lookups answered from memory, using {1} KB.", rate, size)
+                     : sizeKb < capKb ? F("{0}% of lookups answered from memory, using {1} KB of {2} KB.", rate, size, cap)
+                     : F("{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted.", rate, size, cap);
                }
 
                lines.Add(line);
@@ -5497,16 +5494,13 @@ namespace hMailServer.ControlPanel.Views
          long messages = counts.Value.Messages;
          long indexed = counts.Value.Indexed;
 
-         string text = F(" Messages indexed: {0} of {1}.",
-            indexed.ToString("N0", System.Globalization.CultureInfo.CurrentCulture),
-            messages.ToString("N0", System.Globalization.CultureInfo.CurrentCulture));
-
-         if (indexed < messages)
-            text += L(" The rest are still waiting; run this again or leave the schedule to catch up.");
-         else if (indexed > messages)
-            text += L(" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them.");
-
-         return text;
+         return Sentences(
+            F("Messages indexed: {0} of {1}.",
+               indexed.ToString("N0", System.Globalization.CultureInfo.CurrentCulture),
+               messages.ToString("N0", System.Globalization.CultureInfo.CurrentCulture)),
+            indexed < messages ? L("The rest are still waiting; run this again or leave the schedule to catch up.")
+            : indexed > messages ? L("There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them.")
+            : null);
       }
 
       /// <summary>
@@ -5560,7 +5554,7 @@ namespace hMailServer.ControlPanel.Views
          // pass, because the pass has not happened yet: IndexNow() sets an event and
          // returns, and the worker picks it up. Reporting them as "now" would be a
          // lie that looks like a stuck indexer, so the wording says which they are.
-         return (true, L("The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:") + DescribeIndexCounts_(ReadIndexCounts_()));
+         return (true, Sentences(L("The indexer has been asked to run; it works in the background and the counts below will not move until it has. As things stand:"), DescribeIndexCounts_(ReadIndexCounts_())));
       }
 
       private static (bool ok, string text) RebuildIndex_()

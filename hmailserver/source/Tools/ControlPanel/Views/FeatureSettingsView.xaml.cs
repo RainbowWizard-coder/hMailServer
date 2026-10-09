@@ -1277,14 +1277,14 @@ namespace hMailServer.ControlPanel.Views
             };
          }
 
-         string missing = L("No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear. ");
+         string missing = L("No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear.");
 
          return new WarningState
          {
             Level = loopbackOnly ? StatusLevel.Information : StatusLevel.Warning,
             Text = loopbackOnly
-               ? missing + F("It is bound to {0}, which keeps it on this machine - that is the supported way to run it without TLS. Assign a certificate to a mailbox port to offer STARTTLS.", bind)
-               : missing + F("It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator.", bind)
+               ? Sentences(missing, F("It is bound to {0}, which keeps it on this machine - that is the supported way to run it without TLS. Assign a certificate to a mailbox port to offer STARTTLS.", bind))
+               : Sentences(missing, F("It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator.", bind))
          };
       }
 
@@ -1493,7 +1493,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Warning,
-               Text = F("Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed.", string.Join(L(" or "), unusable))
+               Text = F("Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed.", JoinOr(unusable))
             };
          }
 
@@ -1511,10 +1511,10 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Warning,
-               Text = F("Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens.", unchecked_)
-                      + (LiveBool_("OAuth2RequireTLS", true)
-                         ? ""
-                         : L(" Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires."))
+               Text = Sentences(F("Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens.", unchecked_),
+                  LiveBool_("OAuth2RequireTLS", true)
+                     ? null
+                     : L("Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires."))
             };
          }
 

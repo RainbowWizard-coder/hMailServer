@@ -232,7 +232,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            status_.Text = L("Could not list domains — ") + ServerSession.DescribeComError(ex);
+            status_.Text = F("Could not list domains: {0}", ServerSession.DescribeComError(ex));
          }
       }
 
@@ -266,7 +266,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            status_.Text = L("Search failed — ") + ServerSession.DescribeComError(ex);
+            status_.Text = F("Search failed: {0}", ServerSession.DescribeComError(ex));
          }
          finally
          {

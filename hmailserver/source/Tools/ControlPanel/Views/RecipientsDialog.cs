@@ -47,7 +47,7 @@ namespace hMailServer.ControlPanel.Views
          listAddress_ = listAddress;
 
          Owner = owner;
-         Title = L("Recipients - ") + listAddress;
+         Title = F("Recipients - {0}", listAddress);
 
          var body = new StackPanel();
          body.Children.Add(notice_);

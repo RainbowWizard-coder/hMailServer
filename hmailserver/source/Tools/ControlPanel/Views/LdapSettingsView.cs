@@ -1735,11 +1735,9 @@ namespace hMailServer.ControlPanel.Views
 
          private static LdapProbeResult Unavailable(Session session, Snapshot config, string stage)
          {
-            string text = F("Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to log in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4}).",
-               stage, config.Target(), config.TransportName(), DescribeError(session.LastError), session.LastError);
-
-            if (!string.IsNullOrEmpty(session.LastDiagnostic))
-               text += F(" The directory said: {0}", session.LastDiagnostic);
+            string text = Sentences(F("Infrastructure failure, unrelated to any password - every account authenticated against this directory would be unable to log in. Stage: {0}. Directory: {1} over {2}. Reason: {3} (LDAP error {4}).",
+                  stage, config.Target(), config.TransportName(), DescribeError(session.LastError), session.LastError),
+               string.IsNullOrEmpty(session.LastDiagnostic) ? null : F("The directory said: {0}", session.LastDiagnostic));
 
             return LdapProbeResult.Make(StatusLevel.Critical, text);
          }
@@ -1756,7 +1754,9 @@ namespace hMailServer.ControlPanel.Views
                : username;
 
             string userDn = null;
-            var proven = new StringBuilder();
+            // What the test has shown so far, a whole sentence each, put
+            // before its verdict by Sentences.
+            var proven = new List<string>();
 
             if (config.UsesSearch())
             {
@@ -1765,9 +1765,9 @@ namespace hMailServer.ControlPanel.Views
                if (search.Connect(config) != Outcome.Success)
                   return Unavailable(search, config, L("connecting in order to search for the user"));
 
-               proven.Append(F("Connected to {0} over {1}. ", config.Target(), config.TransportName()));
+               proven.Add(F("Connected to {0} over {1}.", config.Target(), config.TransportName()));
                if (!config.VerifyCertificate && config.Security != 0)
-                  proven.Append(L("Certificate validation was DISABLED for this test, matching VerifyCertificate=0. "));
+                  proven.Add(L("Certificate validation was DISABLED for this test, matching VerifyCertificate=0."));
 
                Outcome serviceBind = config.ServiceUsername.Length == 0
                   ? search.BindAnonymous()
@@ -1780,22 +1780,21 @@ namespace hMailServer.ControlPanel.Views
                   // configuration. Same mapping as the server.
                   string stage = config.ServiceUsername.Length == 0
                      ? L("binding anonymously to search for the user (set ServiceUsername)")
-                     : L("binding with the configured ServiceUsername");
-
-                  if (config.ServiceUsername.Length > 0 && config.ServicePassword.Length == 0)
-                     stage += L(" - no ServicePassword is stored or typed, and an empty password is refused before it is sent");
+                     : config.ServicePassword.Length == 0
+                        ? L("binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent")
+                        : L("binding with the configured ServiceUsername");
 
                   return Unavailable(search, config, stage);
                }
 
-               proven.Append(config.ServiceUsername.Length == 0
-                  ? L("Anonymous directory read accepted. ")
-                  : L("Service credential accepted. "));
+               proven.Add(config.ServiceUsername.Length == 0
+                  ? L("Anonymous directory read accepted.")
+                  : L("Service credential accepted."));
 
                if (username.Length == 0)
                {
-                  return LdapProbeResult.Make(StatusLevel.Good, proven
-                     + L("Type a user name to also test the search and, with a password, a real logon."));
+                  return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
+                     L("Type a user name to also test the search and, with a password, a real logon.")]));
                }
 
                string filter = ExpandTemplate(config.EffectiveFilter(), username, domain, address, forFilter: true);
@@ -1807,8 +1806,8 @@ namespace hMailServer.ControlPanel.Views
 
                if (matchCount == 0)
                {
-                  return LdapProbeResult.Make(StatusLevel.Warning, proven
-                     + F("The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory.", filter, config.SearchBase));
+                  return LdapProbeResult.Make(StatusLevel.Warning, Sentences([.. proven,
+                     F("The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory.", filter, config.SearchBase)]));
                }
 
                if (matchCount > 1)
@@ -1816,12 +1815,12 @@ namespace hMailServer.ControlPanel.Views
                   // Mirror of the server's error 5923: several matches authenticate
                   // nobody, because binding as one of them may prove somebody else's
                   // entry.
-                  return LdapProbeResult.Make(StatusLevel.Critical, proven
-                     + F("The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry.", filter, config.SearchBase));
+                  return LdapProbeResult.Make(StatusLevel.Critical, Sentences([.. proven,
+                     F("The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry.", filter, config.SearchBase)]));
                }
 
                userDn = dn;
-               proven.Append(F("The search found exactly one entry: {0}. ", userDn));
+               proven.Add(F("The search found exactly one entry: {0}.", userDn));
 
                // The search connection is closed before any user bind, so the bind
                // that proves the password never shares a connection with the service
@@ -1831,8 +1830,8 @@ namespace hMailServer.ControlPanel.Views
             if (!testLogon)
             {
                if (config.UsesSearch())
-                  return LdapProbeResult.Make(StatusLevel.Good, proven
-                     + L("No password was typed, so no logon was tested - the infrastructure half all works."));
+                  return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
+                     L("No password was typed, so no logon was tested - the infrastructure half all works.")]));
 
                // Negotiate or DN-template mode with nothing to prove: the useful
                // test left is the connection itself.
@@ -1844,11 +1843,11 @@ namespace hMailServer.ControlPanel.Views
                   ? L("Negotiate binds authenticate per user, so type a user name, domain and password to test one.")
                   : L("Type a user name and password to test a real logon through the DN template.");
 
-               return LdapProbeResult.Make(StatusLevel.Good,
-                  F("Connected to {0} over {1}. ", config.Target(), config.TransportName())
-                  + (!config.VerifyCertificate && config.Security != 0
-                     ? L("Certificate validation was DISABLED for this test, matching VerifyCertificate=0. ") : "")
-                  + extra);
+               return LdapProbeResult.Make(StatusLevel.Good, Sentences(
+                  F("Connected to {0} over {1}.", config.Target(), config.TransportName()),
+                  !config.VerifyCertificate && config.Security != 0
+                     ? L("Certificate validation was DISABLED for this test, matching VerifyCertificate=0.") : null,
+                  extra));
             }
 
             using var user = new Session(config);
@@ -1873,8 +1872,8 @@ namespace hMailServer.ControlPanel.Views
 
             if (outcome == Outcome.Success)
             {
-               return LdapProbeResult.Make(StatusLevel.Good, proven
-                  + F("The directory ACCEPTED the credentials: bound as {0}. This account would log on.", boundAs));
+               return LdapProbeResult.Make(StatusLevel.Good, Sentences([.. proven,
+                  F("The directory ACCEPTED the credentials: bound as {0}. This account would log on.", boundAs)]));
             }
 
             if (outcome == Outcome.Rejected)
@@ -1888,8 +1887,8 @@ namespace hMailServer.ControlPanel.Views
                if (reason.Length == 0)
                   reason = DescribeError(user.LastError);
 
-               return LdapProbeResult.Make(StatusLevel.Information, proven
-                  + F("The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see.", reason, user.LastError));
+               return LdapProbeResult.Make(StatusLevel.Information, Sentences([.. proven,
+                  F("The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see.", reason, user.LastError)]));
             }
 
             return Unavailable(user, config, L("binding as the user"));

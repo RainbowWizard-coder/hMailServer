@@ -18,131 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
-    <value>
-
-Vil du lagre dette svake passordet likevel?</value>
-  </data>
-  <data name="  Configured database type: {0}." xml:space="preserve">
-    <value>  Konfigurert databasetype: {0}.</value>
-  </data>
-  <data name="  THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>  DENNE SERVEREN BRUKER DEN INNEBYGDE DATABASEN (MSSQLCE), der verdien tvinges til 1 uansett hva som settes her. Det er med vilje: SQL Server Compact oppfører seg ikke pålitelig med samtidige tilkoblinger. Å endre den nedenfor har ingen virkning før serveren flyttes til MySQL, MSSQL eller PostgreSQL.</value>
-  </data>
-  <data name=" (domain is inactive)" xml:space="preserve">
-    <value> (domenet er inaktivt)</value>
-  </data>
-  <data name=" (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value> (ignorert: denne serveren bruker den innebygde databasen)</value>
-  </data>
-  <data name=" (inactive)" xml:space="preserve">
-    <value> (inaktiv)</value>
-  </data>
-  <data name=" (published {0})" xml:space="preserve">
-    <value> (publisert {0})</value>
-  </data>
-  <data name=" (route #{0})" xml:space="preserve">
-    <value> (rute nr. {0})</value>
-  </data>
-  <data name=" (subject '{0}')" xml:space="preserve">
-    <value> (emne '{0}')</value>
-  </data>
-  <data name=" - at its cap, so entries are being evicted" xml:space="preserve">
-    <value> - ved maksgrensen, så oppføringer kastes ut</value>
-  </data>
-  <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value> - ingen ServicePassword lagres eller skrives inn, og et tomt passord avvises før det sendes</value>
-  </data>
-  <data name=" - shown above as this machine's name" xml:space="preserve">
-    <value> - vist ovenfor som navnet på denne maskinen</value>
-  </data>
-  <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
-    <value> Hoppes også over for ethvert mottakerdomene som har grålisting slått av i sine egne innstillinger.</value>
-  </data>
-  <data name=" If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value> Hvis tidsplanen akkurat er satt opp, kontroller på nytt etter at den første kjøringen skulle ha vært gjennomført; ellers sier sikkerhetskopiloggen på Logger-siden hvorfor kjøringer hoppes over.</value>
-  </data>
-  <data name=" It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
-    <value> Den har ingen rua=-tagg, så ingen sender deg rapporter - det er greit, men du lærer ingenting; legg til en når du har en postboks for det.</value>
-  </data>
-  <data name=" It is safe to enable signing." xml:space="preserve">
-    <value> Det er trygt å slå på signering.</value>
-  </data>
-  <data name=" Last scan: {0}." xml:space="preserve">
-    <value> Siste skanning: {0}.</value>
-  </data>
-  <data name=" Messages indexed: {0} of {1}." xml:space="preserve">
-    <value> Indekserte meldinger: {0} av {1}.</value>
-  </data>
-  <data name=" NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
-    <value> MERK: MtaStsHostingEnabled=0, så serveren vil IKKE levere denne policyen i det hele tatt.</value>
-  </data>
-  <data name=" NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
-    <value> MERK: WebServicesHttpsPort=0, så ingen HTTPS-lytter kjører og policyen kan ikke leveres (RFC 8461 tillater bare HTTPS). TXT-oppføringen ville annonsere en policy som ingenting leverer.</value>
-  </data>
-  <data name=" Published: {0}" xml:space="preserve">
-    <value> Publisert: {0}</value>
-  </data>
-  <data name=" Skipped when {0}." xml:space="preserve">
-    <value> Hoppes over når {0}.</value>
-  </data>
-  <data name=" That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value> Det er eldre enn tidsplanen tillater, så kjøringer feiler eller hoppes over - sikkerhetskopiloggen på Logger-siden sier hvorfor.</value>
-  </data>
-  <data name=" The check is read-only: the server does not delete or repair anything." xml:space="preserve">
-    <value> Kontrollen er skrivebeskyttet: serveren sletter eller reparerer ingenting.</value>
-  </data>
-  <data name=" The directory said: {0}" xml:space="preserve">
-    <value> Katalogen svarte: {0}</value>
-  </data>
-  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
-    <value> Den høyeste totalen som kan nås, kan ikke sies: en kontroll kunne ikke leses.</value>
-  </data>
-  <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
-    <value> Nøkkelfilen kunne ikke leses fra denne maskinen, så verdien i oppføringen kan ikke vises her; domenets DKIM-fane viste den da nøkkelen ble laget.</value>
-  </data>
-  <data name=" The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed." xml:space="preserve">
-    <value> Den periodiske kontrollen er slått av for øyeblikket (MessageStoreConsistencyCheck på siden {0}), så dette blir ikke oppdatert.</value>
-  </data>
-  <data name=" The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh." xml:space="preserve">
-    <value> Rapportens header sier {0}, men lister opp {1} - den ble sannsynligvis lest mens serveren skrev den om, så oppdater.</value>
-  </data>
-  <data name=" The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
-    <value> Resten venter fortsatt; kjør dette på nytt, eller la tidsplanen ta igjen.</value>
-  </data>
-  <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value> Totalen har ingen øvre grense, fordi en listeoppføring eller SpamAssassins egen poengsum kan være hvor stor som helst.</value>
-  </data>
-  <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
-    <value> Det finnes flere indeksoppføringer enn meldinger, altså oppføringer for e-post som ikke finnes lenger - forkast og bygg indeksen på nytt for å fjerne dem.</value>
-  </data>
-  <data name=" These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
-    <value> Dette er tellinger for bare de første {0} kontoene; siden stopper der i stedet for å la deg vente på resten.</value>
-  </data>
-  <data name=" Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
-    <value> Tokener godtas også over ukrypterte tilkoblinger, så et token som er fanget opp kan spilles av på nytt helt til det utløper.</value>
-  </data>
-  <data name=" With no schedule configured, nothing will take the next one." xml:space="preserve">
-    <value> Uten en konfigurert tidsplan er det ingenting som tar den neste.</value>
-  </data>
-  <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
-    <value> Med kontrollene som er slått på nå, er den høyeste totalen som kan nås {0}.</value>
-  </data>
-  <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
-    <value> og lytteren er ikke startet (serverfeil 6142).</value>
-  </data>
-  <data name=" and the listener will not start (server error 6140)." xml:space="preserve">
-    <value> og lytteren vil ikke starte (serverfeil 6140).</value>
-  </data>
-  <data name=" and the policy verifies nothing." xml:space="preserve">
-    <value> og policyen verifiserer ingenting.</value>
-  </data>
-  <data name=" of {0} KB" xml:space="preserve">
-    <value> av {0} KB</value>
-  </data>
-  <data name=" or " xml:space="preserve">
-    <value> eller </value>
-  </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>«Alle i domenet» betyr at avsenderadressen ligger på et domene denne serveren er vert for, og det kan en utenforstående utgi seg for med mindre listen også krever autentisering. Kryss av for det nedenfor hvis listen skal være begrenset til folk som har logget inn.</value>
   </data>
@@ -212,9 +87,6 @@ Vil du lagre dette svake passordet likevel?</value>
   <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
     <value>, og merker kontoer som inaktive når katalogoppføringen deres er borte.</value>
   </data>
-  <data name=", checked {0}" xml:space="preserve">
-    <value>, kontrollert {0}</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, topp {0}</value>
   </data>
@@ -223,9 +95,6 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, så verifiseringen kan aldri lykkes.</value>
-  </data>
-  <data name=", which cannot be read from this machine" xml:space="preserve">
-    <value>, som ikke kan leses fra denne maskinen</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Ingen konto blir deaktivert.</value>
@@ -469,9 +338,6 @@ Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="90 by default. A ban or a block a hit made is not removed with its record." xml:space="preserve">
     <value>90 som standard. En blokkering som et treff har laget, fjernes ikke sammen med registreringen.</value>
-  </data>
-  <data name="; Install update applies it" xml:space="preserve">
-    <value>; Installer oppdatering tar den i bruk</value>
   </data>
   <data name="; database folder {0}" xml:space="preserve">
     <value>; databasemappe {0}</value>
@@ -962,8 +828,8 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Account (user)" xml:space="preserve">
     <value>Konto (bruker)</value>
   </data>
-  <data name="Account - " xml:space="preserve">
-    <value>Konto - </value>
+  <data name="Account - {0}" xml:space="preserve">
+    <value>Konto - {0}</value>
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Konto _aktivert</value>
@@ -1070,14 +936,32 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add _criterion…" xml:space="preserve">
     <value>Legg til _kriterium…</value>
   </data>
+  <data name="Add a DNS blacklist" xml:space="preserve">
+    <value>Legg til en DNS-svarteliste</value>
+  </data>
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Legg til en DNS-svarteliste; tilkoblinger fra oppførte adresser får poeng eller avvises.</value>
+  </data>
+  <data name="Add a SURBL server" xml:space="preserve">
+    <value>Legg til en SURBL-server</value>
   </data>
   <data name="Add a _domain" xml:space="preserve">
     <value>Legg til et _domene</value>
   </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Legg til en _header som leseren viser som et banner</value>
+  </data>
+  <data name="Add a blocked attachment rule" xml:space="preserve">
+    <value>Legg til en regel for blokkerte vedlegg</value>
+  </data>
+  <data name="Add a blocked sender" xml:space="preserve">
+    <value>Legg til en blokkert avsender</value>
+  </data>
+  <data name="Add a bypass entry" xml:space="preserve">
+    <value>Legg til et unntak</value>
+  </data>
+  <data name="Add a domain alias" xml:space="preserve">
+    <value>Legg til et domenealias</value>
   </data>
   <data name="Add a domain or a mailbox" xml:space="preserve">
     <value>Legg til et domene eller en postboks</value>
@@ -1088,11 +972,26 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add a domain to the white and black list" xml:space="preserve">
     <value>Legg til et domene i hvit- og svartelisten</value>
   </data>
+  <data name="Add a list entry" xml:space="preserve">
+    <value>Legg til en listeoppføring</value>
+  </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Legg til en lytter - 587 med STARTTLS, eller 465 for implisitt TLS.</value>
   </data>
   <data name="Add a name to the never-ban list" xml:space="preserve">
     <value>Legg til et navn i listen over aldri-utestengte</value>
+  </data>
+  <data name="Add a remote domain policy" xml:space="preserve">
+    <value>Legg til en regel for et eksternt domene</value>
+  </data>
+  <data name="Add a rule" xml:space="preserve">
+    <value>Legg til en regel</value>
+  </data>
+  <data name="Add a security group" xml:space="preserve">
+    <value>Legg til en sikkerhetsgruppe</value>
+  </data>
+  <data name="Add a white-list entry" xml:space="preserve">
+    <value>Legg til en hvitelisteoppføring</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Legg _til alias</value>
@@ -1108,6 +1007,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Add alias" xml:space="preserve">
     <value>Legg til alias</value>
+  </data>
+  <data name="Add an IP address to the greylisting white list" xml:space="preserve">
+    <value>Legg til en IP-adresse i hvitelisten for grålisting</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Legg til et IP-område for enheten, som tillater SMTP-levering uten å kreve autentisering.</value>
@@ -1129,6 +1031,12 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Legg til en konto under domenet på siden Domener: en adresse og passordet en e-postklient logger inn med.</value>
+  </data>
+  <data name="Add an entry" xml:space="preserve">
+    <value>Legg til en oppføring</value>
+  </data>
+  <data name="Add an external account" xml:space="preserve">
+    <value>Legg til en ekstern konto</value>
   </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Legg til sertifikat</value>
@@ -1198,9 +1106,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Legg til i sperrelisten for {0}</value>
-  </data>
-  <data name="Add {0}" xml:space="preserve">
-    <value>Legg til {0}</value>
   </data>
   <data name="Added" xml:space="preserve">
     <value>Lagt til</value>
@@ -1424,6 +1329,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Krev også en gyldig Authenticode-signatur på installasjonsprogrammet</value>
   </data>
+  <data name="Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
+    <value>Hoppes også over for ethvert mottakerdomene som har grålisting slått av i sine egne innstillinger.</value>
+  </data>
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Slås også av hvis grensen nedenfor er 0, uansett hva denne boksen sier.</value>
   </data>
@@ -1518,8 +1426,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Announcements only" xml:space="preserve">
     <value>Bare kunngjøringer</value>
   </data>
-  <data name="Anonymous directory read accepted. " xml:space="preserve">
-    <value>Anonym lesing av katalogen ble godtatt. </value>
+  <data name="Anonymous directory read accepted." xml:space="preserve">
+    <value>Anonym lesing av katalogen ble godtatt.</value>
   </data>
   <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
     <value>En annen postkasse kontoinnehaveren har, som en tilbakestillingslenke kan sendes til, og ti engangskoder som trer i stedet for en kode fra en autentiseringsapp. Begge deler settes av kontoinnehaveren selv, i nettpostkassen, med sitt eget passord: en administrator som kunne sette adressen, kunne tilbakestille passordet ved å rette den mot seg selv. Det som kan gjøres her, er å ta bort en adresse.</value>
@@ -1953,8 +1861,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
     <value>Før aktivering mangler også seksjonen: {0}.</value>
   </data>
-  <data name="Before you copy — " xml:space="preserve">
-    <value>Før du kopierer — </value>
+  <data name="Before you copy: {0}" xml:space="preserve">
+    <value>Før du kopierer: {0}</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Under serveren: brannmuren</value>
@@ -2241,8 +2149,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Utdatamappe for sertifikater (tom = Data\ACME)</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
-    <value>Sertifikatvalidering var DEAKTIVERT for denne testen, i samsvar med VerifyCertificate=0. </value>
+  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
+    <value>Sertifikatvalidering var DEAKTIVERT for denne testen, i samsvar med VerifyCertificate=0.</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>Sertifikat: {0}</value>
@@ -2601,6 +2509,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Configure OAuth2 / XOAUTH2 so clients authenticate with a token instead of a password." xml:space="preserve">
     <value>Konfigurer OAuth2 / XOAUTH2 slik at klienter autentiserer med et token i stedet for et passord.</value>
   </data>
+  <data name="Configured database type: {0}." xml:space="preserve">
+    <value>Konfigurert databasetype: {0}.</value>
+  </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>Bekreft og _aktiver</value>
   </data>
@@ -2628,8 +2539,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Koblet til {0} som {1}</value>
   </data>
-  <data name="Connected to {0} over {1}. " xml:space="preserve">
-    <value>Koblet til {0} over {1}. </value>
+  <data name="Connected to {0} over {1}." xml:space="preserve">
+    <value>Koblet til {0} over {1}.</value>
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Kontroller av tilkoblende vert</value>
@@ -2663,6 +2574,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="Connections in the pool" xml:space="preserve">
     <value>Forbindelser i poolen</value>
+  </data>
+  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
+    <value>Forbindelser i poolen (ignorert: denne serveren bruker den innebygde databasen)</value>
   </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Tilkoblinger til én kildevert, på tvers av alle pågående migreringer (1 til 64)</value>
@@ -2862,8 +2776,8 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Kunne ikke generere DKIM-nøkkelen: {0}</value>
   </data>
-  <data name="Could not list domains — " xml:space="preserve">
-    <value>Kunne ikke liste domener — </value>
+  <data name="Could not list domains: {0}" xml:space="preserve">
+    <value>Kunne ikke liste domener: {0}</value>
   </data>
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Meldingene kunne ikke listes opp: {0}</value>
@@ -3212,6 +3126,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
   </data>
+  <data name="DKIM - the public key receivers verify {0}'s signatures against" xml:space="preserve">
+    <value>DKIM - den offentlige nøkkelen mottakere verifiserer {0} sine signaturer mot</value>
+  </data>
   <data name="DKIM failure score" xml:space="preserve">
     <value>DKIM-feilpoeng</value>
   </data>
@@ -3236,11 +3153,11 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="DKIM verification" xml:space="preserve">
     <value>DKIM-verifisering</value>
   </data>
-  <data name="DKIM — the public key receivers verify {0}'s signatures against" xml:space="preserve">
-    <value>DKIM — den offentlige nøkkelen mottakere verifiserer {0} sine signaturer mot</value>
-  </data>
   <data name="DMARC" xml:space="preserve">
     <value>DMARC</value>
+  </data>
+  <data name="DMARC - what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>DMARC - hva mottakere skal gjøre med post som feiler SPF og DKIM</value>
   </data>
   <data name="DMARC aggregate reporting (rua)" xml:space="preserve">
     <value>DMARC-aggregatrapportering (rua)</value>
@@ -3253,9 +3170,6 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC forteller mottakere hva de skal gjøre med post som ikke består SPF og DKIM, og hvor de skal rapportere det.</value>
-  </data>
-  <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
-    <value>DMARC — hva mottakere skal gjøre med post som feiler SPF og DKIM</value>
   </data>
   <data name="DNS blacklist checks" xml:space="preserve">
     <value>DNS-svartelistekontroller</value>
@@ -3664,8 +3578,8 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Delivery throughput" xml:space="preserve">
     <value>Leveringsgjennomstrømning</value>
   </data>
-  <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}. Signing is currently " xml:space="preserve">
-    <value>Utledet fra domenets konfigurerte nøkkel: selektor "{0}", privat nøkkelfil {1}. Signering er for øyeblikket </value>
+  <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
+    <value>Utledet fra domenets konfigurerte nøkkel: selektor "{0}", privat nøkkelfil {1}.</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Beskrivelse</value>
@@ -3759,8 +3673,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Distinkte termer per melding før den alltid skannes i stedet (64-1000000)</value>
   </data>
-  <data name="Distribution list - " xml:space="preserve">
-    <value>Distribusjonsliste - </value>
+  <data name="Distribution list - {0}" xml:space="preserve">
+    <value>Distribusjonsliste - {0}</value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Distribusjonslister</value>
@@ -3801,8 +3715,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Domain (e.g. partner.com)" xml:space="preserve">
     <value>Domene (f.eks. partner.com)</value>
   </data>
-  <data name="Domain - " xml:space="preserve">
-    <value>Domene - </value>
+  <data name="Domain - {0}" xml:space="preserve">
+    <value>Domene - {0}</value>
   </data>
   <data name="Domain _enabled" xml:space="preserve">
     <value>Domene _aktivert</value>
@@ -3948,17 +3862,62 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Edit criterion" xml:space="preserve">
     <value>Rediger kriterium</value>
   </data>
+  <data name="Edit the DNS blacklist" xml:space="preserve">
+    <value>Rediger DNS-svartelisten</value>
+  </data>
+  <data name="Edit the SURBL server" xml:space="preserve">
+    <value>Rediger SURBL-serveren</value>
+  </data>
+  <data name="Edit the blocked attachment rule" xml:space="preserve">
+    <value>Rediger regelen for blokkerte vedlegg</value>
+  </data>
+  <data name="Edit the blocked sender" xml:space="preserve">
+    <value>Rediger den blokkerte avsenderen</value>
+  </data>
+  <data name="Edit the bypass entry" xml:space="preserve">
+    <value>Rediger unntaket</value>
+  </data>
+  <data name="Edit the digest settings" xml:space="preserve">
+    <value>Rediger innstillingene for sammendrag</value>
+  </data>
+  <data name="Edit the domain alias" xml:space="preserve">
+    <value>Rediger domenealiaset</value>
+  </data>
+  <data name="Edit the entry" xml:space="preserve">
+    <value>Rediger oppføringen</value>
+  </data>
   <data name="Edit the event-handler script the server runs on delivery, logon and error events. The engine itself is switched on under Advanced." xml:space="preserve">
     <value>Rediger hendelsesbehandlerskriptet serveren kjører ved leverings-, påloggings- og feilhendelser. Selve motoren slås på under Avansert.</value>
+  </data>
+  <data name="Edit the external account" xml:space="preserve">
+    <value>Rediger den eksterne kontoen</value>
+  </data>
+  <data name="Edit the greylisting white-list entry" xml:space="preserve">
+    <value>Rediger oppføringen i hvitelisten for grålisting</value>
+  </data>
+  <data name="Edit the list entry" xml:space="preserve">
+    <value>Rediger listeoppføringen</value>
   </data>
   <data name="Edit the members of the selected group" xml:space="preserve">
     <value>Rediger medlemmene i den valgte gruppen</value>
   </data>
+  <data name="Edit the remote domain policy" xml:space="preserve">
+    <value>Rediger regelen for det eksterne domenet</value>
+  </data>
+  <data name="Edit the rule" xml:space="preserve">
+    <value>Rediger regelen</value>
+  </data>
+  <data name="Edit the security group" xml:space="preserve">
+    <value>Rediger sikkerhetsgruppen</value>
+  </data>
   <data name="Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page." xml:space="preserve">
     <value>Rediger serverens hendelsesbehandlerskript (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Lagring skriver filen og laster skriptmotoren på nytt. Motorens av/på-bryter og språket dens er på siden Avansert.</value>
   </data>
-  <data name="Edit {0}" xml:space="preserve">
-    <value>Rediger {0}</value>
+  <data name="Edit the server message" xml:space="preserve">
+    <value>Rediger servermeldingen</value>
+  </data>
+  <data name="Edit the white-list entry" xml:space="preserve">
+    <value>Rediger hvitelisteoppføringen</value>
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Redigeres på dialogens andre faner.</value>
@@ -5154,6 +5113,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Hvis katalogen ikke kan svare</value>
   </data>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
+    <value>Hvis tidsplanen akkurat er satt opp, kontroller på nytt etter at den første kjøringen skulle ha vært gjennomført; ellers sier sikkerhetskopiloggen på Logger-siden hvorfor kjøringer hoppes over.</value>
+  </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Hvis {0} allerede mottar e-post et annet sted - hos en driftet postkasseleverandør, en annen server - flytter publisering av denne oppføringen den e-posten hit. Endre den bare når denne serveren er klar til å ta imot den.</value>
   </data>
@@ -5327,6 +5289,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
     <value>Den styrer to slags lagrede hemmeligheter. De som er bundet til denne maskinen - databasepassordet i hMailServer.INI, SMTP-relayer-passordet, og passord, tokener og passfraser for ruter, eksterne hentekontoer, SSL-sertifikater og resten som ligger i databasen - legges i en Windows DPAPI-konvolutt neste gang de lagres, eller i den gamle Blowfish-ordningen så lenge dette er slått av. Hemmelighetene i delen [Settings] - SRS- og BATV-hemmelighetene, OAuth2-hemmelighetene, metrikk-bearer-tokenet og metrikkenes HTTP Basic-passord, Windows-tjenestekontoens passord og GSSAPI-tjenestens passord - og hver kontos andre faktor forsegles under installasjonens nøkkel for lagrede hemmeligheter så snart den har en, ved neste oppstart og ved hver lagring; slått av lagrer neste oppstart dem slik de er skrevet igjen. Bare passordpepperen lagres alltid slik du skrev den, så hMailServer.INI bør fortsatt bare være lesbar for Administrators og for kontoen tjenesten kjører som.</value>
   </data>
+  <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
+    <value>Den har ingen rua=-tagg, så ingen sender deg rapporter - det er greit, men du lærer ingenting; legg til en når du har en postboks for det.</value>
+  </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Den må finnes: denne serveren oppretter ingen.</value>
   </data>
@@ -5338,6 +5303,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="It is bound to {0}, which keeps it on this machine - that is the supported way to run it without TLS. Assign a certificate to a mailbox port to offer STARTTLS." xml:space="preserve">
     <value>Den er bundet til {0}, som holder den på denne maskinen - det er den støttede måten å kjøre den uten TLS. Tildel et sertifikat til en postboksport for å tilby STARTTLS.</value>
+  </data>
+  <data name="It is safe to enable signing." xml:space="preserve">
+    <value>Det er trygt å slå på signering.</value>
   </data>
   <data name="Its discovery document is read from the issuer followed by /.well-known/openid-configuration." xml:space="preserve">
     <value>Discovery-dokumentet leses fra utstederen etterfulgt av /.well-known/openid-configuration.</value>
@@ -5480,11 +5448,14 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Last l_ogon" xml:space="preserve">
     <value>S_iste pålogging</value>
   </data>
+  <data name="Last scan: {0}." xml:space="preserve">
+    <value>Siste skanning: {0}.</value>
+  </data>
   <data name="Last status" xml:space="preserve">
     <value>Siste status</value>
   </data>
-  <data name="Last update: {0}. " xml:space="preserve">
-    <value>Sist oppdatert: {0}. </value>
+  <data name="Last update: {0}." xml:space="preserve">
+    <value>Sist oppdatert: {0}.</value>
   </data>
   <data name="Last used" xml:space="preserve">
     <value>Sist brukt</value>
@@ -5759,6 +5730,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="MTA-STS" xml:space="preserve">
     <value>MTA-STS</value>
   </data>
+  <data name="MTA-STS - require TLS from servers delivering to {0}" xml:space="preserve">
+    <value>MTA-STS - krev TLS fra servere som leverer til {0}</value>
+  </data>
   <data name="MTA-STS and DANE publish that commitment; TLS-RPT tells you who failed it." xml:space="preserve">
     <value>MTA-STS og DANE publiserer den forpliktelsen; TLS-RPT forteller deg hvem som brøt den.</value>
   </data>
@@ -5780,11 +5754,11 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
     <value>MTA-STS-policymodus (enforce / testing / none)</value>
   </data>
-  <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
-    <value>MTA-STS — krev TLS fra servere som leverer til </value>
-  </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
+  </data>
+  <data name="MX - which server takes the mail for {0}" xml:space="preserve">
+    <value>MX - hvilken server som tar imot posten for {0}</value>
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>Poengsum for MX-kontroll</value>
@@ -5794,9 +5768,6 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
     <value>MX-verdi - prioriteten, deretter navnet på serveren som tar imot e-posten:</value>
-  </data>
-  <data name="MX — which server takes the mail for " xml:space="preserve">
-    <value>MX — hvilken server som tar imot posten for </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>A_dministrert av listeadministratoren</value>
@@ -6064,8 +6035,8 @@ Hvert Web Push-abonnement under det nåværende paret slutter å virke med en ga
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Måles fra da oppføringen ble laget, så en senkning gjelder også oppføringene som allerede finnes. En oppføring lagt til for hånd beholder sin egen utløpstid.</value>
   </data>
-  <data name="Members - " xml:space="preserve">
-    <value>Medlemmer - </value>
+  <data name="Members - {0}" xml:space="preserve">
+    <value>Medlemmer - {0}</value>
   </data>
   <data name="Members of {0}" xml:space="preserve">
     <value>Medlemmer av {0}</value>
@@ -6155,6 +6126,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Meldinger holdt tilbake for gjennomgang i stedet for å bli avvist, og de to tingene du kan gjøre med hver: frigi den til mottakeren, eller slette den.</value>
+  </data>
+  <data name="Messages indexed: {0} of {1}." xml:space="preserve">
+    <value>Indekserte meldinger: {0} av {1}.</value>
   </data>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Meldinger større enn {0} KB hopper over hver kontroll som trenger meldingskroppen (SURBL, DKIM, DMARC og SpamAssassin). Tilkoblingskontrollene kjører fortsatt, og meldingen leveres.</value>
@@ -6345,6 +6319,12 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format skriver én linje per oppføring som vert, ident, økt, [dato], "kategori og melding", status, byte - så et logganalyseverktøy kan telle 5xx-svar uten å vite noe om hMailServer. Ident og byte er alltid "-" (serveren spør aldri identd, og loggeren får ikke vite overføringsstørrelser), og AWStats-journalen er en egen fil som denne innstillingen ikke endrer: dens egen bryter er ovenfor.</value>
   </data>
+  <data name="NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
+    <value>MERK: MtaStsHostingEnabled=0, så serveren vil IKKE levere denne policyen i det hele tatt.</value>
+  </data>
+  <data name="NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
+    <value>MERK: WebServicesHttpsPort=0, så ingen HTTPS-lytter kjører og policyen kan ikke leveres (RFC 8461 tillater bare HTTPS). TXT-oppføringen ville annonsere en policy som ingenting leverer.</value>
+  </data>
   <data name="N_ote" xml:space="preserve">
     <value>N_otat</value>
   </data>
@@ -6486,8 +6466,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Ingen LDAP-autentisering forsøkes. Katalogkoblede kontoer fortsetter å valideres gjennom Windows-pålogging, og serveren rapporterer dette (feil 5922) én gang per minutt så det ikke kan feile stille.</value>
   </data>
-  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
-    <value>Ingen MX-oppføring ble funnet for {0} gjennom denne maskinens resolver. </value>
+  <data name="No MX record was found for {0} through this machine's resolver." xml:space="preserve">
+    <value>Ingen MX-oppføring ble funnet for {0} gjennom denne maskinens resolver.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Ingen MX-oppføringer ble funnet fra denne maskinen, så serveren ville falle tilbake til sitt eget vertsnavn.</value>
@@ -6507,11 +6487,11 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No TLS version is enabled." xml:space="preserve">
     <value>Ingen TLS-versjon er aktivert.</value>
   </data>
-  <data name="No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear. " xml:space="preserve">
-    <value>Ingen TLS-kapabel IMAP-, POP3- eller SMTP-port har et sertifikat tildelt, så denne lytteren vil bare tilby klartekst - ManageSieve autentiserer med postbokspassordet, som da ville krysse nettverket i klartekst. </value>
+  <data name="No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear." xml:space="preserve">
+    <value>Ingen TLS-kapabel IMAP-, POP3- eller SMTP-port har et sertifikat tildelt, så denne lytteren vil bare tilby klartekst - ManageSieve autentiserer med postbokspassordet, som da ville krysse nettverket i klartekst.</value>
   </data>
-  <data name="No TXT record was found at {0}. " xml:space="preserve">
-    <value>Ingen TXT-oppføring ble funnet på {0}. </value>
+  <data name="No TXT record was found at {0}." xml:space="preserve">
+    <value>Ingen TXT-oppføring ble funnet på {0}.</value>
   </data>
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Ingen konto funnet med adressen '{0}'.</value>
@@ -6882,8 +6862,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ikke gyldig før {0}</value>
   </data>
-  <data name="Not yet - " xml:space="preserve">
-    <value>Ikke ennå - </value>
+  <data name="Not yet - {0}." xml:space="preserve">
+    <value>Ikke ennå - {0}.</value>
   </data>
   <data name="Note" xml:space="preserve">
     <value>Merknad</value>
@@ -7011,14 +6991,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="OAuth2PublicKeyFile points at {0}, which does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>OAuth2PublicKeyFile peker på {0}, som ikke finnes på denne maskinen, så RS256-tokens kan ikke verifiseres.</value>
   </data>
-  <data name="OFF - it can be switched on below once the record is confirmed published." xml:space="preserve">
-    <value>AV - den kan slås på nedenfor når oppføringen er bekreftet publisert.</value>
-  </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
-  </data>
-  <data name="ON." xml:space="preserve">
-    <value>PÅ.</value>
   </data>
   <data name="Object" xml:space="preserve">
     <value>Objekt</value>
@@ -7763,9 +7737,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Permissions (select a range)" xml:space="preserve">
     <value>Tillatelser (velg et område)</value>
   </data>
-  <data name="Permissions - " xml:space="preserve">
-    <value>Tillatelser - </value>
-  </data>
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Tillatelser - {0}</value>
   </data>
@@ -8054,6 +8025,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Publisert, strengere enn utgangspunktet</value>
   </data>
+  <data name="Published: {0}" xml:space="preserve">
+    <value>Publisert: {0}</value>
+  </data>
   <data name="Publishes https://mta-sts.&lt;domain&gt;/.well-known/mta-sts.txt so other servers require TLS when they deliver to you. Honouring other domains' policies is on the Transport security page." xml:space="preserve">
     <value>Publiserer https://mta-sts.&lt;domain&gt;/.well-known/mta-sts.txt slik at andre servere krever TLS når de leverer til deg. Å respektere andre domeners policyer er på siden Transportsikkerhet.</value>
   </data>
@@ -8307,8 +8281,8 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Recipients" xml:space="preserve">
     <value>Mottakere</value>
   </data>
-  <data name="Recipients - " xml:space="preserve">
-    <value>Mottakere - </value>
+  <data name="Recipients - {0}" xml:space="preserve">
+    <value>Mottakere - {0}</value>
   </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Mottakere en melding kan navngi før forsinkelsen starter (0 = av)</value>
@@ -8880,8 +8854,8 @@ Fortsette?</value>
   <data name="Reuse the private key across renewals (keeps DANE TLSA records valid)" xml:space="preserve">
     <value>Gjenbruk den private nøkkelen på tvers av fornyelser (holder DANE TLSA-oppføringer gyldige)</value>
   </data>
-  <data name="Reverse DNS (PTR) and the HELO name — set by whoever owns your IP address" xml:space="preserve">
-    <value>Omvendt DNS (PTR) og HELO-navnet — settes av den som eier IP-adressen din</value>
+  <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
+    <value>Omvendt DNS (PTR) og HELO-navnet - settes av den som eier IP-adressen din</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>Tilbakekall</value>
@@ -8918,8 +8892,8 @@ Fortsette?</value>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Roter øktbillettnøkkelen hvert N. sekund (0 = OpenSSLs ene, ikke-roterende nøkkel)</value>
   </data>
-  <data name="Route - " xml:space="preserve">
-    <value>Rute - </value>
+  <data name="Route - {0}" xml:space="preserve">
+    <value>Rute - {0}</value>
   </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Send all utgående post gjennom en annen SMTP-server i stedet for å levere direkte. For failover, skill flere verter med en loddrett strek: neste vert prøves når én ikke kan nås (alle vertene deler porten, sikkerheten og legitimasjonen nedenfor).</value>
@@ -9092,6 +9066,9 @@ Fortsette?</value>
   <data name="SPF" xml:space="preserve">
     <value>SPF</value>
   </data>
+  <data name="SPF - which machines may send mail as {0}" xml:space="preserve">
+    <value>SPF - hvilke maskiner som kan sende post som {0}</value>
+  </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Poengsum for SPF-feil</value>
   </data>
@@ -9106,9 +9083,6 @@ Fortsette?</value>
   </data>
   <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
     <value>SPF-temperror-poeng (0 = poengsettes ikke)</value>
-  </data>
-  <data name="SPF — which machines may send mail as " xml:space="preserve">
-    <value>SPF — hvilke maskiner som kan sende post som </value>
   </data>
   <data name="SRS is switched on but no secret is set, so no envelope sender is rewritten - and while SRS is on, the plain rewrite fallback at the top of this card is skipped as well. This is strictly worse than switching SRS off. Generate or enter a secret." xml:space="preserve">
     <value>SRS er slått på, men ingen hemmelighet er satt, så ingen konvoluttavsender omskrives - og mens SRS er på, hoppes også det enkle omskrivingstilbakefallet øverst på dette kortet over. Dette er strengt tatt verre enn å slå SRS av. Generer eller skriv inn en hemmelighet.</value>
@@ -9223,6 +9197,9 @@ Fortsette?</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Lagre disse innstillingene i hMailServer.INI</value>
+  </data>
+  <data name="Save this weak password anyway?" xml:space="preserve">
+    <value>Vil du lagre dette svake passordet likevel?</value>
   </data>
   <data name="Saved" xml:space="preserve">
     <value>Lagret</value>
@@ -9452,8 +9429,8 @@ Fortsette?</value>
   <data name="Search domains" xml:space="preserve">
     <value>Søk i domener</value>
   </data>
-  <data name="Search failed — " xml:space="preserve">
-    <value>Søket mislyktes — </value>
+  <data name="Search failed: {0}" xml:space="preserve">
+    <value>Søket mislyktes: {0}</value>
   </data>
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Søk etter en del av et kontonavn. La stå tomt for å liste alle brukere i domenet.</value>
@@ -9854,8 +9831,8 @@ Fortsette?</value>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Tjenestekontoens bruker_navn (ServiceUsername)</value>
   </data>
-  <data name="Service credential accepted. " xml:space="preserve">
-    <value>Tjenestelegitimasjon godtatt. </value>
+  <data name="Service credential accepted." xml:space="preserve">
+    <value>Tjenestelegitimasjon godtatt.</value>
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Tjenesten startet på nytt - innstillingene er aktive.</value>
@@ -10112,6 +10089,12 @@ Starte den på nytt nå?</value>
   <data name="Signing in…" xml:space="preserve">
     <value>Logger på…</value>
   </data>
+  <data name="Signing is currently OFF - it can be switched on below once the record is confirmed published." xml:space="preserve">
+    <value>Signering er for øyeblikket AV - den kan slås på nedenfor når oppføringen er bekreftet publisert.</value>
+  </data>
+  <data name="Signing is currently ON." xml:space="preserve">
+    <value>Signering er for øyeblikket PÅ.</value>
+  </data>
   <data name="Signing moved to the next key." xml:space="preserve">
     <value>Signeringen har byttet til neste nøkkel.</value>
   </data>
@@ -10147,6 +10130,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Hopp over omvisningen</value>
+  </data>
+  <data name="Skipped when {0}." xml:space="preserve">
+    <value>Hoppes over når {0}.</value>
   </data>
   <data name="Skipped, by reason" xml:space="preserve">
     <value>Hoppet over, etter årsak</value>
@@ -10448,6 +10434,9 @@ Starte den på nytt nå?</value>
   <data name="THEN" xml:space="preserve">
     <value>SÅ</value>
   </data>
+  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
+    <value>DENNE SERVEREN BRUKER DEN INNEBYGDE DATABASEN (MSSQLCE), der verdien tvinges til 1 uansett hva som settes her. Det er med vilje: SQL Server Compact oppfører seg ikke pålitelig med samtidige tilkoblinger. Å endre den nedenfor har ingen virkning før serveren flyttes til MySQL, MSSQL eller PostgreSQL.</value>
+  </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
   </data>
@@ -10529,8 +10518,8 @@ Starte den på nytt nå?</value>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
   </data>
-  <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
-    <value>TLS-RPT — be andre servere om å rapportere TLS-feil ved levering til </value>
+  <data name="TLS-RPT - ask other servers to report TLS failures when delivering to {0}" xml:space="preserve">
+    <value>TLS-RPT - be andre servere om å rapportere TLS-feil ved levering til {0}</value>
   </data>
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Verdien til TXT-oppføringen for {0}</value>
@@ -10648,6 +10637,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>Det er ikke administratorpassordet som er i bruk nå.</value>
   </data>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
+    <value>Det er eldre enn tidsplanen tillater, så kjøringer feiler eller hoppes over - sikkerhetskopiloggen på Logger-siden sier hvorfor.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Det er godkjenningspipelinen som stopper opp etter 354: trinntidene i feilsøkingsloggen sier hvilket trinn.</value>
   </data>
@@ -10696,8 +10688,11 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>HELO/EHLO-verten</value>
   </data>
-  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Vertsnavnet på siden Protokoller er TOMT, så serveren faller tilbake til Windows-datamaskinnavnet sitt{0}. Et nakent datamaskinnavn er ikke et offentlig DNS-navn: mottakere som sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme med det. Sett et ekte vertsnavn først.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Vertsnavnet på siden Protokoller er TOMT, så serveren faller tilbake til Windows-datamaskinnavnet sitt - vist ovenfor som navnet på denne maskinen. Et nakent datamaskinnavn er ikke et offentlig DNS-navn: mottakere som sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme med det. Sett et ekte vertsnavn først.</value>
+  </data>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Vertsnavnet på siden Protokoller er TOMT, så serveren faller tilbake til Windows-datamaskinnavnet sitt, som ikke kan leses fra denne maskinen. Et nakent datamaskinnavn er ikke et offentlig DNS-navn: mottakere som sammenligner HELO med DNS, vil straffe det, og ingen PTR kan stemme med det. Sett et ekte vertsnavn først.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>IP-området {0} tar bare imot et passord over TLS.</value>
@@ -11014,6 +11009,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>Kontrollen ble ferdig, og domenets publiserte post er ubrukelig: to poster, en ugyldig mekanisme, en omdirigeringssløyfe, for mange oppslag. Et nytt forsøk løser det ikke, så det utsettes aldri; strenge nettsteder behandler det som en fail, og milde ignorerer det.</value>
   </data>
+  <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
+    <value>Kontrollen er skrivebeskyttet: serveren sletter eller reparerer ingenting.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Chifferlisten kunne ikke leses.</value>
   </data>
@@ -11084,6 +11082,9 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   </data>
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>Katalogen svarte og AVVISTE denne legitimasjonen: {0} (LDAP-feil {1}). Forbindelsen, transporten og konfigurasjonen fungerer alle - dette er et legitimasjonsproblem, nøyaktig det en bruker som skriver feil passord, ville sett.</value>
+  </data>
+  <data name="The directory said: {0}" xml:space="preserve">
+    <value>Katalogen svarte: {0}</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Dokumentasjonen hjelpepanelet viser, er serverens egen kopi; her står det hvor den samme siden finnes på wikien, med dokumentets navn lagt til. Som levert er det prosjektets GitLab-wiki.</value>
@@ -11186,6 +11187,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>hMailServer 6.x-serien er en slik innsats. Den opprinnelige åpen kildekode-postserveren er bygd om på en moderne verktøykjede (Visual Studio 2026 / MSVC v145 og .NET 10), utstyrt på nytt med moderne kryptografi (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) og transportsikkerhetsstandardene som forventes av en postserver i dag (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT og ACME / Let's Encrypt). Den er herdet mot protokoll- og tjenestenektfeil, har fått Sieve / ManageSieve-filtrering, helse- og OpenTelemetry-observerbarhet, bred MySQL / MariaDB / MS SQL / PostgreSQL-støtte, og dette moderne Control Panel i Fluent-design i stedet for den gamle administratoren.</value>
   </data>
+  <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value>Den høyeste totalen som kan nås, kan ikke sies: en kontroll kunne ikke leses.</value>
+  </data>
   <data name="The host name - the name this server gives other servers" xml:space="preserve">
     <value>Vertsnavnet - navnet denne serveren oppgir til andre servere</value>
   </data>
@@ -11236,6 +11240,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Nøkkelfilen kunne ikke sjekkes fra denne maskinen.</value>
+  </data>
+  <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
+    <value>Nøkkelfilen kunne ikke leses fra denne maskinen, så verdien i oppføringen kan ikke vises her; domenets DKIM-fane viste den da nøkkelen ble laget.</value>
   </data>
   <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
     <value>Nøkkelfilen finnes og er en vanlig (ukryptert) PEM, så ingen passfrase trengs.</value>
@@ -11420,6 +11427,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>Tidsavbruddene for inaktivitet per protokoll avgjør hvor lenge en forbindelse kan stå og gjøre ingenting før den lukkes.</value>
   </data>
+  <data name="The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed." xml:space="preserve">
+    <value>Den periodiske kontrollen er slått av for øyeblikket (MessageStoreConsistencyCheck på siden {0}), så dette blir ikke oppdatert.</value>
+  </data>
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Tillatelsen er arvet fra {0}; kommandoen gjør at mappen slutter å arve den.</value>
   </data>
@@ -11518,8 +11528,14 @@ Legg til likevel?</value>
   <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
     <value>Den tilbudte versjonen, {0}, er ikke en versjon dette Control Panel installerer.</value>
   </data>
+  <data name="The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh." xml:space="preserve">
+    <value>Rapportens header sier {0}, men lister opp {1} - den ble sannsynligvis lest mens serveren skrev den om, så oppdater.</value>
+  </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>Resolveren svarer ikke: se i TCP/IP-loggen etter "DNS - Query timed out". Ikke grip til DNSServer som løsning - la den stå tom med mindre du trenger en bestemt resolver.</value>
+  </data>
+  <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
+    <value>Resten venter fortsatt; kjør dette på nytt, eller la tidsplanen ta igjen.</value>
   </data>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Antall forsøk og intervallene er her, sammen med hva som skjer når de tar slutt.</value>
@@ -11566,8 +11582,8 @@ Legg til likevel?</value>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>Poengene legges sammen over begge fasene. Serveren slutter å teste innenfor en fase så snart den løpende summen når {0} - den høyeste av de to tersklene - så en kontroll sent i rekkefølgen kjører kanskje aldri.</value>
   </data>
-  <data name="The search found exactly one entry: {0}. " xml:space="preserve">
-    <value>Søket fant nøyaktig én oppføring: {0}. </value>
+  <data name="The search found exactly one entry: {0}." xml:space="preserve">
+    <value>Søket fant nøyaktig én oppføring: {0}.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Søket traff MER enn én katalogoppføring (filter {0}, base {1}). Serveren nekter å autentisere mot et tvetydig treff - få UserSearchFilter eller SearchBase til å velge nøyaktig én oppføring.</value>
@@ -11767,6 +11783,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Tokenet er fjernet; forespørsler til sandkassen har nå ingen.</value>
   </data>
+  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
+    <value>Totalen har ingen øvre grense, fordi en listeoppføring eller SpamAssassins egen poengsum kan være hvor stor som helst.</value>
+  </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfigurasjonen for transportsikkerhet kunne ikke leses.</value>
   </data>
@@ -11845,6 +11864,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="The {0} server is switched on but nothing is listening here, so every connection to this port is refused. If you have just added or changed this port, that is the reason: the server reads its port list once when it starts, so a new row does nothing until the service is restarted. Otherwise the causes are another program already holding the port, an address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>{0}-serveren er slått på, men ingenting lytter her, så hver tilkobling til denne porten avvises. Hvis du nettopp har lagt til eller endret denne porten, er det årsaken: serveren leser portlisten sin én gang når den starter, så en ny rad gjør ingenting før tjenesten startes på nytt. Ellers er årsakene et annet program som allerede holder porten, en adresse som ikke finnes på denne maskinen, eller - på en TLS-port - et sertifikat serveren ikke kunne laste; serveren noterer hvilken, én gang, i feilloggen ved oppstart.</value>
   </data>
+  <data name="There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
+    <value>Det finnes flere indeksoppføringer enn meldinger, altså oppføringer for e-post som ikke finnes lenger - forkast og bygg indeksen på nytt for å fjerne dem.</value>
+  </data>
   <data name="There are no accounts on this server to add." xml:space="preserve">
     <value>Det er ingen kontoer på denne serveren å legge til.</value>
   </data>
@@ -11865,6 +11887,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
     <value>Det er totalt {0} IP-område fra automatisk blokkering.</value>
+  </data>
+  <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
+    <value>Dette er tellinger for bare de første {0} kontoene; siden stopper der i stedet for å la deg vente på resten.</value>
   </data>
   <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
     <value>Disse leses av serveren fra [LDAP]-seksjonen i hMailServer.INI, og leses på nytt innen to sekunder etter lagring, så ingen omstart trengs. Standardene passer Active Directory; en katalog som ikke er Windows, har ikke sAMAccountName og trenger at attributtnavnene endres.</value>
@@ -11942,6 +11967,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Dette er den nyeste utgivelsen</value>
+  </data>
+  <data name="This is the latest release, checked {0}" xml:space="preserve">
+    <value>Dette er den nyeste utgivelsen, kontrollert {0}</value>
   </data>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>Dette er den eneste gangen den noen gang vises. Lageret beholder en SHA-256-digest, ikke nøkkelen, så den kan ikke gjenopprettes eller vises på nytt - går den tapt, tilbakekall den her og opprett en annen.</value>
@@ -12104,6 +12132,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>Token godtas, men {0}: serveren bruker hver av dem bare når du har satt den, og tom er standarden. Det er bredere enn det ser ut. Ethvert token identitetsleverandøren din signerer med denne nøkkelen, godtas - inkludert ett den utstedte til et helt annet program, som er nok til å logge på som den postboksen tokenet nevner. Sett begge til de nøyaktige verdiene leverandøren din legger i sine token.</value>
+  </data>
+  <data name="Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
+    <value>Tokener godtas også over ukrypterte tilkoblinger, så et token som er fanget opp kan spilles av på nytt helt til det utløper.</value>
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>Token signert med {0} avvises: denne serveren implementerer bare RS256, ES256 og HS256. Fjern det serveren ikke kan verifisere, fra listen, slik at en klient som tilbyr det, avvises av en grunn loggen gjør tydelig, i stedet for å se ut som tillatt.</value>
@@ -12519,8 +12550,8 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Weak password – add {0}." xml:space="preserve">
     <value>Svakt passord – legg til {0}.</value>
   </data>
-  <data name="Web  " xml:space="preserve">
-    <value>Web  </value>
+  <data name="Web" xml:space="preserve">
+    <value>Web</value>
   </data>
   <data name="Web Push notifications" xml:space="preserve">
     <value>Web Push-varsler</value>
@@ -12965,6 +12996,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Med en passordfrase satt og komprimering av kopieres meldingsfilene ved siden av arkivet i stedet for inn i det, der ingenting krypterer dem - og sikkerhetskopien nekter å kjøre. Slå på komprimering, eller tøm passordfrasen.</value>
+  </data>
+  <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
+    <value>Uten en konfigurert tidsplan er det ingenting som tar den neste.</value>
+  </data>
+  <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
+    <value>Med kontrollene som er slått på nå, er den høyeste totalen som kan nås {0}.</value>
   </data>
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>Når listeadministratoren er på, svarer listen på sine egne adresser - dens -subscribe, -unsubscribe, -request, -owner og -bounces adresser - og sender hvert medlem sin egen kopi, med sin egen måte å melde seg ut på. Hvert medlems levering og returer vises i Control Deck.</value>
@@ -13688,6 +13725,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="binding with the configured ServiceUsername" xml:space="preserve">
     <value>binder med den konfigurerte ServiceUsername</value>
+  </data>
+  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>binder med den konfigurerte ServiceUsername - ingen ServicePassword lagres eller skrives inn, og et tomt passord avvises før det sendes</value>
   </data>
   <data name="blacklist" xml:space="preserve">
     <value>svarteliste</value>
@@ -14575,6 +14615,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (en verdi dette Control Panel ikke kjenner)</value>
   </data>
+  <data name="{0} (domain is inactive)" xml:space="preserve">
+    <value>{0} (domenet er inaktivt)</value>
+  </data>
   <data name="{0} (error {1})" xml:space="preserve">
     <value>{0} (feil {1})</value>
   </data>
@@ -14583,6 +14626,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inaktiv)</value>
+  </data>
+  <data name="{0} (route #{1})" xml:space="preserve">
+    <value>{0} (rute nr. {1})</value>
+  </data>
+  <data name="{0} (subject '{1}')" xml:space="preserve">
+    <value>{0} (emne '{1}')</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + {1} til</value>
@@ -14851,14 +14900,20 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} is available" xml:space="preserve">
     <value>{0} er tilgjengelig</value>
   </data>
+  <data name="{0} is available (published {1})" xml:space="preserve">
+    <value>{0} er tilgjengelig (publisert {1})</value>
+  </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} er dekket av {1}, men peker ikke tilbake til {2}, så adressen spares ikke: den som har en adresse, kan selv skrive dens omvendte navn.</value>
   </data>
   <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
     <value>{0} er dekket av {1}, men det fremoverrettede oppslaget ble ikke besvart, så {2} spares ikke nå.</value>
   </data>
-  <data name="{0} is downloaded and verified" xml:space="preserve">
-    <value>{0} er lastet ned og verifisert</value>
+  <data name="{0} is downloaded and verified (published {1}); Install update applies it" xml:space="preserve">
+    <value>{0} er lastet ned og verifisert (publisert {1}); Installer oppdatering tar den i bruk</value>
+  </data>
+  <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
+    <value>{0} er lastet ned og verifisert; Installer oppdatering tar den i bruk</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} er her, med postkassene {1}, listen {2} og én regel som arkiverer fakturaer. Det ene passordet for alle postkassene ble vist da prøven ble laget, og ble ikke tatt vare på; fjern prøven og lag den på nytt for å få et nytt. Det holdes utenfor sjekklisten for den første timen, fordi et prøvedomene ikke er denne serverens første domene.</value>
@@ -14997,6 +15052,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0} on port {1}, {2}. {3}" xml:space="preserve">
     <value>{0} på port {1}, {2}. {3}</value>
+  </data>
+  <data name="{0} or {1}" xml:space="preserve">
+    <value>{0} eller {1}</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mønster fjernes fra hver melding etter filnavn, uansett hva skannerne sier.</value>
@@ -15205,8 +15263,14 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — avslutningskode {1} betyr infisert</value>
   </data>
-  <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
-    <value>{0} % av oppslagene besvart fra minnet, med {1} KB</value>
+  <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
+    <value>{0} % av oppslagene besvart fra minnet, med {1} KB av {2} KB - ved maksgrensen, så oppføringer kastes ut.</value>
+  </data>
+  <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB." xml:space="preserve">
+    <value>{0} % av oppslagene besvart fra minnet, med {1} KB av {2} KB.</value>
+  </data>
+  <data name="{0}% of lookups answered from memory, using {1} KB." xml:space="preserve">
+    <value>{0} % av oppslagene besvart fra minnet, med {1} KB.</value>
   </data>
   <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
     <value>MX-oppføringene til {0} navngir {1}, denne serverens vertsnavn: {2}.</value>
@@ -15256,8 +15320,11 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
     <value>{0}: {1}-posten på {2} kontrolleres i DNS…</value>
   </data>
-  <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
-    <value>{0}: ingen CA-fil er satt, så det finnes ikke noe tillitsanker å verifisere klientsertifikater mot{1}</value>
+  <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against and the listener will not start (server error 6140)." xml:space="preserve">
+    <value>{0}: ingen CA-fil er satt, så det finnes ikke noe tillitsanker å verifisere klientsertifikater mot og lytteren vil ikke starte (serverfeil 6140).</value>
+  </data>
+  <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against." xml:space="preserve">
+    <value>{0}: ingen CA-fil er satt, så det finnes ikke noe tillitsanker å verifisere klientsertifikater mot.</value>
   </data>
   <data name="{0}: no TXT record at {1}, so sending servers never discover the policy and the hosting does nothing for this domain. Publish it (v=STSv1; id=...) - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: ingen TXT-oppføring på {1}, så sendende servere oppdager aldri policyen, og vertskapet gjør ingenting for dette domenet. Publiser den (v=STSv1; id=...) - eller, hvis du nettopp gjorde det, vent på propagering og trykk Oppdater.</value>
@@ -15331,8 +15398,11 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
     <value>{0}: oppslaget av {2} mislyktes, noe som ikke sier noe om {1}-posten.</value>
   </data>
-  <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
-    <value>{0}: porten har en klientsertifikatpolicy, men ingen SSL/TLS eller STARTTLS, så det skjer aldri noe håndtrykk{1} Aktiver tilkoblingssikkerhet på porten, eller sett policyen til av.</value>
+  <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens and the listener is not started (server error 6142). Enable connection security on the port, or set the policy to off." xml:space="preserve">
+    <value>{0}: porten har en klientsertifikatpolicy, men ingen SSL/TLS eller STARTTLS, så det skjer aldri noe håndtrykk og lytteren er ikke startet (serverfeil 6142). Aktiver tilkoblingssikkerhet på porten, eller sett policyen til av.</value>
+  </data>
+  <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens and the policy verifies nothing. Enable connection security on the port, or set the policy to off." xml:space="preserve">
+    <value>{0}: porten har en klientsertifikatpolicy, men ingen SSL/TLS eller STARTTLS, så det skjer aldri noe håndtrykk og policyen verifiserer ingenting. Aktiver tilkoblingssikkerhet på porten, eller sett policyen til av.</value>
   </data>
   <data name="{0}: the rotation record at {1} is published and matches the staged secondary key. Promote whenever it has propagated everywhere." xml:space="preserve">
     <value>{0}: rotasjonsoppføringen på {1} er publisert og stemmer med den klargjorte sekundærnøkkelen. Forfrem når den har propagert overalt.</value>

@@ -60,7 +60,9 @@ namespace hMailServer.ControlPanel.Views
             "TextBody", new Thickness(0, 0, 0, 12)));
 
          var web = new TextBlock { FontSize = Typography.Body };
-         web.Inlines.Add(new Run(L("Web  ")) { FontWeight = FontWeights.SemiBold });
+         // The label is a word of its own; the gap before the link is layout.
+         web.Inlines.Add(new Run(L("Web")) { FontWeight = FontWeights.SemiBold });
+         web.Inlines.Add(new Run("  "));
          var webLink = new Hyperlink(new Run("www.progressiverobot.com"))
          {
             NavigateUri = new Uri("https://www.progressiverobot.com")

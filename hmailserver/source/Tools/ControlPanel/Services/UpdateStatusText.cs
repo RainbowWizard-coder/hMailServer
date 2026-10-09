@@ -17,18 +17,28 @@ namespace hMailServer.ControlPanel.Services
    {
       public static string For(int state, string version, string published, string checkedAt, string error, string applyOutcome = null, string preparationStep = null)
       {
-         string when = string.IsNullOrEmpty(published) ? "" : F(" (published {0})", published);
-         string outcome = string.IsNullOrEmpty(applyOutcome) ? "" : F("Last update: {0}. ", applyOutcome);
+         // The last outcome is a sentence of its own, before the state's line.
+         string outcome = string.IsNullOrEmpty(applyOutcome) ? null : F("Last update: {0}.", applyOutcome);
+         return Sentences(outcome, Line_(state, version, published, checkedAt, error, preparationStep));
+      }
+
+      // The state's line, each with and without the date it was published or
+      // checked as a whole text, so that a translation can place the date.
+      private static string Line_(int state, string version, string published, string checkedAt, string error, string preparationStep)
+      {
+         bool dated = !string.IsNullOrEmpty(published);
          switch (state)
          {
-            case 1: return outcome + L("This is the latest release") + (string.IsNullOrEmpty(checkedAt) ? "" : F(", checked {0}", checkedAt));
-            case 2: return outcome + F("{0} is available", version) + when;
-            case 3: return outcome + F("{0} is downloaded and verified", version) + when + L("; Install update applies it");
-            case 4: return outcome + F("Installing {0}: the service will stop and start", version);
-            case 5: return outcome + F("The last update step failed: {0}", error);
-            case 6: return outcome + F("Preparing the install of {0}: {1}", version, PreparationStep(preparationStep));
-            case 7: return outcome + F("{0} is ready to be installed; the install goes on in its window", version);
-            default: return outcome + L("Not checked yet (Check for updates, or turn on the daily check under Updates on the API & monitoring page)");
+            case 1: return string.IsNullOrEmpty(checkedAt) ? L("This is the latest release") : F("This is the latest release, checked {0}", checkedAt);
+            case 2: return dated ? F("{0} is available (published {1})", version, published) : F("{0} is available", version);
+            case 3: return dated
+               ? F("{0} is downloaded and verified (published {1}); Install update applies it", version, published)
+               : F("{0} is downloaded and verified; Install update applies it", version);
+            case 4: return F("Installing {0}: the service will stop and start", version);
+            case 5: return F("The last update step failed: {0}", error);
+            case 6: return F("Preparing the install of {0}: {1}", version, PreparationStep(preparationStep));
+            case 7: return F("{0} is ready to be installed; the install goes on in its window", version);
+            default: return L("Not checked yet (Check for updates, or turn on the daily check under Updates on the API & monitoring page)");
          }
       }
 

@@ -65,7 +65,7 @@ namespace hMailServer.ControlPanel.Views
       {
          folderName_ = folderName;
          Owner = owner;
-         Title = L("Permissions - ") + folderName;
+         Title = F("Permissions - {0}", folderName);
 
          var body = new StackPanel();
          body.Children.Add(notice_);

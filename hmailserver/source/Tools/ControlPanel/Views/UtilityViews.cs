@@ -811,10 +811,10 @@ namespace hMailServer.ControlPanel.Views
 
          string path = System.IO.Path.Join(logFolder, Services.MessageStoreConsistencyReport.FileName);
          string enabledNote = enabled
-            ? ""
+            ? null
             // Asked for by nav key rather than spelled out, so that renaming the
             // page cannot leave this pointing at a page title that no longer exists.
-            : F(" The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed.", L(Services.NavigationMap.TitleOf("hardening")));
+            : F("The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed.", L(Services.NavigationMap.TitleOf("hardening")));
 
          string text;
          try
@@ -846,11 +846,11 @@ namespace hMailServer.ControlPanel.Views
          }
 
          Services.MessageStoreConsistencyReport report = Services.MessageStoreConsistencyReport.Parse(text);
-         string when = string.IsNullOrEmpty(report.Generated) ? "" : F(" Last scan: {0}.", report.Generated);
+         string when = string.IsNullOrEmpty(report.Generated) ? null : F("Last scan: {0}.", report.Generated);
          int? reportedMissing = report.ReportedMissingCount;
          string truncated = report.IsTruncated && reportedMissing.HasValue
-            ? F(" The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh.", reportedMissing.Value, report.Entries.Count)
-            : "";
+            ? F("The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh.", reportedMissing.Value, report.Entries.Count)
+            : null;
 
          if (report.MissingCount == 0)
          {
@@ -858,7 +858,7 @@ namespace hMailServer.ControlPanel.Views
             {
                Level = Severity.Good,
                ReportPath = path,
-               Message = L("No problems found - every message row has its file on disk.") + when + truncated + enabledNote
+               Message = Sentences(L("No problems found - every message row has its file on disk."), when, truncated, enabledNote)
             };
          }
 
@@ -867,9 +867,9 @@ namespace hMailServer.ControlPanel.Views
             Level = Severity.Bad,
             ReportPath = path,
             Entries = report.Entries,
-            Message = Plural(report.MissingCount, "{0} message references a file that is missing on disk.", "{0} messages reference a file that is missing on disk.")
-                      + when + truncated + enabledNote
-                      + L(" The check is read-only: the server does not delete or repair anything.")
+            Message = Sentences(Plural(report.MissingCount, "{0} message references a file that is missing on disk.", "{0} messages reference a file that is missing on disk."),
+               when, truncated, enabledNote,
+               L("The check is read-only: the server does not delete or repair anything."))
          };
       }
 

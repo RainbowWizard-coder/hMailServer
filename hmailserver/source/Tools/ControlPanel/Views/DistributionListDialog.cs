@@ -53,7 +53,7 @@ namespace hMailServer.ControlPanel.Views
          domainName_ = domainName;
          address_ = address;
          Owner = owner;
-         Title = L("Distribution list - ") + address;
+         Title = F("Distribution list - {0}", address);
 
          var body = new StackPanel();
          body.Children.Add(notice_);

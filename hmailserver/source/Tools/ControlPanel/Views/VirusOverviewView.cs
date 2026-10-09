@@ -506,13 +506,13 @@ namespace hMailServer.ControlPanel.Views
 
          if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsTotal > 0)
          {
-            content.Children.Add(Paragraph(PluralF(config.FetchAccountsWithScanningOff,
+            content.Children.Add(Paragraph(Sentences(PluralF(config.FetchAccountsWithScanningOff,
                   "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page.",
                   "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.",
-                  config.FetchAccountsWithScanningOff, config.FetchAccountsTotal)
-               + (config.FetchAccountScanIncomplete
-                  ? F(" These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest.", MaxAccountsWalked)
-                  : ""),
+                  config.FetchAccountsWithScanningOff, config.FetchAccountsTotal),
+               config.FetchAccountScanIncomplete
+                  ? F("These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest.", MaxAccountsWalked)
+                  : null),
                Typography.Caption));
          }
 

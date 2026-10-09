@@ -18,131 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&#10;&#10;Save this weak password anyway?" xml:space="preserve">
-    <value>
-
-Salvare comunque questa password debole?</value>
-  </data>
-  <data name="  Configured database type: {0}." xml:space="preserve">
-    <value>  Tipo di database configurato: {0}.</value>
-  </data>
-  <data name="  THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>  QUESTO SERVER USA IL DATABASE INTEGRATO (MSSQLCE), dove il valore è forzato a 1 qualunque cosa sia impostata qui. È voluto: SQL Server Compact non si comporta in modo affidabile con connessioni concorrenti. Cambiarlo qui sotto non avrà effetto finché il server non passa a MySQL, MSSQL o PostgreSQL.</value>
-  </data>
-  <data name=" (domain is inactive)" xml:space="preserve">
-    <value> (il dominio è inattivo)</value>
-  </data>
-  <data name=" (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value> (ignorato: questo server usa il database integrato)</value>
-  </data>
-  <data name=" (inactive)" xml:space="preserve">
-    <value> (inattivo)</value>
-  </data>
-  <data name=" (published {0})" xml:space="preserve">
-    <value> (pubblicato {0})</value>
-  </data>
-  <data name=" (route #{0})" xml:space="preserve">
-    <value> (rotta n. {0})</value>
-  </data>
-  <data name=" (subject '{0}')" xml:space="preserve">
-    <value> (oggetto '{0}')</value>
-  </data>
-  <data name=" - at its cap, so entries are being evicted" xml:space="preserve">
-    <value> - al suo limite, quindi le voci vengono espulse</value>
-  </data>
-  <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
-    <value> - nessun ServicePassword viene memorizzato o digitato, e una password vuota viene rifiutata prima dell'invio</value>
-  </data>
-  <data name=" - shown above as this machine's name" xml:space="preserve">
-    <value> - mostrato sopra come nome di questa macchina</value>
-  </data>
-  <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
-    <value> Saltato anche per ogni dominio destinatario che ha il greylisting disattivato nelle proprie impostazioni.</value>
-  </data>
-  <data name=" If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value> Se la pianificazione è stata appena impostata, ricontrolla dopo la scadenza della prima esecuzione; altrimenti il registro dei backup nella pagina Registri dice perché le esecuzioni vengono saltate.</value>
-  </data>
-  <data name=" It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
-    <value> Non ha un tag rua=, quindi nessuno ti invia rapporti - va bene, ma non impari nulla; aggiungine uno quando avrai una casella per riceverli.</value>
-  </data>
-  <data name=" It is safe to enable signing." xml:space="preserve">
-    <value> È sicuro attivare la firma.</value>
-  </data>
-  <data name=" Last scan: {0}." xml:space="preserve">
-    <value> Ultima scansione: {0}.</value>
-  </data>
-  <data name=" Messages indexed: {0} of {1}." xml:space="preserve">
-    <value> Messaggi indicizzati: {0} su {1}.</value>
-  </data>
-  <data name=" NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
-    <value> NOTA: MtaStsHostingEnabled=0, quindi il server NON servirà affatto questo criterio.</value>
-  </data>
-  <data name=" NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
-    <value> NOTA: WebServicesHttpsPort=0, quindi nessun listener HTTPS è in esecuzione e il criterio non può essere servito (la RFC 8461 consente solo HTTPS). Il record TXT annuncerebbe un criterio che nessuno serve.</value>
-  </data>
-  <data name=" Published: {0}" xml:space="preserve">
-    <value> Pubblicato: {0}</value>
-  </data>
-  <data name=" Skipped when {0}." xml:space="preserve">
-    <value> Saltato quando {0}.</value>
-  </data>
-  <data name=" That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value> È più vecchio di quanto la pianificazione consenta, quindi le esecuzioni falliscono o vengono saltate - il registro dei backup nella pagina Registri dice perché.</value>
-  </data>
-  <data name=" The check is read-only: the server does not delete or repair anything." xml:space="preserve">
-    <value> Il controllo è di sola lettura: il server non elimina né ripara nulla.</value>
-  </data>
-  <data name=" The directory said: {0}" xml:space="preserve">
-    <value> La directory ha risposto: {0}</value>
-  </data>
-  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
-    <value> Non si può dire il totale massimo raggiungibile: un controllo non è stato letto.</value>
-  </data>
-  <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
-    <value> Il file della chiave non è leggibile da questa macchina, quindi il valore del record non può essere mostrato qui; la scheda DKIM del dominio lo ha mostrato quando la chiave è stata creata.</value>
-  </data>
-  <data name=" The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed." xml:space="preserve">
-    <value> Il controllo periodico è attualmente disattivato (MessageStoreConsistencyCheck nella pagina {0}), quindi questo non verrà aggiornato.</value>
-  </data>
-  <data name=" The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh." xml:space="preserve">
-    <value> L'intestazione del rapporto dice {0} ma elenca {1} - probabilmente è stato letto mentre il server lo riscriveva, quindi aggiorna.</value>
-  </data>
-  <data name=" The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
-    <value> Il resto è ancora in attesa; esegui di nuovo o lascia che la pianificazione recuperi.</value>
-  </data>
-  <data name=" The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value> Il totale è aperto, perché una voce di lista o il punteggio di SpamAssassin possono avere qualsiasi dimensione.</value>
-  </data>
-  <data name=" There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
-    <value> Ci sono più voci di indice che messaggi, cioè voci per posta che non esiste più - scarta e ricostruisci l'indice per eliminarle.</value>
-  </data>
-  <data name=" These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
-    <value> Sono conteggi dei soli primi {0} account; questa pagina si ferma lì invece di farti aspettare il resto.</value>
-  </data>
-  <data name=" Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
-    <value> I token sono accettati anche su connessioni non cifrate, quindi uno registrato può essere riutilizzato fino alla scadenza.</value>
-  </data>
-  <data name=" With no schedule configured, nothing will take the next one." xml:space="preserve">
-    <value> Senza una pianificazione configurata, nulla farà il prossimo.</value>
-  </data>
-  <data name=" With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
-    <value> Con i controlli attualmente attivi il totale massimo raggiungibile è {0}.</value>
-  </data>
-  <data name=" and the listener is not started (server error 6142)." xml:space="preserve">
-    <value> e il listener non è avviato (errore del server 6142).</value>
-  </data>
-  <data name=" and the listener will not start (server error 6140)." xml:space="preserve">
-    <value> e il listener non si avvierà (errore del server 6140).</value>
-  </data>
-  <data name=" and the policy verifies nothing." xml:space="preserve">
-    <value> e il criterio non verifica nulla.</value>
-  </data>
-  <data name=" of {0} KB" xml:space="preserve">
-    <value> di {0} KB</value>
-  </data>
-  <data name=" or " xml:space="preserve">
-    <value> oppure </value>
-  </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>"Chiunque nel dominio" significa che l'indirizzo del mittente appartiene a un dominio ospitato da questo server, cosa che un estraneo può dichiarare a meno che la lista non richieda anche l'autenticazione. Spunta qui sotto se la lista deve essere limitata a chi ha effettuato l'accesso.</value>
   </data>
@@ -212,9 +87,6 @@ Salvare comunque questa password debole?</value>
   <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
     <value>, e contrassegna gli account come inattivi quando la loro voce di directory è scomparsa.</value>
   </data>
-  <data name=", checked {0}" xml:space="preserve">
-    <value>, verificato {0}</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, picco {0}</value>
   </data>
@@ -223,9 +95,6 @@ Salvare comunque questa password debole?</value>
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, quindi la verifica non potrà mai riuscire.</value>
-  </data>
-  <data name=", which cannot be read from this machine" xml:space="preserve">
-    <value>, che non è leggibile da questa macchina</value>
   </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Nessun account verrà disattivato.</value>
@@ -469,9 +338,6 @@ Salvare comunque questa password debole?</value>
   </data>
   <data name="90 by default. A ban or a block a hit made is not removed with its record." xml:space="preserve">
     <value>90 per impostazione predefinita. Un ban o un blocco causato da un colpo non viene rimosso con la sua traccia.</value>
-  </data>
-  <data name="; Install update applies it" xml:space="preserve">
-    <value>; "Installa aggiornamento" lo applica</value>
   </data>
   <data name="; database folder {0}" xml:space="preserve">
     <value>; cartella del database {0}</value>
@@ -962,8 +828,8 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Account (user)" xml:space="preserve">
     <value>Account (utente)</value>
   </data>
-  <data name="Account - " xml:space="preserve">
-    <value>Account - </value>
+  <data name="Account - {0}" xml:space="preserve">
+    <value>Account - {0}</value>
   </data>
   <data name="Account _enabled" xml:space="preserve">
     <value>Account _attivato</value>
@@ -1070,14 +936,32 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add _criterion…" xml:space="preserve">
     <value>Aggiungi _criterio…</value>
   </data>
+  <data name="Add a DNS blacklist" xml:space="preserve">
+    <value>Aggiungi una blacklist DNS</value>
+  </data>
   <data name="Add a DNS blacklist; connections from listed addresses gain score or are refused." xml:space="preserve">
     <value>Aggiungi una blacklist DNS; le connessioni da indirizzi elencati guadagnano punteggio o vengono rifiutate.</value>
+  </data>
+  <data name="Add a SURBL server" xml:space="preserve">
+    <value>Aggiungi un server SURBL</value>
   </data>
   <data name="Add a _domain" xml:space="preserve">
     <value>Aggiungi un _dominio</value>
   </data>
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Aggiungi un'_intestazione che il lettore mostra come fascia</value>
+  </data>
+  <data name="Add a blocked attachment rule" xml:space="preserve">
+    <value>Aggiungi una regola per gli allegati bloccati</value>
+  </data>
+  <data name="Add a blocked sender" xml:space="preserve">
+    <value>Aggiungi un mittente bloccato</value>
+  </data>
+  <data name="Add a bypass entry" xml:space="preserve">
+    <value>Aggiungi un'esenzione</value>
+  </data>
+  <data name="Add a domain alias" xml:space="preserve">
+    <value>Aggiungi un alias di dominio</value>
   </data>
   <data name="Add a domain or a mailbox" xml:space="preserve">
     <value>Aggiungi un dominio o una casella</value>
@@ -1088,11 +972,26 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add a domain to the white and black list" xml:space="preserve">
     <value>Aggiungi un dominio alla lista bianca e nera</value>
   </data>
+  <data name="Add a list entry" xml:space="preserve">
+    <value>Aggiungi una voce di elenco</value>
+  </data>
   <data name="Add a listener - 587 with STARTTLS, or 465 for implicit TLS." xml:space="preserve">
     <value>Aggiungi un listener - 587 con STARTTLS, o 465 per TLS implicito.</value>
   </data>
   <data name="Add a name to the never-ban list" xml:space="preserve">
     <value>Aggiungi un nome alla lista dei mai bloccati</value>
+  </data>
+  <data name="Add a remote domain policy" xml:space="preserve">
+    <value>Aggiungi un criterio per dominio remoto</value>
+  </data>
+  <data name="Add a rule" xml:space="preserve">
+    <value>Aggiungi una regola</value>
+  </data>
+  <data name="Add a security group" xml:space="preserve">
+    <value>Aggiungi un gruppo di sicurezza</value>
+  </data>
+  <data name="Add a white-list entry" xml:space="preserve">
+    <value>Aggiungi una voce alla lista bianca</value>
   </data>
   <data name="Add a_lias" xml:space="preserve">
     <value>Aggiungi a_lias</value>
@@ -1108,6 +1007,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Add alias" xml:space="preserve">
     <value>Aggiungi alias</value>
+  </data>
+  <data name="Add an IP address to the greylisting white list" xml:space="preserve">
+    <value>Aggiungi un indirizzo IP alla whitelist del greylisting</value>
   </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Aggiungi un intervallo IP per il dispositivo che consente la consegna SMTP senza richiedere l'autenticazione.</value>
@@ -1129,6 +1031,12 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Aggiungi un account sotto il dominio nella pagina Domini: un indirizzo e la password con cui un client di posta accede.</value>
+  </data>
+  <data name="Add an entry" xml:space="preserve">
+    <value>Aggiungi una voce</value>
+  </data>
+  <data name="Add an external account" xml:space="preserve">
+    <value>Aggiungi un account esterno</value>
   </data>
   <data name="Add certificate" xml:space="preserve">
     <value>Aggiungi certificato</value>
@@ -1198,9 +1106,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Aggiungi alla lista di soppressione di {0}</value>
-  </data>
-  <data name="Add {0}" xml:space="preserve">
-    <value>Aggiungi {0}</value>
   </data>
   <data name="Added" xml:space="preserve">
     <value>Aggiunto</value>
@@ -1424,6 +1329,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Also require a valid Authenticode signature on the installer" xml:space="preserve">
     <value>Richiedi anche una firma Authenticode valida sul programma di installazione</value>
   </data>
+  <data name="Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
+    <value>Saltato anche per ogni dominio destinatario che ha il greylisting disattivato nelle proprie impostazioni.</value>
+  </data>
   <data name="Also turned off by a limit of 0 below, whatever this box says." xml:space="preserve">
     <value>Disattivato anche da un limite di 0 qui sotto, qualunque cosa dica questa casella.</value>
   </data>
@@ -1518,8 +1426,8 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Announcements only" xml:space="preserve">
     <value>Solo annunci</value>
   </data>
-  <data name="Anonymous directory read accepted. " xml:space="preserve">
-    <value>Lettura anonima della directory accettata. </value>
+  <data name="Anonymous directory read accepted." xml:space="preserve">
+    <value>Lettura anonima della directory accettata.</value>
   </data>
   <data name="Another mailbox of the account holder's, which a password-reset link can be sent to, and ten one-time codes that stand in for a code from an authenticator app. Both are the account holder's own to set, in the webmail, with their own password: an administrator who could set the address could reset the password by pointing it at themselves. What can be done here is take an address away." xml:space="preserve">
     <value>Un'altra casella del titolare dell'account, a cui può essere inviato un collegamento di reimpostazione, e dieci codici monouso che sostituiscono un codice di un'app di autenticazione. Entrambi li imposta il titolare, nella webmail, con la propria password: un amministratore che potesse impostare l'indirizzo potrebbe reimpostare la password puntandolo su di sé. Qui si può togliere un indirizzo.</value>
@@ -1953,8 +1861,8 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Before enabling, the section is also missing: {0}." xml:space="preserve">
     <value>Prima di attivare, manca anche la sezione: {0}.</value>
   </data>
-  <data name="Before you copy — " xml:space="preserve">
-    <value>Prima di copiare — </value>
+  <data name="Before you copy: {0}" xml:space="preserve">
+    <value>Prima di copiare: {0}</value>
   </data>
   <data name="Below the server: the firewall" xml:space="preserve">
     <value>Sotto il server: il firewall</value>
@@ -2241,8 +2149,8 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Cartella di output dei certificati (vuoto = Data\ACME)</value>
   </data>
-  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
-    <value>La convalida del certificato era DISATTIVATA per questo test, in linea con VerifyCertificate=0. </value>
+  <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0." xml:space="preserve">
+    <value>La convalida del certificato era DISATTIVATA per questo test, in linea con VerifyCertificate=0.</value>
   </data>
   <data name="Certificate: {0}" xml:space="preserve">
     <value>Certificato: {0}</value>
@@ -2601,6 +2509,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Configure OAuth2 / XOAUTH2 so clients authenticate with a token instead of a password." xml:space="preserve">
     <value>Configura OAuth2 / XOAUTH2 perché i client si autentichino con un token invece che con una password.</value>
   </data>
+  <data name="Configured database type: {0}." xml:space="preserve">
+    <value>Tipo di database configurato: {0}.</value>
+  </data>
   <data name="Confirm and _enable" xml:space="preserve">
     <value>Conferma e _attiva</value>
   </data>
@@ -2628,8 +2539,8 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Connected to {0} as {1}" xml:space="preserve">
     <value>Connesso a {0} come {1}</value>
   </data>
-  <data name="Connected to {0} over {1}. " xml:space="preserve">
-    <value>Connesso a {0} su {1}. </value>
+  <data name="Connected to {0} over {1}." xml:space="preserve">
+    <value>Connesso a {0} su {1}.</value>
   </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Controlli sull'host che si connette</value>
@@ -2663,6 +2574,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Connections in the pool" xml:space="preserve">
     <value>Connessioni nel pool</value>
+  </data>
+  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
+    <value>Connessioni nel pool (ignorato: questo server usa il database integrato)</value>
   </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Connessioni verso un host di origine, su tutte le migrazioni in corso (da 1 a 64)</value>
@@ -2862,8 +2776,8 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not generate the DKIM key: {0}" xml:space="preserve">
     <value>Impossibile generare la chiave DKIM: {0}</value>
   </data>
-  <data name="Could not list domains — " xml:space="preserve">
-    <value>Impossibile elencare i domini — </value>
+  <data name="Could not list domains: {0}" xml:space="preserve">
+    <value>Impossibile elencare i domini: {0}</value>
   </data>
   <data name="Could not list the messages: {0}" xml:space="preserve">
     <value>Impossibile elencare i messaggi: {0}</value>
@@ -3212,6 +3126,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
   </data>
+  <data name="DKIM - the public key receivers verify {0}'s signatures against" xml:space="preserve">
+    <value>DKIM - la chiave pubblica con cui i server riceventi verificano le firme di {0}</value>
+  </data>
   <data name="DKIM failure score" xml:space="preserve">
     <value>Punteggio per il fallimento DKIM</value>
   </data>
@@ -3236,11 +3153,11 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="DKIM verification" xml:space="preserve">
     <value>Verifica DKIM</value>
   </data>
-  <data name="DKIM — the public key receivers verify {0}'s signatures against" xml:space="preserve">
-    <value>DKIM — la chiave pubblica con cui i server riceventi verificano le firme di {0}</value>
-  </data>
   <data name="DMARC" xml:space="preserve">
     <value>DMARC</value>
+  </data>
+  <data name="DMARC - what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
+    <value>DMARC - cosa devono fare i server riceventi con la posta che fallisce SPF e DKIM</value>
   </data>
   <data name="DMARC aggregate reporting (rua)" xml:space="preserve">
     <value>Rapporti aggregati DMARC (rua)</value>
@@ -3253,9 +3170,6 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="DMARC tells receivers what to do with mail that fails SPF and DKIM, and where to report it." xml:space="preserve">
     <value>DMARC dice ai destinatari cosa fare della posta che non supera SPF e DKIM, e dove segnalarla.</value>
-  </data>
-  <data name="DMARC — what receivers should do with mail that fails SPF and DKIM" xml:space="preserve">
-    <value>DMARC — cosa devono fare i server riceventi con la posta che fallisce SPF e DKIM</value>
   </data>
   <data name="DNS blacklist checks" xml:space="preserve">
     <value>Controlli sulle blacklist DNS</value>
@@ -3664,8 +3578,8 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   <data name="Delivery throughput" xml:space="preserve">
     <value>Velocità di consegna</value>
   </data>
-  <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}. Signing is currently " xml:space="preserve">
-    <value>Ricavato dalla chiave configurata del dominio: selettore "{0}", file della chiave privata {1}. La firma è attualmente </value>
+  <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
+    <value>Ricavato dalla chiave configurata del dominio: selettore "{0}", file della chiave privata {1}.</value>
   </data>
   <data name="Description" xml:space="preserve">
     <value>Descrizione</value>
@@ -3759,8 +3673,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Distinct terms per message before it is always scanned instead (64-1000000)" xml:space="preserve">
     <value>Termini distinti per messaggio oltre i quali il messaggio viene invece sempre scansionato (64-1000000)</value>
   </data>
-  <data name="Distribution list - " xml:space="preserve">
-    <value>Lista di distribuzione - </value>
+  <data name="Distribution list - {0}" xml:space="preserve">
+    <value>Lista di distribuzione - {0}</value>
   </data>
   <data name="Distribution lists" xml:space="preserve">
     <value>Liste di distribuzione</value>
@@ -3801,8 +3715,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Domain (e.g. partner.com)" xml:space="preserve">
     <value>Dominio (es. partner.com)</value>
   </data>
-  <data name="Domain - " xml:space="preserve">
-    <value>Dominio - </value>
+  <data name="Domain - {0}" xml:space="preserve">
+    <value>Dominio - {0}</value>
   </data>
   <data name="Domain _enabled" xml:space="preserve">
     <value>Dominio _attivato</value>
@@ -3948,17 +3862,62 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Edit criterion" xml:space="preserve">
     <value>Modifica criterio</value>
   </data>
+  <data name="Edit the DNS blacklist" xml:space="preserve">
+    <value>Modifica la blacklist DNS</value>
+  </data>
+  <data name="Edit the SURBL server" xml:space="preserve">
+    <value>Modifica il server SURBL</value>
+  </data>
+  <data name="Edit the blocked attachment rule" xml:space="preserve">
+    <value>Modifica la regola per gli allegati bloccati</value>
+  </data>
+  <data name="Edit the blocked sender" xml:space="preserve">
+    <value>Modifica il mittente bloccato</value>
+  </data>
+  <data name="Edit the bypass entry" xml:space="preserve">
+    <value>Modifica l'esenzione</value>
+  </data>
+  <data name="Edit the digest settings" xml:space="preserve">
+    <value>Modifica le impostazioni del riepilogo</value>
+  </data>
+  <data name="Edit the domain alias" xml:space="preserve">
+    <value>Modifica l'alias di dominio</value>
+  </data>
+  <data name="Edit the entry" xml:space="preserve">
+    <value>Modifica la voce</value>
+  </data>
   <data name="Edit the event-handler script the server runs on delivery, logon and error events. The engine itself is switched on under Advanced." xml:space="preserve">
     <value>Modifica lo script gestore di eventi che il server esegue sugli eventi di consegna, accesso ed errore. Il motore stesso si attiva sotto Avanzate.</value>
+  </data>
+  <data name="Edit the external account" xml:space="preserve">
+    <value>Modifica l'account esterno</value>
+  </data>
+  <data name="Edit the greylisting white-list entry" xml:space="preserve">
+    <value>Modifica la voce della whitelist del greylisting</value>
+  </data>
+  <data name="Edit the list entry" xml:space="preserve">
+    <value>Modifica la voce di elenco</value>
   </data>
   <data name="Edit the members of the selected group" xml:space="preserve">
     <value>Modifica i membri del gruppo selezionato</value>
   </data>
+  <data name="Edit the remote domain policy" xml:space="preserve">
+    <value>Modifica il criterio per dominio remoto</value>
+  </data>
+  <data name="Edit the rule" xml:space="preserve">
+    <value>Modifica la regola</value>
+  </data>
+  <data name="Edit the security group" xml:space="preserve">
+    <value>Modifica il gruppo di sicurezza</value>
+  </data>
   <data name="Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page." xml:space="preserve">
     <value>Modifica lo script gestore di eventi del server (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Il salvataggio scrive il file e ricarica il motore di scripting. L'interruttore di attivazione del motore e la sua lingua si trovano nella pagina Avanzate.</value>
   </data>
-  <data name="Edit {0}" xml:space="preserve">
-    <value>Modifica {0}</value>
+  <data name="Edit the server message" xml:space="preserve">
+    <value>Modifica il messaggio del server</value>
+  </data>
+  <data name="Edit the white-list entry" xml:space="preserve">
+    <value>Modifica la voce della lista bianca</value>
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Si modifica nelle altre schede di questa finestra.</value>
@@ -5154,6 +5113,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Se la directory non può rispondere</value>
   </data>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
+    <value>Se la pianificazione è stata appena impostata, ricontrolla dopo la scadenza della prima esecuzione; altrimenti il registro dei backup nella pagina Registri dice perché le esecuzioni vengono saltate.</value>
+  </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Se {0} riceve già posta altrove - presso un provider di caselle in hosting, su un altro server - pubblicare questo record sposta quella posta qui. Modificalo solo quando questo server è pronto a riceverla.</value>
   </data>
@@ -5327,6 +5289,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="It governs two kinds of stored secret. Those bound to this machine - the database password in hMailServer.INI, the SMTP relayer password, and the passwords, tokens and passphrases of routes, external fetch accounts, SSL certificates and the rest kept in the database - are put in a Windows DPAPI envelope when they are next saved, or in the legacy Blowfish scheme while this is switched off. The secrets in the [Settings] section - the SRS and BATV secrets, the OAuth2 secrets, the metrics bearer token and HTTP Basic password, the Windows service account password and the GSSAPI service password - and each account's second factor are sealed under the installation's stored-secrets key once it has one, at the next start and at every save; switched off, the next start stores them as written again. Only the password pepper is always stored as you typed it, so hMailServer.INI should still be readable only by Administrators and by the account the service runs as." xml:space="preserve">
     <value>Regola due tipi di segreti memorizzati. Quelli legati a questa macchina - la password del database in hMailServer.INI, la password del relayer SMTP, e le password, i token e le passphrase di rotte, account di raccolta esterni, certificati SSL e il resto conservato nel database - vengono messi in una busta Windows DPAPI al successivo salvataggio, o nel vecchio schema Blowfish finché questa opzione è disattivata. I segreti della sezione [Settings] - i segreti SRS e BATV, i segreti OAuth2, il token bearer e la password HTTP Basic delle metriche, la password dell'account di servizio Windows e la password del servizio GSSAPI - e il secondo fattore di ogni account vengono sigillati con la chiave dei segreti memorizzati dell'installazione non appena ne ha una, al prossimo avvio e a ogni salvataggio; se l'opzione è disattivata, il prossimo avvio li memorizza di nuovo così come scritti. Solo il pepper delle password è sempre memorizzato come l'hai digitato, quindi hMailServer.INI dovrebbe restare leggibile solo dagli Amministratori e dall'account con cui viene eseguito il servizio.</value>
   </data>
+  <data name="It has no rua= tag, so nobody sends you reports - fine, but you learn nothing; add one when you have a mailbox for it." xml:space="preserve">
+    <value>Non ha un tag rua=, quindi nessuno ti invia rapporti - va bene, ma non impari nulla; aggiungine uno quando avrai una casella per riceverli.</value>
+  </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Deve esistere: questo server non ne crea.</value>
   </data>
@@ -5338,6 +5303,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="It is bound to {0}, which keeps it on this machine - that is the supported way to run it without TLS. Assign a certificate to a mailbox port to offer STARTTLS." xml:space="preserve">
     <value>È associato a {0}, il che lo mantiene su questa macchina - è il modo supportato per eseguirlo senza TLS. Assegnare un certificato a una porta di posta per offrire STARTTLS.</value>
+  </data>
+  <data name="It is safe to enable signing." xml:space="preserve">
+    <value>È sicuro attivare la firma.</value>
   </data>
   <data name="Its discovery document is read from the issuer followed by /.well-known/openid-configuration." xml:space="preserve">
     <value>Il suo documento di discovery viene letto dall'emittente seguito da /.well-known/openid-configuration.</value>
@@ -5480,11 +5448,14 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Last l_ogon" xml:space="preserve">
     <value>_Ultimo accesso</value>
   </data>
+  <data name="Last scan: {0}." xml:space="preserve">
+    <value>Ultima scansione: {0}.</value>
+  </data>
   <data name="Last status" xml:space="preserve">
     <value>Ultimo stato</value>
   </data>
-  <data name="Last update: {0}. " xml:space="preserve">
-    <value>Ultimo aggiornamento: {0}. </value>
+  <data name="Last update: {0}." xml:space="preserve">
+    <value>Ultimo aggiornamento: {0}.</value>
   </data>
   <data name="Last used" xml:space="preserve">
     <value>Ultimo utilizzo</value>
@@ -5759,6 +5730,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="MTA-STS" xml:space="preserve">
     <value>MTA-STS</value>
   </data>
+  <data name="MTA-STS - require TLS from servers delivering to {0}" xml:space="preserve">
+    <value>MTA-STS - richiedere il TLS dai server che consegnano a {0}</value>
+  </data>
   <data name="MTA-STS and DANE publish that commitment; TLS-RPT tells you who failed it." xml:space="preserve">
     <value>MTA-STS e DANE pubblicano quell'impegno; TLS-RPT dice chi non lo ha rispettato.</value>
   </data>
@@ -5780,11 +5754,11 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
     <value>Modalità del criterio MTA-STS (enforce / testing / none)</value>
   </data>
-  <data name="MTA-STS — require TLS from servers delivering to " xml:space="preserve">
-    <value>MTA-STS — richiedere il TLS dai server che consegnano a </value>
-  </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
+  </data>
+  <data name="MX - which server takes the mail for {0}" xml:space="preserve">
+    <value>MX - quale server riceve la posta per {0}</value>
   </data>
   <data name="MX check score" xml:space="preserve">
     <value>Punteggio del controllo MX</value>
@@ -5794,9 +5768,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="MX value - the priority, then the name of the server that takes the mail:" xml:space="preserve">
     <value>Valore MX - la priorità, poi il nome del server che riceve la posta:</value>
-  </data>
-  <data name="MX — which server takes the mail for " xml:space="preserve">
-    <value>MX — quale server riceve la posta per </value>
   </data>
   <data name="Ma_naged by the list manager" xml:space="preserve">
     <value>_Gestita dal gestore della lista</value>
@@ -6064,8 +6035,8 @@ Ogni iscrizione Web Push fatta con la coppia attuale smette subito di funzionare
   <data name="Measured from when the entry was made, so lowering it applies to the entries already there. An entry added by hand keeps its own expiry." xml:space="preserve">
     <value>Misurato da quando la voce è stata creata, quindi abbassarlo vale anche per le voci già presenti. Una voce aggiunta a mano mantiene la propria scadenza.</value>
   </data>
-  <data name="Members - " xml:space="preserve">
-    <value>Membri - </value>
+  <data name="Members - {0}" xml:space="preserve">
+    <value>Membri - {0}</value>
   </data>
   <data name="Members of {0}" xml:space="preserve">
     <value>Membri di {0}</value>
@@ -6155,6 +6126,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Messaggi trattenuti per una revisione invece di essere rifiutati, e le due cose che si possono fare con ciascuno: rilasciarlo al destinatario oppure eliminarlo.</value>
+  </data>
+  <data name="Messages indexed: {0} of {1}." xml:space="preserve">
+    <value>Messaggi indicizzati: {0} su {1}.</value>
   </data>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>I messaggi più grandi di {0} KB saltano ogni controllo che richiede il corpo (SURBL, DKIM, DMARC e SpamAssassin). I controlli sulla connessione vengono comunque eseguiti, e il messaggio viene consegnato.</value>
@@ -6345,6 +6319,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format scrive una riga per voce nella forma host, ident, sessione, [data], "categoria e messaggio", stato, byte - così un analizzatore di registri può contare le risposte 5xx senza sapere nulla di hMailServer. Ident e byte sono sempre "-" (il server non interroga mai identd e al logger non vengono comunicate le dimensioni dei trasferimenti), e il giornale AWStats è un file separato che questa impostazione non modifica: il suo interruttore si trova qui sopra.</value>
   </data>
+  <data name="NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
+    <value>NOTA: MtaStsHostingEnabled=0, quindi il server NON servirà affatto questo criterio.</value>
+  </data>
+  <data name="NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
+    <value>NOTA: WebServicesHttpsPort=0, quindi nessun listener HTTPS è in esecuzione e il criterio non può essere servito (la RFC 8461 consente solo HTTPS). Il record TXT annuncerebbe un criterio che nessuno serve.</value>
+  </data>
   <data name="N_ote" xml:space="preserve">
     <value>N_ota</value>
   </data>
@@ -6486,8 +6466,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Non viene tentata alcuna autenticazione LDAP. Gli account collegati alla directory continuano a essere convalidati tramite l'accesso Windows, e il server lo segnala (errore 5922) una volta al minuto, così non può fallire silenziosamente.</value>
   </data>
-  <data name="No MX record was found for {0} through this machine's resolver. " xml:space="preserve">
-    <value>Non è stato trovato alcun record MX per {0} tramite il resolver di questa macchina. </value>
+  <data name="No MX record was found for {0} through this machine's resolver." xml:space="preserve">
+    <value>Non è stato trovato alcun record MX per {0} tramite il resolver di questa macchina.</value>
   </data>
   <data name="No MX records were found from this machine, so the server would fall back to its own host name." xml:space="preserve">
     <value>Da questa macchina non è stato trovato alcun record MX, quindi il server ripiegherebbe sul proprio nome host.</value>
@@ -6507,11 +6487,11 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No TLS version is enabled." xml:space="preserve">
     <value>Nessuna versione di TLS è attiva.</value>
   </data>
-  <data name="No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear. " xml:space="preserve">
-    <value>Nessuna porta IMAP, POP3 o SMTP con supporto TLS ha un certificato assegnato, quindi questo listener offrirà solo testo in chiaro - ManageSieve si autentica con la password della casella, che attraverserebbe quindi la rete in chiaro. </value>
+  <data name="No TLS-capable IMAP, POP3 or SMTP port has a certificate assigned, so this listener will offer plain text only - ManageSieve authenticates with the mailbox password, which would then cross the network in the clear." xml:space="preserve">
+    <value>Nessuna porta IMAP, POP3 o SMTP con supporto TLS ha un certificato assegnato, quindi questo listener offrirà solo testo in chiaro - ManageSieve si autentica con la password della casella, che attraverserebbe quindi la rete in chiaro.</value>
   </data>
-  <data name="No TXT record was found at {0}. " xml:space="preserve">
-    <value>Non è stato trovato alcun record TXT su {0}. </value>
+  <data name="No TXT record was found at {0}." xml:space="preserve">
+    <value>Non è stato trovato alcun record TXT su {0}.</value>
   </data>
   <data name="No account found with address '{0}'." xml:space="preserve">
     <value>Nessun account trovato con l'indirizzo '{0}'.</value>
@@ -6882,8 +6862,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Non valido prima del {0}</value>
   </data>
-  <data name="Not yet - " xml:space="preserve">
-    <value>Non ancora - </value>
+  <data name="Not yet - {0}." xml:space="preserve">
+    <value>Non ancora - {0}.</value>
   </data>
   <data name="Note" xml:space="preserve">
     <value>Nota</value>
@@ -7011,14 +6991,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="OAuth2PublicKeyFile points at {0}, which does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>OAuth2PublicKeyFile punta a {0}, che non esiste su questa macchina, quindi i token RS256 non possono essere verificati.</value>
   </data>
-  <data name="OFF - it can be switched on below once the record is confirmed published." xml:space="preserve">
-    <value>DISATTIVATA - può essere attivata qui sotto una volta confermata la pubblicazione del record.</value>
-  </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
-  </data>
-  <data name="ON." xml:space="preserve">
-    <value>ATTIVA.</value>
   </data>
   <data name="Object" xml:space="preserve">
     <value>Oggetto</value>
@@ -7763,9 +7737,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Permissions (select a range)" xml:space="preserve">
     <value>Permessi (seleziona un intervallo)</value>
   </data>
-  <data name="Permissions - " xml:space="preserve">
-    <value>Permessi - </value>
-  </data>
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Permessi - {0}</value>
   </data>
@@ -8054,6 +8025,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Published, stricter than the starting point" xml:space="preserve">
     <value>Pubblicato, più severo del punto di partenza</value>
   </data>
+  <data name="Published: {0}" xml:space="preserve">
+    <value>Pubblicato: {0}</value>
+  </data>
   <data name="Publishes https://mta-sts.&lt;domain&gt;/.well-known/mta-sts.txt so other servers require TLS when they deliver to you. Honouring other domains' policies is on the Transport security page." xml:space="preserve">
     <value>Pubblica https://mta-sts.&lt;domain&gt;/.well-known/mta-sts.txt così che gli altri server richiedano TLS quando consegnano a te. Il rispetto dei criteri degli altri domini si trova nella pagina Sicurezza del trasporto.</value>
   </data>
@@ -8307,8 +8281,8 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Recipients" xml:space="preserve">
     <value>Destinatari</value>
   </data>
-  <data name="Recipients - " xml:space="preserve">
-    <value>Destinatari - </value>
+  <data name="Recipients - {0}" xml:space="preserve">
+    <value>Destinatari - {0}</value>
   </data>
   <data name="Recipients a message may name before the delay starts (0 = off)" xml:space="preserve">
     <value>Destinatari che un messaggio può indicare prima che scatti il ritardo (0 = disattivato)</value>
@@ -8880,8 +8854,8 @@ Continuare?</value>
   <data name="Reuse the private key across renewals (keeps DANE TLSA records valid)" xml:space="preserve">
     <value>Riutilizza la chiave privata tra un rinnovo e l'altro (mantiene validi i record DANE TLSA)</value>
   </data>
-  <data name="Reverse DNS (PTR) and the HELO name — set by whoever owns your IP address" xml:space="preserve">
-    <value>DNS inverso (PTR) e nome HELO — impostati da chi possiede il tuo indirizzo IP</value>
+  <data name="Reverse DNS (PTR) and the HELO name - set by whoever owns your IP address" xml:space="preserve">
+    <value>DNS inverso (PTR) e nome HELO - impostati da chi possiede il tuo indirizzo IP</value>
   </data>
   <data name="Revoke" xml:space="preserve">
     <value>Revoca</value>
@@ -8918,8 +8892,8 @@ Continuare?</value>
   <data name="Rotate the session-ticket key every N seconds (0 = OpenSSL's single non-rotating key)" xml:space="preserve">
     <value>Ruota la chiave dei ticket di sessione ogni N secondi (0 = l'unica chiave non ruotante di OpenSSL)</value>
   </data>
-  <data name="Route - " xml:space="preserve">
-    <value>Rotta - </value>
+  <data name="Route - {0}" xml:space="preserve">
+    <value>Rotta - {0}</value>
   </data>
   <data name="Route all outbound mail through another SMTP server instead of delivering directly. For failover, separate several hosts with a vertical bar: the next host is tried when one cannot be reached (all hosts share the port, security and credentials below)." xml:space="preserve">
     <value>Instrada tutta la posta in uscita attraverso un altro server SMTP invece di consegnarla direttamente. Per il failover, separa più host con una barra verticale: quando uno non è raggiungibile viene provato l'host successivo (tutti gli host condividono la porta, la sicurezza e le credenziali qui sotto).</value>
@@ -9092,6 +9066,9 @@ Continuare?</value>
   <data name="SPF" xml:space="preserve">
     <value>SPF</value>
   </data>
+  <data name="SPF - which machines may send mail as {0}" xml:space="preserve">
+    <value>SPF - quali macchine possono inviare posta come {0}</value>
+  </data>
   <data name="SPF failure score" xml:space="preserve">
     <value>Punteggio per fallimento SPF</value>
   </data>
@@ -9106,9 +9083,6 @@ Continuare?</value>
   </data>
   <data name="SPF temperror score (0 = not scored)" xml:space="preserve">
     <value>Punteggio temperror SPF (0 = non valutato)</value>
-  </data>
-  <data name="SPF — which machines may send mail as " xml:space="preserve">
-    <value>SPF — quali macchine possono inviare posta come </value>
   </data>
   <data name="SRS is switched on but no secret is set, so no envelope sender is rewritten - and while SRS is on, the plain rewrite fallback at the top of this card is skipped as well. This is strictly worse than switching SRS off. Generate or enter a secret." xml:space="preserve">
     <value>SRS è attivo ma non è impostato alcun segreto, quindi nessun mittente della busta viene riscritto - e finché SRS è attivo, viene saltato anche il ripiego della riscrittura semplice in cima a questa scheda. Questo è decisamente peggio che disattivare SRS. Genera o inserisci un segreto.</value>
@@ -9223,6 +9197,9 @@ Continuare?</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Salva queste impostazioni in hMailServer.INI</value>
+  </data>
+  <data name="Save this weak password anyway?" xml:space="preserve">
+    <value>Salvare comunque questa password debole?</value>
   </data>
   <data name="Saved" xml:space="preserve">
     <value>Salvato</value>
@@ -9452,8 +9429,8 @@ Continuare?</value>
   <data name="Search domains" xml:space="preserve">
     <value>Cerca nei domini</value>
   </data>
-  <data name="Search failed — " xml:space="preserve">
-    <value>Ricerca non riuscita — </value>
+  <data name="Search failed: {0}" xml:space="preserve">
+    <value>Ricerca non riuscita: {0}</value>
   </data>
   <data name="Search for part of an account name. Leave empty to list every user in the domain." xml:space="preserve">
     <value>Cerca una parte di un nome di account. Lascia vuoto per elencare ogni utente del dominio.</value>
@@ -9854,8 +9831,8 @@ Continuare?</value>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>_Nome utente dell'account di servizio (ServiceUsername)</value>
   </data>
-  <data name="Service credential accepted. " xml:space="preserve">
-    <value>Credenziale di servizio accettata. </value>
+  <data name="Service credential accepted." xml:space="preserve">
+    <value>Credenziale di servizio accettata.</value>
   </data>
   <data name="Service restarted - settings are live." xml:space="preserve">
     <value>Servizio riavviato - le impostazioni sono attive.</value>
@@ -10112,6 +10089,12 @@ Riavviarlo ora?</value>
   <data name="Signing in…" xml:space="preserve">
     <value>Accesso in corso…</value>
   </data>
+  <data name="Signing is currently OFF - it can be switched on below once the record is confirmed published." xml:space="preserve">
+    <value>La firma è attualmente DISATTIVATA - può essere attivata qui sotto una volta confermata la pubblicazione del record.</value>
+  </data>
+  <data name="Signing is currently ON." xml:space="preserve">
+    <value>La firma è attualmente ATTIVA.</value>
+  </data>
   <data name="Signing moved to the next key." xml:space="preserve">
     <value>La firma è passata alla chiave successiva.</value>
   </data>
@@ -10147,6 +10130,9 @@ Riavviarlo ora?</value>
   </data>
   <data name="Skip the tour" xml:space="preserve">
     <value>Salta la visita guidata</value>
+  </data>
+  <data name="Skipped when {0}." xml:space="preserve">
+    <value>Saltato quando {0}.</value>
   </data>
   <data name="Skipped, by reason" xml:space="preserve">
     <value>Saltati, per motivo</value>
@@ -10448,6 +10434,9 @@ Riavviarlo ora?</value>
   <data name="THEN" xml:space="preserve">
     <value>ALLORA</value>
   </data>
+  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
+    <value>QUESTO SERVER USA IL DATABASE INTEGRATO (MSSQLCE), dove il valore è forzato a 1 qualunque cosa sia impostata qui. È voluto: SQL Server Compact non si comporta in modo affidabile con connessioni concorrenti. Cambiarlo qui sotto non avrà effetto finché il server non passa a MySQL, MSSQL o PostgreSQL.</value>
+  </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
   </data>
@@ -10529,8 +10518,8 @@ Riavviarlo ora?</value>
   <data name="TLS-RPT" xml:space="preserve">
     <value>TLS-RPT</value>
   </data>
-  <data name="TLS-RPT — ask other servers to report TLS failures when delivering to " xml:space="preserve">
-    <value>TLS-RPT — chiedi agli altri server di segnalare i fallimenti TLS quando consegnano a </value>
+  <data name="TLS-RPT - ask other servers to report TLS failures when delivering to {0}" xml:space="preserve">
+    <value>TLS-RPT - chiedi agli altri server di segnalare i fallimenti TLS quando consegnano a {0}</value>
   </data>
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Valore del record TXT per {0}</value>
@@ -10648,6 +10637,9 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>Questa non è la password di amministratore attuale.</value>
   </data>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
+    <value>È più vecchio di quanto la pianificazione consenta, quindi le esecuzioni falliscono o vengono saltate - il registro dei backup nella pagina Registri dice perché.</value>
+  </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>È la pipeline di accettazione che si blocca dopo il 354: i tempi delle fasi nel registro di debug dicono quale fase.</value>
   </data>
@@ -10696,8 +10688,11 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   <data name="The HELO/EHLO host" xml:space="preserve">
     <value>L'host HELO/EHLO</value>
   </data>
-  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name{0}. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
-    <value>Il nome host nella pagina Protocolli è VUOTO, quindi il server ripiega sul nome computer Windows{0}. Un semplice nome computer non è un nome DNS pubblico: i destinatari che confrontano HELO con il DNS lo penalizzeranno, e nessun PTR può concordare con esso. Imposta prima un nome host reale.</value>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name - shown above as this machine's name. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Il nome host nella pagina Protocolli è VUOTO, quindi il server ripiega sul nome computer Windows - mostrato sopra come nome di questa macchina. Un semplice nome computer non è un nome DNS pubblico: i destinatari che confrontano HELO con il DNS lo penalizzeranno, e nessun PTR può concordare con esso. Imposta prima un nome host reale.</value>
+  </data>
+  <data name="The Host name on the Protocols page is EMPTY, so the server falls back to its Windows computer name, which cannot be read from this machine. A bare computer name is not a public DNS name: receivers that compare HELO with DNS will penalise it, and no PTR can agree with it. Set a real host name first." xml:space="preserve">
+    <value>Il nome host nella pagina Protocolli è VUOTO, quindi il server ripiega sul nome computer Windows, che non è leggibile da questa macchina. Un semplice nome computer non è un nome DNS pubblico: i destinatari che confrontano HELO con il DNS lo penalizzeranno, e nessun PTR può concordare con esso. Imposta prima un nome host reale.</value>
   </data>
   <data name="The IP range {0} takes a password only over TLS." xml:space="preserve">
     <value>L'intervallo di IP {0} accetta una password solo tramite TLS.</value>
@@ -11014,6 +11009,9 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   <data name="The check finished and the domain's published record is unusable: two records, a bad mechanism, a redirect loop, too many lookups. A retry will not fix it, so it is never deferred; strict sites treat it as a fail and lenient sites ignore it." xml:space="preserve">
     <value>La verifica è terminata e il record pubblicato dal dominio è inutilizzabile: due record, un meccanismo errato, un ciclo di redirect, troppe ricerche. Riprovare non lo sistema, quindi non viene mai rinviato; i siti rigorosi lo trattano come un fallimento e quelli indulgenti lo ignorano.</value>
   </data>
+  <data name="The check is read-only: the server does not delete or repair anything." xml:space="preserve">
+    <value>Il controllo è di sola lettura: il server non elimina né ripara nulla.</value>
+  </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>L'elenco dei cifrari non è stato letto.</value>
   </data>
@@ -11084,6 +11082,9 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   </data>
   <data name="The directory answered and REFUSED these credentials: {0} (LDAP error {1}). The connection, transport and configuration are all working - this is a credentials problem, which is exactly what a user typing a wrong password would see." xml:space="preserve">
     <value>La directory ha risposto e RIFIUTATO queste credenziali: {0} (errore LDAP {1}). La connessione, il trasporto e la configurazione funzionano tutti - si tratta di un problema di credenziali, esattamente ciò che vedrebbe un utente che digita una password sbagliata.</value>
+  </data>
+  <data name="The directory said: {0}" xml:space="preserve">
+    <value>La directory ha risposto: {0}</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>La documentazione mostrata dal riquadro della guida è la copia propria del server; qui si indica dove si trova la stessa pagina sul wiki, con il nome del documento aggiunto. Di fabbrica, il wiki GitLab del progetto.</value>
@@ -11186,6 +11187,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The hMailServer 6.x line is one such effort. The original open-source mail server has been rebuilt on a current toolchain (Visual Studio 2026 / MSVC v145 and .NET 10), re-armed with modern cryptography (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) and the transport-security standards expected of a mail server today (DANE + DNSSEC, MTA-STS, ARC, Ed25519 DKIM, TLS-RPT and ACME / Let's Encrypt). It has been hardened against protocol and denial-of-service defects, given Sieve / ManageSieve filtering, health and OpenTelemetry observability, broad MySQL / MariaDB / MS SQL / PostgreSQL support, and this modern Fluent-design Control Panel in place of the legacy administrator." xml:space="preserve">
     <value>La linea hMailServer 6.x è uno di questi sforzi. Il server di posta open source originale è stato ricostruito su una toolchain attuale (Visual Studio 2026 / MSVC v145 e .NET 10), riarmato con crittografia moderna (PBKDF2 / Argon2id, SCRAM-SHA-256, OAuth2) e con gli standard di sicurezza del trasporto che oggi ci si aspetta da un server di posta (DANE + DNSSEC, MTA-STS, ARC, DKIM Ed25519, TLS-RPT e ACME / Let's Encrypt). È stato irrobustito contro difetti di protocollo e di negazione del servizio, dotato di filtri Sieve / ManageSieve, di osservabilità tramite health e OpenTelemetry, di un ampio supporto MySQL / MariaDB / MS SQL / PostgreSQL e di questo moderno Control Panel dal design Fluent al posto dell'amministratore legacy.</value>
   </data>
+  <data name="The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value>Non si può dire il totale massimo raggiungibile: un controllo non è stato letto.</value>
+  </data>
   <data name="The host name - the name this server gives other servers" xml:space="preserve">
     <value>Il nome host - il nome che questo server dà agli altri server</value>
   </data>
@@ -11236,6 +11240,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   </data>
   <data name="The key file could not be checked from this machine." xml:space="preserve">
     <value>Non è stato possibile verificare il file della chiave da questa macchina.</value>
+  </data>
+  <data name="The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
+    <value>Il file della chiave non è leggibile da questa macchina, quindi il valore del record non può essere mostrato qui; la scheda DKIM del dominio lo ha mostrato quando la chiave è stata creata.</value>
   </data>
   <data name="The key file exists and is a plain (unencrypted) PEM, so no passphrase is needed." xml:space="preserve">
     <value>Il file della chiave esiste ed è un PEM semplice (non cifrato), quindi non serve alcuna passphrase.</value>
@@ -11420,6 +11427,9 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>I timeout di inattività per protocollo decidono per quanto tempo una connessione può restare senza fare nulla prima di essere chiusa.</value>
   </data>
+  <data name="The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed." xml:space="preserve">
+    <value>Il controllo periodico è attualmente disattivato (MessageStoreConsistencyCheck nella pagina {0}), quindi questo non verrà aggiornato.</value>
+  </data>
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>L'autorizzazione è ereditata da {0}; il comando fa smettere alla cartella di ereditarla.</value>
   </data>
@@ -11518,8 +11528,14 @@ Aggiungerlo comunque?</value>
   <data name="The release on offer, {0}, is not a version this Control Panel installs." xml:space="preserve">
     <value>La versione offerta, {0}, non è una versione che questo Control Panel installa.</value>
   </data>
+  <data name="The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh." xml:space="preserve">
+    <value>L'intestazione del rapporto dice {0} ma elenca {1} - probabilmente è stato letto mentre il server lo riscriveva, quindi aggiorna.</value>
+  </data>
   <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
     <value>Il resolver non risponde: cercare nel registro TCP/IP la voce "DNS - Query timed out". Non ricorrere a DNSServer come soluzione - lasciarlo vuoto a meno che non serva un resolver specifico.</value>
+  </data>
+  <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
+    <value>Il resto è ancora in attesa; esegui di nuovo o lascia che la pianificazione recuperi.</value>
   </data>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Qui si trovano il numero di tentativi e i loro intervalli, insieme a ciò che accade quando si esauriscono.</value>
@@ -11566,8 +11582,8 @@ Aggiungerlo comunque?</value>
   <data name="The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run." xml:space="preserve">
     <value>Il punteggio viene sommato attraverso entrambe le fasi. All'interno di una fase il server smette di verificare non appena il totale corrente raggiunge {0} - la più alta delle due soglie - quindi un controllo posto in fondo all'ordine potrebbe non essere mai eseguito.</value>
   </data>
-  <data name="The search found exactly one entry: {0}. " xml:space="preserve">
-    <value>La ricerca ha trovato esattamente una voce: {0}. </value>
+  <data name="The search found exactly one entry: {0}." xml:space="preserve">
+    <value>La ricerca ha trovato esattamente una voce: {0}.</value>
   </data>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>La ricerca ha corrisposto a PIÙ di una voce della directory (filtro {0}, base {1}). Il server rifiuta di autenticare su una corrispondenza ambigua - fare in modo che UserSearchFilter o SearchBase selezionino esattamente una voce.</value>
@@ -11767,6 +11783,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Il token è stato rimosso; le richieste alla sandbox ora non ne portano nessuno.</value>
   </data>
+  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
+    <value>Il totale è aperto, perché una voce di lista o il punteggio di SpamAssassin possono avere qualsiasi dimensione.</value>
+  </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Non è stato possibile leggere la configurazione della sicurezza del trasporto.</value>
   </data>
@@ -11845,6 +11864,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="The {0} server is switched on but nothing is listening here, so every connection to this port is refused. If you have just added or changed this port, that is the reason: the server reads its port list once when it starts, so a new row does nothing until the service is restarted. Otherwise the causes are another program already holding the port, an address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
     <value>Il server {0} è attivo ma qui non c'è nulla in ascolto, quindi ogni connessione a questa porta viene rifiutata. Se questa porta è stata appena aggiunta o modificata, il motivo è questo: il server legge l'elenco delle porte una sola volta, all'avvio, quindi una nuova riga non fa nulla finché il servizio non viene riavviato. Altrimenti le cause sono un altro programma che già occupa la porta, un indirizzo che non esiste su questa macchina, oppure - su una porta TLS - un certificato che il server non è riuscito a caricare; il server annota quale, una volta, nel registro errori all'avvio.</value>
   </data>
+  <data name="There are more index entries than messages, which means entries for mail that no longer exists - discard and rebuild the index to clear them." xml:space="preserve">
+    <value>Ci sono più voci di indice che messaggi, cioè voci per posta che non esiste più - scarta e ricostruisci l'indice per eliminarle.</value>
+  </data>
   <data name="There are no accounts on this server to add." xml:space="preserve">
     <value>Non ci sono account da aggiungere su questo server.</value>
   </data>
@@ -11865,6 +11887,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
     <value>In totale c'è {0} intervallo IP di ban automatico.</value>
+  </data>
+  <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
+    <value>Sono conteggi dei soli primi {0} account; questa pagina si ferma lì invece di farti aspettare il resto.</value>
   </data>
   <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
     <value>Queste vengono lette dal server dalla sezione [LDAP] di hMailServer.INI, e rilette entro due secondi da un salvataggio, quindi non serve alcun riavvio. I valori predefiniti sono adatti ad Active Directory; una directory che non è Windows non avrà sAMAccountName e richiede la modifica dei nomi degli attributi.</value>
@@ -11942,6 +11967,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Questa è la versione più recente</value>
+  </data>
+  <data name="This is the latest release, checked {0}" xml:space="preserve">
+    <value>Questa è la versione più recente, verificata {0}</value>
   </data>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>Questa è l'unica volta in cui verrà mostrata. L'archivio conserva un digest SHA-256, non la chiave, quindi non può essere recuperata né mostrata di nuovo - se va persa, revocarla qui e crearne un'altra.</value>
@@ -12104,6 +12132,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="Tokens are accepted, but {0}: the server applies each of those only when you have set it, and blank is the default. That is wider than it looks. Any token your identity provider signs with this key is accepted - including one it issued to a different application entirely, which is enough to log in as whichever mailbox that token names. Set both to the exact values your provider puts in its tokens." xml:space="preserve">
     <value>I token vengono accettati, ma {0}: il server applica ciascuno di questi controlli solo quando è stato impostato, e il valore predefinito è vuoto. È più ampio di quanto sembri. Qualsiasi token che il proprio provider di identità firma con questa chiave viene accettato - compreso uno emesso per un'applicazione del tutto diversa, il che basta per accedere come la casella indicata da quel token. Impostare entrambi ai valori esatti che il provider inserisce nei propri token.</value>
+  </data>
+  <data name="Tokens are also accepted over unencrypted connections, so a recorded one can be replayed until it expires." xml:space="preserve">
+    <value>I token sono accettati anche su connessioni non cifrate, quindi uno registrato può essere riutilizzato fino alla scadenza.</value>
   </data>
   <data name="Tokens signed with {0} are refused: this server implements RS256, ES256 and HS256 only. Remove what the server cannot verify from the list, so a client offering it is refused for a reason the log makes plain rather than appearing to be allowed." xml:space="preserve">
     <value>I token firmati con {0} vengono rifiutati: questo server implementa solo RS256, ES256 e HS256. Rimuovere dall'elenco ciò che il server non è in grado di verificare, così che un client che lo propone venga rifiutato per un motivo che il registro rende evidente, anziché sembrare consentito.</value>
@@ -12519,8 +12550,8 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="Weak password – add {0}." xml:space="preserve">
     <value>Password debole – aggiungere {0}.</value>
   </data>
-  <data name="Web  " xml:space="preserve">
-    <value>Web  </value>
+  <data name="Web" xml:space="preserve">
+    <value>Web</value>
   </data>
   <data name="Web Push notifications" xml:space="preserve">
     <value>Notifiche Web Push</value>
@@ -12965,6 +12996,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="With a passphrase set and compression off, the message files are copied beside the archive instead of into it, where nothing encrypts them - and the backup refuses to run. Switch compression on, or clear the passphrase." xml:space="preserve">
     <value>Con una passphrase impostata e la compressione disattivata, i file dei messaggi vengono copiati accanto all'archivio invece che al suo interno, dove nulla li cifra - e il backup si rifiuta di essere eseguito. Attivare la compressione oppure cancellare la passphrase.</value>
+  </data>
+  <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
+    <value>Senza una pianificazione configurata, nulla farà il prossimo.</value>
+  </data>
+  <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
+    <value>Con i controlli attualmente attivi il totale massimo raggiungibile è {0}.</value>
   </data>
   <data name="With the manager on, the list answers its own addresses - its -subscribe, -unsubscribe, -request, -owner and -bounces addresses - and sends each member a copy of their own, with their own way to leave. Each member's delivery and bounces are shown in the Control Deck." xml:space="preserve">
     <value>Con il gestore della lista attivo, la lista risponde ai propri indirizzi - i suoi indirizzi -subscribe, -unsubscribe, -request, -owner e -bounces - e invia a ogni membro una copia propria, con un proprio modo per lasciarla. La consegna e i rimbalzi di ogni membro sono mostrati nel Control Deck.</value>
@@ -13688,6 +13725,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="binding with the configured ServiceUsername" xml:space="preserve">
     <value>bind con il ServiceUsername configurato</value>
+  </data>
+  <data name="binding with the configured ServiceUsername - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
+    <value>bind con il ServiceUsername configurato - nessun ServicePassword viene memorizzato o digitato, e una password vuota viene rifiutata prima dell'invio</value>
   </data>
   <data name="blacklist" xml:space="preserve">
     <value>blacklist</value>
@@ -14575,6 +14615,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (un valore che questo Control Panel non conosce)</value>
   </data>
+  <data name="{0} (domain is inactive)" xml:space="preserve">
+    <value>{0} (il dominio è inattivo)</value>
+  </data>
   <data name="{0} (error {1})" xml:space="preserve">
     <value>{0} (errore {1})</value>
   </data>
@@ -14583,6 +14626,12 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} (inactive)" xml:space="preserve">
     <value>{0} (inattivo)</value>
+  </data>
+  <data name="{0} (route #{1})" xml:space="preserve">
+    <value>{0} (rotta n. {1})</value>
+  </data>
+  <data name="{0} (subject '{1}')" xml:space="preserve">
+    <value>{0} (oggetto '{1}')</value>
   </data>
   <data name="{0} + {1} more" xml:space="preserve">
     <value>{0} + {1} altri</value>
@@ -14851,14 +14900,20 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} is available" xml:space="preserve">
     <value>{0} è disponibile</value>
   </data>
+  <data name="{0} is available (published {1})" xml:space="preserve">
+    <value>{0} è disponibile (pubblicato {1})</value>
+  </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} è coperto da {1} ma non si risolve di nuovo in {2}, quindi l'indirizzo non è risparmiato: chiunque detenga un indirizzo può scriverne il nome inverso.</value>
   </data>
   <data name="{0} is covered by {1}, but its forward lookup was not answered, so {2} is not spared now." xml:space="preserve">
     <value>{0} è coperto da {1}, ma la sua ricerca diretta non ha avuto risposta, quindi {2} non è risparmiato ora.</value>
   </data>
-  <data name="{0} is downloaded and verified" xml:space="preserve">
-    <value>{0} è scaricato e verificato</value>
+  <data name="{0} is downloaded and verified (published {1}); Install update applies it" xml:space="preserve">
+    <value>{0} è scaricato e verificato (pubblicato {1}); "Installa aggiornamento" lo applica</value>
+  </data>
+  <data name="{0} is downloaded and verified; Install update applies it" xml:space="preserve">
+    <value>{0} è scaricato e verificato; "Installa aggiornamento" lo applica</value>
   </data>
   <data name="{0} is here with the mailboxes {1}, the list {2} and one rule that files invoices. The one password for all of them was shown when it was made and was not kept - remove the sample and make it again to be given another. It is left out of the first-hour checklist, because a sample domain is not this server's first domain." xml:space="preserve">
     <value>{0} è qui, con le caselle {1}, la lista {2} e una regola che archivia le fatture. L'unica password di tutte le caselle è stata mostrata quando l'esempio è stato creato e non è stata conservata; rimuova l'esempio e lo ricrei per averne un'altra. Resta fuori dall'elenco della prima ora, perché un dominio di esempio non è il primo dominio di questo server.</value>
@@ -14997,6 +15052,9 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   </data>
   <data name="{0} on port {1}, {2}. {3}" xml:space="preserve">
     <value>{0} sulla porta {1}, {2}. {3}</value>
+  </data>
+  <data name="{0} or {1}" xml:space="preserve">
+    <value>{0} oppure {1}</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} pattern viene rimosso da ogni messaggio in base al nome del file, qualunque cosa dicano gli scanner.</value>
@@ -15205,8 +15263,14 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — il codice di uscita {1} significa infetto</value>
   </data>
-  <data name="{0}% of lookups answered from memory, using {1} KB" xml:space="preserve">
-    <value>{0}% delle ricerche servite dalla memoria, con {1} KB in uso</value>
+  <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
+    <value>{0}% delle ricerche servite dalla memoria, con {1} KB su {2} KB in uso - al suo limite, quindi le voci vengono espulse.</value>
+  </data>
+  <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB." xml:space="preserve">
+    <value>{0}% delle ricerche servite dalla memoria, con {1} KB su {2} KB in uso.</value>
+  </data>
+  <data name="{0}% of lookups answered from memory, using {1} KB." xml:space="preserve">
+    <value>{0}% delle ricerche servite dalla memoria, con {1} KB in uso.</value>
   </data>
   <data name="{0}'s MX records name {1}, this server's host name: {2}." xml:space="preserve">
     <value>I record MX di {0} indicano {1}, il nome host di questo server: {2}.</value>
@@ -15256,8 +15320,11 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0}: checking DNS for the {1} record at {2}…" xml:space="preserve">
     <value>{0}: controllo nel DNS del record {1} in {2}…</value>
   </data>
-  <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against{1}" xml:space="preserve">
-    <value>{0}: non è impostato alcun file CA, quindi non c'è alcuna àncora di fiducia con cui verificare i certificati client{1}</value>
+  <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against and the listener will not start (server error 6140)." xml:space="preserve">
+    <value>{0}: non è impostato alcun file CA, quindi non c'è alcuna àncora di fiducia con cui verificare i certificati client e il listener non si avvierà (errore del server 6140).</value>
+  </data>
+  <data name="{0}: no CA file is set, so there is no trust anchor to verify client certificates against." xml:space="preserve">
+    <value>{0}: non è impostato alcun file CA, quindi non c'è alcuna àncora di fiducia con cui verificare i certificati client.</value>
   </data>
   <data name="{0}: no TXT record at {1}, so sending servers never discover the policy and the hosting does nothing for this domain. Publish it (v=STSv1; id=...) - or, if you just did, wait for propagation and press Refresh." xml:space="preserve">
     <value>{0}: nessun record TXT su {1}, quindi i server mittenti non scoprono mai il criterio e l'hosting non fa nulla per questo dominio. Pubblicalo (v=STSv1; id=...) - oppure, se l'hai appena fatto, aspetta la propagazione e premi Aggiorna.</value>
@@ -15331,8 +15398,11 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0}: the lookup for {2} failed, which says nothing about the {1} record." xml:space="preserve">
     <value>{0}: la ricerca di {2} non è riuscita, il che non dice nulla sul record {1}.</value>
   </data>
-  <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens{1} Enable connection security on the port, or set the policy to off." xml:space="preserve">
-    <value>{0}: la porta ha un criterio per i certificati client ma non ha SSL/TLS né STARTTLS, quindi non avviene mai alcun handshake{1} Attiva la sicurezza della connessione sulla porta, oppure imposta il criterio su disattivato.</value>
+  <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens and the listener is not started (server error 6142). Enable connection security on the port, or set the policy to off." xml:space="preserve">
+    <value>{0}: la porta ha un criterio per i certificati client ma non ha SSL/TLS né STARTTLS, quindi non avviene mai alcun handshake e il listener non è avviato (errore del server 6142). Attiva la sicurezza della connessione sulla porta, oppure imposta il criterio su disattivato.</value>
+  </data>
+  <data name="{0}: the port has a client certificate policy but no SSL/TLS or STARTTLS, so no handshake ever happens and the policy verifies nothing. Enable connection security on the port, or set the policy to off." xml:space="preserve">
+    <value>{0}: la porta ha un criterio per i certificati client ma non ha SSL/TLS né STARTTLS, quindi non avviene mai alcun handshake e il criterio non verifica nulla. Attiva la sicurezza della connessione sulla porta, oppure imposta il criterio su disattivato.</value>
   </data>
   <data name="{0}: the rotation record at {1} is published and matches the staged secondary key. Promote whenever it has propagated everywhere." xml:space="preserve">
     <value>{0}: il record di rotazione su {1} è pubblicato e corrisponde alla chiave secondaria predisposta. Promuovi quando si sarà propagato ovunque.</value>

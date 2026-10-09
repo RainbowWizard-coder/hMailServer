@@ -477,13 +477,13 @@ namespace hMailServer.ControlPanel.Services
             return "";
 
          if (Checks(config).Any(c => c.Unread))
-            return L(" The highest total reachable cannot be said: a check could not be read.");
+            return L("The highest total reachable cannot be said: a check could not be read.");
 
          int? ceiling = HighestReachableScore(config);
 
          return ceiling != null
-            ? F(" With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
-            : L(" The total is open-ended, because a list entry or SpamAssassin's own score can be any size.");
+            ? F("With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
+            : L("The total is open-ended, because a list entry or SpamAssassin's own score can be any size.");
       }
 
       /// <summary>
@@ -518,15 +518,12 @@ namespace hMailServer.ControlPanel.Services
 
          string text = L("On. A sender/recipient/address triplet that has not been seen before is answered 451 \"Please try again later.\" at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score.");
 
-         if (bypasses.Count > 0)
-            text += F(" Skipped when {0}.", Join(bypasses));
-
          // A per-domain switch as well, which is on the domain and not on any of
          // the anti-spam pages - so an administrator whose greylisting "is not
          // working" for one domain has nowhere else to be told this.
-         text += L(" Also skipped for any recipient domain that has greylisting turned off in its own settings.");
-
-         return text;
+         return Sentences(text,
+            bypasses.Count > 0 ? F("Skipped when {0}.", Join(bypasses)) : null,
+            L("Also skipped for any recipient domain that has greylisting turned off in its own settings."));
       }
 
       /// <summary>

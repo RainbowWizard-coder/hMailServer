@@ -58,7 +58,7 @@ namespace hMailServer.ControlPanel.Views
          groupName_ = groupName ?? "";
 
          Owner = owner;
-         Title = L("Members - ") + groupName_;
+         Title = F("Members - {0}", groupName_);
 
          var body = new StackPanel();
          body.Children.Add(notice_);

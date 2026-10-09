@@ -727,10 +727,10 @@ namespace hMailServer.ControlPanel.Views
             else if (newestName == null)
             {
                lastLevel = scheduleConfigured ? StatusLevel.Critical : StatusLevel.Warning;
-               lastText = F("No backup has ever completed into {0} - there is no HMBackup archive there.", destination) +
-                          (scheduleConfigured
-                             ? L(" If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped.")
-                             : "");
+               lastText = Sentences(F("No backup has ever completed into {0} - there is no HMBackup archive there.", destination),
+                  scheduleConfigured
+                     ? L("If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped.")
+                     : null);
             }
             else
             {
@@ -747,7 +747,7 @@ namespace hMailServer.ControlPanel.Views
                if (scheduleConfigured && expectedMinutes > 0 && age.TotalMinutes > expectedMinutes * 2.0)
                {
                   lastLevel = StatusLevel.Critical;
-                  lastText = described + L(" That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why.");
+                  lastText = Sentences(described, L("That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why."));
                }
                else if (scheduleConfigured)
                {
@@ -757,7 +757,7 @@ namespace hMailServer.ControlPanel.Views
                else
                {
                   lastLevel = StatusLevel.Information;
-                  lastText = described + L(" With no schedule configured, nothing will take the next one.");
+                  lastText = Sentences(described, L("With no schedule configured, nothing will take the next one."));
                }
             }
          }

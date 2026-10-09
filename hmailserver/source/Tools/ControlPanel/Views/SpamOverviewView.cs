@@ -378,8 +378,8 @@ namespace hMailServer.ControlPanel.Views
          {
             int stop = SpamPipeline.StopScore(config);
 
-            content.Children.Add(Paragraph(F("The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run.", stop)
-               + SpamPipeline.CeilingSentence(config),
+            content.Children.Add(Paragraph(Sentences(F("The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run.", stop),
+               SpamPipeline.CeilingSentence(config)),
                Typography.Caption));
          }
 

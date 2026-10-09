@@ -54,6 +54,13 @@ What is checked
     text puts an English plural ending in brackets ("message(s)"); and no C#
     source writes a count's forms as n == 1 ? L(...) : F(...), which gives
     those four languages one plural for 2 and for 5.
+  * Whole texts: no marked text begins with white space, or ends with it
+    after anything but the colon of a label ("Scope: " + value). A text with
+    white space at an edge is glued to a value or to another text -
+    L("MX - which server takes the mail for ") + domain, L(" (inactive)"),
+    L(" and the policy verifies nothing.") - and its translator sees a piece
+    of a sentence and cannot move the rest; F("... {0}", value) can be, and
+    whole sentences are joined by Loc.Sentences.
 
 Usage: python3 build/check-localisation.py [--write] [--inventory] [--self-test]
   --write      regenerate Strings.resx and bring every language catalogue up
@@ -452,6 +459,17 @@ PAREN_PLURAL = re.compile(r"[A-Za-z]\((?:s|es)\)")
 # A count's two forms written as a choice, n == 1 ? L("1 item") : F("{0} items", n): one
 # plural for 2 and for 5, which Polish, Czech, Russian and Ukrainian do not have.
 PAIR_CHOICE = re.compile(r"==\s*1\s*\)?\s*\?\s*L\(\s*" + CS_LITERAL + r"\s*\)\s*:\s*F\(\s*\"")
+
+
+# A piece of a sentence: a marked text with white space at an edge, glued in the source
+# to a value or another text. German read "... die Mail annimmt für example.com" for
+# L("MX - which server takes the mail for ") + domain, the Japanese of a sentence added
+# with a leading space kept the space after its 。, and " (inactive)" put the English
+# order of a name and its state in every language (review finding F283). The colon of a
+# label, "Scope: " + value, is the one separator a text may end with.
+def glued_at_edge(text):
+   """True for a marked text with white space at its start, or at its end after anything but a colon."""
+   return text != text.lstrip() or (text != text.rstrip() and not text.endswith(": "))
 
 
 def cs_pair_choices(src):
@@ -932,6 +950,15 @@ def self_test():
          print(f"FAIL: {text!r} is {'not ' if expected else ''}an English plural in brackets")
          failures += 1
 
+   for text, expected in {"MX - which server takes the mail for ": True, " (inactive)": True,
+                          " and the policy verifies nothing.": True, "Before you copy - ": True,
+                          "\n\nSave this weak password anyway?": True, "Web  ": True,
+                          "Could not read the list: ": False, "Scope: ": False,
+                          "MX - which server takes the mail for {0}": False, "It is safe to enable signing.": False}.items():
+      if glued_at_edge(text) != expected:
+         print(f"FAIL: {text!r} is {'not ' if expected else ''}reported as glued at an edge")
+         failures += 1
+
    choices = {
       'Status_(total == 1 ? L("1 message held.") : F("{0} messages held.", total));': True,
       'count_.Text = (count == 1) ? L("1 public folder.") : F("{0} public folders.", count);': True,
@@ -1010,6 +1037,10 @@ def main():
       if PAREN_PLURAL.search(text):
          problems.append(f"{texts[text][0]}: {text!r} puts an English plural ending in brackets, which every language "
                          f"then has to translate; write both forms whole with Plural(n, one, other)")
+      if glued_at_edge(text):
+         problems.append(f"{texts[text][0]}: {text!r} has white space at an edge, where the source glues it to another "
+                         f"text, so its translator sees a piece of a sentence; write it whole, F(\"... {{0}} ...\", value), "
+                         f"or join whole sentences with Sentences(...)")
 
    coverage = {}
    for tag, path in language_files():

@@ -184,7 +184,7 @@ namespace hMailServer.ControlPanel.Views
          address_ = address;
 
          Owner = owner;
-         Title = L("Account - ") + address;
+         Title = F("Account - {0}", address);
 
          var tabs = new TabControl { Background = System.Windows.Media.Brushes.Transparent, BorderThickness = new Thickness(0) };
          tabs.Items.Add(new TabItem { Header = L("General"), Content = BuildGeneral() });
@@ -1178,7 +1178,7 @@ namespace hMailServer.ControlPanel.Views
          {
             (PasswordStrength.Level level, string summary) = PasswordStrength.Evaluate(password_.Password);
             if (level == PasswordStrength.Level.Weak &&
-                MessageBox.Show(summary + L("\n\nSave this weak password anyway?"), L("Control Panel"),
+                MessageBox.Show(summary + "\n\n" + L("Save this weak password anyway?"), L("Control Panel"),
                    MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             {
                return;

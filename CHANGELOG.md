@@ -958,6 +958,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `== 1 ? L(...) : F(...)` choice; `build/check-catalogues.py` holds each "|few" form to the English of its plural;
   `PluralTests` holds the forms to the counts that tell them apart in each language.
 
+- **Fixed: Control Panel titles and sentences were glued together from translated pieces.** A title put a translated
+  fragment before a value - "MX — which server takes the mail for " and the domain, "Account - " and the address,
+  "Add {0}" with a noun in it - and a paragraph added a sentence that began with a space to the one before it, so no
+  translator could move the value or the verb: German read "... die Mail annimmt für example.com", Japanese "SURBL
+  サーバー を追加" and put a space after its 。. Each is one whole text now, with the value in its place: the account, domain, distribution list, route, members, recipients and permissions dialogs'
+  titles, the DNS records page's MX, SPF, MTA-STS and TLS-RPT cards (with one spaced hyphen in every card title),
+  the DKIM and DMARC findings, the update row with and without its date, the cache line with and without its cap, the
+  client certificate and HELO name warnings, a rule action's subject and route, and every Add and Edit dialog of the
+  list pages, which says what it adds ("Add a SURBL server", "Edit the security group"). Sentences that follow one
+  another are joined by `Loc.Sentences`, which puts no space after a full-width stop, and names of which any will do
+  by `Loc.JoinOr`; a failure and its reason are joined by one colon ("Search failed: ..."). Every new text is
+  translated in all seventeen languages. `build/check-localisation.py` refuses a marked text that begins with white
+  space, or ends with it after anything but the colon of a label, and `WholeTextsTests` holds the catalogue to the
+  same rule and every list page's dialogs to their whole titles.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

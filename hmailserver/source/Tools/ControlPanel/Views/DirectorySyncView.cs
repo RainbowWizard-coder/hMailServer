@@ -647,7 +647,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         State_(StatusLevel.Warning, L("Not yet - ") + string.Join("; ", problems) + ".");
+         State_(StatusLevel.Warning, F("Not yet - {0}.", string.Join("; ", problems)));
       }
 
       private void State_(StatusLevel level, string text)

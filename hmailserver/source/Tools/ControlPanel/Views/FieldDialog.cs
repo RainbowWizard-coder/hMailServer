@@ -42,7 +42,7 @@ namespace hMailServer.ControlPanel.Views
       public FieldDialog(CollectionEditorView.CollectionSpec spec, CollectionEditorView.Row existing, Window owner)
       {
          Owner = owner;
-         Title = existing == null ? F("Add {0}", spec.ItemNoun) : F("Edit {0}", spec.ItemNoun);
+         Title = L(existing == null ? spec.AddTitle : spec.EditTitle);
          AutomationProperties.SetName(this, Title);
 
          var panel = new StackPanel();
