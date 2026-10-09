@@ -446,11 +446,16 @@ namespace hMailServer.ControlPanel.Services
       /// is none of the others, SMTP, IMAP, POP3, the server's own application
       /// lines, and errors. Not design tokens - the log viewer's own palette - but
       /// held here with them so that a test can measure them: every one clears
-      /// 4.5:1 on the card the log sits on and on a line under the pointer. The
-      /// dark values were measured against #1B1B1B only, and on the dark card
-      /// (#2D2D2D) the error and IMAP lines were 4.1:1 and the application's
-      /// 4.3:1; the light theme's application and POP3 lines were 4.3 and 4.5:1
-      /// on a hovered line. Under High Contrast each is a system colour.
+      /// 4.5:1 on the page, on the card the log sits on, on a line under the
+      /// pointer (the theme's subtle grey) and on a selected line (the
+      /// selection fill), which are what the log's lines draw, each being the
+      /// application's list row (LogsView.xaml). The dark values were measured
+      /// against #1B1B1B only, and on the dark card (#2D2D2D) the error and
+      /// IMAP lines were 4.1:1 and the application's 4.3:1; the light theme's
+      /// application and POP3 lines were 4.3 and 4.5:1 on a hovered line, and
+      /// its SMTP line, #1A7F37, under 4.5:1 on a selected one (4.0:1 on the
+      /// system's selection the log drew until 9 October 2026, 4.3:1 on the
+      /// application's). Under High Contrast each is a system colour.
       /// </summary>
       public readonly struct LogArgb
       {
@@ -481,7 +486,7 @@ namespace hMailServer.ControlPanel.Services
                return new LogArgb(system.GrayText, system.WindowText, system.WindowText, system.WindowText, system.Highlight, system.HotTrack);
 
             case ChartTheme.Light:
-               return new LogArgb(0xFF57606A, 0xFF1A7F37, 0xFF6639BA, 0xFF8A5C00, 0xFF1F62D0, 0xFFCF222E);
+               return new LogArgb(0xFF57606A, 0xFF116329, 0xFF6639BA, 0xFF8A5C00, 0xFF1F62D0, 0xFFCF222E);
 
             default:
                return new LogArgb(0xFF9DA7B0, 0xFF3FB950, 0xFFBC8CFF, 0xFFD29922, 0xFF58A6FF, 0xFFFF7B72);

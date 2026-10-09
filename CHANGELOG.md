@@ -1304,19 +1304,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   working until it scans the new QR code - with *Replace the secret* and Cancel the answer Enter gives; *Remove* asks
   first as well, saying that the account's own password signs in to mail clients again.
 
-- **Fixed: status words on the Control Panel's dark cards, and three kinds of line in the live log, were under the
-  contrast a word needs.** The danger and information colours were chosen against the darkest surface the window has,
-  and on the dark theme's card a certificate's verdict on the SSL certificates page, a scanner's problem on the virus
-  scanning overview, a field's error, the result of a settings page's test button, the Auto-ban page's never-ban
-  status and the account dialog's password strength line measured 4.1:1, and 3.5:1 on a hovered or selected row; the
-  light theme's warning word measured 4.1:1 on a selected row and 4.4:1 in a dialog. Every status word on a surface
-  is now drawn in the deeper or brighter shade of its level that the status pills and notices already use, which
-  clears 4.5:1 on the page, a card, a dialog and a hovered or selected row in both themes, and the status colours
-  themselves are kept for marks, glyphs and charts; the dashboard's *Backlog* badge takes the same shade. The live
-  log's error, IMAP and application lines are #FF7B72, #BC8CFF and #58A6FF in the dark theme, where they measured 4.1
-  to 4.3:1 on the log's card, and its application and POP3 lines a shade deeper in the light theme, so that every
-  line clears 4.5:1 on the card and under the pointer. The log's palette is measured with the design tokens now, and
-  the Control Panel's tests hold every pair to its floor and fail a page that colours a word with a status colour.
+- **Fixed: status words on the Control Panel's dark cards, and the live log's lines, were under the contrast a word
+  needs.** The danger and information colours were chosen against the darkest surface the window has, and on the dark
+  theme's card a certificate's verdict on the SSL certificates page, a scanner's problem on the virus scanning
+  overview, a field's error, the result of a settings page's test button, the Auto-ban page's never-ban status and
+  the account dialog's password strength line measured 4.1:1, and 3.5:1 on a hovered or selected row; the light
+  theme's warning word measured 4.1:1 on a selected row and 4.4:1 in a dialog. Every status word on a surface is now
+  drawn in the deeper or brighter shade of its level that the status pills and notices already use, which clears
+  4.5:1 on the page, a card, a dialog and a hovered or selected row in both themes, and the status colours themselves
+  are kept for marks, glyphs and charts; the dashboard's *Backlog* badge takes the same shade. The live log's lines
+  are drawn as the rows of the Control Panel's other lists are, the grey under the pointer and the selection's tint
+  and marker when selected, where they took Windows' own row, whose blue selection put every dark line at 3.8 to
+  3.9:1 and whose grey one, once the list lost the keyboard, at 2.9 to 3.0:1; its error, IMAP and application lines
+  are #FF7B72, #BC8CFF and #58A6FF in the dark theme, where they measured 4.1 to 4.3:1 on the log's card, and its
+  SMTP, application and POP3 lines a shade deeper in the light theme, so that every line clears 4.5:1 on the card,
+  under the pointer and selected. The log's palette is measured with the design tokens now, and the Control Panel's
+  tests hold every pair to its floor, fail a page that colours a word with a status colour and fail a list whose rows
+  are not the application's.
 
 - **Fixed: the Control Panel's filled red buttons drew white words at 3.7:1 in the dark theme.** The destructive
   choice in every confirmation, *Start restore*, *Restore the mailbox* and every other button with the Danger

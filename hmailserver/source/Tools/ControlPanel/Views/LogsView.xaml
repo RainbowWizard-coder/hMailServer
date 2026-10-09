@@ -35,7 +35,14 @@
              design token; each line holds one of ThemeTokens' shared brushes, which
              are recoloured in place on a theme change. Extended selection: lines are
              chosen as a list's rows are (click, Shift+click, Ctrl+click, Ctrl+A) and
-             copied with Ctrl+C or the list's menu - see the code-behind. -->
+             copied with Ctrl+C or the list's menu - see the code-behind.
+             A line is the application's list row (App.xaml), the hover grey, the
+             selection fill and pill and the keyboard's ring, made dense: no height
+             floor, no gap between lines, its content past the pill as every list
+             row's is. The palette is measured on those surfaces (ContrastTokensTests);
+             with a style of its own the list took the system's row, whose blue
+             selection put the dark lines at 3.8 to 3.9:1, and its grey one, once
+             the list lost the keyboard, at 2.9 to 3.0:1. -->
         <scaffold:Card Grid.Row="1" Padding="4">
             <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
                      FontFamily="Cascadia Mono, Consolas" FontSize="12"
@@ -43,8 +50,8 @@
                      VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
                      AutomationProperties.Name="{loc:L 'Live logs'}">
                 <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Padding" Value="6,0" />
+                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="Padding" Value="10,0" />
                         <Setter Property="MinHeight" Value="0" />
                         <Setter Property="Margin" Value="0" />
                         <Setter Property="BorderThickness" Value="0" />

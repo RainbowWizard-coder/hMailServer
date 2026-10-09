@@ -88,12 +88,19 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The live log's lines clear 4.5:1 on the card the log sits on and on a
-      /// line under the pointer, in both themes.
+      /// The live log's lines clear 4.5:1 on the page, on the card the log sits
+      /// on, on a line under the pointer and on a selected line, in both themes:
+      /// the surfaces the application's list row draws, which every line of the
+      /// log is (<see cref="TheLiveLogsLinesAreTheApplicationsListRow"/>). The
+      /// light SMTP line, #1A7F37, measured 4.3:1 on the selection fill; until
+      /// 9 October 2026 the log's lines took the system's row, whose blue
+      /// selection put the dark lines at 3.8 to 3.9:1 and whose grey selection,
+      /// once the list lost the keyboard, at 2.9 to 3.0:1, and this test, which
+      /// measured a hovered line alone, passed.
       /// </summary>
       [Theory]
       [MemberData(nameof(LightAndDark))]
-      public void EveryLogColourClearsFourPointFiveToOneOnItsCardAndOnAHoveredLine(ChartTheme theme)
+      public void EveryLogColourClearsFourPointFiveToOneOnItsCardAndOnAHoveredOrSelectedLine(ChartTheme theme)
       {
          DesignTokens.LogArgb log = DesignTokens.Log(theme, ChartSystemColors.Fallback);
          var lines = new[]
@@ -106,12 +113,86 @@ namespace hMailServer.ControlPanel.Tests.Services
          {
             Assert.Equal(0xFFu, colour >> 24);
 
-            foreach ((string name, uint surface) in Surfaces(theme).Where(s => s.Name is "the page" or "a card" or "a hovered row"))
+            foreach ((string name, uint surface) in Surfaces(theme).Where(s => s.Name is "the page" or "a card" or "a hovered row" or "a selected row"))
             {
                double ratio = ChartPalette.ContrastRatio(colour, surface);
                Assert.True(ratio >= 4.5, $"{theme}: the log's {kind} line is {ratio:F2}:1 on {name} ({surface:X8}), under 4.5:1.");
             }
          }
+      }
+
+      /// <summary>
+      /// The surfaces the log's colours are measured on are the ones its lines
+      /// draw: the log's item style is based on App.xaml's implicit list row -
+      /// the subtle grey under the pointer, the selection fill when selected,
+      /// in and out of focus alike (SelectionLanguageTests holds that row) - and
+      /// changes the row's inset, height floor and gap alone, painting no
+      /// background and replacing no template. With a style of its own the log
+      /// took the system's row, the blue #1F26A0DA under the pointer, #3D26A0DA
+      /// when selected and #3DDADADA when selected out of focus, surfaces no
+      /// test measured.
+      /// </summary>
+      [Fact]
+      public void TheLiveLogsLinesAreTheApplicationsListRow()
+      {
+         string xaml = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml"));
+         if (xaml == null)
+            return;
+
+         XElement list = XDocument.Parse(xaml).Root.Descendants(Wpf + "ListBox").Single(e => (string)e.Attribute(X + "Name") == "LogList");
+         XElement style = list.Element(Wpf + "ListBox.ItemContainerStyle")?.Element(Wpf + "Style");
+         Assert.True(style != null, "The live log's list has no item style of its own; the dense line it needs is lost.");
+         Assert.Equal("{StaticResource {x:Type ListBoxItem}}", (string)style.Attribute("BasedOn"));
+
+         string[] setters = style.Descendants(Wpf + "Setter").Select(s => (string)s.Attribute("Property")).ToArray();
+         Assert.All(setters, property => Assert.Contains(property, new[] { "Padding", "MinHeight", "Margin", "BorderThickness" }));
+         Assert.Empty(style.Elements(Wpf + "Style.Triggers"));
+
+         // A line's words take its colour and nothing behind them.
+         XElement line = list.Element(Wpf + "ListBox.ItemTemplate").Descendants(Wpf + "TextBlock").Single();
+         Assert.Null(line.Attribute("Background"));
+      }
+
+      /// <summary>
+      /// No list in the Control Panel draws its rows on the system's template:
+      /// an item style a view gives a list box or a list view is based on the
+      /// application's row, in XAML and in code, so that the hover and
+      /// selection every colour here is measured on are the ones on screen.
+      /// The live log's style was the one that was not.
+      /// </summary>
+      [Fact]
+      public void EveryListItemStyleIsBasedOnTheApplicationsRow()
+      {
+         string controlPanel = FindControlPanelDirectory();
+         if (controlPanel == null)
+            return;
+
+         var offenders = new List<string>();
+         foreach (string path in Directory.EnumerateFiles(controlPanel, "*.*", SearchOption.AllDirectories))
+         {
+            string relative = Path.GetRelativePath(controlPanel, path);
+            if (relative.StartsWith("bin" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                relative.StartsWith("obj" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                relative.Equals("App.xaml", StringComparison.OrdinalIgnoreCase))
+               continue;
+
+            if (path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+            {
+               foreach (XElement style in XDocument.Parse(File.ReadAllText(path)).Descendants(Wpf + "Style"))
+               {
+                  string target = ((string)style.Attribute("TargetType") ?? string.Empty).Replace("{x:Type ", string.Empty).TrimEnd('}');
+                  if ((target is "ListBoxItem" or "ListViewItem") && style.Attribute("BasedOn") == null)
+                     offenders.Add(relative + ": a " + target + " style with no BasedOn");
+               }
+            }
+            else if (path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) &&
+                     Regex.IsMatch(File.ReadAllText(path), @"new\s+Style\s*\(\s*typeof\s*\(\s*(?:ListBoxItem|ListViewItem)\s*\)\s*\)"))
+            {
+               offenders.Add(relative + ": a list item style built in code with no BasedOn");
+            }
+         }
+
+         Assert.True(offenders.Count == 0, "These lists draw their rows on the system's template:\n" + string.Join("\n", offenders));
       }
 
       /// <summary>Under High Contrast the log's colours are the system's and none is invented.</summary>
