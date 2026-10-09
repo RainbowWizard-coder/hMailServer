@@ -73,12 +73,12 @@ loads):
    names what the owner and a maintainer do, and exits 0 - before it reads the feed.
    A credential that is half there (a user without its token) fails the job.
 5. **The tools from their own images.** `cosign` (2.6.5, the release chain's) and
-   `regctl` (0.11.6) are static binaries the script takes out of their images,
-   pinned by digest: `HM_COSIGN_IMAGE` in `.gitlab-ci.yml` (gcr.io) and
-   `HM_REGCTL_IMAGE` in `.gitlab/ci/channels.yml` (Docker Hub). Every manifest and
-   layer is held to its digest. Nothing is downloaded from GitHub, and every job here in
-   a Docker image takes `.no-github` first (`.gitlab/ci/no-github.yml`): no runner it runs on keeps GitHub
-   out for it.
+   `regctl` (0.11.6) are static binaries the script takes out of their images, pinned
+   by digest: `HM_COSIGN_IMAGE` in `.gitlab-ci.yml` (gcr.io) and `HM_REGCTL_IMAGE` in
+   `.gitlab/ci/channels.yml` (Docker Hub). Every manifest and layer is held to its
+   digest. Nothing is downloaded from GitHub, and every job here in a Docker image
+   takes `.no-github` first (`.gitlab/ci/no-github.yml`): no runner it runs on keeps
+   GitHub out for it.
 6. **No secret on a command line.** Each credential is a protected, masked project
    variable. The job reads it from its environment and hands it on standard input
    (`regctl registry login --pass-stdin`, `gpg --import` of the PPA's OpenPGP key into

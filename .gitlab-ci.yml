@@ -1955,9 +1955,11 @@ release-sbom:
       - release-sbom/
 
 # Sigstore, keyless, on linix's tag (default:), in cosign's own image pinned by digest
-# (HM_COSIGN_IMAGE, above): nothing from GitHub. Since 9 October 2026 Fulcio's
+# (HM_COSIGN_IMAGE, above): nothing from GitHub. On the project's runners Fulcio's
 # certificate says the runner was self-hosted (its Runner Environment extension,
-# 1.3.6.1.4.1.57264.1.11); no verifier of the project's reads that extension. The certificate names
+# 1.3.6.1.4.1.57264.1.11), which no verifier of the project's reads, and the tag's
+# ID token is on linix or server2 while the job runs (docs/ContinuousIntegration.md,
+# "Every job on the project's own runners"). The certificate names
 # https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, the group's
 # path the project has been at since 29 September 2026; 6.3.5's named the first one,
 # https://gitlab.com/Progressiverobot/hmailserver//...

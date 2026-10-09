@@ -2,22 +2,24 @@ Continuous integration
 ======================
 
 GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root), and
-the jobs run on the project's own runners - linix and bench150, and since 5
+every job of a pipeline for `master`, a `batch*` branch, a `v*` tag or a
+schedule runs on the project's own runners - linix and bench150, and since 5
 October 2026 server2 beside linix ([The runners](#the-runners)). The checks run
 for every push and every merge request; the builds, both regression suites and
 everything else that needs a machine of the project's run only for the refs that
 only a maintainer can push. The owner decided on GitLab CI with runners of the
 project's on 25 September 2026, a week after GitHub suspended the project's
 account and its workflows with it. The same day, the rest of the old GitHub
-workflows were ported ([From GitHub Actions to GitLab CI](#from-github-actions-to-gitlab-ci)),
-and a nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
-Until 9 October 2026 the checks, the change gates and the release's signing and
-publishing jobs ran on GitLab's shared runners, on the namespace's compute
-minutes; those ran out that day, and since then every job of a pipeline for a
-protected ref that is not a merge request's runs on the project's runners, and
-only a merge request's pipeline and an unprotected branch's run their checks on
-GitLab's hosted runners, which the project's take nothing of ([Every job on the
-project's own runners](#every-job-on-the-projects-own-runners)).
+workflows were ported ([From GitHub Actions to GitLab
+CI](#from-github-actions-to-gitlab-ci)), and a nightly fuzz pipeline was added
+([The fuzz schedule](#the-fuzz-schedule)). Until 9 October 2026 the checks, the
+change gates and the release's signing and publishing jobs ran on GitLab's
+shared runners, on the namespace's compute minutes; those ran out that day, and
+since then every job of a pipeline for a protected ref that is not a merge
+request's runs on the project's runners, and only a merge request's pipeline and
+an unprotected branch's run their checks on GitLab's hosted runners, which the
+project's take nothing of ([Every job on the project's own
+runners](#every-job-on-the-projects-own-runners)).
 
 **The jobs have run since 26 September 2026.** The first pipeline, 2884863496
 on `master`, failed eleven of its jobs ([What the first pipeline found](#what-the-first-pipeline-found));
@@ -191,21 +193,21 @@ of the tree (`README.md`, `CHANGELOG.md`, `Roadmap2.md` and the rest) or under
 counts as code: `hmailserver/docs/*.md` is compiled into the server as its help
 pages (`HelpPagesData.cpp`) and read by both suites, and the READMEs further
 down are read by tests and packaging. The checks, which name no runner of their
-own, still run for such a push. GitLab matches `rules:changes` paths with Ruby's `File.fnmatch`,
-which has no "all but", so the rule names what does count: `**/*[!d]`,
-`**/*[!m]d` and `**/*[!.]md` (every file whose name does not end in `.md`, but
-for the files called `d` and `md`, too short for them, which `**/d` and `**/md`
-name) and `[!.]*/**/*.md` (a Markdown file below a directory whose name does not
-begin with a dot). `build/check-release-chain.py` matches every file of the tree
-against them and fails unless exactly the root's and `.gitlab/`'s Markdown files
-are left out. A branch's first push, a tag and a pipeline started by hand count
-every file as changed, so the gates always run for those. The four security
-scans on a `batch*` branch are the exception: they compare the branch with
-`master` (`compare_to: refs/heads/master`), not with the push before, so a push
-of documentation on top of code a batch already carries still runs them, a batch
-that changes documentation alone from `master` runs none, and a first push or a
-pipeline started by hand is diffed in the same way ([Change
-checks](#change-checks)).
+own, still run for such a push. GitLab matches `rules:changes` paths with Ruby's
+`File.fnmatch`, which has no "all but", so the rule names what does count:
+`**/*[!d]`, `**/*[!m]d` and `**/*[!.]md` (every file whose name does not end in
+`.md`, but for the files called `d` and `md`, too short for them, which `**/d`
+and `**/md` name) and `[!.]*/**/*.md` (a Markdown file below a directory whose
+name does not begin with a dot). `build/check-release-chain.py` matches every
+file of the tree against them and fails unless exactly the root's and
+`.gitlab/`'s Markdown files are left out. A branch's first push, a tag and a
+pipeline started by hand count every file as changed, so the gates always run
+for those. The four security scans on a `batch*` branch are the exception: they
+compare the branch with `master` (`compare_to: refs/heads/master`), not with the
+push before, so a push of documentation on top of code a batch already carries
+still runs them, a batch that changes documentation alone from `master` runs
+none, and a first push or a pipeline started by hand is diffed in the same way
+([Change checks](#change-checks)).
 
 The `workflow:` rules keep this to one pipeline per change. A branch with an
 open merge request would otherwise run two pipelines, one for the branch and
@@ -253,8 +255,11 @@ linix has the lab network, and server2 runs services of the owner's. So a fork's
 merge request gets the checks, the change checks and the sign-off check among
 them, on GitLab's hosted runners - in the fork, on runners the fork's owner
 chooses - and nothing else. The protection is kept in four places on purpose:
-the runners, the ref, the rules and the workflow's choice of runner. Any one of
-them is enough. Relaxing one of them is not a reason to relax the others.
+the runners, the ref, the rules and the workflow's choice of runner. The rules
+and the workflow are the CI files of the commit the pipeline runs, which a
+fork's merge request or an unprotected branch writes for itself: against such a
+pipeline what holds is the runners' registration, `ref_protected`, since its ref
+is not protected. Relaxing one of them is not a reason to relax the others.
 
 The protected refs are project settings (Settings, Repository, Protected
 branches and Protected tags): `master`, `batch*` and `v*`, with push and merge
@@ -326,41 +331,60 @@ fork's feature branch and its merge request run on GitLab's hosted runner, on
 the fork's own minutes, and those are what a contributor's change is shown by.
 
 **What holds it.** `build/check-release-chain.py`, which `checkers` runs, fails
-when `default:` names other tags; when `variables:` set `HM_RUNNER` to anything but
-`linix`, when anything else in the CI files sets it but a workflow rule, or when
-a job says `inherit:`; when the workflow's rules, tried for every kind of pipeline
-(its ref protected or not, every `CI_PIPELINE_SOURCE`) and every way their other
-clauses can go, make a pipeline of a protected ref that is not a merge request's
-with `HM_RUNNER` anything but a tag of the project's, or any other pipeline with
-anything but `saas-linux-small-amd64`; and when a job that names its own tags names
-none, a variable other than `HM_RUNNER`, tags no runner of the project's carries,
-or none of `linix`, `linix-systemd` and `bench150` (a runner anywhere may carry
-`linux` or `docker`) - or names the project's and has rules that make it in a merge
-request's or an unprotected ref's pipeline, where it would wait for a runner that
-never takes it. It reads every CI file, the included ones too; its self-test
-breaks each of those in a copy, in `.gitlab-ci.yml` and in an included file, and
-each break is caught. GitLab's templates are not in the tree, so a job one of them
-adds is read only where a CI file here names it; any other takes `default:`'s tags
-unless its template names tags of its own, which none of the three included does:
-the CI lint API's dry run above lists every job a pipeline makes, the templates'
-with the rest, each with its tags. `build/ci/repo-hygiene.py`'s Token-Permissions reads
-`default:`'s tags as well, and judges a job that takes `[$HM_RUNNER]` by the
-workflow's rules ([The repository checks](#the-repository-checks-and-the-scorecard-checks-left-out)).
+when `default:` names other tags; when `variables:` set `HM_RUNNER` to anything
+but `linix`, when anything else in the CI files sets it but a workflow rule, or
+when a job says `inherit:`; when the workflow's rules, tried for every kind of
+pipeline (its ref protected or not, every `CI_PIPELINE_SOURCE`) and every way
+their other clauses can go, make a pipeline of a protected ref that is not a
+merge request's with `HM_RUNNER` anything but a tag of the project's, or any
+other pipeline with anything but `saas-linux-small-amd64`; and when a job that
+names its own tags names none, a variable other than `HM_RUNNER`, tags no runner
+of the project's carries, or none of `linix`, `linix-systemd` and `bench150` (a
+runner anywhere may carry `linux` or `docker`) - or names the project's and has
+rules that make it in a merge request's or an unprotected ref's pipeline, where
+it would wait for a runner that never takes it. It reads every CI file, the
+included ones too; its self-test breaks each of those in a copy, in
+`.gitlab-ci.yml` and in an included file, and each break is caught. GitLab's
+templates are not in the tree, so a job one of them adds is read only where a CI
+file here names it; any other takes `default:`'s tags unless its template names
+tags of its own, which none of the three included does: the CI lint API's dry
+run above lists every job a pipeline makes, the templates' with the rest, each
+with its tags. `build/ci/repo-hygiene.py`'s Token-Permissions reads `default:`'s
+tags as well, and judges a job that takes `[$HM_RUNNER]` by the workflow's rules
+([The repository
+checks](#the-repository-checks-and-the-scorecard-checks-left-out)).
 
 **What changes.** linix and server2 take the forty jobs, each short ([How long
 each job takes](#how-long-each-job-takes)), in images pulled on first use and
-kept ([linix](#linix)). A project CI/CD variable called `HM_RUNNER` would stand
-above the file's, as any project variable stands above a job's own: none is
-made. Fulcio's certificate of each signature `release-sign`,
+kept ([linix](#linix)), and the cache `package-repos` keeps the release's
+package files in is the runner's own, in the volumes that hold `linux-fuzz`'s,
+not GitLab's: a run that finds none there downloads every file again, each held
+to `releases.json`'s size and SHA-256 as before. A project CI/CD variable called
+`HM_RUNNER` would stand above the file's, as any project variable stands above a
+job's own: none is made. Fulcio's certificate of each signature `release-sign`,
 `release-rehearsal-sign` and `container-image-sign` make names the runner
 self-hosted (its Runner Environment extension, 1.3.6.1.4.1.57264.1.11, said
 `gitlab-hosted` before); neither `SigstoreVerifier.cpp` nor a script of the
 release reads that extension, so a server installs such a release as before.
 `semgrep-sast`, the heaviest of the forty, was run over `batch46` on 9 October
 2026 in its image as each runner gives a job: with linix's limits (six CPUs and
-8 GB, the VM's sixteen processors in view) it took 188 s, with server2's (28 CPUs
-and 40 GB) 254 s, and each found the same 338 findings, with no rule giving up on
-a file.
+8 GB, the VM's sixteen processors in view) it took 188 s, with server2's (28
+CPUs and 40 GB) 254 s, and each found the same 338 findings, with no rule giving
+up on a file.
+
+**What it trusts.** The ID tokens of the jobs that sign - `release-sign`'s and
+`container-image-sign`'s `SIGSTORE_ID_TOKEN` in a `v*` tag's pipeline, and
+`pypi-publish`'s - are held on linix or server2 while those jobs run, where
+until 9 October 2026 a VM of GitLab's held them, made for the one job. Whoever
+is root on either machine or in its `docker` group, or a job of `linix-systemd`,
+which runs privileged on linix's Docker, in a protected ref's pipeline at the
+same time, can read them while the job runs, and with a tag's
+`SIGSTORE_ID_TOKEN` have Fulcio certify a key as that release's pipeline while
+the token is valid. The two machines were trusted with the release already -
+they build the Linux packages it carries - and only a protected ref's pipeline
+reaches them. Nothing else is handed to them that was not: every job of a
+protected ref's pipeline is given every protected variable, on these machines as
+before; what is new on them is the tag's signing identity.
 
 Change checks
 -------------
@@ -1106,12 +1130,13 @@ release, a re-pinned analyzer - goes by a merge request from an unprotected
 branch, whose pipeline is the checks and the change checks on GitLab's hosted
 runners (about twenty minutes, estimated), and which the owner merges. That
 pipeline runs on the project's compute minutes, which ran out on 9 October 2026:
-while they are spent, it fails before it starts (`ci_quota_exceeded`), and such a
-fix goes by a `batch*` branch, whose pipeline is the whole gate on the project's
-runners ([Every job on the project's own runners](#every-job-on-the-projects-own-runners)). Tags are not
-touched: the release tag is still the owner's to push. The owner can still
-unprotect `master`, or set the rule back to *Maintainers*: that is break-glass,
-and one used is said, with its reason, in the next release's notes.
+while they are spent, it fails before it starts (`ci_quota_exceeded`), and such
+a fix goes by a `batch*` branch, whose pipeline is the whole gate on the
+project's runners ([Every job on the project's own
+runners](#every-job-on-the-projects-own-runners)). Tags are not touched: the
+release tag is still the owner's to push. The owner can still unprotect
+`master`, or set the rule back to *Maintainers*: that is break-glass, and one
+used is said, with its reason, in the next release's notes.
 
 **A skipped pipeline does not count.** The project's
 `allow_merge_on_skipped_pipeline` was unset on 6 October 2026, and GitLab
@@ -3249,9 +3274,10 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   merge request runs `checkers`, `harnesses` and the change checks on GitLab's
   hosted runner, like any other, on the project's compute minutes - while those
   are spent the pipeline fails before it starts, and the batch the change is
-  folded into runs them on the project's runners - and `mr-dependency-check` holds one that brings a
-  version with a Critical or High advisory. A `renovate/*` branch is not protected, so no job of its reaches the
-  project's runners.
+  folded into runs them on the project's runners - and `mr-dependency-check`
+  holds one that brings a version with a Critical or High advisory. A
+  `renovate/*` branch is not protected, so no job of its reaches the project's
+  runners.
 
 ### What a merge request still needs from a person
 
@@ -4254,29 +4280,29 @@ one of MariaDB's two switches, or a variable reference.
 meet: `$CI_COMMIT_REF_PROTECTED == "true"` joined by `&&` to the rest of each
 alternative, not inside an `||` or a comment (a condition written over several
 lines is read whole). The check reads the CI files without a YAML library, so
-what it cannot read it refuses rather than passes: a rules list given inline
-or by an alias, a merge key (`<<:`), an `extends` by an alias, an `!reference`
-the files do not resolve, and an include that is not a local file or one of
-GitLab's templates. Tags and `extends` may be block lists. A job is on the
-project's runners when it asks for a tag that is a variable, or for any tag
-they are registered with (`linix`, `linux` and `docker` for linix and server2; `bench150`,
-`bench` and `windows` for bench150); a job that names none takes `default:`'s. One
-whose tags are `default:`'s `[$HM_RUNNER]` is judged by the workflow's rules, which
-choose its runner (since 9 October 2026, [Every job on the project's own
-runners](#every-job-on-the-projects-own-runners)): a rule that sets `HM_RUNNER` to
-GitLab's hosted runner makes nothing for the project's, and every other rule that
-makes a pipeline must ask for a protected ref and shut out a merge request, as a
-job's own rules must; a job that sets `HM_RUNNER` itself is judged by its own.
-`id_tokens`, `secrets` and a credential
-in a template count for every job that extends it or takes a part of it by
-`!reference`. `python3 build/ci/repo-hygiene.py --self-test`, which the
-`checkers` job runs, holds the check to CI files made to pass it and to 30
-made to break it (23 at first); the check as first rewritten (a4636e983) passed
-22 of those 23, and failed two of the eight that should pass. The runners are registered
-for protected refs only (`access_level` `ref_protected`, read by a maintainer
-with `glab api runners/<id>`: linix and bench150 on 26 September 2026, and
-those two, `linix-systemd` and server2 on 6 October 2026), so none of that was
-open on this project: the check is the CI files' own guarantee.
+what it cannot read it refuses rather than passes: a rules list given inline or
+by an alias, a merge key (`<<:`), an `extends` by an alias, an `!reference` the
+files do not resolve, and an include that is not a local file or one of GitLab's
+templates. Tags and `extends` may be block lists. A job is on the project's
+runners when it asks for a tag that is a variable, or for any tag they are
+registered with (`linix`, `linux` and `docker` for linix and server2;
+`bench150`, `bench` and `windows` for bench150); a job that names none takes
+`default:`'s. One whose tags are `default:`'s `[$HM_RUNNER]` is judged by the
+workflow's rules, which choose its runner (since 9 October 2026, [Every job on
+the project's own runners](#every-job-on-the-projects-own-runners)): a rule that
+sets `HM_RUNNER` to GitLab's hosted runner makes nothing for the project's, and
+every other rule that makes a pipeline must ask for a protected ref and shut out
+a merge request, as a job's own rules must; a job that sets `HM_RUNNER` itself
+is judged by its own. `id_tokens`, `secrets` and a credential in a template
+count for every job that extends it or takes a part of it by `!reference`.
+`python3 build/ci/repo-hygiene.py --self-test`, which the `checkers` job runs,
+holds the check to CI files made to pass it and to 30 made to break it (23 at
+first); the check as first rewritten (a4636e983) passed 22 of those 23, and
+failed two of the eight that should pass. The runners are registered for
+protected refs only (`access_level` `ref_protected`, read by a maintainer with
+`glab api runners/<id>`: linix and bench150 on 26 September 2026, and those two,
+`linix-systemd` and server2 on 6 October 2026), so none of that was open on this
+project: the check is the CI files' own guarantee.
 
 Left out of Scorecard's checks, each for a reason:
 

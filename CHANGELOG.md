@@ -1309,7 +1309,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `build/ci/repo-hygiene.py`'s Token-Permissions judges a job on `default:`'s tags by the workflow's rules. Under
   linix's limits `semgrep-sast` took 188 s over the batch and found what it finds on server2. The Sigstore
   certificate of a release's signature now names the runner self-hosted, an extension nothing that verifies a
-  release reads (ContinuousIntegration.md, "Every job on the project's own runners").
+  release reads (ContinuousIntegration.md, "Every job on the project's own runners"). And the ID token a release
+  tag's signing jobs are given is now held on linix or server2 while they run, where a VM of GitLab's made for the
+  one job held it: whoever is root there, or in the `docker` group, could have Fulcio certify a key as that
+  release's pipeline while the token is valid. Those machines build the release's Linux packages already, and only
+  a protected ref's pipeline reaches them (the same section, "What it trusts").
 
 ### Documentation
 
