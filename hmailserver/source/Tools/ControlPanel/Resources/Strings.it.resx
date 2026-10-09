@@ -2275,6 +2275,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Canale: stable, oppure prerelease per stare avanti su una macchina di prova</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Periodo del grafico</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Verifica</value>
   </data>
@@ -10291,9 +10294,6 @@ Riavviarlo ora?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Stringa di ricerca più corta a cui l'indice risponde (3-64; le stringhe più corte ripiegano sulla scansione)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Mostra</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Mostra il grafico</value>
   </data>
@@ -10335,9 +10335,6 @@ Riavviarlo ora?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Mostra cosa farebbe una sincronizzazione, senza cambiare nulla</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Mostra {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Mostra {0} come grafico</value>

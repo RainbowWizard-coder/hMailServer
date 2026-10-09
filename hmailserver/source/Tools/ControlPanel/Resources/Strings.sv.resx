@@ -2275,6 +2275,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanal: stable, eller prerelease för att ligga före på en testmaskin</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Diagramperiod</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Kontrollera</value>
   </data>
@@ -10291,9 +10294,6 @@ Starta om den nu?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Kortaste söksträng indexet svarar för (3-64; kortare strängar faller tillbaka på skanningen)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Visa</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Visa diagram</value>
   </data>
@@ -10335,9 +10335,6 @@ Starta om den nu?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Visa vad en synkronisering skulle göra, utan att ändra något</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Visa {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Visa {0} som ett diagram</value>

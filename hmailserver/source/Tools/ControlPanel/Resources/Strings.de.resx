@@ -2275,6 +2275,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanal: stable, oder prerelease, um auf einem Testrechner vorauszulaufen</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Diagrammzeitraum</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Prüfen</value>
   </data>
@@ -10291,9 +10294,6 @@ Jetzt neu starten?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Kürzeste Suchzeichenfolge, die der Index beantwortet (3-64; kürzere Zeichenfolgen weichen auf den Scan aus)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Anzeigen</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Diagramm anzeigen</value>
   </data>
@@ -10335,9 +10335,6 @@ Jetzt neu starten?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Zeigen, was eine Synchronisierung tun würde, ohne etwas zu ändern</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>{0} anzeigen</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} als Diagramm anzeigen</value>

@@ -2275,6 +2275,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanal: stable, eller prerelease for å ligge foran på en testmaskin</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Diagramperiode</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Sjekk</value>
   </data>
@@ -10291,9 +10294,6 @@ Starte den på nytt nå?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Korteste søkestreng indeksen svarer på (3-64; kortere strenger faller tilbake til skanningen)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Vis</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Vis diagram</value>
   </data>
@@ -10335,9 +10335,6 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Vis hva en synkronisering ville gjort, uten å endre noe</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Vis {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Vis {0} som et diagram</value>

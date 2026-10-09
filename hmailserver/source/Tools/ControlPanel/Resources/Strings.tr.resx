@@ -2275,6 +2275,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanal: stable, ya da bir test makinesinde önden gitmek için prerelease</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Grafik aralığı</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Denetle</value>
   </data>
@@ -10291,9 +10294,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Dizinin yanıt verdiği en kısa arama dizesi (3-64; daha kısa dizeler taramaya geri döner)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Göster</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiği göster</value>
   </data>
@@ -10335,9 +10335,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Bir eşitlemenin ne yapacağını hiçbir şeyi değiştirmeden göster</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>{0} öğesini göster</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} öğesini grafik olarak göster</value>

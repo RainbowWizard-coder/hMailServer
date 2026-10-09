@@ -2275,6 +2275,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Canal : stable, ou prerelease pour prendre de l'avance sur une machine de test</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Période du graphique</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Vérifier</value>
   </data>
@@ -10291,9 +10294,6 @@ Le redémarrer maintenant ?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Chaîne de recherche la plus courte à laquelle l'index répond (3-64 ; les chaînes plus courtes se replient sur le parcours séquentiel)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Afficher</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Afficher le graphique</value>
   </data>
@@ -10335,9 +10335,6 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Montrer ce que ferait une synchronisation, sans rien changer</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Afficher {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Afficher {0} sous forme de graphique</value>

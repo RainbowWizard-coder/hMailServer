@@ -2275,6 +2275,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanaal: stable, of prerelease om vooruit te lopen op een testmachine</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Grafiekperiode</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Controleren</value>
   </data>
@@ -10291,9 +10294,6 @@ Nu opnieuw starten?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Kortste zoekterm die de index beantwoordt (3-64; kortere termen vallen terug op de scan)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Tonen</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiek tonen</value>
   </data>
@@ -10335,9 +10335,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Tonen wat een synchronisatie zou doen, zonder iets te wijzigen</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>{0} tonen</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} als grafiek tonen</value>

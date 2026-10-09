@@ -2293,6 +2293,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanał: stable lub prerelease, aby na maszynie testowej wyprzedzać wydania</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Zakres wykresu</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Sprawdź</value>
   </data>
@@ -10404,9 +10407,6 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Najkrótszy ciąg wyszukiwania, na który odpowiada indeks (3-64; krótsze ciągi obsługuje przeszukiwanie pełne)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Pokaż</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Pokaż wykres</value>
   </data>
@@ -10448,9 +10448,6 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Pokaż, co zrobiłaby synchronizacja, niczego nie zmieniając</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Pokaż {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Pokaż {0} jako wykres</value>

@@ -2275,6 +2275,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanava: stable, tai prerelease, jos haluat kulkea testikoneella edellä</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Kaavion aikaväli</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Tarkista</value>
   </data>
@@ -10291,9 +10294,6 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Lyhin hakumerkkijono, johon indeksi vastaa (3-64; lyhyemmät merkkijonot palaavat skannaukseen)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Näytä</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Näytä kaavio</value>
   </data>
@@ -10335,9 +10335,6 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Näytä, mitä synkronointi tekisi, muuttamatta mitään</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Näytä {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Näytä {0} kaaviona</value>

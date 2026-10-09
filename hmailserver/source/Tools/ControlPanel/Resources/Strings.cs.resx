@@ -2293,6 +2293,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Kanál: stable, nebo prerelease, chcete-li být na testovacím počítači napřed</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Rozsah grafu</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Zkontrolovat</value>
   </data>
@@ -10404,9 +10407,6 @@ Restartovat ji nyní?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Nejkratší hledaný řetězec, na který index odpovídá (3–64; kratší řetězce se hledají procházením)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Zobrazit</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Zobrazit graf</value>
   </data>
@@ -10448,9 +10448,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Ukázat, co by synchronizace udělala, aniž by se cokoli změnilo</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Zobrazit {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Zobrazit {0} jako graf</value>

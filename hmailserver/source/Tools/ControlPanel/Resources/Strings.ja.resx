@@ -2275,6 +2275,9 @@
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>チャネル: stable、またはテスト用のコンピューターで先行して動かす場合は prerelease</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>グラフの期間</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>確認</value>
   </data>
@@ -10291,9 +10294,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>インデックスが応答する最短の検索文字列 (3～64。これより短い文字列はスキャンにフォールバック)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>表示</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>グラフを表示</value>
   </data>
@@ -10335,9 +10335,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>同期が行う内容を、何も変更せずに表示</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>{0} を表示</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} をグラフとして表示</value>

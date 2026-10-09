@@ -2293,6 +2293,9 @@ Control Panel может читать файлы сообщений только
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Канал: stable или prerelease, чтобы идти впереди на тестовой машине</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Период графика</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Проверить</value>
   </data>
@@ -10404,9 +10407,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Самая короткая строка поиска, на которую отвечает индекс (3-64; более короткие строки обрабатываются полным просмотром)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Показать</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Показать график</value>
   </data>
@@ -10448,9 +10448,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Показать, что сделала бы синхронизация, ничего при этом не изменяя</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Показать {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Показать {0} в виде графика</value>

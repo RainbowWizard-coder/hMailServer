@@ -9,7 +9,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using hMailServer.ControlPanel.Services;
 using static hMailServer.ControlPanel.Services.Loc;
@@ -46,15 +48,16 @@ namespace hMailServer.ControlPanel.Views
       // The range selector. "live" shows the two cards above, fed every two
       // seconds from Status and holding three minutes; the other ranges show two
       // cards of the same shape loaded from the history the server keeps
-      // (MetricsHistoryDays), through Utilities.GetMetricHistory.
-      private readonly StackPanel rangeBar_ = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 8) };
+      // (MetricsHistoryDays), through Utilities.GetMetricHistory. The note on a
+      // range is under the choice, the page's width: beside it, in a row of
+      // unbounded width, it ran past the window's edge and was cut mid-sentence.
+      private readonly StackPanel rangeBar_ = new() { Margin = new Thickness(0, 0, 0, 8) };
       private readonly TextBlock rangeNote_ = new()
       {
          FontSize = Typography.Caption,
          Opacity = 0.75,
-         VerticalAlignment = VerticalAlignment.Center,
          TextWrapping = TextWrapping.Wrap,
-         Margin = new Thickness(12, 0, 0, 0)
+         Margin = new Thickness(0, 6, 0, 0)
       };
       private string range_ = "live";
       private AccessibleChartCard historyThroughput_;
@@ -91,42 +94,106 @@ namespace hMailServer.ControlPanel.Views
          timer_.Tick += (s, e) => Refresh();
       }
 
+      // The chart range is one choice of four: a radio group named Chart range,
+      // its chosen range drawn as the primary button was and the others as the
+      // secondary ones (WPF-UI's toggle button, whose checked state is the accent
+      // fill). Four plain buttons marked the chosen range by their colour alone,
+      // so a screen reader heard "Show Live" and three more with none of them
+      // chosen, and pressing the chosen range read the history again (review
+      // finding F244). The group is one tab stop, and the arrow keys move the
+      // choice as in any radio group; a chosen range pressed again does nothing.
       private void BuildRangeSelector_()
       {
-         rangeBar_.Children.Add(new TextBlock
+         var caption = new TextBlock
          {
-            Text = L("Show"),
+            Text = L("Chart range"),
             FontSize = Typography.Body,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
-         });
+         };
+         var row = new StackPanel { Orientation = Orientation.Horizontal };
+         row.Children.Add(caption);
 
-         foreach ((string key, string label) in new[] { ("live", L("Live")), ("24h", L("24 hours")), ("7d", L("7 days")), ("30d", L("30 days")) })
+         var group = new ChartRangeGroup { Orientation = Orientation.Horizontal };
+         AutomationProperties.SetName(group, L("Chart range"));
+         AutomationProperties.SetAutomationId(group, "dashboard-chart-range");
+         KeyboardNavigation.SetTabNavigation(group, KeyboardNavigationMode.Once);
+
+         var segment = new Style(typeof(RadioButton), TryFindResource("DefaultToggleButtonStyle") as Style);
+         segment.Setters.Add(new Setter(MarginProperty, new Thickness(0, 0, 6, 0)));
+
+         var ranges = new[] { ("live", L("Live")), ("24h", L("24 hours")), ("7d", L("7 days")), ("30d", L("30 days")) };
+         foreach ((string key, string label) in ranges)
          {
-            var button = new Wpf.Ui.Controls.Button
+            var choice = new RadioButton
             {
                Content = label,
-               Appearance = key == "live" ? Wpf.Ui.Controls.ControlAppearance.Primary : Wpf.Ui.Controls.ControlAppearance.Secondary,
-               Margin = new Thickness(0, 0, 6, 0),
+               GroupName = "dashboard-chart-range", // no-loc
+               IsChecked = key == "live",
+               Style = segment,
                Tag = key
             };
-            AutomationProperties.SetName(button, F("Show {0}", label));
-            button.Click += (s, e) => ShowRange_(key);
-            rangeBar_.Children.Add(button);
+            AutomationProperties.SetAutomationId(choice, "dashboard-range-" + key);
+            // "2 of 4": a group of radio buttons in a panel has no items control
+            // to count them for the reader.
+            AutomationProperties.SetPositionInSet(choice, group.Children.Count + 1);
+            AutomationProperties.SetSizeOfSet(choice, ranges.Length);
+            choice.Checked += (s, e) => ShowRange_(key);
+            group.Children.Add(choice);
          }
 
+         group.PreviewKeyDown += (s, e) => MoveRangeChoice_(group, e);
+         row.Children.Add(group);
+         rangeBar_.Children.Add(row);
+
+         // Shown while it says something: live has no note.
+         var whenEmpty = new Style(typeof(TextBlock), TryFindResource(typeof(TextBlock)) as Style);
+         whenEmpty.Triggers.Add(new Trigger { Property = TextBlock.TextProperty, Value = "", Setters = { new Setter(VisibilityProperty, Visibility.Collapsed) } });
+         rangeNote_.Style = whenEmpty;
          rangeBar_.Children.Add(rangeNote_);
 
          var parent = (Panel)ChartsGrid.Parent;
          parent.Children.Insert(parent.Children.IndexOf(ChartsGrid), rangeBar_);
       }
 
+      /// <summary>
+      /// The arrow keys in the chart range: the next or the previous range, round
+      /// from the last to the first, chosen and with the keyboard on it.
+      /// </summary>
+      private static void MoveRangeChoice_(Panel group, KeyEventArgs e)
+      {
+         int step = e.Key is Key.Right or Key.Down ? 1 : e.Key is Key.Left or Key.Up ? -1 : 0;
+         var choices = group.Children.OfType<RadioButton>().ToList();
+         int at = choices.FindIndex(c => c.IsKeyboardFocusWithin);
+         if (step == 0 || at < 0 || Keyboard.Modifiers != ModifierKeys.None)
+            return;
+
+         RadioButton next = choices[(at + step + choices.Count) % choices.Count];
+         next.IsChecked = true;
+         next.Focus();
+         e.Handled = true;
+      }
+
+      /// <summary>The chart range's radio buttons, a group a screen reader names.</summary>
+      private sealed class ChartRangeGroup : StackPanel
+      {
+         protected override AutomationPeer OnCreateAutomationPeer() => new GroupPeer(this);
+
+         private sealed class GroupPeer : FrameworkElementAutomationPeer
+         {
+            public GroupPeer(ChartRangeGroup owner) : base(owner) { }
+
+            protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Group;
+
+            protected override string GetClassNameCore() => nameof(ChartRangeGroup);
+
+            protected override bool IsControlElementCore() => true;
+         }
+      }
+
       private void ShowRange_(string range)
       {
          range_ = range;
-
-         foreach (Wpf.Ui.Controls.Button button in rangeBar_.Children.OfType<Wpf.Ui.Controls.Button>())
-            button.Appearance = (string)button.Tag == range ? Wpf.Ui.Controls.ControlAppearance.Primary : Wpf.Ui.Controls.ControlAppearance.Secondary;
 
          ChartsGrid.Children.Clear();
 

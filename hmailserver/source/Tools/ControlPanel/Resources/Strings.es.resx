@@ -2275,6 +2275,9 @@ Los detalles completos se escribieron en:
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Canal: stable, o prerelease para ir por delante en una máquina de pruebas</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Periodo del gráfico</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Comprobar</value>
   </data>
@@ -10291,9 +10294,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Cadena de búsqueda más corta que responde el índice (3-64; las más cortas recurren al recorrido)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Mostrar</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Mostrar el gráfico</value>
   </data>
@@ -10335,9 +10335,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Mostrar qué haría una sincronización, sin cambiar nada</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Mostrar {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Mostrar {0} como un gráfico</value>

@@ -1491,6 +1491,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Some 170 translated captions in fifteen languages took another letter to make room. `--self-test`, which CI runs,
   proves each rule against a page made to break it; `AccessKeysTests` holds the pages.
 
+- **Fixed: the dashboard's chart range did not say which range was chosen.** Live, 24 hours, 7 days and 30 days were
+  four buttons that marked the chosen range by its colour alone: a screen reader heard "Show Live" and three more
+  buttons with none of them chosen, and pressing the chosen range read its history from the server again. They are a
+  radio group named Chart range now - the caption beside them says Chart range where it said Show - with the chosen
+  range still drawn as the primary button: one tab stop, the arrow keys move the choice, a reader hears "Live, radio
+  button, selected, 1 of 4", and the chosen range pressed again does nothing. The note on a history range is under the
+  choice, where it ran past the window's edge. `ChartRangeGroupTests` holds the group.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

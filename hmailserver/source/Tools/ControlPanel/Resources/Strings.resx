@@ -2275,6 +2275,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Channel: stable, or prerelease to run ahead on a test machine" xml:space="preserve">
     <value>Channel: stable, or prerelease to run ahead on a test machine</value>
   </data>
+  <data name="Chart range" xml:space="preserve">
+    <value>Chart range</value>
+  </data>
   <data name="Check" xml:space="preserve">
     <value>Check</value>
   </data>
@@ -10291,9 +10294,6 @@ Restart it now?</value>
   <data name="Shortest search string the index answers for (3-64; shorter strings fall back to the scan)" xml:space="preserve">
     <value>Shortest search string the index answers for (3-64; shorter strings fall back to the scan)</value>
   </data>
-  <data name="Show" xml:space="preserve">
-    <value>Show</value>
-  </data>
   <data name="Show chart" xml:space="preserve">
     <value>Show chart</value>
   </data>
@@ -10335,9 +10335,6 @@ Restart it now?</value>
   </data>
   <data name="Show what a synchronisation would do, changing nothing" xml:space="preserve">
     <value>Show what a synchronisation would do, changing nothing</value>
-  </data>
-  <data name="Show {0}" xml:space="preserve">
-    <value>Show {0}</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Show {0} as a chart</value>
