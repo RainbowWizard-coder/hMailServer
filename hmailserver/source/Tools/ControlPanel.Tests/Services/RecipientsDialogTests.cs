@@ -36,7 +36,9 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Add from AD… and Remove selected in a WrapPanel under the list, before
          // the delivery row and the add row.
-         int list = ctor.IndexOf("body.Children.Add(listBox_);", StringComparison.Ordinal);
+         // The list sits on a card (as the public folders list does), so the
+         // card's line is the list's place in the body.
+         int list = ctor.IndexOf("Content = listBox_", StringComparison.Ordinal);
          int actions = ctor.IndexOf("body.Children.Add(listActions);", StringComparison.Ordinal);
          int delivery = ctor.IndexOf("body.Children.Add(deliveryRow);", StringComparison.Ordinal);
          Assert.True(list >= 0 && actions > list && delivery > actions, "The list's two buttons are not under the list.");

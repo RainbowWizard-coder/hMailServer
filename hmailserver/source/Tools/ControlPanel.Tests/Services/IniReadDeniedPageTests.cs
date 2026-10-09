@@ -47,7 +47,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(source.Contains("hMailServer.ini could not be read: {0}", StringComparison.Ordinal),
             file + " does not say that hMailServer.ini could not be read.");
 
-         string save = WithheldRowTests.MemberText(source, "private void Save_()");
+         // Save_ answers whether it wrote (bool) for the unsaved-changes guard,
+         // which asks it to save before the page is left.
+         string save = WithheldRowTests.MemberText(source, "private bool Save_()")
+            ?? WithheldRowTests.MemberText(source, "private void Save_()");
          Assert.True(save != null && save.Contains("denied_ != null", StringComparison.Ordinal), file + ".Save_ writes a file it could not read.");
       }
 

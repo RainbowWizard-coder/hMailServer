@@ -140,7 +140,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// The notice goes above the list, under the header: the collection editor's
       /// sat in the row under the grid, where a failed read put "Could not load"
-      /// below three hundred pixels of blank card.
+      /// below three hundred pixels of blank card. The page is laid out by a
+      /// FillPanel, whose parts are in the order they are added, so the notice
+      /// is the part added before the filling card.
       /// </summary>
       [Fact]
       public void TheCollectionEditorsNotice_IsAboveTheGrid()
@@ -148,11 +150,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(ReadView("CollectionEditorView.cs"), "private void Build()");
          Assert.True(build != null, "CollectionEditorView.Build is gone.");
 
-         Match notice = Regex.Match(build, @"Grid\.SetRow\(status_, (\d+)\);");
-         Match card = Regex.Match(build, @"Grid\.SetRow\(card, (\d+)\);");
-         Assert.True(notice.Success && card.Success, "The collection editor no longer places its notice and its card by row.");
-         Assert.True(int.Parse(notice.Groups[1].Value) < int.Parse(card.Groups[1].Value),
-            "The collection editor's notice is in a row under its grid.");
+         int notice = build.IndexOf("parts.Children.Add(status_);", StringComparison.Ordinal);
+         int card = build.IndexOf("parts.Children.Add(FillPanel.Filling(card,", StringComparison.Ordinal);
+         Assert.True(notice >= 0 && card >= 0, "The collection editor no longer places its notice and its card in the FillPanel.");
+         Assert.True(notice < card, "The collection editor's notice is under its grid.");
       }
 
       /// <summary>
