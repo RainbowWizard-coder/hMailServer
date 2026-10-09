@@ -12672,6 +12672,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Décoché, un message que le serveur a classé comme spam est tout de même livré ici, sans marquage - les en-têtes de spam et le préfixe d'objet sont retirés de la copie de ce compte. Pour l'adresse qui ne doit jamais perdre un message.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Flèches haut et bas pour se déplacer, Entrée pour ouvrir, Échap pour fermer</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>Jusqu'à 32 caractères ASCII visibles. L'authentification est HMAC-SHA-256 et la confidentialité AES-128.</value>
   </data>
@@ -15480,6 +15483,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} modification sur {1} n'a pas pu être effectuée et est listée en premier, avec la raison du serveur. Les autres ont été appliquées.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0} sur {1} : {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} sur le port {1} n'a aucun chiffrement disponible. Les clients de messagerie s'authentifient sur ce port, si bien que chaque mot de passe utilisé dessus est lisible par tout ce qui se trouve entre le client et ce serveur.</value>

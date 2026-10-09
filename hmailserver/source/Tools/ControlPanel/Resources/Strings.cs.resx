@@ -12824,6 +12824,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Bez zaškrtnutí se zpráva, kterou server klasifikoval jako spam, sem přesto doručí neoznačená - hlavičky spamu a značka v předmětu se z kopie pro tento účet odstraní. Pro adresu, která nikdy nesmí přijít o poštu.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Šipkami nahoru a dolů se přesunete, klávesou Enter otevřete, klávesou Esc zavřete</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>Nejvýše 32 viditelných znaků ASCII. Ověřování je HMAC-SHA-256 a soukromí AES-128.</value>
   </data>
@@ -15770,6 +15773,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} z {1} změn nešlo provést a je uvedena první, s důvodem od serveru. Ostatní byly uplatněny.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0} z {1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} na portu {1} nemá k dispozici žádné šifrování. Poštovní klienti se na tomto portu ověřují, takže každé heslo na něm použité je čitelné pro cokoli mezi klientem a tímto serverem.</value>

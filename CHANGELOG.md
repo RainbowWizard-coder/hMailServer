@@ -1430,6 +1430,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "Show table of delivery throughput". `LabelInNameTests` reads every page and dialog for a captioned control whose
   name does not start with its caption, so the defect cannot return unseen.
 
+- **Fixed: arrowing through the Ctrl+K palette's results was silent to a screen reader.** The search box keeps the
+  keyboard for the palette's whole life, so that typing never has to be resumed, and the list cannot take it: a
+  reader that follows the keyboard heard the typed letters and nothing of the rows the arrow keys moved through,
+  though each row's name was set. The palette now says the row the selection reaches - "3 of 12:" and the row's
+  name, which is what it is and where it lives - as the arrow keys, Page Up and Down, Home and End move it and as
+  typing changes the results, and the empty-results sentence when nothing matched, as a notification that replaces
+  the last one rather than queueing every row passed (`Services/ScreenReaderNotice`); the search box's help text is
+  the footer's key legend as a sentence, "Up and down arrows to move, Enter to open, Escape to close".
+  `PaletteAnnouncementTests` holds the position, which counts the rows that can be chosen and not the section
+  captions, the sentence and the wiring.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

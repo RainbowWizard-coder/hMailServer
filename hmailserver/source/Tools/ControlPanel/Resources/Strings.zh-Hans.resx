@@ -12672,6 +12672,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>未勾选时，被服务器归类为垃圾邮件的邮件仍会不加标记地投递到这里 - 此账户的副本中会移除垃圾邮件标头和主题标记。适用于绝不能丢失邮件的地址。</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>上下箭头键移动，Enter 打开，Esc 关闭</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>最多 32 个可见 ASCII 字符。认证使用 HMAC-SHA-256，隐私使用 AES-128。</value>
   </data>
@@ -15480,6 +15483,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{1} 项更改中有 {0} 项无法执行，它们列在最前面，每一项都附有服务器给出的原因。其余的都已应用。</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>第 {0} 项，共 {1} 项：{2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} 在端口 {1} 上没有可用的加密。邮件客户端会在此端口上进行身份验证，因此在它上面使用的每一个密码，对客户端与本服务器之间的任何东西来说都是可读的。</value>

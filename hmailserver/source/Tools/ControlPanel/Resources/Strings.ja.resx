@@ -12672,6 +12672,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>オフの場合、サーバーがスパムと分類したメッセージも、マークなしでここに配信されます。スパム ヘッダーと件名のタグはこのアカウントのコピーから削除されます。メールを決して失ってはならないアドレス向けです。</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>上下の方向キーで移動、Enter で開く、Esc で閉じる</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>表示可能な ASCII 文字で最大 32 文字。認証は HMAC-SHA-256、プライバシーは AES-128 です。</value>
   </data>
@@ -15480,6 +15483,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{1} 件の変更のうち {0} 件は実行できず、先頭に列挙されています。それぞれにサーバーからの理由が付いています。残りは適用されました。</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0}/{1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>ポート {1} の {0} では暗号化が利用できません。メール クライアントはこのポートで認証するため、そこで使われるパスワードはすべて、クライアントとこのサーバーの間にあるあらゆるものから読み取れます。</value>

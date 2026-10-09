@@ -12672,6 +12672,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Sin marcar, un mensaje que el servidor clasificó como spam se entrega igualmente aquí, sin marca - las cabeceras de spam y la etiqueta del asunto se quitan de la copia de esta cuenta. Para la dirección que nunca debe perder un correo.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Flechas arriba y abajo para moverse, Intro para abrir, Esc para cerrar</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>Hasta 32 caracteres ASCII visibles. La autenticación es HMAC-SHA-256 y la privacidad AES-128.</value>
   </data>
@@ -15480,6 +15483,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} de {1} cambios no pudo realizarse y se muestra primero, con el motivo del servidor. El resto se aplicaron.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0} de {1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} en el puerto {1} no tiene cifrado disponible. Los clientes de correo se autentican en este puerto, así que cada contraseña usada en él es legible por cualquier cosa que haya entre el cliente y este servidor.</value>

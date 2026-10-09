@@ -132,6 +132,8 @@ namespace hMailServer.ControlPanel.Views
          searchBox_.SetResourceReference(Control.BorderBrushProperty, "AppDividerBrush");
          searchBox_.TextChanged += (s, e) => Filter();
          AutomationProperties.SetName(searchBox_, L("Search pages, settings and tasks"));
+         // The footer's key legend, as a sentence a screen reader says on arrival.
+         AutomationProperties.SetHelpText(searchBox_, L("Up and down arrows to move, Enter to open, Escape to close"));
          AutomationProperties.SetAutomationId(searchBox_, "palette-search");
          panel.Children.Add(searchBox_);
 
@@ -206,6 +208,26 @@ namespace hMailServer.ControlPanel.Views
          resultsList_.Visibility = anything ? Visibility.Visible : Visibility.Collapsed;
          emptyHint_.Visibility = anything ? Visibility.Collapsed : Visibility.Visible;
          emptyHint_.Text = F("Nothing matched \"{0}\". Try what you are trying to achieve (\"stop spam\", \"let a device send mail\"), a page name, or an hMailServer.INI key.", searchBox_.Text.Trim());
+
+         // What the typing found: the row the selection is on, or that nothing was.
+         if (IsLoaded)
+            Announce_(anything ? first : -1);
+      }
+
+      /// <summary>
+      /// Says the row the selection is on - "3 of 12:" and the row's name - to a
+      /// screen reader, or the empty hint when nothing matched. The keyboard stays
+      /// in the search box, so a reader that follows the keyboard heard only the
+      /// typed letters while the arrow keys moved the selection (review finding
+      /// F018). One activity id, so that a reader replaces the last row said
+      /// rather than queueing every row passed on the way.
+      /// </summary>
+      private void Announce_(int index)
+      {
+         string sentence = index >= 0 && index < resultsList_.Items.Count
+            ? PaletteSearch.Announcement(rows_, index, AutomationProperties.GetName((DependencyObject)resultsList_.Items[index]))
+            : emptyHint_.Text;
+         ScreenReaderNotice.Say(searchBox_, sentence, "hMailServerPaletteRow");
       }
 
       /// <summary>
@@ -396,6 +418,7 @@ namespace hMailServer.ControlPanel.Views
 
          resultsList_.SelectedIndex = index;
          resultsList_.ScrollIntoView(resultsList_.Items[index]);
+         Announce_(index);
       }
 
       private void Accept()

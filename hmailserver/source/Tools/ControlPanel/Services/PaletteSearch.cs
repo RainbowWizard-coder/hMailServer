@@ -238,6 +238,42 @@ namespace hMailServer.ControlPanel.Services
          return -1;
       }
 
+      /// <summary>
+      /// Where row <paramref name="index"/> is among the rows that can be chosen -
+      /// its place, counting from one, and how many there are - with the section
+      /// captions not counted, since the arrow keys never stop on them. (0, 0) for
+      /// an index that is not a row that can be chosen.
+      /// </summary>
+      public static (int Position, int Count) PositionOf(IReadOnlyList<PaletteRow> rows, int index)
+      {
+         if (rows == null || index < 0 || index >= rows.Count || !rows[index].IsSelectable)
+            return (0, 0);
+
+         int position = 0, count = 0;
+         for (int i = 0; i < rows.Count; i++)
+         {
+            if (!rows[i].IsSelectable)
+               continue;
+            count++;
+            if (i <= index)
+               position++;
+         }
+
+         return (position, count);
+      }
+
+      /// <summary>
+      /// What a screen reader is told as the arrow keys reach a row: "3 of 12:"
+      /// and the row's own name, which is the whole result - what it is and where
+      /// it lives. The keyboard stays in the search box for the palette's whole
+      /// life, so the row the selection moved to is said this way or not at all.
+      /// </summary>
+      public static string Announcement(IReadOnlyList<PaletteRow> rows, int index, string name)
+      {
+         (int position, int count) = PositionOf(rows, index);
+         return position == 0 ? "" : F("{0} of {1}: {2}", position, count, name);
+      }
+
       /// <summary>The last selectable row, or -1 when there is nothing to select.</summary>
       public static int LastSelectable(IReadOnlyList<PaletteRow> rows)
       {

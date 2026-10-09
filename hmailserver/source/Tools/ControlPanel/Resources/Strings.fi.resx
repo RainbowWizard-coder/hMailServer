@@ -12672,6 +12672,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Kun tämä ei ole valittuna, palvelimen roskapostiksi luokittelema viesti toimitetaan silti tänne merkitsemättömänä - roskapostiotsakkeet ja aiheen tunniste poistetaan tämän tilin kopiosta. Osoitteelle, joka ei koskaan saa menettää viestiä.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Nuolinäppäimet ylös ja alas siirtävät, Enter avaa, Esc sulkee</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>Enintään 32 näkyvää ASCII-merkkiä. Todennus on HMAC-SHA-256 ja yksityisyys AES-128.</value>
   </data>
@@ -15480,6 +15483,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0}/{1} muutosta ei voitu tehdä, ja se on lueteltu ensin palvelimen ilmoittaman syyn kanssa. Loput otettiin käyttöön.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0}/{1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} portissa {1} ei ole salausta saatavilla. Postiasiakkaat todentavat tässä portissa, joten jokainen siinä käytetty salasana on kaiken asiakkaan ja tämän palvelimen välissä olevan luettavissa.</value>

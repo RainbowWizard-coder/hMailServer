@@ -12672,6 +12672,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Niet aangevinkt wordt een bericht dat de server als spam heeft geclassificeerd hier alsnog bezorgd, ongemarkeerd - de spamheaders en het onderwerpvoorvoegsel worden uit de kopie van dit account verwijderd. Voor het adres dat nooit een mail mag missen.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Pijl omhoog en omlaag om te bewegen, Enter om te openen, Esc om te sluiten</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>Tot 32 zichtbare ASCII-tekens. Authenticatie is HMAC-SHA-256 en privacy AES-128.</value>
   </data>
@@ -15480,6 +15483,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} van {1} wijzigingen kon niet worden doorgevoerd en staat bovenaan, met de reden van de server. De rest is toegepast.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0} van {1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} op poort {1} heeft geen versleuteling beschikbaar. Mailclients authenticeren zich op deze poort, dus elk wachtwoord dat erop wordt gebruikt, is leesbaar voor alles tussen de client en deze server.</value>

@@ -12672,6 +12672,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>İşaretlenmediğinde, sunucunun spam olarak sınıflandırdığı bir ileti yine de buraya işaretlenmeden teslim edilir - spam başlıkları ve konu etiketi bu hesabın kopyasından kaldırılır. Hiçbir zaman posta kaybetmemesi gereken adres için.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Yukarı ve aşağı oklarla gezin, Enter ile açın, Esc ile kapatın</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>En fazla 32 görünür ASCII karakter. Kimlik doğrulama HMAC-SHA-256, gizlilik AES-128'dir.</value>
   </data>
@@ -15480,6 +15483,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{1} değişiklikten {0} tanesi yapılamadı ve her birinde sunucunun nedeniyle birlikte önce listeleniyor. Geri kalanlar uygulandı.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0}/{1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{1} portundaki {0} için şifreleme yok. Posta istemcileri bu portta kimlik doğrular; bu yüzden üzerinde kullanılan her parola, istemciyle bu sunucu arasındaki herhangi bir şey tarafından okunabilir.</value>

@@ -12824,6 +12824,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Якщо знято, повідомлення, яке сервер класифікував як спам, усе одно доставляється сюди без позначки - заголовки спаму і мітка в темі видаляються з копії для цього облікового запису. Для адреси, яка ніколи не повинна втрачати листи.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Стрілки вгору й униз - переміщення, Enter - відкрити, Esc - закрити</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>До 32 видимих символів ASCII. Автентифікація — HMAC-SHA-256, конфіденційність — AES-128.</value>
   </data>
@@ -15770,6 +15773,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} з {1} змін не вдалося виконати; їх перелічено першими, з причиною сервера для кожної. Решту застосовано.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0} з {1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} на порту {1} не має доступного шифрування. На цьому порту автентифікуються поштові клієнти, тому кожен пароль, використаний на ньому, може прочитати будь-що між клієнтом і цим сервером.</value>

@@ -12672,6 +12672,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Unticked, a message the server classified as spam is still delivered here, unmarked - the spam headers and subject tag are removed from this account's copy. For the address that must never lose a mail." xml:space="preserve">
     <value>Uden kryds leveres en meddelelse, serveren har klassificeret som spam, stadig hertil, umarkeret - spam-headerne og emnemærket fjernes fra denne kontos kopi. Til den adresse, der aldrig må miste en mail.</value>
   </data>
+  <data name="Up and down arrows to move, Enter to open, Escape to close" xml:space="preserve">
+    <value>Pil op og ned for at flytte, Enter for at åbne, Esc for at lukke</value>
+  </data>
   <data name="Up to 32 visible ASCII characters. Authentication is HMAC-SHA-256 and privacy AES-128." xml:space="preserve">
     <value>Op til 32 synlige ASCII-tegn. Godkendelsen er HMAC-SHA-256 og privatlivet AES-128.</value>
   </data>
@@ -15480,6 +15483,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} af {1} ændringer kunne ikke udføres og vises først med serverens begrundelse. Resten blev anvendt.</value>
+  </data>
+  <data name="{0} of {1}: {2}" xml:space="preserve">
+    <value>{0} af {1}: {2}</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} på port {1} har ingen kryptering tilgængelig. Mailklienter godkender på denne port, så hver adgangskode, der bruges på den, kan læses af alt mellem klienten og denne server.</value>
