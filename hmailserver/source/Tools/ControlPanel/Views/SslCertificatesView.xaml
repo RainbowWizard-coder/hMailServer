@@ -102,8 +102,7 @@
                 <scaffold:FieldRow Label="{loc:L 'Private _key passphrase'}"
                                    Hint="{loc:L 'Only needed when the key file is encrypted: with an encrypted key and no passphrase, the key does not load (server error 6170) and every TLS port using this certificate does not start - inbound mail on those ports stops. The passphrase is a secret: it is stored protected on the server and never displayed here again, and saving a new one replaces whatever was stored before.'}"
                                    Margin="0">
-                    <local:PasswordField x:Name="PassphraseBox" MaxWidth="360" HorizontalAlignment="Left" PlaceholderText="{loc:L 'New passphrase'}"
-                                         AutomationProperties.Name="{loc:L 'New private key passphrase for the selected certificate'}" />
+                    <local:PasswordField x:Name="PassphraseBox" MaxWidth="360" HorizontalAlignment="Left" PlaceholderText="{loc:L 'New passphrase'}" />
                 </scaffold:FieldRow>
             </StackPanel>
             <scaffold:Card.Footer>
@@ -131,8 +130,7 @@
                          fields at the top its box and the Add button sat lower and
                          higher than the other boxes. -->
                     <scaffold:FieldRow Label="{loc:L '_Name'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
-                        <ui:TextBox x:Name="NewCertName"
-                                    AutomationProperties.Name="{loc:L 'Name for the new certificate'}" />
+                        <ui:TextBox x:Name="NewCertName" />
                     </scaffold:FieldRow>
                     <scaffold:FieldRow Grid.Column="1" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
                         <Grid>
@@ -140,8 +138,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ui:TextBox x:Name="NewCertFile"
-                                        AutomationProperties.Name="{loc:L 'Certificate file for the new certificate'}" />
+                            <ui:TextBox x:Name="NewCertFile" />
                             <ui:Button Grid.Column="1" Content="…" Click="BrowseCert_Click" Margin="4,0,0,0"
                                        AutomationProperties.Name="{loc:L 'Browse for the certificate file'}" />
                         </Grid>
@@ -152,19 +149,16 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <ui:TextBox x:Name="NewKeyFile"
-                                        AutomationProperties.Name="{loc:L 'Private key file for the new certificate'}" />
+                            <ui:TextBox x:Name="NewKeyFile" />
                             <ui:Button Grid.Column="1" Content="…" Click="BrowseKey_Click" Margin="4,0,0,0"
                                        AutomationProperties.Name="{loc:L 'Browse for the private key file'}" />
                         </Grid>
                     </scaffold:FieldRow>
                     <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
-                        <local:PasswordField x:Name="NewKeyPassphrase"
-                                             AutomationProperties.Name="{loc:L 'Private key passphrase for the certificate being added'}" />
+                        <local:PasswordField x:Name="NewKeyPassphrase" />
                     </scaffold:FieldRow>
                     <ui:Button x:Name="AddCertButton" Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                               VerticalAlignment="Bottom" Margin="0"
-                               AutomationProperties.Name="{loc:L 'Add the certificate'}" />
+                               VerticalAlignment="Bottom" Margin="0" />
                 </Grid>
                 <!-- Filled in by code when the picked key file turns out to be
                      encrypted: that is knowable from the file itself, and saying

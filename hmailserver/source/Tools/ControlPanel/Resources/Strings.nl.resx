@@ -864,9 +864,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Account recovery" xml:space="preserve">
     <value>Accountherstel</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Account om aan de groep toe te voegen</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Patroon voor rekeningnummers (een reguliere expressie; leeg = geen)</value>
   </data>
@@ -1020,9 +1017,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add action" xml:space="preserve">
     <value>Actie toevoegen</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Alias toevoegen</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Een IP-bereik toevoegen voor het apparaat dat SMTP-bezorging toestaat zonder authenticatie te vereisen.</value>
   </data>
@@ -1098,9 +1092,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Het adres of IP-bereik toevoegen aan de spamuitzonderingen.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Het certificaat toevoegen</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Voeg het certificaat en de sleutel toe en koppel het dan aan de poorten die het moeten tonen.</value>
   </data>
@@ -1157,9 +1148,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Toe te voegen a_dres</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Adres waarnaar niet meer verzonden wordt</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adres, domein of URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Certificate file" xml:space="preserve">
     <value>Certificaatbestand</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Certificaatbestand voor het nieuwe certificaat</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Certificaat niet gelezen</value>
   </data>
@@ -2509,17 +2494,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Close" xml:space="preserve">
     <value>Sluiten</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Het venster met groepsleden sluiten</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Help sluiten</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>De help sluiten terwijl het toetsenbord erin staat, een dialoogvenster sluiten en een formulier op een pagina leegmaken</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>De ontvangerslijst sluiten</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Gesloten</value>
@@ -3925,9 +3904,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domein of achtervoegsel</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Domein waarvan de DNS-records worden getoond</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Domein, of .achtervoegsel</value>
   </data>
@@ -4808,7 +4784,7 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
     <value>Een DKIM-sleutelpaar genereren voor {0}</value>
   </data>
   <data name="Generate a random value for {0}" xml:space="preserve">
-    <value>Een willekeurige waarde genereren voor {0}</value>
+    <value>Genereren (willekeurige waarde voor {0})</value>
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>Een sterk wachtwoord genereren (gekopieerd naar het klembord)</value>
@@ -5067,9 +5043,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Host/Naam:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Gehost domein</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Uur waarop het overzicht wordt verstuurd (UTC, 0 tot 23)</value>
@@ -6532,9 +6505,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Name" xml:space="preserve">
     <value>Naam</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Naam voor het nieuwe certificaat</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Naam of achtervoegsel</value>
   </data>
@@ -6594,9 +6564,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Nieuwe wachtwoordzin</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Nieuwe wachtwoordzin voor de privésleutel van het geselecteerde certificaat</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Nieuwe openbare map</value>
@@ -7607,7 +7574,7 @@ Niets wat er al staat wordt verwijderd.</value>
     <value>{0} openen</value>
   </data>
   <data name="Open {0}, which now has {1}" xml:space="preserve">
-    <value>{0} openen, dat nu {1} heeft</value>
+    <value>Openen: {0}, dat nu {1} heeft</value>
   </data>
   <data name="Open {0}, which owns the settings for: {1}" xml:space="preserve">
     <value>{0} openen, waar de instellingen staan voor: {1}</value>
@@ -7873,9 +7840,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>Wachtwoo_rd (optioneel - alleen om een echte aanmelding te testen)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Wachtwoord (optioneel - alleen om een echte aanmelding te testen)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Wachtwoordhash voor nieuwe of gewijzigde accountwachtwoorden</value>
   </data>
@@ -8126,12 +8090,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privésleutelbestand</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Privésleutelbestand voor het nieuwe certificaat</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Wachtwoordzin van de privésleutel voor het certificaat dat wordt toegevoegd</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Verwerkte berichten</value>
@@ -8770,9 +8728,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_De foto verwijderen</value>
   </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Extern domein</value>
-  </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Externe domeinen</value>
   </data>
@@ -9147,7 +9102,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>Intrekken</value>
   </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
-    <value>De API-sleutel {0} intrekken</value>
+    <value>Intrekken (API-sleutel {0})</value>
   </data>
   <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
     <value>De API-sleutel {0} intrekken? Alles wat hem gebruikt stopt bij de eerstvolgende aanvraag met werken, en de sleutel kan niet worden hersteld - alleen vervangen door een nieuwe.</value>
@@ -10135,9 +10090,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Serviceaccount (alleen zoekmodus)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Wachtwoord van het serviceaccount (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Gebruikers_naam van het serviceaccount (ServiceUsername)</value>

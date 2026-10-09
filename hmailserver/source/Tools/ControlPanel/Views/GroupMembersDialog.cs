@@ -97,7 +97,7 @@ namespace hMailServer.ControlPanel.Views
          };
          ButtonStyles.DangerText(remove);
          SelectionGate.Bind(list_, remove);
-         AutomationProperties.SetName(remove, L("Remove the selected account from this group"));
+         ControlHelp.Explain(remove, L("Remove the selected account from this group"));
          AutomationProperties.SetAutomationId(remove, "group-members-remove");
          remove.Click += (s, e) => RemoveSelected();
          actions.Children.Add(remove);
@@ -107,7 +107,6 @@ namespace hMailServer.ControlPanel.Views
          // Escape only, and deliberately no default button: Enter with a row
          // selected must not re-open the add prompt.
          var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
-         AutomationProperties.SetName(close, L("Close the group members window"));
          close.Click += (s, e) => Close();
 
          UseFrame(groupName_, body, null, close,
@@ -323,7 +322,6 @@ namespace hMailServer.ControlPanel.Views
          foreach (string address in addresses)
             combo.Items.Add(address);
          combo.SelectedIndex = 0;
-         AutomationProperties.SetName(combo, L("Account to add to the group"));
          AutomationProperties.SetAutomationId(combo, "group-members-pick");
 
          string result = null;

@@ -323,8 +323,7 @@
                                 <ui:TextBox x:Name="NewAliasValue" PlaceholderText="target@anywhere" FontSize="12" />
                             </scaffold:FieldRow>
                             <ui:Button x:Name="AddAliasButton" Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
-                                       VerticalAlignment="Bottom" Margin="0"
-                                       AutomationProperties.Name="{loc:L 'Add alias'}" />
+                                       VerticalAlignment="Bottom" Margin="0" />
                         </Grid>
                         <!-- The floor: three rows of 34 pixels (a row is its 24-pixel
                              button and the margins around it), the list's own pixel

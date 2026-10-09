@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -31,7 +32,11 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>Whether <paramref name="name"/> starts with the words <paramref name="caption"/> shows.</summary>
       public static bool StartsWithCaption(string name, string caption)
-         => (name ?? "").StartsWith(Shown(caption), StringComparison.CurrentCultureIgnoreCase);
+         => StartsWithCaption(name, caption, CultureInfo.CurrentCulture);
+
+      /// <summary>The same, with the case rules of <paramref name="culture"/>, the language the two are in.</summary>
+      public static bool StartsWithCaption(string name, string caption, CultureInfo culture)
+         => (name ?? "").StartsWith(Shown(caption), ignoreCase: true, culture);
 
       /// <summary>
       /// The name of a link among several whose captions say less than where they

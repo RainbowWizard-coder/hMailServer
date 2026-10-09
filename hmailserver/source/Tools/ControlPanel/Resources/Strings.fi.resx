@@ -864,9 +864,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Account recovery" xml:space="preserve">
     <value>Tilin palautus</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Ryhmään lisättävä tili</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Tilinumeron malli (säännöllinen lauseke; tyhjä = ei mitään)</value>
   </data>
@@ -1020,9 +1017,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add action" xml:space="preserve">
     <value>Lisää toiminto</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Lisää alias</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Lisää IP-alue laitteelle, joka sallii SMTP-toimituksen ilman todennusta.</value>
   </data>
@@ -1098,9 +1092,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Lisää osoite tai IP-alue roskapostipoikkeuksiin.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Lisää varmenne</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Lisää varmenne ja avain ja liitä se sitten niihin portteihin, joiden tulee esittää se.</value>
   </data>
@@ -1157,9 +1148,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Lisättävä _osoite</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Osoite, johon ei enää lähetetä</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Osoite, verkkotunnus tai URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Certificate file" xml:space="preserve">
     <value>Varmennetiedosto</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Uuden varmenteen varmennetiedosto</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Varmennetta ei luettu</value>
   </data>
@@ -2509,17 +2494,11 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Close" xml:space="preserve">
     <value>Sulje</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Sulje ryhmän jäsenten ikkuna</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Sulje ohje</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Sulje ohje, kun näppäimistö on siinä, sulje valintaikkuna ja tyhjennä sivun lomake</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Sulje vastaanottajaluettelo</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Suljettu</value>
@@ -3925,9 +3904,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Domain or suffix" xml:space="preserve">
     <value>Verkkotunnus tai pääte</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Verkkotunnus, jonka DNS-tietueet näytetään</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Verkkotunnus tai .pääte</value>
   </data>
@@ -5067,9 +5043,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Kone/Nimi:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Isännöity verkkotunnus</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Tunti, jolloin yhteenveto lähetetään (UTC, 0–23)</value>
@@ -6532,9 +6505,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Name" xml:space="preserve">
     <value>Nimi</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Uuden varmenteen nimi</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Nimi tai pääte</value>
   </data>
@@ -6594,9 +6564,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Uusi tunnuslause</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Valitun varmenteen yksityisen avaimen uusi tunnuslause</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Uusi julkinen kansio</value>
@@ -7873,9 +7840,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>Salasana (valinnainen - vain todellisen kir_jautumisen testaamiseen)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Salasana (valinnainen - vain todellisen kirjautumisen testaamiseen)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Salasanatiiviste uusille tai vaihdetuille tilien salasanoille</value>
   </data>
@@ -8126,12 +8090,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Yksityisen avaimen tiedosto</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Uuden varmenteen yksityisen avaimen tiedosto</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Lisättävän varmenteen yksityisen avaimen tunnuslause</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Käsitellyt viestit</value>
@@ -8769,9 +8727,6 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Poista kuva</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Etäverkkotunnus</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Etäverkkotunnukset</value>
@@ -10135,9 +10090,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Palvelutili (vain hakutila)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Palvelutilin salasana (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Pa_lvelutilin käyttäjänimi (ServiceUsername)</value>

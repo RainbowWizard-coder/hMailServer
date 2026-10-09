@@ -132,6 +132,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          if (editor == null)
             return;
 
+         // A row of a box and a button beside it - a file and its Browse… - names
+         // and describes the box, which a screen reader lands on, where it named
+         // the panel around the two, which nothing lands on, and the box had no
+         // name but one the page set by hand (Mnemonic.Editor, which the
+         // caption's key reaches as well).
+         if (Mnemonic.Editor(editor, reachable: false) is FrameworkElement inner)
+            editor = inner;
+
          // The editor's own name and help, unless the page gave it a name of its
          // own - a page that already says something more exact keeps it.
          if (string.IsNullOrEmpty(AutomationProperties.GetName(editor)) && label.Length > 0)

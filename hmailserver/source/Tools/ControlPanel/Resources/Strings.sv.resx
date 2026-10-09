@@ -864,9 +864,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Account recovery" xml:space="preserve">
     <value>Kontoåterställning</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Konto att lägga till i gruppen</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Mönster för kontonummer (ett reguljärt uttryck; tomt = inget)</value>
   </data>
@@ -1020,9 +1017,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add action" xml:space="preserve">
     <value>Lägg till åtgärd</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Lägg till alias</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Lägg till ett IP-intervall för enheten som tillåter SMTP-leverans utan att kräva autentisering.</value>
   </data>
@@ -1098,9 +1092,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Lägg till adressen eller IP-intervallet i skräppostundantagen.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Lägg till certifikatet</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Lägg till certifikatet och nyckeln, och koppla det sedan till portarna som ska visa upp det.</value>
   </data>
@@ -1157,9 +1148,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dress att lägga till</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Adress som inte längre ska få e-post</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adress, domän eller URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Certificate file" xml:space="preserve">
     <value>Certifikatfil</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Certifikatfil för det nya certifikatet</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Certifikat inte läst</value>
   </data>
@@ -2509,17 +2494,11 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Close" xml:space="preserve">
     <value>Stäng</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Stäng fönstret med gruppmedlemmar</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Stäng hjälpen</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Stäng hjälpen medan tangentbordet är i den, stäng en dialogruta och töm ett formulär på en sida</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Stäng mottagarlistan</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Stängt</value>
@@ -3925,9 +3904,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domän eller suffix</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Domän vars DNS-poster visas</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Domän eller .suffix</value>
   </data>
@@ -5067,9 +5043,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Värd/Namn:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Hostad domän</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Timme då sammanfattningen skickas (UTC, 0 till 23)</value>
@@ -6532,9 +6505,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Name" xml:space="preserve">
     <value>Namn</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Namn på det nya certifikatet</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Namn eller suffix</value>
   </data>
@@ -6594,9 +6564,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Ny lösenfras</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Ny lösenfras för det valda certifikatets privata nyckel</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Ny publik mapp</value>
@@ -7873,9 +7840,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>L_ösenord (valfritt - bara för att testa en riktig inloggning)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Lösenord (valfritt - bara för att testa en riktig inloggning)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Lösenordshash för nya eller ändrade kontolösenord</value>
   </data>
@@ -8126,12 +8090,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privat nyckelfil</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Privat nyckelfil för det nya certifikatet</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Lösenfras för den privata nyckeln till certifikatet som läggs till</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Behandlade meddelanden</value>
@@ -8769,9 +8727,6 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Ta bort fotot</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Fjärrdomän</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Externa domäner</value>
@@ -10135,9 +10090,6 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Tjänstekonto (bara sökläge)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Tjänstekontots lösenord (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Tjänstekontots användar_namn (ServiceUsername)</value>

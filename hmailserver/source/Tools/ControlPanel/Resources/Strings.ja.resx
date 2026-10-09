@@ -864,9 +864,6 @@
   <data name="Account recovery" xml:space="preserve">
     <value>アカウントの回復</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>グループに追加するアカウント</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>口座番号のパターン (正規表現。空 = なし)</value>
   </data>
@@ -1020,9 +1017,6 @@
   <data name="Add action" xml:space="preserve">
     <value>アクションを追加</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>エイリアスを追加</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>認証を要求せずに SMTP 配信を許可する機器のために、IP 範囲を追加します。</value>
   </data>
@@ -1098,9 +1092,6 @@
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>アドレスまたは IP 範囲をスパム対策の除外に追加します。</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>証明書を追加します</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>証明書と鍵を追加し、それを提示すべきポートに割り当てます。</value>
   </data>
@@ -1157,9 +1148,6 @@
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>追加するアドレス(_D)</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>送信を止めるアドレス</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>アドレス、ドメインまたは URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@
   <data name="Certificate file" xml:space="preserve">
     <value>証明書ファイル</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>新しい証明書の証明書ファイル</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>証明書は未読み取り</value>
   </data>
@@ -2509,17 +2494,11 @@
   <data name="Close" xml:space="preserve">
     <value>閉じる</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>グループ メンバー ウィンドウを閉じる</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>ヘルプを閉じる</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>キーボードがヘルプ内にあるときにヘルプを閉じる。ダイアログを閉じる。ページのフォームを空にする</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>受信者リストを閉じる</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>クローズ済み</value>
@@ -3925,9 +3904,6 @@
   <data name="Domain or suffix" xml:space="preserve">
     <value>ドメインまたはサフィックス</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>DNS レコードを表示するドメイン</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>ドメイン、または .接尾辞</value>
   </data>
@@ -4808,7 +4784,7 @@
     <value>{0} の DKIM 鍵ペアを生成</value>
   </data>
   <data name="Generate a random value for {0}" xml:space="preserve">
-    <value>{0} のランダムな値を生成</value>
+    <value>生成 ({0} のランダムな値)</value>
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>強力なパスワードを生成 (クリップボードにコピーされます)</value>
@@ -5067,9 +5043,6 @@
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>ホスト/名前:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>ホストしているドメイン</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>ダイジェストを送る時刻 (UTC、0 から 23)</value>
@@ -6532,9 +6505,6 @@
   <data name="Name" xml:space="preserve">
     <value>名前</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>新しい証明書の名前</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>名前またはサフィックス</value>
   </data>
@@ -6594,9 +6564,6 @@
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>新しいパスフレーズ</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>選択した証明書の新しい秘密鍵パスフレーズ</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>新しい公開フォルダー</value>
@@ -7607,7 +7574,7 @@
     <value>{0} を開く</value>
   </data>
   <data name="Open {0}, which now has {1}" xml:space="preserve">
-    <value>{0} を開く — そこには現在 {1} があります</value>
+    <value>開く: {0} — そこには現在 {1} があります</value>
   </data>
   <data name="Open {0}, which owns the settings for: {1}" xml:space="preserve">
     <value>{0} を開く — 次の設定はそこにあります: {1}</value>
@@ -7873,9 +7840,6 @@
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>パスワード (任意 - 実際のログオンをテストする場合のみ)(_G)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>パスワード (任意 - 実際のログオンをテストする場合のみ)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>新規または変更されたアカウント パスワードに使うパスワード ハッシュ</value>
   </data>
@@ -8126,12 +8090,6 @@
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>秘密鍵ファイル</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>新しい証明書の秘密鍵ファイル</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>追加する証明書の秘密鍵パスフレーズ</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>処理したメッセージ</value>
@@ -8770,9 +8728,6 @@
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>写真を削除 (_H)</value>
   </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>リモート ドメイン</value>
-  </data>
   <data name="Remote domains" xml:space="preserve">
     <value>リモートドメイン</value>
   </data>
@@ -9147,7 +9102,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>取り消し</value>
   </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
-    <value>API キー {0} を取り消す</value>
+    <value>取り消し (API キー {0})</value>
   </data>
   <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
     <value>API キー {0} を取り消しますか? これを使用しているものは、次のリクエストで直ちに動作しなくなります。キーは復元できず、新しいものに置き換えることしかできません。</value>
@@ -10135,9 +10090,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>サービス アカウント (検索モードのみ)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>サービス アカウントのパスワード (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>サービス アカウントのユーザー名 (ServiceUsername)(_N)</value>

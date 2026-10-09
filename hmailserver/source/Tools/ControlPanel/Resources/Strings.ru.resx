@@ -870,9 +870,6 @@ Control Panel может читать файлы сообщений только
   <data name="Account recovery" xml:space="preserve">
     <value>Восстановление учётной записи</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Учётная запись для добавления в группу</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Шаблон номера счёта (регулярное выражение; пусто = нет)</value>
   </data>
@@ -1026,9 +1023,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add action" xml:space="preserve">
     <value>Добавить действие</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Добавить псевдоним</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Добавьте диапазон IP для устройства, которому разрешена доставка по SMTP без аутентификации.</value>
   </data>
@@ -1104,9 +1098,6 @@ Control Panel может читать файлы сообщений только
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Добавьте адрес или диапазон IP в исключения антиспама.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Добавьте сертификат</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Добавьте сертификат и ключ, затем привяжите его к портам, которые должны его предъявлять.</value>
   </data>
@@ -1163,9 +1154,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Адрес для добавления</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Адрес, на который больше не отправлять</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Адрес, домен или URL (https://host/...)</value>
@@ -2221,9 +2209,6 @@ Control Panel может читать файлы сообщений только
   <data name="Certificate file" xml:space="preserve">
     <value>Файл сертификата</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Файл сертификата для нового сертификата</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Сертификат не прочитан</value>
   </data>
@@ -2527,17 +2512,11 @@ Control Panel может читать файлы сообщений только
   <data name="Close" xml:space="preserve">
     <value>Закрыть</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Закрыть окно участников группы</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Закрыть справку</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Закрыть справку, пока в ней клавиатура, закрыть диалоговое окно и очистить форму на странице</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Закрыть список получателей</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Закрыто</value>
@@ -3961,9 +3940,6 @@ Control Panel может читать файлы сообщений только
   <data name="Domain or suffix" xml:space="preserve">
     <value>Домен или суффикс</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Домен, записи DNS которого показаны</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Домен или .суффикс</value>
   </data>
@@ -5121,9 +5097,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Узел/имя:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Размещённый домен</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Час отправки сводки (UTC, от 0 до 23)</value>
@@ -6595,9 +6568,6 @@ Control Panel может читать файлы сообщений только
   <data name="Name" xml:space="preserve">
     <value>Имя</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Имя нового сертификата</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Имя или суффикс</value>
   </data>
@@ -6657,9 +6627,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Новая парольная фраза</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Новая парольная фраза закрытого ключа для выбранного сертификата</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Новая общая папка</value>
@@ -7951,9 +7918,6 @@ Control Panel может читать файлы сообщений только
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>Пар_оль (необязательно — только для проверки настоящего входа)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Пароль (необязательно — только для проверки настоящего входа)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Хеш пароля для новых и изменяемых паролей учётных записей</value>
   </data>
@@ -8204,12 +8168,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Файл закрытого ключа</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Файл закрытого ключа для нового сертификата</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Парольная фраза закрытого ключа для добавляемого сертификата</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Обработанные сообщения</value>
@@ -8853,9 +8811,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>Удалить фотографию (_H)</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Удалённый домен</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Внешние домены</value>
@@ -10243,9 +10198,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Учётная запись службы (только для режима поиска)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Пароль учётной записи службы (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>_Имя пользователя учётной записи службы (ServiceUsername)</value>

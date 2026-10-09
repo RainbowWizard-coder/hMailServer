@@ -864,9 +864,6 @@
   <data name="Account recovery" xml:space="preserve">
     <value>账户恢复</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>要添加到组中的账户</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>账号模式（正则表达式；空 = 无）</value>
   </data>
@@ -1020,9 +1017,6 @@
   <data name="Add action" xml:space="preserve">
     <value>添加操作</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>添加别名</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>为允许无需身份验证即可进行 SMTP 投递的设备添加 IP 范围。</value>
   </data>
@@ -1098,9 +1092,6 @@
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>把该地址或 IP 范围添加到反垃圾邮件豁免。</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>添加该证书</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>添加证书和密钥，然后把它附加到应当出示它的那些端口上。</value>
   </data>
@@ -1157,9 +1148,6 @@
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>要添加的地址(_D)</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>停止向其发送的地址</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>地址、域或 URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@
   <data name="Certificate file" xml:space="preserve">
     <value>证书文件</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>新证书的证书文件</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>证书未读取</value>
   </data>
@@ -2509,17 +2494,11 @@
   <data name="Close" xml:space="preserve">
     <value>关闭</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>关闭组成员窗口</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>关闭帮助</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>键盘在帮助中时关闭帮助；关闭对话框；清空页面上的表单</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>关闭收件人列表</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>已结案</value>
@@ -3925,9 +3904,6 @@
   <data name="Domain or suffix" xml:space="preserve">
     <value>域或后缀</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>显示其 DNS 记录的域</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>域名，或 .后缀</value>
   </data>
@@ -4808,7 +4784,7 @@
     <value>为 {0} 生成 DKIM 密钥对</value>
   </data>
   <data name="Generate a random value for {0}" xml:space="preserve">
-    <value>为 {0} 生成随机值</value>
+    <value>生成（{0} 的随机值）</value>
   </data>
   <data name="Generate a strong password (copied to clipboard)" xml:space="preserve">
     <value>生成强密码（已复制到剪贴板）</value>
@@ -5067,9 +5043,6 @@
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>主机/名称：  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>托管的域</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>发送摘要的时间（UTC，0 到 23）</value>
@@ -6532,9 +6505,6 @@
   <data name="Name" xml:space="preserve">
     <value>名称</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>新证书的名称</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>名称或后缀</value>
   </data>
@@ -6594,9 +6564,6 @@
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>新密码短语</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>所选证书的新私钥密码短语</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>新建公用文件夹</value>
@@ -7873,9 +7840,6 @@
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>密码（可选 - 仅用于测试真实登录）(_J)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>密码（可选 - 仅用于测试真实登录）</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>新密码或已更改的账户密码所用的密码哈希</value>
   </data>
@@ -8126,12 +8090,6 @@
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>私钥文件</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>新证书的私钥文件</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>正在添加的证书的私钥密码短语</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>已处理的邮件</value>
@@ -8769,9 +8727,6 @@
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>移除照片 (_H)</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>远程域</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>远程域</value>
@@ -10135,9 +10090,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>服务账户 (仅搜索模式)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>服务账户密码 (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>服务账户用户名 (ServiceUser_name)</value>

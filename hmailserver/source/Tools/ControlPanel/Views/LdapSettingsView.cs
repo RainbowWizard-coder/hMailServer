@@ -479,7 +479,6 @@ namespace hMailServer.ControlPanel.Views
          servicePassword_.MaxWidth = 520;
          servicePassword_.MinWidth = 320;
          servicePassword_.HorizontalAlignment = HorizontalAlignment.Left;
-         System.Windows.Automation.AutomationProperties.SetName(servicePassword_, L("Service account password (ServicePassword)"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(servicePassword_, "ldap-service-password");
 
          string passwordCaption =
@@ -584,7 +583,6 @@ namespace hMailServer.ControlPanel.Views
          testPassword_.MinWidth = 320;
          testPassword_.HorizontalAlignment = HorizontalAlignment.Left;
          testPassword_.PlaceholderText = L("Leave empty to test only the infrastructure");
-         System.Windows.Automation.AutomationProperties.SetName(testPassword_, L("Password (optional - only to test a real logon)"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(testPassword_, "ldap-test-password");
          content.Children.Add(new FieldRow
          {

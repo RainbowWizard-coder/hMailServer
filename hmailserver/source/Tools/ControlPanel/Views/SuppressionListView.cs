@@ -601,7 +601,6 @@ namespace hMailServer.ControlPanel.Views
          var dialog = new FramedDialog { Owner = owner, Title = L("Add to the suppression list") };
 
          var address = new Wpf.Ui.Controls.TextBox();
-         AutomationProperties.SetName(address, L("Address to stop sending to"));
          var note = new Wpf.Ui.Controls.TextBox();
          var expires = new Wpf.Ui.Controls.NumberBox { Minimum = 0, Maximum = 3650, Value = 0, SmallChange = 1, LargeChange = 10, MaxDecimalPlaces = 0 };
 

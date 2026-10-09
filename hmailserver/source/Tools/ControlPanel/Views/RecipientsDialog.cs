@@ -136,7 +136,6 @@ namespace hMailServer.ControlPanel.Views
          // box means "add" and Enter with a row selected must not close the list.
          var closeButton = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
          closeButton.Click += (s, e) => Close();
-         AutomationProperties.SetName(closeButton, L("Close the recipient list"));
 
          UseFrame(F("Recipients of {0}", listAddress), body, null, closeButton, width: 520);
          Loaded += (s, e) => Reload();

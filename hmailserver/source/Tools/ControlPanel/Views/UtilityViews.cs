@@ -644,8 +644,6 @@ namespace hMailServer.ControlPanel.Views
          localDomain_.Margin = new Thickness(0, 0, 8, 0);
          // Two unlabelled boxes read as one question; a caption over each says
          // which domain is which. The captions double as the accessible names.
-         System.Windows.Automation.AutomationProperties.SetName(localDomain_, L("Hosted domain"));
-         System.Windows.Automation.AutomationProperties.SetName(testDomain_, L("Remote domain"));
          inputRow.Children.Add(Captioned(L("_Hosted domain"), localDomain_));
          testDomain_.Margin = new Thickness(0, 0, 8, 0);
          Grid.SetColumn(testDomain_, 1);

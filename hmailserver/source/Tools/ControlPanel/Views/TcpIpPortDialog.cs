@@ -92,7 +92,7 @@ namespace hMailServer.ControlPanel.Views
          caRow.Children.Add(clientCertCaFile_);
          var caBrowse = new Wpf.Ui.Controls.Button { Content = L("_Browse…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
          AutomationProperties.SetAutomationId(caBrowse, "ClientCertCaBrowse");
-         AutomationProperties.SetName(caBrowse, L("Browse for a CA certificate bundle file"));
+         ControlHelp.Explain(caBrowse, L("Browse for a CA certificate bundle file"));
          caBrowse.Click += (s, e) =>
          {
             string file = PathPicker.PickFile(clientCertCaFile_.Text,

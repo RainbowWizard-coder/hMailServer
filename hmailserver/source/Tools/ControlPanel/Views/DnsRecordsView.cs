@@ -138,7 +138,6 @@ namespace hMailServer.ControlPanel.Views
             Actions = refresh
          });
 
-         System.Windows.Automation.AutomationProperties.SetName(domainCombo_, L("Domain whose DNS records are shown"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainCombo_, "dns-records-domain");
          domainCombo_.SelectionChanged += (s, e) => BuildCards();
          page.Children.Add(new FieldRow { Label = L("_Domain:"), Content = domainCombo_ });
@@ -698,8 +697,7 @@ namespace hMailServer.ControlPanel.Views
                ToolTip = L("Enabled once \"Check\" has confirmed the published record carries this key's public key.")
             };
             ToolTipService.SetShowOnDisabled(enable, true);
-            System.Windows.Automation.AutomationProperties.SetName(enable,
-               F("Enable DKIM signing for {0}; unlocked once the DNS check has passed", domain.Name));
+            ControlHelp.Explain(enable, F("Enable DKIM signing for {0}; unlocked once the DNS check has passed", domain.Name));
             System.Windows.Automation.AutomationProperties.SetAutomationId(enable, "dns-records-dkim-enable");
             enable.Click += (s, e) => EnableDkimSigning(domain.Name);
             content.Children.Add(enable);

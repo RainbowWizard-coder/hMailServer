@@ -864,9 +864,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Account recovery" xml:space="preserve">
     <value>Account recovery</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Account to add to the group</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Account-number pattern (a regular expression; empty = none)</value>
   </data>
@@ -1020,9 +1017,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add action" xml:space="preserve">
     <value>Add action</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Add alias</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Add an IP range for the device that allows SMTP delivery without requiring authentication.</value>
   </data>
@@ -1098,9 +1092,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Add the address or IP range to the spam exemptions.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Add the certificate</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Add the certificate and key, then attach it to the ports that should present it.</value>
   </data>
@@ -1157,9 +1148,6 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Address to a_dd</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Address to stop sending to</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Address, domain or URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Certificate file" xml:space="preserve">
     <value>Certificate file</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Certificate file for the new certificate</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Certificate not read</value>
   </data>
@@ -2509,17 +2494,11 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Close" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Close the group members window</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Close the help</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Close the help while the keyboard is in it, close a dialog, and empty a form on a page</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Close the recipient list</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Closed</value>
@@ -3925,9 +3904,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domain or suffix</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Domain whose DNS records are shown</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Domain, or .suffix</value>
   </data>
@@ -5067,9 +5043,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Host/Name:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Hosted domain</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Hour the digest is sent (UTC, 0 to 23)</value>
@@ -6532,9 +6505,6 @@ Nothing already there is removed.</value>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Name for the new certificate</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Name or suffix</value>
   </data>
@@ -6594,9 +6564,6 @@ Nothing already there is removed.</value>
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>New passphrase</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>New private key passphrase for the selected certificate</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>New public folder</value>
@@ -7873,9 +7840,6 @@ Nothing already there is removed.</value>
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>Password (optional - only to test a real lo_gon)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Password (optional - only to test a real logon)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Password hash for new or changed account passwords</value>
   </data>
@@ -8126,12 +8090,6 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Private key file</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Private key file for the new certificate</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Private key passphrase for the certificate being added</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Processed messages</value>
@@ -8769,9 +8727,6 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>Remo_ve the photo</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Remote domain</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Remote domains</value>
@@ -10135,9 +10090,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Service account (search mode only)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Service account password (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Service account user _name (ServiceUsername)</value>

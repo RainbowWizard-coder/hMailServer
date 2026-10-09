@@ -151,9 +151,6 @@ namespace hMailServer.ControlPanel.Views
          // box into a Chinese word in issue 156.
          address_.PlaceholderText = L("Account address");
          domains_.PlaceholderText = L("Domains, comma separated");
-         System.Windows.Automation.AutomationProperties.SetName(address_, L("Account address"));
-         System.Windows.Automation.AutomationProperties.SetName(roleChoice_, L("Role"));
-         System.Windows.Automation.AutomationProperties.SetName(domains_, L("Domains, comma separated"));
          address_.Margin = roleChoice_.Margin = domains_.Margin = new Thickness(0);
          form.Children.Add(FormField_(L("_Account"), address_));
          // The box opens on no role: it opened on the first the server lists,

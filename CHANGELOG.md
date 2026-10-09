@@ -1422,23 +1422,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   leaving defaults such as a port's 25. The palette's Keyboard shortcuts list names the keys. `GridKeysTests` holds
   the helpers, every page's wiring, the quarantine's keys and the tool tips.
 
-- **Fixed: a screen reader said other words than the Control Panel's buttons showed, and voice control could not
-  press them by name.** Some thirty buttons and boxes had their accessible name replaced by a sentence that explained
-  them: Refresh was "Re-check the external prerequisites" on the setup checklist and "Re-read the domains and server
+- **Fixed: a screen reader said other words than the Control Panel's buttons showed, and voice control could not press
+  them by name.** Some thirty buttons and boxes had their accessible name replaced by a sentence that explained them:
+  Refresh was "Re-check the external prerequisites" on the setup checklist and "Re-read the domains and server
   configuration" on DNS records, Preview and Apply on Directory synchronisation were "Show what a synchronisation
   would do, changing nothing" and "Create and update the accounts the preview listed", Reload, Save changes and Test
   connection on Directory authentication were sentences about hMailServer.INI, Members… on the groups page was "Edit
-  the members of the selected group", Delete selected, Save passphrase and Remove stored passphrase on SSL certificates
-  were sentences, and the Note box of the never-ban, domain policy and suppression dialogs was "Why it is listed" -
-  so what was heard was not what was seen, and somebody who said "click Refresh" or "click Preview" reached nothing
-  (WCAG 2.5.3, Label in Name). Each is named by its caption now, and the sentence is its help text, which a screen
-  reader says after the name, and its tool tip (`Views/ControlHelp`). The links whose captions say less than where
-  they go - ten "Settings…" and six "Open…" on the spam filtering overview, "Versions and ciphers…" on the transport
-  encryption overview - are named by the caption and then the destination, "Settings: Open Blocked senders, which owns
-  the Blocked senders settings", so that they are told apart and each starts with the words on it; the DNS records'
-  per-record buttons are "Copy host of the MX record" and "Copy value of the MX record", and the dashboard charts'
-  "Show table of delivery throughput". `LabelInNameTests` reads every page and dialog for a captioned control whose
-  name does not start with its caption, so the defect cannot return unseen.
+  the members of the selected group", Delete selected, Save passphrase and Remove stored passphrase on SSL
+  certificates were sentences, and the Note box of the never-ban, domain policy and suppression dialogs was "Why it is
+  listed" - so what was heard was not what was seen, and somebody who said "click Refresh" or "click Preview" reached
+  nothing (WCAG 2.5.3, Label in Name). Each is named by its caption now, and the sentence is its help text, which a
+  screen reader says after the name, and its tool tip (`Views/ControlHelp`). The links whose captions say less than
+  where they go - ten "Settings…" and six "Open…" on the spam filtering overview, "Versions and ciphers…" on the
+  transport encryption overview - are named by the caption and then the destination, "Settings: Open Blocked senders,
+  which owns the Blocked senders settings", so that they are told apart and each starts with the words on it; the DNS
+  records' per-record buttons are "Copy host of the MX record" and "Copy value of the MX record", and the dashboard
+  charts' "Show table of delivery throughput". A box captioned by a field row is named by its caption alone, in every
+  language - the row now names the box of a row of a box and a Browse… button, not the panel around them - where a
+  name set beside the caption was a second string that some catalogues translated as another word: the journaling
+  page's Note box was "Merknad" under Notat in Norwegian, and some 150 names in the seventeen catalogues, and four on
+  the SSL certificates page in English, did not start with their captions. `LabelInNameTests` reads every page and
+  dialog for a captioned control whose name does not start with its caption, in English and in each of the seventeen
+  catalogues, so the defect cannot return unseen.
 
 - **Fixed: arrowing through the Ctrl+K palette's results was silent to a screen reader.** The search box keeps the
   keyboard for the palette's whole life, so that typing never has to be resumed, and the list cannot take it: a

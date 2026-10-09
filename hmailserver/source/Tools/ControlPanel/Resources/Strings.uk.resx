@@ -870,9 +870,6 @@
   <data name="Account recovery" xml:space="preserve">
     <value>Відновлення облікового запису</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Обліковий запис, який слід додати до групи</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Шаблон номера рахунку (регулярний вираз; порожньо = немає)</value>
   </data>
@@ -1026,9 +1023,6 @@
   <data name="Add action" xml:space="preserve">
     <value>Додати дію</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Додати псевдонім</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Додайте IP-діапазон для пристрою, який дозволяє доставку через SMTP без вимоги автентифікації.</value>
   </data>
@@ -1104,9 +1098,6 @@
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Додайте адресу або IP-діапазон до винятків антиспаму.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Додайте сертифікат</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Додайте сертифікат і ключ, а потім прикріпіть його до портів, які мають його надавати.</value>
   </data>
@@ -1163,9 +1154,6 @@
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>_Адреса для додавання</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Адреса, на яку більше не надсилати</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Адреса, домен або URL (https://host/...)</value>
@@ -2221,9 +2209,6 @@
   <data name="Certificate file" xml:space="preserve">
     <value>Файл сертифіката</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Файл для нового сертифіката</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Сертифікат не прочитано</value>
   </data>
@@ -2527,17 +2512,11 @@
   <data name="Close" xml:space="preserve">
     <value>Закрити</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Закрити вікно учасників групи</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Закрити довідку</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Закрити довідку, поки в ній клавіатура, закрити діалогове вікно й очистити форму на сторінці</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Закрити список отримувачів</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Закрито</value>
@@ -3961,9 +3940,6 @@
   <data name="Domain or suffix" xml:space="preserve">
     <value>Домен або суфікс</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Домен, чиї записи DNS показано</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Домен або .суфікс</value>
   </data>
@@ -5121,9 +5097,6 @@
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Вузол/Ім'я:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Розміщений домен</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Година надсилання зведення (UTC, від 0 до 23)</value>
@@ -6595,9 +6568,6 @@
   <data name="Name" xml:space="preserve">
     <value>Ім’я</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Ім’я нового сертифіката</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Ім'я або суфікс</value>
   </data>
@@ -6657,9 +6627,6 @@
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Нова парольна фраза</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Нова парольна фраза закритого ключа для вибраного сертифіката</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Нова публічна папка</value>
@@ -7951,9 +7918,6 @@
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>П_ароль (необов’язково — лише щоб перевірити справжній вхід)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Пароль (необов’язково — лише щоб перевірити справжній вхід)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Хеш паролів для нових або змінених паролів облікових записів</value>
   </data>
@@ -8204,12 +8168,6 @@
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Файл закритого ключа</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Файл закритого ключа для нового сертифіката</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Парольна фраза закритого ключа для сертифіката, що додається</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Оброблені повідомлення</value>
@@ -8853,9 +8811,6 @@
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>Видалити фотографію (_H)</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Віддалений домен</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Зовнішні домени</value>
@@ -10243,9 +10198,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Обліковий запис служби (лише режим пошуку)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Пароль облікового запису служби (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Ім'_я користувача облікового запису служби (ServiceUsername)</value>

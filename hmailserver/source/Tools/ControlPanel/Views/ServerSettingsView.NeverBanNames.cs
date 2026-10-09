@@ -259,7 +259,6 @@ namespace hMailServer.ControlPanel.Views
             var dialog = new FramedDialog { Owner = owner, Title = L("Add a name to the never-ban list") };
 
             var pattern = new Wpf.Ui.Controls.TextBox();
-            AutomationProperties.SetName(pattern, L("Name or suffix"));
 
             var note = new Wpf.Ui.Controls.TextBox();
 

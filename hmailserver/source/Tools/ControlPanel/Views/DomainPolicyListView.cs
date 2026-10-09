@@ -382,20 +382,17 @@ namespace hMailServer.ControlPanel.Views
          var dialog = new FramedDialog { Owner = owner, Title = L("Add a domain to the list") };
 
          var pattern = new Wpf.Ui.Controls.TextBox();
-         AutomationProperties.SetName(pattern, L("Domain or suffix"));
 
          var matchOn = new ComboBox();
          matchOn.Items.Add(DialogFields.Combo(L("Either the envelope sender's domain or the HELO name"), 2));
          matchOn.Items.Add(DialogFields.Combo(L("The envelope sender's domain"), 0));
          matchOn.Items.Add(DialogFields.Combo(L("The HELO name"), 1));
          DialogFields.SelectCombo(matchOn, 2, orFirst: true);
-         AutomationProperties.SetName(matchOn, L("Matched on"));
 
          var action = new ComboBox();
          action.Items.Add(DialogFields.Combo(L("Allowed: not greylisted, not refused on the spam score"), 0));
          action.Items.Add(DialogFields.Combo(L("Blocked: refused at MAIL FROM"), 1));
          DialogFields.SelectCombo(action, 0, orFirst: true);
-         AutomationProperties.SetName(action, L("Action"));
 
          var note = new Wpf.Ui.Controls.TextBox();
 

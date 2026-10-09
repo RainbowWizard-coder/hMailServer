@@ -864,9 +864,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Account recovery" xml:space="preserve">
     <value>Kontogjenoppretting</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Konto som skal legges til i gruppen</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Mønster for kontonumre (et regulært uttrykk; tomt = ingen)</value>
   </data>
@@ -1020,9 +1017,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add action" xml:space="preserve">
     <value>Legg til handling</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Legg til alias</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Legg til et IP-område for enheten, som tillater SMTP-levering uten å kreve autentisering.</value>
   </data>
@@ -1098,9 +1092,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Legg adressen eller IP-området til i spamunntakene.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Legg til sertifikatet</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Legg til sertifikatet og nøkkelen, og knytt det så til portene som skal presentere det.</value>
   </data>
@@ -1157,9 +1148,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>A_dresse som skal legges til</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Adresse det ikke lenger skal sendes til</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Adresse, domene eller URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Certificate file" xml:space="preserve">
     <value>Sertifikatfil</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>Sertifikatfil for det nye sertifikatet</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Sertifikat ikke lest</value>
   </data>
@@ -2509,17 +2494,11 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Close" xml:space="preserve">
     <value>Lukk</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Lukk vinduet med gruppemedlemmer</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Lukk hjelpen</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Lukk hjelpen mens tastaturet er i den, lukk en dialogboks, og tøm et skjema på en side</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Lukk mottakerlisten</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Lukket</value>
@@ -3925,9 +3904,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Domain or suffix" xml:space="preserve">
     <value>Domene eller suffiks</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Domene hvis DNS-oppføringer vises</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Domene eller .suffiks</value>
   </data>
@@ -5067,9 +5043,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Vert/Navn:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Hostet domene</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Time da sammendraget sendes (UTC, 0 til 23)</value>
@@ -6532,9 +6505,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Name" xml:space="preserve">
     <value>Navn</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Navn på det nye sertifikatet</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Navn eller suffiks</value>
   </data>
@@ -6594,9 +6564,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Ny passfrase</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Ny passfrase for privat nøkkel for det valgte sertifikatet</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Ny offentlig mappe</value>
@@ -7873,9 +7840,6 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>Passord (valgfr_itt - bare for å teste en reell pålogging)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Passord (valgfritt - bare for å teste en reell pålogging)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Passordhash for nye eller endrede kontopassord</value>
   </data>
@@ -8126,12 +8090,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privat nøkkelfil</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>Privat nøkkelfil for det nye sertifikatet</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Passfrase for den private nøkkelen til sertifikatet som legges til</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Behandlede meldinger</value>
@@ -8769,9 +8727,6 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>_Fjern bildet</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Eksternt domene</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Eksterne domener</value>
@@ -10135,9 +10090,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Tjenestekonto (bare søkemodus)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Tjenestekontoens passord (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>Tjenestekontoens bruker_navn (ServiceUsername)</value>

@@ -174,16 +174,12 @@ namespace hMailServer.ControlPanel.Views
          target_.PlaceholderText = L("A domain, or an account address");
          address_.PlaceholderText = L("Where the copy goes");
          note_.PlaceholderText = L("Why (optional)");
-         System.Windows.Automation.AutomationProperties.SetName(scope_, L("Domain or account"));
-         System.Windows.Automation.AutomationProperties.SetName(target_, L("Whose mail"));
-         System.Windows.Automation.AutomationProperties.SetName(direction_, L("Which way"));
-         System.Windows.Automation.AutomationProperties.SetName(mode_, L("What is sent"));
-         System.Windows.Automation.AutomationProperties.SetName(address_, L("Where it goes"));
-         System.Windows.Automation.AutomationProperties.SetName(note_, L("Note"));
-
          // Each box has its caption above it - the grid's own column names - as
          // the Domains page's forms do: a placeholder was the only name the boxes
-         // had, gone once something is typed, and the three lists had none.
+         // had, gone once something is typed, and the three lists had none. The
+         // caption names the box (FieldRow), in every language: a name set here
+         // as well was a second string, which three catalogues translated as
+         // another word than the caption's.
          var form = new WrapPanel();
          foreach (Control box in new Control[] { scope_, target_, direction_, mode_, address_, note_ })
             box.Margin = new Thickness(0);

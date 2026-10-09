@@ -864,9 +864,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Account recovery" xml:space="preserve">
     <value>Recupero dell'account</value>
   </data>
-  <data name="Account to add to the group" xml:space="preserve">
-    <value>Account da aggiungere al gruppo</value>
-  </data>
   <data name="Account-number pattern (a regular expression; empty = none)" xml:space="preserve">
     <value>Modello di numero di conto (un'espressione regolare; vuoto = nessuno)</value>
   </data>
@@ -1020,9 +1017,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add action" xml:space="preserve">
     <value>Aggiungi azione</value>
   </data>
-  <data name="Add alias" xml:space="preserve">
-    <value>Aggiungi alias</value>
-  </data>
   <data name="Add an IP range for the device that allows SMTP delivery without requiring authentication." xml:space="preserve">
     <value>Aggiungi un intervallo IP per il dispositivo che consente la consegna SMTP senza richiedere l'autenticazione.</value>
   </data>
@@ -1098,9 +1092,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Aggiungi l'indirizzo o l'intervallo IP alle esenzioni antispam.</value>
   </data>
-  <data name="Add the certificate" xml:space="preserve">
-    <value>Aggiungi il certificato</value>
-  </data>
   <data name="Add the certificate and key, then attach it to the ports that should present it." xml:space="preserve">
     <value>Aggiungi il certificato e la chiave, poi collegalo alle porte che devono presentarlo.</value>
   </data>
@@ -1157,9 +1148,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Address to a_dd" xml:space="preserve">
     <value>Indirizzo _da aggiungere</value>
-  </data>
-  <data name="Address to stop sending to" xml:space="preserve">
-    <value>Indirizzo a cui smettere di inviare</value>
   </data>
   <data name="Address, domain or URL (https://host/...)" xml:space="preserve">
     <value>Indirizzo, dominio o URL (https://host/...)</value>
@@ -2203,9 +2191,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Certificate file" xml:space="preserve">
     <value>File del certificato</value>
   </data>
-  <data name="Certificate file for the new certificate" xml:space="preserve">
-    <value>File del certificato per il nuovo certificato</value>
-  </data>
   <data name="Certificate not read" xml:space="preserve">
     <value>Certificato non letto</value>
   </data>
@@ -2509,17 +2494,11 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Close" xml:space="preserve">
     <value>Chiudi</value>
   </data>
-  <data name="Close the group members window" xml:space="preserve">
-    <value>Chiudi la finestra dei membri del gruppo</value>
-  </data>
   <data name="Close the help" xml:space="preserve">
     <value>Chiudi la guida</value>
   </data>
   <data name="Close the help while the keyboard is in it, close a dialog, and empty a form on a page" xml:space="preserve">
     <value>Chiude la guida mentre la tastiera è al suo interno, chiude una finestra di dialogo e svuota un modulo in una pagina</value>
-  </data>
-  <data name="Close the recipient list" xml:space="preserve">
-    <value>Chiudi l'elenco dei destinatari</value>
   </data>
   <data name="Closed" xml:space="preserve">
     <value>Chiuso</value>
@@ -3925,9 +3904,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Domain or suffix" xml:space="preserve">
     <value>Dominio o suffisso</value>
   </data>
-  <data name="Domain whose DNS records are shown" xml:space="preserve">
-    <value>Dominio di cui vengono mostrati i record DNS</value>
-  </data>
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Dominio, o .suffisso</value>
   </data>
@@ -5067,9 +5043,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Host/Name:  {0}" xml:space="preserve">
     <value>Host/Nome:  {0}</value>
-  </data>
-  <data name="Hosted domain" xml:space="preserve">
-    <value>Dominio ospitato</value>
   </data>
   <data name="Hour the digest is sent (UTC, 0 to 23)" xml:space="preserve">
     <value>Ora in cui viene inviato il riepilogo (UTC, da 0 a 23)</value>
@@ -6532,9 +6505,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Name" xml:space="preserve">
     <value>Nome</value>
   </data>
-  <data name="Name for the new certificate" xml:space="preserve">
-    <value>Nome del nuovo certificato</value>
-  </data>
   <data name="Name or suffix" xml:space="preserve">
     <value>Nome o suffisso</value>
   </data>
@@ -6594,9 +6564,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="New passphrase" xml:space="preserve">
     <value>Nuova passphrase</value>
-  </data>
-  <data name="New private key passphrase for the selected certificate" xml:space="preserve">
-    <value>Nuova passphrase della chiave privata per il certificato selezionato</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Nuova cartella pubblica</value>
@@ -7873,9 +7840,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
     <value>Pass_word (facoltativa - solo per provare un accesso reale)</value>
   </data>
-  <data name="Password (optional - only to test a real logon)" xml:space="preserve">
-    <value>Password (facoltativa - solo per provare un accesso reale)</value>
-  </data>
   <data name="Password hash for new or changed account passwords" xml:space="preserve">
     <value>Hash della password per le password degli account nuove o modificate</value>
   </data>
@@ -8126,12 +8090,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Private key file" xml:space="preserve">
     <value>File della chiave privata</value>
-  </data>
-  <data name="Private key file for the new certificate" xml:space="preserve">
-    <value>File della chiave privata per il nuovo certificato</value>
-  </data>
-  <data name="Private key passphrase for the certificate being added" xml:space="preserve">
-    <value>Passphrase della chiave privata per il certificato che si sta aggiungendo</value>
   </data>
   <data name="Processed messages" xml:space="preserve">
     <value>Messaggi elaborati</value>
@@ -8769,9 +8727,6 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Remo_ve the photo" xml:space="preserve">
     <value>R_imuovi la foto</value>
-  </data>
-  <data name="Remote domain" xml:space="preserve">
-    <value>Dominio remoto</value>
   </data>
   <data name="Remote domains" xml:space="preserve">
     <value>Domini remoti</value>
@@ -10135,9 +10090,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Service account (search mode only)" xml:space="preserve">
     <value>Account di servizio (solo in modalità ricerca)</value>
-  </data>
-  <data name="Service account password (ServicePassword)" xml:space="preserve">
-    <value>Password dell'account di servizio (ServicePassword)</value>
   </data>
   <data name="Service account user _name (ServiceUsername)" xml:space="preserve">
     <value>_Nome utente dell'account di servizio (ServiceUsername)</value>

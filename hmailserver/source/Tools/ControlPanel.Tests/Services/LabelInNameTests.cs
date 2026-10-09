@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -14,23 +16,34 @@ namespace hMailServer.ControlPanel.Tests.Services
 {
    /// <summary>
    /// A captioned control's accessible name starts with its caption (WCAG 2.5.3,
-   /// Label in Name; review findings F017, F127, F202). Some thirty buttons and
-   /// boxes had their name replaced by a sentence - Refresh was "Re-check the
-   /// external prerequisites", Preview "Show what a synchronisation would do,
-   /// changing nothing", Members… "Edit the members of the selected group", a
-   /// dialog's Note box "Why it is listed" - so a screen reader said words nobody
-   /// could see and "click Refresh" in voice control reached nothing. The sentence
-   /// is the control's help text and tool tip now (Views/ControlHelp.Explain).
+   /// Label in Name; review findings F017, F127, F202), in every language. Some
+   /// thirty buttons and boxes had their name replaced by a sentence - Refresh was
+   /// "Re-check the external prerequisites", Preview "Show what a synchronisation
+   /// would do, changing nothing", Members… "Edit the members of the selected
+   /// group", a dialog's Note box "Why it is listed" - so a screen reader said
+   /// words nobody could see and "click Refresh" in voice control reached
+   /// nothing. The sentence is the control's help text and tool tip now
+   /// (Views/ControlHelp.Explain).
+   ///
+   /// A name and a caption are two catalogue entries, translated apart, so the
+   /// rule is held in each of the seventeen catalogues as well as in English:
+   /// checked in English alone, it let 79 pairs through - the journaling page's
+   /// Note box was "Merknad" under the caption Notat in Norwegian, a Browse… was
+   /// "Nach einer CA-Zertifikatbündeldatei suchen" in German, a Revoke "API キー
+   /// {0} を取り消す" under 取り消し in Japanese.
    ///
    /// The source is read, as the mnemonics checker reads it: in C#, a control
-   /// made with Content = L("caption") or captioned by a FieldRow (or a helper
-   /// that builds one), then given AutomationProperties.SetName; in XAML, an
-   /// element with both a caption and an AutomationProperties.Name. A name may say
-   /// more after the caption - "Copy host of the MX record" - never something else.
+   /// made with Content = L("caption"), captioned by a FieldRow (or a helper that
+   /// builds one) or by a Label whose Target it is, then given
+   /// AutomationProperties.SetName; in XAML, an element with both a caption and
+   /// an AutomationProperties.Name, a FieldRow whose editor carries a Name, and a
+   /// caption that is the Mnemonic.Target of a named element. A name may say more
+   /// after the caption - "Copy host of the MX record" - never something else.
    /// </summary>
    public class LabelInNameTests
    {
       private const string Literal = "\"((?:[^\"\\\\]|\\\\.)*)\"";
+      private const string XamlLiteral = @"'((?:[^'\\]|\\.)*)'";
 
       private static readonly Regex[] Captioned =
       {
@@ -42,19 +55,80 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          new(@"(?:FormField_|Field|Captioned|LabelledBox_|LabelledCombo_|Label)\(\s*L\(" + Literal + @"\)\s*,\s*(\w+)"),
          new(@"new FieldRow\s*\{[^}]*?Label\s*=\s*L\(" + Literal + @"\)[^}]*?Content\s*=\s*(\w+)", RegexOptions.Singleline),
+         new(@"new\s+Label\s*\{[^}]*?Content\s*=\s*L\(" + Literal + @"\)[^}]*?Target\s*=\s*(\w+)", RegexOptions.Singleline),
       };
 
       private static readonly Regex SetName = new(@"AutomationProperties\.SetName\(\s*(\w+)\s*,\s*(?:L|F)\(" + Literal);
 
       private static readonly Regex XamlElement = new(@"<[\w:.]+\b[^<>]*?>", RegexOptions.Singleline);
-      private static readonly Regex XamlContent = new(@"\bContent=""\{loc:L '((?:[^'\\]|\\.)*)'\}""");
-      private static readonly Regex XamlName = new(@"AutomationProperties\.Name=""\{loc:L '((?:[^'\\]|\\.)*)'\}""");
+      private static readonly Regex XamlContent = new(@"\bContent=""\{loc:L " + XamlLiteral + @"\}""");
+      private static readonly Regex XamlName = new(@"AutomationProperties\.Name=""\{loc:L " + XamlLiteral + @"\}""");
+      private static readonly Regex XamlRow = new(@"<scaffold:FieldRow\b([^>]*)>(.*?)</scaffold:FieldRow>", RegexOptions.Singleline);
+      private static readonly Regex XamlLabel = new(@"\bLabel=""\{loc:L " + XamlLiteral + @"\}""");
+      private static readonly Regex XamlTarget = new(@"<TextBlock\b[^>]*?Text=""\{loc:L " + XamlLiteral + @"\}""[^>]*?Mnemonic\.Target=""\{Binding ElementName=(\w+)\}""", RegexOptions.Singleline);
 
       [Fact]
       public void EveryCaptionedControl_IsNamedByItsCaption()
       {
-         string root = ControlPanelDirectory();
+         List<string> bad = Pairs_()
+            .Where(p => !StartsWithCaption(Unescape_(p.Name), Unescape_(p.Caption)))
+            .Select(p => p.File + ": \"" + p.Caption + "\" is named \"" + p.Name + "\"")
+            .ToList();
+
+         Assert.True(Pairs_().Count >= 5, "The captioned controls with names of their own were not found.");
+         Assert.True(bad.Count == 0, "A control's name must start with its caption; put the explanation in its help text (ControlHelp.Explain):\n" + string.Join("\n", bad));
+      }
+
+      /// <summary>
+      /// The same in every catalogue: the translation of each name starts with the
+      /// translation of its caption, compared with that language's case rules.
+      /// </summary>
+      [Fact]
+      public void EveryCaptionedControl_IsNamedByItsCaption_InEveryLanguage()
+      {
+         var pairs = Pairs_();
          var bad = new List<string>();
+         int catalogues = 0;
+
+         foreach (string file in Directory.EnumerateFiles(Path.Join(ControlPanelDirectory(), "Resources"), "Strings.*.resx"))
+         {
+            string tag = Path.GetFileName(file)["Strings.".Length..^".resx".Length];
+            var culture = CultureInfo.GetCultureInfo(tag);
+            Dictionary<string, string> catalogue = XDocument.Load(file).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+            catalogues++;
+
+            foreach ((string where, string caption, string name) in pairs)
+            {
+               if (!catalogue.TryGetValue(Unescape_(caption), out string shown) || !catalogue.TryGetValue(Unescape_(name), out string said)
+                  || shown.Length == 0 || said.Length == 0)
+                  continue;
+               if (!LabelInName.StartsWithCaption(said, shown, culture))
+                  bad.Add(tag + " " + where + ": \"" + shown + "\" is named \"" + said + "\" (\"" + caption + "\", \"" + name + "\")");
+            }
+         }
+
+         Assert.Equal(17, catalogues);
+         Assert.True(bad.Count == 0, "In every language a control's name starts with its caption: a name that says more starts with the caption's words and then says it, as \"Host kopieren ({0}-Eintrag)\" does:\n" + string.Join("\n", bad));
+      }
+
+      /// <summary>
+      /// A FieldRow names the box of a row of a box and a button beside it - a file
+      /// and its Browse… - and not the panel around the two, so that the box needs
+      /// no name of its own, which was a second string to translate.
+      /// </summary>
+      [Fact]
+      public void AFieldRow_NamesTheBoxOfARowOfABoxAndAButton()
+      {
+         string row = File.ReadAllText(Path.Join(ControlPanelDirectory(), "Views", "Scaffold", "FieldRow.cs"));
+         Assert.Matches(new Regex(@"if \(Mnemonic\.Editor\(editor, reachable: false\) is FrameworkElement inner\)\s*editor = inner;[\s\S]{0,400}?AutomationProperties\.SetName\(editor,"), row);
+      }
+
+      /// <summary>Every (where, caption, name) the source gives a captioned control.</summary>
+      private static List<(string File, string Caption, string Name)> Pairs_()
+      {
+         string root = ControlPanelDirectory();
+         var pairs = new List<(string File, string Caption, string Name)>();
 
          foreach (string file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories).Where(Ours))
          {
@@ -74,24 +148,48 @@ namespace hMailServer.ControlPanel.Tests.Services
 
             foreach (Match m in SetName.Matches(source))
             {
-               if (captions.TryGetValue(m.Groups[1].Value, out string caption) && !StartsWithCaption(m.Groups[2].Value, caption))
-                  bad.Add(Path.GetFileName(file) + ": \"" + caption + "\" is named \"" + m.Groups[2].Value + "\"");
+               if (captions.TryGetValue(m.Groups[1].Value, out string caption))
+                  pairs.Add((Path.GetFileName(file), caption, m.Groups[2].Value));
             }
          }
 
          foreach (string file in Directory.EnumerateFiles(root, "*.xaml", SearchOption.AllDirectories).Where(Ours))
          {
-            foreach (Match element in XamlElement.Matches(File.ReadAllText(file)))
+            string source = File.ReadAllText(file);
+            foreach (Match element in XamlElement.Matches(source))
             {
                Match caption = XamlContent.Match(element.Value);
                Match name = XamlName.Match(element.Value);
-               if (caption.Success && name.Success && !StartsWithCaption(name.Groups[1].Value, caption.Groups[1].Value))
-                  bad.Add(Path.GetFileName(file) + ": \"" + caption.Groups[1].Value + "\" is named \"" + name.Groups[1].Value + "\"");
+               if (caption.Success && name.Success)
+                  pairs.Add((Path.GetFileName(file), caption.Groups[1].Value, name.Groups[1].Value));
+            }
+
+            // A FieldRow's editor: its first element that is not a button beside it.
+            foreach (Match row in XamlRow.Matches(source))
+            {
+               Match label = XamlLabel.Match(row.Groups[1].Value);
+               Match name = XamlElement.Matches(row.Groups[2].Value).Cast<Match>()
+                  .Where(e => !Regex.IsMatch(e.Value, @"^<[\w:.]*Button\b"))
+                  .Select(e => XamlName.Match(e.Value)).FirstOrDefault(n => n.Success);
+               if (label.Success && name != null)
+                  pairs.Add((Path.GetFileName(file), label.Groups[1].Value, name.Groups[1].Value));
+            }
+
+            foreach (Match target in XamlTarget.Matches(source))
+            {
+               Match element = Regex.Match(source, @"<[\w:.]+\b[^<>]*?x:Name=""" + target.Groups[2].Value + @"""[^<>]*?>", RegexOptions.Singleline);
+               Match name = element.Success ? XamlName.Match(element.Value) : Match.Empty;
+               if (name.Success)
+                  pairs.Add((Path.GetFileName(file), target.Groups[1].Value, name.Groups[1].Value));
             }
          }
 
-         Assert.True(bad.Count == 0, "A control's name must start with its caption; put the explanation in its help text (ControlHelp.Explain):\n" + string.Join("\n", bad));
+         return pairs;
       }
+
+      /// <summary>A C# literal's text, as the catalogue keys it.</summary>
+      private static string Unescape_(string literal) => literal.Replace("\\\"", "\"").Replace("\\\\", "\\");
+
 
       /// <summary>The rule itself, on the captions that broke it and on the shapes that keep it.</summary>
       [Theory]
