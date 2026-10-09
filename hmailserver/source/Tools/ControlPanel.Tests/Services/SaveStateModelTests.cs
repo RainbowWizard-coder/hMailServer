@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -240,12 +241,21 @@ namespace hMailServer.ControlPanel.Tests.Services
          string save = WithheldRowTests.MemberText(ReadControlPanelFile("Views/LdapSettingsView.cs"), "private bool Save_()");
          Assert.True(save != null, "LdapSettingsView.Save_ is gone.");
 
-         int port = save.IndexOf("saveState_.Refuse(portError);", StringComparison.Ordinal);
-         int timeout = save.IndexOf("saveState_.Refuse(timeoutError);", StringComparison.Ordinal);
+         int port = save.IndexOf("saveState_.Refuse(portError, ", StringComparison.Ordinal);
+         int timeout = save.IndexOf("saveState_.Refuse(timeoutError, ", StringComparison.Ordinal);
          int conflict = save.IndexOf("saveState_.Refuse(L(\"A new service account password has been typed, and", StringComparison.Ordinal);
          int writes = save.IndexOf("IniWrite_(", StringComparison.Ordinal);
          Assert.True(port >= 0 && timeout > port && conflict > timeout && writes > conflict,
             "Directory authentication does not refuse an invalid port, an invalid timeout and a conflicting password in its notice before it writes.");
+
+         // Each refusal goes as its own cause is put right, though another edit is still
+         // unsaved: its condition is the check that refused the save, asked again.
+         Assert.Contains("if (!TryPort_(out int port, out bool hasPort, out string portError))", save, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Refuse(portError, () => !TryPort_(out _, out _, out _));", save, StringComparison.Ordinal);
+         Assert.Contains("if (!TryTimeout_(out int timeoutSeconds, out bool hasTimeout, out string timeoutError))", save, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Refuse(timeoutError, () => !TryTimeout_(out _, out _, out _));", save, StringComparison.Ordinal);
+         Assert.Contains("if (ServicePasswordConflicts_)", save, StringComparison.Ordinal);
+         Assert.Contains("() => ServicePasswordConflicts_);", save, StringComparison.Ordinal);
 
          // The notice is brought into view: the save the question before leaving a page
          // makes can be refused with the page scrolled down to the edit.
@@ -253,7 +263,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string say = WithheldRowTests.MemberText(shared, "private void SayRefusal_()");
          Assert.True(say != null && say.Contains("notice_.BringIntoView();", StringComparison.Ordinal),
             "A refused save's notice is not brought into view.");
-         foreach (string member in new[] { "public void Refuse(string sentence)", "public void Fail(string sentence)" })
+         foreach (string member in new[] { "public void Refuse(string sentence, Func<bool> stillRefused = null)", "public void Fail(string sentence)" })
          {
             string body = WithheldRowTests.MemberText(shared, member);
             Assert.True(body != null && body.Contains("SayRefusal_();", StringComparison.Ordinal), member + " does not say the refusal as the others do.");
@@ -261,12 +271,16 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// A save refused before it wrote anything is withdrawn once the edits it refused
-      /// are taken back, and a save that failed as it wrote is not: the three pages say
-      /// which kind each of theirs is (SaveStateNoticeTests holds the rule). Every
-      /// refusal here was the one kind, so the Authentication page's "Clear the value or
-      /// untick the box" stayed, Critical, over a value cleared and a box unticked, under
-      /// a pill that said nothing was unsaved.
+      /// A save refused before it wrote anything is withdrawn once the reader puts its
+      /// cause right or takes the edits back, and a save that failed as it wrote is not:
+      /// the three pages say which kind each of theirs is, and each refusal hands over
+      /// its own condition, asked again as the editors change (SaveStateNoticeTests
+      /// holds the rule). Every refusal here was the one kind, so the Authentication
+      /// page's "Clear the value or untick the box" stayed, Critical, over a value
+      /// cleared and a box unticked, under a pill that said nothing was unsaved; and,
+      /// with no condition to ask, over the box alone unticked as it asked, and
+      /// Directory authentication's "Port must be between 0 and 65535." over 636, while
+      /// another edit was unsaved.
       /// </summary>
       [Theory]
       [InlineData("Views/FeatureSettingsView.xaml.cs", 1)]
@@ -286,11 +300,62 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.All(refuse, m => Assert.True(m.Index < firstWrite, file + " refuses after it has begun to write: that is a failure, saveState_.Fail."));
          Assert.Single(Regex.Matches(save, @"saveState_\.Fail\("));
 
-         // And the shared state withdraws the first kind as the editors follow.
+         // Each refusal says what it was refused for, as a condition the page asks again:
+         // a second argument, a lambda - never a constant, which would hold the refusal
+         // until the last edit whatever the reader put right.
+         foreach (Match m in refuse)
+         {
+            string[] arguments = CallArguments_(save, m.Index + m.Length);
+            Assert.True(arguments.Length == 2, file + ": " + save.Substring(m.Index, Math.Min(80, save.Length - m.Index)) + "... names no condition that withdraws it.");
+            Assert.Matches(new Regex(@"^\(\)\s*=>\s*\S"), arguments[1]);
+            Assert.DoesNotMatch(new Regex(@"^\(\)\s*=>\s*(true|false)\s*$"), arguments[1]);
+         }
+
+         // And the shared state withdraws the first kind as the editors follow, the
+         // condition handed on with the refusal.
          string shared = ReadControlPanelFile("Views/IniPageSaveState.cs");
          string follow = WithheldRowTests.MemberText(shared, "public void Follow()");
          Assert.True(follow != null && follow.Contains("sentence_.Follow(unsaved)", StringComparison.Ordinal),
             "IniPageSaveState.Follow does not withdraw a refusal whose edits were taken back.");
+         string refuseShared = WithheldRowTests.MemberText(shared, "public void Refuse(string sentence, Func<bool> stillRefused = null)");
+         Assert.True(refuseShared != null && refuseShared.Contains("sentence_.Refuse(sentence, stillRefused);", StringComparison.Ordinal),
+            "IniPageSaveState.Refuse does not hand the refusal's condition to the notice.");
+      }
+
+      /// <summary>
+      /// The top-level arguments of the call whose opening bracket ends just before
+      /// <paramref name="from"/>, each trimmed: commas inside brackets and string
+      /// literals are not separators.
+      /// </summary>
+      private static string[] CallArguments_(string code, int from)
+      {
+         var arguments = new List<string>();
+         int depth = 0, start = from;
+         for (int i = from; i < code.Length; i++)
+         {
+            char c = code[i];
+            if (c == '"')
+            {
+               for (i++; i < code.Length && code[i] != '"'; i++)
+                  if (code[i] == '\\')
+                     i++;
+            }
+            else if (c == '(' || c == '[' || c == '{')
+               depth++;
+            else if ((c == ')' || c == ']' || c == '}') && depth > 0)
+               depth--;
+            else if (c == ')')
+            {
+               arguments.Add(code.Substring(start, i - start).Trim());
+               break;
+            }
+            else if (c == ',' && depth == 0)
+            {
+               arguments.Add(code.Substring(start, i - start).Trim());
+               start = i + 1;
+            }
+         }
+         return arguments.ToArray();
       }
 
       /// <summary>

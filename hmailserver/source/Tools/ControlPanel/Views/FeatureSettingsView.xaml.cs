@@ -3206,11 +3206,14 @@ namespace hMailServer.ControlPanel.Views
          }
 
          // A secret given a new value and ticked for removal both: refused before
-         // anything on the page is written, in the notice under the header.
+         // anything on the page is written, in the notice under the header - until the
+         // value is cleared or the box unticked, as the refusal asks, though another
+         // edit is still unsaved: the refusal names this secret, and stayed saying the
+         // box was ticked under a box unticked.
          SecretSetting conflict = cards_.SelectMany(card => card.Settings).OfType<SecretSetting>().FirstOrDefault(secret => secret.Conflicts);
          if (conflict != null)
          {
-            saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label));
+            saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label), () => conflict.Conflicts);
             return false;
          }
 

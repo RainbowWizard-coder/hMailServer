@@ -795,6 +795,21 @@ namespace hMailServer.ControlPanel.Views
          serviceDomainNote_.Text = "";
       }
 
+      /// <summary>
+      /// The port box as a save reads it: false, with why, for a value it refuses. Asked
+      /// by the save and again, after a refusal, by each edit.
+      /// </summary>
+      private bool TryPort_(out int port, out bool hasPort, out string error)
+         => NumericField.TryValidate(port_.Text, L("Port"), 0, 65535, out port, out hasPort, out error);
+
+      /// <summary>The timeout box as a save reads it, as <see cref="TryPort_"/> is the port's.</summary>
+      private bool TryTimeout_(out int seconds, out bool hasTimeout, out string error)
+         => NumericField.TryValidate(timeout_.Text, L("Timeout in seconds"), 1, 90, out seconds, out hasTimeout, out error);
+
+      /// <summary>A new service account password typed with the removal of the stored one ticked: which was meant is not the page's to guess.</summary>
+      private bool ServicePasswordConflicts_
+         => servicePassword_.Password.Length > 0 && clearServicePassword_.IsChecked is true;
+
       /// <summary>Writes the [LDAP] section; true when it was written.</summary>
       private bool Save_()
       {
@@ -804,16 +819,19 @@ namespace hMailServer.ControlPanel.Views
          // A save refused before it writes anything says why as every refused save on
          // the settings pages does, in the Critical notice under the header, where these
          // three were message boxes: the Authentication page refuses the same conflict
-         // - a new secret typed with its removal ticked - in its notice.
-         if (!NumericField.TryValidate(port_.Text, L("Port"), 0, 65535, out int port, out bool hasPort, out string portError))
+         // - a new secret typed with its removal ticked - in its notice. Each refusal
+         // goes as its cause is put right - the port in range, the password cleared or
+         // the box unticked - though another edit is still unsaved: it stayed saying
+         // "Port must be between 0 and 65535." over 636 until the next save.
+         if (!TryPort_(out int port, out bool hasPort, out string portError))
          {
-            saveState_.Refuse(portError);
+            saveState_.Refuse(portError, () => !TryPort_(out _, out _, out _));
             return false;
          }
 
-         if (!NumericField.TryValidate(timeout_.Text, L("Timeout in seconds"), 1, 90, out int timeoutSeconds, out bool hasTimeout, out string timeoutError))
+         if (!TryTimeout_(out int timeoutSeconds, out bool hasTimeout, out string timeoutError))
          {
-            saveState_.Refuse(timeoutError);
+            saveState_.Refuse(timeoutError, () => !TryTimeout_(out _, out _, out _));
             return false;
          }
 
@@ -821,9 +839,10 @@ namespace hMailServer.ControlPanel.Views
          // its caption: it quoted "remove the stored password", which is on no box, said
          // AND in capitals, and asked for one of a password and a box to be unticked.
          string newServicePassword = servicePassword_.Password;
-         if (newServicePassword.Length > 0 && clearServicePassword_.IsChecked is true)
+         if (ServicePasswordConflicts_)
          {
-            saveState_.Refuse(L("A new service account password has been typed, and \"Remove the stored service account password when saving\" is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make."));
+            saveState_.Refuse(L("A new service account password has been typed, and \"Remove the stored service account password when saving\" is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make."),
+               () => ServicePasswordConflicts_);
             return false;
          }
 

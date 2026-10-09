@@ -34,8 +34,8 @@ namespace hMailServer.ControlPanel.Views
    /// Reinitialise to apply or Restart to apply, until the next edit. The sentence that
    /// goes with a state is a notice at its level, with room for one action, and a save
    /// that wrote nothing says why in a Critical notice - withdrawn, when it was refused
-   /// before anything was written, once the edits it refused are taken back
-   /// (Services/SaveStateNotice).
+   /// before anything was written, once the reader puts its cause right or takes the
+   /// edits back (Services/SaveStateNotice).
    /// </summary>
    internal sealed class IniPageSaveState
    {
@@ -85,8 +85,9 @@ namespace hMailServer.ControlPanel.Views
       /// After an edit: Unsaved changes while an editor differs from what was read or
       /// saved, and the settled state again once none does. The notice is left alone -
       /// what a save or a read said stays true after the first keystroke - but for a
-      /// refusal made before anything was written, which goes once the editors hold
-      /// what was read or saved again, the settled sentence coming back in its place.
+      /// refusal made before anything was written, which goes once its cause is put
+      /// right or the editors hold what was read or saved again, the settled sentence
+      /// coming back in its place.
       /// </summary>
       public void Follow()
       {
@@ -99,16 +100,22 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// A save refused before it wrote anything: why, in a Critical notice under the
       /// header - never in grey caption text or a message box - until the next read or
-      /// save, or until the edits it refused are all taken back. The pill keeps
-      /// following the editors, which still hold what was not saved. The notice is
-      /// brought into view, with the page header above it where both fit: the save the
-      /// question before leaving a page makes is refused with the page scrolled wherever
-      /// the edit was, and a refusal a message box put in front of the reader must not
-      /// wait above the fold.
+      /// save, until <paramref name="stillRefused"/> answers false after an edit - the
+      /// reader did what the refusal asks, though another edit is still unsaved - or
+      /// until the edits are all taken back. The pill keeps following the editors,
+      /// which still hold what was not saved. The notice is brought into view, with the
+      /// page header above it where both fit: the save the question before leaving a
+      /// page makes is refused with the page scrolled wherever the edit was, and a
+      /// refusal a message box put in front of the reader must not wait above the fold.
       /// </summary>
-      public void Refuse(string sentence)
+      /// <param name="sentence">Why the save was refused.</param>
+      /// <param name="stillRefused">
+      /// The refusal's own condition, asked again on every edit <see cref="Follow"/>
+      /// sees: whether the editors still hold what the save was refused for.
+      /// </param>
+      public void Refuse(string sentence, Func<bool> stillRefused = null)
       {
-         sentence_.Refuse(sentence);
+         sentence_.Refuse(sentence, stillRefused);
          SayRefusal_();
       }
 

@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
@@ -11,14 +13,18 @@ namespace hMailServer.ControlPanel.Services
    /// level and with its one action - or, over it, why a save was refused or failed.
    ///
    /// A refusal made before anything was written - a port out of range, a new secret
-   /// typed with the removal of the stored one ticked - is about the edits the save was
-   /// asked to write, and is withdrawn once none is left: when the editors hold what was
-   /// read or saved again, the notice goes back to the settled sentence. It stayed,
-   /// Critical, saying "Clear the value or untick the box" under a page whose pill said
-   /// that nothing was unsaved, over a value cleared and a box unticked, until the next
-   /// save. A save that failed part of the way through keeps its sentence however the
-   /// editors are set afterwards: some of its settings may have been written, and the
-   /// notice is the one place that says the file may not hold what the page shows.
+   /// typed with the removal of the stored one ticked - is about what the editors held
+   /// when the save was asked for, and is withdrawn once that is no longer so: when the
+   /// reader puts its cause right - the port in range, one of the value and the box
+   /// taken back - though another edit is still unsaved, or when no edit is left at
+   /// all; the notice then goes back to the settled sentence. It stayed, Critical,
+   /// saying "Clear the value or untick the box" over a box unticked as it asked, and
+   /// "Port must be between 0 and 65535." over 636, until the next save - and first
+   /// under a page whose pill said that nothing was unsaved, over a value cleared and a
+   /// box unticked. An edit that has nothing to do with the refusal leaves it. A save
+   /// that failed part of the way through keeps its sentence however the editors are
+   /// set afterwards: some of its settings may have been written, and the notice is
+   /// the one place that says the file may not hold what the page shows.
    ///
    /// WPF-free, the action held as an object the page made, so that a test can hold the
    /// sequences a page goes through (Views/IniPageSaveState draws it).
@@ -31,6 +37,11 @@ namespace hMailServer.ControlPanel.Services
 
       // Set while the notice shows a refusal made before anything was written.
       private bool refusalBeforeWriting_;
+
+      // That refusal's own condition, asked again after each edit: false once the
+      // reader has put its cause right. Null for a refusal that names no condition,
+      // which goes only with the last edit.
+      private Func<bool> stillRefused_;
 
       /// <summary>The sentence the notice shows now; null when it shows none and is collapsed.</summary>
       public string Sentence { get; private set; }
@@ -54,17 +65,26 @@ namespace hMailServer.ControlPanel.Services
          settledLevel_ = level;
          settledAction_ = action;
          refusalBeforeWriting_ = false;
+         stillRefused_ = null;
          ShowSettled_();
       }
 
       /// <summary>
       /// A save refused before it wrote anything: why, at Critical, until the next read
-      /// or save - or until no edit is left for it to be about (<see cref="Follow"/>).
+      /// or save - or until its cause is put right, or no edit is left for it to be
+      /// about (<see cref="Follow"/>).
       /// </summary>
-      public void Refuse(string sentence)
+      /// <param name="sentence">Why the save was refused.</param>
+      /// <param name="stillRefused">
+      /// Whether the editors still hold what the save was refused for - the port out of
+      /// range, a new value typed with the removal ticked - asked after each edit. Null
+      /// when the refusal names no condition the page can ask again.
+      /// </param>
+      public void Refuse(string sentence, Func<bool> stillRefused = null)
       {
          Show_(sentence, StatusLevel.Critical, null, refusal: true);
          refusalBeforeWriting_ = true;
+         stillRefused_ = stillRefused;
       }
 
       /// <summary>
@@ -75,20 +95,25 @@ namespace hMailServer.ControlPanel.Services
       {
          Show_(sentence, StatusLevel.Critical, null, refusal: true);
          refusalBeforeWriting_ = false;
+         stillRefused_ = null;
       }
 
       /// <summary>
       /// After an edit: a refusal made before anything was written is withdrawn once
-      /// the editors hold what was read or saved, and the settled sentence shows
-      /// again. True when what the notice shows changed.
+      /// its cause is put right - its own condition no longer holds, though another
+      /// edit may still be unsaved - or once the editors hold what was read or saved,
+      /// and the settled sentence shows again. True when what the notice shows changed.
       /// </summary>
       /// <param name="hasUnsavedChanges">Whether an editor still differs from what was read or saved.</param>
       public bool Follow(bool hasUnsavedChanges)
       {
-         if (!refusalBeforeWriting_ || hasUnsavedChanges)
+         if (!refusalBeforeWriting_)
+            return false;
+         if (hasUnsavedChanges && stillRefused_?.Invoke() != false)
             return false;
 
          refusalBeforeWriting_ = false;
+         stillRefused_ = null;
          ShowSettled_();
          return true;
       }

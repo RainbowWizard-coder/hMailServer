@@ -81,7 +81,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          int writes = save.IndexOf("setting.Save(store_)", StringComparison.Ordinal);
          Assert.True(refuses >= 0 && asks > refuses && writes > refuses,
             "A secret given a new value and ticked for removal is written, or asked about, before the save refuses it.");
-         Assert.Contains("saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label))", save, StringComparison.Ordinal);
+         // Withdrawn once the secret it names no longer conflicts - the value cleared or the
+         // box unticked - though another edit is still unsaved.
+         Assert.Contains("saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label), () => conflict.Conflicts)", save, StringComparison.Ordinal);
 
          string confirm = WithheldRowTests.MemberText(page, "private bool ConfirmPepperChange_()");
          Assert.True(confirm != null && confirm.Contains("PepperChange.RemovalAsksFirst(", StringComparison.Ordinal),
