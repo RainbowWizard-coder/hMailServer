@@ -585,7 +585,7 @@ namespace hMailServer.ControlPanel.Views
                ServerSession.Release(ranges);
 
                if (autoban > 0)
-                  count += AddWarning(StatusLevel.Information, F("There is a total of {0} auto-ban IP range(s).", autoban));
+                  count += AddWarning(StatusLevel.Information, Plural(autoban, "There is {0} auto-ban IP range in all.", "There are {0} auto-ban IP ranges in all."));
             }
             finally
             {

@@ -162,7 +162,7 @@ namespace hMailServer.ControlPanel.Views
 
             status_.Text = count == 0
                ? L("This group has no accounts in it, so any permission granted to it currently applies to nobody.")
-               : (count == 1 ? L("1 account is a member.") : F("{0} accounts are members.", count));
+               : Plural(count, "{0} account is a member.", "{0} accounts are members.");
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

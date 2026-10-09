@@ -225,7 +225,7 @@ namespace hMailServer.ControlPanel.Views
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No rules defined yet - create one below."));
          HeaderPanel.Subtitle = rows.Count == 0
             ? L("Server-wide message rules, evaluated top to bottom.")
-            : F("{0} rule(s), evaluated top to bottom.", rows.Count);
+            : Plural(rows.Count, "{0} rule, evaluated top to bottom.", "{0} rules, evaluated top to bottom.");
 
          CriteriaGrid.ItemsSource = null;
          ActionsGrid.ItemsSource = null;

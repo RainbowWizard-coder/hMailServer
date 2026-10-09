@@ -213,9 +213,12 @@ namespace hMailServer.ControlPanel.Views
             }
 
             if (list.Total > list.Entries.Count)
-               Status_(StatusLevel.Information, F("{0} addresses listed, showing the {1} most recent. Search to narrow them.", list.Total, list.Entries.Count));
+               Status_(StatusLevel.Information, PluralF(list.Total,
+                  "{0} address listed, showing the {1} most recent. Search to narrow them.",
+                  "{0} addresses listed, showing the {1} most recent. Search to narrow them.",
+                  list.Total, list.Entries.Count));
             else if (list.Total > 0)
-               Status_(StatusLevel.Information, list.Total == 1 ? L("1 address listed.") : F("{0} addresses listed.", list.Total));
+               Status_(StatusLevel.Information, Plural(list.Total, "{0} address listed.", "{0} addresses listed."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

@@ -365,7 +365,7 @@ namespace hMailServer.ControlPanel.Services
          int samples = 0;
          foreach (ChartSeriesSummary summary in summaries)
             samples = Math.Max(samples, summary.SampleCount);
-         text.Append("; ").Append(samples == 1 ? L("1 sample.") : F("{0} samples.", samples));
+         text.Append("; ").Append(Plural(samples, "{0} sample.", "{0} samples."));
 
          return text.ToString();
       }

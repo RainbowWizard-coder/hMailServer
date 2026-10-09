@@ -600,13 +600,13 @@ namespace hMailServer.ControlPanel.Views
             // day count is the calendar's, the same one the note on this
             // certificate names, so that the row and the note agree.
             int daysAgo = Math.Max(0, -TlsPosture.CalendarDays(certificate, DateTime.Today).Value);
-            detail = daysAgo == 0 ? L("expired today") : F("expired {0} day(s) ago", daysAgo);
+            detail = daysAgo == 0 ? L("expired today") : Plural(daysAgo, "expired {0} day ago", "expired {0} days ago");
             level = certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning;
          }
          else
          {
             int days = Math.Max(0, TlsPosture.CalendarDays(certificate, DateTime.Today).Value);
-            detail = days == 0 ? L("expires today") : F("expires in {0} day(s)", days);
+            detail = days == 0 ? L("expires today") : Plural(days, "expires in {0} day", "expires in {0} days");
             level = certificate.DaysRemaining > TlsPosture.ExpiryWarningDays ? StatusLevel.Good
                : certificate.InUse ? StatusLevel.Warning
                : StatusLevel.Information;
@@ -670,8 +670,13 @@ namespace hMailServer.ControlPanel.Views
                : config.RangesTotal == 0
                ? L("No IP ranges are configured.")
                : config.RangesRequiringTlsForAuth == 0
-                  ? F("None of the {0} IP range(s) requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.", config.RangesTotal)
-                  : F("{0} of {1} IP range(s) refuse authentication until the session is encrypted.", config.RangesRequiringTlsForAuth, config.RangesTotal),
+                  ? Plural(config.RangesTotal,
+                     "The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one.",
+                     "None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one.")
+                  : PluralF(config.RangesRequiringTlsForAuth,
+                     "{0} of {1} IP ranges refuses authentication until the session is encrypted.",
+                     "{0} of {1} IP ranges refuse authentication until the session is encrypted.",
+                     config.RangesRequiringTlsForAuth, config.RangesTotal),
             Typography.Body));
 
          content.Children.Add(Paragraph(L("This setting lives on each IP range rather than with the rest of TLS, which is the main reason it goes unnoticed. It is the only control that refuses a plaintext password regardless of what the port allows, so it is what makes an optional-STARTTLS port safe for clients."),

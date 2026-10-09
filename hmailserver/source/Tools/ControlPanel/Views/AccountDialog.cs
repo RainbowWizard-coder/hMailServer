@@ -771,7 +771,7 @@ namespace hMailServer.ControlPanel.Views
             }
             ServerSession.Release(folders);
             ServerSession.Release(a);
-            folderStatus_.Text = count + (count == 1 ? " folder." : " folders.");
+            folderStatus_.Text = Plural(count, "{0} folder.", "{0} folders.");
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -893,7 +893,10 @@ namespace hMailServer.ControlPanel.Views
             dynamic a = OpenAccount(domains);
             int exported = (int)a.ExportArchive(save.FileName);
             ServerSession.Release(a);
-            folderNotice_.Show(StatusLevel.Good, F("Exported {0} message(s) and everything else the server holds to {1}.", exported, save.FileName));
+            folderNotice_.Show(StatusLevel.Good, PluralF(exported,
+               "Exported {0} message and everything else the server holds to {1}.",
+               "Exported {0} messages and everything else the server holds to {1}.",
+               exported, save.FileName));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -918,7 +921,10 @@ namespace hMailServer.ControlPanel.Views
          {
             int removed = (int)utilities.EraseAddressTraces(address_, true);
             int lines = (int)utilities.EraseAddressLogLines(address_);
-            folderNotice_.Show(StatusLevel.Good, F("Erased {0} stored trace(s) and rewrote {1} log line(s).", removed, lines));
+            // Two counts are two sentences, the first placed whole in the second
+            // so that a language with no space between sentences joins them its way.
+            folderNotice_.Show(StatusLevel.Good, PluralF(lines, "{0} Rewrote {1} log line.", "{0} Rewrote {1} log lines.",
+               Plural(removed, "Erased {0} stored trace.", "Erased {0} stored traces."), lines));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

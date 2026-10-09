@@ -874,9 +874,7 @@ namespace hMailServer.ControlPanel.Views
          // dialog, and the table itself is still on screen to read.
          if (ClipboardWriter.TrySetText(table.ToDelimitedText()))
          {
-            Toast.Info(table.Rows.Count == 1
-               ? L("1 sample copied to the clipboard.")
-               : F("{0} samples copied to the clipboard.", table.Rows.Count.ToString("N0", CultureInfo.CurrentCulture)), L(definition_.Title));
+            Toast.Info(Plural(table.Rows.Count, "{0} sample copied to the clipboard.", "{0} samples copied to the clipboard."), L(definition_.Title));
          }
       }
 

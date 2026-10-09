@@ -604,10 +604,11 @@ namespace hMailServer.ControlPanel.Views
                ServerSession.Release(domain);
             }
 
-            string counted = accountCount == 1 ? L("its 1 account") : F("its {0} accounts", accountCount);
-
             if (MessageBox.Show(
-                   F("Delete the domain {0}?\n\nThis permanently removes {1}, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo.", name, counted),
+                   PluralF(accountCount,
+                      "Delete the domain {0}?\n\nThis permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo.",
+                      "Delete the domain {0}?\n\nThis permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo.",
+                      name, accountCount),
                    L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
                return;
 

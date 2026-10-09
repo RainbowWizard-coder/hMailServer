@@ -255,9 +255,14 @@ namespace hMailServer.ControlPanel.Views
          {
             List<AdUser> users = await Task.Run(() => ActiveDirectoryService.QueryUsers(domain, filter, 1000));
             list_.ItemsSource = users;
+            // The search stops at a thousand, so a thousand found is the first
+            // thousand of more, which is said whole rather than as a fragment
+            // after the count.
             status_.Text = users.Count == 0
                ? F("No matching accounts in {0}.", domain)
-               : F("{0} account(s) found{1}.", users.Count, users.Count >= 1000 ? L(" (showing first 1000 — refine your search)") : "");
+               : users.Count >= 1000
+                  ? F("The first {0} matching accounts are shown; refine the search to see the rest.", users.Count)
+                  : Plural(users.Count, "{0} account found.", "{0} accounts found.");
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

@@ -158,8 +158,17 @@ namespace hMailServer.ControlPanel.Views
 
       private static string SafeGroup(dynamic p)
       {
-         try { dynamic g = p.Group; string n = (string)g.Name; ServerSession.Release(g); return "Group: " + n; }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return F("(group #{0})", (int)p.PermissionGroupID); }
+         string name = SafeGroupName(p);
+         return name != null ? F("Group: {0}", name) : F("(group #{0})", (int)p.PermissionGroupID);
+      }
+
+      // The group's name alone, or null when it cannot be read: the list says
+      // "Group: " before it in the reader's language, and the entry dialog's box
+      // takes the name as it is.
+      private static string SafeGroupName(dynamic p)
+      {
+         try { dynamic g = p.Group; string n = (string)g.Name; ServerSession.Release(g); return n; }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return null; }
       }
 
       private void DeleteSelected()
@@ -203,7 +212,7 @@ namespace hMailServer.ControlPanel.Views
                dynamic perms = folder.Permissions;
                dynamic p = perms.ItemByDBID(existingId);
                int type = (int)p.PermissionType;
-               string subject = type == 0 ? SafeAccount(p) : type == 1 ? StripGroup(SafeGroup(p)) : "";
+               string subject = type == 0 ? SafeAccount(p) : type == 1 ? (string)SafeGroupName(p) ?? "" : "";
                dlg.Initialize(type, subject, (int)p.Value);
                ServerSession.Release(p);
                ServerSession.Release(perms);
@@ -254,8 +263,6 @@ namespace hMailServer.ControlPanel.Views
          }
          Reload();
       }
-
-      private static string StripGroup(string s) => s.StartsWith("Group: ") ? s.Substring(7) : s;
 
       private static int ResolveAccountId(string address)
       {

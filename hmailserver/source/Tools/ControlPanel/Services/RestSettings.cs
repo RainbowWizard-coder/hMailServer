@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Services
          string portText = (port ?? "").Trim();
          if (!int.TryParse(portText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) || number <= 0 || number > 65535)
          {
-            refusal = F("The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API & monitoring page, reinitialize the server, and open this page again.",
+            refusal = F("The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API & monitoring page, reinitialise the server, and open this page again.",
                portText.Length == 0 ? "0" : portText);
             return null;
          }

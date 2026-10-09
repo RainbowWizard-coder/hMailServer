@@ -264,10 +264,14 @@ namespace hMailServer.ControlPanel.Views
          foreach (PortRow row in down)
             names.Add(row.Protocol + " " + row.Address + ":" + row.Port);
 
+         // The first sentence says which, the second why, written whole with the
+         // first placed in it.
+         string which = down.Count == 1
+            ? F("One configured port is not being listened on: {0}.", string.Join(", ", names))
+            : PluralF(down.Count, "{0} configured port is not being listened on: {1}.", "{0} configured ports are not being listened on: {1}.",
+               down.Count, string.Join(", ", names));
          ShowSummary_(StatusLevel.Warning,
-            (down.Count == 1 ? L("One configured port is not being listened on: ") : F("{0} configured ports are not being listened on: ", down.Count))
-            + string.Join(", ", names)
-            + L(". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up."));
+            F("{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up.", which));
       }
 
       /// <summary>The summary as a notice at its level: a warning for a dead port,
@@ -367,7 +371,7 @@ namespace hMailServer.ControlPanel.Views
       private void OfferReinitialize_()
       {
          if (MessageBox.Show(
-                L("Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?"),
+                L("Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?"),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
             return;
 
@@ -387,9 +391,9 @@ namespace hMailServer.ControlPanel.Views
          }
 
          if (failure == null)
-            Services.Toast.Success(L("Reinitialized - the server now listens on the ports as this page lists them."));
+            Services.Toast.Success(L("Reinitialised - the server now listens on the ports as this page lists them."));
          else
-            Services.Toast.Failure(F("Could not reinitialize: {0}", failure), L("Control Panel"));
+            Services.Toast.Failure(F("Could not reinitialise: {0}", failure), L("Control Panel"));
 
          Reload();
       }
@@ -446,7 +450,7 @@ namespace hMailServer.ControlPanel.Views
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
          if (MessageBox.Show(
-                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized."),
+                L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised."),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 

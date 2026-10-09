@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader Title="{loc:L 'TCP/IP ports'}"
-                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine\'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}" />
+                             Subtitle="{loc:L 'The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine\'s open ports, not from the configuration, so it shows what is actually happening rather than what was asked for.'}" />
 
         <!-- The IP ranges shape: the list takes the height the parts under it
              leave in the window, down to a floor of three rows, and below that

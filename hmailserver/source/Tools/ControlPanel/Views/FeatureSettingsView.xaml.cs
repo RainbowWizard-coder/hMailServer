@@ -1187,7 +1187,10 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Critical,
-               Text = F("The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.", expires, -days)
+               Text = PluralF(-days,
+                  "The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
+                  "The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port.",
+                  expires, -days)
             };
          }
 
@@ -1196,14 +1199,20 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Warning,
-               Text = F("The issued certificate expires on {0}, in {1} days. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why.", expires, days)
+               Text = PluralF(days,
+                  "The issued certificate expires on {0}, in {1} day. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why.",
+                  "The issued certificate expires on {0}, in {1} days. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why.",
+                  expires, days)
             };
          }
 
          return new WarningState
          {
             Level = StatusLevel.Good,
-            Text = F("A certificate is issued and valid until {0}, {1} days from now. Renewal starts automatically inside the last {2} days.", expires, days, CertificateInspector.ExpiryWarningDays)
+            Text = PluralF(days,
+               "A certificate is issued and valid until {0}, {1} day from now. Renewal starts automatically inside the last {2} days.",
+               "A certificate is issued and valid until {0}, {1} days from now. Renewal starts automatically inside the last {2} days.",
+               expires, days, CertificateInspector.ExpiryWarningDays)
          };
       }
 
@@ -3080,14 +3089,19 @@ namespace hMailServer.ControlPanel.Views
 
          if (waitingForRestart == 0)
          {
-            SetState_(SettingsPageState.Saved, F("Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them.", time, waiting.Count));
+            SetState_(SettingsPageState.Saved, PluralF(waiting.Count,
+               "Saved {0} - {1} setting waits for a reinitialise; Apply now, in the bar at the foot of the window, takes it.",
+               "Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them.",
+               time, waiting.Count));
             return true;
          }
 
          SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", time));
 
          if (MessageBox.Show(
-                F("Settings saved. {0} of them take effect only when the hMailServer service restarts.\n\nRestart it now?", waitingForRestart),
+                Plural(waitingForRestart,
+                   "Settings saved. {0} of them takes effect only when the hMailServer service restarts.\n\nRestart it now?",
+                   "Settings saved. {0} of them take effect only when the hMailServer service restarts.\n\nRestart it now?"),
                 L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
          {
             RestartService();

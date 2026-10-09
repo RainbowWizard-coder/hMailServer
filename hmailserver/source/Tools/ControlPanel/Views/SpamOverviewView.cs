@@ -534,7 +534,7 @@ namespace hMailServer.ControlPanel.Views
 
          string count = active != null
             ? F("{0} active of {1}", active.Value, total)
-            : total == 1 ? F("{0} entry", total) : F("{0} entries", total);
+            : Plural(total, "{0} entry", "{0} entries");
 
          var text = new TextBlock { Text = name + " — " + count, VerticalAlignment = VerticalAlignment.Center };
          text.SetResourceReference(StyleProperty, "TextBody");

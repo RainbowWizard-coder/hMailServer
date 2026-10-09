@@ -392,7 +392,7 @@ namespace hMailServer.ControlPanel.Services
                else
                {
                   finding.State = SetupItemState.ActionNeeded;
-                  finding.Text = F("{0}: TXT record(s) exist at {1} but none carries this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help.", probe.Label, probe.Host);
+                  finding.Text = F("{0}: what is published at {1} does not carry this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help.", probe.Label, probe.Host);
                }
                return;
 
@@ -415,7 +415,7 @@ namespace hMailServer.ControlPanel.Services
                else
                {
                   finding.State = SetupItemState.ActionNeeded;
-                  finding.Text = F("{0}: TXT record(s) exist at {1} but none matches the staged secondary key. Fix the value before promoting - waiting will not help.", probe.Label, probe.Host);
+                  finding.Text = F("{0}: what is published at {1} does not match the staged secondary key. Fix the value before promoting - waiting will not help.", probe.Label, probe.Host);
                }
                return;
 
@@ -451,7 +451,7 @@ namespace hMailServer.ControlPanel.Services
                else
                {
                   finding.State = SetupItemState.ActionNeeded;
-                  finding.Text = F("{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value.", probe.Label, probe.Host);
+                  finding.Text = F("{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value.", probe.Label, probe.Host);
                }
                return;
          }
@@ -683,7 +683,7 @@ namespace hMailServer.ControlPanel.Services
                {
                   Title = L("No password on port 25 - the port other servers deliver to"),
                   Purpose = L("Port 25 is where other servers deliver mail, and no mail client should sign in there: an AUTH on it is a password being guessed."),
-                  Action = L("On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first."),
+                  Action = L("On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first."),
                   Page = "ports"
                };
             case "spf":
@@ -822,10 +822,35 @@ namespace hMailServer.ControlPanel.Services
          }
 
          SetupItemState state = FirstHourState(finding.TryGetProperty("state", out JsonElement stateElement) ? stateElement.GetString() : null);
-         string text = FirstHourTexts.TryGetValue(code, out string english)
-            ? F(english, args.Cast<object>().ToArray())
-            : (finding.TryGetProperty("text", out JsonElement textElement) ? textElement.GetString() : null) ?? code;
+         object[] formatArgs = args.Cast<object>().ToArray();
+         string text = FirstHourCount_(code, args, formatArgs)
+            ?? (FirstHourTexts.TryGetValue(code, out string english)
+               ? F(english, formatArgs)
+               : (finding.TryGetProperty("text", out JsonElement textElement) ? textElement.GetString() : null) ?? code);
          item.Add(state, text);
+      }
+
+      /// <summary>
+      /// A first-hour text that counts what its first argument counts, in the form
+      /// the language in force has for that number (Loc.Plural); null for any other
+      /// code, or a first argument that is not a number. The table above keeps the
+      /// server's sentence for these codes as well, as the server words them.
+      /// </summary>
+      private static string FirstHourCount_(string code, List<string> args, object[] formatArgs)
+      {
+         if (args.Count == 0 || !long.TryParse(args[0], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out long count))
+            return null;
+
+         return code switch
+         {
+            "profile_in_service" => PluralF(count,
+               "This server holds {0} account, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one.",
+               "This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one.",
+               formatArgs),
+            "domain_none_active" => PluralF(count, "{0} domain, and it is not active.", "{0} domains, none of them active.", formatArgs),
+            "domains_not_looked_up" => PluralF(count, "{0} more active domain was not looked up.", "{0} more active domains were not looked up.", formatArgs),
+            _ => null
+         };
       }
 
       private static SetupItemState FirstHourState(string word)
@@ -1527,7 +1552,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("Inbound client certificates - the port needs a CA bundle, the clients need certificates"),
             Purpose = L("Requires (or requests) a TLS client certificate from anyone connecting to a port, so only holders of a certificate from your chosen CA get in."),
-            Action = L("Produce or obtain a CA (for example with OpenSSL or your PKI), save its certificate(s) as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates."),
+            Action = L("Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates."),
             Page = "ports"
          };
 

@@ -285,7 +285,10 @@ namespace hMailServer.ControlPanel.Views
 
          Reload();
          if (skipped > 0)
-            notice_.Show(StatusLevel.Information, F("{0} recipient(s) added. {1} account(s) had no e-mail address and were skipped.", added, skipped));
+            notice_.Show(StatusLevel.Information, PluralF(skipped,
+               "{0} {1} account had no e-mail address and was skipped.",
+               "{0} {1} accounts had no e-mail address and were skipped.",
+               Plural(added, "{0} recipient added.", "{0} recipients added."), skipped));
       }
 
       /// <summary>The selected member's delivery, read from the server.</summary>

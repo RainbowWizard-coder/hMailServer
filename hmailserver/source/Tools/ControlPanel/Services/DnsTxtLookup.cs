@@ -278,7 +278,7 @@ namespace hMailServer.ControlPanel.Services
       private static string DescribeStatus(int status)
       {
          string message = new System.ComponentModel.Win32Exception(status).Message;
-         return message + " (error " + status + ")";
+         return F("{0} (error {1})", message, status);
       }
 
       // ---- value comparison ----------------------------------------------------

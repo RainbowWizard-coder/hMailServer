@@ -111,7 +111,7 @@ namespace hMailServer.ControlPanel.Views
          public int Changes { get; init; }
 
          // The server's title, and how many of its settings would change here.
-         public override string ToString() => Title + " - " + F("{0} of its {1} settings would change on this server.", Changes, Entries);
+         public override string ToString() => F("{0} - settings that would change on this server: {1} of {2}.", Title, Changes, Entries);
       }
 
       /// <summary>A row as the grid shows it: the entry beside the value this server holds.</summary>
@@ -354,7 +354,10 @@ namespace hMailServer.ControlPanel.Views
          // YesNo, No on Enter, like every other confirmation that changes what the
          // server does.
          if (MessageBox.Show(
-               F("Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.", choice.Name, changes_),
+               PluralF(changes_,
+                  "Apply the {0} profile? {1} setting changes, and what it held is kept so that it can be put back.",
+                  "Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.",
+                  choice.Name, changes_),
                L("Apply a profile"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
              != MessageBoxResult.Yes)
          {
@@ -385,7 +388,7 @@ namespace hMailServer.ControlPanel.Views
                reinitialize = Number_(waiting, "reinitialize");
                restart = Number_(waiting, "restart");
             }
-            Status_(StatusLevel.Good, F("{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart.", choice.Name, Number_(root, "set"), Number_(root, "unchanged"), Number_(root, "skipped"), reinitialize, restart));
+            Status_(StatusLevel.Good, F("{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}.", choice.Name, Number_(root, "set"), Number_(root, "unchanged"), Number_(root, "skipped"), reinitialize, restart));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -433,7 +436,7 @@ namespace hMailServer.ControlPanel.Views
                reinitialize = Number_(waiting, "reinitialize");
                restart = Number_(waiting, "restart");
             }
-            Status_(StatusLevel.Good, F("{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart.", name, Number_(root, "set"), Number_(root, "skipped"), reinitialize, restart));
+            Status_(StatusLevel.Good, F("{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}.", name, Number_(root, "set"), Number_(root, "skipped"), reinitialize, restart));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

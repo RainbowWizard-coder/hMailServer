@@ -155,11 +155,16 @@ namespace hMailServer.ControlPanel.Views
 
          readFailure_.Text = checks_.FailedReads == 0
             ? null
-            : F("{0} value(s) could not be read — {1} The items above may be incomplete.", checks_.FailedReads, checks_.FirstError);
+            : PluralF(checks_.FailedReads,
+               "{0} value could not be read: {1} The items above may be incomplete.",
+               "{0} values could not be read: {1} The items above may be incomplete.",
+               checks_.FailedReads, checks_.FirstError);
          readFailure_.Visibility = checks_.FailedReads == 0 ? Visibility.Collapsed : Visibility.Visible;
 
          RenderItems(checks_.DnsLookupCount > 0
-            ? F(" {0} DNS record(s) are being looked up in the background; the rows marked \"checking\" will update.", checks_.DnsLookupCount)
+            ? Plural(checks_.DnsLookupCount,
+               "{0} DNS record is being looked up in the background; the row marked \"checking\" will update.",
+               "{0} DNS records are being looked up in the background; the rows marked \"checking\" will update.")
             : "");
 
          if (checks_.DnsLookupCount == 0)
@@ -182,7 +187,7 @@ namespace hMailServer.ControlPanel.Views
                   return;
 
                checks.ApplyDnsResults();
-               RenderItems(L(" DNS records checked through the Windows resolver."));
+               RenderItems(L("The DNS records were checked through the Windows resolver."));
             }));
          });
       }
@@ -214,7 +219,8 @@ namespace hMailServer.ControlPanel.Views
             + (next != null ? " " + F("Next step: {0}.", next.Title) : "");
          summary_.Visibility = Visibility.Visible;
 
-         status_.Text = baseStatus_ + dnsNote;
+         // Two sentences; each is whole in the catalogue.
+         status_.Text = dnsNote.Length == 0 ? baseStatus_ : baseStatus_ + " " + dnsNote;
       }
 
       private Card ItemCard(SetupItem item, int number, bool isNext)

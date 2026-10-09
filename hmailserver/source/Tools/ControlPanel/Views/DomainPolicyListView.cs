@@ -220,7 +220,7 @@ namespace hMailServer.ControlPanel.Views
             L("The list is empty, and an empty list changes nothing: every domain is greylisted and scored as before."));
 
          if (all_.Count > 0 && shown.Count < all_.Count)
-            Status_(StatusLevel.Information, F("{0} of {1} entries match the search.", shown.Count, all_.Count));
+            Status_(StatusLevel.Information, F("Entries that match the search: {0} of {1}.", shown.Count, all_.Count));
       }
 
       private void AddEntry()

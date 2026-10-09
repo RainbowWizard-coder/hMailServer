@@ -67,12 +67,13 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("No public host name is configured", "StatusLevel.Warning")]
       [InlineData("Mail from an empty sender address is denied", "StatusLevel.Warning")]
       [InlineData("Localhost is currently banned", "StatusLevel.Warning")]
-      [InlineData("auto-ban IP range(s)", "StatusLevel.Information")]
+      [InlineData("auto-ban IP range in all", "StatusLevel.Information")]
       [InlineData("Could not evaluate all warnings", "StatusLevel.Information")]
       public void EachWarning_CarriesTheLevelItAlwaysMeant(string fragment, string level)
       {
          string source = ReadStatusView();
-         Match call = Regex.Matches(source, @"AddWarning\((StatusLevel\.\w+),\s*[LF]\(""([^""]*)""")
+         // A count's warning is a Plural call, its one form first.
+         Match call = Regex.Matches(source, @"AddWarning\((StatusLevel\.\w+),\s*(?:[LF]\(|Plural\([^,]+,\s*)""([^""]*)""")
             .Cast<Match>()
             .FirstOrDefault(m => m.Groups[2].Value.Contains(fragment, StringComparison.Ordinal));
          Assert.True(call != null, "The Server status page no longer warns about \"" + fragment + "\".");

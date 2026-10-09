@@ -380,7 +380,9 @@ namespace hMailServer.ControlPanel.Views
             string domain = root.GetProperty("domain").GetString() ?? "";
 
             if (removing)
-               Dialogs.Info(F("{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it.",
+               // Four counts: each after its noun as a label, which no language has to
+               // decline (Loc.Plural chooses one form for one count).
+               Dialogs.Info(F("{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}.",
                   domain, root.GetProperty("accounts").GetInt64(), root.GetProperty("lists").GetInt64(),
                   root.GetProperty("rules").GetInt64(), root.GetProperty("messages").GetInt64()), L("Control Panel"));
             else
@@ -390,8 +392,13 @@ namespace hMailServer.ControlPanel.Views
                // GetProperty, because a server older than this panel answers no
                // password at all, and losing the whole report over that would be
                // worse than an empty slot.
-               Dialogs.Info(F("{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it.",
-                  domain, root.GetProperty("accounts_created").GetInt64(), root.GetProperty("messages").GetInt64(),
+               // Two counts are two sentences, the first placed whole in the second.
+               Dialogs.Info(PluralF(root.GetProperty("messages").GetInt64(),
+                  "{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it.",
+                  "{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it.",
+                  PluralF(root.GetProperty("accounts_created").GetInt64(), "{0} was made with {1} mailbox.", "{0} was made with {1} mailboxes.",
+                     domain, root.GetProperty("accounts_created").GetInt64()),
+                  root.GetProperty("messages").GetInt64(),
                   root.TryGetProperty("password", out JsonElement minted) ? minted.GetString() ?? "" : ""), L("Control Panel"));
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))

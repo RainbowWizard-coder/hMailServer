@@ -118,7 +118,7 @@ namespace hMailServer.ControlPanel.Views
                   names.Add((string)f.Name);
                   ServerSession.Release(f);
                }
-               count_.Text = count == 1 ? L("1 public folder.") : F("{0} public folders.", count);
+               count_.Text = Plural(count, "{0} public folder.", "{0} public folders.");
             }
             finally
             {

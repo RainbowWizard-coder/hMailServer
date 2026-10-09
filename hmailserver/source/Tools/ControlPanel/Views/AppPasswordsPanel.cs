@@ -135,7 +135,7 @@ namespace hMailServer.ControlPanel.Views
 
                status_.Text = count == 0
                   ? L("No app passwords. Create one per mail client, so that losing a device revokes only that device.")
-                  : (count == 1 ? L("1 app password.") : F("{0} app passwords.", count));
+                  : Plural(count, "{0} app password.", "{0} app passwords.");
             }
             finally
             {

@@ -19,7 +19,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EachMarkHasItsCaption()
       {
          Assert.Equal("Applies on save", SettingApplies.Caption("now"));
-         Assert.Equal("After reinitialize", SettingApplies.Caption("reinitialize"));
+         Assert.Equal("After reinitialise", SettingApplies.Caption("reinitialize"));
          Assert.Equal("After a restart", SettingApplies.Caption("restart"));
       }
 
@@ -27,7 +27,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheCaptionIsReadAsTheServerMightSpellIt()
       {
          Assert.Equal("Applies on save", SettingApplies.Caption(" NOW "));
-         Assert.Equal("After reinitialize", SettingApplies.Caption("Reinitialize"));
+         Assert.Equal("After reinitialise", SettingApplies.Caption("Reinitialize"));
       }
 
       [Fact]
@@ -59,19 +59,35 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string reinitialize = SettingApplies.Banner(2, 0);
          Assert.Contains("2", reinitialize);
-         Assert.Contains("reinitialize", reinitialize);
+         Assert.Contains("reinitialise", reinitialize);
          Assert.DoesNotContain("restart", reinitialize);
 
          string restart = SettingApplies.Banner(0, 1);
          Assert.Contains("1", restart);
          Assert.Contains("restart", restart);
-         Assert.DoesNotContain("reinitialize", restart);
+         Assert.DoesNotContain("reinitialise", restart);
 
          string both = SettingApplies.Banner(3, 1);
          Assert.Contains("3", both);
          Assert.Contains("1", both);
-         Assert.Contains("reinitialize", both);
+         Assert.Contains("reinitialise", both);
          Assert.Contains("restart", both);
+      }
+
+      /// <summary>
+      /// One waiting setting is said in the singular and several in the plural
+      /// (Loc.Plural), where the bar said "1 saved setting(s) wait" for both, and
+      /// the server's verb is spelt the British way in its sentence (review
+      /// finding F036).
+      /// </summary>
+      [Fact]
+      public void TheBannerCountsInTheSingularAndThePlural()
+      {
+         Assert.Equal("1 saved setting waits for a reinitialise.", SettingApplies.Banner(1, 0));
+         Assert.Equal("2 saved settings wait for a reinitialise.", SettingApplies.Banner(2, 0));
+         Assert.Equal("1 saved setting waits for a service restart.", SettingApplies.Banner(0, 1));
+         Assert.Equal("1 saved setting waits for a reinitialise, and 3 for a service restart.", SettingApplies.Banner(1, 3));
+         Assert.DoesNotContain("(s)", SettingApplies.Banner(5, 5));
       }
 
       [Fact]
@@ -120,7 +136,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.Contains("maintenance mode", SettingApplies.ApplyNowQuestion(draining: true));
          Assert.DoesNotContain("maintenance mode", SettingApplies.ApplyNowQuestion(draining: false));
-         Assert.Contains("Reinitialize", SettingApplies.ApplyNowQuestion(draining: false));
+         Assert.Contains("Reinitialise", SettingApplies.ApplyNowQuestion(draining: false));
       }
    }
 }

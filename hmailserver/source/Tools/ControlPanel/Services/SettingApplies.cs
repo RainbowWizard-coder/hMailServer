@@ -40,7 +40,7 @@ namespace hMailServer.ControlPanel.Services
       public const string Restart = "restart";            // no-loc
 
       /// <summary>
-      /// The small mark beside a field: "Applies on save", "After reinitialize" or
+      /// The small mark beside a field: "Applies on save", "After reinitialise" or
       /// "After a restart". Null for a mark this program does not know - an older
       /// server that answers nothing, or a word a newer one adds - so that a page
       /// shows no mark rather than a wrong one.
@@ -52,7 +52,7 @@ namespace hMailServer.ControlPanel.Services
             case Now:
                return L("Applies on save");
             case Reinitialize:
-               return L("After reinitialize");
+               return L("After reinitialise");
             case Restart:
                return L("After a restart");
             default:
@@ -121,8 +121,10 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static string AppliedSentence(int stillWaitingForRestart)
          => stillWaitingForRestart <= 0
-            ? L("Reinitialized - the saved settings are in effect.")
-            : F("Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart.", stillWaitingForRestart);
+            ? L("Reinitialised - the saved settings are in effect.")
+            : Plural(stillWaitingForRestart,
+               "Reinitialised - the settings that waited for a reinitialise are in effect; {0} still waits for a service restart.",
+               "Reinitialised - the settings that waited for a reinitialise are in effect; {0} still wait for a service restart.");
 
       /// <summary>
       /// The names Settings.PendingIniSettings lists, one per line as
@@ -152,12 +154,15 @@ namespace hMailServer.ControlPanel.Services
             return null;
 
          if (waitingForRestart <= 0)
-            return F("{0} saved setting(s) wait for a reinitialize.", waitingForReinitialize);
+            return Plural(waitingForReinitialize, "{0} saved setting waits for a reinitialise.", "{0} saved settings wait for a reinitialise.");
 
          if (waitingForReinitialize <= 0)
-            return F("{0} saved setting(s) wait for a service restart.", waitingForRestart);
+            return Plural(waitingForRestart, "{0} saved setting waits for a service restart.", "{0} saved settings wait for a service restart.");
 
-         return F("{0} saved setting(s) wait for a reinitialize, and {1} for a service restart.", waitingForReinitialize, waitingForRestart);
+         return PluralF(waitingForReinitialize,
+            "{0} saved setting waits for a reinitialise, and {1} for a service restart.",
+            "{0} saved settings wait for a reinitialise, and {1} for a service restart.",
+            waitingForReinitialize, waitingForRestart);
       }
 
       /// <summary>
@@ -167,7 +172,7 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static string ApplyNowQuestion(bool draining)
          => draining
-            ? L("The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?")
-            : L("Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect.");
+            ? L("The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?")
+            : L("Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect.");
    }
 }

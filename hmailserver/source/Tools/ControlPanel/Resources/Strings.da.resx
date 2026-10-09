@@ -44,14 +44,8 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name=" (route #{0})" xml:space="preserve">
     <value> (rute nr. {0})</value>
   </data>
-  <data name=" (showing first 1000 — refine your search)" xml:space="preserve">
-    <value> (viser de første 1000 – forfin din søgning)</value>
-  </data>
   <data name=" (subject '{0}')" xml:space="preserve">
     <value> (emne '{0}')</value>
-  </data>
-  <data name=" - applied immediately." xml:space="preserve">
-    <value> – træder i kraft med det samme.</value>
   </data>
   <data name=" - at its cap, so entries are being evicted" xml:space="preserve">
     <value> – ved sit loft, så poster smides ud</value>
@@ -59,20 +53,11 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> – ingen ServicePassword gemmes eller indtastes, og en tom adgangskode afvises, før den sendes</value>
   </data>
-  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
-    <value> – serverindstillinger træder i kraft med det samme; indstillinger i hMailServer.ini træder i kraft efter en genstart af tjenesten.</value>
-  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> – vist ovenfor som denne maskines navn</value>
   </data>
-  <data name=" - {0} of them wait for a reinitialize or a restart; the rest applied immediately." xml:space="preserve">
-    <value> – {0} af dem venter på en reinitialisering eller en genstart; resten trådte i kraft med det samme.</value>
-  </data>
   <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value> Springes også over for ethvert modtagerdomæne, der har greylisting slået fra i sine egne indstillinger.</value>
-  </data>
-  <data name=" DNS records checked through the Windows resolver." xml:space="preserve">
-    <value> DNS-poster kontrolleret gennem Windows-resolveren.</value>
   </data>
   <data name=" If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
     <value> Hvis tidsplanen lige er sat op, så kontrollér igen, efter at dens første kørsel skulle have fundet sted; ellers fortæller sikkerhedskopieringsloggen på siden Logfiler, hvorfor kørsler springes over.</value>
@@ -85,6 +70,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name=" Last scan: {0}." xml:space="preserve">
     <value> Seneste scanning: {0}.</value>
+  </data>
+  <data name=" Messages indexed: {0} of {1}." xml:space="preserve">
+    <value> Indekserede meddelelser: {0} af {1}.</value>
   </data>
   <data name=" NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
     <value> BEMÆRK: MtaStsHostingEnabled=0, så serveren leverer slet IKKE denne politik.</value>
@@ -154,21 +142,6 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name=" or " xml:space="preserve">
     <value> eller </value>
-  </data>
-  <data name=" {0} DNS record(s) are being looked up in the background; the rows marked &quot;checking&quot; will update." xml:space="preserve">
-    <value> {0} DNS-post(er) slås op i baggrunden; rækkerne markeret med "kontrollerer" bliver opdateret.</value>
-  </data>
-  <data name=" {0} of {1} messages are indexed." xml:space="preserve">
-    <value> {0} af {1} meddelelser er indekseret.</value>
-  </data>
-  <data name=" — INI settings need a service restart." xml:space="preserve">
-    <value> — INI-indstillinger kræver en genstart af tjenesten.</value>
-  </data>
-  <data name=" — applied immediately." xml:space="preserve">
-    <value> — træder i kraft med det samme.</value>
-  </data>
-  <data name=" — {0} wait for a reinitialize or a restart." xml:space="preserve">
-    <value> – {0} venter på en reinitialisering eller en genstart.</value>
   </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>"Alle i domænet" betyder, at afsenderens adresse ligger i et domæne, som denne server hoster, hvilket en udenforstående kan påstå, medmindre listen også kræver godkendelse. Sæt hak i det nedenfor, hvis listen skal være begrænset til personer, der er logget på.</value>
@@ -254,9 +227,6 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name=", which cannot be read from this machine" xml:space="preserve">
     <value>, som ikke kan læses fra denne maskine</value>
   </data>
-  <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>. Forbindelser til dem afvises. De sædvanlige årsager er et andet program, der allerede holder porten, en bind-adresse, der ikke findes på denne maskine, eller – på en TLS-port – et certifikat, som serveren ikke kunne indlæse; serveren noterer hvilken af delene, én gang, i fejlloggen ved opstart.</value>
-  </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Ingen konto bliver deaktiveret.</value>
   </data>
@@ -302,26 +272,14 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="0, keep everything, by default. Removing the oldest rows starts the chain again at the oldest row kept." xml:space="preserve">
     <value>0, behold alt, som standard. Når de ældste rækker fjernes, starter kæden forfra ved den ældste række, der er tilbage.</value>
   </data>
-  <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
-    <value>1 DNS-post kontrolleres stadig i baggrunden; denne oversigt bliver opdateret.</value>
-  </data>
   <data name="1 IP address" xml:space="preserve">
     <value>1 IP-adresse</value>
   </data>
   <data name="1 SURBL server" xml:space="preserve">
     <value>1 SURBL-server</value>
   </data>
-  <data name="1 account is a member." xml:space="preserve">
-    <value>1 konto er medlem.</value>
-  </data>
-  <data name="1 address listed." xml:space="preserve">
-    <value>1 adresse på listen.</value>
-  </data>
   <data name="1 alias" xml:space="preserve">
     <value>1 alias</value>
-  </data>
-  <data name="1 app password." xml:space="preserve">
-    <value>1 app-adgangskode.</value>
   </data>
   <data name="1 blacklist" xml:space="preserve">
     <value>1 sortliste</value>
@@ -335,47 +293,17 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="1 bypass entry" xml:space="preserve">
     <value>1 undtagelse</value>
   </data>
-  <data name="1 day" xml:space="preserve">
-    <value>1 dag</value>
-  </data>
-  <data name="1 event." xml:space="preserve">
-    <value>1 hændelse.</value>
-  </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 ekstern konto</value>
-  </data>
-  <data name="1 hour ago" xml:space="preserve">
-    <value>for 1 time siden</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 element</value>
   </data>
-  <data name="1 item cannot be checked from here" xml:space="preserve">
-    <value>1 element kan ikke kontrolleres herfra</value>
-  </data>
-  <data name="1 item cannot be checked from here." xml:space="preserve">
-    <value>1 element kan ikke kontrolleres herfra.</value>
-  </data>
-  <data name="1 key" xml:space="preserve">
-    <value>1 nøgle</value>
-  </data>
   <data name="1 list entry" xml:space="preserve">
     <value>1 listepost</value>
   </data>
-  <data name="1 message" xml:space="preserve">
-    <value>1 meddelelse</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 meddelelse kan ikke vises på listen og efterlades, hvor den er: {0}</value>
-  </data>
-  <data name="1 message held." xml:space="preserve">
-    <value>1 meddelelse tilbageholdt.</value>
-  </data>
-  <data name="1 minute ago" xml:space="preserve">
-    <value>for 1 minut siden</value>
-  </data>
-  <data name="1 public folder." xml:space="preserve">
-    <value>1 offentlig mappe.</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 afviser en adgangskode, der er dukket op i samlingen blot én gang.</value>
@@ -386,20 +314,11 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
   </data>
-  <data name="1 sample copied to the clipboard." xml:space="preserve">
-    <value>1 eksempel kopieret til udklipsholderen.</value>
-  </data>
-  <data name="1 sample." xml:space="preserve">
-    <value>1 eksempel.</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 sikkerhedsgruppe</value>
   </data>
   <data name="1 server message" xml:space="preserve">
     <value>1 servermeddelelse</value>
-  </data>
-  <data name="1 thing needs attention" xml:space="preserve">
-    <value>1 ting kræver opmærksomhed</value>
   </data>
   <data name="1 white-list entry" xml:space="preserve">
     <value>1 hvidlistepost</value>
@@ -589,6 +508,9 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Der er udstedt et certifikat til {0}, men dets udløb kunne ikke læses: {1}</value>
+  </data>
+  <data name="A certificate is issued and valid until {0}, {1} day from now. Renewal starts automatically inside the last {2} days." xml:space="preserve">
+    <value>Et certifikat er udstedt og gyldigt indtil {0}, om {1} dag. Fornyelsen starter automatisk inden for de sidste {2} dage.</value>
   </data>
   <data name="A certificate is issued and valid until {0}, {1} days from now. Renewal starts automatically inside the last {2} days." xml:space="preserve">
     <value>Et certifikat er udstedt og gyldigt indtil {0}, om {1} dage. Fornyelsen starter automatisk inden for de sidste {2} dage.</value>
@@ -818,8 +740,11 @@ Vil du gemme denne svage adgangskode alligevel?</value>
   <data name="A schedule is configured: daily at {0:00}:{1:00}, server local time." xml:space="preserve">
     <value>Der er konfigureret en tidsplan: dagligt kl. {0:00}:{1:00}, serverens lokale tid.</value>
   </data>
-  <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
-    <value>Der er konfigureret en tidsplan: én sikkerhedskopi for hvert {0} minut(ter).</value>
+  <data name="A schedule is configured: one backup every {0} minute." xml:space="preserve">
+    <value>Der er konfigureret en tidsplan: én sikkerhedskopi hvert {0}. minut.</value>
+  </data>
+  <data name="A schedule is configured: one backup every {0} minutes." xml:space="preserve">
+    <value>Der er konfigureret en tidsplan: én sikkerhedskopi hvert {0}. minut.</value>
   </data>
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>En anden faktor for administratoren - en engangskode ved siden af adgangskoden</value>
@@ -1379,7 +1304,7 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="After a restart" xml:space="preserve">
     <value>Efter en genstart</value>
   </data>
-  <data name="After reinitialize" xml:space="preserve">
+  <data name="After reinitialise" xml:space="preserve">
     <value>Efter reinitialisering</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
@@ -1689,7 +1614,7 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Applies _to" xml:space="preserve">
     <value>Gælder _for</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>Træder i kraft ved næste genstart af tjenesten eller ved Reinitialiser. Logfilerne påvirkes ikke: dette sender en kopi, det flytter ikke noget. Uden en samlervært nedenfor skriver en server under systemd på Linux i stedet til journalen - på Linux er denne ene kontakt altså hele opsætningen.</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
@@ -1709,6 +1634,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Anvend serverens spam_filtrering på denne konto</value>
+  </data>
+  <data name="Apply the {0} profile? {1} setting changes, and what it held is kept so that it can be put back." xml:space="preserve">
+    <value>Anvend profilen {0}? {1} indstilling ændres, og det, den havde, gemmes, så det kan sættes tilbage.</value>
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Anvend profilen {0}? {1} indstillinger ændres, og det, de havde, gemmes, så det kan sættes tilbage.</value>
@@ -1781,6 +1709,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
     <value>Mindst én ekstern POP3-afhentningskonto har antivirus slået fra, så post, der afhentes af den, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side. Der er flere konti på denne server, end denne side gennemgår, så der kan være flere.</value>
+  </data>
+  <data name="At least {0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>Mindst {0} ekstern POP3-afhentningskonto har antivirus slået fra, så post, der afhentes af den, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side. Der er flere konti på denne server, end denne side gennemgår, så der kan være flere.</value>
   </data>
   <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
     <value>Mindst {0} eksterne POP3-afhentningskonti har antivirus slået fra, så post, der afhentes af dem, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side. Der er flere konti på denne server, end denne side gennemgår, så der kan være flere.</value>
@@ -2060,6 +1991,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Blacklist the sender, then delete" xml:space="preserve">
     <value>Sortlist afsenderen, og slet derefter</value>
+  </data>
+  <data name="Blacklist the senders of {0} message, then delete it" xml:space="preserve">
+    <value>Sortlist afsenderen af {0} meddelelse, og slet den derefter</value>
   </data>
   <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
     <value>Sortlist afsenderne af {0} meddelelser, og slet dem derefter</value>
@@ -3059,7 +2993,7 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kunne ikke læse {0}: {1}</value>
   </data>
-  <data name="Could not reinitialize: {0}" xml:space="preserve">
+  <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Kunne ikke reinitialisere: {0}</value>
   </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
@@ -3572,10 +3506,15 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Slet distributionslisten {0}?</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes {1}, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
+  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Slet domænet {0}?
 
-Dette fjerner permanent {1}, hver eneste meddelelse, der er gemt i dem, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
+Dette fjerner permanent dets {1} konto, hver eneste meddelelse, der er gemt i den, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
+  </data>
+  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
+    <value>Slet domænet {0}?
+
+Dette fjerner permanent dets {1} konti, hver eneste meddelelse, der er gemt i dem, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
   </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Slet mappen '{0}' og alle meddelelser i den?</value>
@@ -3595,10 +3534,20 @@ Dette fjerner permanent {1}, hver eneste meddelelse, der er gemt i dem, og alle 
   <data name="Delete the whole message" xml:space="preserve">
     <value>Slet hele meddelelsen</value>
   </data>
+  <data name="Delete the {0} checked message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Slet den {0} markerede meddelelse permanent?
+
+Afsenderen fik besked om, at den var blevet accepteret, så intet vil forsøge igen, og der er ingen anden kopi.</value>
+  </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Slet de {0} markerede meddelelser permanent?
 
 Afsenderne fik besked om, at de var blevet accepteret, så intet vil forsøge igen, og der er ingen anden kopi.</value>
+  </data>
+  <data name="Delete the {0} message from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Slet den {0} meddelelse fra {1} permanent?
+
+Afsenderen fik besked om, at den var blevet accepteret, så intet vil forsøge igen, og der er ingen anden kopi.</value>
   </data>
   <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Slet de {0} meddelelser fra {1} permanent?
@@ -3634,8 +3583,8 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Deleted" xml:space="preserve">
     <value>Slettet</value>
   </data>
-  <data name="Deleted 1 message." xml:space="preserve">
-    <value>1 meddelelse slettet.</value>
+  <data name="Deleted {0} message." xml:space="preserve">
+    <value>{0} meddelelse slettet.</value>
   </data>
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>{0} meddelelser slettet.</value>
@@ -4206,6 +4155,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter the service account password" xml:space="preserve">
     <value>Indtast tjenestekontoens adgangskode</value>
   </data>
+  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
+    <value>Poster, der matcher søgningen: {0} af {1}.</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Kuvertdomæner og HELO-suffikser, der slipper forbi greylisting, når beskeden bærer de godkendelsesresultater, posten kræver - SPF, DKIM, DMARC, i enhver kombination. Et domæne matchet nøjagtigt, eller et suffiks med et indledende punktum som .mail.example.com, der dækker det navn og alle navne under det. SPF kendes ved RCPT TO, så en post, der kun kræver SPF, afgøres der; DKIM og DMARC findes først, når beskeden er modtaget, så en post, der kræver en af dem, lader modtageren passere indtil videre, og beskeden greylistes efter DATA, hvis resultatet ikke er bestået - og kun mens DKIM-verifikation eller DMARC er slået til, da posten ellers aldrig kan opfyldes. I modsætning til Spring over ved SPF-succes er dette et privilegium, du giver et navngivet domæne, ikke en egenskab ved enhver SPF-succes i verden.</value>
   </data>
@@ -4230,8 +4182,11 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Erase traces" xml:space="preserve">
     <value>Slet spor</value>
   </data>
-  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
-    <value>Slettede {0} gemte spor og omskrev {1} loglinje(r).</value>
+  <data name="Erased {0} stored trace." xml:space="preserve">
+    <value>Slettede {0} gemt spor.</value>
+  </data>
+  <data name="Erased {0} stored traces." xml:space="preserve">
+    <value>Slettede {0} gemte spor.</value>
   </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Fejlposter bærer den alvorsgrad, serveren selv registrerede: critical, error, warning eller notice. Alt andet er informational, bortset fra TCP/IP og fejlfinding, som er debug.</value>
@@ -4311,11 +4266,17 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>Hver lokal modtagers kopi bliver endnu et navn for den samme fil inde i arkivmappen, så en meddelelse til ti postkasser koster én kopi frem for ti. Kræver en arkivmappe på NTFS; hvis linket ikke kan oprettes, kopierer serveren filen og siger det i SMTP-loggen.</value>
   </data>
+  <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>Hver meddelelse går gennem {0} scanner, og den bliver spurgt om hele meddelelsen og derefter om hver vedhæftet fil for sig. Det er grundigt, og det er ikke gratis: scanningen sker, mens afsenderen venter på sit "250 OK".</value>
+  </data>
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Hver meddelelse går gennem {0} scannere efter tur, og hver af dem bliver spurgt om hele meddelelsen og derefter om hver vedhæftet fil for sig. Det er grundigt, og det er ikke gratis: scanningen sker, mens afsenderen venter på sit "250 OK".</value>
   </data>
   <data name="Every message is scanned by one scanner." xml:space="preserve">
     <value>Hver meddelelse scannes af én scanner.</value>
+  </data>
+  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
+    <value>Hver meddelelse scannes af {0} scanner.</value>
   </data>
   <data name="Every message is scanned by {0} scanners." xml:space="preserve">
     <value>Hver meddelelse scannes af {0} scannere.</value>
@@ -4386,11 +4347,17 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Lad adgangskoder udløbe efter (dage; 0 = aldrig)</value>
   </data>
+  <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
+    <value>Udløb {0} (for mindre end en dag siden)</value>
+  </data>
+  <data name="Expired on {0} ({1} day ago)" xml:space="preserve">
+    <value>Udløb {0} (for {1} dag siden)</value>
+  </data>
+  <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
+    <value>Udløb {0} (for {1} dage siden)</value>
+  </data>
   <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
     <value>Udløb den {0}. Hver forespørgsel, den sender, afvises.</value>
-  </data>
-  <data name="Expired {0} ({1} ago)" xml:space="preserve">
-    <value>Udløb {0} (for {1} siden)</value>
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Udløber</value>
@@ -4398,8 +4365,14 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Udløber den (yyyy-mm-dd hh:mm:ss, hvornår den ophører med at gælde)</value>
   </data>
-  <data name="Expires {0} ({1})" xml:space="preserve">
-    <value>Udløber {0} ({1})</value>
+  <data name="Expires on {0} (in less than a day)" xml:space="preserve">
+    <value>Udløber {0} (om mindre end en dag)</value>
+  </data>
+  <data name="Expires on {0} (in {1} day)" xml:space="preserve">
+    <value>Udløber {0} (om {1} dag)</value>
+  </data>
+  <data name="Expires on {0} (in {1} days)" xml:space="preserve">
+    <value>Udløber {0} (om {1} dage)</value>
   </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Udløbs_tidspunkt (YYYY-MM-DD HH:MM:SS)</value>
@@ -4413,8 +4386,11 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Export everythin_g..." xml:space="preserve">
     <value>E_ksportér alt...</value>
   </data>
-  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
-    <value>Eksporterede {0} meddelelse(r) og alt andet, serveren har, til {1}.</value>
+  <data name="Exported {0} message and everything else the server holds to {1}." xml:space="preserve">
+    <value>Eksporterede {0} meddelelse og alt andet, serveren har, til {1}.</value>
+  </data>
+  <data name="Exported {0} messages and everything else the server holds to {1}." xml:space="preserve">
+    <value>Eksporterede {0} meddelelser og alt andet, serveren har, til {1}.</value>
   </data>
   <data name="Exports" xml:space="preserve">
     <value>Eksporter</value>
@@ -4650,6 +4626,12 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Found by search" xml:space="preserve">
     <value>Fundet ved søgning</value>
   </data>
+  <data name="Found: {0}" xml:space="preserve">
+    <value>Fundet: {0}</value>
+  </data>
+  <data name="Found: {0} (and {1} more)" xml:space="preserve">
+    <value>Fundet: {0} (og {1} mere)</value>
+  </data>
   <data name="From" xml:space="preserve">
     <value>Fra</value>
   </data>
@@ -4778,6 +4760,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Gruppenavn</value>
+  </data>
+  <data name="Group: {0}" xml:space="preserve">
+    <value>Gruppe: {0}</value>
   </data>
   <data name="Groups" xml:space="preserve">
     <value>Grupper</value>
@@ -5241,6 +5226,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Independent of the AWStats log above - either can be on without the other." xml:space="preserve">
     <value>Uafhængig af AWStats-loggen ovenfor - begge kan være slået til uden den anden.</value>
   </data>
+  <data name="Index entries that will be discarded: {0}. Messages they will be rebuilt from: {1}." xml:space="preserve">
+    <value>Indeksposter, der kasseres: {0}. Meddelelser, de genopbygges fra: {1}.</value>
+  </data>
   <data name="Index now, and show how far behind it is" xml:space="preserve">
     <value>Indeksér nu, og vis, hvor langt bagud det er</value>
   </data>
@@ -5360,8 +5348,8 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (udbyderens offentliggjorte signeringsnøgler; tomt = kun nøglefilen)</value>
   </data>
-  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
-    <value>Job {0} er {1}: {2} mapper, {3} beskeder tilføjet, {4} sprunget over som stadig i postkassen, {5} mislykkedes.</value>
+  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
+    <value>Job {0} er {1} - mapper: {2}, tilføjede beskeder: {3}, sprunget over, fordi de stadig er i postkassen: {4}, mislykkede: {5}.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalisering og dobbelt levering</value>
@@ -5819,6 +5807,9 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>E-mailklienter sender gennem indleveringsporten, og uden TLS går deres adgangskoder i klartekst over nettet.</value>
   </data>
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
+    <value>Post afhentet fra eksterne POP3-konti scannes kun, når den pågældende afhentningskonto siger det — {0} af {1} har i øjeblikket antivirus slået fra. Den kontakt sidder på kontoen, ikke på denne side.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Post afhentet fra eksterne POP3-konti scannes kun, når den pågældende afhentningskonto siger det — {0} af {1} har i øjeblikket antivirus slået fra. Den kontakt sidder på kontoen, ikke på denne side.</value>
   </data>
@@ -5953,8 +5944,11 @@ Hvert Web Push-abonnement under det nuværende par holder straks op med at virke
   <data name="Matches the certificate" xml:space="preserve">
     <value>Svarer til certifikatet</value>
   </data>
-  <data name="Matches the envelope sender against {0} blocked address(es) and domain(s); the score comes from the entry that matched." xml:space="preserve">
-    <value>Matcher konvolutafsenderen mod {0} blokeret(-ede) adresse(r) og domæne(r); scoren kommer fra den post, der matchede.</value>
+  <data name="Matches the envelope sender against {0} blocked address or domain; the score comes from the entry that matched." xml:space="preserve">
+    <value>Matcher konvolutafsenderen mod {0} blokeret adresse eller domæne; scoren kommer fra den post, der matchede.</value>
+  </data>
+  <data name="Matches the envelope sender against {0} blocked addresses and domains; the score comes from the entry that matched." xml:space="preserve">
+    <value>Matcher konvolutafsenderen mod {0} blokerede adresser og domæner; scoren kommer fra den post, der matchede.</value>
   </data>
   <data name="Matching Active Directory accounts. Select one or more." xml:space="preserve">
     <value>Matchende Active Directory-konti. Vælg en eller flere.</value>
@@ -6195,6 +6189,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Meddelelser op til {0} scannes af én scanner; alt større leveres uden overhovedet at blive scannet.</value>
   </data>
+  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>Meddelelser op til {0} scannes af {1} scanner; alt større leveres uden overhovedet at blive scannet.</value>
+  </data>
   <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Meddelelser op til {0} scannes af {1} scannere; alt større leveres uden overhovedet at blive scannet.</value>
   </data>
@@ -6203,6 +6200,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Meddelelser, der venter på levering.</value>
+  </data>
+  <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
+    <value>Meddelelser: {0}, {1} MB som klienterne ser dem. Deres filer fylder {2} MB og de dele, der gemmes én gang, {3} MB, hvilket sparer {4} %. Komprimerede filer: {5}. Målt {6}.</value>
   </data>
   <data name="Metrics bind address" xml:space="preserve">
     <value>Bindingsadresse for metrics</value>
@@ -6687,6 +6687,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ingen meddelelse scannes for virus. Blokering af vedhæftede filer fjerner stadig ét filnavnsmønster, men intet undersøger indholdet af en meddelelse.</value>
   </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Ingen meddelelse scannes for virus. Blokering af vedhæftede filer fjerner stadig {0} filnavnsmønster, men intet undersøger indholdet af en meddelelse.</value>
+  </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ingen meddelelse scannes for virus. Blokering af vedhæftede filer fjerner stadig {0} filnavnsmønstre, men intet undersøger indholdet af en meddelelse.</value>
   </data>
@@ -6756,6 +6759,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No samples in this range yet" xml:space="preserve">
     <value>Ingen målinger i dette interval endnu</value>
   </data>
+  <data name="No samples in this range yet: the server records one a minute and keeps {0} day." xml:space="preserve">
+    <value>Ingen målinger i dette interval endnu: serveren registrerer én i minuttet og beholder {0} dag.</value>
+  </data>
   <data name="No samples in this range yet: the server records one a minute and keeps {0} days." xml:space="preserve">
     <value>Ingen målinger i dette interval endnu: serveren registrerer én i minuttet og beholder {0} dage.</value>
   </data>
@@ -6810,8 +6816,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Ingen af de valgte konti har en e-mailadresse.</value>
   </data>
-  <data name="None of the {0} IP range(s) requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
-    <value>Intet af de {0} IP-interval(ler) kræver TLS før godkendelse, så en adgangskode i klartekst accepteres overalt, hvor en port tillader en.</value>
+  <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
+    <value>Intet af de {0} IP-intervaller kræver TLS før godkendelse, så en adgangskode i klartekst accepteres overalt, hvor en port tillader en.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list." xml:space="preserve">
     <value>Intet af dette gælder for en godkendt session - spambeskyttelse springes helt over for en klient, der er logget på, for forbindelser fra et IP-interval med spambeskyttelse slået fra, og for de {0} poster på antispam-hvidlisten.</value>
@@ -6921,11 +6927,17 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Intet matchede "{0}". Prøv det, du forsøger at opnå ("stop spam", "lad en enhed sende post"), et sidenavn eller en hMailServer.INI-nøgle.</value>
   </data>
-  <data name="Nothing needs action, but " xml:space="preserve">
-    <value>Intet kræver handling, men </value>
+  <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
+    <value>Intet kræver handling, men {0} element kan ikke kontrolleres herfra.</value>
+  </data>
+  <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
+    <value>Intet kræver handling, men {0} elementer kan ikke kontrolleres herfra.</value>
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Intet kræver opmærksomhed - alle {0} kontroller af den eksterne opsætning er udført eller ikke nødvendige.</value>
+  </data>
+  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Intet kræver opmærksomhed - den {0} kontrol af den eksterne opsætning er udført eller ikke nødvendig.</value>
   </data>
   <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
     <value>Intet at se på denne server endnu? Dette opretter {0} med tre postkasser, en distributionsliste, en regel og en håndfuld leverede beskeder, så der er noget på hver side, mens du lærer. Alle postkasser logger ind med én adgangskode, som denne server laver nu og viser én gang, så skriv den ned - og fjern prøven, før denne server modtager rigtig post.</value>
@@ -7194,7 +7206,7 @@ Intet, der allerede er der, fjernes.</value>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Giv på siden TCP/IP-porte indleveringsporten (587) STARTTLS med et certifikat fra siden SSL-certifikater, eller tilføj port 465 med implicit TLS.</value>
   </data>
-  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>Åbn SMTP-port 25 på siden TCP/IP-porte, sæt dens SMTP-godkendelse til Honeypot eller Fra, og reinitialiser derefter. Mailklienter, der stadig logger på port 25, bliver fra da af afvist og blokeret, så flyt dem først til 587.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
@@ -7236,8 +7248,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Én klientlytter tilbyder STARTTLS uden at kræve det, så en klient, der ikke beder om kryptering, godkender uden den, og intet rapporterer, at det skete.</value>
   </data>
-  <data name="One configured port is not being listened on: " xml:space="preserve">
-    <value>Der lyttes ikke på én konfigureret port: </value>
+  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
+    <value>Der lyttes ikke på én konfigureret port: {0}.</value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Én kørsel af et hændelsesscript. 0 = ingen grænse.</value>
@@ -7925,8 +7937,8 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Processed messages" xml:space="preserve">
     <value>Behandlede meddelelser</value>
   </data>
-  <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save its certificate(s) as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
-    <value>Frembring eller skaf en CA (for eksempel med OpenSSL eller din PKI), gem dens certifikat(er) som et PEM-bundt på serveren, peg portens CA-fil på det, og udsted et klientcertifikat fra den CA til hver klient, der skal forbinde. hMailServer verificerer mod bundtet, men kan ikke oprette CA'en eller klientcertifikaterne.</value>
+  <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
+    <value>Frembring eller skaf en CA (for eksempel med OpenSSL eller din PKI), gem CA-certifikatet, med eventuelle mellemliggende certifikater, som et PEM-bundt på serveren, peg portens CA-fil på det, og udsted et klientcertifikat fra den CA til hver klient, der skal forbinde. hMailServer verificerer mod bundtet, men kan ikke oprette CA'en eller klientcertifikaterne.</value>
   </data>
   <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
     <value>Profil, der scannes som (spamd User:-header; tomt = spamds globale konfiguration)</value>
@@ -8433,19 +8445,22 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Registrerer tjenesten som LocalSystem igen, hvilket installation af en liveopdatering fra serveren eller skrivning af firewallregler til den automatiske udelukkelse kræver. Tjenesten beholder sin gamle konto, indtil den genstartes.</value>
   </data>
-  <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
+  <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinitialiser serveren nu? Alle tjenester stopper og starter igen på stedet, så tilsluttede klienter afbrydes og forbinder igen.</value>
   </data>
-  <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
+  <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Reinitialiseret - de gemte indstillinger er i kraft.</value>
   </data>
-  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+  <data name="Reinitialised - the server now listens on the ports as this page lists them." xml:space="preserve">
     <value>Reinitialiseret - serveren lytter nu på portene, som denne side viser dem.</value>
   </data>
-  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+  <data name="Reinitialised - the settings that waited for a reinitialise are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Reinitialiseret – de indstillinger, der ventede på en reinitialisering, er i kraft; {0} venter stadig på en genstart af tjenesten.</value>
   </data>
-  <data name="Reinitializing the server..." xml:space="preserve">
+  <data name="Reinitialised - the settings that waited for a reinitialise are in effect; {0} still waits for a service restart." xml:space="preserve">
+    <value>Reinitialiseret – de indstillinger, der ventede på en reinitialisering, er i kraft; {0} venter stadig på en genstart af tjenesten.</value>
+  </data>
+  <data name="Reinitialising the server..." xml:space="preserve">
     <value>Reinitialiserer serveren...</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
@@ -8502,8 +8517,8 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Release this group" xml:space="preserve">
     <value>Frigiv denne gruppe</value>
   </data>
-  <data name="Released 1 message to its recipients." xml:space="preserve">
-    <value>1 meddelelse frigivet til modtagerne.</value>
+  <data name="Released {0} message to its recipients." xml:space="preserve">
+    <value>{0} meddelelse frigivet til modtagerne.</value>
   </data>
   <data name="Released {0} messages to their recipients." xml:space="preserve">
     <value>{0} meddelelser frigivet til modtagerne.</value>
@@ -8613,7 +8628,7 @@ Postkassen og dens meddelelser flytter til den nye adresse. Post sendt til den g
 
 Hvert brugerdefineret interval - inklusive eventuelle poster fra automatisk blokering - fjernes og erstattes med 'Min computer' (127.0.0.1) og 'Internet' (alt andet). Dette ændrer, hvem der må forbinde og relaye, med det samme.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
     <value>Erstat ALLE konfigurerede porte med standarderne?
 
 SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed og med SMTP-godkendelse Til på begge SMTP-porte, så en port 25, der er en honeypot, tager imod AUTH igen. TLS-porte og brugerdefinerede bindinger fjernes. Ændringen træder i kraft, når serveren reinitialiseres.</value>
@@ -9227,17 +9242,47 @@ Vil du fortsætte?</value>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Gemte {0} - serveren opfanger det inden for to sekunder. Ingen genstart af tjenesten er nødvendig.</value>
   </data>
-  <data name="Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
-    <value>Gemte {0} - {1} indstilling(er) venter på en reinitialisering; Anvend nu i linjen nederst i vinduet sætter dem i kraft.</value>
+  <data name="Saved {0} - {1} setting waits for a reinitialise; Apply now, in the bar at the foot of the window, takes it." xml:space="preserve">
+    <value>Gemte {0} - {1} indstilling venter på en reinitialisering; Anvend nu i linjen nederst i vinduet sætter den i kraft.</value>
   </data>
-  <data name="Saved {0} settings" xml:space="preserve">
-    <value>Gemte {0} indstillinger</value>
+  <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
+    <value>Gemte {0} - {1} indstillinger venter på en reinitialisering; Anvend nu i linjen nederst i vinduet sætter dem i kraft.</value>
   </data>
-  <data name="Saved {0} settings at {1}" xml:space="preserve">
-    <value>Gemte {0} indstillinger kl. {1}</value>
+  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
+    <value>Gemte {0} indstilling - træder i kraft med det samme.</value>
   </data>
-  <data name="Saved {0} settings, {1} could not be written." xml:space="preserve">
-    <value>Gemte {0} indstillinger, {1} kunne ikke skrives.</value>
+  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
+    <value>Gemte {0} indstilling - indstillinger i hMailServer.ini kræver en genstart af tjenesten.</value>
+  </data>
+  <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
+    <value>Gemte {0} indstilling kl. {1} - træder i kraft med det samme.</value>
+  </data>
+  <data name="Saved {0} setting at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Gemte {0} indstilling kl. {1} - serverindstillinger træder i kraft med det samme; indstillinger i hMailServer.ini træder i kraft efter en genstart af tjenesten.</value>
+  </data>
+  <data name="Saved {0} setting at {1}." xml:space="preserve">
+    <value>Gemte {0} indstilling kl. {1}.</value>
+  </data>
+  <data name="Saved {0} setting." xml:space="preserve">
+    <value>Gemte {0} indstilling.</value>
+  </data>
+  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
+    <value>Gemte {0} indstillinger - træder i kraft med det samme.</value>
+  </data>
+  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
+    <value>Gemte {0} indstillinger - indstillinger i hMailServer.ini kræver en genstart af tjenesten.</value>
+  </data>
+  <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
+    <value>Gemte {0} indstillinger kl. {1} - træder i kraft med det samme.</value>
+  </data>
+  <data name="Saved {0} settings at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>Gemte {0} indstillinger kl. {1} - serverindstillinger træder i kraft med det samme; indstillinger i hMailServer.ini træder i kraft efter en genstart af tjenesten.</value>
+  </data>
+  <data name="Saved {0} settings at {1}." xml:space="preserve">
+    <value>Gemte {0} indstillinger kl. {1}.</value>
+  </data>
+  <data name="Saved {0} settings." xml:space="preserve">
+    <value>Gemte {0} indstillinger.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Gemt, men genindlæsning mislykkedes: {0}</value>
@@ -9245,7 +9290,7 @@ Vil du fortsætte?</value>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Gemt. Compileren rapporterede: {0}</value>
   </data>
-  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+  <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>Gemt. Serveren fortsætter med at lytte, som den gjorde, indtil dens tjenester reinitialiseres - stoppes og startes igen på stedet, hvilket afbryder tilsluttede klienter et øjeblik. Reinitialiser serveren nu?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
@@ -9284,8 +9329,11 @@ Vil du fortsætte?</value>
   <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run." xml:space="preserve">
     <value>ScheduledBackupTime '{0}' er ikke et gyldigt 24-timers TT:MM-tidspunkt, og intet interval er sat, så ingen planlagt sikkerhedskopiering vil nogensinde køre.</value>
   </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute(s)." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' er ikke et gyldigt 24-timers TT:MM-tidspunkt, så serveren falder tilbage til intervallet: én sikkerhedskopi hvert {1} minut.</value>
+  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute." xml:space="preserve">
+    <value>ScheduledBackupTime '{0}' er ikke et gyldigt 24-timers TT:MM-tidspunkt, så serveren falder tilbage til intervallet: én sikkerhedskopi hvert {1}. minut.</value>
+  </data>
+  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes." xml:space="preserve">
+    <value>ScheduledBackupTime '{0}' er ikke et gyldigt 24-timers TT:MM-tidspunkt, så serveren falder tilbage til intervallet: én sikkerhedskopi hvert {1}. minut.</value>
   </data>
   <data name="Schema" xml:space="preserve">
     <value>Skema</value>
@@ -9918,6 +9966,11 @@ Genstart den nu?</value>
 
 Genstart den nu?</value>
   </data>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes.
+
+Genstart den nu?</value>
+  </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Indstillinger, der plejede at være på denne side</value>
   </data>
@@ -10362,8 +10415,8 @@ Genstart den nu?</value>
   <data name="Switch to the light theme" xml:space="preserve">
     <value>Skift til det lyse tema</value>
   </data>
-  <data name="Switched off. {0} pattern is configured and none is applied." xml:space="preserve">
-    <value>Slået fra. {0} mønster er konfigureret, og intet anvendes.</value>
+  <data name="Switched off. {0} pattern is configured and it is not applied." xml:space="preserve">
+    <value>Slået fra. {0} mønster er konfigureret, og det anvendes ikke.</value>
   </data>
   <data name="Switched off. {0} patterns are configured and none is applied." xml:space="preserve">
     <value>Slået fra. {0} mønstre er konfigureret, og intet anvendes.</value>
@@ -10481,9 +10534,6 @@ Genstart den nu?</value>
   </data>
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Værdi af TXT-posten for {0}</value>
-  </data>
-  <data name="TXT record(s) exist at {0} but none carries this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
-    <value>TXT-post(er) findes på {0}, men ingen bærer denne nøgles offentlige nøgle, så hver signatur lavet med denne nøgle fejler ved verifikation. At vente løser ikke dette - ret den publicerede værdi, så den matcher den ovenfor.</value>
   </data>
   <data name="TXT value:" xml:space="preserve">
     <value>TXT-værdi:</value>
@@ -10637,6 +10687,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>DNS-opslaget for {0} mislykkedes i sig selv: {1} Dette siger intet om posten - denne maskine kunne ikke få svar fra sin DNS-server. Kontrollér netværket, og prøv igen.</value>
   </data>
+  <data name="The DNS records were checked through the Windows resolver." xml:space="preserve">
+    <value>DNS-posterne blev kontrolleret via Windows-resolveren.</value>
+  </data>
   <data name="The HELO name" xml:space="preserve">
     <value>HELO-navnet</value>
   </data>
@@ -10685,7 +10738,7 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
     <value>REST-API'et kører ikke: det leverer kun almindelig HTTP på 127.0.0.1 eller ::1, og at lytte på {0} kræver RestApiCertificateFile og RestApiPrivateKeyFile eller et ACME-certifikat udstedt til denne server.</value>
   </data>
-  <data name="The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialize the server, and open this page again." xml:space="preserve">
+  <data name="The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>REST-API'et er slået fra (RestApiPort er {0}), og disse indstillinger nås gennem det: serveren gemmer dem, men ingen COM-egenskab bærer dem. Giv REST-API'et en port på siden API og overvågning, geninitialisér serveren, og åbn denne side igen.</value>
   </data>
   <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
@@ -10865,11 +10918,23 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
     <value>Certifikatet "{0}" udløb i går. Det er ikke tildelt nogen lytter.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} day ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Certifikatet "{0}" udløb for {1} dag siden og er stadig tildelt en lytter. Klienter afviser eller advarer om hver eneste forbindelse til den.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} day ago. It is not assigned to any listener." xml:space="preserve">
+    <value>Certifikatet "{0}" udløb for {1} dag siden. Det er ikke tildelt nogen lytter.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>Certifikatet "{0}" udløb for {1} dage siden og er stadig tildelt en lytter. Klienter afviser eller advarer om hver eneste forbindelse til den.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
     <value>Certifikatet "{0}" udløb for {1} dage siden. Det er ikke tildelt nogen lytter.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} day and is in use by a listener." xml:space="preserve">
+    <value>Certifikatet "{0}" udløber om {1} dag og er i brug af en lytter.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} day. It is not assigned to any listener." xml:space="preserve">
+    <value>Certifikatet "{0}" udløber om {1} dag. Det er ikke tildelt nogen lytter.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
     <value>Certifikatet "{0}" udløber om {1} dage og er i brug af en lytter.</value>
@@ -10895,8 +10960,14 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Certifikatet udløb den {0}. Serveren indlæser det stadig, og dens porte starter stadig (den rapporterer fejl 5991 i applikationsloggen), men hver klient og postserver, der kontrollerer datoen, nægter at forbinde - hvilket i dag er næsten dem alle. Udskift certifikatet.</value>
   </data>
-  <data name="The certificate expires on {0} - {1} from now. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Certifikatet udløber den {0} - om {1}. Forny det inden da: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
+  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Certifikatet udløber den {0}, om mindre end en dag. Forny det nu: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
+  </data>
+  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Certifikatet udløber den {0}, om {1} dag. Forny det inden da: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
+  </data>
+  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Certifikatet udløber den {0}, om {1} dage. Forny det inden da: når det udløber, bliver portene ved med at lytte, men klienter, der kontrollerer datoen, nægter at forbinde.</value>
   </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Certifikatfilen findes ikke på denne maskine ({0}). Hver TLS-port, der er konfigureret til at bruge dette certifikat, vil ikke kunne starte (serveren logger fejl 5113) - post på de porte stopper.</value>
@@ -10904,8 +10975,11 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Certifikatfilen findes, men kunne ikke læses fra dette panel ({0}), så intet om den er verificeret.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} from now." xml:space="preserve">
-    <value>Certifikatfilen parses korrekt og er gyldig indtil {0}, {1} fra nu.</value>
+  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
+    <value>Certifikatfilen parses korrekt og er gyldig indtil {0}, {1} dag fra nu.</value>
+  </data>
+  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
+    <value>Certifikatfilen parses korrekt og er gyldig indtil {0}, {1} dage fra nu.</value>
   </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Certifikatfilerne ligger på serveren, og dette Control Panel er forbundet til den eksternt, så udløbsdatoer og filindhold kan ikke kontrolleres herfra. Alt andet på denne side læses over COM og er korrekt.</value>
@@ -10928,8 +11002,11 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
     <value>Kæden er brudt ved række {0}. {1}</value>
   </data>
-  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
-    <value>Kæden er intakt. {0} række(r) kontrolleret.</value>
+  <data name="The chain is intact. {0} row checked." xml:space="preserve">
+    <value>Kæden er intakt. {0} række kontrolleret.</value>
+  </data>
+  <data name="The chain is intact. {0} rows checked." xml:space="preserve">
+    <value>Kæden er intakt. {0} rækker kontrolleret.</value>
   </data>
   <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
     <value>Kontrollen blev ikke færdig - DNS fik timeout eller svarede SERVFAIL, eller opslagsgrænsen blev nået - og posten kan være i orden. At score det som et fail taber post ved hvert hikke i resolveren; kontakten nedenfor er det andet svar.</value>
@@ -11032,6 +11109,9 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   <data name="The endpoint answered with {0} entries." xml:space="preserve">
     <value>Endepunktet svarede med {0} poster.</value>
   </data>
+  <data name="The endpoint answered with {0} entry." xml:space="preserve">
+    <value>Endepunktet svarede med {0} post.</value>
+  </data>
   <data name="The endpoint could not be used: {0}" xml:space="preserve">
     <value>Endepunktet kunne ikke bruges: {0}</value>
   </data>
@@ -11078,6 +11158,9 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Den første scanner, der finder noget, afslutter scanningen, så rækkefølgen er også prisen: en langsom scanner foran en hurtig betales for på hver ren meddelelse.</value>
+  </data>
+  <data name="The first {0} matching accounts are shown; refine the search to see the rest." xml:space="preserve">
+    <value>De første {0} matchende konti vises; forfin søgningen for at se resten.</value>
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Mappernes UID-tællere er genberegnet. Klienter, der har cachet de gamle værdier, synkroniserer igen ved næste forbindelse.</value>
@@ -11130,8 +11213,14 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The install's outcome could not be read." xml:space="preserve">
     <value>Installationens resultat kunne ikke læses.</value>
   </data>
+  <data name="The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
+    <value>Det udstedte certifikat UDLØB {0}, for {1} dag siden, og fornyelsen har ikke erstattet det. Klienter afviser denne servers TLS. Se i fejlloggen efter det seneste fornyelsesforsøg: den sædvanlige årsag er, at CA'en ikke længere kan nå denne server på http-01-udfordringsporten.</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>Det udstedte certifikat UDLØB {0}, for {1} dage siden, og fornyelsen har ikke erstattet det. Klienter afviser denne servers TLS. Se i fejlloggen efter det seneste fornyelsesforsøg: den sædvanlige årsag er, at CA'en ikke længere kan nå denne server på http-01-udfordringsporten.</value>
+  </data>
+  <data name="The issued certificate expires on {0}, in {1} day. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why." xml:space="preserve">
+    <value>Det udstedte certifikat udløber {0}, om {1} dag. Fornyelsesopgaven kører inden for dette vindue, så det er kun et problem, hvis tallet holder op med at falde - gør det det, mislykkes fornyelsen, og fejlloggen siger hvorfor.</value>
   </data>
   <data name="The issued certificate expires on {0}, in {1} days. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why." xml:space="preserve">
     <value>Det udstedte certifikat udløber {0}, om {1} dage. Fornyelsesopgaven kører inden for dette vindue, så det er kun et problem, hvis tallet holder op med at falde - gør det det, mislykkes fornyelsen, og fejlloggen siger hvorfor.</value>
@@ -11355,7 +11444,7 @@ kunne ikke indlæses. Meddelelsen er sandsynligvis leveret og ikke længere i k�
   <data name="The port to ask on" xml:space="preserve">
     <value>Porten der spørges på</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>De porte, hver protokol lytter på, deres bindingsadresse og forbindelsessikkerhed. En ændring træder i kraft, når serveren reinitialiseres, hvilket denne side tilbyder efter hver ændring. Kolonnen Lytter læses fra denne maskines åbne porte, ikke fra konfigurationen, så den viser, hvad der faktisk sker, snarere end hvad der blev bedt om.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
@@ -11542,7 +11631,7 @@ Det er serverens egen resolver, der svarer - den samme, som SMTP-levering bruger
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Serveren genererer den næste nøgle, viser den TXT-post, der skal udgives, kontrollerer den via sin egen resolver og skifter først signeringen til den, når posten har kunnet slås op i hele udbredelsesperioden. Den gamle selector beholdes i opbevaringsperioden og udfases derefter.</value>
   </data>
-  <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
+  <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Serveren dræner. En reinitialisering afslutter vedligeholdelsestilstanden: lytterne åbner igen, og leveringen genoptages. Reinitialiser serveren nu?</value>
   </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
@@ -11732,6 +11821,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Wikien kunne ikke åbnes i en browser.</value>
   </data>
+  <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
+    <value>Det {0} IP-interval kræver ikke TLS før godkendelse, så en adgangskode i klartekst accepteres overalt, hvor en port tillader en.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>Profilen {0} kunne ikke anvendes fuldt ud {1}: nogle af dens indstillinger blev ikke skrevet. Sæt det, den skrev, tilbage, eller behold det, og anvend den igen.</value>
   </data>
@@ -11759,8 +11851,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Der er ingen domæner, så der er ingen liste at vise.</value>
   </data>
-  <data name="There is a total of {0} auto-ban IP range(s)." xml:space="preserve">
-    <value>Der er i alt {0} IP-interval(ler) fra automatisk blokering.</value>
+  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
+    <value>Der er i alt {0} IP-intervaller fra automatisk blokering.</value>
   </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Der er endnu intet konfigureret værtsnavn at kopiere.</value>
@@ -11770,6 +11862,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Der er kun ét trin, ved 2. Fra 3 og opefter (standarden er 9) logges hver aktiveret kategori fuldt ud. Ved 2 eller lavere udelader serveren IMAP FETCH- og STATUS-svar fra loggen og forkorter linjer længere end grænsen nedenfor til deres første og sidste tegn. Slås Debug-meddelelser ovenfor til, gendannes fuld detaljering uanset niveau.</value>
+  </data>
+  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
+    <value>Der er i alt {0} IP-interval fra automatisk blokering.</value>
   </data>
   <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
     <value>Disse læses af serveren fra sektionen [LDAP] i hMailServer.INI og genlæses inden for to sekunder efter en gemning, så ingen genstart er nødvendig. Standarderne passer til Active Directory; et katalog, der ikke er Windows, har ikke sAMAccountName og skal have attributnavnene ændret.</value>
@@ -11889,6 +11984,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Denne server har ingen indstillingsniveauer: den er ældre end skema 6088, og hver indstilling her er et eget felt for serveren eller domænet.</value>
+  </data>
+  <data name="This server holds {0} account, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Denne server har {0} konto og er altså i drift: en profil tilbydes en ny server, og hver af de fire kan stadig sammenlignes med denne.</value>
   </data>
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Denne server har {0} konti og er altså i drift: en profil tilbydes en ny server, og hver af de fire kan stadig sammenlignes med denne.</value>
@@ -12286,8 +12384,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Privat VAPID-nøgle, til at tage parret med fra en anden server (lad feltet stå tomt for at beholde den nuværende)</value>
   </data>
-  <data name="Valid to {0} ({1})" xml:space="preserve">
-    <value>Gyldig til {0} ({1})</value>
+  <data name="Valid until {0} ({1} day left)" xml:space="preserve">
+    <value>Gyldig til {0} ({1} dag tilbage)</value>
+  </data>
+  <data name="Valid until {0} ({1} days left)" xml:space="preserve">
+    <value>Gyldig til {0} ({1} dage tilbage)</value>
   </data>
   <data name="Validate DNSSEC for DANE and SPF/DKIM/DMARC lookups" xml:space="preserve">
     <value>Validér DNSSEC for DANE- og SPF/DKIM/DMARC-opslag</value>
@@ -12507,6 +12608,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Hvad der skal findes uden for denne server</value>
+  </data>
+  <data name="What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
+    <value>Det, der er publiceret på {0}, bærer ikke denne nøgles offentlige nøgle, så hver signatur lavet med denne nøgle fejler ved verifikation. At vente løser ikke dette - ret den publicerede værdi, så den matcher den ovenfor.</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Hvad der sendes</value>
@@ -12757,6 +12861,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Whitelist the sender, then release" xml:space="preserve">
     <value>Hvidlist afsenderen, og frigiv derefter</value>
   </data>
+  <data name="Whitelist the senders of {0} message, then release it" xml:space="preserve">
+    <value>Hvidlist afsenderen af {0} meddelelse, og frigiv den derefter</value>
+  </data>
   <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
     <value>Hvidlist afsenderne af {0} meddelelser, og frigiv dem derefter</value>
   </data>
@@ -12910,8 +13017,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="Yes" xml:space="preserve">
     <value>Ja</value>
   </data>
-  <data name="Yes. {0} domain(s) are linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are." xml:space="preserve">
-    <value>Ja. {0} domæne(r) er knyttet til et katalog og deltager. Kør først en forhåndsvisning: et katalogs form er sjældent, hvad nogen forventer, og de oversprungne rækker er dér, hvor overraskelserne er.</value>
+  <data name="Yes. {0} domain is linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are." xml:space="preserve">
+    <value>Ja. {0} domæne er knyttet til et katalog og deltager. Kør først en forhåndsvisning: et katalogs form er sjældent, hvad nogen forventer, og de oversprungne rækker er dér, hvor overraskelserne er.</value>
+  </data>
+  <data name="Yes. {0} domains are linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are." xml:space="preserve">
+    <value>Ja. {0} domæner er knyttet til et katalog og deltager. Kør først en forhåndsvisning: et katalogs form er sjældent, hvad nogen forventer, og de oversprungne rækker er dér, hvor overraskelserne er.</value>
   </data>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Du kom hertil fra søgepaletten</value>
@@ -13711,11 +13821,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="expired today" xml:space="preserve">
     <value>udløb i dag</value>
   </data>
-  <data name="expired {0} day(s) ago" xml:space="preserve">
-    <value>udløb for {0} dag(e) siden</value>
+  <data name="expired {0} day ago" xml:space="preserve">
+    <value>udløb for {0} dag siden</value>
   </data>
-  <data name="expires in {0} day(s)" xml:space="preserve">
-    <value>udløber om {0} dag(e)</value>
+  <data name="expired {0} days ago" xml:space="preserve">
+    <value>udløb for {0} dage siden</value>
+  </data>
+  <data name="expires in {0} day" xml:space="preserve">
+    <value>udløber om {0} dag</value>
+  </data>
+  <data name="expires in {0} days" xml:space="preserve">
+    <value>udløber om {0} dage</value>
   </data>
   <data name="expires today" xml:space="preserve">
     <value>udløber i dag</value>
@@ -13913,14 +14029,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="item" xml:space="preserve">
     <value>element</value>
   </data>
-  <data name="its 1 account" xml:space="preserve">
-    <value>dens 1 konto</value>
-  </data>
   <data name="its work folder was already there" xml:space="preserve">
     <value>dets arbejdsmappe fandtes allerede</value>
-  </data>
-  <data name="its {0} accounts" xml:space="preserve">
-    <value>dens {0} konti</value>
   </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>behold en kopi af hver meddelelse</value>
@@ -13934,11 +14044,20 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="last second" xml:space="preserve">
     <value>seneste sekund</value>
   </data>
+  <data name="last {0} hour" xml:space="preserve">
+    <value>seneste {0} time</value>
+  </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>seneste {0} timer</value>
   </data>
+  <data name="last {0} minute" xml:space="preserve">
+    <value>seneste {0} minut</value>
+  </data>
   <data name="last {0} minutes" xml:space="preserve">
     <value>seneste {0} minutter</value>
+  </data>
+  <data name="last {0} second" xml:space="preserve">
+    <value>seneste {0} sekund</value>
   </data>
   <data name="last {0} seconds" xml:space="preserve">
     <value>seneste {0} sekunder</value>
@@ -14456,6 +14575,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (en værdi, som dette Control Panel ikke kender)</value>
   </data>
+  <data name="{0} (error {1})" xml:space="preserve">
+    <value>{0} (fejl {1})</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (udløbet)</value>
   </data>
@@ -14468,8 +14590,29 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} - konti</value>
   </data>
+  <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
+    <value>{0} - sat tilbage: {1}, efterladt som de var: {2}; venter på en reinitialisering: {3}, på en genstart: {4}.</value>
+  </data>
+  <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
+    <value>{0} - sat: {1}, uændret: {2}, sprunget over: {3}; venter på en reinitialisering: {4}, på en genstart: {5}.</value>
+  </data>
+  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
+    <value>{0} - indstillinger, der ville ændre sig på denne server: {1} af {2}.</value>
+  </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
+  </data>
+  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
+    <value>{0} Forbindelser til en port, der ikke lyttes på, afvises. De sædvanlige årsager er et andet program, der allerede holder porten, en bind-adresse, der ikke findes på denne maskine, eller – på en TLS-port – et certifikat, som serveren ikke kunne indlæse; serveren noterer hvilken af delene, én gang, i fejlloggen ved opstart.</value>
+  </data>
+  <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
+    <value>{0} DNS-post slås op i baggrunden; rækken markeret med "kontrollerer" bliver opdateret.</value>
+  </data>
+  <data name="{0} DNS record is still being checked in the background; this summary will update." xml:space="preserve">
+    <value>{0} DNS-post kontrolleres stadig i baggrunden; denne oversigt bliver opdateret.</value>
+  </data>
+  <data name="{0} DNS records are being looked up in the background; the rows marked &quot;checking&quot; will update." xml:space="preserve">
+    <value>{0} DNS-poster slås op i baggrunden; rækkerne markeret med "kontrollerer" bliver opdateret.</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} DNS-poster kontrolleres stadig i baggrunden; denne oversigt bliver opdateret.</value>
@@ -14489,32 +14632,62 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} KB ({1} MB)</value>
   </data>
+  <data name="{0} Rewrote {1} log line." xml:space="preserve">
+    <value>{0} Omskrev {1} loglinje.</value>
+  </data>
+  <data name="{0} Rewrote {1} log lines." xml:space="preserve">
+    <value>{0} Omskrev {1} loglinjer.</value>
+  </data>
   <data name="{0} SURBL servers" xml:space="preserve">
     <value>{0} SURBL-servere</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
-    <value>Der findes {0} TXT-post(er) på {1}, men ingen begynder med "v=DMARC1", så modtagere - og denne servers egen DMARC-kontrol - ser ingen politik.</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
+    <value>Der findes {0} TXT-post på {1}, men den begynder ikke med "v=DMARC1", så modtagere - og denne servers egen DMARC-kontrol - ser ingen politik.</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=STSv1&quot;, so senders see no policy." xml:space="preserve">
-    <value>Der findes {0} TXT-post(er) på {1}, men ingen begynder med "v=STSv1", så afsendere ser ingen politik.</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=STSv1&quot;, so senders see no policy." xml:space="preserve">
+    <value>Der findes {0} TXT-post på {1}, men den begynder ikke med "v=STSv1", så afsendere ser ingen politik.</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=TLSRPTv1&quot;." xml:space="preserve">
-    <value>Der findes {0} TXT-post(er) på {1}, men ingen begynder med "v=TLSRPTv1".</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=TLSRPTv1&quot;." xml:space="preserve">
+    <value>Der findes {0} TXT-post på {1}, men den begynder ikke med "v=TLSRPTv1".</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
-    <value>Der findes {0} TXT-post(er) på {1}, men ingen begynder med "v=spf1", så modtagere ser slet ingen SPF-politik.</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
+    <value>Der findes {0} TXT-post på {1}, men den begynder ikke med "v=spf1", så modtagere ser slet ingen SPF-politik.</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
+    <value>Der findes {0} TXT-poster på {1}, men ingen begynder med "v=DMARC1", så modtagere - og denne servers egen DMARC-kontrol - ser ingen politik.</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=STSv1&quot;, so senders see no policy." xml:space="preserve">
+    <value>Der findes {0} TXT-poster på {1}, men ingen begynder med "v=STSv1", så afsendere ser ingen politik.</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=TLSRPTv1&quot;." xml:space="preserve">
+    <value>Der findes {0} TXT-poster på {1}, men ingen begynder med "v=TLSRPTv1".</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
+    <value>Der findes {0} TXT-poster på {1}, men ingen begynder med "v=spf1", så modtagere ser slet ingen SPF-politik.</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Indtil {1}.</value>
   </data>
-  <data name="{0} account(s) found{1}." xml:space="preserve">
-    <value>{0} konto/konti fundet{1}.</value>
+  <data name="{0} account found." xml:space="preserve">
+    <value>{0} konto fundet.</value>
+  </data>
+  <data name="{0} account is a member." xml:space="preserve">
+    <value>{0} konto er medlem.</value>
   </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} konti er medlemmer.</value>
   </data>
+  <data name="{0} accounts found." xml:space="preserve">
+    <value>{0} konti fundet.</value>
+  </data>
   <data name="{0} active of {1}" xml:space="preserve">
     <value>{0} aktive af {1}</value>
+  </data>
+  <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
+    <value>{0} adresse på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
+  </data>
+  <data name="{0} address listed." xml:space="preserve">
+    <value>{0} adresse på listen.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresser på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
@@ -14537,6 +14710,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} answered with a redirect (HTTP {1}). Sending servers must not follow redirects (RFC 8461 section 3.3), so this counts as no policy." xml:space="preserve">
     <value>{0} svarede med en omdirigering (HTTP {1}). Afsendende servere må ikke følge omdirigeringer (RFC 8461 afsnit 3.3), så dette tæller som ingen politik.</value>
   </data>
+  <data name="{0} app password." xml:space="preserve">
+    <value>{0} app-adgangskode.</value>
+  </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} app-adgangskoder.</value>
   </data>
@@ -14546,17 +14722,32 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} blocked senders" xml:space="preserve">
     <value>{0} blokerede afsendere</value>
   </data>
+  <data name="{0} blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>{0} mønster for blokerede vedhæftede filer er konfigureret, men blokering af vedhæftede filer er slået fra, så det anvendes ikke.</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} mønstre for blokerede vedhæftede filer er konfigureret, men blokering af vedhæftede filer er slået fra, så ingen af dem anvendes.</value>
   </data>
   <data name="{0} bypass entries" xml:space="preserve">
     <value>{0} undtagelser</value>
   </data>
-  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
-    <value>{0} sag(er). Vælg en for at se dens linjer i revisionsloggen.</value>
+  <data name="{0} case. Select it for its lines on the audit trail." xml:space="preserve">
+    <value>{0} sag. Vælg den for at se dens linjer i revisionsloggen.</value>
   </data>
-  <data name="{0} change(s) carried out, none failed." xml:space="preserve">
-    <value>{0} ændring(er) udført, ingen mislykkedes.</value>
+  <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} sager. Vælg en for at se dens linjer i revisionsloggen.</value>
+  </data>
+  <data name="{0} change carried out, none failed." xml:space="preserve">
+    <value>{0} ændring udført, ingen mislykkedes.</value>
+  </data>
+  <data name="{0} changes carried out, none failed." xml:space="preserve">
+    <value>{0} ændringer udført, ingen mislykkedes.</value>
+  </data>
+  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} klientlytter har ingen kryptering tilgængelig, så adgangskoder, der bruges på den, krydser netværket i klartekst.</value>
+  </data>
+  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} klientlytter tilbyder STARTTLS uden at kræve det, så en klient, der ikke beder om kryptering, godkender uden den, og intet rapporterer, at det skete.</value>
   </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
     <value>{0} klientlyttere har ingen kryptering tilgængelig, så adgangskoder, der bruges på dem, krydser netværket i klartekst.</value>
@@ -14567,8 +14758,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>»{0}« lukket. Den fortsætter, hvor du slap.</value>
   </data>
-  <data name="{0} configured ports are not being listened on: " xml:space="preserve">
-    <value>Der lyttes ikke på {0} konfigurerede porte: </value>
+  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
+    <value>Der lyttes ikke på {0} konfigureret port: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
+    <value>Der lyttes ikke på {0} konfigurerede porte: {1}.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} kunne ikke hentes fra denne maskine: {1} Sandsynlige årsager: ingen A-/CNAME-post for mta-sts.{2}, HTTPS-lytteren kører ikke (WebServicesHttpsPort=0 er den medfølgende standard), eller et certifikat, der ikke dækker mta-sts.{2}. Kun kontrolleret fra denne maskine.</value>
@@ -14579,8 +14773,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} datatabel</value>
   </data>
-  <data name="{0} days" xml:space="preserve">
-    <value>{0} dage</value>
+  <data name="{0} day ago" xml:space="preserve">
+    <value>for {0} dag siden</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>for {0} dage siden</value>
@@ -14591,6 +14785,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} svarede ikke inden for 10 sekunder fra denne maskine. Sandsynlige årsager: ingen A-/CNAME-post for mta-sts.{1}, HTTPS-lytteren kører ikke (WebServicesHttpsPort), eller en firewall imellem. Kun kontrolleret fra denne maskine.</value>
   </data>
+  <data name="{0} domain, and it is not active." xml:space="preserve">
+    <value>{0} domæne, og det er ikke aktivt.</value>
+  </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} domæner, ingen af dem aktive.</value>
   </data>
@@ -14600,8 +14797,14 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} post</value>
   </data>
-  <data name="{0} event(s) past the retention window were removed." xml:space="preserve">
-    <value>{0} hændelse(r) uden for opbevaringsvinduet blev fjernet.</value>
+  <data name="{0} event past the retention window was removed." xml:space="preserve">
+    <value>{0} hændelse uden for opbevaringsvinduet blev fjernet.</value>
+  </data>
+  <data name="{0} event, newest first." xml:space="preserve">
+    <value>{0} hændelse, nyeste først.</value>
+  </data>
+  <data name="{0} events past the retention window were removed." xml:space="preserve">
+    <value>{0} hændelser uden for opbevaringsvinduet blev fjernet.</value>
   </data>
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} hændelser, nyeste først.</value>
@@ -14609,11 +14812,20 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} udløbet og afvises nu</value>
   </data>
+  <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>{0} ekstern POP3-afhentningskonto har antivirus slået fra, så post, der afhentes af den, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side.</value>
+  </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} eksterne POP3-afhentningskonti har antivirus slået fra, så post, der afhentes af dem, leveres uscannet, uanset hvad der er sat her. Kontakten sidder på afhentningskontoen, ikke på denne side.</value>
   </data>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} eksterne konti</value>
+  </data>
+  <data name="{0} folder." xml:space="preserve">
+    <value>{0} mappe.</value>
+  </data>
+  <data name="{0} folders." xml:space="preserve">
+    <value>{0} mapper.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} er blevet flyttet til {1}.</value>
@@ -14627,11 +14839,11 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} tilbageholdt, viser de {1} seneste. Resten er der stadig - gennemgå disse, eller lad opbevaringsoprydningen lade dem udløbe.</value>
   </data>
+  <data name="{0} hour ago" xml:space="preserve">
+    <value>for {0} time siden</value>
+  </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>for {0} timer siden</value>
-  </data>
-  <data name="{0} index entries will be discarded and rebuilt from {1} messages." xml:space="preserve">
-    <value>{0} indeksposter kasseres og genopbygges fra {1} meddelelser.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} er allerede medlem af denne gruppe.</value>
@@ -14687,11 +14899,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} items" xml:space="preserve">
     <value>{0} elementer</value>
   </data>
-  <data name="{0} items cannot be checked from here" xml:space="preserve">
-    <value>{0} elementer kan ikke kontrolleres herfra</value>
-  </data>
-  <data name="{0} items cannot be checked from here." xml:space="preserve">
-    <value>{0} elementer kan ikke kontrolleres herfra.</value>
+  <data name="{0} key" xml:space="preserve">
+    <value>{0} nøgle</value>
   </data>
   <data name="{0} keys" xml:space="preserve">
     <value>{0} nøgler</value>
@@ -14702,17 +14911,29 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} listeposter</value>
   </data>
+  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} lytter er konfigureret til TLS, men kan ikke levere det, så den port lytter slet ikke.</value>
+  </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} lyttere er konfigureret til TLS, men kan ikke levere det, så de porte lytter slet ikke.</value>
+  </data>
+  <data name="{0} message" xml:space="preserve">
+    <value>{0} meddelelse</value>
+  </data>
+  <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
+    <value>{0} meddelelse kan ikke vises på listen og efterlades, hvor den er. Den første grund: {1}</value>
+  </data>
+  <data name="{0} message held." xml:space="preserve">
+    <value>{0} meddelelse tilbageholdt.</value>
+  </data>
+  <data name="{0} message past the retention window was removed." xml:space="preserve">
+    <value>{0} meddelelse uden for opbevaringsvinduet blev fjernet.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelse henviser til en fil, der mangler på disken.</value>
   </data>
-  <data name="{0} message(s) past the retention window were removed." xml:space="preserve">
-    <value>{0} meddelelse(r) uden for opbevaringsvinduet blev fjernet.</value>
-  </data>
-  <data name="{0} message(s) waiting for delivery." xml:space="preserve">
-    <value>{0} meddelelse(r) venter på levering.</value>
+  <data name="{0} message waiting for delivery." xml:space="preserve">
+    <value>{0} meddelelse venter på levering.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} meddelelser</value>
@@ -14723,14 +14944,23 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} messages held." xml:space="preserve">
     <value>{0} meddelelser tilbageholdt.</value>
   </data>
+  <data name="{0} messages past the retention window were removed." xml:space="preserve">
+    <value>{0} meddelelser uden for opbevaringsvinduet blev fjernet.</value>
+  </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} meddelelser henviser til en fil, der mangler på disken.</value>
   </data>
-  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
-    <value>{0} meddelelser, {1} MB som klienterne ser dem. Deres filer fylder {2} MB og de dele, der gemmes én gang, {3} MB, hvilket sparer {4} %. {5} af filerne er komprimeret. Målt {6}.</value>
+  <data name="{0} messages waiting for delivery." xml:space="preserve">
+    <value>{0} meddelelser venter på levering.</value>
+  </data>
+  <data name="{0} minute ago" xml:space="preserve">
+    <value>for {0} minut siden</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>for {0} minutter siden</value>
+  </data>
+  <data name="{0} more active domain was not looked up." xml:space="preserve">
+    <value>{0} yderligere aktivt domæne blev ikke slået op.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} yderligere aktive domæner blev ikke slået op.</value>
@@ -14744,20 +14974,20 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} kræver handling, {1} kan ikke afgøres herfra, {2} udført, {3} ikke nødvendige.</value>
   </data>
-  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
-    <value>{0} af dens {1} indstillinger ville ændres på denne server.</value>
-  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} af kontoens engangskoder til gendannelse er ubrugte.</value>
   </data>
-  <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
-    <value>{0} af {1} IP-interval(ler) afviser godkendelse, indtil sessionen er krypteret.</value>
+  <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
+    <value>{0} af {1} IP-intervaller afviser godkendelse, indtil sessionen er krypteret.</value>
   </data>
-  <data name="{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
-    <value>{0} af {1} ændring(er) kunne ikke udføres og vises først, med serverens begrundelse for hver enkelt. Resten blev anvendt.</value>
+  <data name="{0} of {1} IP ranges refuses authentication until the session is encrypted." xml:space="preserve">
+    <value>{0} af {1} IP-intervaller afviser godkendelse, indtil sessionen er krypteret.</value>
   </data>
-  <data name="{0} of {1} entries match the search." xml:space="preserve">
-    <value>{0} af {1} poster matcher søgningen.</value>
+  <data name="{0} of {1} changes could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
+    <value>{0} af {1} ændringer kunne ikke udføres og vises først, med serverens begrundelse for hver enkelt. Resten blev anvendt.</value>
+  </data>
+  <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
+    <value>{0} af {1} ændringer kunne ikke udføres og vises først med serverens begrundelse. Resten blev anvendt.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} på port {1} har ingen kryptering tilgængelig. Mailklienter godkender på denne port, så hver adgangskode, der bruges på den, kan læses af alt mellem klienten og denne server.</value>
@@ -14774,11 +15004,23 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mønstre fjernes fra hver meddelelse efter filnavn, uanset hvad scannerne siger.</value>
   </data>
+  <data name="{0} public folder." xml:space="preserve">
+    <value>{0} offentlig mappe.</value>
+  </data>
   <data name="{0} public folders." xml:space="preserve">
     <value>{0} offentlige mapper.</value>
   </data>
-  <data name="{0} recipient(s) added. {1} account(s) had no e-mail address and were skipped." xml:space="preserve">
-    <value>{0} modtager(e) tilføjet. {1} konto/konti havde ingen e-mailadresse og blev sprunget over.</value>
+  <data name="{0} recipient added." xml:space="preserve">
+    <value>{0} modtager tilføjet.</value>
+  </data>
+  <data name="{0} recipients added." xml:space="preserve">
+    <value>{0} modtagere tilføjet.</value>
+  </data>
+  <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
+    <value>Der findes {0} post, der begynder med "v=DMARC1", på {1} sammen med andre som den. Modtagere behandler flere DMARC-poster som slet ingen politik - fjern alle på nær én.</value>
+  </data>
+  <data name="{0} record beginning &quot;v=spf1&quot; exists at {1} with others like it. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
+    <value>Der findes {0} post, der begynder med "v=spf1", på {1} sammen med andre som den. RFC 7208 gør det til en permanent SPF-fejl hos hver modtager - værre end ingen post. Flet dem sammen til én.</value>
   </data>
   <data name="{0} record host name" xml:space="preserve">
     <value>Værtsnavn for {0}-post</value>
@@ -14795,14 +15037,26 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} politikker for eksterne domæner</value>
   </data>
-  <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
-    <value>{0} række(r) skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
+  <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
+    <value>{0} række skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
   </data>
-  <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel/regler, evalueret fra top til bund.</value>
+  <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
+    <value>{0} rækker skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
+  </data>
+  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel, evalueret fra top til bund.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
+  </data>
+  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regler, evalueret fra top til bund.</value>
+  </data>
+  <data name="{0} sample copied to the clipboard." xml:space="preserve">
+    <value>{0} måling kopieret til udklipsholderen.</value>
+  </data>
+  <data name="{0} sample." xml:space="preserve">
+    <value>{0} måling.</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} målinger kopieret til udklipsholderen.</value>
@@ -14810,14 +15064,23 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} målinger.</value>
   </data>
-  <data name="{0} saved setting(s) wait for a reinitialize, and {1} for a service restart." xml:space="preserve">
-    <value>{0} gemt(e) indstilling(er) venter på en reinitialisering og {1} på en genstart af tjenesten.</value>
+  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
+    <value>{0} gemt indstilling venter på en reinitialisering og {1} på en genstart af tjenesten.</value>
   </data>
-  <data name="{0} saved setting(s) wait for a reinitialize." xml:space="preserve">
-    <value>{0} gemt(e) indstilling(er) venter på en reinitialisering.</value>
+  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
+    <value>{0} gemt indstilling venter på en reinitialisering.</value>
   </data>
-  <data name="{0} saved setting(s) wait for a service restart." xml:space="preserve">
-    <value>{0} gemt(e) indstilling(er) venter på en genstart af tjenesten.</value>
+  <data name="{0} saved setting waits for a service restart." xml:space="preserve">
+    <value>{0} gemt indstilling venter på en genstart af tjenesten.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
+    <value>{0} gemte indstillinger venter på en reinitialisering og {1} på en genstart af tjenesten.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
+    <value>{0} gemte indstillinger venter på en reinitialisering.</value>
+  </data>
+  <data name="{0} saved settings wait for a service restart." xml:space="preserve">
+    <value>{0} gemte indstillinger venter på en genstart af tjenesten.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scorer {1} alene, hvilket når den {2}, hvor serveren holder op med at teste - så {3} kører ikke for en meddelelse, der fejler den, og vises ikke i loggen.</value>
@@ -14828,11 +15091,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} servermeddelelser</value>
   </data>
-  <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
-    <value>{0} indstilling(er) kunne ikke læses — {1}</value>
+  <data name="{0} setting could not be read: {1}" xml:space="preserve">
+    <value>{0} indstilling kunne ikke læses: {1}</value>
   </data>
-  <data name="{0} setting(s) could not be written." xml:space="preserve">
-    <value>{0} indstilling(er) kunne ikke skrives.</value>
+  <data name="{0} setting could not be written." xml:space="preserve">
+    <value>{0} indstilling kunne ikke skrives.</value>
+  </data>
+  <data name="{0} settings could not be read: {1}" xml:space="preserve">
+    <value>{0} indstillinger kunne ikke læses: {1}</value>
+  </data>
+  <data name="{0} settings could not be written." xml:space="preserve">
+    <value>{0} indstillinger kunne ikke skrives.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>»{0}« stopper her: det næste, den peger på, findes ikke på denne skærm.</value>
@@ -14840,23 +15109,38 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} the mail server engine" xml:space="preserve">
     <value>{0} mailservermotoren</value>
   </data>
-  <data name="{0} things need attention" xml:space="preserve">
-    <value>{0} ting kræver opmærksomhed</value>
+  <data name="{0} thing needs attention." xml:space="preserve">
+    <value>{0} ting kræver opmærksomhed.</value>
+  </data>
+  <data name="{0} things need attention." xml:space="preserve">
+    <value>{0} ting kræver opmærksomhed.</value>
   </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} til {1} af {2}</value>
   </data>
-  <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
-    <value>{0} værdi(er) kunne ikke læses fra serveren, så denne oversigt kan være ufuldstændig.</value>
+  <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
+    <value>{0} værdi kunne ikke læses fra serveren, så denne oversigt kan være ufuldstændig.</value>
   </data>
-  <data name="{0} value(s) could not be read — {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} værdi(er) kunne ikke læses — {1} Kortene nedenfor kan være ufuldstændige.</value>
+  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
+    <value>{0} værdi kunne ikke læses: {1} Kortene nedenfor kan være ufuldstændige.</value>
   </data>
-  <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} værdi(er) kunne ikke læses — {1} Elementerne ovenfor kan være ufuldstændige.</value>
+  <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
+    <value>{0} værdi kunne ikke læses: {1} Elementerne ovenfor kan være ufuldstændige.</value>
   </data>
-  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
-    <value>{0} blev oprettet: {1} postkasser og {2} beskeder på vej ind i dem. De ankommer om få sekunder. Alle postkasser logger ind med adgangskoden {3}. Den vises her én gang - skriv den ned, for denne server gemte den ikke.</value>
+  <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
+    <value>{0} værdier kunne ikke læses fra serveren, så denne oversigt kan være ufuldstændig.</value>
+  </data>
+  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
+    <value>{0} værdier kunne ikke læses: {1} Kortene nedenfor kan være ufuldstændige.</value>
+  </data>
+  <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
+    <value>{0} værdier kunne ikke læses: {1} Elementerne ovenfor kan være ufuldstændige.</value>
+  </data>
+  <data name="{0} was made with {1} mailbox." xml:space="preserve">
+    <value>{0} blev oprettet med {1} postkasse.</value>
+  </data>
+  <data name="{0} was made with {1} mailboxes." xml:space="preserve">
+    <value>{0} blev oprettet med {1} postkasser.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} stod ikke længere på listen.</value>
@@ -14870,8 +15154,8 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} was removed from the never-ban list." xml:space="preserve">
     <value>{0} blev fjernet fra listen over aldrig-blokerede.</value>
   </data>
-  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
-    <value>{0} blev fjernet: {1} postkasser, {2} distributionslister, {3} regler og {4} beskeder fulgte med.</value>
+  <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
+    <value>{0} blev fjernet med alt indhold - postkasser: {1}, distributionslister: {2}, regler: {3}, beskeder: {4}.</value>
   </data>
   <data name="{0} white-list entries" xml:space="preserve">
     <value>{0} hvidlisteposter</value>
@@ -14881,6 +15165,42 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} uden brugbar digest, som serveren ignorerer</value>
+  </data>
+  <data name="{0} {1} account had no e-mail address and was skipped." xml:space="preserve">
+    <value>{0} {1} konto havde ingen e-mailadresse og blev sprunget over.</value>
+  </data>
+  <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
+    <value>{0} {1} konti havde ingen e-mailadresse og blev sprunget over.</value>
+  </data>
+  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
+    <value>{0} {1} element kan ikke kontrolleres herfra.</value>
+  </data>
+  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
+    <value>{0} {1} elementer kan ikke kontrolleres herfra.</value>
+  </data>
+  <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} {1} besked er på vej ind i dem og ankommer om få sekunder. Alle postkasser logger ind med adgangskoden {2}. Den vises her én gang - skriv den ned, for denne server gemte den ikke.</value>
+  </data>
+  <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} {1} beskeder er på vej ind i dem og ankommer om få sekunder. Alle postkasser logger ind med adgangskoden {2}. Den vises her én gang - skriv den ned, for denne server gemte den ikke.</value>
+  </data>
+  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} af dem venter på en reinitialisering eller en genstart.</value>
+  </data>
+  <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
+    <value>{0} {1} af dem venter på en reinitialisering eller en genstart; resten trådte i kraft med det samme.</value>
+  </data>
+  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} af dem venter på en reinitialisering eller en genstart.</value>
+  </data>
+  <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
+    <value>{0} {1} af dem venter på en reinitialisering eller en genstart; resten trådte i kraft med det samme.</value>
+  </data>
+  <data name="{0} {1} setting could not be written." xml:space="preserve">
+    <value>{0} {1} indstilling kunne ikke skrives.</value>
+  </data>
+  <data name="{0} {1} settings could not be written." xml:space="preserve">
+    <value>{0} {1} indstillinger kunne ikke skrives.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — exitkode {1} betyder inficeret</value>
@@ -14921,15 +15241,6 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: TXT-post ved {1}</value>
   </data>
-  <data name="{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
-    <value>{0}: der findes TXT-post(er) på {1}, men ingen begynder med v=STSv1, så afsendere genkender ingen politik dér. Ret postens værdi.</value>
-  </data>
-  <data name="{0}: TXT record(s) exist at {1} but none carries this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help." xml:space="preserve">
-    <value>{0}: der findes TXT-post(er) på {1}, men ingen bærer denne nøgles offentlige nøgle, så signaturer fejler verifikationen. Ret postens værdi - det hjælper ikke at vente på udbredelse.</value>
-  </data>
-  <data name="{0}: TXT record(s) exist at {1} but none matches the staged secondary key. Fix the value before promoting - waiting will not help." xml:space="preserve">
-    <value>{0}: der findes TXT-post(er) på {1}, men ingen svarer til den klargjorte sekundære nøgle. Ret værdien før forfremmelsen - det hjælper ikke at vente.</value>
-  </data>
   <data name="{0}: a TXT record exists at {1}, but it could not be compared with the staged secondary key from this panel. Confirm the value before promoting." xml:space="preserve">
     <value>{0}: der findes en TXT-post på {1}, men den kunne ikke sammenlignes med den klargjorte sekundære nøgle fra dette panel. Bekræft værdien før forfremmelsen.</value>
   </data>
@@ -14959,6 +15270,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0}: no {1} record at {2}." xml:space="preserve">
     <value>{0}: ingen {1}-post på {2}.</value>
+  </data>
+  <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
+    <value>{0}: intet, der er publiceret på {1}, begynder med v=STSv1, så afsendere genkender ingen politik dér. Ret postens værdi.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0}: selector '{1}' og nøglefil er angivet. {2} Kontrollerer DNS for TXT-posten {3}…</value>
@@ -15035,17 +15349,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
     <value>{0}: {1}-posten på {2} blev ikke slået op.</value>
   </data>
+  <data name="{0}: what is published at {1} does not carry this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help." xml:space="preserve">
+    <value>{0}: det, der er publiceret på {1}, bærer ikke denne nøgles offentlige nøgle, så signaturer fejler verifikationen. Ret postens værdi - det hjælper ikke at vente på udbredelse.</value>
+  </data>
+  <data name="{0}: what is published at {1} does not match the staged secondary key. Fix the value before promoting - waiting will not help." xml:space="preserve">
+    <value>{0}: det, der er publiceret på {1}, svarer ikke til den klargjorte sekundære nøgle. Ret værdien før forfremmelsen - det hjælper ikke at vente.</value>
+  </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0}: {1}</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} indeholder ingen PEM-certifikatblok, så den rummer intet brugbart CA-certifikat (serverfejl 6140). Eksportér CA-certifikatet i PEM-format (Base64).</value>
-  </data>
-  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
-    <value>{0}: {1} sat tilbage, {2} ladet være som de var; {3} venter på en geninitialisering og {4} på en genstart.</value>
-  </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
-    <value>{0}: {1} sat, {2} uændret, {3} sprunget over; {4} venter på en geninitialisering og {5} på en genstart.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: domænet siger, at klienten formentlig ikke er autoriseret, og beder om, at beskeden alligevel accepteres. Mange masseudsendere gemmer sig bag det. En score på eller over sletningstærsklen afviser beskeden under SMTP-samtalen, som et fail gør; en softfail er aldrig et pass for greylisting-undtagelsen.</value>

@@ -210,7 +210,9 @@ namespace hMailServer.ControlPanel.Services
          {
             int daysAgo = Math.Max(0, (int)Math.Floor((now - expires).TotalDays));
             health.CertificateFile = new CertificateFinding(StatusLevel.Critical,
-               F("Expired {0} ({1} ago)", date, Days_(daysAgo)),
+               daysAgo == 0
+                  ? F("Expired on {0} (less than a day ago)", date)
+                  : PluralF(daysAgo, "Expired on {0} ({1} day ago)", "Expired on {0} ({1} days ago)", date, daysAgo),
                F("The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate.", date));
          }
          else if (certificate.NotBefore > now)
@@ -222,14 +224,24 @@ namespace hMailServer.ControlPanel.Services
          else if (daysRemaining <= ExpiryWarningDays)
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Warning,
-               F("Expires {0} ({1})", date, Days_(daysRemaining)),
-               F("The certificate expires on {0} - {1} from now. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.", date, Days_(daysRemaining)));
+               daysRemaining == 0
+                  ? F("Expires on {0} (in less than a day)", date)
+                  : PluralF(daysRemaining, "Expires on {0} (in {1} day)", "Expires on {0} (in {1} days)", date, daysRemaining),
+               daysRemaining == 0
+                  ? F("The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect.", date)
+                  : PluralF(daysRemaining,
+                     "The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.",
+                     "The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect.",
+                     date, daysRemaining));
          }
          else
          {
             health.CertificateFile = new CertificateFinding(StatusLevel.Good,
-               F("Valid to {0} ({1})", date, Days_(daysRemaining)),
-               F("The certificate file parses correctly and is valid until {0}, {1} from now.", date, Days_(daysRemaining)));
+               PluralF(daysRemaining, "Valid until {0} ({1} day left)", "Valid until {0} ({1} days left)", date, daysRemaining),
+               PluralF(daysRemaining,
+                  "The certificate file parses correctly and is valid until {0}, {1} day from now.",
+                  "The certificate file parses correctly and is valid until {0}, {1} days from now.",
+                  date, daysRemaining));
          }
 
          return certificate;
@@ -387,7 +399,5 @@ namespace hMailServer.ControlPanel.Services
                : L("This Control Panel is connected to a remote server, and the certificate file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is \"unknown\", not \"OK\": check it on the server itself, or from its Setup checklist page.");
          return new CertificateFinding(StatusLevel.Information, L("Cannot be checked from here"), text);
       }
-
-      private static string Days_(int days) => days == 1 ? L("1 day") : F("{0} days", days);
    }
 }

@@ -42,8 +42,18 @@ What is checked
     since its translator cannot place the value; F("... @{0}.", domain).
   * No C# source joins a count to a text with a space - rows.Count + " " +
     noun, or n + " " + (n == 1 ? one : many) - since the noun is translated
-    alone and the code then inflects it in English; one text per number,
-    L("1 item") and F("{0} items", n), lets each language count its own way.
+    alone and the code then inflects it in English; a sentence written whole
+    for each form, Plural(n, "{0} item", "{0} items"), lets each language
+    count its own way.
+  * Plurals: the two forms of every Loc.Plural or Loc.PluralF call are string
+    literals, catalogue keys like any marked text, and carry the same
+    placeholders (a language's "one" is not always 1: Russian says 21 that
+    way); the catalogues of Czech, Polish, Russian and Ukrainian hold a third
+    form for each pair, the second key followed by "|few", for two to four of
+    a thing, and no catalogue holds one the source does not ask for; no marked
+    text puts an English plural ending in brackets ("message(s)"); and no C#
+    source writes a count's forms as n == 1 ? L(...) : F(...), which gives
+    those four languages one plural for 2 and for 5.
 
 Usage: python3 build/check-localisation.py [--write] [--inventory] [--self-test]
   --write      regenerate Strings.resx and bring every language catalogue up
@@ -323,18 +333,131 @@ def read(path):
 
 
 def marked_texts():
-   """{english: [locations]} for every marker in the source."""
+   """{english: [locations]} for every marker in the source, the forms of every Plural call among them."""
    found = {}
    for path in source_files():
       src = read(path)
       if path.endswith(".xaml"):
          hits = ((m.start(), unescape_xaml(m.group(1))) for m in XAML_MARK.finditer(src))
       else:
-         hits = ((m.start(), unescape_cs(m.group(1))) for m in CS_MARK.finditer(src))
+         hits = [(m.start(), unescape_cs(m.group(1))) for m in CS_MARK.finditer(src)]
+         for call in plural_calls(src):
+            hits.extend((pos, text) for pos, text in call["forms"] if text is not None)
       for pos, text in hits:
          if text:
             found.setdefault(text, []).append(f"{rel(path)}:{src.count(chr(10), 0, pos) + 1}")
    return found
+
+
+# --- plurals -------------------------------------------------------------------------
+
+# Loc.Plural(count, one, other) and Loc.PluralF(count, one, other, args...): the two
+# forms are catalogue keys, read here from the call's second and third arguments,
+# which have to be literals so that the pair can be checked. The language's CLDR
+# category of the count picks the form at run time (Services/Loc.cs); a catalogue
+# whose language says two to four of a thing apart from five holds a third form,
+# the key of the second literal followed by "|few".
+PLURAL_CALL = re.compile(r"(?<![\w.])(?:Loc\.)?Plural(F?)\(")
+PLURAL_DECLARATION = re.compile(r"\b(?:string|static|public|private|internal)\s+$")
+FEW = "|few"
+FEW_LANGUAGES = {"cs", "pl", "ru", "uk"}
+
+
+def call_arguments(src, start):
+   """[(offset, text)] of the top-level arguments of the call whose "(" is at start - 1, or None if it never closes."""
+   args, depth, i, begin = [], 0, start, start
+   while i < len(src):
+      c = src[i]
+      if c == '"' or (c in "@$" and src[i + 1:i + 2] == '"'):
+         verbatim = c == "@" or src[i:i + 3] in ('$@"', '@$"')
+         i = src.index('"', i)
+         i += 1
+         while i < len(src):
+            if verbatim and src[i] == '"' and src[i + 1:i + 2] == '"':
+               i += 2
+               continue
+            if not verbatim and src[i] == "\\":
+               i += 2
+               continue
+            if src[i] == '"':
+               break
+            i += 1
+      elif c == "'":
+         # a char literal: 'x', '\'', 'A'
+         i = src.index("'", i + (3 if src[i + 1:i + 2] == "\\" else 2))
+      elif c in "([{":
+         depth += 1
+      elif c in ")]}":
+         if depth == 0:
+            args.append((begin, src[begin:i]))
+            return args
+         depth -= 1
+      elif c == "," and depth == 0:
+         args.append((begin, src[begin:i]))
+         begin = i + 1
+      i += 1
+   return None
+
+
+def plural_calls(src):
+   """Each Plural and PluralF call: {"line", "forms": [(offset, text or None), (offset, text or None)]}.
+
+   A form that is not one plain string literal is None, and reported."""
+   calls = []
+   for m in PLURAL_CALL.finditer(src):
+      if PLURAL_DECLARATION.search(src[max(0, m.start() - 30):m.start()]):
+         continue
+      if src[src.rfind("\n", 0, m.start()) + 1:m.start()].lstrip().startswith(("//", "*")):
+         continue   # an example in a comment
+      args = call_arguments(src, m.end())
+      if args is None or len(args) < 3:
+         continue
+      forms = []
+      for offset, text in args[1:3]:
+         literal = re.fullmatch(r"\s*" + CS_LITERAL + r"\s*", text)
+         forms.append((offset + len(text) - len(text.lstrip()), unescape_cs(literal.group(1)) if literal else None))
+      calls.append({"line": src.count("\n", 0, m.start()) + 1, "forms": forms})
+   return calls
+
+
+def plural_pairs():
+   """{other: one} for every Plural call in the source, and the problems of the calls themselves."""
+   pairs, problems = {}, []
+   for path in source_files():
+      if not path.endswith(".cs"):
+         continue
+      src = read(path)
+      for call in plural_calls(src):
+         (_, one), (_, other) = call["forms"]
+         where = f"{rel(path)}:{call['line']}"
+         if one is None or other is None:
+            problems.append(f"{where}: a Plural call whose forms are not two string literals; write both forms in "
+                            f"the call, so that the pair can be read as catalogue keys and checked")
+            continue
+         if set(PLACEHOLDER.findall(one)) != set(PLACEHOLDER.findall(other)):
+            problems.append(f"{where}: the two forms of a Plural call carry different placeholders, {one!r} and "
+                            f"{other!r}; both carry the count, since a language's \"one\" is not always 1")
+         if pairs.get(other, one) != one:
+            problems.append(f"{where}: {other!r} is the plural of two texts, {pairs[other]!r} and {one!r}")
+         pairs[other] = one
+   return pairs, problems
+
+
+# An English plural ending in brackets - "message(s)", "address(es)" - which leaves every
+# language an English plural to translate: German read "Einstellung(en)" and "Regel(n)",
+# and Polish has three forms for it. Loc.Plural writes each form whole. A unit after a
+# space, "timeout (s)", is not this.
+PAREN_PLURAL = re.compile(r"[A-Za-z]\((?:s|es)\)")
+
+# A count's two forms written as a choice, n == 1 ? L("1 item") : F("{0} items", n): one
+# plural for 2 and for 5, which Polish, Czech, Russian and Ukrainian do not have.
+PAIR_CHOICE = re.compile(r"==\s*1\s*\)?\s*\?\s*L\(\s*" + CS_LITERAL + r"\s*\)\s*:\s*F\(\s*\"")
+
+
+def cs_pair_choices(src):
+   """(line, code) for every count written as n == 1 ? L(...) : F(...)."""
+   return [(src.count("\n", 0, m.start()) + 1, " ".join(src[m.start():m.end() + 30].split()))
+           for m in PAIR_CHOICE.finditer(src)]
 
 
 # --- resx ---------------------------------------------------------------------
@@ -439,7 +562,7 @@ SENTENCE_WORD = re.compile(r"[A-Z][a-z]+(?:\.\.\.|[.!?\u2026])")
 # A piece of a sentence joined to others: lowercase words with white space at an edge,
 # as in "in " + page or a " and " between two names. The palette said "in" before every
 # page's place in every language until 6.3.6.
-JOINED_PIECE = re.compile(r"[a-z]{2,}(?: [a-z]{2,})*")
+JOINED_PIECE = re.compile(r"\(?[A-Za-z]?[a-z]{2,}(?: [a-z]{2,})*[:.,;)]?")
 
 # A constant such as ApiKeyStore's "Key." is the start of a dotted name, not a sentence.
 CONST_DECLARATION = re.compile(r"\bconst\s+string\s+\w+\s*=\s*$")
@@ -474,7 +597,11 @@ def cs_untranslated(src):
    properties that carry keys, and a constant's one word ending in a dot."""
    out = []
    lines = src.split("\n")
+   # the forms of a Plural call are catalogue keys, read by plural_calls
+   plural_forms = {offset for call in plural_calls(src) for offset, _ in call["forms"]}
    for m in re.finditer(r'\$?"((?:[^"\\\n]|\\.)*)"', src):
+      if m.start() in plural_forms:
+         continue
       raw = m.group(1)
       interpolated = m.group(0).startswith("$")
       text = unescape_cs(re.sub(r"\{[^}]*\}", "", raw) if interpolated else raw)
@@ -562,9 +689,9 @@ def cs_split_sentences(src):
 # n + " " + (n == 1 ? one : many). The noun reaches its translator alone, and what
 # the code then does to it is English: the count pill read "3 Sicherheitsgruppes"
 # in German and "5 ルールs" in Japanese until 6.3.7, and "2 Scanner" lost its
-# verb in the anti-virus verdict. One text per number - L("1 item") and
-# F("{0} items", n) - lets each language count its own way. A name joined to
-# a number (protocol + " " + port) is not a count and is not this.
+# verb in the anti-virus verdict. A whole text for each form - Plural(n,
+# "{0} item", "{0} items") - lets each language count its own way. A name joined
+# to a number (protocol + " " + port) is not a count and is not this.
 COUNT_JOINED = re.compile(r"(?:\.Count|\.Length|\b(?:count|total|n))\s*\+\s*\"\s\"\s*\+")
 
 
@@ -775,6 +902,49 @@ def self_test():
          print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a count joined to a text")
          failures += 1
 
+   plurals = {
+      # (source, the forms read): a form that is not a literal reads as None
+      'Status_(Plural(rows.Count, "{0} message held.", "{0} messages held."));':
+         [("{0} message held.", "{0} messages held.")],
+      'x = PluralF(Math.Max(a, b), "{0} of {1} change failed.", "{0} of {1} changes failed.", a, F("x {0}", b));':
+         [("{0} of {1} change failed.", "{0} of {1} changes failed.")],
+      'x = Loc.Plural(list[i].Count, "Say \\"{0}\\" once.", "Say \\"{0}\\" twice.");':
+         [('Say "{0}" once.', 'Say "{0}" twice.')],
+      'x = Plural(n, spec_.CountOne, "{0} items");': [(None, "{0} items")],
+      'public static string Plural(long count, string one, string other)': [],
+      'string f = PluralForm(n, one, other);': [],
+      'x = Plural(c == \'(\' ? 1 : 2, "{0} bracket", "{0} brackets");': [("{0} bracket", "{0} brackets")],
+   }
+   for line, expected in plurals.items():
+      found = [tuple(text for _, text in call["forms"]) for call in plural_calls(line + "\n")]
+      if found != expected:
+         print(f"FAIL: {line!r} reads as the plural calls {found}, expected {expected}")
+         failures += 1
+   for line in ('Status_(Plural(rows.Count, "{0} message held.", "{0} messages held."));',
+                'x = PluralF(n, "Saved {1}: {0} setting waits.", "Saved {1}: {0} settings wait.", n, time);'):
+      if cs_untranslated(line + "\n"):
+         print(f"FAIL: the forms of {line!r} are reported as untranslated captions")
+         failures += 1
+
+   for text, expected in {"{0} message(s) waiting for delivery.": True, "{0} blocked address(es)": True,
+                          "SMTP server minimum timeout (s)": False, "{0} messages waiting.": False}.items():
+      if bool(PAREN_PLURAL.search(text)) != expected:
+         print(f"FAIL: {text!r} is {'not ' if expected else ''}an English plural in brackets")
+         failures += 1
+
+   choices = {
+      'Status_(total == 1 ? L("1 message held.") : F("{0} messages held.", total));': True,
+      'count_.Text = (count == 1) ? L("1 public folder.") : F("{0} public folders.", count);': True,
+      'countBadge_.Text = rows_.Count == 1 ? L(spec_.CountOne) : F(spec_.CountMany, rows_.Count);': False,
+      'return seconds == 1 ? L("last second") : Plural(seconds, "last {0} second", "last {0} seconds");': False,
+      'Status_(Plural(total, "{0} message held.", "{0} messages held."));': False,
+   }
+   for line, expected in choices.items():
+      found = bool(cs_pair_choices(line + "\n"))
+      if found != expected:
+         print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a count's forms written as a choice")
+         failures += 1
+
    print(f"self-test: {failures} failure(s)")
    return 1 if failures else 0
 
@@ -789,6 +959,8 @@ def main():
    problems = []
 
    texts = marked_texts()
+   pairs, plural_problems = plural_pairs()
+   problems.extend(plural_problems)
 
    for path, line, snippet in translated_values():
       problems.append(
@@ -815,7 +987,12 @@ def main():
          existing = dict(read_resx(path))
          comment = read(path)
          m = re.search(r"<!-- (?!Copyright)(.*?) -->", comment, re.S)
-         write_resx(path, [(t, existing.get(t, "")) for t in wanted],
+         items = []
+         for t in wanted:
+            items.append((t, existing.get(t, "")))
+            if tag in FEW_LANGUAGES and t in pairs:
+               items.append((t + FEW, existing.get(t + FEW, "")))
+         write_resx(path, items,
                     (m.group(1).strip() if m else f"The {tag} catalogue. Keys are the English text; values are the translation.").replace("--", "-"))
 
    neutral = read_resx(NEUTRAL)
@@ -829,10 +1006,18 @@ def main():
       for t in stale[:10]:
          problems.append(f"  stale:   {t!r}")
 
+   for text in wanted:
+      if PAREN_PLURAL.search(text):
+         problems.append(f"{texts[text][0]}: {text!r} puts an English plural ending in brackets, which every language "
+                         f"then has to translate; write both forms whole with Plural(n, one, other)")
+
    coverage = {}
    for tag, path in language_files():
       entries = read_resx(path)
-      known = set(wanted)
+      # a plural's form for two to four, in the languages that have one
+      forms = {p + FEW: p for p in pairs} if tag in FEW_LANGUAGES else {}
+      known = set(wanted) | set(forms)
+      required = len(known)
       translated = 0
       for name, value in entries:
          if name not in known:
@@ -841,7 +1026,7 @@ def main():
          if not value.strip():
             continue
          translated += 1
-         if set(PLACEHOLDER.findall(name)) != set(PLACEHOLDER.findall(value)):
+         if set(PLACEHOLDER.findall(forms.get(name, name))) != set(PLACEHOLDER.findall(value)):
             problems.append(f"Strings.{tag}.resx: the placeholders of {name!r} differ in {value!r}")
          if mnemonic_key(name) is not None and mnemonic_key(value) is None:
             problems.append(f"Strings.{tag}.resx: {name!r} carries an Alt key and its translation {value!r} does not")
@@ -851,9 +1036,9 @@ def main():
          for edge in added_edge_space(name, value):
             problems.append(f"Strings.{tag}.resx: {name!r} has no white space at its {edge} and its translation {value!r} "
                             f"has: the source joins the next text to it as it is, so the space is one too many")
-      coverage[tag] = (translated, len(wanted))
-      if tag in COMPLETE and translated < len(wanted):
-         untranslated = [n for n in wanted if not dict(entries).get(n, "").strip()]
+      coverage[tag] = (translated, required)
+      if tag in COMPLETE and translated < required:
+         untranslated = [n for n in sorted(known) if not dict(entries).get(n, "").strip()]
          problems.append(f"Strings.{tag}.resx claims to be complete and lacks {len(untranslated)} translation(s):")
          for n in untranslated[:20]:
             problems.append(f"  {n!r}")
@@ -869,8 +1054,11 @@ def main():
             problems.append(f"{rel(path)}:{line}: a sentence split around a value, its end a literal: {code!r}; "
                             f"write it whole, F(\"... {{0}}.\", value), so that a translator can place the value")
          for line, code in cs_counts_joined(read(path)):
-            problems.append(f"{rel(path)}:{line}: a count joined to a text with a space: {code!r}; write one text per "
-                            f"number, L(\"1 item\") and F(\"{{0}} items\", n), so that each language counts its own way")
+            problems.append(f"{rel(path)}:{line}: a count joined to a text with a space: {code!r}; write the sentence "
+                            f"whole for each form, Plural(n, \"{{0}} item\", \"{{0}} items\"), so that each language counts its own way")
+         for line, code in cs_pair_choices(read(path)):
+            problems.append(f"{rel(path)}:{line}: a count's forms written as a choice of two: {code!r}; Polish, Czech, "
+                            f"Russian and Ukrainian say 2 and 5 apart, so write Plural(n, \"{{0}} item\", \"{{0}} items\")")
    for path in sorted(LOCALISED):
       if not os.path.exists(os.path.join(ROOT, path)):
          problems.append(f"LOCALISED names {path}, which does not exist")

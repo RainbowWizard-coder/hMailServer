@@ -301,7 +301,7 @@ namespace hMailServer.ControlPanel.Views
             int full = keys.FindAll(k => !k.ReadOnly && !k.IsExpired).Count;
             int unusable = keys.FindAll(k => k.Unusable).Count;
 
-            var parts = new List<string> { keys.Count == 1 ? L("1 key") : F("{0} keys", keys.Count) };
+            var parts = new List<string> { Plural(keys.Count, "{0} key", "{0} keys") };
             if (full > 0)
                parts.Add(F("{0} with full authority", full));
             if (expired > 0)

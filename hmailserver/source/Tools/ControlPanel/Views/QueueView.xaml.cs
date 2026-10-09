@@ -138,7 +138,7 @@ namespace hMailServer.ControlPanel.Views
             StatusText.Show(EmptyStatus, Notice, rows.Count, null, L("The delivery queue is empty."));
             Header.Subtitle = rows.Count == 0
                ? L("Messages waiting for delivery.")
-               : F("{0} message(s) waiting for delivery.", rows.Count);
+               : Plural(rows.Count, "{0} message waiting for delivery.", "{0} messages waiting for delivery.");
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

@@ -97,8 +97,10 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (_, _) => { DialogResult = false; Close(); };
 
          string heading = block
-            ? (ids_.Count == 1 ? L("Blacklist the sender of this message, then delete it") : F("Blacklist the senders of {0} messages, then delete them", ids_.Count))
-            : (ids_.Count == 1 ? L("Whitelist the sender of this message, then release it") : F("Whitelist the senders of {0} messages, then release them", ids_.Count));
+            ? (ids_.Count == 1 ? L("Blacklist the sender of this message, then delete it")
+               : Plural(ids_.Count, "Blacklist the senders of {0} message, then delete it", "Blacklist the senders of {0} messages, then delete them"))
+            : (ids_.Count == 1 ? L("Whitelist the sender of this message, then release it")
+               : Plural(ids_.Count, "Whitelist the senders of {0} message, then release it", "Whitelist the senders of {0} messages, then release them"));
 
          UseFrame(heading, body, primary_, cancel,
             description: L("Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is."),
@@ -169,7 +171,10 @@ namespace hMailServer.ControlPanel.Views
             {
                lines.Add(refused.Count == 1
                   ? F("1 message cannot be listed and will be left where it is: {0}", refused[0].Error)
-                  : F("{0} messages cannot be listed and will be left where they are. The first reason: {1}", refused.Count, refused[0].Error));
+                  : PluralF(refused.Count,
+                     "{0} message cannot be listed and will be left where it is. The first reason: {1}",
+                     "{0} messages cannot be listed and will be left where they are. The first reason: {1}",
+                     refused.Count, refused[0].Error));
             }
 
             List<string> suffixes = answer.Entries.Where(e => e.PublicSuffix).Select(e => e.Value).ToList();

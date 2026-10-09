@@ -203,7 +203,7 @@ namespace hMailServer.ControlPanel.Views
 
             string per = bucket == 1 ? L("minute") : bucket == 10 ? L("ten minutes") : L("hour");
             rangeNote_.Text = processed.Count == 0
-               ? F("No samples in this range yet: the server records one a minute and keeps {0} days.", retention)
+               ? Plural(retention, "No samples in this range yet: the server records one a minute and keeps {0} day.", "No samples in this range yet: the server records one a minute and keeps {0} days.")
                : F("One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute.", per, retention);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -491,12 +491,14 @@ namespace hMailServer.ControlPanel.Views
 
          string note = "";
          if (pendingDnsLookups > 0)
-            note = pendingDnsLookups == 1
-               ? L("1 DNS record is still being checked in the background; this summary will update.")
-               : F("{0} DNS records are still being checked in the background; this summary will update.", pendingDnsLookups);
+            note = Plural(pendingDnsLookups,
+               "{0} DNS record is still being checked in the background; this summary will update.",
+               "{0} DNS records are still being checked in the background; this summary will update.");
          if (checks.FailedReads > 0)
             note += (note.Length > 0 ? " " : "")
-               + F("{0} value(s) could not be read from the server, so this summary may be incomplete.", checks.FailedReads);
+               + Plural(checks.FailedReads,
+                  "{0} value could not be read from the server, so this summary may be incomplete.",
+                  "{0} values could not be read from the server, so this summary may be incomplete.");
 
          AttentionNote.Text = note;
          AttentionNote.Visibility = note.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -513,21 +515,24 @@ namespace hMailServer.ControlPanel.Views
          AttentionPill.Visibility = Visibility.Visible;
       }
 
+      // Each count is a whole sentence in the forms its language has; two counts
+      // are two sentences, the first placed whole in the second.
       private static string SummaryText_(int action, int unknown, int total)
       {
          if (action > 0)
          {
-            string text = action == 1 ? L("1 thing needs attention") : F("{0} things need attention", action);
-            if (unknown > 0)
-               text += ", " + (unknown == 1 ? L("1 item cannot be checked from here") : F("{0} items cannot be checked from here", unknown));
-            return text + ".";
+            string text = Plural(action, "{0} thing needs attention.", "{0} things need attention.");
+            return unknown > 0
+               ? PluralF(unknown, "{0} {1} item cannot be checked from here.", "{0} {1} items cannot be checked from here.", text, unknown)
+               : text;
          }
 
          if (unknown > 0)
-            return L("Nothing needs action, but ")
-               + (unknown == 1 ? L("1 item cannot be checked from here.") : F("{0} items cannot be checked from here.", unknown));
+            return Plural(unknown, "Nothing needs action, but {0} item cannot be checked from here.", "Nothing needs action, but {0} items cannot be checked from here.");
 
-         return F("Nothing needs attention - all {0} external setup checks are done or not needed.", total);
+         return Plural(total,
+            "Nothing needs attention - the {0} external setup check is done or not needed.",
+            "Nothing needs attention - all {0} external setup checks are done or not needed.");
       }
 
       /// <summary>

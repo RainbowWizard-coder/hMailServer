@@ -104,7 +104,7 @@ namespace hMailServer.ControlPanel.Services
       public int Id => Message?.Id ?? 0;
 
       public string GroupTitle => IsGroup ? (GroupKey.Length == 0 ? L("(no domain)") : GroupKey) : "";
-      public string GroupCount => !IsGroup ? "" : Members.Count == 1 ? L("1 message") : F("{0} messages", Members.Count);
+      public string GroupCount => !IsGroup ? "" : Plural(Members.Count, "{0} message", "{0} messages");
 
       public string Held => Message?.CreatedTime ?? "";
       public string Helo => Message?.Helo ?? "";

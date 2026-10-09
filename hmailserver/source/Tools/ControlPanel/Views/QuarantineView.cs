@@ -228,7 +228,7 @@ namespace hMailServer.ControlPanel.Views
                else if (messages.Count < total)
                   Status_(StatusLevel.Information, F("{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out.", total, messages.Count));
                else
-                  Status_(StatusLevel.Information, total == 1 ? L("1 message held.") : F("{0} messages held.", total));
+                  Status_(StatusLevel.Information, Plural(total, "{0} message held.", "{0} messages held."));
             }
             finally
             {
@@ -719,8 +719,13 @@ namespace hMailServer.ControlPanel.Views
          string question = count == 1
             ? L("Delete this message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.")
             : groupTitle != null
-               ? F("Delete the {0} messages from {1} permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.", count, groupTitle)
-               : F("Delete the {0} checked messages permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.", count);
+               ? PluralF(count,
+                  "Delete the {0} message from {1} permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",
+                  "Delete the {0} messages from {1} permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.",
+                  count, groupTitle)
+               : Plural(count,
+                  "Delete the {0} checked message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",
+                  "Delete the {0} checked messages permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.");
 
          return MessageBox.Show(question, L("Delete quarantined message"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
             MessageBoxResult.No) == MessageBoxResult.Yes;
@@ -735,8 +740,8 @@ namespace hMailServer.ControlPanel.Views
 
          string said = action switch
          {
-            "release" => done == 1 ? L("Released 1 message to its recipients.") : F("Released {0} messages to their recipients.", done),
-            "delete" => done == 1 ? L("Deleted 1 message.") : F("Deleted {0} messages.", done),
+            "release" => Plural(done, "Released {0} message to its recipients.", "Released {0} messages to their recipients."),
+            "delete" => Plural(done, "Deleted {0} message.", "Deleted {0} messages."),
             "allow" => F("Whitelisted. List entries: {0}. Messages released: {1}.", entries, done),
             _ => F("Blacklisted. List entries: {0}. Messages deleted: {1}.", entries, done)
          };
@@ -897,7 +902,7 @@ namespace hMailServer.ControlPanel.Views
             if (removed == 0)
                Status_(StatusLevel.Information, L("Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never."));
             else
-               Status_(StatusLevel.Good, F("{0} message(s) past the retention window were removed.", removed));
+               Status_(StatusLevel.Good, Plural(removed, "{0} message past the retention window was removed.", "{0} messages past the retention window were removed."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

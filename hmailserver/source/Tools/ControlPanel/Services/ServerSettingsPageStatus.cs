@@ -105,7 +105,7 @@ namespace hMailServer.ControlPanel.Services
          if (failedReads <= 0)
             return null;
 
-         return F("{0} setting(s) could not be read — {1}", failedReads, diagnosis ?? "");
+         return PluralF(failedReads, "{0} setting could not be read: {1}", "{0} settings could not be read: {1}", failedReads, diagnosis ?? "");
       }
 
       /// <summary>
@@ -120,16 +120,26 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static string SaveSentence(int saved, int failed, string timeText, int? waiting)
       {
+         // Each count is a whole sentence in the forms its language has (Loc.Plural);
+         // where there are two, the first is placed whole in the second.
+         string time = timeText ?? "";
          if (failed > 0)
-            return F("Saved {0} settings, {1} could not be written.", saved, failed);
+            return PluralF(failed, "{0} {1} setting could not be written.", "{0} {1} settings could not be written.",
+               Plural(saved, "Saved {0} setting.", "Saved {0} settings."), failed);
 
-         string appliedNote = waiting == null
-            ? L(" - server settings applied immediately; hMailServer.ini settings apply after a service restart.")
-            : waiting > 0
-               ? F(" - {0} of them wait for a reinitialize or a restart; the rest applied immediately.", waiting.Value)
-               : L(" - applied immediately.");
+         if (waiting == null)
+            return PluralF(saved,
+               "Saved {0} setting at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.",
+               "Saved {0} settings at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart.",
+               saved, time);
 
-         return F("Saved {0} settings at {1}", saved, timeText ?? "") + appliedNote;
+         if (waiting > 0)
+            return PluralF(waiting.Value,
+               "{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately.",
+               "{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately.",
+               PluralF(saved, "Saved {0} setting at {1}.", "Saved {0} settings at {1}.", saved, time), waiting.Value);
+
+         return PluralF(saved, "Saved {0} setting at {1} - applied immediately.", "Saved {0} settings at {1} - applied immediately.", saved, time);
       }
    }
 }

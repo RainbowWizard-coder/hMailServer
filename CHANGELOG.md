@@ -940,6 +940,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Ukrainian catalogue gives back unchanged, unless it is a name every language keeps, and its `--self-test` holds the
   rule to the three Japanese words; `SeverityWordTests` holds the word to the language in force when it is read.
 
+- **Fixed: the Control Panel wrote "(s)" after a count, and counted in English grammar in every language.** Forty-three
+  captions said "message(s)", "setting(s)", "item(s)" and the like, which reads as a form to fill in rather than a
+  sentence and which no translation can carry, and twenty-six more chose between a singular and a plural sentence by
+  asking whether the count was 1, which is English grammar: Czech, Polish, Russian and Ukrainian have a third form for
+  counts such as 2 to 4, Russian and Ukrainian say 21 and 31 in the singular, French and Brazilian Portuguese say 0
+  in the singular, and Japanese and Chinese have one form for every count. The Control Panel now counts through
+  `Loc.Plural` and `Loc.PluralF`, which take the count and the English singular and plural and pick the form the
+  language's CLDR plural rules give that count; the Czech, Polish, Russian and Ukrainian catalogues carry the third
+  form of each, under the plural's key with "|few" after it. 119 places count that way and no "(s)" is left; where a
+  sentence counted two things at once, each count is now a sentence or a labelled number of its own ("Messages: 4,
+  files compressed: 2"), and where the English says "One ..." for exactly one, it still does. The same pass spells
+  reinitialise the British way in each of the fifteen captions that named it (the COM method keeps its name,
+  Reinitialize). Every new and changed sentence is translated in all seventeen languages. `build/check-localisation.py`
+  reads each Plural call, refuses two forms with different placeholders, requires the "|few" form in the four
+  languages that need it and keeps it on `--write`, and refuses "(s)" in a translated string and an
+  `== 1 ? L(...) : F(...)` choice; `build/check-catalogues.py` holds each "|few" form to the English of its plural;
+  `PluralTests` holds the forms to the counts that tell them apart in each language.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

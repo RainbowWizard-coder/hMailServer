@@ -43,6 +43,10 @@ catalogue, or against what the server does at run time:
             (SAME_IN_EVERY_SCRIPT). An acronym in capitals is a name, but for
             the few English words written in capitals (CAPITAL_WORDS).
 
+The Czech, Polish, Russian and Ukrainian plural forms ("<English>|few", which
+Loc.Plural reads for counts such as 2 to 4) are held to the English they stand in for, by the
+same rules.
+
 Exits 1 with the language, the catalogue key and what is wrong.
 """
 import os
@@ -99,6 +103,10 @@ SETTING_SKIP = {"ControlPanel", "OpenSSL", "OpenTelemetry", "SpamAssassin",
 
 # The catalogues in a script other than Latin, where an English word left as it
 # is stands out as untranslated.
+# The suffix of a catalogue key that holds a plural form of the English key
+# before it (Loc.Plural; check-localisation.py requires them).
+FEW = "|few"
+
 OTHER_SCRIPTS = {"ja", "zh-Hans", "ru", "uk"}
 
 # Keys of ordinary words that are names in every language and script: products,
@@ -167,11 +175,14 @@ def digits(text):
    return re.sub(r"[^0-9]", "", text)
 
 
-def check(tag, catalogue):
+def check(tag, catalogue, pages=None):
+   """Findings for {English: translation}; pages, when given, is the whole catalogue
+   the page titles are read from (the plural forms are checked on their own)."""
+   pages = catalogue if pages is None else pages
    titles = {}
    for title in PAGE_TITLES:
-      if title in catalogue and catalogue[title]:
-         titles[title] = catalogue[title]
+      if title in pages and pages[title]:
+         titles[title] = pages[title]
 
    findings = []
    for source, target in sorted(catalogue.items()):
@@ -263,10 +274,15 @@ def main():
       if not match:
          continue
       tag = match.group(1)
-      catalogue = read_resx(os.path.join(RESOURCES, name))
+      raw = read_resx(os.path.join(RESOURCES, name))
       # Only the keys this catalogue actually translates, keyed by the English.
-      catalogue = {key: value for key, value in catalogue.items() if key in english and value}
+      catalogue = {key: value for key, value in raw.items() if key in english and value}
       findings = check(tag, catalogue)
+      # A Czech, Polish, Russian or Ukrainian plural form ("<English>|few", see
+      # Loc.Plural) is held to the English of the form it stands in for.
+      few = {key[:-len(FEW)]: value for key, value in raw.items()
+             if key.endswith(FEW) and key[:-len(FEW)] in english and value}
+      findings += [(source + FEW, what) for source, what in check(tag, few, pages=catalogue)]
       total += len(findings)
       for source, what in findings:
          print("  [%s] %s\n        in %r" % (tag, what, source[:110]))

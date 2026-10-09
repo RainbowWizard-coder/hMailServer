@@ -112,7 +112,7 @@ namespace hMailServer.ControlPanel.Views
          if (count == 0)
             status_.Visibility = Visibility.Collapsed;
          else
-            Status_(StatusLevel.Information, count == 1 ? L("1 event.") : F("{0} events, newest first.", count));
+            Status_(StatusLevel.Information, Plural(count, "{0} event, newest first.", "{0} events, newest first."));
       }
 
       /// <summary>
@@ -219,7 +219,7 @@ namespace hMailServer.ControlPanel.Views
                if (removed == 0)
                   Status_(StatusLevel.Information, L("Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never."));
                else
-                  Status_(StatusLevel.Good, F("{0} event(s) past the retention window were removed.", removed));
+                  Status_(StatusLevel.Good, Plural(removed, "{0} event past the retention window was removed.", "{0} events past the retention window were removed."));
             }
             finally
             {

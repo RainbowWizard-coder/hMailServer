@@ -320,7 +320,9 @@ namespace hMailServer.ControlPanel.Services
                config.BlockedSenderCount > 0, null,
                config.BlockedSenderCount > 0 ? L("per entry") : "-",
                config.BlockedSenderCount > 0
-                  ? F("Matches the envelope sender against {0} blocked address(es) and domain(s); the score comes from the entry that matched.", config.BlockedSenderCount)
+                  ? Plural(config.BlockedSenderCount,
+                     "Matches the envelope sender against {0} blocked address or domain; the score comes from the entry that matched.",
+                     "Matches the envelope sender against {0} blocked addresses and domains; the score comes from the entry that matched.")
                   : L("No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state."),
                "blockedsenders", Unread(nameof(config.BlockedSenderCount))),
 

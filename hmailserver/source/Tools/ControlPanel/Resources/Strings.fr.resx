@@ -44,14 +44,8 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name=" (route #{0})" xml:space="preserve">
     <value> (route n° {0})</value>
   </data>
-  <data name=" (showing first 1000 — refine your search)" xml:space="preserve">
-    <value> (1000 premiers affichés — affinez votre recherche)</value>
-  </data>
   <data name=" (subject '{0}')" xml:space="preserve">
     <value> (objet « {0} »)</value>
-  </data>
-  <data name=" - applied immediately." xml:space="preserve">
-    <value> - appliqué immédiatement.</value>
   </data>
   <data name=" - at its cap, so entries are being evicted" xml:space="preserve">
     <value> - à son plafond, des entrées sont donc évincées</value>
@@ -59,20 +53,11 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name=" - no ServicePassword is stored or typed, and an empty password is refused before it is sent" xml:space="preserve">
     <value> - aucun ServicePassword n'est stocké ni saisi, et un mot de passe vide est refusé avant d'être envoyé</value>
   </data>
-  <data name=" - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
-    <value> - les réglages du serveur sont appliqués immédiatement ; ceux de hMailServer.ini s'appliquent après un redémarrage du service.</value>
-  </data>
   <data name=" - shown above as this machine's name" xml:space="preserve">
     <value> - affiché ci-dessus comme nom de cette machine</value>
   </data>
-  <data name=" - {0} of them wait for a reinitialize or a restart; the rest applied immediately." xml:space="preserve">
-    <value> - {0} d'entre eux attendent une réinitialisation ou un redémarrage ; les autres ont été appliqués immédiatement.</value>
-  </data>
   <data name=" Also skipped for any recipient domain that has greylisting turned off in its own settings." xml:space="preserve">
     <value> Également ignoré pour tout domaine destinataire dont le greylisting est désactivé dans ses propres réglages.</value>
-  </data>
-  <data name=" DNS records checked through the Windows resolver." xml:space="preserve">
-    <value> Enregistrements DNS vérifiés via le résolveur Windows.</value>
   </data>
   <data name=" If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
     <value> Si la planification vient tout juste d'être mise en place, revérifiez après l'échéance de sa première exécution ; sinon le journal de sauvegarde, sur la page Journaux, dit pourquoi des exécutions sont ignorées.</value>
@@ -85,6 +70,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name=" Last scan: {0}." xml:space="preserve">
     <value> Dernière analyse : {0}.</value>
+  </data>
+  <data name=" Messages indexed: {0} of {1}." xml:space="preserve">
+    <value> Messages indexés : {0} sur {1}.</value>
   </data>
   <data name=" NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
     <value> REMARQUE : MtaStsHostingEnabled=0, le serveur ne servira donc PAS du tout cette politique.</value>
@@ -154,21 +142,6 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name=" or " xml:space="preserve">
     <value> ou </value>
-  </data>
-  <data name=" {0} DNS record(s) are being looked up in the background; the rows marked &quot;checking&quot; will update." xml:space="preserve">
-    <value> {0} enregistrement(s) DNS sont recherchés en arrière-plan ; les lignes marquées « vérification » se mettront à jour.</value>
-  </data>
-  <data name=" {0} of {1} messages are indexed." xml:space="preserve">
-    <value> {0} messages sur {1} sont indexés.</value>
-  </data>
-  <data name=" — INI settings need a service restart." xml:space="preserve">
-    <value> — les réglages INI nécessitent un redémarrage du service.</value>
-  </data>
-  <data name=" — applied immediately." xml:space="preserve">
-    <value> — appliqué immédiatement.</value>
-  </data>
-  <data name=" — {0} wait for a reinitialize or a restart." xml:space="preserve">
-    <value> — {0} attendent une réinitialisation ou un redémarrage.</value>
   </data>
   <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
     <value>« N'importe qui dans le domaine » signifie que l'adresse de l'expéditeur est dans un domaine hébergé par ce serveur, ce qu'un tiers peut prétendre à moins que la liste n'exige aussi une authentification. Cochez cela ci-dessous si la liste doit être réservée aux personnes connectées.</value>
@@ -254,9 +227,6 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name=", which cannot be read from this machine" xml:space="preserve">
     <value>, qui ne peut pas être lu depuis cette machine</value>
   </data>
-  <data name=". Connections to them are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>. Les connexions vers eux sont refusées. Les causes habituelles sont un autre programme qui tient déjà le port, une adresse de liaison qui n'existe pas sur cette machine, ou - sur un port TLS - un certificat que le serveur n'a pas pu charger ; le serveur note laquelle, une fois, dans le journal d'erreurs au démarrage.</value>
-  </data>
   <data name=". No account will be disabled." xml:space="preserve">
     <value>. Aucun compte ne sera désactivé.</value>
   </data>
@@ -302,26 +272,14 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="0, keep everything, by default. Removing the oldest rows starts the chain again at the oldest row kept." xml:space="preserve">
     <value>0, tout conserver, par défaut. La suppression des lignes les plus anciennes fait repartir la chaîne de la plus ancienne ligne conservée.</value>
   </data>
-  <data name="1 DNS record is still being checked in the background; this summary will update." xml:space="preserve">
-    <value>1 enregistrement DNS est encore vérifié en arrière-plan ; ce résumé se mettra à jour.</value>
-  </data>
   <data name="1 IP address" xml:space="preserve">
     <value>1 adresse IP</value>
   </data>
   <data name="1 SURBL server" xml:space="preserve">
     <value>1 serveur SURBL</value>
   </data>
-  <data name="1 account is a member." xml:space="preserve">
-    <value>1 compte est membre.</value>
-  </data>
-  <data name="1 address listed." xml:space="preserve">
-    <value>1 adresse listée.</value>
-  </data>
   <data name="1 alias" xml:space="preserve">
     <value>1 alias</value>
-  </data>
-  <data name="1 app password." xml:space="preserve">
-    <value>1 mot de passe d'application.</value>
   </data>
   <data name="1 blacklist" xml:space="preserve">
     <value>1 liste noire</value>
@@ -335,47 +293,17 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="1 bypass entry" xml:space="preserve">
     <value>1 entrée de contournement</value>
   </data>
-  <data name="1 day" xml:space="preserve">
-    <value>1 jour</value>
-  </data>
-  <data name="1 event." xml:space="preserve">
-    <value>1 événement.</value>
-  </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 compte externe</value>
-  </data>
-  <data name="1 hour ago" xml:space="preserve">
-    <value>il y a 1 heure</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 élément</value>
   </data>
-  <data name="1 item cannot be checked from here" xml:space="preserve">
-    <value>1 élément ne peut pas être vérifié d'ici</value>
-  </data>
-  <data name="1 item cannot be checked from here." xml:space="preserve">
-    <value>1 élément ne peut pas être vérifié d'ici.</value>
-  </data>
-  <data name="1 key" xml:space="preserve">
-    <value>1 clé</value>
-  </data>
   <data name="1 list entry" xml:space="preserve">
     <value>1 entrée de liste</value>
   </data>
-  <data name="1 message" xml:space="preserve">
-    <value>1 message</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 message ne peut pas être inscrit sur la liste et restera où il est : {0}</value>
-  </data>
-  <data name="1 message held." xml:space="preserve">
-    <value>1 message retenu.</value>
-  </data>
-  <data name="1 minute ago" xml:space="preserve">
-    <value>il y a 1 minute</value>
-  </data>
-  <data name="1 public folder." xml:space="preserve">
-    <value>1 dossier public.</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 refuse un mot de passe apparu dans le corpus ne serait-ce qu'une fois.</value>
@@ -386,20 +314,11 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="1 rule" xml:space="preserve">
     <value>1 règle</value>
   </data>
-  <data name="1 sample copied to the clipboard." xml:space="preserve">
-    <value>1 échantillon copié dans le presse-papiers.</value>
-  </data>
-  <data name="1 sample." xml:space="preserve">
-    <value>1 échantillon.</value>
-  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 groupe de sécurité</value>
   </data>
   <data name="1 server message" xml:space="preserve">
     <value>1 message du serveur</value>
-  </data>
-  <data name="1 thing needs attention" xml:space="preserve">
-    <value>1 point demande votre attention</value>
   </data>
   <data name="1 white-list entry" xml:space="preserve">
     <value>1 entrée de liste blanche</value>
@@ -589,6 +508,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   </data>
   <data name="A certificate has been issued into {0}, but its expiry could not be read: {1}" xml:space="preserve">
     <value>Un certificat a été émis dans {0}, mais son expiration n'a pas pu être lue : {1}</value>
+  </data>
+  <data name="A certificate is issued and valid until {0}, {1} day from now. Renewal starts automatically inside the last {2} days." xml:space="preserve">
+    <value>Un certificat est émis et valide jusqu'au {0}, dans {1} jour. Le renouvellement démarre automatiquement dans les {2} derniers jours.</value>
   </data>
   <data name="A certificate is issued and valid until {0}, {1} days from now. Renewal starts automatically inside the last {2} days." xml:space="preserve">
     <value>Un certificat est émis et valide jusqu'au {0}, dans {1} jours. Le renouvellement démarre automatiquement dans les {2} derniers jours.</value>
@@ -818,8 +740,11 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name="A schedule is configured: daily at {0:00}:{1:00}, server local time." xml:space="preserve">
     <value>Une planification est configurée : chaque jour à {0:00}:{1:00}, heure locale du serveur.</value>
   </data>
-  <data name="A schedule is configured: one backup every {0} minute(s)." xml:space="preserve">
-    <value>Une planification est configurée : une sauvegarde toutes les {0} minute(s).</value>
+  <data name="A schedule is configured: one backup every {0} minute." xml:space="preserve">
+    <value>Une planification est configurée : une sauvegarde toutes les {0} minute.</value>
+  </data>
+  <data name="A schedule is configured: one backup every {0} minutes." xml:space="preserve">
+    <value>Une planification est configurée : une sauvegarde toutes les {0} minutes.</value>
   </data>
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>Un second facteur pour l'administrateur - un code à usage unique à côté du mot de passe</value>
@@ -1379,7 +1304,7 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="After a restart" xml:space="preserve">
     <value>Après un redémarrage</value>
   </data>
-  <data name="After reinitialize" xml:space="preserve">
+  <data name="After reinitialise" xml:space="preserve">
     <value>Après réinitialisation</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
@@ -1689,7 +1614,7 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Applies _to" xml:space="preserve">
     <value>S'applique _à</value>
   </data>
-  <data name="Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
+  <data name="Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration." xml:space="preserve">
     <value>S'applique au prochain redémarrage du service ou lors de la réinitialisation. Les fichiers journaux ne changent pas : ceci envoie une copie, rien n'est déplacé. Sans hôte collecteur ci-dessous, un serveur sous systemd sur Linux écrit dans le journal - sous Linux, ce seul interrupteur constitue donc toute la configuration.</value>
   </data>
   <data name="Applies on save" xml:space="preserve">
@@ -1709,6 +1634,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Appliquer le _filtrage anti-spam du serveur à ce compte</value>
+  </data>
+  <data name="Apply the {0} profile? {1} setting changes, and what it held is kept so that it can be put back." xml:space="preserve">
+    <value>Appliquer le profil {0} ? {1} paramètre change, et sa valeur précédente est conservée pour pouvoir être rétablie.</value>
   </data>
   <data name="Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back." xml:space="preserve">
     <value>Appliquer le profil {0} ? {1} paramètres changent, et leurs valeurs précédentes sont conservées pour pouvoir être rétablies.</value>
@@ -1781,6 +1709,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="At least one external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
     <value>Au moins un compte de collecte POP3 externe a l'antivirus désactivé, si bien que le courrier collecté par celui-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page. Il y a plus de comptes sur ce serveur que cette page n'en parcourt, il peut donc y en avoir d'autres.</value>
+  </data>
+  <data name="At least {0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
+    <value>Au moins {0} compte de collecte POP3 externe a l'antivirus désactivé, si bien que le courrier collecté par celui-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page. Il y a plus de comptes sur ce serveur que cette page n'en parcourt, il peut donc y en avoir d'autres.</value>
   </data>
   <data name="At least {0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page. There are more accounts on this server than this page walks, so there may be others." xml:space="preserve">
     <value>Au moins {0} comptes de collecte POP3 externes ont l'antivirus désactivé, si bien que le courrier collecté par ceux-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page. Il y a plus de comptes sur ce serveur que cette page n'en parcourt, il peut donc y en avoir d'autres.</value>
@@ -2060,6 +1991,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Blacklist the sender, then delete" xml:space="preserve">
     <value>Mettre l'expéditeur sur liste noire, puis supprimer</value>
+  </data>
+  <data name="Blacklist the senders of {0} message, then delete it" xml:space="preserve">
+    <value>Mettre sur liste noire l'expéditeur de {0} message, puis le supprimer</value>
   </data>
   <data name="Blacklist the senders of {0} messages, then delete them" xml:space="preserve">
     <value>Mettre sur liste noire les expéditeurs de {0} messages, puis les supprimer</value>
@@ -3059,7 +2993,7 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Impossible de lire {0} : {1}</value>
   </data>
-  <data name="Could not reinitialize: {0}" xml:space="preserve">
+  <data name="Could not reinitialise: {0}" xml:space="preserve">
     <value>Impossible de réinitialiser : {0}</value>
   </data>
   <data name="Could not remove the action: {0}" xml:space="preserve">
@@ -3572,10 +3506,15 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Supprimer la liste de diffusion {0} ?</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes {1}, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
+  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Supprimer le domaine {0} ?
 
-Ceci supprime définitivement {1}, chaque message qui y est stocké, et tous les alias et listes de diffusion du domaine. Il n'y a pas d'annulation.</value>
+Ceci supprime définitivement son {1} compte, chaque message qui y est stocké, et tous les alias et listes de diffusion du domaine. Il n'y a pas d'annulation.</value>
+  </data>
+  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
+    <value>Supprimer le domaine {0} ?
+
+Ceci supprime définitivement ses {1} comptes, chaque message qui y est stocké, et tous les alias et listes de diffusion du domaine. Il n'y a pas d'annulation.</value>
   </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Supprimer le dossier « {0} » et tous les messages qu'il contient ?</value>
@@ -3595,10 +3534,20 @@ Ceci supprime définitivement {1}, chaque message qui y est stocké, et tous les
   <data name="Delete the whole message" xml:space="preserve">
     <value>Supprimer le message entier</value>
   </data>
+  <data name="Delete the {0} checked message permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Supprimer définitivement le {0} message coché ?
+
+L'expéditeur a été informé qu'il était accepté, donc rien ne sera retenté et il n'existe aucune autre copie.</value>
+  </data>
   <data name="Delete the {0} checked messages permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Supprimer définitivement les {0} messages cochés ?
 
 Les expéditeurs ont été informés qu'ils étaient acceptés, donc rien ne sera retenté et il n'existe aucune autre copie.</value>
+  </data>
+  <data name="Delete the {0} message from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Supprimer définitivement le {0} message de {1} ?
+
+L'expéditeur a été informé qu'il était accepté, donc rien ne sera retenté et il n'existe aucune autre copie.</value>
   </data>
   <data name="Delete the {0} messages from {1} permanently?&#10;&#10;The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Supprimer définitivement les {0} messages de {1} ?
@@ -3634,8 +3583,8 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   <data name="Deleted" xml:space="preserve">
     <value>Supprimé</value>
   </data>
-  <data name="Deleted 1 message." xml:space="preserve">
-    <value>1 message supprimé.</value>
+  <data name="Deleted {0} message." xml:space="preserve">
+    <value>{0} message supprimé.</value>
   </data>
   <data name="Deleted {0} messages." xml:space="preserve">
     <value>{0} messages supprimés.</value>
@@ -4206,6 +4155,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enter the service account password" xml:space="preserve">
     <value>Saisissez le mot de passe du compte de service</value>
   </data>
+  <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
+    <value>Entrées correspondant à la recherche : {0} sur {1}.</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Domaines d'enveloppe et suffixes HELO qui passent la liste grise quand le message porte les résultats d'authentification que l'entrée exige - SPF, DKIM, DMARC, en toute combinaison. Un domaine comparé exactement, ou un suffixe avec un point initial comme .mail.example.com couvrant ce nom et tout nom en dessous. SPF est connu au RCPT TO, donc une entrée n'exigeant que SPF décide là ; DKIM et DMARC n'existent qu'une fois le message reçu, donc une entrée exigeant l'un d'eux laisse passer le destinataire pour l'instant et le message est mis en liste grise après DATA si le résultat n'est pas une réussite - et seulement tant que la vérification DKIM ou DMARC est activée, faute de quoi l'entrée ne peut jamais être satisfaite. Contrairement à Contourner en cas de succès SPF, c'est un privilège que vous accordez à un domaine nommé, pas une propriété de tout succès SPF au monde.</value>
   </data>
@@ -4230,8 +4182,11 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Erase traces" xml:space="preserve">
     <value>Effacer les traces</value>
   </data>
-  <data name="Erased {0} stored trace(s) and rewrote {1} log line(s)." xml:space="preserve">
-    <value>{0} trace(s) enregistrée(s) effacée(s) et {1} ligne(s) de journal réécrite(s).</value>
+  <data name="Erased {0} stored trace." xml:space="preserve">
+    <value>{0} trace enregistrée effacée.</value>
+  </data>
+  <data name="Erased {0} stored traces." xml:space="preserve">
+    <value>{0} traces enregistrées effacées.</value>
   </data>
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Les entrées d'erreur portent la gravité que le serveur a lui-même enregistrée : critical, error, warning ou notice. Tout le reste est informational, sauf TCP/IP et le débogage, qui sont debug.</value>
@@ -4311,11 +4266,17 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Every local recipient's copy becomes another name for the same file inside the archive folder, so a message to ten mailboxes costs one copy rather than ten. Needs an NTFS archive folder; if the link cannot be created the server copies the file and says so in the SMTP log." xml:space="preserve">
     <value>La copie de chaque destinataire local devient un autre nom pour le même fichier dans le dossier d'archive, donc un message vers dix boîtes coûte une copie au lieu de dix. Nécessite un dossier d'archive NTFS ; si le lien ne peut pas être créé, le serveur copie le fichier et le dit dans le journal SMTP.</value>
   </data>
+  <data name="Every message goes through {0} scanner in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
+    <value>Chaque message passe par {0} analyseur, qui est interrogé sur le message entier puis sur chaque pièce jointe séparément. C'est minutieux et ce n'est pas gratuit : l'analyse a lieu pendant que l'expéditeur attend son « 250 OK ».</value>
+  </data>
   <data name="Every message goes through {0} scanners in turn, and each is asked about the whole message and then about each attachment separately. That is thorough and it is not free: the scan happens while the sender is waiting for its &quot;250 OK&quot;." xml:space="preserve">
     <value>Chaque message passe par {0} analyseurs tour à tour, et chacun est interrogé sur le message entier puis sur chaque pièce jointe séparément. C'est minutieux et ce n'est pas gratuit : l'analyse a lieu pendant que l'expéditeur attend son « 250 OK ».</value>
   </data>
   <data name="Every message is scanned by one scanner." xml:space="preserve">
     <value>Chaque message est analysé par un analyseur.</value>
+  </data>
+  <data name="Every message is scanned by {0} scanner." xml:space="preserve">
+    <value>Chaque message est analysé par {0} analyseur.</value>
   </data>
   <data name="Every message is scanned by {0} scanners." xml:space="preserve">
     <value>Chaque message est analysé par {0} analyseurs.</value>
@@ -4386,11 +4347,17 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Expirer les mots de passe après (jours ; 0 = jamais)</value>
   </data>
+  <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
+    <value>Expiré le {0} (il y a moins d'un jour)</value>
+  </data>
+  <data name="Expired on {0} ({1} day ago)" xml:space="preserve">
+    <value>Expiré le {0} (il y a {1} jour)</value>
+  </data>
+  <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
+    <value>Expiré le {0} (il y a {1} jours)</value>
+  </data>
   <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
     <value>Expirée le {0}. Chaque requête qu'elle fait est refusée.</value>
-  </data>
-  <data name="Expired {0} ({1} ago)" xml:space="preserve">
-    <value>Expiré {0} (il y a {1})</value>
   </data>
   <data name="Expires" xml:space="preserve">
     <value>Expire</value>
@@ -4398,8 +4365,14 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Expire le (yyyy-mm-dd hh:mm:ss, quand il cesse de s'appliquer)</value>
   </data>
-  <data name="Expires {0} ({1})" xml:space="preserve">
-    <value>Expire {0} ({1})</value>
+  <data name="Expires on {0} (in less than a day)" xml:space="preserve">
+    <value>Expire le {0} (dans moins d'un jour)</value>
+  </data>
+  <data name="Expires on {0} (in {1} day)" xml:space="preserve">
+    <value>Expire le {0} (dans {1} jour)</value>
+  </data>
+  <data name="Expires on {0} (in {1} days)" xml:space="preserve">
+    <value>Expire le {0} (dans {1} jours)</value>
   </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Da_te d'expiration (AAAA-MM-JJ HH:MM:SS)</value>
@@ -4413,8 +4386,11 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Export everythin_g..." xml:space="preserve">
     <value>Tout e_xporter...</value>
   </data>
-  <data name="Exported {0} message(s) and everything else the server holds to {1}." xml:space="preserve">
-    <value>{0} message(s) et tout ce que le serveur conserve exportés vers {1}.</value>
+  <data name="Exported {0} message and everything else the server holds to {1}." xml:space="preserve">
+    <value>{0} message et tout ce que le serveur conserve exportés vers {1}.</value>
+  </data>
+  <data name="Exported {0} messages and everything else the server holds to {1}." xml:space="preserve">
+    <value>{0} messages et tout ce que le serveur conserve exportés vers {1}.</value>
   </data>
   <data name="Exports" xml:space="preserve">
     <value>Exports</value>
@@ -4650,6 +4626,12 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Found by search" xml:space="preserve">
     <value>Trouvé par recherche</value>
   </data>
+  <data name="Found: {0}" xml:space="preserve">
+    <value>Trouvé : {0}</value>
+  </data>
+  <data name="Found: {0} (and {1} more)" xml:space="preserve">
+    <value>Trouvé : {0} (et {1} de plus)</value>
+  </data>
   <data name="From" xml:space="preserve">
     <value>De</value>
   </data>
@@ -4778,6 +4760,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Group name" xml:space="preserve">
     <value>Nom du groupe</value>
+  </data>
+  <data name="Group: {0}" xml:space="preserve">
+    <value>Groupe : {0}</value>
   </data>
   <data name="Groups" xml:space="preserve">
     <value>Groupes</value>
@@ -5241,6 +5226,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Independent of the AWStats log above - either can be on without the other." xml:space="preserve">
     <value>Indépendant du journal AWStats ci-dessus - l'un ou l'autre peut être activé sans l'autre.</value>
   </data>
+  <data name="Index entries that will be discarded: {0}. Messages they will be rebuilt from: {1}." xml:space="preserve">
+    <value>Entrées d'index qui seront jetées : {0}. Messages à partir desquels elles seront reconstruites : {1}.</value>
+  </data>
   <data name="Index now, and show how far behind it is" xml:space="preserve">
     <value>Indexer maintenant, et montrer le retard</value>
   </data>
@@ -5360,8 +5348,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL du JWK Set (les clés de signature publiées par le fournisseur ; vide = le fichier de clé seulement)</value>
   </data>
-  <data name="Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed." xml:space="preserve">
-    <value>Le travail {0} est {1} : {2} dossiers, {3} messages ajoutés, {4} ignorés car encore dans la boîte, {5} en échec.</value>
+  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
+    <value>Le travail {0} est {1} - dossiers : {2}, messages ajoutés : {3}, ignorés car encore dans la boîte : {4}, en échec : {5}.</value>
   </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalisation et double distribution</value>
@@ -5819,6 +5807,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Mail clients send through the submission port, and without TLS their passwords cross the network in the clear." xml:space="preserve">
     <value>Les clients de messagerie envoient par le port de soumission, et sans TLS leurs mots de passe traversent le réseau en clair.</value>
   </data>
+  <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
+    <value>Le courrier relevé depuis des comptes POP3 externes n'est analysé que si le compte de relève le demande — {0} sur {1} a actuellement l'antivirus désactivé. Cet interrupteur est sur le compte, pas sur cette page.</value>
+  </data>
   <data name="Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page." xml:space="preserve">
     <value>Le courrier relevé depuis des comptes POP3 externes n'est analysé que si le compte de relève le demande — {0} sur {1} ont actuellement l'antivirus désactivé. Cet interrupteur est sur le compte, pas sur cette page.</value>
   </data>
@@ -5953,8 +5944,11 @@ Chaque abonnement Web Push fait avec la paire actuelle cesse aussitôt de foncti
   <data name="Matches the certificate" xml:space="preserve">
     <value>Correspond au certificat</value>
   </data>
-  <data name="Matches the envelope sender against {0} blocked address(es) and domain(s); the score comes from the entry that matched." xml:space="preserve">
-    <value>Compare l'expéditeur d'enveloppe à {0} adresse(s) et domaine(s) bloqué(s) ; le score vient de l'entrée qui a correspondu.</value>
+  <data name="Matches the envelope sender against {0} blocked address or domain; the score comes from the entry that matched." xml:space="preserve">
+    <value>Compare l'expéditeur d'enveloppe à {0} adresse ou domaine bloqué ; le score vient de l'entrée qui a correspondu.</value>
+  </data>
+  <data name="Matches the envelope sender against {0} blocked addresses and domains; the score comes from the entry that matched." xml:space="preserve">
+    <value>Compare l'expéditeur d'enveloppe à {0} adresses et domaines bloqués ; le score vient de l'entrée qui a correspondu.</value>
   </data>
   <data name="Matching Active Directory accounts. Select one or more." xml:space="preserve">
     <value>Comptes Active Directory correspondants. Sélectionnez-en un ou plusieurs.</value>
@@ -6195,6 +6189,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Messages up to {0} are scanned by one scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Les messages jusqu'à {0} sont analysés par un analyseur ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
   </data>
+  <data name="Messages up to {0} are scanned by {1} scanner; anything larger is delivered without being scanned at all." xml:space="preserve">
+    <value>Les messages jusqu'à {0} sont analysés par {1} analyseur ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
+  </data>
   <data name="Messages up to {0} are scanned by {1} scanners; anything larger is delivered without being scanned at all." xml:space="preserve">
     <value>Les messages jusqu'à {0} sont analysés par {1} analyseurs ; tout ce qui est plus grand est livré sans être analysé du tout.</value>
   </data>
@@ -6203,6 +6200,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Messages waiting for delivery." xml:space="preserve">
     <value>Messages en attente de livraison.</value>
+  </data>
+  <data name="Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}." xml:space="preserve">
+    <value>Messages : {0}, {1} Mo tels que les clients les voient. Leurs fichiers occupent {2} Mo et les parties conservées une fois {3} Mo, soit {4} % d'économie. Fichiers compressés : {5}. Mesuré {6}.</value>
   </data>
   <data name="Metrics bind address" xml:space="preserve">
     <value>Adresse de liaison des métriques</value>
@@ -6687,6 +6687,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping one file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
     <value>Aucun message n'est analysé à la recherche de virus. Le blocage des pièces jointes retire toujours un motif de nom de fichier, mais rien n'examine le contenu d'un message.</value>
   </data>
+  <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name pattern, but nothing examines the contents of a message." xml:space="preserve">
+    <value>Aucun message n'est analysé à la recherche de virus. Le blocage des pièces jointes retire toujours {0} motif de nom de fichier, mais rien n'examine le contenu d'un message.</value>
+  </data>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Aucun message n'est analysé à la recherche de virus. Le blocage des pièces jointes retire toujours {0} motifs de noms de fichiers, mais rien n'examine le contenu d'un message.</value>
   </data>
@@ -6756,6 +6759,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No samples in this range yet" xml:space="preserve">
     <value>Aucun échantillon dans cette plage pour l'instant</value>
   </data>
+  <data name="No samples in this range yet: the server records one a minute and keeps {0} day." xml:space="preserve">
+    <value>Aucun échantillon dans cette plage pour l'instant : le serveur en enregistre un par minute et en conserve {0} jour.</value>
+  </data>
   <data name="No samples in this range yet: the server records one a minute and keeps {0} days." xml:space="preserve">
     <value>Aucun échantillon dans cette plage pour l'instant : le serveur en enregistre un par minute et en conserve {0} jours.</value>
   </data>
@@ -6810,8 +6816,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="None of the selected accounts have an e-mail address." xml:space="preserve">
     <value>Aucun des comptes sélectionnés n'a d'adresse e-mail.</value>
   </data>
-  <data name="None of the {0} IP range(s) requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
-    <value>Aucune des {0} plage(s) IP n'exige TLS avant l'authentification : un mot de passe en clair est donc accepté partout où un port en permet un.</value>
+  <data name="None of the {0} IP ranges requires TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
+    <value>Aucune des {0} plages IP n'exige TLS avant l'authentification : un mot de passe en clair est donc accepté partout où un port en permet un.</value>
   </data>
   <data name="None of this applies to an authenticated session - spam protection is skipped entirely for a client that logged on, for connections from an IP range with spam protection turned off, and for the {0} entries on the anti-spam white list." xml:space="preserve">
     <value>Rien de tout cela ne s'applique à une session authentifiée - la protection anti-spam est entièrement ignorée pour un client qui s'est connecté, pour les connexions venant d'une plage IP dont la protection anti-spam est désactivée, et pour les {0} entrées de la liste blanche anti-spam.</value>
@@ -6921,11 +6927,17 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Nothing matched &quot;{0}&quot;. Try what you are trying to achieve (&quot;stop spam&quot;, &quot;let a device send mail&quot;), a page name, or an hMailServer.INI key." xml:space="preserve">
     <value>Rien ne correspond à « {0} ». Essayez ce que vous cherchez à obtenir (« arrêter le spam », « permettre à un appareil d'envoyer du courrier »), un nom de page, ou une clé de hMailServer.INI.</value>
   </data>
-  <data name="Nothing needs action, but " xml:space="preserve">
-    <value>Rien ne demande d'action, mais </value>
+  <data name="Nothing needs action, but {0} item cannot be checked from here." xml:space="preserve">
+    <value>Rien ne demande d'action, mais {0} élément ne peut pas être vérifié d'ici.</value>
+  </data>
+  <data name="Nothing needs action, but {0} items cannot be checked from here." xml:space="preserve">
+    <value>Rien ne demande d'action, mais {0} éléments ne peuvent pas être vérifiés d'ici.</value>
   </data>
   <data name="Nothing needs attention - all {0} external setup checks are done or not needed." xml:space="preserve">
     <value>Rien ne demande votre attention - les {0} vérifications de configuration externe sont toutes faites ou inutiles.</value>
+  </data>
+  <data name="Nothing needs attention - the {0} external setup check is done or not needed." xml:space="preserve">
+    <value>Rien ne demande votre attention - la {0} vérification de configuration externe est faite ou inutile.</value>
   </data>
   <data name="Nothing on this server to look at yet? This makes {0} with three mailboxes, a distribution list, a rule and a handful of delivered messages, so that every page has something in it while you learn. Every mailbox signs in with one password, which this server mints now and shows once, so write it down - and remove the sample before this server takes real mail." xml:space="preserve">
     <value>Rien à regarder sur ce serveur pour l'instant ? Ceci crée {0} avec trois boîtes, une liste de diffusion, une règle et une poignée de messages livrés, pour que chaque page ait quelque chose pendant que vous apprenez. Toutes les boîtes se connectent avec un seul mot de passe, que ce serveur crée maintenant et n'affiche qu'une fois : notez-le, et supprimez l'exemple avant que ce serveur ne reçoive du vrai courrier.</value>
@@ -7194,7 +7206,7 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="On the TCP/IP ports page, give the submission port (587) STARTTLS with a certificate from the SSL certificates page, or add port 465 with implicit TLS." xml:space="preserve">
     <value>Sur la page Ports TCP/IP, donnez au port de soumission (587) STARTTLS avec un certificat de la page Certificats SSL, ou ajoutez le port 465 en TLS implicite.</value>
   </data>
-  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialize. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
+  <data name="On the TCP/IP ports page, open the SMTP port 25 and set its SMTP authentication to Honeypot or Off, then reinitialise. Mail clients that still sign in on 25 are refused and banned from then on, so move them to 587 first." xml:space="preserve">
     <value>Sur la page Ports TCP/IP, ouvrez le port SMTP 25, réglez son authentification SMTP sur Leurre ou Désactivé, puis réinitialisez. Les clients de messagerie qui s'authentifient encore sur le 25 seront dès lors refusés et bannis : déplacez-les d'abord vers le 587.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
@@ -7236,8 +7248,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Un écouteur client propose STARTTLS sans l'exiger, si bien qu'un client qui ne demande pas de chiffrement s'authentifie sans lui et que rien ne signale que cela s'est produit.</value>
   </data>
-  <data name="One configured port is not being listened on: " xml:space="preserve">
-    <value>Un port configuré n'est pas écouté : </value>
+  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
+    <value>Un port configuré n'est pas écouté : {0}.</value>
   </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Une invocation de script d'événement. 0 = pas de borne.</value>
@@ -7925,8 +7937,8 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Processed messages" xml:space="preserve">
     <value>Messages traités</value>
   </data>
-  <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save its certificate(s) as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
-    <value>Produisez ou obtenez une AC (par exemple avec OpenSSL ou votre PKI), enregistrez son ou ses certificats sous forme de bundle PEM sur le serveur, faites pointer le fichier d'AC du port dessus, et émettez un certificat client depuis cette AC pour chaque client qui doit se connecter. hMailServer vérifie par rapport au bundle mais ne peut créer ni l'AC ni les certificats clients.</value>
+  <data name="Produce or obtain a CA (for example with OpenSSL or your PKI), save the CA certificate, with any intermediate ones, as a PEM bundle on the server, point the port's CA file at it, and issue a client certificate from that CA to every client that must connect. hMailServer verifies against the bundle but cannot create the CA or the client certificates." xml:space="preserve">
+    <value>Produisez ou obtenez une AC (par exemple avec OpenSSL ou votre PKI), enregistrez le certificat de l'AC, avec ses éventuels certificats intermédiaires, sous forme de bundle PEM sur le serveur, faites pointer le fichier d'AC du port dessus, et émettez un certificat client depuis cette AC pour chaque client qui doit se connecter. hMailServer vérifie par rapport au bundle mais ne peut créer ni l'AC ni les certificats clients.</value>
   </data>
   <data name="Profile to scan as (spamd User: header; empty = spamd's global configuration)" xml:space="preserve">
     <value>Profil sous lequel analyser (en-tête User: de spamd ; vide = configuration globale de spamd)</value>
@@ -8433,19 +8445,22 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Inscrit de nouveau le service en tant que LocalSystem, ce dont ont besoin l'installation d'une mise à jour à chaud depuis le serveur ou l'écriture de règles de pare-feu pour le bannissement automatique. Le service garde son ancien compte jusqu'à son redémarrage.</value>
   </data>
-  <data name="Reinitialize the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
+  <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Réinitialiser le serveur maintenant ? Tous les services s'arrêtent et redémarrent sur place, donc les clients connectés sont déconnectés puis se reconnectent.</value>
   </data>
-  <data name="Reinitialized - the saved settings are in effect." xml:space="preserve">
+  <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Réinitialisé - les réglages enregistrés sont en vigueur.</value>
   </data>
-  <data name="Reinitialized - the server now listens on the ports as this page lists them." xml:space="preserve">
+  <data name="Reinitialised - the server now listens on the ports as this page lists them." xml:space="preserve">
     <value>Réinitialisé - le serveur écoute maintenant sur les ports tels que cette page les liste.</value>
   </data>
-  <data name="Reinitialized - the settings that waited for a reinitialize are in effect; {0} still wait for a service restart." xml:space="preserve">
+  <data name="Reinitialised - the settings that waited for a reinitialise are in effect; {0} still wait for a service restart." xml:space="preserve">
     <value>Réinitialisé - les paramètres qui attendaient une réinitialisation sont en vigueur ; {0} attendent encore un redémarrage du service.</value>
   </data>
-  <data name="Reinitializing the server..." xml:space="preserve">
+  <data name="Reinitialised - the settings that waited for a reinitialise are in effect; {0} still waits for a service restart." xml:space="preserve">
+    <value>Réinitialisé - les paramètres qui attendaient une réinitialisation sont en vigueur ; {0} attend encore un redémarrage du service.</value>
+  </data>
+  <data name="Reinitialising the server..." xml:space="preserve">
     <value>Réinitialisation du serveur...</value>
   </data>
   <data name="Reject empty sender addresses (MAIL FROM:&lt;&gt;)" xml:space="preserve">
@@ -8502,8 +8517,8 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Release this group" xml:space="preserve">
     <value>Libérer ce groupe</value>
   </data>
-  <data name="Released 1 message to its recipients." xml:space="preserve">
-    <value>1 message libéré vers ses destinataires.</value>
+  <data name="Released {0} message to its recipients." xml:space="preserve">
+    <value>{0} message libéré vers ses destinataires.</value>
   </data>
   <data name="Released {0} messages to their recipients." xml:space="preserve">
     <value>{0} messages libérés vers leurs destinataires.</value>
@@ -8613,7 +8628,7 @@ La boîte et ses messages passent à la nouvelle adresse. Le courrier envoyé à
 
 Chaque plage personnalisée - y compris les entrées de bannissement automatique - sera supprimée et remplacée par « My computer » (127.0.0.1) et « Internet » (tout le reste). Cela change immédiatement qui peut se connecter et relayer.</value>
   </data>
-  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialized." xml:space="preserve">
+  <data name="Replace ALL configured ports with the defaults?&#10;&#10;SMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised." xml:space="preserve">
     <value>Remplacer TOUS les ports configurés par ceux par défaut ?
 
 SMTP 25 et 587, POP3 110, IMAP 143 - sans sécurité de connexion et avec l'authentification SMTP Activé sur les deux ports SMTP : un port 25 qui est un leurre accepte donc de nouveau AUTH. Les ports TLS et les liaisons personnalisées seront supprimés. Le changement prend effet à la réinitialisation du serveur.</value>
@@ -9227,17 +9242,47 @@ Continuer ?</value>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>{0} enregistré - le serveur le prend en compte en moins de deux secondes. Aucun redémarrage du service n'est nécessaire.</value>
   </data>
-  <data name="Saved {0} - {1} setting(s) wait for a reinitialize; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
-    <value>{0} enregistré - {1} réglage(s) attendent une réinitialisation ; Appliquer maintenant, dans la barre au bas de la fenêtre, les applique.</value>
+  <data name="Saved {0} - {1} setting waits for a reinitialise; Apply now, in the bar at the foot of the window, takes it." xml:space="preserve">
+    <value>{0} enregistré - {1} réglage attend une réinitialisation ; Appliquer maintenant, dans la barre au bas de la fenêtre, l'applique.</value>
   </data>
-  <data name="Saved {0} settings" xml:space="preserve">
-    <value>{0} réglages enregistrés</value>
+  <data name="Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them." xml:space="preserve">
+    <value>{0} enregistré - {1} réglages attendent une réinitialisation ; Appliquer maintenant, dans la barre au bas de la fenêtre, les applique.</value>
   </data>
-  <data name="Saved {0} settings at {1}" xml:space="preserve">
-    <value>{0} réglages enregistrés à {1}</value>
+  <data name="Saved {0} setting - applied immediately." xml:space="preserve">
+    <value>{0} réglage enregistré - appliqué immédiatement.</value>
   </data>
-  <data name="Saved {0} settings, {1} could not be written." xml:space="preserve">
-    <value>{0} réglages enregistrés, {1} n'ont pas pu être écrits.</value>
+  <data name="Saved {0} setting - hMailServer.ini settings need a service restart." xml:space="preserve">
+    <value>{0} réglage enregistré - les réglages de hMailServer.ini nécessitent un redémarrage du service.</value>
+  </data>
+  <data name="Saved {0} setting at {1} - applied immediately." xml:space="preserve">
+    <value>{0} réglage enregistré à {1} - appliqué immédiatement.</value>
+  </data>
+  <data name="Saved {0} setting at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{0} réglage enregistré à {1} - les réglages du serveur sont appliqués immédiatement ; ceux de hMailServer.ini s'appliquent après un redémarrage du service.</value>
+  </data>
+  <data name="Saved {0} setting at {1}." xml:space="preserve">
+    <value>{0} réglage enregistré à {1}.</value>
+  </data>
+  <data name="Saved {0} setting." xml:space="preserve">
+    <value>{0} réglage enregistré.</value>
+  </data>
+  <data name="Saved {0} settings - applied immediately." xml:space="preserve">
+    <value>{0} réglages enregistrés - appliqués immédiatement.</value>
+  </data>
+  <data name="Saved {0} settings - hMailServer.ini settings need a service restart." xml:space="preserve">
+    <value>{0} réglages enregistrés - les réglages de hMailServer.ini nécessitent un redémarrage du service.</value>
+  </data>
+  <data name="Saved {0} settings at {1} - applied immediately." xml:space="preserve">
+    <value>{0} réglages enregistrés à {1} - appliqués immédiatement.</value>
+  </data>
+  <data name="Saved {0} settings at {1} - server settings applied immediately; hMailServer.ini settings apply after a service restart." xml:space="preserve">
+    <value>{0} réglages enregistrés à {1} - les réglages du serveur sont appliqués immédiatement ; ceux de hMailServer.ini s'appliquent après un redémarrage du service.</value>
+  </data>
+  <data name="Saved {0} settings at {1}." xml:space="preserve">
+    <value>{0} réglages enregistrés à {1}.</value>
+  </data>
+  <data name="Saved {0} settings." xml:space="preserve">
+    <value>{0} réglages enregistrés.</value>
   </data>
   <data name="Saved, but reload failed: {0}" xml:space="preserve">
     <value>Enregistré, mais le rechargement a échoué : {0}</value>
@@ -9245,7 +9290,7 @@ Continuer ?</value>
   <data name="Saved. Compiler reported: {0}" xml:space="preserve">
     <value>Enregistré. Le compilateur a signalé : {0}</value>
   </data>
-  <data name="Saved. The server goes on listening as it did until its services are reinitialized - stopped and started again in place, which disconnects connected clients for a moment. Reinitialize the server now?" xml:space="preserve">
+  <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>Enregistré. Le serveur continue d'écouter comme avant jusqu'à ce que ses services soient réinitialisés - arrêtés et redémarrés sur place, ce qui déconnecte un instant les clients connectés. Réinitialiser le serveur maintenant ?</value>
   </data>
   <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
@@ -9284,8 +9329,11 @@ Continuer ?</value>
   <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run." xml:space="preserve">
     <value>ScheduledBackupTime « {0} » n'est pas une heure HH:MM valide sur 24 heures et aucun intervalle n'est défini, aucune sauvegarde planifiée ne s'exécutera donc jamais.</value>
   </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute(s)." xml:space="preserve">
-    <value>ScheduledBackupTime « {0} » n'est pas une heure HH:MM valide sur 24 heures, le serveur se replie donc sur l'intervalle : une sauvegarde toutes les {1} minute(s).</value>
+  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute." xml:space="preserve">
+    <value>ScheduledBackupTime « {0} » n'est pas une heure HH:MM valide sur 24 heures, le serveur se replie donc sur l'intervalle : une sauvegarde toutes les {1} minute.</value>
+  </data>
+  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes." xml:space="preserve">
+    <value>ScheduledBackupTime « {0} » n'est pas une heure HH:MM valide sur 24 heures, le serveur se replie donc sur l'intervalle : une sauvegarde toutes les {1} minutes.</value>
   </data>
   <data name="Schema" xml:space="preserve">
     <value>Schéma</value>
@@ -9918,6 +9966,11 @@ Le redémarrer maintenant ?</value>
 
 Le redémarrer maintenant ?</value>
   </data>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
+    <value>Réglages enregistrés. {0} d'entre eux ne prend effet qu'au redémarrage du service hMailServer.
+
+Le redémarrer maintenant ?</value>
+  </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Réglages qui se trouvaient auparavant sur cette page</value>
   </data>
@@ -10362,8 +10415,8 @@ Le redémarrer maintenant ?</value>
   <data name="Switch to the light theme" xml:space="preserve">
     <value>Passer au thème clair</value>
   </data>
-  <data name="Switched off. {0} pattern is configured and none is applied." xml:space="preserve">
-    <value>Désactivé. {0} motif est configuré et aucun n'est appliqué.</value>
+  <data name="Switched off. {0} pattern is configured and it is not applied." xml:space="preserve">
+    <value>Désactivé. {0} motif est configuré et il n'est pas appliqué.</value>
   </data>
   <data name="Switched off. {0} patterns are configured and none is applied." xml:space="preserve">
     <value>Désactivé. {0} motifs sont configurés et aucun n'est appliqué.</value>
@@ -10481,9 +10534,6 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="TXT record value for {0}" xml:space="preserve">
     <value>Valeur de l'enregistrement TXT pour {0}</value>
-  </data>
-  <data name="TXT record(s) exist at {0} but none carries this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
-    <value>Un ou plusieurs enregistrements TXT existent à {0} mais aucun ne porte la clé publique de cette clé : chaque signature faite avec cette clé échoue donc à la vérification. Attendre n'y changera rien - corrigez la valeur publiée pour qu'elle corresponde à celle ci-dessus.</value>
   </data>
   <data name="TXT value:" xml:space="preserve">
     <value>Valeur TXT :</value>
@@ -10637,6 +10687,9 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The DNS lookup for {0} itself failed: {1} This says nothing about the record - this machine could not get an answer from its DNS server. Check the network and try again." xml:space="preserve">
     <value>La recherche DNS de {0} a elle-même échoué : {1} Cela ne dit rien sur l'enregistrement - cette machine n'a pas pu obtenir de réponse de son serveur DNS. Vérifiez le réseau et réessayez.</value>
   </data>
+  <data name="The DNS records were checked through the Windows resolver." xml:space="preserve">
+    <value>Les enregistrements DNS ont été vérifiés via le résolveur Windows.</value>
+  </data>
   <data name="The HELO name" xml:space="preserve">
     <value>Le nom HELO</value>
   </data>
@@ -10685,7 +10738,7 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
     <value>L'API REST ne tourne pas : elle ne sert du HTTP en clair que sur 127.0.0.1 ou ::1, et écouter sur {0} exige RestApiCertificateFile et RestApiPrivateKeyFile, ou un certificat ACME délivré à ce serveur.</value>
   </data>
-  <data name="The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialize the server, and open this page again." xml:space="preserve">
+  <data name="The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
     <value>L'API REST est désactivée (RestApiPort vaut {0}), et ces réglages passent par elle : le serveur les conserve, mais aucune propriété COM ne les porte. Donnez un port à l'API REST sur la page API et supervision, réinitialisez le serveur et rouvrez cette page.</value>
   </data>
   <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
@@ -10865,11 +10918,23 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The certificate &quot;{0}&quot; expired yesterday. It is not assigned to any listener." xml:space="preserve">
     <value>Le certificat « {0} » a expiré hier. Il n'est attribué à aucun écouteur.</value>
   </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} day ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
+    <value>Le certificat « {0} » a expiré il y a {1} jour et est encore attribué à un écouteur. Les clients refusent chaque connexion vers lui ou s'en méfient.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expired {1} day ago. It is not assigned to any listener." xml:space="preserve">
+    <value>Le certificat « {0} » a expiré il y a {1} jour. Il n'est attribué à aucun écouteur.</value>
+  </data>
   <data name="The certificate &quot;{0}&quot; expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it." xml:space="preserve">
     <value>Le certificat « {0} » a expiré il y a {1} jours et est encore attribué à un écouteur. Les clients refusent chaque connexion vers lui ou s'en méfient.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expired {1} days ago. It is not assigned to any listener." xml:space="preserve">
     <value>Le certificat « {0} » a expiré il y a {1} jours. Il n'est attribué à aucun écouteur.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} day and is in use by a listener." xml:space="preserve">
+    <value>Le certificat « {0} » expire dans {1} jour et est utilisé par un écouteur.</value>
+  </data>
+  <data name="The certificate &quot;{0}&quot; expires in {1} day. It is not assigned to any listener." xml:space="preserve">
+    <value>Le certificat « {0} » expire dans {1} jour. Il n'est attribué à aucun écouteur.</value>
   </data>
   <data name="The certificate &quot;{0}&quot; expires in {1} days and is in use by a listener." xml:space="preserve">
     <value>Le certificat « {0} » expire dans {1} jours et est utilisé par un écouteur.</value>
@@ -10895,8 +10960,14 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The certificate expired on {0}. The server still loads it and its ports still start (it reports error 5991 in the application log), but every client and mail server that checks the date refuses to connect - which, today, is nearly all of them. Replace the certificate." xml:space="preserve">
     <value>Le certificat a expiré le {0}. Le serveur le charge encore et ses ports démarrent toujours (il signale l'erreur 5991 dans le journal des applications), mais chaque client et chaque serveur de messagerie qui vérifie la date refuse de se connecter - ce qui, aujourd'hui, est presque le cas de tous. Remplacez le certificat.</value>
   </data>
-  <data name="The certificate expires on {0} - {1} from now. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
-    <value>Le certificat expire le {0} - dans {1}. Renouvelez-le avant : une fois expiré, les ports continuent d'écouter, mais les clients qui vérifient la date refusent de se connecter.</value>
+  <data name="The certificate expires on {0}, in less than a day. Renew it now: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Le certificat expire le {0}, dans moins d'un jour. Renouvelez-le maintenant : une fois expiré, les ports continuent d'écouter, mais les clients qui vérifient la date refusent de se connecter.</value>
+  </data>
+  <data name="The certificate expires on {0}, in {1} day. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Le certificat expire le {0}, dans {1} jour. Renouvelez-le avant : une fois expiré, les ports continuent d'écouter, mais les clients qui vérifient la date refusent de se connecter.</value>
+  </data>
+  <data name="The certificate expires on {0}, in {1} days. Renew it before then: once it expires the ports keep listening, but clients that check the date refuse to connect." xml:space="preserve">
+    <value>Le certificat expire le {0}, dans {1} jours. Renouvelez-le avant : une fois expiré, les ports continuent d'écouter, mais les clients qui vérifient la date refusent de se connecter.</value>
   </data>
   <data name="The certificate file does not exist on this machine ({0}). Every TLS port configured to use this certificate will fail to start (the server logs error 5113) - mail on those ports stops." xml:space="preserve">
     <value>Le fichier de certificat n'existe pas sur cette machine ({0}). Chaque port TLS configuré pour utiliser ce certificat échouera à démarrer (le serveur consigne l'erreur 5113) - le courrier sur ces ports s'arrête.</value>
@@ -10904,8 +10975,11 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The certificate file exists but could not be read from this panel ({0}), so nothing about it is verified." xml:space="preserve">
     <value>Le fichier de certificat existe mais n'a pas pu être lu depuis ce Control Panel ({0}), rien à son sujet n'est donc vérifié.</value>
   </data>
-  <data name="The certificate file parses correctly and is valid until {0}, {1} from now." xml:space="preserve">
-    <value>Le fichier de certificat s'analyse correctement et est valide jusqu'au {0}, dans {1}.</value>
+  <data name="The certificate file parses correctly and is valid until {0}, {1} day from now." xml:space="preserve">
+    <value>Le fichier de certificat s'analyse correctement et est valide jusqu'au {0}, dans {1} jour.</value>
+  </data>
+  <data name="The certificate file parses correctly and is valid until {0}, {1} days from now." xml:space="preserve">
+    <value>Le fichier de certificat s'analyse correctement et est valide jusqu'au {0}, dans {1} jours.</value>
   </data>
   <data name="The certificate files are on the server and this Control Panel is connected to it remotely, so expiry dates and file contents cannot be checked from here. Everything else on this page is read over COM and is accurate." xml:space="preserve">
     <value>Les fichiers de certificat sont sur le serveur et ce Control Panel y est connecté à distance : les dates d'expiration et le contenu des fichiers ne peuvent donc pas être vérifiés d'ici. Tout le reste sur cette page vient par COM et est exact.</value>
@@ -10928,8 +11002,11 @@ Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'ap
   <data name="The chain is broken at row {0}. {1}" xml:space="preserve">
     <value>La chaîne est rompue à la ligne {0}. {1}</value>
   </data>
-  <data name="The chain is intact. {0} row(s) checked." xml:space="preserve">
-    <value>La chaîne est intacte. {0} ligne(s) vérifiée(s).</value>
+  <data name="The chain is intact. {0} row checked." xml:space="preserve">
+    <value>La chaîne est intacte. {0} ligne vérifiée.</value>
+  </data>
+  <data name="The chain is intact. {0} rows checked." xml:space="preserve">
+    <value>La chaîne est intacte. {0} lignes vérifiées.</value>
   </data>
   <data name="The check did not finish - DNS timed out or answered SERVFAIL, or the lookup limit was reached - and the record may be fine. Scoring it like a fail drops mail on resolver blips; the switch below is the other answer." xml:space="preserve">
     <value>La vérification n'a pas abouti - le DNS a expiré ou répondu SERVFAIL, ou la limite de recherches a été atteinte - et l'enregistrement est peut-être correct. La noter comme un échec fait perdre du courrier à chaque à-coup du résolveur ; l'interrupteur ci-dessous est l'autre réponse.</value>
@@ -11032,6 +11109,9 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   <data name="The endpoint answered with {0} entries." xml:space="preserve">
     <value>Le point d'accès a répondu avec {0} entrées.</value>
   </data>
+  <data name="The endpoint answered with {0} entry." xml:space="preserve">
+    <value>Le point d'accès a répondu avec {0} entrée.</value>
+  </data>
   <data name="The endpoint could not be used: {0}" xml:space="preserve">
     <value>Le point d'accès n'a pas pu être utilisé : {0}</value>
   </data>
@@ -11078,6 +11158,9 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   </data>
   <data name="The first scanner to find something ends the scan, so the order is also the cost: a slow scanner in front of a fast one is paid for on every clean message." xml:space="preserve">
     <value>Le premier analyseur qui trouve quelque chose met fin à l'analyse : l'ordre est donc aussi le coût, car un analyseur lent placé devant un rapide se paie sur chaque message sain.</value>
+  </data>
+  <data name="The first {0} matching accounts are shown; refine the search to see the rest." xml:space="preserve">
+    <value>Les {0} premiers comptes correspondants sont affichés ; affinez la recherche pour voir les autres.</value>
   </data>
   <data name="The folder UID counters have been recalculated. Clients that cached the old values will resynchronise on their next connection." xml:space="preserve">
     <value>Les compteurs d'UID des dossiers ont été recalculés. Les clients qui avaient mis en cache les anciennes valeurs se resynchroniseront à leur prochaine connexion.</value>
@@ -11130,8 +11213,14 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The install's outcome could not be read." xml:space="preserve">
     <value>Le résultat de l'installation n'a pas pu être lu.</value>
   </data>
+  <data name="The issued certificate EXPIRED on {0}, {1} day ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
+    <value>Le certificat émis a EXPIRÉ le {0}, il y a {1} jour, et le renouvellement ne l'a pas remplacé. Les clients refusent le TLS de ce serveur. Cherchez la dernière tentative de renouvellement dans le journal d'erreurs : la cause habituelle est que l'AC ne peut plus joindre ce serveur sur le port du défi http-01.</value>
+  </data>
   <data name="The issued certificate EXPIRED on {0}, {1} days ago, and renewal has not replaced it. Clients are refusing this server's TLS. Check the error log for the last renewal attempt: the usual cause is that the CA can no longer reach this server on the http-01 challenge port." xml:space="preserve">
     <value>Le certificat émis a EXPIRÉ le {0}, il y a {1} jours, et le renouvellement ne l'a pas remplacé. Les clients refusent le TLS de ce serveur. Cherchez la dernière tentative de renouvellement dans le journal d'erreurs : la cause habituelle est que l'AC ne peut plus joindre ce serveur sur le port du défi http-01.</value>
+  </data>
+  <data name="The issued certificate expires on {0}, in {1} day. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why." xml:space="preserve">
+    <value>Le certificat émis expire le {0}, dans {1} jour. La tâche de renouvellement s'exécute à l'intérieur de cette fenêtre : ce n'est donc un problème que si le nombre cesse de diminuer - si c'est le cas, le renouvellement échoue et le journal d'erreurs dit pourquoi.</value>
   </data>
   <data name="The issued certificate expires on {0}, in {1} days. The renewal task runs inside this window, so this is only a problem if the number stops falling - if it does, renewal is failing and the error log says why." xml:space="preserve">
     <value>Le certificat émis expire le {0}, dans {1} jours. La tâche de renouvellement s'exécute à l'intérieur de cette fenêtre : ce n'est donc un problème que si le nombre cesse de diminuer - si c'est le cas, le renouvellement échoue et le journal d'erreurs dit pourquoi.</value>
@@ -11355,7 +11444,7 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The port to ask on" xml:space="preserve">
     <value>Le port sur lequel interroger</value>
   </data>
-  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialized, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
+  <data name="The ports each protocol listens on, their bind address and connection security. A change takes effect when the server is reinitialised, which this page offers after each one. The Listening column is read from this machine's open ports, not from the configuration, so it shows what is actually happening rather than what was asked for." xml:space="preserve">
     <value>Les ports sur lesquels chaque protocole écoute, leur adresse de liaison et la sécurité de connexion. Un changement prend effet à la réinitialisation du serveur, que cette page propose après chaque changement. La colonne Écoute est lue depuis les ports ouverts de cette machine, pas depuis la configuration : elle montre donc ce qui se passe réellement plutôt que ce qui a été demandé.</value>
   </data>
   <data name="The private key does not belong to this certificate: their public keys differ. The pair will not load (server error 5113) and every TLS port using this certificate will fail to start. Point this entry at the key file that was generated with this certificate." xml:space="preserve">
@@ -11542,7 +11631,7 @@ C'est le propre résolveur du serveur qui répond - le même que celui qu'utilis
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Le serveur génère la clé suivante, affiche l'enregistrement TXT à publier, le vérifie avec son propre résolveur et ne bascule la signature vers elle qu'une fois l'enregistrement résolu pendant toute la période de propagation. L'ancien sélecteur est conservé pendant la période de conservation, puis retiré.</value>
   </data>
-  <data name="The server is draining. A reinitialize ends maintenance mode: the listeners open again and delivery resumes. Reinitialize the server now?" xml:space="preserve">
+  <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Le serveur est en vidange. Une réinitialisation met fin au mode maintenance : les écoutes s'ouvrent de nouveau et la remise reprend. Réinitialiser le serveur maintenant ?</value>
   </data>
   <data name="The server is measuring the message store; open this page again in a minute for the figures." xml:space="preserve">
@@ -11732,6 +11821,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="The wiki could not be opened in a browser." xml:space="preserve">
     <value>Le wiki n'a pas pu être ouvert dans un navigateur.</value>
   </data>
+  <data name="The {0} IP range does not require TLS before authentication, so a plaintext password is accepted wherever a port permits one." xml:space="preserve">
+    <value>La {0} plage IP n'exige pas TLS avant l'authentification : un mot de passe en clair est donc accepté partout où un port en permet un.</value>
+  </data>
   <data name="The {0} profile could not be applied in full on {1}: some of its settings were not written. Put back what it wrote, or keep it, and apply it again." xml:space="preserve">
     <value>Le profil {0} n'a pas pu être appliqué entièrement le {1} : certains de ses paramètres n'ont pas été écrits. Rétablissez ce qu'il a écrit, ou gardez-le, et appliquez-le de nouveau.</value>
   </data>
@@ -11759,8 +11851,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Il n'y a aucun domaine, donc aucune liste à afficher.</value>
   </data>
-  <data name="There is a total of {0} auto-ban IP range(s)." xml:space="preserve">
-    <value>Il y a au total {0} plage(s) IP de bannissement automatique.</value>
+  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
+    <value>Il y a au total {0} plages IP de bannissement automatique.</value>
   </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Il n'y a pas encore de nom d'hôte configuré à copier.</value>
@@ -11770,6 +11862,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Il n'y a qu'un seul palier, à 2. À partir de 3 (la valeur par défaut est 9), chaque catégorie activée est journalisée intégralement. À 2 ou moins, le serveur retire du journal les réponses IMAP FETCH et STATUS et raccourcit les lignes plus longues que la limite ci-dessous à leurs premiers et derniers caractères. Activer les messages de débogage ci-dessus rétablit le détail complet quel que soit le niveau.</value>
+  </data>
+  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
+    <value>Il y a au total {0} plage IP de bannissement automatique.</value>
   </data>
   <data name="These are read by the server from the [LDAP] section of hMailServer.INI, and re-read within two seconds of a save, so no restart is needed. The defaults suit Active Directory; a directory that is not Windows will not have sAMAccountName and needs the attribute names changed." xml:space="preserve">
     <value>Ceux-ci sont lus par le serveur dans la section [LDAP] de hMailServer.INI, et relus dans les deux secondes suivant un enregistrement : aucun redémarrage n'est donc nécessaire. Les valeurs par défaut conviennent à Active Directory ; un annuaire qui n'est pas Windows n'aura pas sAMAccountName et nécessite de changer les noms d'attributs.</value>
@@ -11889,6 +11984,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field." xml:space="preserve">
     <value>Ce serveur n'a pas de niveaux de paramètres : il est antérieur au schéma 6088, et chaque paramètre ici est un champ propre du serveur ou du domaine.</value>
+  </data>
+  <data name="This server holds {0} account, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
+    <value>Ce serveur contient {0} compte, il est donc en service : un profil est proposé à un nouveau serveur, et chacun des quatre peut toujours être comparé à celui-ci.</value>
   </data>
   <data name="This server holds {0} accounts, so it is in service: a profile is offered to a new server, and any of the four can still be compared with this one." xml:space="preserve">
     <value>Ce serveur contient {0} comptes, il est donc en service : un profil est proposé à un nouveau serveur, et chacun des quatre peut toujours être comparé à celui-ci.</value>
@@ -12286,8 +12384,11 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="VAPID private key, to bring the pair from another server (leave empty to keep current)" xml:space="preserve">
     <value>Clé privée VAPID, pour apporter la paire d'un autre serveur (laisser vide pour conserver l'actuelle)</value>
   </data>
-  <data name="Valid to {0} ({1})" xml:space="preserve">
-    <value>Valide jusqu'au {0} ({1})</value>
+  <data name="Valid until {0} ({1} day left)" xml:space="preserve">
+    <value>Valide jusqu'au {0} ({1} jour restant)</value>
+  </data>
+  <data name="Valid until {0} ({1} days left)" xml:space="preserve">
+    <value>Valide jusqu'au {0} ({1} jours restants)</value>
   </data>
   <data name="Validate DNSSEC for DANE and SPF/DKIM/DMARC lookups" xml:space="preserve">
     <value>Valider DNSSEC pour DANE et les recherches SPF/DKIM/DMARC</value>
@@ -12507,6 +12608,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Ce qui doit exister en dehors de ce serveur</value>
+  </data>
+  <data name="What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
+    <value>Un ou plusieurs enregistrements TXT existent à {0} mais aucun ne porte la clé publique de cette clé : chaque signature faite avec cette clé échoue donc à la vérification. Attendre n'y changera rien - corrigez la valeur publiée pour qu'elle corresponde à celle ci-dessus.</value>
   </data>
   <data name="What is sent" xml:space="preserve">
     <value>Ce qui est envoyé</value>
@@ -12757,6 +12861,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Whitelist the sender, then release" xml:space="preserve">
     <value>Mettre l'expéditeur sur liste blanche, puis libérer</value>
   </data>
+  <data name="Whitelist the senders of {0} message, then release it" xml:space="preserve">
+    <value>Mettre sur liste blanche l'expéditeur de {0} message, puis le libérer</value>
+  </data>
   <data name="Whitelist the senders of {0} messages, then release them" xml:space="preserve">
     <value>Mettre sur liste blanche les expéditeurs de {0} messages, puis les libérer</value>
   </data>
@@ -12910,8 +13017,11 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="Yes" xml:space="preserve">
     <value>Oui</value>
   </data>
-  <data name="Yes. {0} domain(s) are linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are." xml:space="preserve">
-    <value>Oui. {0} domaine(s) sont liés à un annuaire et y participeront. Lancez d'abord un aperçu : la forme d'un annuaire est rarement celle que l'on attend, et les lignes ignorées sont là où se trouvent les surprises.</value>
+  <data name="Yes. {0} domain is linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are." xml:space="preserve">
+    <value>Oui. {0} domaine est lié à un annuaire et y participera. Lancez d'abord un aperçu : la forme d'un annuaire est rarement celle que l'on attend, et les lignes ignorées sont là où se trouvent les surprises.</value>
+  </data>
+  <data name="Yes. {0} domains are linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are." xml:space="preserve">
+    <value>Oui. {0} domaines sont liés à un annuaire et y participeront. Lancez d'abord un aperçu : la forme d'un annuaire est rarement celle que l'on attend, et les lignes ignorées sont là où se trouvent les surprises.</value>
   </data>
   <data name="You arrived here from the search palette" xml:space="preserve">
     <value>Vous êtes arrivé ici depuis la palette de recherche</value>
@@ -13711,11 +13821,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="expired today" xml:space="preserve">
     <value>expiré aujourd'hui</value>
   </data>
-  <data name="expired {0} day(s) ago" xml:space="preserve">
-    <value>expiré il y a {0} jour(s)</value>
+  <data name="expired {0} day ago" xml:space="preserve">
+    <value>expiré il y a {0} jour</value>
   </data>
-  <data name="expires in {0} day(s)" xml:space="preserve">
-    <value>expire dans {0} jour(s)</value>
+  <data name="expired {0} days ago" xml:space="preserve">
+    <value>expiré il y a {0} jours</value>
+  </data>
+  <data name="expires in {0} day" xml:space="preserve">
+    <value>expire dans {0} jour</value>
+  </data>
+  <data name="expires in {0} days" xml:space="preserve">
+    <value>expire dans {0} jours</value>
   </data>
   <data name="expires today" xml:space="preserve">
     <value>expire aujourd'hui</value>
@@ -13913,14 +14029,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="item" xml:space="preserve">
     <value>élément</value>
   </data>
-  <data name="its 1 account" xml:space="preserve">
-    <value>son unique compte</value>
-  </data>
   <data name="its work folder was already there" xml:space="preserve">
     <value>son dossier de travail existait déjà</value>
-  </data>
-  <data name="its {0} accounts" xml:space="preserve">
-    <value>ses {0} comptes</value>
   </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>conserver une copie de chaque message</value>
@@ -13934,11 +14044,20 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="last second" xml:space="preserve">
     <value>dernière seconde</value>
   </data>
+  <data name="last {0} hour" xml:space="preserve">
+    <value>{0} dernière heure</value>
+  </data>
   <data name="last {0} hours" xml:space="preserve">
     <value>{0} dernières heures</value>
   </data>
+  <data name="last {0} minute" xml:space="preserve">
+    <value>{0} dernière minute</value>
+  </data>
   <data name="last {0} minutes" xml:space="preserve">
     <value>{0} dernières minutes</value>
+  </data>
+  <data name="last {0} second" xml:space="preserve">
+    <value>{0} dernière seconde</value>
   </data>
   <data name="last {0} seconds" xml:space="preserve">
     <value>{0} dernières secondes</value>
@@ -14456,6 +14575,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} (a value this Control Panel does not know)" xml:space="preserve">
     <value>{0} (une valeur que ce Control Panel ne connaît pas)</value>
   </data>
+  <data name="{0} (error {1})" xml:space="preserve">
+    <value>{0} (erreur {1})</value>
+  </data>
   <data name="{0} (expired)" xml:space="preserve">
     <value>{0} (expirée)</value>
   </data>
@@ -14468,8 +14590,29 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} - accounts" xml:space="preserve">
     <value>{0} - comptes</value>
   </data>
+  <data name="{0} - put back: {1}, left as they were: {2}; waiting for a reinitialise: {3}, for a restart: {4}." xml:space="preserve">
+    <value>{0} - rétablis : {1}, laissés tels quels : {2} ; en attente d'une réinitialisation : {3}, d'un redémarrage : {4}.</value>
+  </data>
+  <data name="{0} - set: {1}, unchanged: {2}, skipped: {3}; waiting for a reinitialise: {4}, for a restart: {5}." xml:space="preserve">
+    <value>{0} - définis : {1}, inchangés : {2}, ignorés : {3} ; en attente d'une réinitialisation : {4}, d'un redémarrage : {5}.</value>
+  </data>
+  <data name="{0} - settings that would change on this server: {1} of {2}." xml:space="preserve">
+    <value>{0} - réglages qui changeraient sur ce serveur : {1} sur {2}.</value>
+  </data>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
+  </data>
+  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
+    <value>{0} Les connexions vers un port qui n'est pas écouté sont refusées. Les causes habituelles sont un autre programme qui tient déjà le port, une adresse de liaison qui n'existe pas sur cette machine, ou - sur un port TLS - un certificat que le serveur n'a pas pu charger ; le serveur note laquelle, une fois, dans le journal d'erreurs au démarrage.</value>
+  </data>
+  <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
+    <value>{0} enregistrement DNS est recherché en arrière-plan ; la ligne marquée « vérification » se mettra à jour.</value>
+  </data>
+  <data name="{0} DNS record is still being checked in the background; this summary will update." xml:space="preserve">
+    <value>{0} enregistrement DNS est encore vérifié en arrière-plan ; ce résumé se mettra à jour.</value>
+  </data>
+  <data name="{0} DNS records are being looked up in the background; the rows marked &quot;checking&quot; will update." xml:space="preserve">
+    <value>{0} enregistrements DNS sont recherchés en arrière-plan ; les lignes marquées « vérification » se mettront à jour.</value>
   </data>
   <data name="{0} DNS records are still being checked in the background; this summary will update." xml:space="preserve">
     <value>{0} enregistrements DNS sont encore vérifiés en arrière-plan ; ce résumé se mettra à jour.</value>
@@ -14489,32 +14632,62 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} KB ({1} MB)" xml:space="preserve">
     <value>{0} Ko ({1} Mo)</value>
   </data>
+  <data name="{0} Rewrote {1} log line." xml:space="preserve">
+    <value>{0} {1} ligne de journal réécrite.</value>
+  </data>
+  <data name="{0} Rewrote {1} log lines." xml:space="preserve">
+    <value>{0} {1} lignes de journal réécrites.</value>
+  </data>
   <data name="{0} SURBL servers" xml:space="preserve">
     <value>{0} serveurs SURBL</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
-    <value>{0} enregistrement(s) TXT existent à {1}, mais aucun ne commence par « v=DMARC1 », si bien que les destinataires - et la propre vérification DMARC de ce serveur - ne voient aucune politique.</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
+    <value>{0} enregistrement TXT existe à {1}, mais il ne commence pas par « v=DMARC1 », si bien que les destinataires - et la propre vérification DMARC de ce serveur - ne voient aucune politique.</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=STSv1&quot;, so senders see no policy." xml:space="preserve">
-    <value>{0} enregistrement(s) TXT existent à {1}, mais aucun ne commence par « v=STSv1 », si bien que les expéditeurs ne voient aucune politique.</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=STSv1&quot;, so senders see no policy." xml:space="preserve">
+    <value>{0} enregistrement TXT existe à {1}, mais il ne commence pas par « v=STSv1 », si bien que les expéditeurs ne voient aucune politique.</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=TLSRPTv1&quot;." xml:space="preserve">
-    <value>{0} enregistrement(s) TXT existent à {1}, mais aucun ne commence par « v=TLSRPTv1 ».</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=TLSRPTv1&quot;." xml:space="preserve">
+    <value>{0} enregistrement TXT existe à {1}, mais il ne commence pas par « v=TLSRPTv1 ».</value>
   </data>
-  <data name="{0} TXT record(s) exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
-    <value>{0} enregistrement(s) TXT existent à {1}, mais aucun ne commence par « v=spf1 », si bien que les destinataires ne voient aucune politique SPF du tout.</value>
+  <data name="{0} TXT record exists at {1}, and it does not begin &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
+    <value>{0} enregistrement TXT existe à {1}, mais il ne commence pas par « v=spf1 », si bien que les destinataires ne voient aucune politique SPF du tout.</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=DMARC1&quot;, so receivers - and this server's own DMARC check - see no policy." xml:space="preserve">
+    <value>{0} enregistrements TXT existent à {1}, mais aucun ne commence par « v=DMARC1 », si bien que les destinataires - et la propre vérification DMARC de ce serveur - ne voient aucune politique.</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=STSv1&quot;, so senders see no policy." xml:space="preserve">
+    <value>{0} enregistrements TXT existent à {1}, mais aucun ne commence par « v=STSv1 », si bien que les expéditeurs ne voient aucune politique.</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=TLSRPTv1&quot;." xml:space="preserve">
+    <value>{0} enregistrements TXT existent à {1}, mais aucun ne commence par « v=TLSRPTv1 ».</value>
+  </data>
+  <data name="{0} TXT records exist at {1}, but none begins &quot;v=spf1&quot;, so receivers see no SPF policy at all." xml:space="preserve">
+    <value>{0} enregistrements TXT existent à {1}, mais aucun ne commence par « v=spf1 », si bien que les destinataires ne voient aucune politique SPF du tout.</value>
   </data>
   <data name="{0} Until {1}." xml:space="preserve">
     <value>{0} Jusqu'au {1}.</value>
   </data>
-  <data name="{0} account(s) found{1}." xml:space="preserve">
-    <value>{0} compte(s) trouvé(s){1}.</value>
+  <data name="{0} account found." xml:space="preserve">
+    <value>{0} compte trouvé.</value>
+  </data>
+  <data name="{0} account is a member." xml:space="preserve">
+    <value>{0} compte est membre.</value>
   </data>
   <data name="{0} accounts are members." xml:space="preserve">
     <value>{0} comptes sont membres.</value>
   </data>
+  <data name="{0} accounts found." xml:space="preserve">
+    <value>{0} comptes trouvés.</value>
+  </data>
   <data name="{0} active of {1}" xml:space="preserve">
     <value>{0} actifs sur {1}</value>
+  </data>
+  <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
+    <value>{0} adresse listée, les {1} plus récentes sont affichées. Recherchez pour les restreindre.</value>
+  </data>
+  <data name="{0} address listed." xml:space="preserve">
+    <value>{0} adresse listée.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresses listées, les {1} plus récentes sont affichées. Recherchez pour les restreindre.</value>
@@ -14537,6 +14710,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} answered with a redirect (HTTP {1}). Sending servers must not follow redirects (RFC 8461 section 3.3), so this counts as no policy." xml:space="preserve">
     <value>{0} a répondu par une redirection (HTTP {1}). Les serveurs expéditeurs ne doivent pas suivre les redirections (RFC 8461 section 3.3), cela compte donc comme aucune politique.</value>
   </data>
+  <data name="{0} app password." xml:space="preserve">
+    <value>{0} mot de passe d'application.</value>
+  </data>
   <data name="{0} app passwords." xml:space="preserve">
     <value>{0} mots de passe d'application.</value>
   </data>
@@ -14546,17 +14722,32 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} blocked senders" xml:space="preserve">
     <value>{0} expéditeurs bloqués</value>
   </data>
+  <data name="{0} blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
+    <value>{0} motif de pièce jointe bloquée est configuré mais le blocage des pièces jointes est désactivé, si bien qu'il n'est pas appliqué.</value>
+  </data>
   <data name="{0} blocked-attachment patterns are configured but attachment blocking is switched off, so none of them is applied." xml:space="preserve">
     <value>{0} motifs de pièces jointes bloquées sont configurés mais le blocage des pièces jointes est désactivé, si bien qu'aucun n'est appliqué.</value>
   </data>
   <data name="{0} bypass entries" xml:space="preserve">
     <value>{0} entrées de contournement</value>
   </data>
-  <data name="{0} case(s). Select one for its lines on the audit trail." xml:space="preserve">
-    <value>{0} affaire(s). Sélectionnez-en une pour voir ses lignes dans le journal d'audit.</value>
+  <data name="{0} case. Select it for its lines on the audit trail." xml:space="preserve">
+    <value>{0} affaire. Sélectionnez-la pour voir ses lignes dans le journal d'audit.</value>
   </data>
-  <data name="{0} change(s) carried out, none failed." xml:space="preserve">
-    <value>{0} modification(s) effectuée(s), aucun échec.</value>
+  <data name="{0} cases. Select one for its lines on the audit trail." xml:space="preserve">
+    <value>{0} affaires. Sélectionnez-en une pour voir ses lignes dans le journal d'audit.</value>
+  </data>
+  <data name="{0} change carried out, none failed." xml:space="preserve">
+    <value>{0} modification effectuée, aucun échec.</value>
+  </data>
+  <data name="{0} changes carried out, none failed." xml:space="preserve">
+    <value>{0} modifications effectuées, aucun échec.</value>
+  </data>
+  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} écouteur client n'a aucun chiffrement disponible, si bien que les mots de passe utilisés sur celui-ci traversent le réseau en clair.</value>
+  </data>
+  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} écouteur client propose STARTTLS sans l'exiger, si bien qu'un client qui ne demande pas de chiffrement s'authentifie sans lui et que rien ne signale que cela s'est produit.</value>
   </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
     <value>{0} écouteurs clients n'ont aucun chiffrement disponible, si bien que les mots de passe utilisés sur ceux-ci traversent le réseau en clair.</value>
@@ -14567,8 +14758,11 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>« {0} » fermée. Elle reprend là où vous vous êtes arrêté.</value>
   </data>
-  <data name="{0} configured ports are not being listened on: " xml:space="preserve">
-    <value>{0} ports configurés ne sont pas écoutés : </value>
+  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
+    <value>{0} port configuré n'est pas écouté : {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
+    <value>{0} ports configurés ne sont pas écoutés : {1}.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} n'a pas pu être récupéré depuis cette machine : {1} Causes probables : pas d'enregistrement A/CNAME pour mta-sts.{2}, l'écouteur HTTPS ne tourne pas (WebServicesHttpsPort=0 est la valeur livrée par défaut), ou un certificat qui ne couvre pas mta-sts.{2}. Vérifié depuis cette machine uniquement.</value>
@@ -14579,8 +14773,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} data table" xml:space="preserve">
     <value>table de données {0}</value>
   </data>
-  <data name="{0} days" xml:space="preserve">
-    <value>{0} jours</value>
+  <data name="{0} day ago" xml:space="preserve">
+    <value>il y a {0} jour</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>il y a {0} jours</value>
@@ -14591,6 +14785,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
     <value>{0} n'a pas répondu dans les 10 secondes depuis cette machine. Causes probables : pas d'enregistrement A/CNAME pour mta-sts.{1}, l'écouteur HTTPS ne tourne pas (WebServicesHttpsPort), ou un pare-feu entre les deux. Vérifié depuis cette machine uniquement.</value>
   </data>
+  <data name="{0} domain, and it is not active." xml:space="preserve">
+    <value>{0} domaine, et il n'est pas actif.</value>
+  </data>
   <data name="{0} domains, none of them active." xml:space="preserve">
     <value>{0} domaines, aucun d'eux actif.</value>
   </data>
@@ -14600,8 +14797,14 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} entry" xml:space="preserve">
     <value>{0} entrée</value>
   </data>
-  <data name="{0} event(s) past the retention window were removed." xml:space="preserve">
-    <value>{0} événement(s) au-delà de la fenêtre de rétention ont été supprimés.</value>
+  <data name="{0} event past the retention window was removed." xml:space="preserve">
+    <value>{0} événement au-delà de la fenêtre de rétention a été supprimé.</value>
+  </data>
+  <data name="{0} event, newest first." xml:space="preserve">
+    <value>{0} événement, du plus récent au plus ancien.</value>
+  </data>
+  <data name="{0} events past the retention window were removed." xml:space="preserve">
+    <value>{0} événements au-delà de la fenêtre de rétention ont été supprimés.</value>
   </data>
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} événements, du plus récent au plus ancien.</value>
@@ -14609,11 +14812,20 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} expired and now refused" xml:space="preserve">
     <value>{0} expiré(s) et désormais refusé(s)</value>
   </data>
+  <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
+    <value>{0} compte de collecte POP3 externe a l'antivirus désactivé, si bien que le courrier collecté par celui-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page.</value>
+  </data>
   <data name="{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} comptes de collecte POP3 externes ont l'antivirus désactivé, si bien que le courrier collecté par ceux-ci est livré sans analyse quel que soit le réglage ici. L'interrupteur est sur le compte de collecte, pas sur cette page.</value>
   </data>
   <data name="{0} external accounts" xml:space="preserve">
     <value>{0} comptes externes</value>
+  </data>
+  <data name="{0} folder." xml:space="preserve">
+    <value>{0} dossier.</value>
+  </data>
+  <data name="{0} folders." xml:space="preserve">
+    <value>{0} dossiers.</value>
   </data>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} a été déplacé vers {1}.</value>
@@ -14627,11 +14839,11 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} retenus, les {1} plus récents sont affichés. Le reste est toujours là - traitez ceux-ci, ou laissez le balayage de rétention les supprimer quand ils auront vieilli.</value>
   </data>
+  <data name="{0} hour ago" xml:space="preserve">
+    <value>il y a {0} heure</value>
+  </data>
   <data name="{0} hours ago" xml:space="preserve">
     <value>il y a {0} heures</value>
-  </data>
-  <data name="{0} index entries will be discarded and rebuilt from {1} messages." xml:space="preserve">
-    <value>{0} entrées d'index seront jetées et reconstruites à partir de {1} messages.</value>
   </data>
   <data name="{0} is already a member of this group." xml:space="preserve">
     <value>{0} est déjà membre de ce groupe.</value>
@@ -14687,11 +14899,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} items" xml:space="preserve">
     <value>{0} éléments</value>
   </data>
-  <data name="{0} items cannot be checked from here" xml:space="preserve">
-    <value>{0} éléments ne peuvent pas être vérifiés d'ici</value>
-  </data>
-  <data name="{0} items cannot be checked from here." xml:space="preserve">
-    <value>{0} éléments ne peuvent pas être vérifiés d'ici.</value>
+  <data name="{0} key" xml:space="preserve">
+    <value>{0} clé</value>
   </data>
   <data name="{0} keys" xml:space="preserve">
     <value>{0} clés</value>
@@ -14702,17 +14911,29 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} entrées de liste</value>
   </data>
+  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} écouteur est configuré pour TLS sans pouvoir le servir, si bien que ce port n'écoute pas du tout.</value>
+  </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
     <value>{0} écouteurs sont configurés pour TLS sans pouvoir le servir, si bien que ces ports n'écoutent pas du tout.</value>
+  </data>
+  <data name="{0} message" xml:space="preserve">
+    <value>{0} message</value>
+  </data>
+  <data name="{0} message cannot be listed and will be left where it is. The first reason: {1}" xml:space="preserve">
+    <value>{0} message ne peut pas être inscrit sur la liste et restera où il est. La première raison : {1}</value>
+  </data>
+  <data name="{0} message held." xml:space="preserve">
+    <value>{0} message retenu.</value>
+  </data>
+  <data name="{0} message past the retention window was removed." xml:space="preserve">
+    <value>{0} message au-delà de la fenêtre de rétention a été supprimé.</value>
   </data>
   <data name="{0} message references a file that is missing on disk." xml:space="preserve">
     <value>{0} message fait référence à un fichier absent du disque.</value>
   </data>
-  <data name="{0} message(s) past the retention window were removed." xml:space="preserve">
-    <value>{0} message(s) au-delà de la fenêtre de rétention ont été supprimés.</value>
-  </data>
-  <data name="{0} message(s) waiting for delivery." xml:space="preserve">
-    <value>{0} message(s) en attente de livraison.</value>
+  <data name="{0} message waiting for delivery." xml:space="preserve">
+    <value>{0} message en attente de livraison.</value>
   </data>
   <data name="{0} messages" xml:space="preserve">
     <value>{0} messages</value>
@@ -14723,14 +14944,23 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} messages held." xml:space="preserve">
     <value>{0} messages retenus.</value>
   </data>
+  <data name="{0} messages past the retention window were removed." xml:space="preserve">
+    <value>{0} messages au-delà de la fenêtre de rétention ont été supprimés.</value>
+  </data>
   <data name="{0} messages reference a file that is missing on disk." xml:space="preserve">
     <value>{0} messages font référence à un fichier absent du disque.</value>
   </data>
-  <data name="{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}." xml:space="preserve">
-    <value>{0} messages, {1} Mo tels que les clients les voient. Leurs fichiers occupent {2} Mo et les parties conservées une fois {3} Mo, soit {4} % d'économie. {5} des fichiers sont compressés. Mesuré {6}.</value>
+  <data name="{0} messages waiting for delivery." xml:space="preserve">
+    <value>{0} messages en attente de livraison.</value>
+  </data>
+  <data name="{0} minute ago" xml:space="preserve">
+    <value>il y a {0} minute</value>
   </data>
   <data name="{0} minutes ago" xml:space="preserve">
     <value>il y a {0} minutes</value>
+  </data>
+  <data name="{0} more active domain was not looked up." xml:space="preserve">
+    <value>{0} autre domaine actif n'a pas été consulté.</value>
   </data>
   <data name="{0} more active domains were not looked up." xml:space="preserve">
     <value>{0} autres domaines actifs n'ont pas été consultés.</value>
@@ -14744,20 +14974,20 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} need action, {1} cannot be told from here, {2} done, {3} not needed." xml:space="preserve">
     <value>{0} demandent une action, {1} ne peuvent pas être déterminés d'ici, {2} faits, {3} inutiles.</value>
   </data>
-  <data name="{0} of its {1} settings would change on this server." xml:space="preserve">
-    <value>{0} de ses {1} paramètres changeraient sur ce serveur.</value>
-  </data>
   <data name="{0} of the account's one-time recovery codes are unused." xml:space="preserve">
     <value>{0} des codes de récupération à usage unique du compte sont inutilisés.</value>
   </data>
-  <data name="{0} of {1} IP range(s) refuse authentication until the session is encrypted." xml:space="preserve">
-    <value>{0} plage(s) IP sur {1} refusent l'authentification tant que la session n'est pas chiffrée.</value>
+  <data name="{0} of {1} IP ranges refuse authentication until the session is encrypted." xml:space="preserve">
+    <value>{0} plages IP sur {1} refusent l'authentification tant que la session n'est pas chiffrée.</value>
   </data>
-  <data name="{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
-    <value>{0} modification(s) sur {1} n'ont pas pu être effectuées et sont listées en premier, avec la raison du serveur pour chacune. Les autres ont été appliquées.</value>
+  <data name="{0} of {1} IP ranges refuses authentication until the session is encrypted." xml:space="preserve">
+    <value>{0} plage IP sur {1} refuse l'authentification tant que la session n'est pas chiffrée.</value>
   </data>
-  <data name="{0} of {1} entries match the search." xml:space="preserve">
-    <value>{0} entrées sur {1} correspondent à la recherche.</value>
+  <data name="{0} of {1} changes could not be carried out and are listed first, with the server's reason on each. The rest were applied." xml:space="preserve">
+    <value>{0} modifications sur {1} n'ont pas pu être effectuées et sont listées en premier, avec la raison du serveur pour chacune. Les autres ont été appliquées.</value>
+  </data>
+  <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
+    <value>{0} modification sur {1} n'a pas pu être effectuée et est listée en premier, avec la raison du serveur. Les autres ont été appliquées.</value>
   </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} sur le port {1} n'a aucun chiffrement disponible. Les clients de messagerie s'authentifient sur ce port, si bien que chaque mot de passe utilisé dessus est lisible par tout ce qui se trouve entre le client et ce serveur.</value>
@@ -14774,11 +15004,23 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} motifs sont retirés de chaque message d'après leur nom de fichier, quoi qu'en disent les analyseurs.</value>
   </data>
+  <data name="{0} public folder." xml:space="preserve">
+    <value>{0} dossier public.</value>
+  </data>
   <data name="{0} public folders." xml:space="preserve">
     <value>{0} dossiers publics.</value>
   </data>
-  <data name="{0} recipient(s) added. {1} account(s) had no e-mail address and were skipped." xml:space="preserve">
-    <value>{0} destinataire(s) ajouté(s). {1} compte(s) n'avaient pas d'adresse e-mail et ont été ignorés.</value>
+  <data name="{0} recipient added." xml:space="preserve">
+    <value>{0} destinataire ajouté.</value>
+  </data>
+  <data name="{0} recipients added." xml:space="preserve">
+    <value>{0} destinataires ajoutés.</value>
+  </data>
+  <data name="{0} record beginning &quot;v=DMARC1&quot; exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one." xml:space="preserve">
+    <value>{0} enregistrement commençant par « v=DMARC1 » existe à {1}, avec d'autres semblables. Les destinataires traitent plusieurs enregistrements DMARC comme l'absence totale de politique - supprimez-les tous sauf un.</value>
+  </data>
+  <data name="{0} record beginning &quot;v=spf1&quot; exists at {1} with others like it. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one." xml:space="preserve">
+    <value>{0} enregistrement commençant par « v=spf1 » existe à {1}, avec d'autres semblables. La RFC 7208 en fait une erreur SPF permanente chez chaque destinataire - pire que pas d'enregistrement. Fusionnez-les en un seul.</value>
   </data>
   <data name="{0} record host name" xml:space="preserve">
     <value>nom d'hôte de l'enregistrement {0}</value>
@@ -14795,14 +15037,26 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} remote domain policies" xml:space="preserve">
     <value>{0} règles de domaine distant</value>
   </data>
-  <data name="{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
-    <value>{0} ligne(s) sont à lire avant d'appliquer - une entrée ignorée est une boîte que quelqu'un attend et n'aura pas, et une entrée désactivée est une boîte qu'on retire.</value>
+  <data name="{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
+    <value>{0} ligne est à lire avant d'appliquer - une entrée ignorée est une boîte que quelqu'un attend et n'aura pas, et une entrée désactivée est une boîte qu'on retire.</value>
   </data>
-  <data name="{0} rule(s), evaluated top to bottom." xml:space="preserve">
-    <value>{0} règle(s), évaluées de haut en bas.</value>
+  <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
+    <value>{0} lignes sont à lire avant d'appliquer - une entrée ignorée est une boîte que quelqu'un attend et n'aura pas, et une entrée désactivée est une boîte qu'on retire.</value>
+  </data>
+  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
+    <value>{0} règle, évaluée de haut en bas.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} règles</value>
+  </data>
+  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
+    <value>{0} règles, évaluées de haut en bas.</value>
+  </data>
+  <data name="{0} sample copied to the clipboard." xml:space="preserve">
+    <value>{0} échantillon copié dans le presse-papiers.</value>
+  </data>
+  <data name="{0} sample." xml:space="preserve">
+    <value>{0} échantillon.</value>
   </data>
   <data name="{0} samples copied to the clipboard." xml:space="preserve">
     <value>{0} échantillons copiés dans le presse-papiers.</value>
@@ -14810,14 +15064,23 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} échantillons.</value>
   </data>
-  <data name="{0} saved setting(s) wait for a reinitialize, and {1} for a service restart." xml:space="preserve">
-    <value>{0} réglage(s) enregistré(s) attendent une réinitialisation, et {1} un redémarrage du service.</value>
+  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
+    <value>{0} réglage enregistré attend une réinitialisation, et {1} un redémarrage du service.</value>
   </data>
-  <data name="{0} saved setting(s) wait for a reinitialize." xml:space="preserve">
-    <value>{0} réglage(s) enregistré(s) attendent une réinitialisation.</value>
+  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
+    <value>{0} réglage enregistré attend une réinitialisation.</value>
   </data>
-  <data name="{0} saved setting(s) wait for a service restart." xml:space="preserve">
-    <value>{0} réglage(s) enregistré(s) attendent un redémarrage du service.</value>
+  <data name="{0} saved setting waits for a service restart." xml:space="preserve">
+    <value>{0} réglage enregistré attend un redémarrage du service.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
+    <value>{0} réglages enregistrés attendent une réinitialisation, et {1} un redémarrage du service.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
+    <value>{0} réglages enregistrés attendent une réinitialisation.</value>
+  </data>
+  <data name="{0} saved settings wait for a service restart." xml:space="preserve">
+    <value>{0} réglages enregistrés attendent un redémarrage du service.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} obtient à lui seul un score de {1}, ce qui atteint le {2} auquel le serveur arrête de tester - {3} ne s'exécutera donc pas pour un message qui y échoue, et n'apparaîtra pas dans le journal.</value>
@@ -14828,11 +15091,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} messages du serveur</value>
   </data>
-  <data name="{0} setting(s) could not be read — {1}" xml:space="preserve">
-    <value>{0} réglage(s) n'ont pas pu être lus — {1}</value>
+  <data name="{0} setting could not be read: {1}" xml:space="preserve">
+    <value>{0} réglage n'a pas pu être lu : {1}</value>
   </data>
-  <data name="{0} setting(s) could not be written." xml:space="preserve">
-    <value>{0} réglage(s) n'ont pas pu être écrits.</value>
+  <data name="{0} setting could not be written." xml:space="preserve">
+    <value>{0} réglage n'a pas pu être écrit.</value>
+  </data>
+  <data name="{0} settings could not be read: {1}" xml:space="preserve">
+    <value>{0} réglages n'ont pas pu être lus : {1}</value>
+  </data>
+  <data name="{0} settings could not be written." xml:space="preserve">
+    <value>{0} réglages n'ont pas pu être écrits.</value>
   </data>
   <data name="{0} stops here: the next thing it points at is not on this screen." xml:space="preserve">
     <value>« {0} » s'arrête ici : l'élément suivant qu'elle désigne n'est pas sur cet écran.</value>
@@ -14840,23 +15109,38 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} the mail server engine" xml:space="preserve">
     <value>{0} le moteur du serveur de messagerie</value>
   </data>
-  <data name="{0} things need attention" xml:space="preserve">
-    <value>{0} points demandent votre attention</value>
+  <data name="{0} thing needs attention." xml:space="preserve">
+    <value>{0} point demande votre attention.</value>
+  </data>
+  <data name="{0} things need attention." xml:space="preserve">
+    <value>{0} points demandent votre attention.</value>
   </data>
   <data name="{0} to {1} of {2}" xml:space="preserve">
     <value>{0} à {1} sur {2}</value>
   </data>
-  <data name="{0} value(s) could not be read from the server, so this summary may be incomplete." xml:space="preserve">
-    <value>{0} valeur(s) n'ont pas pu être lues depuis le serveur, ce résumé peut donc être incomplet.</value>
+  <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
+    <value>{0} valeur n'a pas pu être lue depuis le serveur, ce résumé peut donc être incomplet.</value>
   </data>
-  <data name="{0} value(s) could not be read — {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} valeur(s) n'ont pas pu être lues — {1} Les cartes ci-dessous peuvent être incomplètes.</value>
+  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
+    <value>{0} valeur n'a pas pu être lue : {1} Les cartes ci-dessous peuvent être incomplètes.</value>
   </data>
-  <data name="{0} value(s) could not be read — {1} The items above may be incomplete." xml:space="preserve">
-    <value>{0} valeur(s) n'ont pas pu être lues — {1} Les éléments ci-dessus peuvent être incomplets.</value>
+  <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
+    <value>{0} valeur n'a pas pu être lue : {1} Les éléments ci-dessus peuvent être incomplets.</value>
   </data>
-  <data name="{0} was made: {1} mailbox(es), and {2} message(s) on their way into them. They arrive in a few seconds. All of the mailboxes sign in with the password {3}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
-    <value>{0} a été créé : {1} boîtes, et {2} messages en route vers elles. Ils arrivent dans quelques secondes. Toutes les boîtes se connectent avec le mot de passe {3}. Il est affiché ici une seule fois : notez-le, car ce serveur ne l'a pas conservé.</value>
+  <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
+    <value>{0} valeurs n'ont pas pu être lues depuis le serveur, ce résumé peut donc être incomplet.</value>
+  </data>
+  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
+    <value>{0} valeurs n'ont pas pu être lues : {1} Les cartes ci-dessous peuvent être incomplètes.</value>
+  </data>
+  <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
+    <value>{0} valeurs n'ont pas pu être lues : {1} Les éléments ci-dessus peuvent être incomplets.</value>
+  </data>
+  <data name="{0} was made with {1} mailbox." xml:space="preserve">
+    <value>{0} a été créé avec {1} boîte.</value>
+  </data>
+  <data name="{0} was made with {1} mailboxes." xml:space="preserve">
+    <value>{0} a été créé avec {1} boîtes.</value>
   </data>
   <data name="{0} was not on the list any more." xml:space="preserve">
     <value>{0} ne figurait plus sur la liste.</value>
@@ -14870,8 +15154,8 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0} was removed from the never-ban list." xml:space="preserve">
     <value>{0} a été retiré de la liste des jamais bannis.</value>
   </data>
-  <data name="{0} was removed: {1} mailbox(es), {2} distribution list(s), {3} rule(s) and {4} message(s) went with it." xml:space="preserve">
-    <value>{0} a été supprimé : {1} boîtes, {2} listes de diffusion, {3} règles et {4} messages sont partis avec lui.</value>
+  <data name="{0} was removed, with everything in it - mailboxes: {1}, distribution lists: {2}, rules: {3}, messages: {4}." xml:space="preserve">
+    <value>{0} a été supprimé avec tout son contenu - boîtes : {1}, listes de diffusion : {2}, règles : {3}, messages : {4}.</value>
   </data>
   <data name="{0} white-list entries" xml:space="preserve">
     <value>{0} entrées de liste blanche</value>
@@ -14881,6 +15165,42 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0} with no usable digest, which the server ignores" xml:space="preserve">
     <value>{0} sans digest utilisable, que le serveur ignore</value>
+  </data>
+  <data name="{0} {1} account had no e-mail address and was skipped." xml:space="preserve">
+    <value>{0} {1} compte n'avait pas d'adresse e-mail et a été ignoré.</value>
+  </data>
+  <data name="{0} {1} accounts had no e-mail address and were skipped." xml:space="preserve">
+    <value>{0} {1} comptes n'avaient pas d'adresse e-mail et ont été ignorés.</value>
+  </data>
+  <data name="{0} {1} item cannot be checked from here." xml:space="preserve">
+    <value>{0} {1} élément ne peut pas être vérifié d'ici.</value>
+  </data>
+  <data name="{0} {1} items cannot be checked from here." xml:space="preserve">
+    <value>{0} {1} éléments ne peuvent pas être vérifiés d'ici.</value>
+  </data>
+  <data name="{0} {1} message is on its way into them and arrives in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} {1} message est en route vers elles et arrive dans quelques secondes. Toutes les boîtes se connectent avec le mot de passe {2}. Il est affiché ici une seule fois : notez-le, car ce serveur ne l'a pas conservé.</value>
+  </data>
+  <data name="{0} {1} messages are on their way into them and arrive in a few seconds. All of the mailboxes sign in with the password {2}, which is shown here once - write it down, because this server did not keep it." xml:space="preserve">
+    <value>{0} {1} messages sont en route vers elles et arrivent dans quelques secondes. Toutes les boîtes se connectent avec le mot de passe {2}. Il est affiché ici une seule fois : notez-le, car ce serveur ne l'a pas conservé.</value>
+  </data>
+  <data name="{0} {1} of them wait for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} d'entre eux attendent une réinitialisation ou un redémarrage.</value>
+  </data>
+  <data name="{0} {1} of them wait for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
+    <value>{0} {1} d'entre eux attendent une réinitialisation ou un redémarrage ; les autres ont été appliqués immédiatement.</value>
+  </data>
+  <data name="{0} {1} of them waits for a reinitialise or a restart." xml:space="preserve">
+    <value>{0} {1} d'entre eux attend une réinitialisation ou un redémarrage.</value>
+  </data>
+  <data name="{0} {1} of them waits for a reinitialise or a restart; the rest applied immediately." xml:space="preserve">
+    <value>{0} {1} d'entre eux attend une réinitialisation ou un redémarrage ; les autres ont été appliqués immédiatement.</value>
+  </data>
+  <data name="{0} {1} setting could not be written." xml:space="preserve">
+    <value>{0} {1} réglage n'a pas pu être écrit.</value>
+  </data>
+  <data name="{0} {1} settings could not be written." xml:space="preserve">
+    <value>{0} {1} réglages n'ont pas pu être écrits.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — le code de sortie {1} signifie infecté</value>
@@ -14921,15 +15241,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0} : enregistrement TXT à {1}</value>
   </data>
-  <data name="{0}: TXT record(s) exist at {1} but none begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
-    <value>{0} : des enregistrements TXT existent à {1} mais aucun ne commence par v=STSv1, si bien que les expéditeurs n'y reconnaîtront aucune politique. Corrigez la valeur de l'enregistrement.</value>
-  </data>
-  <data name="{0}: TXT record(s) exist at {1} but none carries this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help." xml:space="preserve">
-    <value>{0} : des enregistrements TXT existent à {1} mais aucun ne porte la clé publique de cette clé, les signatures échouent donc à la vérification. Corrigez la valeur de l'enregistrement - attendre la propagation n'y changera rien.</value>
-  </data>
-  <data name="{0}: TXT record(s) exist at {1} but none matches the staged secondary key. Fix the value before promoting - waiting will not help." xml:space="preserve">
-    <value>{0} : des enregistrements TXT existent à {1} mais aucun ne correspond à la clé secondaire préparée. Corrigez la valeur avant de promouvoir - attendre n'y changera rien.</value>
-  </data>
   <data name="{0}: a TXT record exists at {1}, but it could not be compared with the staged secondary key from this panel. Confirm the value before promoting." xml:space="preserve">
     <value>{0} : un enregistrement TXT existe à {1}, mais il n'a pas pu être comparé à la clé secondaire préparée depuis ce panneau. Confirmez la valeur avant de promouvoir.</value>
   </data>
@@ -14959,6 +15270,9 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="{0}: no {1} record at {2}." xml:space="preserve">
     <value>{0} : aucun enregistrement {1} à {2}.</value>
+  </data>
+  <data name="{0}: nothing published at {1} begins with v=STSv1, so senders will not recognise a policy there. Fix the record's value." xml:space="preserve">
+    <value>{0} : des enregistrements TXT existent à {1} mais aucun ne commence par v=STSv1, si bien que les expéditeurs n'y reconnaîtront aucune politique. Corrigez la valeur de l'enregistrement.</value>
   </data>
   <data name="{0}: selector '{1}' and key file are set. {2} Checking DNS for the TXT record {3}…" xml:space="preserve">
     <value>{0} : le sélecteur « {1} » et le fichier de clé sont définis. {2} Vérification DNS de l'enregistrement TXT {3}…</value>
@@ -15035,17 +15349,17 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0}: the {1} record at {2} was not looked up." xml:space="preserve">
     <value>{0} : l'enregistrement {1} à {2} n'a pas été consulté.</value>
   </data>
+  <data name="{0}: what is published at {1} does not carry this key's public key, so signatures fail verification. Fix the record's value - waiting for propagation will not help." xml:space="preserve">
+    <value>{0} : des enregistrements TXT existent à {1} mais aucun ne porte la clé publique de cette clé, les signatures échouent donc à la vérification. Corrigez la valeur de l'enregistrement - attendre la propagation n'y changera rien.</value>
+  </data>
+  <data name="{0}: what is published at {1} does not match the staged secondary key. Fix the value before promoting - waiting will not help." xml:space="preserve">
+    <value>{0} : des enregistrements TXT existent à {1} mais aucun ne correspond à la clé secondaire préparée. Corrigez la valeur avant de promouvoir - attendre n'y changera rien.</value>
+  </data>
   <data name="{0}: {1}" xml:space="preserve">
     <value>{0} : {1}</value>
   </data>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0} : {1} ne comporte aucun bloc de certificat PEM, il ne contient donc aucun certificat d'AC utilisable (erreur serveur 6140). Exportez le certificat d'AC au format PEM (Base64).</value>
-  </data>
-  <data name="{0}: {1} put back, {2} left as they were; {3} wait for a reinitialise and {4} for a restart." xml:space="preserve">
-    <value>{0} : {1} rétablis, {2} laissés tels quels ; {3} attendent une réinitialisation et {4} un redémarrage.</value>
-  </data>
-  <data name="{0}: {1} set, {2} unchanged, {3} skipped; {4} wait for a reinitialise and {5} for a restart." xml:space="preserve">
-    <value>{0} : {1} définis, {2} inchangés, {3} ignorés ; {4} attendent une réinitialisation et {5} un redémarrage.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all : le domaine dit que le client n'est probablement pas autorisé et demande d'accepter le message quand même. Beaucoup de sources d'envois massifs s'abritent derrière. Un score égal ou supérieur au seuil de suppression refuse le message pendant l'échange SMTP comme le ferait un échec ; un softfail n'est jamais un pass pour l'exemption de greylisting.</value>

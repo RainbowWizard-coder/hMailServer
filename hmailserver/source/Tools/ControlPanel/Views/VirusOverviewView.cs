@@ -506,7 +506,10 @@ namespace hMailServer.ControlPanel.Views
 
          if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsTotal > 0)
          {
-            content.Children.Add(Paragraph(F("Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.", config.FetchAccountsWithScanningOff, config.FetchAccountsTotal)
+            content.Children.Add(Paragraph(PluralF(config.FetchAccountsWithScanningOff,
+                  "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently has anti-virus switched off. That switch is on the account, not on this page.",
+                  "Mail collected from external POP3 accounts is scanned only when that fetch account says so — {0} of {1} currently have anti-virus switched off. That switch is on the account, not on this page.",
+                  config.FetchAccountsWithScanningOff, config.FetchAccountsTotal)
                + (config.FetchAccountScanIncomplete
                   ? F(" These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest.", MaxAccountsWalked)
                   : ""),
@@ -536,12 +539,12 @@ namespace hMailServer.ControlPanel.Views
             !config.WasRead(nameof(config.AttachmentBlockingEnabled), nameof(config.BlockedAttachmentPatterns))
                ? L("The attachment blocking settings could not be read.")
                : config.AttachmentBlockingEnabled
-               ? (config.BlockedAttachmentPatterns == 1
-                  ? F("{0} pattern is stripped from every message by file name, whatever the scanners say.", config.BlockedAttachmentPatterns)
-                  : F("{0} patterns are stripped from every message by file name, whatever the scanners say.", config.BlockedAttachmentPatterns))
-               : (config.BlockedAttachmentPatterns == 1
-                  ? F("Switched off. {0} pattern is configured and none is applied.", config.BlockedAttachmentPatterns)
-                  : F("Switched off. {0} patterns are configured and none is applied.", config.BlockedAttachmentPatterns)),
+               ? Plural(config.BlockedAttachmentPatterns,
+                  "{0} pattern is stripped from every message by file name, whatever the scanners say.",
+                  "{0} patterns are stripped from every message by file name, whatever the scanners say.")
+               : Plural(config.BlockedAttachmentPatterns,
+                  "Switched off. {0} pattern is configured and it is not applied.",
+                  "Switched off. {0} patterns are configured and none is applied."),
             Typography.Body));
 
          content.Children.Add(Paragraph(L("This runs before virus scanning and independently of it: it applies even with every scanner switched off, and it applies to messages the size limit above would skip. A matched attachment is replaced by a short text file explaining the removal rather than being deleted outright, so the recipient can tell something was taken out."),

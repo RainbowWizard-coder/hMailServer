@@ -184,7 +184,7 @@ namespace hMailServer.ControlPanel.Views
             if (verification.Error != null)
                Status_(StatusLevel.Critical, F("The server's answer could not be read: {0}", verification.Error));
             else if (verification.Intact)
-               Status_(StatusLevel.Good, F("The chain is intact. {0} row(s) checked.", verification.RowsChecked));
+               Status_(StatusLevel.Good, Plural(verification.RowsChecked, "The chain is intact. {0} row checked.", "The chain is intact. {0} rows checked."));
             else
                Status_(StatusLevel.Critical, F("The chain is broken at row {0}. {1}", verification.FirstBrokenId, verification.Reason));
          }

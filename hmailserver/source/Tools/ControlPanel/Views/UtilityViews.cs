@@ -867,9 +867,7 @@ namespace hMailServer.ControlPanel.Views
             Level = Severity.Bad,
             ReportPath = path,
             Entries = report.Entries,
-            Message = (report.MissingCount == 1
-                          ? F("{0} message references a file that is missing on disk.", report.MissingCount)
-                          : F("{0} messages reference a file that is missing on disk.", report.MissingCount))
+            Message = Plural(report.MissingCount, "{0} message references a file that is missing on disk.", "{0} messages reference a file that is missing on disk.")
                       + when + truncated + enabledNote
                       + L(" The check is read-only: the server does not delete or repair anything.")
          };

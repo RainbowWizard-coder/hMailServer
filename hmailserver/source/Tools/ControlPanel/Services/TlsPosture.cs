@@ -341,26 +341,33 @@ namespace hMailServer.ControlPanel.Services
          // a sentence put together from a counted noun, its verb and a pronoun
          // read "przechodzą przez przez sieć" in Polish and "kann es aber nicht"
          // in German, since no translator can agree three pieces that are
-         // translated apart.
+         // translated apart. Several is Loc.Plural's, so that Czech, Polish,
+         // Russian and Ukrainian say two listeners apart from five.
          if (broken > 0)
          {
             return broken == 1
                ? L("One listener is configured for TLS but cannot serve it, so that port is not listening at all.")
-               : F("{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.", broken);
+               : Plural(broken,
+                  "{0} listener is configured for TLS but cannot serve it, so that port is not listening at all.",
+                  "{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.");
          }
 
          if (exposed > 0)
          {
             return exposed == 1
                ? L("One client listener has no encryption available, so passwords used on it cross the network in the clear.")
-               : F("{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.", exposed);
+               : Plural(exposed,
+                  "{0} client listener has no encryption available, so passwords used on it cross the network in the clear.",
+                  "{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.");
          }
 
          if (optional > 0)
          {
             return optional == 1
                ? L("One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.")
-               : F("{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", optional);
+               : Plural(optional,
+                  "{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
+                  "{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.");
          }
 
          return L("Every listener that a mail client connects to requires encryption before it will accept a password.");
@@ -561,14 +568,20 @@ namespace hMailServer.ControlPanel.Services
                ? F("The certificate \"{0}\" expired earlier today and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name)
                : daysAgo == 1
                ? F("The certificate \"{0}\" expired yesterday and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name)
-               : F("The certificate \"{0}\" expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.", name, daysAgo);
+               : PluralF(daysAgo,
+                  "The certificate \"{0}\" expired {1} day ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
+                  "The certificate \"{0}\" expired {1} days ago and is still assigned to a listener. Clients are refusing or warning about every connection to it.",
+                  name, daysAgo);
          }
 
          return daysAgo == 0
             ? F("The certificate \"{0}\" expired earlier today. It is not assigned to any listener.", name)
             : daysAgo == 1
             ? F("The certificate \"{0}\" expired yesterday. It is not assigned to any listener.", name)
-            : F("The certificate \"{0}\" expired {1} days ago. It is not assigned to any listener.", name, daysAgo);
+            : PluralF(daysAgo,
+               "The certificate \"{0}\" expired {1} day ago. It is not assigned to any listener.",
+               "The certificate \"{0}\" expired {1} days ago. It is not assigned to any listener.",
+               name, daysAgo);
       }
 
       /// <summary>
@@ -581,12 +594,18 @@ namespace hMailServer.ControlPanel.Services
          {
             return days == 0 ? F("The certificate \"{0}\" expires today and is in use by a listener.", name)
                : days == 1 ? F("The certificate \"{0}\" expires tomorrow and is in use by a listener.", name)
-               : F("The certificate \"{0}\" expires in {1} days and is in use by a listener.", name, days);
+               : PluralF(days,
+                  "The certificate \"{0}\" expires in {1} day and is in use by a listener.",
+                  "The certificate \"{0}\" expires in {1} days and is in use by a listener.",
+                  name, days);
          }
 
          return days == 0 ? F("The certificate \"{0}\" expires today. It is not assigned to any listener.", name)
             : days == 1 ? F("The certificate \"{0}\" expires tomorrow. It is not assigned to any listener.", name)
-            : F("The certificate \"{0}\" expires in {1} days. It is not assigned to any listener.", name, days);
+            : PluralF(days,
+               "The certificate \"{0}\" expires in {1} day. It is not assigned to any listener.",
+               "The certificate \"{0}\" expires in {1} days. It is not assigned to any listener.",
+               name, days);
       }
    }
 }

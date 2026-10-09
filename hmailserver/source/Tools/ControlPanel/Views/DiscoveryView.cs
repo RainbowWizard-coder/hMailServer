@@ -205,7 +205,9 @@ namespace hMailServer.ControlPanel.Views
             if (auditNote != null)
                Status_(StatusLevel.Warning, auditNote);
             else if (report.Cases.Count > 0)
-               Status_(StatusLevel.Information, F("{0} case(s). Select one for its lines on the audit trail.", report.Cases.Count));
+               Status_(StatusLevel.Information, Plural(report.Cases.Count,
+                  "{0} case. Select it for its lines on the audit trail.",
+                  "{0} cases. Select one for its lines on the audit trail."));
 
             if (report.Cases.Count > 0)
                cases_.SelectedIndex = 0;

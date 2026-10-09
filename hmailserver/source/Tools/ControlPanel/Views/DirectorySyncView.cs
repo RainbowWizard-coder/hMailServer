@@ -641,7 +641,9 @@ namespace hMailServer.ControlPanel.Views
 
          if (problems.Count == 0)
          {
-            State_(StatusLevel.Good, F("Yes. {0} domain(s) are linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are.", linkedDomains));
+            State_(StatusLevel.Good, Plural(linkedDomains,
+               "Yes. {0} domain is linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are.",
+               "Yes. {0} domains are linked to a directory and will take part. Run a preview first: the shape of a directory is rarely what anyone expects, and the skipped rows are where the surprises are."));
             return;
          }
 
@@ -866,14 +868,19 @@ namespace hMailServer.ControlPanel.Views
             // Apply_ counts individual refusals in `failed` and leaves the run itself
             // successful - so "applied" on its own tells an administrator very little.
             attentionText_.Text = failed == 0
-               ? F("{0} change(s) carried out, none failed.", done)
-               : F("{0} of {1} change(s) could not be carried out and are listed first, with the server's reason on each. The rest were applied.", failed, failed + done);
+               ? Plural(done, "{0} change carried out, none failed.", "{0} changes carried out, none failed.")
+               : PluralF(failed,
+                  "{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied.",
+                  "{0} of {1} changes could not be carried out and are listed first, with the server's reason on each. The rest were applied.",
+                  failed, failed + done);
          }
          else
          {
             attentionText_.Text = attention == 0
                ? L("Nothing here needs a decision: no mailbox is being skipped and none is being disabled.")
-               : F("{0} row(s) need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.", attention);
+               : Plural(attention,
+                  "{0} row needs reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.",
+                  "{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.");
          }
 
          RenderRows_(report);

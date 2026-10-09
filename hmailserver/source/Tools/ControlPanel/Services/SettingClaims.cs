@@ -236,7 +236,7 @@ namespace hMailServer.ControlPanel.Services
       /// "off" but "the journal" on a systemd machine.
       /// </summary>
       public static readonly string SyslogAppliesOnRestart = N(
-         "Applies at the next service restart or Reinitialize. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration.");
+         "Applies at the next service restart or Reinitialise. Log files are unaffected: this sends a copy, it does not move anything. With no collector host below, a server running under systemd on Linux writes to the journal instead - so on Linux this switch alone is the whole configuration.");
 
       /// <summary>
       /// Shown under each of the four Cache.*MaxSizeKb editors on the Performance

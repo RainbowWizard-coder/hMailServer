@@ -383,7 +383,8 @@ namespace hMailServer.ControlPanel.Views
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
 
-            string text = F("Job {0} is {1}: {2} folders, {3} messages added, {4} skipped as still in the mailbox, {5} failed.",
+            // Four counts: each after its words as a label, which no language has to decline.
+            string text = F("Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}.",
                Number_(root, "job"), Text_(root, "state"), Number_(root, "folders"), Number_(root, "added"), Number_(root, "skipped"), Number_(root, "failed"));
 
             string error = Text_(root, "error");
@@ -650,7 +651,10 @@ namespace hMailServer.ControlPanel.Views
                scheduleConfigured = true;
                expectedMinutes = intervalMinutes;
                scheduleLevel = StatusLevel.Warning;
-               scheduleText = F("ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute(s).", time, intervalMinutes);
+               scheduleText = PluralF(intervalMinutes,
+                  "ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute.",
+                  "ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes.",
+                  time, intervalMinutes);
             }
             else if (time.Length > 0)
             {
@@ -662,7 +666,7 @@ namespace hMailServer.ControlPanel.Views
                scheduleConfigured = true;
                expectedMinutes = intervalMinutes;
                scheduleLevel = StatusLevel.Good;
-               scheduleText = F("A schedule is configured: one backup every {0} minute(s).", intervalMinutes);
+               scheduleText = Plural(intervalMinutes, "A schedule is configured: one backup every {0} minute.", "A schedule is configured: one backup every {0} minutes.");
             }
             else
             {
@@ -901,16 +905,16 @@ namespace hMailServer.ControlPanel.Views
          if (age.TotalHours < 1)
          {
             int minutes = (int)age.TotalMinutes;
-            return minutes == 1 ? L("1 minute ago") : F("{0} minutes ago", minutes);
+            return Plural(minutes, "{0} minute ago", "{0} minutes ago");
          }
 
          if (age.TotalDays < 2)
          {
             int hours = (int)age.TotalHours;
-            return hours == 1 ? L("1 hour ago") : F("{0} hours ago", hours);
+            return Plural(hours, "{0} hour ago", "{0} hours ago");
          }
 
-         return F("{0} days ago", (int)age.TotalDays);
+         return Plural((int)age.TotalDays, "{0} day ago", "{0} days ago");
       }
    }
 

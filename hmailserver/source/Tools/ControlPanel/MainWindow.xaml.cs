@@ -1466,7 +1466,7 @@ namespace hMailServer.ControlPanel
 
          ApplyPendingButton.IsEnabled = false;
          PendingNotice.Level = StatusLevel.Information;
-         PendingNotice.Text = L("Reinitializing the server...");
+         PendingNotice.Text = L("Reinitialising the server...");
          Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
 
          Mouse.OverrideCursor = Cursors.Wait;
@@ -1517,7 +1517,7 @@ namespace hMailServer.ControlPanel
          }
          else
          {
-            Services.Toast.Failure(F("Could not reinitialize: {0}", failure), L("Control Panel"));
+            Services.Toast.Failure(F("Could not reinitialise: {0}", failure), L("Control Panel"));
          }
 
          // Entering the page again refreshes the bar and puts what the server now

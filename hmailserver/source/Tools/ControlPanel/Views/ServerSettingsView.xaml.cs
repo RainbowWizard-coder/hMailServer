@@ -5308,7 +5308,7 @@ namespace hMailServer.ControlPanel.Views
          {
             object entries = ((object)settings).GetType().InvokeMember(
                "TestBreachCheckEndpoint", BindingFlags.InvokeMethod, null, (object)settings, new object[] { url ?? "" });
-            return (true, F("The endpoint answered with {0} entries.", Convert.ToInt32(entries)));
+            return (true, Plural(Convert.ToInt32(entries), "The endpoint answered with {0} entry.", "The endpoint answered with {0} entries."));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -5449,7 +5449,8 @@ namespace hMailServer.ControlPanel.Views
             var culture = System.Globalization.CultureInfo.CurrentCulture;
             string MegaBytes(string name) => (root.GetProperty(name).GetInt64() / 1048576.0).ToString("N1", culture);
 
-            return F("{0} messages, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. {5} of the files are compressed. Measured {6}.",
+            // Two counts, each after its words as a label, which no language has to decline.
+            return F("Messages: {0}, {1} MB as clients see them. Their files take {2} MB and the parts held once {3} MB, which saves {4}%. Files compressed: {5}. Measured {6}.",
                root.GetProperty("messages").GetInt64().ToString("N0", culture),
                MegaBytes("logical_bytes"),
                MegaBytes("stored_bytes"),
@@ -5496,7 +5497,7 @@ namespace hMailServer.ControlPanel.Views
          long messages = counts.Value.Messages;
          long indexed = counts.Value.Indexed;
 
-         string text = F(" {0} of {1} messages are indexed.",
+         string text = F(" Messages indexed: {0} of {1}.",
             indexed.ToString("N0", System.Globalization.CultureInfo.CurrentCulture),
             messages.ToString("N0", System.Globalization.CultureInfo.CurrentCulture));
 
@@ -5573,7 +5574,7 @@ namespace hMailServer.ControlPanel.Views
 
          if (before != null)
          {
-            warning += "\r\n\r\n" + F("{0} index entries will be discarded and rebuilt from {1} messages.",
+            warning += "\r\n\r\n" + F("Index entries that will be discarded: {0}. Messages they will be rebuilt from: {1}.",
                before.Value.Indexed.ToString("N0", System.Globalization.CultureInfo.CurrentCulture),
                before.Value.Messages.ToString("N0", System.Globalization.CultureInfo.CurrentCulture));
          }
@@ -6107,11 +6108,14 @@ namespace hMailServer.ControlPanel.Views
             ServerSettingsPageStatus.LevelFor(outcome));
 
          if (failed == 0)
-            Services.Toast.Success(F("Saved {0} settings", saved) + (waiting == null
-               ? L(" \u2014 INI settings need a service restart.")
-               : waiting > 0 ? F(" \u2014 {0} wait for a reinitialize or a restart.", waiting.Value) : L(" \u2014 applied immediately.")));
+            Services.Toast.Success(waiting == null
+               ? Plural(saved, "Saved {0} setting - hMailServer.ini settings need a service restart.", "Saved {0} settings - hMailServer.ini settings need a service restart.")
+               : waiting > 0
+                  ? PluralF(waiting.Value, "{0} {1} of them waits for a reinitialise or a restart.", "{0} {1} of them wait for a reinitialise or a restart.",
+                     Plural(saved, "Saved {0} setting.", "Saved {0} settings."), waiting.Value)
+                  : Plural(saved, "Saved {0} setting - applied immediately.", "Saved {0} settings - applied immediately."));
          else
-            Services.Toast.Failure(F("{0} setting(s) could not be written.", failed), L("Partly saved"));
+            Services.Toast.Failure(Plural(failed, "{0} setting could not be written.", "{0} settings could not be written."), L("Partly saved"));
 
          // Reload the script engine after scripting changes.
          if (section_ == Section.Advanced)

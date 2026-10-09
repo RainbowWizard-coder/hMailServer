@@ -193,5 +193,137 @@ namespace hMailServer.ControlPanel.Services
       /// <see cref="L"/> at the point it is displayed.
       /// </summary>
       public static string N(string english) => english;
+
+      /// <summary>
+      /// A sentence about a count, in the form the language in force uses for
+      /// that number, with the count as {0}: <c>Plural(n, "{0} message held.",
+      /// "{0} messages held.")</c>. Both forms are catalogue keys and both carry
+      /// the count, because "one" in a language's plural rules is not always the
+      /// number 1 - Russian and Ukrainian say 21 the way they say 1.
+      ///
+      /// <paramref name="one"/> is the English for one thing, <paramref name="other"/>
+      /// for any other number. The language's CLDR plural category of the count
+      /// chooses: "one" takes the translation of <paramref name="one"/>; "few"
+      /// and "many" take the catalogue's entry for <paramref name="other"/>
+      /// followed by "|few" or "|many" where the catalogue has one, and the
+      /// translation of <paramref name="other"/> where it has not; anything else
+      /// takes the translation of <paramref name="other"/>. Czech, Polish,
+      /// Russian and Ukrainian hold a "|few" form, for two to four of a thing
+      /// (and 22 to 24 in all but Czech); in Polish, Russian and Ukrainian the
+      /// form of <paramref name="other"/> itself is the one for five and more.
+      /// A text with two counts is two sentences, or a label form that needs
+      /// no plural in any language ("Rules: {0}").
+      ///
+      /// Pairs written as <c>n == 1 ? L(one) : F(other, n)</c> gave Polish,
+      /// Czech and Ukrainian one plural for 2 and for 5, and a "(s)" ending
+      /// gave every language an English plural to translate (review finding
+      /// F282); build/check-localisation.py refuses both now, reads these
+      /// calls' two literals as catalogue keys and holds the catalogues of the
+      /// languages that need it to a "|few" form of each.
+      /// </summary>
+      public static string Plural(long count, string one, string other)
+         => string.Format(CultureInfo.CurrentCulture, PluralForm(count, one, other), count);
+
+      /// <summary>
+      /// <see cref="Plural"/> for a sentence that carries more than its count:
+      /// the count chooses the form, and <paramref name="args"/> fill it, the
+      /// count among them where the sentence shows it.
+      /// </summary>
+      public static string PluralF(long count, string one, string other, params object[] args)
+         => string.Format(CultureInfo.CurrentCulture, PluralForm(count, one, other), args);
+
+      /// <summary>The translated form of <see cref="Plural"/> for <paramref name="count"/>, unformatted.</summary>
+      public static string PluralForm(long count, string one, string other)
+      {
+         string category = PluralCategory(PluralLanguage(), count);
+         if (category == "one")
+            return L(one);
+         if (category != "other" && !english_)
+         {
+            string form = Lookup_(other + "|" + category);
+            if (!string.IsNullOrEmpty(form))
+               return form;
+         }
+         return L(other);
+      }
+
+      /// <summary>
+      /// The CLDR plural category - "one", "few", "many" or "other" - of a whole
+      /// number in a language of <see cref="Languages"/> (unicode.org's plural
+      /// rules, for integers: the visible fraction digits are none). A language
+      /// with no rule here counts as English does.
+      /// </summary>
+      public static string PluralCategory(string language, long count)
+      {
+         long n = count < 0 ? -count : count;
+         long mod10 = n % 10, mod100 = n % 100;
+         switch (language)
+         {
+            case "ja":
+            case "zh-Hans":
+               return "other";
+            case "fr":
+            case "pt-BR":
+               // one: i = 0,1; many: e = 0 and i != 0 and i % 1000000 = 0
+               if (n <= 1)
+                  return "one";
+               return n % 1000000 == 0 ? "many" : "other";
+            case "es":
+            case "it":
+               if (n == 1)
+                  return "one";
+               return n != 0 && n % 1000000 == 0 ? "many" : "other";
+            case "cs":
+               // one: i = 1; few: i = 2..4; many: fractions only
+               if (n == 1)
+                  return "one";
+               return n >= 2 && n <= 4 ? "few" : "other";
+            case "pl":
+               // one: i = 1; few: i % 10 = 2..4 and i % 100 != 12..14; many: the rest of the integers
+               if (n == 1)
+                  return "one";
+               return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? "few" : "many";
+            case "ru":
+            case "uk":
+               // one: i % 10 = 1 and i % 100 != 11; few: i % 10 = 2..4 and i % 100 != 12..14; many: the rest
+               if (mod10 == 1 && mod100 != 11)
+                  return "one";
+               return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? "few" : "many";
+            default:
+               // English, German, Dutch, the Nordic languages, Finnish and Turkish: one: i = 1
+               return n == 1 ? "one" : "other";
+         }
+      }
+
+      // The tag of Languages whose words L gives: the culture in force or a parent
+      // of it, or English when nothing is translated.
+      private static string PluralLanguage()
+      {
+         if (english_)
+            return "en";
+         for (CultureInfo current = culture_; current != null && !current.Equals(CultureInfo.InvariantCulture); current = current.Parent)
+         {
+            foreach (Language language in Languages)
+            {
+               if (language.Tag.Length > 0 && string.Equals(language.Tag, current.Name, StringComparison.OrdinalIgnoreCase))
+                  return language.Tag;
+            }
+         }
+         return "en";
+      }
+
+      // The catalogue's own entry for a key, or null: no English in its place.
+      private static string Lookup_(string key)
+      {
+         try
+         {
+            return lookup_?.Invoke(key, culture_);
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            english_ = true;
+            return null;
+         }
+      }
    }
 }

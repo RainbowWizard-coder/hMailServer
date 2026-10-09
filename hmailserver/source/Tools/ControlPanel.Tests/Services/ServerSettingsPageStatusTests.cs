@@ -84,13 +84,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("18", all);
          Assert.Contains("14:20:00", all);
          Assert.DoesNotContain("restart", all);
-         Assert.DoesNotContain("reinitialize", all);
+         Assert.DoesNotContain("reinitialis", all);
 
          // Keys the server marks reinitialize or restart and lists as pending: the
          // sentence says how many wait, and must not claim they applied.
          string waiting = ServerSettingsPageStatus.SaveSentence(18, 0, "14:20:00", waiting: 2);
          Assert.Contains("2 of them wait", waiting);
-         Assert.Contains("reinitialize", waiting);
+         Assert.Contains("reinitialis", waiting);
 
          string partial = ServerSettingsPageStatus.SaveSentence(16, 2, "14:20:00", waiting: 1);
          Assert.Contains("16", partial);
