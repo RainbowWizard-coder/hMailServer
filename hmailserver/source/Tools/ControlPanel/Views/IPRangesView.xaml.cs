@@ -62,6 +62,10 @@ namespace hMailServer.ControlPanel.Views
          // Ctrl+S saves the permissions the card holds, the page's one unsaved
          // change (Views/PageCommands); F5 reads the ranges again (Refresh).
          PageCommands.SetCommand(SavePermsButton, PageCommand.Save);
+
+         // The empty state under the grid's column headers, centred where the
+         // rows would be, never drawn across the headers' line.
+         Scaffold.EmptyStateUnderHeaders.Keep(EmptyStatus, RangeGrid);
       }
 
       // What the card settled in after the range was read or saved: Clean, or Saved

@@ -155,7 +155,7 @@ namespace hMailServer.ControlPanel.Views
 
          // What an empty list means, in one sentence: what the server does while
          // it is empty, so that "nothing here" reads as a state with a
-         // consequence (review finding F207) - "No blacklists, so connecting
+         // consequence (review finding F207) - "No block lists, so connecting
          // addresses are not looked up in any." Translated where the spec is
          // written. Null keeps the generic sentence.
          public string EmptyText;
@@ -471,6 +471,10 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(rows);
          host.Children.Add(empty_);
          card.Content = host;
+
+         // The empty state under the grid's column headers, centred where the
+         // rows would be, never drawn across the headers' line.
+         Scaffold.EmptyStateUnderHeaders.Keep(empty_, grid_);
 
          Content = root;
       }

@@ -104,6 +104,10 @@ namespace hMailServer.ControlPanel.Views
          GridKeys.Wire(CertGrid, null, GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));
          FormSubmit.Bind((UIElement)AddCertButton.Parent, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
          FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);
+
+         // The empty state under the grid's column headers, centred where the
+         // rows would be, never drawn across the headers' line.
+         Scaffold.EmptyStateUnderHeaders.Keep(EmptyStatus, CertGrid);
       }
 
       public void OnEnter() => Reload();

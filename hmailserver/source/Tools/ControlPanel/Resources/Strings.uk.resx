@@ -6823,7 +6823,7 @@
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>До {0} ще жодного разу не завершувалося резервне копіювання — там немає архіву HMBackup.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>Немає чорних списків, тому адреси, що під'єднуються, не перевіряються за жодним.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
@@ -6915,6 +6915,9 @@
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Виконуваний файл не задано</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Винятків немає, тому кожен відправник проходить захист від спаму.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Немає зовнішніх облікових записів, тому для цього облікового запису пошта ззовні не збирається.</value>
@@ -7098,9 +7101,6 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Жоден антивірусний сканер не може працювати. Блокування вкладень і далі вилучає шаблони імен файлів на своїй сторінці, але всередину повідомлення чи архіву ніщо не заглядає.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>У білому списку немає записів, тому кожен відправник проходить захист від спаму.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Немає шаблонів, тому жодне вкладення не вилучається через ім'я файлу.</value>

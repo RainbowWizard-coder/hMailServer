@@ -6760,8 +6760,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Nessun backup è mai stato completato in {0} - lì non c'è alcun archivio HMBackup.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Nessuna blacklist, quindi gli indirizzi che si connettono non vengono cercati in alcuna.</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Nessuna blocklist, quindi gli indirizzi che si connettono non vengono cercati in alcuna.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Non è definito alcun mittente bloccato, quindi non viene rilevata alcuna corrispondenza. La lista non ha un interruttore di attivazione - una lista vuota è lo stato disattivato.</value>
@@ -6852,6 +6852,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Nessun eseguibile impostato</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Nessuna esenzione, quindi ogni mittente passa per la protezione antispam.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Nessun account esterno, quindi per questo account non viene raccolta posta da altrove.</value>
@@ -7029,9 +7032,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nessuno scanner antivirus può essere eseguito. Il blocco degli allegati continua a rimuovere gli schemi di nomi di file indicati nella sua pagina, ma nulla guarda dentro un messaggio o dentro un archivio.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>Nessuna voce nella whitelist, quindi ogni mittente passa per la protezione antispam.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Nessun carattere jolly, quindi nessun allegato viene rimosso per il nome del file.</value>

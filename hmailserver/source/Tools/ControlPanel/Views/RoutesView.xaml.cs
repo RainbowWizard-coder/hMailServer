@@ -37,6 +37,10 @@ namespace hMailServer.ControlPanel.Views
          // Escape empties its two boxes and leaves the port (Views/GridKeys, FormSubmit).
          GridKeys.Wire(RouteGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewDomain));
          FormSubmit.Bind((UIElement)AddRouteButton.Parent, AddRouteButton, NewDomain, NewHost);
+
+         // The empty state under the grid's column headers, centred where the
+         // rows would be, never drawn across the headers' line.
+         Scaffold.EmptyStateUnderHeaders.Keep(EmptyStatus, RouteGrid);
       }
 
       public void OnEnter() => Reload();

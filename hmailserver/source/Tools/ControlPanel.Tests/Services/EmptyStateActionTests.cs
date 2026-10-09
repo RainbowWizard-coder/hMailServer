@@ -183,6 +183,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("empty_.Visibility = Visibility.Collapsed;", code, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Every list empty state laid over a grid is kept under the grid's column
+      /// headers, centred where the rows would be. Laid over the whole grid it was
+      /// centred over the headers as well, and where the card is no taller than the
+      /// empty state - the narrowest window, once the card is floored at what it
+      /// holds - its glyph sat against the headers' line, and across it under the
+      /// quarantine's taller header row.
+      /// </summary>
+      [Theory]
+      [InlineData("IPRangesView.xaml.cs", "EmptyStatus", "RangeGrid")]
+      [InlineData("RoutesView.xaml.cs", "EmptyStatus", "RouteGrid")]
+      [InlineData("TcpIpPortsView.xaml.cs", "EmptyStatus", "PortGrid")]
+      [InlineData("SslCertificatesView.xaml.cs", "EmptyStatus", "CertGrid")]
+      [InlineData("CollectionEditorView.cs", "empty_", "grid_")]
+      [InlineData("DomainPolicyListView.cs", "empty_", "entries_")]
+      [InlineData("QuarantineView.cs", "empty_", "list_")]
+      public void TheEmptyState_IsKeptUnderTheGridsColumnHeaders(string file, string empty, string grid)
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", file));
+         Assert.Matches(new Regex(@"(Scaffold\.)?EmptyStateUnderHeaders\.Keep\(" + Regex.Escape(empty) + ", " + Regex.Escape(grid) + @"\);"), code);
+      }
+
+      /// <summary>The headers' height is measured, when the grid is loaded and whenever it changes, not assumed.</summary>
+      [Fact]
+      public void UnderTheHeaders_IsMeasured_NotAssumed()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "Scaffold", "EmptyStateUnderHeaders.cs"));
+         string keep = WithheldRowTests.MemberText(code, "public static void Keep(EmptyState empty, DataGrid grid)");
+         Assert.True(keep != null, "EmptyStateUnderHeaders.Keep is gone.");
+         Assert.Contains("headers = FindHeaders_(grid);", keep, StringComparison.Ordinal);
+         Assert.Contains("headers.SizeChanged += (_, _) => Place();", keep, StringComparison.Ordinal);
+         Assert.Contains("grid.Loaded += (_, _) => Place();", keep, StringComparison.Ordinal);
+         Assert.Contains("new Point(0, headers.ActualHeight)", keep, StringComparison.Ordinal);
+         Assert.Contains("empty.Margin = new Thickness(margin.Left, top, margin.Right, margin.Bottom);", keep, StringComparison.Ordinal);
+         Assert.Contains("child is DataGridColumnHeadersPresenter found", code, StringComparison.Ordinal);
+      }
+
       // ---- helpers -------------------------------------------------------------------------
 
       /// <summary>

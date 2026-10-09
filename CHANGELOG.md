@@ -1520,16 +1520,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   them.** Eleven list pages shared "Nothing here yet - Add creates the first entry."; the SSL certificates, IP ranges,
   routes and TCP/IP ports pages said "No ... yet." with no button, though with no IP range the server refuses every
   connection; the REST API keys page said it twice, a card apart; and the recipient, group member and never-ban lists
-  were blank boxes. Each list now says what its emptiness means, in a sentence of its own - "No blacklists, so
+  were blank boxes. Each list now says what its emptiness means, in a sentence of its own - "No block lists, so
   connecting addresses are not looked up in any.", "No IP ranges, so this server refuses every SMTP, POP3 and IMAP
   connection until one exists." - and its empty state carries the action that ends it: *Add the first entry…* on
   every list the generic editor draws, *Restore the default ranges* and *Restore the default ports*, *Add a route*
   (which puts the keyboard in the add form), *Set up ACME…* beside the certificates' form, *Create the first key…*,
   and *Add the first domain…* on the domain white and black list. The REST API keys page says it has no keys once, by
   the list. A list card whose empty state carries an action is floored at what it holds - its grid's three rows on a
-  FillPanel of its own and the empty state laid over them - so that the action is never cut off in a short window,
-  where the card's fixed 157 pixels held a glyph and a sentence and nothing more; the dialogs' lists and the
-  never-ban list show their empty state in the list's place, and only after a read that worked.
+  FillPanel of its own and the empty state laid over them, under the grid's column headers - so that the action is
+  never cut off in a short window, where the card's fixed 157 pixels held a glyph and a sentence and nothing more, and
+  the glyph is never drawn across the headers, as it was under the quarantine's; the dialogs' lists and the never-ban
+  list show their empty state in the list's place, and only after a read that worked.
 
 - **Fixed: an Add, an Edit or a Delete on a Control Panel list said nothing, and the list lost its place.** Every list
   the generic editor draws - the SURBL servers, DNS blacklists, white list, blocked senders, allow and block list,

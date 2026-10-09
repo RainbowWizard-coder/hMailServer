@@ -345,6 +345,11 @@ namespace hMailServer.ControlPanel.Views
          var host = new Grid();
          host.Children.Add(rows);
          host.Children.Add(empty_);
+
+         // The empty state under the grid's column headers, centred where the
+         // rows would be, never drawn across the headers' line.
+         EmptyStateUnderHeaders.Keep(empty_, entries_);
+
          var listCard = new Card { Padding = new Thickness(8), Content = host };
          parts.Children.Add(FillPanel.Filling(listCard, 0));
 

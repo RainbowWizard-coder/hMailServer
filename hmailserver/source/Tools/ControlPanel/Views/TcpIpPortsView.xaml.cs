@@ -86,6 +86,10 @@ namespace hMailServer.ControlPanel.Views
          // Escape empties the port box and leaves the address (Views/GridKeys, FormSubmit).
          GridKeys.Wire(PortGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewProtocol));
          FormSubmit.Bind((UIElement)AddPortButton.Parent, AddPortButton, NewPort);
+
+         // The empty state under the grid's column headers, centred where the
+         // rows would be, never drawn across the headers' line.
+         Scaffold.EmptyStateUnderHeaders.Keep(EmptyStatus, PortGrid);
       }
 
       /// <summary>

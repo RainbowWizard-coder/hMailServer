@@ -6823,7 +6823,7 @@ Control Panel может читать файлы сообщений только
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>В {0} ни одно резервное копирование ни разу не завершилось — архива HMBackup там нет.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>Нет чёрных списков, поэтому подключающиеся адреса не проверяются ни по одному.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
@@ -6915,6 +6915,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Исполняемый файл не задан</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Исключений нет, поэтому каждый отправитель проходит защиту от спама.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Нет внешних учётных записей, поэтому для этой учётной записи почта извне не собирается.</value>
@@ -7098,9 +7101,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ни один антивирусный сканер работать не может. Блокировка вложений всё ещё удаляет файлы по шаблонам имён на своей странице, но внутрь сообщения и внутрь архива не заглядывает ничто.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>В белом списке нет записей, поэтому каждый отправитель проходит защиту от спама.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Нет шаблонов, поэтому ни одно вложение не удаляется из-за имени файла.</value>

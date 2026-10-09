@@ -1254,6 +1254,12 @@ namespace hMailServer.ControlPanel.Views
          var host = new Grid();
          host.Children.Add(rows);
          host.Children.Add(empty_);
+
+         // Under the column headers, not over them: the header row, a check
+         // box and four icon buttons, is taller than the empty state's padding,
+         // and in a 760 by 520 window the glyph was drawn across its line.
+         EmptyStateUnderHeaders.Keep(empty_, list_);
+
          var card = new Card { Padding = new Thickness(8), Content = host };
          parts.Children.Add(FillPanel.Filling(card, 0));
 

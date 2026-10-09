@@ -6760,8 +6760,8 @@
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>从未有备份完成写入 {0} - 那里没有 HMBackup 存档。</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>没有黑名单，因此不会在任何黑名单中查询连接方的地址。</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>没有拦截列表，因此不会在任何拦截列表中查询连接方的地址。</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>未定义任何被拦截的发件人，因此不会匹配任何内容。该列表没有开关 - 空列表就是关闭状态。</value>
@@ -6852,6 +6852,9 @@
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>未设置可执行文件</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>没有例外，因此每个发件人都要经过垃圾邮件防护。</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>没有外部账户，因此不会为此账户从其他地方收取邮件。</value>
@@ -7029,9 +7032,6 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>没有任何病毒扫描器可以运行。附件拦截仍会剥除其自身页面上的文件名模式，但没有任何东西查看邮件内部或存档内部。</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>没有白名单条目，因此每个发件人都要经过垃圾邮件防护。</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>没有通配符，因此不会因文件名而剥离任何附件。</value>

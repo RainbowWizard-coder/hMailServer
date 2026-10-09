@@ -6760,8 +6760,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Aucune sauvegarde ne s'est jamais terminée dans {0} - il n'y a aucune archive HMBackup à cet endroit.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Aucune liste noire : les adresses qui se connectent ne sont donc recherchées dans aucune.</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Aucune liste de blocage : les adresses qui se connectent ne sont donc recherchées dans aucune.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Aucun expéditeur bloqué n'est défini : rien n'est donc comparé. La liste n'a pas d'interrupteur marche/arrêt - une liste vide est l'état désactivé.</value>
@@ -6852,6 +6852,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Aucun exécutable défini</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Aucune exception : chaque expéditeur passe donc par la protection anti-spam.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Aucun compte externe : aucun courrier n'est donc relevé ailleurs pour ce compte.</value>
@@ -7029,9 +7032,6 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Aucun analyseur de virus ne peut s'exécuter. Le blocage des pièces jointes retire toujours les motifs de noms de fichiers de sa propre page, mais rien ne regarde à l'intérieur d'un message ni à l'intérieur d'une archive.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>Aucune entrée en liste blanche : chaque expéditeur passe donc par la protection anti-spam.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Aucun joker : aucune pièce jointe n'est donc retirée pour son nom de fichier.</value>

@@ -6760,8 +6760,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Ingen sikkerhetskopi har noen gang blitt fullført til {0} - det finnes ikke noe HMBackup-arkiv der.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Ingen svartelister, så tilkoblende adresser slås ikke opp i noen.</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Ingen blokkeringslister, så tilkoblende adresser slås ikke opp i noen.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Ingen blokkerte avsendere er definert, så ingenting treffes. Listen har ingen av/på-bryter - en tom liste er av-tilstanden.</value>
@@ -6852,6 +6852,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Ingen kjørbar fil satt</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Ingen unntak, så hver avsender går gjennom spambeskyttelsen.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Ingen eksterne kontoer, så ingen e-post hentes fra andre steder til denne kontoen.</value>
@@ -7029,9 +7032,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ingen virusskanner kan kjøre. Vedleggsblokkering fjerner fortsatt filnavnmønstrene på sin egen side, men ingenting ser inn i en melding eller inn i et arkiv.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>Ingen oppføringer på hvitelisten, så hver avsender går gjennom spambeskyttelsen.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Ingen jokertegn, så ingen vedlegg fjernes på grunn av filnavnet.</value>

@@ -88,7 +88,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} block lists"),
          DeletePrompt = N("Delete the DNS block list {0}?"),
          DeleteNameProps = new[] { "DNSHost" }, // no-loc: the properties that name an entry
-         EmptyText = L("No blacklists, so connecting addresses are not looked up in any."),
+         EmptyText = L("No block lists, so connecting addresses are not looked up in any."),
          GetCollection = () => AntiSpam.DNSBlackLists,
          TickBoxesLast = true,
          ActiveProp = "Active", // no-loc: the property that switches an entry on
@@ -117,7 +117,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} spam exemptions"),
          DeletePrompt = N("Delete the spam exemption {0}? Mail it covers goes through the spam checks again."),
          DeleteNameProps = new[] { "Description", "EmailAddress", "LowerIPAddress" }, // no-loc: the properties that name an entry
-         EmptyText = L("No white-list entries, so every sender goes through spam protection."),
+         EmptyText = L("No exemptions, so every sender goes through spam protection."),
          GetCollection = () => AntiSpam.WhiteListAddresses,
          Fields =
          {

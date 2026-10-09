@@ -6823,8 +6823,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Do {0} nikdy žádná záloha nedoběhla – není tam žádný archiv HMBackup.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Žádné blacklisty, takže připojující se adresy se nevyhledávají v žádném.</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Žádné blokační seznamy, takže připojující se adresy se nevyhledávají v žádném.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Nejsou definováni žádní blokovaní odesílatelé, takže se nic neshoduje. Seznam nemá přepínač zapnuto/vypnuto – prázdný seznam je vypnutý stav.</value>
@@ -6915,6 +6915,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Není nastaven žádný spustitelný soubor</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Žádné výjimky, takže každý odesílatel prochází ochranou proti spamu.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Žádné externí účty, takže se pro tento účet odjinud žádná pošta nestahuje.</value>
@@ -7098,9 +7101,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nemůže běžet žádný antivirový skener. Blokování příloh stále odstraňuje vzory názvů souborů na své vlastní stránce, ale dovnitř zprávy ani dovnitř archivu se nikdo nedívá.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>Žádné položky seznamu povolených, takže každý odesílatel prochází ochranou proti spamu.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Žádné zástupné znaky, takže žádná příloha není odstraněna kvůli názvu souboru.</value>

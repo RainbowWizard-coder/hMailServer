@@ -6760,7 +6760,7 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Yhtään varmuuskopiota ei ole koskaan valmistunut kohteeseen {0} - siellä ei ole HMBackup-arkistoa.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>Ei estolistoja, joten yhdistäviä osoitteita ei haeta mistään.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
@@ -6852,6 +6852,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Suoritettavaa tiedostoa ei asetettu</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Ei poikkeuksia, joten jokainen lähettäjä käy läpi roskapostisuojauksen.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Ei ulkoisia tilejä, joten tälle tilille ei noudeta postia muualta.</value>
@@ -7029,9 +7032,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Yksikään virustarkistin ei voi toimia. Liitteiden esto poistaa yhä tiedostonimikuviot omalla sivullaan, mutta mikään ei katso viestin tai arkiston sisään.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>Ei sallittujen listan merkintöjä, joten jokainen lähettäjä käy läpi roskapostisuojauksen.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Ei jokerimerkkejä, joten mitään liitettä ei poisteta sen tiedostonimen perusteella.</value>

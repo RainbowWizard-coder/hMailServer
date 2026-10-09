@@ -6760,8 +6760,8 @@
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>{0} に完了したバックアップは 1 つもありません。そこに HMBackup アーカイブがありません。</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>ブラックリストがないため、接続元のアドレスはどのリストでも照会されません。</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>ブロック リストがないため、接続元のアドレスはどのリストでも照会されません。</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>ブロックされた送信者が定義されていないため、何も一致しません。このリストにはオン/オフのスイッチがなく、空のリストがオフの状態です。</value>
@@ -6852,6 +6852,9 @@
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>実行ファイルが未設定</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>除外がないため、すべての送信者がスパム対策を通ります。</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>外部アカウントがないため、このアカウントのために他所からメールが収集されることはありません。</value>
@@ -7029,9 +7032,6 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>実行できるウイルス スキャナーがありません。添付ファイルのブロックは、そのページのファイル名パターンを引き続き取り除きますが、メッセージの中やアーカイブの中を見るものは何もありません。</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>ホワイト リストのエントリがないため、すべての送信者がスパム対策を通ります。</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>ワイルドカードがないため、ファイル名を理由に削除される添付ファイルはありません。</value>

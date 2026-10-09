@@ -6760,8 +6760,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Nunca se ha completado ninguna copia de seguridad en {0} - ahí no hay ningún archivo HMBackup.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>No hay listas negras, así que las direcciones que se conectan no se buscan en ninguna.</value>
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>No hay listas de bloqueo, así que las direcciones que se conectan no se buscan en ninguna.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>No hay remitentes bloqueados definidos, así que no se compara nada. La lista no tiene interruptor de activación - una lista vacía es el estado desactivado.</value>
@@ -6852,6 +6852,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Ningún ejecutable definido</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>No hay excepciones, así que todo remitente pasa por la protección antispam.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>No hay cuentas externas, así que no se recoge correo de otros sitios para esta cuenta.</value>
@@ -7029,9 +7032,6 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>No puede ejecutarse ningún antivirus. El bloqueo de adjuntos sigue eliminando los patrones de nombre de archivo de su propia página, pero nada mira dentro de un mensaje ni dentro de un archivo comprimido.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>No hay entradas en la lista blanca, así que todo remitente pasa por la protección antispam.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>No hay comodines, así que no se quita ningún adjunto por su nombre de archivo.</value>

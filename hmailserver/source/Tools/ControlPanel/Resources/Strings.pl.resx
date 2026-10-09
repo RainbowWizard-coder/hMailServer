@@ -6823,7 +6823,7 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Do {0} nigdy nie ukończono żadnej kopii zapasowej - nie ma tam archiwum HMBackup.</value>
   </data>
-  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+  <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>Brak czarnych list, więc łączące się adresy nie są sprawdzane na żadnej.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
@@ -6915,6 +6915,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Nie ustawiono pliku wykonywalnego</value>
+  </data>
+  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
+    <value>Brak wyjątków, więc każdy nadawca przechodzi przez ochronę antyspamową.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Brak kont zewnętrznych, więc dla tego konta nie jest pobierana poczta z innych miejsc.</value>
@@ -7098,9 +7101,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Żaden skaner antywirusowy nie może zostać uruchomiony. Blokowanie załączników nadal usuwa pliki pasujące do wzorców nazw z własnej strony, ale nic nie zagląda do wnętrza wiadomości ani do wnętrza archiwum.</value>
-  </data>
-  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
-    <value>Brak wpisów na białej liście, więc każdy nadawca przechodzi przez ochronę antyspamową.</value>
   </data>
   <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
     <value>Brak symboli wieloznacznych, więc żaden załącznik nie jest usuwany ze względu na nazwę pliku.</value>
