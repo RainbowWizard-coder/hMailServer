@@ -9111,7 +9111,7 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
     <value>Odebrat pravidlo žurnálování pro {0}? Co již odeslalo, zůstává tam, kam to bylo odesláno.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Odstranit příjemce {0} z tohoto seznamu?</value>
+    <value>Odebrat příjemce {0} z tohoto seznamu?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Odstranit ukázkovou doménu se všemi schránkami, zprávami a pravidly v ní? Odejde i vše, co jste do ní přidali.</value>

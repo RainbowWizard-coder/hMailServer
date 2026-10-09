@@ -11118,7 +11118,7 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
     <value>Mærkning og ansvarsfraskrivelse</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>Fratag {1} rollen {0}? Kontoen beholder kun det, dens administratorniveau giver den.</value>
+    <value>Fjern rollen {0} fra {1}? Kontoen beholder kun det, dens administratorniveau giver den.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Fjern {0} fra spærrelisten for {1}?

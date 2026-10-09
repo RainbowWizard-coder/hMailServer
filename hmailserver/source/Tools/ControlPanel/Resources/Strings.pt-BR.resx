@@ -11118,7 +11118,7 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
     <value>Marcação e aviso legal</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>Retirar a função {0} de {1}? A conta fica apenas com o que o seu nível de administrador lhe dá.</value>
+    <value>Remover a função {0} de {1}? A conta fica apenas com o que o seu nível de administrador lhe dá.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Tirar {0} da lista de supressão de {1}?

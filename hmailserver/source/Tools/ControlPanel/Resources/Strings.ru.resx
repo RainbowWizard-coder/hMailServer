@@ -9099,19 +9099,19 @@ Control Panel может читать файлы сообщений только
     <value>Удалить из очереди сообщение {0} (от {1} для {2})? Оно удаляется без уведомления о недоставке, так что отправитель об этом не узнает.</value>
   </data>
   <data name="Remove the entry for anyone from the folder {0}? The rights it gives end at once." xml:space="preserve">
-    <value>Удалить запись «Любой» из папки {0}? Права, которые она даёт, сразу прекратят действовать.</value>
+    <value>Убрать запись «Любой» из папки {0}? Права, которые она даёт, сразу прекратят действовать.</value>
   </data>
   <data name="Remove the entry for the group {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
-    <value>Удалить запись для группы {0} из папки {1}? Права, которые она даёт, сразу прекратят действовать.</value>
+    <value>Убрать запись для группы {0} из папки {1}? Права, которые она даёт, сразу прекратят действовать.</value>
   </data>
   <data name="Remove the entry for {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
-    <value>Удалить запись для {0} из папки {1}? Права, которые она даёт, сразу прекратят действовать.</value>
+    <value>Убрать запись для {0} из папки {1}? Права, которые она даёт, сразу прекратят действовать.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Удалить правило журналирования для {0}? То, что уже отправлено, останется там, куда было отправлено.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
-    <value>Удалить получателя {0} из этого списка?</value>
+    <value>Убрать получателя {0} из этого списка?</value>
   </data>
   <data name="Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too." xml:space="preserve">
     <value>Удалить образцовый домен со всеми почтовыми ящиками, сообщениями и правилами в нём? Всё, что в него добавлено, тоже исчезнет.</value>
@@ -9120,7 +9120,7 @@ Control Panel может читать файлы сообщений только
     <value>Удалить bearer-токен песочницы? Тогда запросы к песочнице будут отправляться без него.</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
-    <value>Удалить второй фактор {0}? Собственный пароль снова позволит входить в почтовые клиенты, а коды приложения-аутентификатора перестанут работать.</value>
+    <value>Убрать второй фактор {0}? Собственный пароль снова позволит входить в почтовые клиенты, а коды приложения-аутентификатора перестанут работать.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Удалить выбранную учётную запись из этой группы</value>
@@ -9147,12 +9147,12 @@ Control Panel может читать файлы сообщений только
     <value>Удалить адрес восстановления этой учётной записи? Каждая ссылка для сброса пароля, уже отправленная туда, перестаёт действовать, и владелец задаёт новый адрес в веб-почте. Одноразовые коды остаются нетронутыми.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
-    <value>Удалить {0} из списка?
+    <value>Убрать {0} из списка?
 
 Заблокированный домен сразу снова принимается; разрешённый домен со следующего сеанса снова попадает под greylisting и антиспам-балл.</value>
   </data>
   <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
-    <value>Удалить {0} из списка «никогда не банить»?
+    <value>Убрать {0} из списка «никогда не банить»?
 
 Адрес, который он освобождал, со следующего бана снова может быть забанен автоматически.</value>
   </data>
@@ -11251,7 +11251,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Пометка и оговорка</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>Отобрать роль {0} у {1}? У учётной записи останутся только права, которые даёт её уровень администратора.</value>
+    <value>Снять роль {0} с {1}? У учётной записи останутся только права, которые даёт её уровень администратора.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Убрать {0} из списка подавления домена {1}?

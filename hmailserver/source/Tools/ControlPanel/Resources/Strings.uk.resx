@@ -9120,7 +9120,7 @@
     <value>Видалити bearer-токен пісочниці? Тоді запити до пісочниці надсилатимуться без нього.</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
-    <value>Видалити другий фактор {0}? Власний пароль знову даватиме вхід у поштові клієнти, а коди застосунку автентифікації перестануть працювати.</value>
+    <value>Вилучити другий фактор {0}? Власний пароль знову даватиме вхід у поштові клієнти, а коди застосунку автентифікації перестануть працювати.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Вилучити вибраний обліковий запис із цієї групи</value>
@@ -11251,7 +11251,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Позначення та застереження</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>Відібрати роль {0} в {1}? Обліковому запису залишаться лише права, які дає його рівень адміністратора.</value>
+    <value>Зняти роль {0} з {1}? Обліковому запису залишаться лише права, які дає його рівень адміністратора.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Вилучити {0} зі списку придушення домену {1}?

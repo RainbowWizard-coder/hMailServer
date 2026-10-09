@@ -9020,7 +9020,7 @@
     <value>删除沙箱的 Bearer 令牌？此后发往沙箱的请求将不带令牌。</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
-    <value>是否删除 {0} 的第二重验证？其自身的密码将可以再次登录邮件客户端，身份验证器应用的验证码将失效。</value>
+    <value>是否移除 {0} 的第二重验证？其自身的密码将可以再次登录邮件客户端，身份验证器应用的验证码将失效。</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>从此组中移除所选账户</value>
@@ -9052,7 +9052,7 @@
 拦截的域会立即重新被接受；允许的域从下一个会话起重新受灰名单和垃圾邮件分数约束。</value>
   </data>
   <data name="Remove {0} from the never-ban list?&#10;&#10;An address it spared can be auto-banned again from the next ban on." xml:space="preserve">
-    <value>要将 {0} 从永不封禁列表中删除吗？
+    <value>要将 {0} 从永不封禁列表中移除吗？
 
 它豁免过的地址自下一次封禁起可能再次被自动封禁。</value>
   </data>

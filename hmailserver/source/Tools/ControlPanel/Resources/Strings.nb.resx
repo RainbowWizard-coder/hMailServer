@@ -11118,7 +11118,7 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
     <value>Merking og ansvarsfraskrivelse</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>Ta rollen {0} fra {1}? Kontoen beholder bare det administratornivået gir den.</value>
+    <value>Fjerne rollen {0} fra {1}? Kontoen beholder bare det administratornivået gir den.</value>
   </data>
   <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
     <value>Ta {0} av sperrelisten for {1}?
