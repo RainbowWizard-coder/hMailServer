@@ -8397,6 +8397,9 @@
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Надсилає ті самі лічильники, які надає кінцева точка Prometheus, під тими самими іменами, з інтервалом нижче. Експортується не все, що є на /metrics: глибину черги, зонди бази даних і термін дії сертифікатів слухач метрик обчислює з читання бази даних і файлів, а експортер надсилання ними не володіє.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>Повернути «{0}» ({1}, {2}) до скриньки {3}?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Поставте перед слухачем SMTP балансувальник навантаження, термінатор TLS або ретранслятор Postfix — і кожне підключення виглядатиме так, ніби надходить від НЬОГО, що непомітно ламає перевірки DNSBL, SPF, сірий список, автоблокування та правила діапазонів IP одночасно, тоді як усе й далі звітує про успіх. Ці параметри дозволяють названому вищому вузлу передавати справжню адресу клієнта. Обидва типово вимкнені й не довіряють нікому, доки адресу не перелічено, бо співрозмовник, здатний переписати власну адресу джерела, обійшов кожен засіб керування на основі IP на цьому сервері. Вищий вузол має бути налаштований надсилати її, інакше тут нічого не зміниться: HAProxy потребує send-proxy або send-proxy-v2 у своєму рядку server, а ретранслятору Postfix потрібен увімкнений XCLIENT у бік цього вузла. hMailServer не може перевірити це звідси — і зверніть увагу: щойно адресу перелічено як проксі протоколу PROXY, заголовок від неї стає ОБОВ’ЯЗКОВИМ, тож підключення проксі, який його не надсилає, розриватимуться.</value>
   </data>
@@ -8409,8 +8412,8 @@
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>Повернути значення, замінені профілем {0}? Параметр, змінений відтоді, залишиться як є, а фільтр, увімкнений профілем, може знову вимкнутися.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Повернути повідомлення {0} до скриньки {1}?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Повернути повідомлення від {0} з теки {1} до скриньки {2}?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Повернути {0} до значення до цієї зміни? Повернення записується як окрема зміна.</value>

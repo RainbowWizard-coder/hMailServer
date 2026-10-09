@@ -8397,6 +8397,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Wysyła te same liczniki, które udostępnia punkt końcowy Prometheusa, pod tymi samymi nazwami, w interwale podanym poniżej. Nie wszystko z /metrics jest eksportowane: głębokość kolejki, sondy bazy danych i termin wygaśnięcia certyfikatów są wyliczane przez nasłuch metryk z odczytów bazy danych i plików, a eksporter wypychający tego nie obejmuje.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>Przywrócić „{0}” ({1}, {2}) do skrzynki {3}?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Umieszczenie przed nasłuchem SMTP systemu równoważenia obciążenia, terminatora TLS albo przekaźnika Postfix sprawia, że każde połączenie wygląda, jakby pochodziło WŁAŚNIE OD NIEGO - co po cichu psuje naraz kontrole DNSBL, SPF, greylisting, automatyczną blokadę i reguły zakresów adresów IP, choć wszystko nadal zgłasza powodzenie. Te opcje pozwalają wskazanemu urządzeniu nadrzędnemu przekazać prawdziwy adres klienta. Obie są domyślnie wyłączone i nikomu nie ufają, dopóki adres nie zostanie wymieniony, ponieważ druga strona, która może przepisać własny adres źródłowy, pokonała już każdą kontrolę opartą na adresie IP na tym serwerze. Urządzenie nadrzędne trzeba skonfigurować tak, aby ten adres wysyłało, inaczej nic się tu nie zmienia: HAProxy wymaga send-proxy lub send-proxy-v2 w wierszu server, a przekaźnik Postfix wymaga włączonego XCLIENT w stronę tego hosta. hMailServer nie potrafi tego stąd sprawdzić - a trzeba pamiętać, że gdy adres zostanie wymieniony jako serwer pośredniczący protokołu PROXY, nagłówek staje się od niego WYMAGANY, więc połączenia serwera pośredniczącego, który go nie wysyła, będą zrywane.</value>
   </data>
@@ -8409,8 +8412,8 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>Przywrócić wartości zastąpione przez profil {0}? Ustawienie zmienione od tamtej pory pozostanie bez zmian, a filtr włączony przez profil może znów zostać wyłączony.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Przywrócić wiadomość {0} do skrzynki {1}?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Przywrócić wiadomość z dnia {0} z folderu {1} do skrzynki {2}?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Przywrócić {0} do wartości sprzed tej zmiany? Przywrócenie jest zapisywane jako osobna zmiana.</value>

@@ -8319,6 +8319,9 @@
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>按下面的间隔推送 Prometheus 端点提供的同一批计数器，名称相同。/metrics 上的内容并非全部导出：队列深度、数据库探测和证书到期是由指标监听器通过读取数据库和文件计算得出的，推送导出器并不拥有它们。</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>将“{0}”（{1}，{2}）放回 {3} 的邮箱？</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>在 SMTP 监听器前面放一个负载均衡器、TLS 终结器或 Postfix 中继，那么每个连接看起来都来自它 - 这会悄悄地同时破坏 DNSBL 检查、SPF、灰名单、自动封禁和 IP 范围规则，而一切仍然报告成功。这些设置让指定的上游传递真实的客户端地址。两者默认都关闭，并且在列出地址之前不信任任何人，因为能改写自己源地址的对端已经击败了本服务器上所有基于 IP 的控制。上游必须配置为发送它，否则此处什么都不会改变：HAProxy 需要在其 server 行上加 send-proxy 或 send-proxy-v2，Postfix 中继需要对本主机启用 XCLIENT。hMailServer 无法从此处检查这一点 - 并且请注意，一旦某个地址被列为 PROXY 协议代理，就会要求它必须发送该标头，因此不发送标头的代理的连接会被丢弃。</value>
   </data>
@@ -8331,8 +8334,8 @@
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>恢复 {0} 配置方案所替换的值？此后被更改过的设置将保持不变，而该方案开启的过滤器可能会再次关闭。</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>将邮件 {0} 放回 {1} 的邮箱?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>将 {1} 中日期为 {0} 的邮件放回 {2} 的邮箱？</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>将 {0} 恢复为此更改之前的值？恢复操作本身会记录为一项更改。</value>

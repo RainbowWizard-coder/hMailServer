@@ -8319,6 +8319,9 @@
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Prometheus エンドポイントが提供するものと同じカウンターを、同じ名前で、下の間隔でプッシュします。/metrics のすべてがエクスポートされるわけではありません。キューの深さ、データベースのプローブ、証明書の有効期限は、メトリクス リスナーがデータベースとファイルの読み取りから算出しているもので、プッシュ エクスポーターはそれらを保有していないからです。</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>「{0}」({1}、{2}) を {3} のメールボックスに戻しますか?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>SMTP リスナーの前にロード バランサー、TLS ターミネーター、Postfix リレーを置くと、すべての接続がそこから来ているように見えます。これにより、DNSBL のチェック、SPF、グレイリスティング、自動ブロック、IP 範囲のルールが一度に、しかも黙って壊れ、それでいてすべてが成功したと報告し続けます。この 2 つは、指定した上流が本当のクライアント アドレスを伝えられるようにするものです。どちらも既定では無効で、アドレスが列挙されるまで誰も信頼しません。自分の送信元アドレスを書き換えられる相手は、このサーバーの IP ベースの制御をすべて突破してしまっているからです。上流側がそれを送るように設定されていなければ、ここでは何も変わりません。HAProxy はサーバー行に send-proxy または send-proxy-v2 が必要で、Postfix リレーはこのホストに対して XCLIENT を有効にする必要があります。hMailServer はここからそれを確認できません。また、いったんアドレスが PROXY プロトコルのプロキシとして列挙されると、そのアドレスからのヘッダーは必須になるため、ヘッダーを送らないプロキシは接続を切断される点にも注意してください。</value>
   </data>
@@ -8331,8 +8334,8 @@
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>プロファイル {0} が置き換えた値を元に戻しますか? その後に変更された設定はそのまま残り、プロファイルがオンにしたフィルターは再びオフになることがあります。</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>メッセージ {0} を {1} のメールボックスに戻しますか?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>{1} の {0} 付けのメッセージを {2} のメールボックスに戻しますか?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>{0} をこの変更前の値に戻しますか? 元に戻す操作自体も変更として記録されます。</value>

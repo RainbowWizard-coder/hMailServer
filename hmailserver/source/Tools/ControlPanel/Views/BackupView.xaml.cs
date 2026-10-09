@@ -582,7 +582,7 @@ namespace hMailServer.ControlPanel.Views
 
          long messageId = selected.Id;
 
-         if (!MessageBox.Confirm(F("Put message {0} back into the mailbox of {1}?", messageId, listedAddress_), L("Control Panel"), L("_Put the message back")))
+         if (!MessageBox.Confirm(BackupRestoreReport.PutBackQuestion(selected, listedAddress_), L("Control Panel"), L("_Put the message back")))
             return;
 
          try

@@ -8319,6 +8319,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Skickar samma räknare som Prometheus-slutpunkten serverar, under samma namn, med intervallet nedan. Inte allt på /metrics exporteras: ködjup, databasavsökningar och certifikatutgång beräknas av mätvärdeslyssnaren från databas- och filläsningar, och en push-exportör äger inte dem.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>Lägga tillbaka "{0}" ({1}, {2}) i brevlådan för {3}?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Sätt en lastbalanserare, en TLS-terminator eller ett Postfix-relä framför SMTP-lyssnaren och varje anslutning ser ut att komma från DEN - vilket tyst bryter DNSBL-kontroller, SPF, gråstlistning, automatisk spärr och IP-intervallreglerna på en gång, medan allt fortfarande rapporterar framgång. De här låter en namngiven uppströmsvärd lämna vidare den verkliga klientadressen. Båda är av som standard och litar inte på någon förrän en adress listas, eftersom en motpart som kan skriva om sin egen källadress har besegrat varje IP-baserad kontroll på den här servern. Uppströmsvärden måste konfigureras att skicka den, annars ändras inget här: HAProxy behöver send-proxy eller send-proxy-v2 på sin serverrad, och ett Postfix-relä behöver XCLIENT aktiverat mot den här värden. hMailServer kan inte kontrollera det härifrån - och observera att när en adress väl listas som PROXY-protokollproxy blir rubriken OBLIGATORISK från den, så en proxy som inte skickar en får sina anslutningar släppta.</value>
   </data>
@@ -8331,8 +8334,8 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>Återställ värdena som profilen {0} ersatte? En inställning som ändrats sedan dess lämnas som den är, och ett filter som profilen slog på kan stängas av igen.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Lägga tillbaka meddelande {0} i brevlådan för {1}?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Lägga tillbaka meddelandet daterat {0} från mappen {1} i brevlådan för {2}?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Sätta tillbaka {0} till värdet den hade före den här ändringen? Tillbakasättningen registreras som en egen ändring.</value>

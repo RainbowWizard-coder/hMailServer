@@ -124,6 +124,36 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("The server's answer about the archive could not be read.", unread);
       }
 
+      /// <summary>
+      /// Put the message back names the message as the grid shows it - subject, or
+      /// sender where there is no subject, folder and date - never by its id, which
+      /// the grid does not show.
+      /// </summary>
+      [Fact]
+      public void PutTheMessageBack_AsksAboutTheMessageAsTheGridShowsIt_NeverItsId()
+      {
+         var withSubject = new BackupRestoreReport.ArchivedMessage(1042, "07/10/2026 09:15", "INBOX", "cfo@example.com", "Quarterly figures");
+         Assert.Equal("Put \"Quarterly figures\" (INBOX, 07/10/2026 09:15) back into the mailbox of jane@example.com?",
+            BackupRestoreReport.PutBackQuestion(withSubject, "jane@example.com"));
+
+         // Above 500 messages the server reads no subjects: the sender names it.
+         var noSubject = withSubject with { Subject = "" };
+         Assert.Equal("Put \"cfo@example.com\" (INBOX, 07/10/2026 09:15) back into the mailbox of jane@example.com?",
+            BackupRestoreReport.PutBackQuestion(noSubject, "jane@example.com"));
+
+         // A bounce, with no sender, and no subject read.
+         var neither = noSubject with { From = " " };
+         Assert.Equal("Put the message dated 07/10/2026 09:15 in INBOX back into the mailbox of jane@example.com?",
+            BackupRestoreReport.PutBackQuestion(neither, "jane@example.com"));
+
+         foreach (BackupRestoreReport.ArchivedMessage message in new[] { withSubject, noSubject, neither })
+            Assert.DoesNotContain("1042", BackupRestoreReport.PutBackQuestion(message, "jane@example.com"), StringComparison.Ordinal);
+
+         string put = WithheldRowTests.MemberText(Read("BackupView.xaml.cs"), "private void RestoreArchivedMessage_Click(object sender, RoutedEventArgs e)");
+         Assert.True(put != null, "BackupView.RestoreArchivedMessage_Click is gone.");
+         Assert.Contains("MessageBox.Show(BackupRestoreReport.PutBackQuestion(selected, listedAddress_), ", put, StringComparison.Ordinal);
+      }
+
       // ---- the page -----------------------------------------------------------------------
 
       /// <summary>Each card says what its buttons did, in its own footer, beside them.</summary>

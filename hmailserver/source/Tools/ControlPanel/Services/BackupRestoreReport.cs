@@ -195,6 +195,23 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// What Put the message back asks before it puts <paramref name="message"/> back
+      /// into the mailbox of <paramref name="address"/>: the message named as the grid
+      /// shows it - its subject, or its sender where the subject is empty or was not
+      /// read (the server reads subjects for a listing of at most 500 messages), then
+      /// its folder and its date - where the question named it by its id, a number
+      /// the grid does not show (review finding F257). A message with neither is
+      /// named by its date and folder alone.
+      /// </summary>
+      public static string PutBackQuestion(ArchivedMessage message, string address)
+      {
+         string name = !string.IsNullOrWhiteSpace(message.Subject) ? message.Subject : message.From;
+         return string.IsNullOrWhiteSpace(name)
+            ? F("Put the message dated {0} in {1} back into the mailbox of {2}?", message.Date, message.Folder, address)
+            : F("Put \"{0}\" ({1}, {2}) back into the mailbox of {3}?", name, message.Folder, message.Date, address);
+      }
+
+      /// <summary>
       /// The messages of an account in an archive, from the JSON DescribeMailbox
       /// answers, in the order the archive lists them; <paramref name="note"/> is the
       /// server's note on the subjects (read for at most 500 messages), or "". Null,

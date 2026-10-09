@@ -8319,6 +8319,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Duwt dezelfde tellers die het Prometheus-eindpunt serveert, onder dezelfde namen, op het interval hieronder. Niet alles op /metrics wordt geëxporteerd: wachtrijdiepte, databaseprobes en het verlopen van certificaten worden door de metricslistener berekend uit database- en bestandslezingen, en een push-exporter beschikt daar niet over.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>"{0}" ({1}, {2}) terugzetten in de mailbox van {3}?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Zet een load balancer, een TLS-terminator of een Postfix-relay vóór de SMTP-listener en elke verbinding lijkt van DAT apparaat te komen - wat in één klap en zonder waarschuwing de DNSBL-controles, SPF, greylisting, automatisch verbannen en de regels voor IP-bereiken breekt, terwijl alles nog steeds succes meldt. Hiermee kan een met name genoemde upstream het echte clientadres doorgeven. Beide staan standaard uit en vertrouwen niemand totdat een adres is vermeld, want een tegenpartij die haar eigen bronadres kan herschrijven, heeft elke op IP gebaseerde controle op deze server verslagen. De upstream moet zo worden geconfigureerd dat hij het stuurt, anders verandert hier niets: HAProxy heeft send-proxy of send-proxy-v2 op zijn server-regel nodig, en een Postfix-relay heeft XCLIENT richting deze host nodig. hMailServer kan dat van hieruit niet controleren - en let op: zodra een adres als PROXY-protocolproxy is vermeld, wordt de header van dat adres VERPLICHT, dus bij een proxy die er geen stuurt, worden de verbindingen verbroken.</value>
   </data>
@@ -8331,8 +8334,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>De waarden terugzetten die het profiel {0} heeft vervangen? Een instelling die sindsdien is gewijzigd blijft zoals ze is, en een filter dat het profiel aanzette kan weer uit gaan.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Bericht {0} terugzetten in de mailbox van {1}?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Bericht van {0} uit de map {1} terugzetten in de mailbox van {2}?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>{0} terugzetten naar de waarde van vóór deze wijziging? Het terugzetten wordt als eigen wijziging vastgelegd.</value>

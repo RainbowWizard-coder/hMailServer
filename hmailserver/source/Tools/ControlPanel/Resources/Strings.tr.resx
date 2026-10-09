@@ -8319,6 +8319,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Prometheus uç noktasının sunduğu aynı sayaçları, aynı adlarla, aşağıdaki aralıkta iter. /metrics üzerindeki her şey dışa aktarılmaz: kuyruk derinliği, veritabanı yoklamaları ve sertifika süre sonu, ölçüm dinleyicisi tarafından veritabanı ve dosya okumalarından hesaplanır ve bir itme dışa aktarıcısı bunlara sahip değildir.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>"{0}" ({1}, {2}) {3} posta kutusuna geri konsun mu?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>SMTP dinleyicisinin önüne bir yük dengeleyici, bir TLS sonlandırıcı ya da bir Postfix aktarması koyun; her bağlantı ONDAN geliyor gibi görünür - bu da DNSBL denetimlerini, SPF'yi, greylisting'i, otomatik yasaklamayı ve IP aralığı kurallarını tek seferde sessizce bozar; üstelik her şey hâlâ başarı bildirir. Bunlar, adı verilen bir üst sunucunun gerçek istemci adresini iletmesine olanak verir. İkisi de varsayılan olarak kapalıdır ve bir adres listelenene kadar kimseye güvenmez, çünkü kendi kaynak adresini yeniden yazabilen bir eş, bu sunucudaki IP tabanlı her denetimi alt etmiştir. Üst sunucunun bunu gönderecek biçimde yapılandırılması gerekir, yoksa burada hiçbir şey değişmez: HAProxy'nin server satırında send-proxy ya da send-proxy-v2 olmalıdır ve bir Postfix aktarmasında bu ana bilgisayara doğru XCLIENT etkinleştirilmelidir. hMailServer bunu buradan denetleyemez - ve unutmayın ki bir adres PROXY protokolü vekil sunucusu olarak listelendiğinde başlık ondan ZORUNLU hâle gelir; bu yüzden başlık göndermeyen bir vekil sunucunun bağlantıları kesilir.</value>
   </data>
@@ -8331,8 +8334,8 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>{0} profilinin yerine koyduğu değerler geri alınsın mı? O zamandan beri değişen bir ayar olduğu gibi bırakılır ve profilin açtığı bir filtre yeniden kapanabilir.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>İleti {0} {1} posta kutusuna geri konsun mu?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>{1} klasöründeki {0} tarihli ileti {2} posta kutusuna geri konsun mu?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>{0} bu değişiklikten önceki değerine geri alınsın mı? Geri alma, kendi başına bir değişiklik olarak kaydedilir.</value>

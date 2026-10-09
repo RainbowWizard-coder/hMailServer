@@ -8319,6 +8319,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Työntää samat laskurit, jotka Prometheus-päätepiste tarjoaa, samoilla nimillä, alla olevalla aikavälillä. Kaikkea /metrics-päätepisteen sisältöä ei viedä: jonon syvyys, tietokantakoettimet ja varmenteen vanheneminen lasketaan mittarikuuntelijassa tietokanta- ja tiedostoluvuista, eikä työntövienti omista niitä.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>Palautetaanko "{0}" ({1}, {2}) tilin {3} postilaatikkoon?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Laita kuormantasaaja, TLS-terminaattori tai Postfix-välitys SMTP-kuuntelijan eteen, niin jokainen yhteys näyttää tulevan SIITÄ - mikä rikkoo hiljaa DNSBL-tarkistukset, SPF:n, harmaalistauksen, automaattisen eston ja IP-aluesäännöt kerralla, vaikka kaikki raportoi yhä onnistumista. Näillä nimetty ylävirran palvelin voi välittää todellisen asiakasosoitteen. Molemmat ovat oletuksena pois päältä eivätkä luota keneenkään, ennen kuin osoite on lueteltu, koska vastapuoli, joka voi kirjoittaa oman lähdeosoitteensa uusiksi, on kukistanut jokaisen IP-pohjaisen valvonnan tällä palvelimella. Ylävirran palvelin on määritettävä lähettämään se, tai mikään täällä ei muutu: HAProxy tarvitsee send-proxy- tai send-proxy-v2-asetuksen palvelinrivilleen, ja Postfix-välitys tarvitsee XCLIENTin käyttöön tätä konetta kohti. hMailServer ei voi tarkistaa sitä täältä - ja huomaa, että kun osoite on lueteltu PROXY-protokollan välityspalvelimena, otsake tulee siltä PAKOLLISEKSI, joten välityspalvelimen, joka ei lähetä sitä, yhteydet pudotetaan.</value>
   </data>
@@ -8331,8 +8334,8 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>Palautetaanko profiilin {0} korvaamat arvot? Sen jälkeen muutettu asetus jätetään ennalleen, ja profiilin käyttöön ottama suodatin voi poistua taas käytöstä.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Palautetaanko viesti {0} tilin {1} postilaatikkoon?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Palautetaanko kansion {1} viesti, päivätty {0}, tilin {2} postilaatikkoon?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Palautetaanko {0} arvoon, joka sillä oli ennen tätä muutosta? Palautus kirjataan omana muutoksenaan.</value>

@@ -8319,6 +8319,9 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Envia os mesmos contadores que o endpoint do Prometheus serve, com os mesmos nomes, no intervalo abaixo. Nem tudo que está em /metrics é exportado: a profundidade da fila, as sondagens do banco de dados e a validade dos certificados são calculadas pelo ouvinte de métricas a partir de leituras do banco de dados e de arquivos, e um exportador por push não é dono dessas.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>Devolver "{0}" ({1}, {2}) à caixa de correio de {3}?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Coloque um balanceador de carga, um terminador TLS ou um relay Postfix na frente do ouvinte SMTP e toda conexão passa a parecer vir DELE - o que quebra silenciosamente as verificações DNSBL, o SPF, o greylisting, o banimento automático e as regras de faixa de IP, tudo de uma vez, enquanto tudo continua relatando sucesso. Estes permitem que um upstream nomeado repasse o endereço real do cliente. Ambos vêm desligados e não confiam em ninguém até que um endereço seja listado, porque um par capaz de reescrever o próprio endereço de origem derrotou todo controle baseado em IP deste servidor. O upstream precisa estar configurado para enviá-lo, senão nada muda aqui: o HAProxy precisa de send-proxy ou send-proxy-v2 na linha de servidor dele, e um relay Postfix precisa de XCLIENT habilitado em direção a este host. O hMailServer não pode verificar isso daqui - e observe que, uma vez que um endereço esteja listado como proxy do protocolo PROXY, o cabeçalho passa a ser OBRIGATÓRIO vindo dele, então um proxy que não envie um terá suas conexões descartadas.</value>
   </data>
@@ -8331,8 +8334,8 @@ Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele s
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>Restaurar os valores que o perfil {0} substituiu? Uma configuração alterada desde então fica como está, e um filtro que o perfil ativou pode ser desativado de novo.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Devolver a mensagem {0} à caixa de correio de {1}?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Devolver a mensagem de {0} da pasta {1} à caixa de correio de {2}?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Restaurar {0} ao valor que tinha antes desta alteração? A restauração é registrada como uma alteração própria.</value>

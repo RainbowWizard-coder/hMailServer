@@ -8397,6 +8397,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Pushes the same counters the Prometheus endpoint serves, under the same names, on the interval below. Not everything on /metrics is exported: queue depth, database probes and certificate expiry are computed by the metrics listener from database and file reads, and a push exporter does not own those." xml:space="preserve">
     <value>Odesílá stejné čítače, jaké poskytuje koncový bod Prometheus, pod stejnými názvy, v intervalu níže. Ne vše z /metrics se exportuje: hloubku fronty, sondy databáze a vypršení platnosti certifikátů počítá listener metrik ze čtení databáze a souborů a push exportér je nevlastní.</value>
   </data>
+  <data name="Put &quot;{0}&quot; ({1}, {2}) back into the mailbox of {3}?" xml:space="preserve">
+    <value>Vrátit „{0}“ ({1}, {2}) do schránky {3}?</value>
+  </data>
   <data name="Put a load balancer, a TLS terminator or a Postfix relay in front of the SMTP listener and every connection appears to come from IT - which silently breaks DNSBL checks, SPF, greylisting, auto-ban and the IP range rules all at once, while everything still reports success. These let a named upstream pass on the real client address. Both are off by default and trust nobody until an address is listed, because a peer that can rewrite its own source address has defeated every IP-based control on this server. The upstream has to be configured to send it or nothing here changes: HAProxy needs send-proxy or send-proxy-v2 on its server line, and a Postfix relay needs XCLIENT enabled towards this host. hMailServer cannot check that from here - and note that once an address is listed as a PROXY protocol proxy the header becomes REQUIRED from it, so a proxy that does not send one will have its connections dropped." xml:space="preserve">
     <value>Postavte před SMTP listener load balancer, TLS terminátor nebo Postfix relay a každé připojení bude vypadat, že přichází od NĚJ – což naráz tiše rozbije kontroly DNSBL, SPF, greylisting, auto-ban i pravidla IP rozsahů, zatímco vše dál hlásí úspěch. Tyto volby umožňují pojmenovanému předřazenému serveru předat skutečnou adresu klienta. Obě jsou ve výchozím nastavení vypnuté a nedůvěřují nikomu, dokud není uvedena adresa, protože protějšek, který může přepsat vlastní zdrojovou adresu, obešel každou kontrolu na tomto serveru založenou na IP. Předřazený server musí být nastaven tak, aby ji posílal, jinak se zde nic nezmění: HAProxy potřebuje send-proxy nebo send-proxy-v2 na svém řádku server a Postfix relay potřebuje XCLIENT povolený směrem k tomuto hostiteli. hMailServer to odsud ověřit nemůže – a pozor, jakmile je adresa uvedena jako proxy protokolu PROXY, stává se od ní hlavička POVINNOU, takže proxy, která ji neposílá, bude mít připojení zahazována.</value>
   </data>
@@ -8409,8 +8412,8 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again." xml:space="preserve">
     <value>Vrátit hodnoty, které profil {0} nahradil? Nastavení změněné mezitím zůstane, jak je, a filtr, který profil zapnul, může být opět vypnut.</value>
   </data>
-  <data name="Put message {0} back into the mailbox of {1}?" xml:space="preserve">
-    <value>Vrátit zprávu {0} do schránky {1}?</value>
+  <data name="Put the message dated {0} in {1} back into the mailbox of {2}?" xml:space="preserve">
+    <value>Vrátit zprávu z {0} ze složky {1} do schránky {2}?</value>
   </data>
   <data name="Put {0} back to the value it had before this change? The put-back is recorded as a change of its own." xml:space="preserve">
     <value>Vrátit {0} na hodnotu před touto změnou? Vrácení se zaznamená jako samostatná změna.</value>
