@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using hMailServer.ControlPanel.Views.Scaffold;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -68,7 +69,19 @@ namespace hMailServer.ControlPanel.Services
 
          notice.Level = StatusLevel.Critical;
          notice.Text = (prefix ?? "") + (why ?? "");
-         notice.Content = tryAgain == null ? null : TryAgainButton(tryAgain);
+
+         // The button is kept from one failure to the next. Try again runs the
+         // page's read, the read fails again - the common case right after a lost
+         // link - and comes back here, and a new button in the old one's place
+         // would take the keyboard focus with it to the window: a screen reader
+         // announces the window, and Tab starts again from the top of the page.
+         if (tryAgain == null)
+            notice.Content = null;
+         else if (IsShown(notice) && notice.Content is Wpf.Ui.Controls.Button kept && kept.Tag is Retry retry)
+            retry.Run = tryAgain;
+         else
+            notice.Content = TryAgainButton(tryAgain);
+
          notice.Tag = Marker;
          notice.Visibility = Visibility.Visible;
       }
@@ -88,10 +101,43 @@ namespace hMailServer.ControlPanel.Services
          if (notice == null || !ReferenceEquals(notice.Tag, Marker))
             return;
 
+         // Try again was pressed from the keyboard and the read worked: the focus
+         // goes to the first control that writes - Add, or the card - or, where
+         // none is given, to the next control in the tab order, before the button
+         // that holds it leaves the tree and the focus falls to the window.
+         if (notice.IsKeyboardFocusWithin)
+            MoveFocusFrom(notice, writes);
+
          notice.Tag = null;
          notice.Content = null;
          notice.Text = null;
          notice.Visibility = Visibility.Collapsed;
+      }
+
+      private static void MoveFocusFrom(InlineNotice notice, UIElement[] writes)
+      {
+         foreach (UIElement write in writes ?? Array.Empty<UIElement>())
+         {
+            if (write == null || !write.IsEnabled || !write.IsVisible)
+               continue;
+
+            if (write.Focusable && write.Focus())
+               return;
+
+            // A card or a form: its first control in the tab order.
+            if (write.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)))
+               return;
+         }
+
+         if (Keyboard.FocusedElement is UIElement focused && notice.IsAncestorOf(focused))
+            focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+      }
+
+      // What the Try again button runs, held on the button so that a failure
+      // after a failure gives it the new read without replacing the button.
+      private sealed class Retry
+      {
+         public Action Run;
       }
 
       /// <summary>Whether the notice is showing a failure of this class's.</summary>
@@ -118,7 +164,9 @@ namespace hMailServer.ControlPanel.Services
             VerticalAlignment = VerticalAlignment.Center
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "read-try-again");
-         button.Click += (_, _) => tryAgain();
+         var retry = new Retry { Run = tryAgain };
+         button.Tag = retry;
+         button.Click += (_, _) => retry.Run?.Invoke();
          return button;
       }
 

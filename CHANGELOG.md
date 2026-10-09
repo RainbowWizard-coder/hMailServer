@@ -469,9 +469,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that could not be given is a Critical failure rather than an amber warning. The Try again button carries no Alt key
   in any language: it is on some twenty pages, and no letter is free of a collision on every one of them - in English
   T is also Require TLS for auth, Add action, Take the role away and Restore settings - and WPF, given two enabled
-  targets for one key, moves the focus between them and presses neither; it is reached by Tab.
-  `build/check-mnemonics.py` scans the shared helper and checks its captions against every page that calls it.
-  `ReadFailurePageTests` holds every page to the pattern and the caption to no key in any catalogue.
+  targets for one key, moves the focus between them and presses neither; it is reached by Tab. The keyboard focus
+  survives it: a read that fails again keeps the button it was pressed on, where a new one in its place sent the focus
+  to the window and Tab back to the top of the page, and a read that works moves the focus to the first control that
+  writes before the button goes. `build/check-mnemonics.py` scans the shared helper and checks its captions against
+  every page that calls it. `ReadFailurePageTests` holds every page to the pattern, the caption to no key in any
+  catalogue, and the helper to keeping the button and moving the focus.
 - **Fixed: the three read-only overviews drew defaults as findings when nothing could be read.** With the link to the
   service lost, the spam filtering overview said "1 value(s) could not be read" and then that nothing at all happens on
   score because both thresholds are 0, with every check Off at a score of 0; the virus scanning overview that no

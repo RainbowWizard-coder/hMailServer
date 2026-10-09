@@ -183,6 +183,48 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The keyboard focus survives Try again. The button runs the page's read;
+      /// when the read fails again - the common case right after a lost link - the
+      /// page calls Show again, and a new button in the old one's place took the
+      /// focus with it to the window, where a screen reader announced the window
+      /// and Tab started again from the top of the page; a read that worked took
+      /// the button away with the focus on it and left the focus nowhere. Show
+      /// keeps the button a notice already carries and gives it the new read, and
+      /// Clear moves the focus to the first control that writes, or on to the next
+      /// control in the tab order, before it takes the button out.
+      /// </summary>
+      [Fact]
+      public void TheHelper_KeepsTheButtonAcrossFailures_AndMovesTheFocusOnSuccess()
+      {
+         string source = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
+
+         string show = WithheldRowTests.MemberText(source,
+            "public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string prefix, string why,");
+         Assert.True(show != null, "ReadFailure.Show is gone.");
+         Assert.True(show.Contains("IsShown(notice) && notice.Content is Wpf.Ui.Controls.Button kept", StringComparison.Ordinal),
+            "ReadFailure.Show replaces the Try again button on every failure, which drops the keyboard focus to the window.");
+         Assert.True(show.Contains("retry.Run = tryAgain;", StringComparison.Ordinal),
+            "ReadFailure.Show keeps the button but not the read it should run.");
+
+         string button = WithheldRowTests.MemberText(source, "public static Wpf.Ui.Controls.Button TryAgainButton(Action tryAgain)");
+         Assert.True(button != null && button.Contains("button.Tag = retry;", StringComparison.Ordinal) && button.Contains("retry.Run", StringComparison.Ordinal),
+            "The Try again button no longer runs the read its notice last gave it.");
+
+         string clear = WithheldRowTests.MemberText(source, "public static void Clear(InlineNotice notice, params UIElement[] writes)");
+         Assert.True(clear != null, "ReadFailure.Clear is gone.");
+         Assert.True(clear.Contains("if (notice.IsKeyboardFocusWithin)", StringComparison.Ordinal)
+                     && clear.IndexOf("IsKeyboardFocusWithin", StringComparison.Ordinal) < clear.IndexOf("notice.Content = null;", StringComparison.Ordinal),
+            "ReadFailure.Clear takes the Try again button out of the tree with the keyboard focus still on it.");
+
+         string move = WithheldRowTests.MemberText(source, "private static void MoveFocusFrom(InlineNotice notice, UIElement[] writes)");
+         Assert.True(move != null, "ReadFailure.MoveFocusFrom is gone.");
+         Assert.True(move.Contains("write.Focus()", StringComparison.Ordinal) && move.Contains("FocusNavigationDirection.First", StringComparison.Ordinal),
+            "ReadFailure.MoveFocusFrom does not move the focus to the first control that writes.");
+         Assert.True(move.Contains("FocusNavigationDirection.Next", StringComparison.Ordinal),
+            "ReadFailure.MoveFocusFrom leaves the focus nowhere on a page with no control that writes.");
+      }
+
+      /// <summary>
       /// The Try again button is on some twenty pages, and no letter is free of a
       /// collision on every one of them - in English T is Require TLS for auth, Add
       /// action, Take the role away, Restore settings and Test connection - so its
