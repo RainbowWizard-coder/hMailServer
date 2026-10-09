@@ -26,6 +26,14 @@ namespace RegressionTests.Shared
 
       private readonly ManualResetEvent _workerThreadFinished = new ManualResetEvent(false);
 
+      // Held while the listener is made and while it is stopped, which happens once:
+      // the listen thread and Dispose both stop it, and .NET Framework's
+      // TcpListener.Stop is not safe against itself - two threads in it at once can
+      // each find its socket there and one then find it gone, which it answers with
+      // NullReferenceException (SMTP.BounceReports in batch44's gate, 9 October 2026).
+      private readonly object _listenerLock = new object();
+      private bool _listenerStopped;
+
       protected eConnectionSecurity _connectionSecurity;
 
       private X509Certificate2 _localCertificate;
@@ -69,12 +77,16 @@ namespace RegressionTests.Shared
       {
          _stopServerEvent.Set();
 
-         Assert.IsTrue(_workerThreadFinished.WaitOne(TimeSpan.FromSeconds(15), false));
+         var finished = _workerThreadFinished.WaitOne(TimeSpan.FromSeconds(15), false);
 
-         if (_tcpListener != null)
-            _tcpListener.Stop();
+         // The listen thread stops the listener before it says it has finished, so
+         // this finds it stopped - unless that thread did not finish, and then the
+         // listener is stopped under it, and the thread's own stop finds it done.
+         StopListener();
 
          DisposeSocket();
+
+         Assert.IsTrue(finished, "The simulated server's listen thread did not finish within 15 seconds of being told to stop.");
       }
 
       public void SetCertificate(X509Certificate2 certificate)
@@ -107,12 +119,18 @@ namespace RegressionTests.Shared
          {
             var local = IPAddress.Parse("0.0.0.0");
 
-            _tcpListener = new TcpListener(local, _port)
+            lock (_listenerLock)
             {
-               ExclusiveAddressUse = false
-            };
+               if (_listenerStopped)
+                  throw new InvalidOperationException("The simulated server was stopped before it began to listen; a TcpServer listens once.");
 
-            _tcpListener.Start();
+               _tcpListener = new TcpListener(local, _port)
+               {
+                  ExclusiveAddressUse = false
+               };
+
+               _tcpListener.Start();
+            }
 
             HandleClients();
          }
@@ -122,10 +140,46 @@ namespace RegressionTests.Shared
          }
          finally
          {
+            // The listener is stopped before this thread says it has finished, since
+            // WaitForCompletion and Dispose return on that word and the test goes on.
+            // Until 9 October 2026 the stop came after it, so a Dispose called at once
+            // stopped the same listener at the same moment, and a listener whose
+            // construction had thrown (a port out of range) left null to stop - a
+            // NullReferenceException here, on a thread where nothing catches it: on .NET
+            // (the Linux suite) that ends the test host and the run; NUnit's agent on
+            // Windows runs with the legacy unhandled-exception policy, which lets the
+            // thread die alone and says nothing.
+            try
+            {
+               StopListener();
+            }
+            catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
+            {
+               if (_workerThreadException == null)
+                  _workerThreadException = e;
+            }
+
             _listenThreadStarted.Set();
             _workerThreadFinished.Set();
+         }
+      }
 
-            _tcpListener.Stop();
+      /// <summary>
+      ///    Stops the listener, the first time it is called and only then, whichever
+      ///    thread calls it. A listener whose Start threw is stopped all the same, which
+      ///    both runtimes allow; one whose construction threw is null, and there is
+      ///    nothing to stop.
+      /// </summary>
+      private void StopListener()
+      {
+         lock (_listenerLock)
+         {
+            if (_listenerStopped)
+               return;
+
+            _listenerStopped = true;
+
+            _tcpListener?.Stop();
          }
       }
 
@@ -184,12 +238,15 @@ namespace RegressionTests.Shared
                return;
             }
 
-            if (_connectionSecurity == eConnectionSecurity.eCSTLS) _tcpConnection.HandshakeAsServer(_localCertificate);
-
-            _numberOfConnectedClients++;
-
             try
             {
+               // Inside the handler below with the conversation: a handshake that
+               // fails, or that Dispose cuts short by closing the connection under
+               // it, threw from here straight out of the thread-pool thread.
+               if (_connectionSecurity == eConnectionSecurity.eCSTLS) _tcpConnection.HandshakeAsServer(_localCertificate);
+
+               _numberOfConnectedClients++;
+
                HandleClient();
             }
             catch (Exception e) when (!ExceptionPolicy.IsFatal(e))
@@ -215,11 +272,13 @@ namespace RegressionTests.Shared
 
       private void DisposeSocket()
       {
-         if (_tcpConnection != null)
-         {
-            _tcpConnection.Dispose();
-            _tcpConnection = null;
-         }
+         // Dispose and the thread-pool thread that served the client both get here
+         // when a test disposes the server with a conversation still open. Each takes
+         // the connection out of the field in one step, and the one that finds it gone
+         // does nothing: a test of the field and a use of it apart let the other's null
+         // fall between the two, a NullReferenceException that nothing catches on the
+         // thread-pool thread.
+         Interlocked.Exchange(ref _tcpConnection, null)?.Dispose();
       }
 
       protected virtual void HandleClient()

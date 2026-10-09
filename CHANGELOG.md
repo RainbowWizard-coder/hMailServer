@@ -847,6 +847,34 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   `paths./api/v1/me/folders/{id}/messages`; with a documented path misspelt, naming the operation the router does
   not know.
 
+- **The test simulators' `TcpServer` stops its listener once, and before it says it has finished.**
+  `SMTP.BounceReports.OurOwnNonDeliveryReportIsNotCountedTwice` failed on `batch44`'s Windows gate (pipeline
+  2928270199, 9 October 2026) with a NullReferenceException inside `TcpListener.Stop`, called from
+  `TcpServer.Dispose`. The listen thread said it had finished and only then stopped its listener, so a test that
+  disposed the server as soon as `WaitForCompletion` returned, as most of the suite's tests that use one do, stopped
+  the same listener at the same moment, and .NET Framework's `Stop` tests its socket, loads it again to close it and
+  then clears it: a thread held up between the test and the load while the other clears it calls `Close` on nothing.
+  The listen thread now stops the listener before it signals, under a lock that lets whichever of it and `Dispose`
+  comes first stop it, once. A listener whose construction threw (a port out of range) had left the listen thread a
+  null to stop, a NullReferenceException on a thread nothing catches - which ends the Linux suite's test host, and
+  which NUnit's agent on Windows, run with the legacy unhandled-exception policy, lets end the thread without a word -
+  and is now nothing to stop. `Dispose` and the thread-pool thread that served the client, which both put the
+  connection away when a test disposes the server mid-conversation, each take it out of its field in one step, where
+  one could test it, the other clear it and the first then use it; and a TLS handshake that fails, or that `Dispose`
+  cuts short, is kept with the conversation's other failures instead of being thrown out of a thread-pool thread. The
+  new server-free fixture `ServerFreeTests.TcpServerLifetime`, in both suites, holds the listener's part: fifty servers
+  in a row have stopped listening when `WaitForCompletion` returns, a port the listener refuses fails `StartListen`
+  and lets nothing escape the listen thread, and a server disposed before any client came stops once. With the class
+  as it was, the first failed on server1's bench within three servers, twice, and on Linux at the fourteenth; the
+  second failed on the bench on the NullReferenceException that escaped the listen thread, and on Linux ended the
+  test host and the run. A stress harness on server1 built the class as it was and as it is: before, 1,827 of 2,000
+  servers in a row were still listening when `WaitForCompletion` returned, after none. With another process
+  suspending its threads at random instructions, as a busy virtual machine's host does to its guest, two
+  `TcpListener.Stop` calls at once threw that NullReferenceException eleven times in 448,998 tries; the class as it
+  was, its servers disposed mid-conversation by the tests' own steps, threw it from `TcpServer.Dispose` - the gate's
+  very stack - eleven times in 3,184,997 servers, and once from `DisposeSocket` on a thread-pool thread, and the
+  class as it is threw nothing in 3,289,402.
+
 ### Documentation
 
 - **The 6.3.6 section names the CVE identifiers GitLab's CNA has assigned since the tag**, six so far, and says what
