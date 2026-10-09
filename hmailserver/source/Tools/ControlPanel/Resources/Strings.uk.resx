@@ -13181,6 +13181,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Під яким іменем постачальник знає цей сервер: Identifier в Entra ID, Audience URI в Okta.</value>
   </data>
+  <data name="What the receiving server answered" xml:space="preserve">
+    <value>Що відповів сервер-отримувач</value>
+  </data>
   <data name="What the sender is told when this list refuses the message" xml:space="preserve">
     <value>Що повідомляється відправникові, коли цей список відхиляє повідомлення</value>
   </data>
@@ -13408,6 +13411,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Чому (необов'язково)</value>
+  </data>
+  <data name="Why it was held" xml:space="preserve">
+    <value>Чому його затримано</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Розширювати бан на сусідів</value>

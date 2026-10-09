@@ -13026,6 +13026,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Als wat de provider deze server kent: de Identifier van Entra ID, de Audience URI van Okta.</value>
   </data>
+  <data name="What the receiving server answered" xml:space="preserve">
+    <value>Wat de ontvangende server antwoordde</value>
+  </data>
   <data name="What the sender is told when this list refuses the message" xml:space="preserve">
     <value>Wat de afzender te horen krijgt als deze lijst het bericht weigert</value>
   </data>
@@ -13253,6 +13256,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Waarom (optioneel)</value>
+  </data>
+  <data name="Why it was held" xml:space="preserve">
+    <value>Waarom het werd vastgehouden</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Een ban uitbreiden naar de buren</value>

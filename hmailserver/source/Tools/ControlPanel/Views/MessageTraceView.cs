@@ -290,8 +290,6 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          root.Children.Add(new PageHeader
@@ -315,11 +313,16 @@ namespace hMailServer.ControlPanel.Views
          ButtonStyles.DangerText(removeExpired_);
          actions.Children.Add(removeExpired_);
          toolbar_.Actions = actions;
-         Grid.SetRow(toolbar_, 1);
-         root.Children.Add(toolbar_);
 
-         Grid.SetRow(status_, 2);
-         root.Children.Add(status_);
+         // The suppression list's shape: the toolbar, the notice, the list and the
+         // selected event's detail under the header, the list taking the height the
+         // others leave, down to three rows, and below that the page scrolls - so
+         // that the detail never takes the list's height in a short window.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
+         parts.Children.Add(toolbar_);
+         parts.Children.Add(status_);
 
          BuildColumns();
          System.Windows.Automation.AutomationProperties.SetName(list_, L("Message trace"));
@@ -328,8 +331,11 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(list_);
          host.Children.Add(empty_);
          var card = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(card, 3);
-         root.Children.Add(card);
+         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
+
+         // Whether the selected event can be followed - a refusal at RCPT has no
+         // message to follow - which only the row's tool tip said (Views/RowDetailStrip).
+         parts.Children.Add(RowDetailStrip.For(list_, null, row => ((TraceRow)row).FollowHint));
 
          Content = root;
       }

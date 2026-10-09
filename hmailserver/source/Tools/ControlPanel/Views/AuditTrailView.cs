@@ -249,8 +249,6 @@ namespace hMailServer.ControlPanel.Views
          var root = new Grid();
          root.SetResourceReference(MarginProperty, "AppPagePadding");
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          root.Children.Add(new PageHeader
@@ -275,11 +273,16 @@ namespace hMailServer.ControlPanel.Views
          foreach (FrameworkElement button in actions.Children)
             button.Margin = new Thickness(button.Margin.Left, 3, button.Margin.Right, 3);
          toolbar_.Actions = actions;
-         Grid.SetRow(toolbar_, 1);
-         root.Children.Add(toolbar_);
 
-         Grid.SetRow(status_, 2);
-         root.Children.Add(status_);
+         // The suppression list's shape: the toolbar, the notice, the list and the
+         // selected row's detail under the header, the list taking the height the
+         // others leave, down to three rows, and below that the page scrolls - so
+         // that the detail never takes the list's height in a short window.
+         ScrollViewer scroll = FillPanel.ScrollingPage(out FillPanel parts);
+         Grid.SetRow(scroll, 1);
+         root.Children.Add(scroll);
+         parts.Children.Add(toolbar_);
+         parts.Children.Add(status_);
 
          rows_.Columns.Add(Text_(L("When"), nameof(RowView.When), DataGridLength.Auto));
          rows_.Columns.Add(Text_(L("Who"), nameof(RowView.Who), DataGridLength.Auto));
@@ -303,8 +306,11 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(rows_);
          host.Children.Add(empty_);
          var card = new Card { Padding = new Thickness(8), Content = host };
-         Grid.SetRow(card, 3);
-         root.Children.Add(card);
+         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
+
+         // The selected row's whole detail, which a long value's column cuts and
+         // only the row's tool tip held (Views/RowDetailStrip).
+         parts.Children.Add(RowDetailStrip.For(rows_, _ => L("Detail"), row => ((RowView)row).Detail));
 
          Content = root;
       }

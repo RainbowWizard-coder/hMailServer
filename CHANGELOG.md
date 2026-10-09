@@ -1460,6 +1460,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   word and not its number. `RowSpeechTests` reads every page for a class bound to a list's columns and holds each to
   a ToString of its own.
 
+- **Fixed: four facts were only in row tool tips, out of reach of the keyboard.** Why a message was held in
+  quarantine, what the receiving server answered for a suppressed address ("550 5.1.1 user unknown"), an audit row's
+  whole detail and whether a traced event can be followed were each on screen only while the mouse rested on the
+  row. Under each of those lists the selected row's fact is now in a compact card titled with what it is - Why it was
+  held, What the receiving server answered (or Note for an address put there by hand), Detail - in text that can be
+  selected and copied, collapsed while nothing is selected (`Views/RowDetailStrip`); the rows keep their tool tips. The
+  audit trail and the message trace lay their toolbar, notice, list and detail out as the suppression list does, so
+  that the list keeps three rows in the narrowest window and the page scrolls below them, where the detail would have
+  taken the list's height. `RowDetailStripTests` holds the strip, each page's fact and its place after the list.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

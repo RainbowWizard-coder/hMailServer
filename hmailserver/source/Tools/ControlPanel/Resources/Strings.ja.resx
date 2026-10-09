@@ -13026,6 +13026,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>プロバイダーがこのサーバーを識別する名前: Entra ID の Identifier、Okta の Audience URI。</value>
   </data>
+  <data name="What the receiving server answered" xml:space="preserve">
+    <value>受信側サーバーの応答</value>
+  </data>
   <data name="What the sender is told when this list refuses the message" xml:space="preserve">
     <value>このリストがメッセージを拒否したときに送信者へ伝える内容</value>
   </data>
@@ -13253,6 +13256,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>理由 (任意)</value>
+  </data>
+  <data name="Why it was held" xml:space="preserve">
+    <value>保留の理由</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>BAN を近隣に広げる</value>

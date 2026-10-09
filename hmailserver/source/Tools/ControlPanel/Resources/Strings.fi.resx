@@ -13026,6 +13026,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Millä nimellä palvelu tuntee tämän palvelimen: Entra ID:n Identifier, Oktan Audience URI.</value>
   </data>
+  <data name="What the receiving server answered" xml:space="preserve">
+    <value>Mitä vastaanottava palvelin vastasi</value>
+  </data>
   <data name="What the sender is told when this list refuses the message" xml:space="preserve">
     <value>Mitä lähettäjälle kerrotaan, kun tämä lista hylkää viestin</value>
   </data>
@@ -13253,6 +13256,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Miksi (valinnainen)</value>
+  </data>
+  <data name="Why it was held" xml:space="preserve">
+    <value>Miksi se pidätettiin</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Laajenna esto naapureihin</value>

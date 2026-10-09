@@ -249,6 +249,10 @@ namespace hMailServer.ControlPanel.Views
          public string Expires { get; init; }
          public string Detail { get; init; }
 
+         // An entry put here by hand, whose detail is the administrator's note
+         // rather than a receiving server's answer.
+         public bool ByHand { get; init; }
+
          // The address, why it is listed and the status, then the two dates with
          // their columns' names, as one statement.
          public override string ToString()
@@ -311,7 +315,8 @@ namespace hMailServer.ControlPanel.Views
                Source = SourceText_(row.Source),
                Since = row.Created,
                Expires = row.Expires.Length == 0 ? L("Never") : row.Expired ? F("{0} (expired)", row.Expires) : row.Expires,
-               Detail = row.RemoteMta.Length == 0 ? row.Diagnostic : row.RemoteMta + ": " + row.Diagnostic // no-loc: a host name and the words it answered with
+               Detail = row.RemoteMta.Length == 0 ? row.Diagnostic : row.RemoteMta + ": " + row.Diagnostic, // no-loc: a host name and the words it answered with
+               ByHand = row.Source == "manual"
             });
          }
 
@@ -465,6 +470,13 @@ namespace hMailServer.ControlPanel.Views
          host.Children.Add(empty_);
          var listCard = new Card { Padding = new Thickness(8), Content = host };
          parts.Children.Add(FillPanel.Filling(listCard, FillPanel.ListCardFloor, 2));
+
+         // What the receiving server answered for the selected address - "550 5.1.1
+         // user unknown" - or the note of one put here by hand, which was the row's
+         // tool tip alone (Views/RowDetailStrip).
+         parts.Children.Add(RowDetailStrip.For(entries_,
+            row => ((EntryView)row).ByHand ? L("Note") : L("What the receiving server answered"),
+            row => ((EntryView)row).Detail));
 
          // A titled card, as the discovery page's lines are, in place of a
          // caption over a bare one.

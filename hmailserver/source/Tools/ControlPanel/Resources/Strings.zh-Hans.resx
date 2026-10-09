@@ -13026,6 +13026,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>提供商用来识别本服务器的名称：Entra ID 的 Identifier，Okta 的 Audience URI。</value>
   </data>
+  <data name="What the receiving server answered" xml:space="preserve">
+    <value>接收服务器的应答</value>
+  </data>
   <data name="What the sender is told when this list refuses the message" xml:space="preserve">
     <value>此列表拒收邮件时告知发件人的内容</value>
   </data>
@@ -13253,6 +13256,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>原因（可选）</value>
+  </data>
+  <data name="Why it was held" xml:space="preserve">
+    <value>保留原因</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>将封禁扩展到相邻地址</value>

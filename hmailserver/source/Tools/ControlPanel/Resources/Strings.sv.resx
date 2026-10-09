@@ -13026,6 +13026,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="What the provider knows this server as: Entra ID's Identifier, Okta's Audience URI." xml:space="preserve">
     <value>Det som leverantören känner servern som: Entra ID:s Identifier, Oktas Audience URI.</value>
   </data>
+  <data name="What the receiving server answered" xml:space="preserve">
+    <value>Vad den mottagande servern svarade</value>
+  </data>
   <data name="What the sender is told when this list refuses the message" xml:space="preserve">
     <value>Det avsändaren får veta när den här listan avvisar meddelandet</value>
   </data>
@@ -13253,6 +13256,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Varför (valfritt)</value>
+  </data>
+  <data name="Why it was held" xml:space="preserve">
+    <value>Varför det hölls kvar</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Vidga en spärr till dess grannar</value>

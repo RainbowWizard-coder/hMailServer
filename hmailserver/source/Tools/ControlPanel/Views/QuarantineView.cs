@@ -1159,6 +1159,10 @@ namespace hMailServer.ControlPanel.Views
          var card = new Card { Padding = new Thickness(8), Content = host };
          parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
 
+         // Why the selected message was held, which was the row's tool tip alone
+         // (Views/RowDetailStrip).
+         parts.Children.Add(RowDetailStrip.For(list_, _ => L("Why it was held"), row => row is QuarantineRow { IsMessage: true } held ? held.Message.Reason : null));
+
          Content = root;
       }
 
