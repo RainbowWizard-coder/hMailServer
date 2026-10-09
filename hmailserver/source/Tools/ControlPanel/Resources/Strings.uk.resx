@@ -519,8 +519,8 @@
   <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
     <value>Вибрано нову фотографію; її буде збережено разом з обліковим записом.</value>
   </data>
-  <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
-    <value>Введено новий пароль облікового запису служби ТА встановлено прапорець «видалити збережений пароль». Зніміть одне з них — вгадувати, що саме малося на увазі, ця сторінка не має права.</value>
+  <data name="A new service account password has been typed, and &quot;Remove the stored service account password when saving&quot; is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>Введено новий пароль облікового запису служби, і водночас під ним встановлено прапорець «Вилучати збережений пароль облікового запису служби під час збереження». Очистьте пароль або зніміть прапорець — вгадувати, що саме малося на увазі, ця сторінка не має права.</value>
   </data>
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Для «{0}» введено нове значення, і водночас під ним встановлено прапорець «Вилучити збережений секрет під час збереження». Очистьте значення або зніміть прапорець — вгадувати, що саме малося на увазі, ця сторінка не має права.</value>

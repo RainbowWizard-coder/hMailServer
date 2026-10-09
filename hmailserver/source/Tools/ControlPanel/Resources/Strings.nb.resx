@@ -516,8 +516,8 @@
   <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
     <value>Et nytt bilde er valgt; det lagres sammen med kontoen.</value>
   </data>
-  <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
-    <value>Det er skrevet inn et nytt passord for tjenestekontoen OG «fjern det lagrede passordet» er krysset av. Fjern avkrysningen på én av dem - å gjette hva som var ment er ikke denne sidens avgjørelse.</value>
+  <data name="A new service account password has been typed, and &quot;Remove the stored service account password when saving&quot; is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>Det er skrevet inn et nytt passord for tjenestekontoen, og «Fjern det lagrede tjenestekontopassordet ved lagring» er krysset av under det. Tøm passordet eller fjern avkrysningen - å gjette hva som var ment er ikke denne sidens avgjørelse.</value>
   </data>
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Det er skrevet inn en ny verdi for «{0}», og «Fjern den lagrede hemmeligheten ved lagring» er krysset av under den. Tøm verdien eller fjern avkrysningen - å gjette hva som var ment er ikke denne sidens avgjørelse.</value>

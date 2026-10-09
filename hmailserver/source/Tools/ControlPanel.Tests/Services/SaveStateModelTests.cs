@@ -242,7 +242,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          int port = save.IndexOf("saveState_.Refuse(portError);", StringComparison.Ordinal);
          int timeout = save.IndexOf("saveState_.Refuse(timeoutError);", StringComparison.Ordinal);
-         int conflict = save.IndexOf("saveState_.Refuse(L(\"A new service account password has been typed AND", StringComparison.Ordinal);
+         int conflict = save.IndexOf("saveState_.Refuse(L(\"A new service account password has been typed, and", StringComparison.Ordinal);
          int writes = save.IndexOf("IniWrite_(", StringComparison.Ordinal);
          Assert.True(port >= 0 && timeout > port && conflict > timeout && writes > conflict,
             "Directory authentication does not refuse an invalid port, an invalid timeout and a conflicting password in its notice before it writes.");

@@ -516,8 +516,8 @@
   <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
     <value>已选择新照片，将随帐户一起保存。</value>
   </data>
-  <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
-    <value>既输入了新的服务账户密码，又勾选了“删除已存储的密码”。请取消其中之一 - 猜测您的本意不是本页应当作出的决定。</value>
+  <data name="A new service account password has been typed, and &quot;Remove the stored service account password when saving&quot; is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>既输入了新的服务账户密码，又勾选了其下方的“保存时移除已存储的服务账户密码”。请清除该密码或取消勾选 - 猜测您的本意不是本页应当作出的决定。</value>
   </data>
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>既为“{0}”输入了新值，又勾选了其下方的“保存时移除已存储的机密”。请清除该值或取消勾选 - 猜测您的本意不是本页应当作出的决定。</value>

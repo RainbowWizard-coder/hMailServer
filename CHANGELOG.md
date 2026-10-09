@@ -1199,20 +1199,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that could not be written, or that the page refused - Directory authentication's invalid port or timeout, or a new
   service account password typed with its removal ticked - in a Critical notice, brought into view with the header
   above it, where Directory synchronisation said it in the same grey caption as its success and Directory
-  authentication in a message box. When hMailServer.INI is not on this computer, both say so in that notice beside
-  an *Unavailable* pill, where Directory synchronisation said it in the footer's caption. The page scrolls whole, as
-  the feature settings pages do, so the smallest window keeps the cards. Directory synchronisation says *Restart to
-  apply* - after a save, and when the page is opened again before the service has restarted - while directory access
-  is on and the schedule in hMailServer.ini runs at another interval than the one the server registered as it last
-  started or reinitialised - none, when it started with directory access off - where it said after every save that a
-  change to the schedule needs a restart. A schedule changed while directory access is off, or to minutes the server
-  runs alike - 5 and 15, an empty value and 0 - waits for nothing. Directory authentication says the same, with the
-  restart, when its save switches directory access on over a schedule the running server did not register, where it
-  said that no service restart was needed. The *Restart the service…* in the notice of either page hands the keyboard
-  to *Save changes*, the header's control above the notice, as the restart begins and the notice drops the button,
-  where it went to the window, so that Tab started again from the window's first control and a screen reader said
-  nothing of where it was. And Directory synchronisation now notices when hMailServer.ini refused a write, which it
-  reported as saved.
+  authentication in a message box. That last refusal names the box by its caption, *Remove the stored service account
+  password when saving*, and asks for the password to be cleared or the box unticked, in every language as the
+  Authentication page's refusal of its secrets does, where it quoted "remove the stored password", which is on no box,
+  said AND in capitals, and asked for one of the two to be unticked. When hMailServer.INI is not on this computer,
+  both say so in that notice beside an *Unavailable* pill, where Directory synchronisation said it in the footer's
+  caption. The page scrolls whole, as the feature settings pages do, so the smallest window keeps the cards. Directory
+  synchronisation says *Restart to apply* - after a save, and when the page is opened again before the service has
+  restarted - while directory access is on and the schedule in hMailServer.ini runs at another interval than the one
+  the server registered as it last started or reinitialised - none, when it started with directory access off - where
+  it said after every save that a change to the schedule needs a restart. A schedule changed while directory access is
+  off, or to minutes the server runs alike - 5 and 15, an empty value and 0 - waits for nothing. Directory
+  authentication says the same, with the restart, when its save switches directory access on over a schedule the
+  running server did not register, where it said that no service restart was needed. The *Restart the service…* in the
+  notice of either page hands the keyboard to *Save changes*, the header's control above the notice, as the restart
+  begins and the notice drops the button, where it went to the window, so that Tab started again from the window's
+  first control and a screen reader said nothing of where it was. And Directory synchronisation now notices when
+  hMailServer.ini refused a write, which it reported as saved.
 
 - **Fixed: the lists on the domain and account dialogs' tabs saved as they were edited, under a dialog whose Cancel
   suggested nothing had been.** Adding, editing or deleting a domain alias or an entry of the domain's allow and

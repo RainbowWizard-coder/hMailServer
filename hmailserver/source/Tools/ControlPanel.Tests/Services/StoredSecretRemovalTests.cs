@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -82,6 +86,52 @@ namespace hMailServer.ControlPanel.Tests.Services
          string confirm = WithheldRowTests.MemberText(page, "private bool ConfirmPepperChange_()");
          Assert.True(confirm != null && confirm.Contains("PepperChange.RemovalAsksFirst(", StringComparison.Ordinal),
             "Removing the password pepper is not asked about.");
+      }
+
+      private const string LdapRefusal = "A new service account password has been typed, and \"Remove the stored service account password when saving\" is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make.";
+      private const string LdapBox = "Remove the stored service account pass_word when saving";
+      private const string SecretRefusal = "A new value has been typed for \"{0}\", and \"Remove the stored secret when saving\" is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make.";
+      private const string SecretBox = "Remove the stored secret when saving";
+
+      /// <summary>
+      /// The two refusals of the one conflict - a new value typed with the removal of
+      /// the stored one ticked - name the box by its caption, in English and in every
+      /// catalogue, so that the reader can find what to untick. Directory
+      /// authentication's quoted "remove the stored password", which is on no box, said
+      /// AND in capitals and asked for one of a password and a box to be unticked,
+      /// where the Authentication page refused the same conflict in whole words.
+      /// </summary>
+      [Theory]
+      [InlineData("Views/LdapSettingsView.cs", LdapRefusal, LdapBox)]
+      [InlineData("Views/FeatureSettingsView.xaml.cs", SecretRefusal, SecretBox)]
+      public void TheConflictsRefusal_NamesTheBoxByItsCaption_InEveryLanguage(string file, string refusal, string box)
+      {
+         string code = SaveStateModelTests.ReadControlPanelFile(file);
+         Assert.Contains("L(\"" + box.Replace("\"", "\\\"", StringComparison.Ordinal) + "\")", code, StringComparison.Ordinal);
+         Assert.Contains(refusal.Replace("\"", "\\\"", StringComparison.Ordinal), code, StringComparison.Ordinal);
+         Assert.Contains("\"" + MnemonicText.Strip(box) + "\"", refusal, StringComparison.Ordinal);
+         Assert.DoesNotContain(" AND ", refusal, StringComparison.Ordinal);
+
+         foreach (string path in Directory.GetFiles(SaveStateModelTests.ControlPanelDirectory() + Path.DirectorySeparatorChar + "Resources", "Strings.*.resx"))
+         {
+            Dictionary<string, string> catalogue = ReadResx_(path);
+            Assert.True(catalogue.TryGetValue(refusal, out string said) && said.Length > 0, Path.GetFileName(path) + " does not translate the refusal.");
+            Assert.True(catalogue.TryGetValue(box, out string caption) && caption.Length > 0, Path.GetFileName(path) + " does not translate the box.");
+
+            // The caption as the box draws it: its access key out, and a Chinese or
+            // Japanese caption's "(_W)" with it.
+            string drawn = Regex.Replace(MnemonicText.Strip(caption), @"\s*\([A-Z]\)$", "");
+            Assert.True(said.Contains(drawn, StringComparison.Ordinal),
+               Path.GetFileName(path) + ": the refusal does not name the box \"" + drawn + "\": " + said);
+         }
+      }
+
+      private static Dictionary<string, string> ReadResx_(string path)
+      {
+         var result = new Dictionary<string, string>(StringComparer.Ordinal);
+         foreach (XElement data in XDocument.Load(path).Root.Elements("data"))
+            result[(string)data.Attribute("name")] = data.Element("value")?.Value ?? "";
+         return result;
       }
    }
 }

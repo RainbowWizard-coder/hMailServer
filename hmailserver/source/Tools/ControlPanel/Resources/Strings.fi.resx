@@ -516,8 +516,8 @@
   <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
     <value>Uusi kuva on valittu; se tallennetaan tilin mukana.</value>
   </data>
-  <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
-    <value>Uusi palvelutilin salasana on kirjoitettu JA "poista tallennettu salasana" on rastitettu. Poista rasti toisesta – tämän sivun ei kuulu arvata kumpi oli tarkoitus.</value>
+  <data name="A new service account password has been typed, and &quot;Remove the stored service account password when saving&quot; is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>Uusi palvelutilin salasana on kirjoitettu, ja sen alla on rastitettu "Poista tallennettu palvelutilin salasana tallennettaessa". Tyhjennä salasana tai poista rasti – tämän sivun ei kuulu arvata kumpi oli tarkoitus.</value>
   </data>
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Kohteelle "{0}" on kirjoitettu uusi arvo, ja sen alla on rastitettu "Poista tallennettu salaisuus tallennettaessa". Tyhjennä arvo tai poista rasti – tämän sivun ei kuulu arvata kumpi oli tarkoitus.</value>

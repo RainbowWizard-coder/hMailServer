@@ -516,8 +516,8 @@
   <data name="A new photo has been chosen; it is saved with the account." xml:space="preserve">
     <value>A new photo has been chosen; it is saved with the account.</value>
   </data>
-  <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
-    <value>A new service account password has been typed AND "remove the stored password" is ticked. Untick one of them - guessing which was meant is not this page's decision to make.</value>
+  <data name="A new service account password has been typed, and &quot;Remove the stored service account password when saving&quot; is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>A new service account password has been typed, and "Remove the stored service account password when saving" is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make.</value>
   </data>
   <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>A new value has been typed for "{0}", and "Remove the stored secret when saving" is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make.</value>

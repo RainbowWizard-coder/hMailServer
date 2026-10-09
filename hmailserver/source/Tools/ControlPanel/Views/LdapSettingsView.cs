@@ -817,10 +817,13 @@ namespace hMailServer.ControlPanel.Views
             return false;
          }
 
+         // The conflict said as the Authentication page says its own, naming the box by
+         // its caption: it quoted "remove the stored password", which is on no box, said
+         // AND in capitals, and asked for one of a password and a box to be unticked.
          string newServicePassword = servicePassword_.Password;
          if (newServicePassword.Length > 0 && clearServicePassword_.IsChecked is true)
          {
-            saveState_.Refuse(L("A new service account password has been typed AND \"remove the stored password\" is ticked. Untick one of them - guessing which was meant is not this page's decision to make."));
+            saveState_.Refuse(L("A new service account password has been typed, and \"Remove the stored service account password when saving\" is ticked under it. Clear the password or untick the box - guessing which was meant is not this page's decision to make."));
             return false;
          }
 
