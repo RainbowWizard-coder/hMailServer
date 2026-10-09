@@ -223,13 +223,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("RefreshCaptions = new[] { N(\"_Refresh\"), N(\"_Reload\") }", commands, StringComparison.Ordinal);
          Assert.Contains("SaveCaptions = new[] { N(\"_Save changes\") }", commands, StringComparison.Ordinal);
 
-         // Pressed through the automation peer, so a disabled button stays unpressed.
-         Assert.Contains("GetPattern(PatternInterface.Invoke) is IInvokeProvider invoke", commands, StringComparison.Ordinal);
-
          // The scripts page's two buttons say more than their verbs and are marked.
          string scripts = ReadControlPanelFile(Path.Join("Views", "ScriptsView.cs"));
          Assert.Contains("PageCommands.SetCommand(save, PageCommand.Save);", scripts, StringComparison.Ordinal);
          Assert.Contains("PageCommands.SetCommand(reload, PageCommand.Refresh);", scripts, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// F5 and Ctrl+S press the button as a click does: the keyboard moves to
+      /// the button before it is pressed, so that a number typed in a box and not
+      /// yet taken in - a NumberBox takes its text into its Value only as it loses
+      /// the keyboard - is what Save writes and what makes Reload ask. Pressed
+      /// through the button's automation peer, which leaves the keyboard where it
+      /// is, Ctrl+S saved the old value and said Saved, and F5 threw the typing
+      /// away without asking. The key presses no disabled button, and the
+      /// keyboard goes back where it was unless the button put it elsewhere.
+      /// </summary>
+      [Fact]
+      public void PageCommands_MovesTheKeyboardToTheButtonBeforePressingIt()
+      {
+         string commands = ReadControlPanelFile(Path.Join("Views", "PageCommands.cs"));
+         Match press = Regex.Match(commands, @"public static bool Press\(DependencyObject page, PageCommand command\)\s*\{(?<body>[\s\S]*?)\n      \}");
+         Assert.True(press.Success, "PageCommands.Press was not found.");
+         string body = press.Groups["body"].Value;
+
+         int focus = body.IndexOf("Keyboard.Focus(button)", StringComparison.Ordinal);
+         int pressed = body.IndexOf("GridKeys.Press(button)", StringComparison.Ordinal);
+         int back = body.IndexOf("Keyboard.Focus(had)", StringComparison.Ordinal);
+         Assert.True(focus >= 0 && pressed > focus, "The keyboard must move to the button before it is pressed.");
+         Assert.True(back > pressed, "The keyboard goes back where it was after the press.");
+         Assert.DoesNotContain("IInvokeProvider", commands, StringComparison.Ordinal);
+
+         // GridKeys.Press leaves a disabled or hidden button alone.
+         string keys = ReadControlPanelFile(Path.Join("Views", "GridKeys.cs"));
+         Assert.Contains("if (button == null || !button.IsEnabled || !button.IsVisible)", keys, StringComparison.Ordinal);
       }
 
       private static string ReadControlPanelFile(string relative) => File.ReadAllText(Path.Join(ControlPanelDirectory(""), relative));

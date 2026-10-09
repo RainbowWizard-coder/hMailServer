@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Automation.Peers;
-using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
-using hMailServer.ControlPanel.Services;
+using System.Windows.Threading;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
@@ -30,10 +29,12 @@ namespace hMailServer.ControlPanel.Views
 
    /// <summary>
    /// What the window's F5, Ctrl+S and Ctrl+F reach on the page on screen. Each
-   /// presses the page's own button, the one a click would press, so that a key
-   /// does exactly what the button does: Reload asks before it throws edits away,
-   /// Save checks what it checks, and a button that cannot be pressed now - a
-   /// read that failed, nothing to save - cannot be pressed by its key either.
+   /// presses the page's own button as a click presses it - the keyboard moving
+   /// to the button first, so that what was typed in a box is taken in - so
+   /// that a key does what the button does: Reload asks before it throws edits
+   /// away, Save writes what is on screen and checks what it checks, and a button
+   /// that cannot be pressed now - a read that failed, nothing to save - cannot
+   /// be pressed by its key either.
    ///
    /// A page's buttons are found by their captions: Refresh on a list page and
    /// Reload on a settings page (the owner's decision of 9 October 2026, one fixed
@@ -61,10 +62,21 @@ namespace hMailServer.ControlPanel.Views
       public static readonly IReadOnlyList<string> SaveCaptions = new[] { N("_Save changes") };
 
       /// <summary>
-      /// Presses the page's button for <paramref name="command"/>, and says
-      /// whether there was one to press. Through the button's automation peer, as
-      /// a screen reader's Invoke would, so that its Click handlers and its
-      /// command both run and a disabled button is left alone.
+      /// Presses the page's button for <paramref name="command"/> as a click
+      /// presses it, and says whether there was one to press.
+      ///
+      /// A click first moves the keyboard to the button, and so does this: the box
+      /// that held the keyboard loses it, which is when a NumberBox reads what was
+      /// typed into its Value and a binding updated on LostFocus writes, and which
+      /// marks the page unsaved. Pressed without it - through the button's
+      /// automation peer, which leaves the keyboard where it is - Ctrl+S saved the
+      /// value the box held before the typing while the page said Saved over the
+      /// typed one, and F5 saw no unsaved change and threw the typing away without
+      /// asking. The button's handlers run before this returns (GridKeys.Press),
+      /// and then the keyboard goes back to where it was, since a key, unlike a
+      /// click, should not move it - unless the button put it somewhere itself.
+      /// Where the box is gone - Reload builds the page's rows again - it stays on
+      /// the button, where a click leaves it.
       /// </summary>
       public static bool Press(DependencyObject page, PageCommand command)
       {
@@ -72,21 +84,68 @@ namespace hMailServer.ControlPanel.Views
          if (button == null)
             return false;
 
-         try
+         IInputElement had = Keyboard.FocusedElement;
+         bool moved = button.Focusable && !ReferenceEquals(had, button) && ReferenceEquals(Keyboard.Focus(button), button);
+
+         if (!GridKeys.Press(button))
          {
-            if (UIElementAutomationPeer.CreatePeerForElement(button)?.GetPattern(PatternInterface.Invoke) is IInvokeProvider invoke)
-            {
-               invoke.Invoke();
-               return true;
-            }
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            // ElementNotEnabledException, between the check and the press.
+            // Not pressed - what the box took in left the button disabled - and
+            // the keyboard goes back to the box rather than stay on a button that
+            // cannot hold it.
+            if (moved && Holds_(had, except: null))
+               Keyboard.Focus(had);
+            return false;
          }
 
-         return false;
+         if (moved && !Holds_(Keyboard.FocusedElement, except: button))
+         {
+            if (Holds_(had, except: null))
+            {
+               Keyboard.Focus(had);
+               KeepTheKeyboard_(had, button);
+            }
+            else if (Holds_(button, except: null))
+            {
+               Keyboard.Focus(button);
+            }
+         }
+
+         return true;
       }
+
+      /// <summary>
+      /// Once the page has drawn what it read, puts the keyboard back on a list's
+      /// selected row where <paramref name="had"/>, a row of that list, went with
+      /// the rows the list read again - so that F5 in a list leaves the keyboard
+      /// in it - or else on <paramref name="fallback"/>, where nothing holds it.
+      /// </summary>
+      private static void KeepTheKeyboard_(IInputElement had, UIElement fallback)
+      {
+         Selector list = null;
+         for (DependencyObject d = had as DependencyObject; d != null && list == null; d = d is Visual ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+         {
+            if (d is DataGrid || d is ListBox)
+               list = (Selector)d;
+         }
+
+         if (list == null && fallback == null)
+            return;
+
+         Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+         {
+            if (Holds_(Keyboard.FocusedElement, except: null))
+               return;
+            if (list != null && list.IsVisible)
+               GridKeys.FocusSelectedRow(list);
+            else if (Holds_(fallback, except: null))
+               Keyboard.Focus(fallback);
+         }));
+      }
+
+      /// <summary>Whether <paramref name="element"/> is a control on screen that can hold the keyboard, and not <paramref name="except"/>.</summary>
+      private static bool Holds_(IInputElement element, IInputElement except)
+         => element is UIElement ui && !ReferenceEquals(element, except) && element is not Window
+            && ui.IsVisible && ui.IsEnabled && ui.Focusable && PresentationSource.FromDependencyObject(ui) != null;
 
       /// <summary>The page's button for <paramref name="command"/> that can be seen and pressed now, or null.</summary>
       public static ButtonBase Find(DependencyObject page, PageCommand command)
