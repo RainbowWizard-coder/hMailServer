@@ -75,7 +75,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(new PageHeader
          {
             Title = L("Transport encryption overview"),
-            Subtitle = L("What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited — each row opens the page that owns the setting."),
+            Subtitle = L("What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
             Actions = refresh
          });
 
@@ -502,7 +502,7 @@ namespace hMailServer.ControlPanel.Views
 
          identity.Children.Add(name);
 
-         var address = new TextBlock { Text = listener.Address };
+         var address = new TextBlock { Text = TlsPosture.ListenerAddress(listener.Address) };
          address.SetResourceReference(StyleProperty, "TextCaptionTertiary");
          identity.Children.Add(address);
 

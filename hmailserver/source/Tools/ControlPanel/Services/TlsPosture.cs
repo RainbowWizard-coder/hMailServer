@@ -607,5 +607,19 @@ namespace hMailServer.ControlPanel.Services
                "The certificate \"{0}\" expires in {1} days. It is not assigned to any listener.",
                name, days);
       }
+
+      /// <summary>
+      /// The address a listener is bound to, as the overview shows it under the
+      /// listener: "All addresses" for the wildcard the server stores as 0.0.0.0
+      /// (or :: for IPv6, or nothing), which read as an address of its own under
+      /// every listener (review finding F234); a particular address as it is.
+      /// </summary>
+      public static string ListenerAddress(string address)
+      {
+         string bound = (address ?? "").Trim();
+         return bound is "" or "0.0.0.0" or "::" or "[::]" // no-loc: the wildcard addresses
+            ? L("All addresses")
+            : bound;
+      }
    }
 }

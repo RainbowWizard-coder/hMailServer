@@ -1251,6 +1251,9 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Aliases are listed under their domain and can be deleted without touching the mailbox behind them." xml:space="preserve">
     <value>Os aliases são listados sob seu domínio e podem ser excluídos sem tocar na caixa por trás deles.</value>
   </data>
+  <data name="All addresses" xml:space="preserve">
+    <value>Todos os endereços</value>
+  </data>
   <data name="All documentation" xml:space="preserve">
     <value>Toda a documentação</value>
   </data>
@@ -4204,8 +4207,8 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Todo anexo é substituído por uma breve nota, não só o infectado; uma mensagem criptografada é entregue sem alteração.</value>
   </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each row opens the page that owns the setting." xml:space="preserve">
-    <value>Cada verificação na ordem em que o servidor as executa, e o que a pontuação que ela soma faz com a mensagem. Nada nesta página pode ser editado - cada linha abre a página dona da configuração.</value>
+  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Cada verificação na ordem em que o servidor as executa, e o que a pontuação que ela soma faz com a mensagem. Nada nesta página pode ser editado - cada seção tem um botão para a página dona das suas configurações.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Cada verificação na ordem em que o servidor as executa, sua pontuação, e o que o total faz com a mensagem.</value>
@@ -12601,8 +12604,8 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="What do you want to do?" xml:space="preserve">
     <value>O que você quer fazer?</value>
   </data>
-  <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited — each row opens the page that owns the setting." xml:space="preserve">
-    <value>O que cada ouvinte protege, o que ele apresenta para provar quem é, e o que ainda pode ser negociado. Nada nesta página pode ser editado — cada linha abre a página dona da configuração.</value>
+  <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>O que cada ouvinte protege, o que ele apresenta para provar quem é, e o que ainda pode ser negociado. Nada nesta página pode ser editado - cada seção tem um botão para a página dona das suas configurações.</value>
   </data>
   <data name="What every listener protects, which certificate it presents and when that expires, and what can still be negotiated." xml:space="preserve">
     <value>O que cada ouvinte protege, qual certificado ele apresenta e quando esse certificado expira, e o que ainda pode ser negociado.</value>
@@ -12847,8 +12850,8 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="Which scanners can actually run, what size of message is scanned, and what happens to one that is found to be infected." xml:space="preserve">
     <value>Quais verificadores conseguem de fato rodar, que tamanho de mensagem é verificado, e o que acontece com uma que se descobre infectada.</value>
   </data>
-  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited — each row opens the page that owns the setting." xml:space="preserve">
-    <value>Quais verificadores conseguem de fato rodar, o que se pede que eles examinem, e o que acontece com uma mensagem que um deles condena. Nada nesta página pode ser editado — cada linha abre a página dona da configuração.</value>
+  <data name="Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
+    <value>Quais verificadores conseguem de fato rodar, o que se pede que eles examinem, e o que acontece com uma mensagem que um deles condena. Nada nesta página pode ser editado - cada seção tem um botão para a página dona das suas configurações.</value>
   </data>
   <data name="Which services are running, who is connected right now, and how long the server has been up." xml:space="preserve">
     <value>Quais serviços estão em execução, quem está conectado neste momento, e há quanto tempo o servidor está no ar.</value>

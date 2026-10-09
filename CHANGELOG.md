@@ -973,6 +973,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   space, or ends with it after anything but the colon of a label, and `WholeTextsTests` holds the catalogue to the
   same rule and every list page's dialogs to their whole titles.
 
+- **Fixed: the overview pages promised rows that open a page, and the transport encryption overview showed 0.0.0.0 as
+  an address.** The transport encryption, spam and virus overviews said that each row opens the page that owns the
+  setting, but no row can be clicked: the button at the foot of each section is what opens a page, and the subtitles
+  now say so. Under each listener the transport encryption overview read "0.0.0.0", the server's way of storing "every
+  address", which it now shows as "All addresses" (and the same for :: and an empty binding). Both are translated in
+  all seventeen languages; `OverviewHonestyTests` holds them.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

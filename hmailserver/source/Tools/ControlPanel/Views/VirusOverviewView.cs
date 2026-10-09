@@ -76,7 +76,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(new PageHeader
          {
             Title = L("Virus scanning overview"),
-            Subtitle = L("Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited — each row opens the page that owns the setting."),
+            Subtitle = L("Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
             Actions = refresh
          });
 
