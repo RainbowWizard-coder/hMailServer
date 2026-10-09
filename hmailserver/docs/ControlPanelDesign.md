@@ -91,7 +91,7 @@ Five status colours and a neutral, as brushes that `ThemeTokens.Refresh` recompu
 | `AppWarningFillTextBrush` | #7D4E00 | #E3B341 | WindowText | The word and mark on it, and a Warning notice's. |
 | `AppDangerFillBrush` | #FFDAD6 | #522024 | Window | The fill of a Critical pill - "Connection lost". |
 | `AppDangerFillTextBrush` | #A40E26 | #FF9492 | WindowText | The word and mark on it, a Critical notice's, and a destructive button's words (`DangerTextButton`). |
-| `AppNeutralFillBrush` | #DFE4E9 | #3A4048 | Window | The fill of a Normal pill - "Not connected", a count, "Editing". |
+| `AppNeutralFillBrush` | #DFE4E9 | #3A4048 | Window | The fill of a Normal pill - "Not connected", a count. |
 | `AppNeutralFillTextBrush` | #424A53 | #D1D9E0 | GrayText | The word and mark on it. |
 | `AppStatusFillBorderThickness` | 0 | 0 | 1 | The pill's outline: none where the fill is the box, one pixel in the text colour under High Contrast, whose fill is the window colour. |
 
