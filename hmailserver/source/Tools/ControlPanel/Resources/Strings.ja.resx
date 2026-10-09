@@ -24,6 +24,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>「mx」は {0} の MX レコードが指すホストをすべて許可します。「a:{1}」は、このサーバーが HELO/EHLO で名乗るホスト名のアドレスを許可します (プロトコル &gt; SMTP &gt; ホスト名)。「~all」はそれ以外をソフトフェイルにします。リストが完全だと確信できるまでは、意図的に「-all」より緩くしてあります。</value>
   </data>
+  <data name="&quot;{0}&quot; ({1} from {2})" xml:space="preserve">
+    <value>「{0}」({2} からの {1})</value>
+  </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>「{0}」は保存されませんでした: {1}</value>
   </data>
@@ -1209,6 +1212,15 @@
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>転送メールに ARC シールを付けて、下流のサーバーが元の認証結果を信頼できるようにします (RFC 8617)。シールの付与は転送元ドメインの DKIM セレクターと秘密鍵を借りるため、DKIM 署名を設定したホスト済みドメインが少なくとも 1 つ必要です。それがないと、スイッチは有効と表示されるのに何もシールされず、その旨はデバッグ ログの 1 行にしか現れません。「セットアップ チェックリスト」ページが、この点についてドメインを確認します。</value>
   </data>
+  <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
+    <value>エントリのスコアを加算します。既定値の 100 ではメッセージが拒否されます。</value>
+  </data>
+  <data name="Adds the list's score." xml:space="preserve">
+    <value>リストのスコアを加算します。</value>
+  </data>
+  <data name="Adds the server's score." xml:space="preserve">
+    <value>サーバーのスコアを加算します。</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>管理</value>
   </data>
@@ -1244,6 +1256,9 @@
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>再初期化後</value>
+  </data>
+  <data name="After the body has arrived" xml:space="preserve">
+    <value>本文の受信後</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>本文の受信後 — ここでの拒否は 554 になります</value>
@@ -1386,11 +1401,17 @@
   <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
     <value>許可しました。エントリ数: {0}。解放したメッセージ: {1}。</value>
   </data>
+  <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
+    <value>許可: グレイリスティングもスコアによる拒否も行いません (チェック自体は実行されます)。ブロック: MAIL FROM の時点で拒否します。</value>
+  </data>
   <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
     <value>許可: グレイリストせず、スコアで拒否しない</value>
   </data>
   <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>許可: グレイリストせず、スパムスコアで拒否しない</value>
+  </data>
+  <data name="Allowed: the spam verdict is skipped. Blocked: held in the quarantine where that is on, otherwise marked as spam." xml:space="preserve">
+    <value>許可: スパム判定を省略します。ブロック: 検疫が有効なら検疫に保留し、無効ならスパムとしてマークします。</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>このサーバーの時計が署名者の時計とずれていることを許容します。これがないと、時計が数分進んでいるだけで、他人の正当なメールが DKIM の失敗になります。</value>
@@ -1699,8 +1720,23 @@
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>確認が必要</value>
   </data>
+  <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
+    <value>MAIL FROM の時点、スパムの除外の後</value>
+  </data>
+  <data name="At MAIL FROM, before any spam check" xml:space="preserve">
+    <value>MAIL FROM の時点、スパム チェックより前</value>
+  </data>
+  <data name="At RCPT TO, before greylisting" xml:space="preserve">
+    <value>RCPT TO の時点、グレイリスティングの前</value>
+  </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>RCPT TO の時点、本文が転送される前 — ここでの拒否は 550 になります</value>
+  </data>
+  <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
+    <value>RCPT TO の時点。DKIM または DMARC を必要とするエントリは DATA の後</value>
+  </data>
+  <data name="At delivery, recipient by recipient, after the account's own list and its domain's" xml:space="preserve">
+    <value>配信時に受信者ごと。アカウント自身のリストとそのドメインのリストの後</value>
   </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>印字可能な ASCII 文字で 12 文字以上。両方の欄を空のままにすると、すでに設定されているパスフレーズがそのまま残ります。サーバーはパスフレーズを返しません。このプログラムにも、ほかの誰にも返しません。バックアップの隣以外の場所に保管してください: 復元のときに必要になり、パスフレーズを失ったアーカイブからは誰も何も取り出せません。</value>
@@ -2353,6 +2389,9 @@
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>ポリシーを確認 (HTTPS)(_P)</value>
   </data>
+  <data name="Check a sender" xml:space="preserve">
+    <value>送信者を確認する</value>
+  </data>
   <data name="Check an address" xml:space="preserve">
     <value>アドレスを確認</value>
   </data>
@@ -2698,6 +2737,9 @@
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>{1} 経由で {0} に接続しました。</value>
   </data>
+  <data name="Connecting _IP address" xml:space="preserve">
+    <value>接続元の IP アドレス(_I)</value>
+  </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>接続元ホストのチェック</value>
   </data>
@@ -3014,6 +3056,12 @@
   </data>
   <data name="Could not read the list: " xml:space="preserve">
     <value>リストを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the list: {0}" xml:space="preserve">
+    <value>リストを読み取れませんでした: {0}</value>
+  </data>
+  <data name="Could not read the lists: {0}" xml:space="preserve">
+    <value>リストを読み取れませんでした: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>ログの状態を読み取れませんでした: {0}</value>
@@ -3847,6 +3895,9 @@
   </data>
   <data name="Delivery throughput" xml:space="preserve">
     <value>配信スループット</value>
+  </data>
+  <data name="Depends" xml:space="preserve">
+    <value>条件付き</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>ドメインに設定されている鍵から導き出されました: セレクター "{0}"、秘密鍵ファイル {1}。</value>
@@ -4903,6 +4954,9 @@
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>まず: どちらの半分が詰まっているか?</value>
   </data>
+  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>送信者を通すリストが 5 つ、止めるリストが 3 つあり、それぞれメッセージが届く過程の決まった時点で読まれ、メッセージの決まった部分と照合されます。メッセージが通る順に示します:</value>
+  </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>固定トークン (上級者向け。取得せずにそのまま使われます)</value>
   </data>
@@ -5949,6 +6003,9 @@
   <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
     <value>ロード バランサーや Postfix のリレーが、PROXY プロトコルまたは XCLIENT で実際のクライアント アドレスを伝えられるようにします。</value>
   </data>
+  <data name="Let past greylisting." xml:space="preserve">
+    <value>グレイリスティングを通過させます。</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>利用者が自分のディレクトリ エントリを編集できるようにする</value>
   </data>
@@ -5979,6 +6036,9 @@
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>クライアントがパスワードの代わりに ID プロバイダーのベアラー トークンでログオンできるようにします。トークンは、インストールした鍵素材で署名が検証できる場合にのみ受け入れられます。</value>
   </data>
+  <data name="Lets it through" xml:space="preserve">
+    <value>通す</value>
+  </data>
   <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be." xml:space="preserve">
     <value>メール クライアントが TCP 経由でアカウントごとの Sieve フィルター スクリプトをアップロードして管理できるようにします。認証はアカウント データベースに対する SASL PLAIN なので、メールボックスのパスワードがこの接続を流れます。STARTTLS は、TLS 対応のメールボックス ポートに借りられる証明書がある場合にのみ提供されます。提供されるかどうかは下の状態に表示されます。</value>
   </data>
@@ -5999,6 +6059,9 @@
   </data>
   <data name="Limits" xml:space="preserve">
     <value>制限</value>
+  </data>
+  <data name="List" xml:space="preserve">
+    <value>リスト</value>
   </data>
   <data name="List is _active" xml:space="preserve">
     <value>リストを有効にする(_A)</value>
@@ -6856,6 +6919,9 @@
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>これらのアドレスは決して自動 BAN しない (コンマ区切り。CIDR ブロック可)</value>
   </data>
+  <data name="Never greylisted." xml:space="preserve">
+    <value>グレイリスティングの対象になりません。</value>
+  </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>国で判定しないもの (アドレスと CIDR 範囲、コンマ区切り)</value>
   </data>
@@ -7021,6 +7087,9 @@
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>ブロック リストがないため、接続元のアドレスはどのリストでも照会されません。</value>
   </data>
+  <data name="No blocked sender matches this address." xml:space="preserve">
+    <value>このアドレスに一致するブロックされた送信者はありません。</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>ブロックされた送信者が定義されていないため、何も一致しません。このリストにはオン/オフのスイッチがなく、空のリストがオフの状態です。</value>
   </data>
@@ -7105,6 +7174,12 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>エントリがないため、この一覧は誰も許可もブロックもしません。アカウント自身の一覧とそのドメインの一覧は引き続き適用されます。</value>
   </data>
+  <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
+    <value>この送信者のドメインに該当するエントリはありません。HELO 名と照合するエントリは、ここでは確認しません。</value>
+  </data>
+  <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
+    <value>このアドレスに一致するエントリはないため、リストはスパム チェックに任せます。</value>
+  </data>
   <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
     <value>今日はエラーが記録されていません。{1} に {0} はありません。</value>
   </data>
@@ -7119,6 +7194,12 @@
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>実行ファイルが未設定</value>
+  </data>
+  <data name="No exemption covers this address." xml:space="preserve">
+    <value>このアドレスに該当する除外はありません。</value>
+  </data>
+  <data name="No exemption covers this sender." xml:space="preserve">
+    <value>この送信者に該当する除外はありません。</value>
   </data>
   <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
     <value>除外がないため、このリストによってスパム対策を免除される送信者はありません。</value>
@@ -7179,6 +7260,9 @@
   </data>
   <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
     <value>hMailServer.INI にログ フォルダーが設定されていないため、サーバーには復旧レポートを書き出す場所がありません。</value>
+  </data>
+  <data name="No match" xml:space="preserve">
+    <value>一致なし</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} に一致するアカウントはありません。</value>
@@ -7369,11 +7453,26 @@
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>正直に言って、ここからは確認していません: PTR の検証にはサーバーの「公開」IP アドレスが必要ですが、このパネルはそれを特定できず (NAT の背後ではコンピューター自身も知りません)、このページのチェッカーは TXT レコードと MX レコードしか読み取りません。代わりに外部からテストしてください: nslookup &lt;your public IP&gt; で PTR が表示され、上のホスト名を指しているはずです。</value>
   </data>
+  <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
+    <value>ここでは確認しません: SURBL は、メッセージの本文が届いた後にそのリンクについて問い合わせます。</value>
+  </data>
+  <data name="Not checked here: the DNS block lists are asked about the connecting address over DNS as mail arrives." xml:space="preserve">
+    <value>ここでは確認しません: DNS ブロック リストには、メールの到着時に接続元のアドレスを DNS で問い合わせます。</value>
+  </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
     <value>未確認です (更新プログラムを確認するか、下で毎日の確認をオンにしてください)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>未チェック: サーバーの設定を読み取れませんでした。</value>
+  </data>
+  <data name="Not checked: this list matches the connecting IP address, and none was given." xml:space="preserve">
+    <value>未確認: このリストは接続元の IP アドレスと照合しますが、アドレスが入力されていません。</value>
+  </data>
+  <data name="Not checked: this list matches the sender's address, and none was given." xml:space="preserve">
+    <value>未確認: このリストは送信者のアドレスと照合しますが、アドレスが入力されていません。</value>
+  </data>
+  <data name="Not checked: this list matches the sender's domain or the HELO name, and no address was given." xml:space="preserve">
+    <value>未確認: このリストは送信者のドメインまたは HELO 名と照合しますが、アドレスが入力されていません。</value>
   </data>
   <data name="Not connected" xml:space="preserve">
     <value>未接続</value>
@@ -10372,6 +10471,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sender MX check" xml:space="preserve">
     <value>送信者 MX チェック</value>
   </data>
+  <data name="Sender _address" xml:space="preserve">
+    <value>送信者のアドレス(_A)</value>
+  </data>
   <data name="Sender auth" xml:space="preserve">
     <value>送信者認証</value>
   </data>
@@ -10870,6 +10972,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Skipped, by reason" xml:space="preserve">
     <value>スキップ (理由別)</value>
   </data>
+  <data name="Skips every spam check: the message is never scored." xml:space="preserve">
+    <value>スパム チェックをすべて省略します。メッセージにスコアは付きません。</value>
+  </data>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>正当なメッセージに必要な数を超える受信者を指定するセッションを遅くします。この数を超えると、未認証セッションでのそれ以降の RCPT TO はすべて、応答の前に遅延を待ちます。辞書攻撃やスパム送信は数百のアドレスを指定してそれぞれの代償を払いますが、送信側 MTA は数個しか指定せず、この数に達しません。認証済みセッションと、スパム対策がオフの IP 範囲は対象外です。待機は接続上のタイマーであり、スレッドをスリープさせるものではありません。直ちに有効になります。</value>
   </data>
@@ -11052,6 +11157,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Stopping…" xml:space="preserve">
     <value>停止しています…</value>
+  </data>
+  <data name="Stops it" xml:space="preserve">
+    <value>止める</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>期日を過ぎたら無効にする</value>
@@ -11823,6 +11931,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>設定されたログ フォルダーがこのコンピューターに存在しません: {0}</value>
   </data>
+  <data name="The connecting IP address and the envelope sender, with wildcards" xml:space="preserve">
+    <value>接続元の IP アドレスとエンベロープ送信者 (ワイルドカード可)</value>
+  </data>
+  <data name="The connecting IP address, asked of each active list's DNS zone" xml:space="preserve">
+    <value>接続元の IP アドレスを、有効な各リストの DNS ゾーンに問い合わせます</value>
+  </data>
+  <data name="The connecting IP address, with wildcards" xml:space="preserve">
+    <value>接続元の IP アドレス (ワイルドカード可)</value>
+  </data>
   <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
     <value>hMailServer サービスへの接続が失われました。おそらく再起動されたものと思われます。コントロールパネルは自動的に再接続します。しばらくしてからもう一度お試しください。</value>
   </data>
@@ -11931,14 +12048,59 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
     <value>この項目はそのドメインからの次のセッションに適用されます。スパムテストを実行する IP 範囲からの未認証の受信セッションで参照され、認証を回避するために使われることはありません。</value>
   </data>
+  <data name="The entry {0} allows this domain: its mail is not greylisted or refused by score." xml:space="preserve">
+    <value>エントリ {0} はこのドメインを許可します。そのメールはグレイリスティングもスコアによる拒否も受けません。</value>
+  </data>
+  <data name="The entry {0} allows this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>エントリ {0} は、自身のリストとドメインのリストが何も指定していない受信者すべてについて、この送信者を許可します。</value>
+  </data>
+  <data name="The entry {0} blocks this domain: its mail is refused at MAIL FROM." xml:space="preserve">
+    <value>エントリ {0} はこのドメインをブロックします。そのメールは MAIL FROM の時点で拒否されます。</value>
+  </data>
+  <data name="The entry {0} blocks this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>エントリ {0} は、自身のリストとドメインのリストが何も指定していない受信者すべてについて、この送信者をブロックします。</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting when the message passes what it requires: {1}." xml:space="preserve">
+    <value>エントリ {0} により、メッセージが要件 ({1}) に合格すれば、この送信者はグレイリスティングを通過します。</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting." xml:space="preserve">
+    <value>エントリ {0} により、この送信者はグレイリスティングを通過します。</value>
+  </data>
+  <data name="The entry {0} matches, adding {1} to the score." xml:space="preserve">
+    <value>エントリ {0} が一致し、スコアに {1} を加算します。</value>
+  </data>
+  <data name="The envelope sender or the From address: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>エンベロープ送信者または From アドレス: 1 つのアドレス、またはサブドメインを含むドメイン</value>
+  </data>
   <data name="The envelope sender's domain" xml:space="preserve">
     <value>エンベロープ送信者のドメイン</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>エンベロープ送信者のドメイン (MAIL FROM)</value>
   </data>
+  <data name="The envelope sender's domain or the HELO name, exactly or with its subdomains" xml:space="preserve">
+    <value>エンベロープ送信者のドメインまたは HELO 名 (完全一致、またはサブドメインを含む)</value>
+  </data>
+  <data name="The envelope sender's domain or the HELO name, with an SPF, DKIM or DMARC pass" xml:space="preserve">
+    <value>エンベロープ送信者のドメインまたは HELO 名と、SPF、DKIM、DMARC の合格</value>
+  </data>
+  <data name="The envelope sender: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>エンベロープ送信者: 1 つのアドレス、またはサブドメインを含むドメイン</value>
+  </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>各ドメインが公開すべき正確な SPF、DKIM、DMARC、MTA-STS、TLS-RPT レコードと、それぞれが実際に公開されているかどうかのチェック。</value>
+  </data>
+  <data name="The exemption {0} covers this address, so it is never greylisted." xml:space="preserve">
+    <value>除外 {0} がこのアドレスに該当するため、グレイリスティングの対象になりません。</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when it connects from {1} - {2}." xml:space="preserve">
+    <value>除外 {0} がこの送信者に該当するのは、{1} - {2} から接続する場合だけです。</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when its address matches {1}." xml:space="preserve">
+    <value>除外 {0} がこの送信者に該当するのは、アドレスが {1} に一致する場合だけです。</value>
+  </data>
+  <data name="The exemption {0} covers this sender, so it skips every spam check." xml:space="preserve">
+    <value>除外 {0} がこの送信者に該当するため、スパム チェックはすべて省略されます。</value>
   </data>
   <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
     <value>期待するオーディエンスが設定されていないため、オーディエンスは確認されません</value>
@@ -12016,6 +12178,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
     <value>ホスト名 {0} は mail.example.com のような完全な DNS 名ではないため、どの DNS レコードとも一致しません。</value>
+  </data>
+  <data name="The host names of the links in the message" xml:space="preserve">
+    <value>メッセージ内のリンクのホスト名</value>
   </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>この id ({0}、たった今生成) は自由に選べます。どんな値でも正しいものです。唯一の役割は、ポリシーが変わるたびに変化してキャッシュに再取得させることです。</value>
@@ -12136,9 +12301,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The listeners could not be read." xml:space="preserve">
     <value>リスナーを読み取れませんでした。</value>
-  </data>
-  <data name="The lists behind the checks" xml:space="preserve">
-    <value>チェックの背後にあるリスト</value>
   </data>
   <data name="The live log carries the SMTP conversation, including the text the far end sent back." xml:space="preserve">
     <value>ライブ ログには、相手側が返したテキストを含む SMTP 会話が記録されます。</value>
@@ -13214,6 +13376,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Type the new password." xml:space="preserve">
     <value>新しいパスワードを入力してください。</value>
   </data>
+  <data name="Type the sender's address, the IP address it connects from, or both." xml:space="preserve">
+    <value>送信者のアドレス、接続元の IP アドレス、またはその両方を入力してください。</value>
+  </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>パスワードが属するユーザー名を入力してください。</value>
   </data>
@@ -13535,6 +13700,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>バックアップに含まれる内容、スケジュール、各アーカイブの検証、復元。</value>
   </data>
+  <data name="What a match does" xml:space="preserve">
+    <value>一致したときの動作</value>
+  </data>
   <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
     <value>新しいサーバーに必要なものを順番に: 完了したことと次に行うことを示すチェックリスト、このサーバーの種類に合った設定プロファイル、各ドメインが公開する DNS レコード。</value>
   </data>
@@ -13549,6 +13717,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="What do you want to do?" xml:space="preserve">
     <value>何をしますか?</value>
+  </data>
+  <data name="What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both." xml:space="preserve">
+    <value>MAIL FROM で示すアドレス、接続元のアドレス、またはその両方から、各リストが送信者をどう扱うかを示します。</value>
   </data>
   <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>各リスナーが何を保護し、自身を証明するために何を提示し、何がまだネゴシエートされ得るか。このページでは何も編集できません。各セクションに、その設定を持つページを開くボタンがあります。</value>
@@ -13603,6 +13774,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>用途</value>
+  </data>
+  <data name="What it matches" xml:space="preserve">
+    <value>照合する対象</value>
   </data>
   <data name="What it may do" xml:space="preserve">
     <value>できること</value>
@@ -13687,6 +13861,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
     <value>SMTP 会話のどの時点でブロック リスト検索を行うか。どのブロック リストを照会するかは DNS ブロック リスト (DNSBL) ページにあります。</value>
+  </data>
+  <data name="When it is read" xml:space="preserve">
+    <value>読まれる時点</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>エンドポイントに到達できない場合</value>
@@ -13798,6 +13975,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>どのディレクトリ エントリがメールボックスになるか</value>
+  </data>
+  <data name="Which list do I need?" xml:space="preserve">
+    <value>どのリストを使えばよいか</value>
   </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>どちらの一覧ですか? 異なる送信者またはドメインごとに 1 件のエントリが書き込まれ、それから各メッセージが処理されます。エントリを作成できないメッセージは、そのままにされます。</value>
@@ -13924,6 +14104,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
     <value>スケジュールが設定されていないため、次のバックアップは取得されません。</value>
+  </data>
+  <data name="With the checks before the body" xml:space="preserve">
+    <value>本文の受信前のチェックとともに</value>
+  </data>
+  <data name="With the checks before the body, first among them" xml:space="preserve">
+    <value>本文の受信前のチェックとともに、その最初に</value>
   </data>
   <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value>現在有効になっているチェックでは、到達し得る合計の最大値は {0} です。</value>
@@ -14113,6 +14299,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>ペッパーを変更(_C)</value>
+  </data>
+  <data name="_Check" xml:space="preserve">
+    <value>確認(_C)</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>構文を確認(_C)</value>
@@ -16017,6 +16206,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} folders." xml:space="preserve">
     <value>フォルダー {0} 件。</value>
   </data>
+  <data name="{0} from {1}" xml:space="preserve">
+    <value>{1} からの {0}</value>
+  </data>
   <data name="{0} h ago" xml:space="preserve">
     <value>{0} 時間前</value>
   </data>
@@ -16073,6 +16265,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} は決して自動 BAN されません: 逆引き名 {1} がこのアドレスに正引きで戻り、{2} の対象に含まれます。</value>
+  </data>
+  <data name="{0} is not an IP address." xml:space="preserve">
+    <value>{0} は IP アドレスではありません。</value>
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} はオンですがスコアが 0 のため、メッセージごとに参照のコストがかかるだけで、結果を変えることは決してありません。スコアを設定するか、オフにしてください。</value>

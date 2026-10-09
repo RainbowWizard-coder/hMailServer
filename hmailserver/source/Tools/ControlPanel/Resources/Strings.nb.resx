@@ -24,6 +24,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>«mx» autoriserer det MX-oppføringene til {0} peker på; «a:{1}» autoriserer adressen til vertsnavnet denne serveren oppgir i HELO/EHLO (Protokoller &gt; SMTP &gt; Vertsnavn). «~all» gir myk feil for alt annet - bevisst mildere enn «-all» til du er sikker på at listen er komplett.</value>
   </data>
+  <data name="&quot;{0}&quot; ({1} from {2})" xml:space="preserve">
+    <value>«{0}» ({1} fra {2})</value>
+  </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» ble ikke lagret: {1}</value>
   </data>
@@ -1209,6 +1212,15 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Legger ARC-forseglinger på videresendt e-post slik at servere lenger ned i kjeden kan stole på de opprinnelige autentiseringsresultatene (RFC 8617). Forseglingen låner DKIM-selektoren og den private nøkkelen til domenet som videresender, så den krever minst ett driftet domene med DKIM-signering satt opp - uten det står bryteren som påslått og forsegler ingenting, med bare en linje i feilsøkingsloggen som sier fra. Siden Sjekkliste for oppsett kontrollerer domenene dine for dette.</value>
   </data>
+  <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
+    <value>Legger til oppføringens poengsum; standardverdien 100 avviser meldingen.</value>
+  </data>
+  <data name="Adds the list's score." xml:space="preserve">
+    <value>Legger til listens poengsum.</value>
+  </data>
+  <data name="Adds the server's score." xml:space="preserve">
+    <value>Legger til serverens poengsum.</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Administrere</value>
   </data>
@@ -1244,6 +1256,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Etter reinitialisering</value>
+  </data>
+  <data name="After the body has arrived" xml:space="preserve">
+    <value>Etter at selve innholdet har kommet</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Etter at meldingskroppen er mottatt — en avvisning her er en 554</value>
@@ -1386,11 +1401,17 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
     <value>Tillatt. Listeoppføringer: {0}. Frigitte meldinger: {1}.</value>
   </data>
+  <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
+    <value>Tillatt: ingen grålisting og ingen avvisning etter poeng, selv om kontrollene fortsatt kjører. Blokkert: avvist ved MAIL FROM.</value>
+  </data>
   <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
     <value>Tillatt: ikke grålistet, ikke avvist på poeng</value>
   </data>
   <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Tillatt: ikke grålistet, ikke avvist på søppelpostpoengsummen</value>
+  </data>
+  <data name="Allowed: the spam verdict is skipped. Blocked: held in the quarantine where that is on, otherwise marked as spam." xml:space="preserve">
+    <value>Tillatt: spamavgjørelsen hoppes over. Blokkert: holdt tilbake i karantenen der den er på, ellers merket som spam.</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Tar høyde for at klokken på denne serveren avviker fra signererens. Uten dette gjør en klokke som går noen minutter fort andres gyldige e-post om til DKIM-feil.</value>
@@ -1699,8 +1720,23 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Krever en bekreftelse</value>
   </data>
+  <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
+    <value>Ved MAIL FROM, etter spamunntakene</value>
+  </data>
+  <data name="At MAIL FROM, before any spam check" xml:space="preserve">
+    <value>Ved MAIL FROM, før noen spamkontroll</value>
+  </data>
+  <data name="At RCPT TO, before greylisting" xml:space="preserve">
+    <value>Ved RCPT TO, før grålisting</value>
+  </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>Ved RCPT TO, før meldingskroppen overføres — en avvisning her er en 550</value>
+  </data>
+  <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
+    <value>Ved RCPT TO, eller etter DATA for en oppføring som krever DKIM eller DMARC</value>
+  </data>
+  <data name="At delivery, recipient by recipient, after the account's own list and its domain's" xml:space="preserve">
+    <value>Ved levering, mottaker for mottaker, etter kontoens egen liste og domenets</value>
   </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Minst 12 utskrivbare ASCII-tegn. La begge feltene stå tomme for å beholde passordfrasen som allerede er satt. Serveren gir den aldri tilbake - verken til dette programmet eller til noen andre - så oppbevar den et annet sted enn ved siden av sikkerhetskopiene: en gjenoppretting ber om den, og fra et arkiv med tapt passordfrase får ingen hentet noe.</value>
@@ -2353,6 +2389,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Sjekk _policy (HTTPS)</value>
   </data>
+  <data name="Check a sender" xml:space="preserve">
+    <value>Kontroller en avsender</value>
+  </data>
   <data name="Check an address" xml:space="preserve">
     <value>Kontroller en adresse</value>
   </data>
@@ -2698,6 +2737,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Koblet til {0} over {1}.</value>
   </data>
+  <data name="Connecting _IP address" xml:space="preserve">
+    <value>Tilkoblende _IP-adresse</value>
+  </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Kontroller av tilkoblende vert</value>
   </data>
@@ -3014,6 +3056,12 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Could not read the list: " xml:space="preserve">
     <value>Kunne ikke lese listen: </value>
+  </data>
+  <data name="Could not read the list: {0}" xml:space="preserve">
+    <value>Kunne ikke lese listen: {0}</value>
+  </data>
+  <data name="Could not read the lists: {0}" xml:space="preserve">
+    <value>Kunne ikke lese listene: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Kunne ikke lese loggingstilstanden: {0}</value>
@@ -3847,6 +3895,9 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   </data>
   <data name="Delivery throughput" xml:space="preserve">
     <value>Leveringsgjennomstrømning</value>
+  </data>
+  <data name="Depends" xml:space="preserve">
+    <value>Det kommer an på</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>Utledet fra domenets konfigurerte nøkkel: selektor "{0}", privat nøkkelfil {1}.</value>
@@ -4903,6 +4954,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Først: hvilken halvdel sitter fast?</value>
   </data>
+  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Fem lister slipper en avsender gjennom og tre stopper en; hver leses på sitt eget tidspunkt mens meldingen kommer inn, og sammenlignes med sin egen del av den. I den rekkefølgen en melding møter dem:</value>
+  </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Fast token (avansert; brukes ordrett i stedet for å hentes)</value>
   </data>
@@ -5949,6 +6003,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
     <value>La en lastbalanserer eller et Postfix-relé gi videre klientens virkelige adresse med PROXY-protokollen eller XCLIENT.</value>
   </data>
+  <data name="Let past greylisting." xml:space="preserve">
+    <value>Slippes forbi grålistingen.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>La folk redigere sin egen katalogoppføring</value>
   </data>
@@ -5979,6 +6036,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>Lar klienter logge på med bearer-tokens fra en identitetsleverandør i stedet for passord; tokens godtas bare hvis signaturen verifiseres mot nøkkelmateriale du installerer.</value>
   </data>
+  <data name="Lets it through" xml:space="preserve">
+    <value>Slipper den gjennom</value>
+  </data>
   <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be." xml:space="preserve">
     <value>Lar e-postklienter laste opp og administrere Sieve-filterskript per konto over TCP. Autentisering er SASL PLAIN mot kontodatabasen, så postbokspassordet krysser denne forbindelsen. STARTTLS tilbys bare når en TLS-kapabel postboksport har et sertifikat å låne - statusen nedenfor sier om det blir slik.</value>
   </data>
@@ -5999,6 +6059,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Limits" xml:space="preserve">
     <value>Grenser</value>
+  </data>
+  <data name="List" xml:space="preserve">
+    <value>Liste</value>
   </data>
   <data name="List is _active" xml:space="preserve">
     <value>Listen er _aktiv</value>
@@ -6856,6 +6919,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Utesteng aldri disse adressene automatisk (kommaseparert; CIDR-blokker tillatt)</value>
   </data>
+  <data name="Never greylisted." xml:space="preserve">
+    <value>Grålistes aldri.</value>
+  </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Vurderes aldri etter land (adresser og CIDR-områder, kommaseparert)</value>
   </data>
@@ -7021,6 +7087,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>Ingen blokkeringslister, så tilkoblende adresser slås ikke opp i noen.</value>
   </data>
+  <data name="No blocked sender matches this address." xml:space="preserve">
+    <value>Ingen blokkert avsender treffer denne adressen.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Ingen blokkerte avsendere er definert, så ingenting treffes. Listen har ingen av/på-bryter - en tom liste er av-tilstanden.</value>
   </data>
@@ -7105,6 +7174,12 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Ingen oppføringer, så denne listen tillater og blokkerer ingen; en kontos egen liste og domenets gjelder fortsatt.</value>
   </data>
+  <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
+    <value>Ingen oppføring dekker domenet til denne avsenderen; oppføringer som sammenlignes med HELO-navnet, kontrolleres ikke her.</value>
+  </data>
+  <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
+    <value>Ingen oppføring treffer denne adressen, så listen overlater den til spamkontrollene.</value>
+  </data>
   <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
     <value>Ingen feil er logget i dag: det finnes ingen fil {0} i {1}.</value>
   </data>
@@ -7119,6 +7194,12 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Ingen kjørbar fil satt</value>
+  </data>
+  <data name="No exemption covers this address." xml:space="preserve">
+    <value>Ingen unntak dekker denne adressen.</value>
+  </data>
+  <data name="No exemption covers this sender." xml:space="preserve">
+    <value>Ingen unntak dekker denne avsenderen.</value>
   </data>
   <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
     <value>Ingen unntak, så denne listen slipper ingen avsendere forbi spambeskyttelsen.</value>
@@ -7179,6 +7260,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
     <value>Ingen loggmappe er konfigurert i hMailServer.INI, så serveren har ingen steder å skrive gjenopprettingsrapporten.</value>
+  </data>
+  <data name="No match" xml:space="preserve">
+    <value>Ingen treff</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ingen samsvarende kontoer i {0}.</value>
@@ -7369,11 +7453,26 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Ikke kontrollert herfra, ærlig talt: å verifisere PTR krever serverens OFFENTLIGE IP-adresse, som dette panelet ikke kan fastslå (bak NAT vet maskinen det heller ikke), og denne sidens kontroll leser bare TXT- og MX-oppføringer. Test utenfra i stedet: nslookup &lt;your public IP&gt; viser PTR; den bør navngi verten ovenfor.</value>
   </data>
+  <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
+    <value>Kontrolleres ikke her: SURBL spørres om lenkene i en melding når innholdet har kommet.</value>
+  </data>
+  <data name="Not checked here: the DNS block lists are asked about the connecting address over DNS as mail arrives." xml:space="preserve">
+    <value>Kontrolleres ikke her: DNS-blokkeringslistene spørres om den tilkoblende adressen over DNS når e-posten kommer.</value>
+  </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
     <value>Ikke kontrollert ennå (Se etter oppdateringer, eller slå på den daglige kontrollen nedenfor)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Ikke kontrollert: serverens innstillinger kunne ikke leses.</value>
+  </data>
+  <data name="Not checked: this list matches the connecting IP address, and none was given." xml:space="preserve">
+    <value>Ikke kontrollert: denne listen sammenlignes med den tilkoblende IP-adressen, og ingen ble oppgitt.</value>
+  </data>
+  <data name="Not checked: this list matches the sender's address, and none was given." xml:space="preserve">
+    <value>Ikke kontrollert: denne listen sammenlignes med avsenderens adresse, og ingen ble oppgitt.</value>
+  </data>
+  <data name="Not checked: this list matches the sender's domain or the HELO name, and no address was given." xml:space="preserve">
+    <value>Ikke kontrollert: denne listen sammenlignes med avsenderens domene eller HELO-navnet, og ingen adresse ble oppgitt.</value>
   </data>
   <data name="Not connected" xml:space="preserve">
     <value>Ikke tilkoblet</value>
@@ -10372,6 +10471,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Sender MX check" xml:space="preserve">
     <value>Avsender-MX-kontroll</value>
   </data>
+  <data name="Sender _address" xml:space="preserve">
+    <value>_Avsenderadresse</value>
+  </data>
   <data name="Sender auth" xml:space="preserve">
     <value>Avsenderautentisering</value>
   </data>
@@ -10870,6 +10972,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Skipped, by reason" xml:space="preserve">
     <value>Hoppet over, etter årsak</value>
   </data>
+  <data name="Skips every spam check: the message is never scored." xml:space="preserve">
+    <value>Hopper over alle spamkontroller: meldingen får aldri poeng.</value>
+  </data>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>Bremser en økt som nevner flere mottakere enn en legitim melding trenger. Over antallet venter hver ytterligere RCPT TO i en uautentisert økt på forsinkelsen før den besvares - et ordbokangrep eller en spamkjøring nevner hundrevis av adresser og betaler for hver av dem, mens en avsendende MTA nevner en håndfull og aldri når antallet. Autentiserte økter og IP-områder med spambeskyttelse slått av er unntatt. Ventingen er en tidtaker på forbindelsen, ikke en sovende tråd. Trer i kraft med en gang.</value>
   </data>
@@ -11052,6 +11157,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Stopping…" xml:space="preserve">
     <value>Stopper…</value>
+  </data>
+  <data name="Stops it" xml:space="preserve">
+    <value>Stopper den</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Slutter å gjelde på en dato</value>
@@ -11823,6 +11931,15 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Den konfigurerte loggmappen finnes ikke på denne maskinen: {0}</value>
   </data>
+  <data name="The connecting IP address and the envelope sender, with wildcards" xml:space="preserve">
+    <value>Den tilkoblende IP-adressen og konvoluttavsenderen, med jokertegn</value>
+  </data>
+  <data name="The connecting IP address, asked of each active list's DNS zone" xml:space="preserve">
+    <value>Den tilkoblende IP-adressen, slått opp i DNS-sonen til hver aktive liste</value>
+  </data>
+  <data name="The connecting IP address, with wildcards" xml:space="preserve">
+    <value>Den tilkoblende IP-adressen, med jokertegn</value>
+  </data>
   <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
     <value>Forbindelsen til hMailServer-tjenesten gikk tapt - den ble mest sannsynlig startet på nytt. Control Panel kobler til igjen av seg selv; prøv igjen om et øyeblikk.</value>
   </data>
@@ -11931,14 +12048,59 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
     <value>Oppføringen gjelder neste økt fra det domenet. Den konsulteres for uautentiserte innkommende økter fra et IP-område som kjører søppelposttestene, og aldri for å omgå autentisering.</value>
   </data>
+  <data name="The entry {0} allows this domain: its mail is not greylisted or refused by score." xml:space="preserve">
+    <value>Oppføringen {0} tillater dette domenet: e-posten derfra grålistes ikke og avvises ikke etter poeng.</value>
+  </data>
+  <data name="The entry {0} allows this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>Oppføringen {0} tillater denne avsenderen for alle mottakere der egen liste og domenets liste ikke sier noe.</value>
+  </data>
+  <data name="The entry {0} blocks this domain: its mail is refused at MAIL FROM." xml:space="preserve">
+    <value>Oppføringen {0} blokkerer dette domenet: e-posten derfra avvises ved MAIL FROM.</value>
+  </data>
+  <data name="The entry {0} blocks this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>Oppføringen {0} blokkerer denne avsenderen for alle mottakere der egen liste og domenets liste ikke sier noe.</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting when the message passes what it requires: {1}." xml:space="preserve">
+    <value>Oppføringen {0} slipper denne avsenderen forbi grålistingen når meldingen består det den krever: {1}.</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting." xml:space="preserve">
+    <value>Oppføringen {0} slipper denne avsenderen forbi grålistingen.</value>
+  </data>
+  <data name="The entry {0} matches, adding {1} to the score." xml:space="preserve">
+    <value>Oppføringen {0} treffer og legger {1} til poengsummen.</value>
+  </data>
+  <data name="The envelope sender or the From address: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>Konvoluttavsenderen eller From-adressen: én adresse, eller et domene med underdomenene</value>
+  </data>
   <data name="The envelope sender's domain" xml:space="preserve">
     <value>Konvoluttavsenderens domene</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>Konvoluttavsenderens domene (MAIL FROM)</value>
   </data>
+  <data name="The envelope sender's domain or the HELO name, exactly or with its subdomains" xml:space="preserve">
+    <value>Domenet til konvoluttavsenderen eller HELO-navnet, nøyaktig eller med underdomenene</value>
+  </data>
+  <data name="The envelope sender's domain or the HELO name, with an SPF, DKIM or DMARC pass" xml:space="preserve">
+    <value>Domenet til konvoluttavsenderen eller HELO-navnet, med bestått SPF, DKIM eller DMARC</value>
+  </data>
+  <data name="The envelope sender: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>Konvoluttavsenderen: én adresse, eller et domene med underdomenene</value>
+  </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>De nøyaktige SPF-, DKIM-, DMARC-, MTA-STS- og TLS-RPT-oppføringene hvert domene bør publisere, med en sjekk av om hver av dem er live.</value>
+  </data>
+  <data name="The exemption {0} covers this address, so it is never greylisted." xml:space="preserve">
+    <value>Unntaket {0} dekker denne adressen, så den grålistes aldri.</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when it connects from {1} - {2}." xml:space="preserve">
+    <value>Unntaket {0} dekker denne avsenderen bare når den kobler til fra {1} - {2}.</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when its address matches {1}." xml:space="preserve">
+    <value>Unntaket {0} dekker denne avsenderen bare når adressen samsvarer med {1}.</value>
+  </data>
+  <data name="The exemption {0} covers this sender, so it skips every spam check." xml:space="preserve">
+    <value>Unntaket {0} dekker denne avsenderen, så den hopper over alle spamkontroller.</value>
   </data>
   <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
     <value>Forventet publikum er ikke satt, så publikum kontrolleres ikke</value>
@@ -12016,6 +12178,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
     <value>Vertsnavnet {0} er ikke et fullt DNS-navn, som mail.example.com, så ingen DNS-oppføring kan stemme med det.</value>
+  </data>
+  <data name="The host names of the links in the message" xml:space="preserve">
+    <value>Vertsnavnene i meldingens lenker</value>
   </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Id-en ({0}, nettopp generert) er din å velge - enhver verdi er riktig. Dens eneste jobb er å endre seg hver gang policyen endres, slik at mellomlagre henter på nytt.</value>
@@ -12136,9 +12301,6 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   </data>
   <data name="The listeners could not be read." xml:space="preserve">
     <value>Lytterne kunne ikke leses.</value>
-  </data>
-  <data name="The lists behind the checks" xml:space="preserve">
-    <value>Listene bak kontrollene</value>
   </data>
   <data name="The live log carries the SMTP conversation, including the text the far end sent back." xml:space="preserve">
     <value>Den levende loggen inneholder SMTP-samtalen, inkludert teksten den andre enden sendte tilbake.</value>
@@ -13214,6 +13376,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Type the new password." xml:space="preserve">
     <value>Skriv inn det nye passordet.</value>
   </data>
+  <data name="Type the sender's address, the IP address it connects from, or both." xml:space="preserve">
+    <value>Skriv avsenderens adresse, IP-adressen den kobler til fra, eller begge.</value>
+  </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Skriv inn brukernavnet passordet tilhører.</value>
   </data>
@@ -13535,6 +13700,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Hva en sikkerhetskopi inneholder, tidsplanen, verifisering av hvert arkiv og gjenoppretting.</value>
   </data>
+  <data name="What a match does" xml:space="preserve">
+    <value>Hva et treff gjør</value>
+  </data>
   <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
     <value>Det en ny server trenger, i rekkefølge: sjekklisten over hva som er gjort og hva som er neste, en innstillingsprofil for den typen server det er, og DNS-oppføringene hvert domene publiserer.</value>
   </data>
@@ -13549,6 +13717,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="What do you want to do?" xml:space="preserve">
     <value>Hva vil du gjøre?</value>
+  </data>
+  <data name="What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both." xml:space="preserve">
+    <value>Hva hver liste gjør med en avsender, ut fra adressen den oppgir ved MAIL FROM, adressen den kobler til fra, eller begge.</value>
   </data>
   <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Hva hver lytter beskytter, hva den presenterer for å bevise hvem den er, og hva som fortsatt kan forhandles. Ingenting på denne siden kan redigeres - hver del har en knapp til siden som eier innstillingene for den.</value>
@@ -13603,6 +13774,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Hva den er til</value>
+  </data>
+  <data name="What it matches" xml:space="preserve">
+    <value>Hva den sammenlignes med</value>
   </data>
   <data name="What it may do" xml:space="preserve">
     <value>Hva den kan gjøre</value>
@@ -13687,6 +13861,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
     <value>Når i SMTP-samtalen blokkeringslisteoppslag skjer. Hvilke blokkeringslister som spørres, er på siden DNS-blokkeringslister (DNSBL).</value>
+  </data>
+  <data name="When it is read" xml:space="preserve">
+    <value>Når den leses</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Når endepunktet ikke kan nås</value>
@@ -13798,6 +13975,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Hvilke katalogoppføringer som blir postbokser</value>
+  </data>
+  <data name="Which list do I need?" xml:space="preserve">
+    <value>Hvilken liste trenger jeg?</value>
   </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Hvilken liste? Det skrives én oppføring for hver enkelt avsender eller domene, og deretter behandles hver melding. En melding det ikke kan lages en oppføring for, blir liggende der den er.</value>
@@ -13924,6 +14104,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
     <value>Uten en konfigurert tidsplan er det ingenting som tar den neste.</value>
+  </data>
+  <data name="With the checks before the body" xml:space="preserve">
+    <value>Sammen med kontrollene før selve innholdet</value>
+  </data>
+  <data name="With the checks before the body, first among them" xml:space="preserve">
+    <value>Sammen med kontrollene før selve innholdet, først av dem</value>
   </data>
   <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value>Med kontrollene som er slått på nå, er den høyeste totalen som kan nås {0}.</value>
@@ -14113,6 +14299,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Endre pepperen</value>
+  </data>
+  <data name="_Check" xml:space="preserve">
+    <value>_Kontroller</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Kontroller syntaks</value>
@@ -16017,6 +16206,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mapper.</value>
   </data>
+  <data name="{0} from {1}" xml:space="preserve">
+    <value>{0} fra {1}</value>
+  </data>
   <data name="{0} h ago" xml:space="preserve">
     <value>for {0} t siden</value>
   </data>
@@ -16073,6 +16265,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} utestenges aldri automatisk: dens omvendte navn {1} peker tilbake til den og er dekket av {2}.</value>
+  </data>
+  <data name="{0} is not an IP address." xml:space="preserve">
+    <value>{0} er ikke en IP-adresse.</value>
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} er på, men gir 0 poeng, så den koster et oppslag på hver melding og kan aldri endre utfallet. Gi den en poengsum, eller slå den av.</value>

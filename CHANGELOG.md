@@ -2222,6 +2222,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   once, fading unless Windows has animations turned off and in the system highlight under High Contrast (review
   finding F274).
 
+- **New: the spam filtering overview says which list to use, and checks a sender against every list.** Five lists
+  let a sender through and three stop one - the spam exemptions, the allowed and blocked domains, the blocked senders,
+  the DNS block lists, the greylisting exemptions, the greylisting bypass list, SURBL and the allow and block list -
+  and each page explained at most one neighbour, with nothing to say whether a sender was on any of them. The
+  overview's "The lists behind the checks" is now "Which list do I need?": one row for each list, in the order a
+  message meets them, with when the server reads it, what it is matched against and what a match does, its page and
+  its count. Under it, "Check a sender" takes an address, a connecting IP address or both and says what each list
+  does with them - stops it, lets it through, depends on a condition (an IP range, an SPF, DKIM or DMARC pass), no
+  match, or not checked - by the rules the server matches each list by: the exemptions' IP ranges and address
+  wildcards, an entry with an @ as one exact address and one without as a domain with its subdomains, the most
+  specific entry of the allow and block list and a block on a tie, an expired entry skipped, the greylisting
+  exemptions' wildcards, and an exact domain over a .suffix. The DNS block lists and SURBL are asked of the network as
+  mail arrives and are not checked here, nor are entries matched against the HELO name alone; a list that cannot be
+  read says so while the others answer (review finding F269).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

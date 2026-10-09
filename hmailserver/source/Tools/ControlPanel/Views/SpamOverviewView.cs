@@ -17,6 +17,7 @@ using hMailServer.ControlPanel.Services;
 // Inlines, so the reference is aliased to the one meant rather than dropping the import.
 using Typography = hMailServer.ControlPanel.Services.Typography;
 using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
+using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
@@ -45,6 +46,10 @@ namespace hMailServer.ControlPanel.Views
    /// </summary>
    public class SpamOverviewView : UserControl, IPageLifecycle
    {
+      // The card width under which "Which list do I need?" gives its four columns up
+      // for one block a list.
+      private const double GuideTableWidth = 720;
+
       private readonly StackPanel body_ = new();
 
       // A read that failed is a warning in the flow of the page, not a grey line
@@ -61,6 +66,16 @@ namespace hMailServer.ControlPanel.Views
 
       // The page's title, whose status is the count of problems found.
       private readonly PageHeader header_;
+
+      // "Check a sender" (review finding F269), built once and put back on every
+      // read, so that what was typed outlives a Refresh. Its answer is cleared by
+      // a read: the lists may have changed under it.
+      private readonly System.Windows.Controls.TextBox checkAddress_ = new() { MinWidth = 260 };
+      private readonly System.Windows.Controls.TextBox checkIp_ = new() { MinWidth = 180 };
+      private readonly Wpf.Ui.Controls.Button checkButton_ = new() { Content = L("_Check"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
+      private readonly InlineNotice checkNotice_ = new() { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 8, 0, 0) };
+      private readonly StackPanel checkResults_ = new() { Margin = new Thickness(0, 8, 0, 0) };
+      private Card checkCard_;
 
       public SpamOverviewView()
       {
@@ -362,6 +377,7 @@ namespace hMailServer.ControlPanel.Views
          body_.Children.Add(ChecksCard(config));
          body_.Children.Add(GreylistingCard(config));
          body_.Children.Add(ListsCard(config));
+         body_.Children.Add(CheckCard_());
 
          if (worthKnowing.Count > 0)
             body_.Children.Add(NotesCard(worthKnowing));
@@ -585,43 +601,385 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
+      /// <summary>
+      /// "Which list do I need?": the eight lists that let a sender through or stop
+      /// one, in the order a message meets them, each with when it is read, what it
+      /// is matched against and what a match does, its page and its count (review
+      /// finding F269). The card was "The lists behind the checks", seven names and
+      /// counts; there are five ways to let a sender through and three to stop one,
+      /// and only one of their pages said how it differed from another. The words
+      /// are <see cref="SenderListGuide"/>'s, which says where in the server each
+      /// comes from.
+      /// </summary>
       private Card ListsCard(SpamPipelineConfig config)
       {
-         Card card = Section(L("The lists behind the checks"), out StackPanel content);
+         Card card = Section(L("Which list do I need?"), out StackPanel content);
+         content.Children.Add(Paragraph(L("Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:"),
+            Typography.Caption));
 
-         content.Children.Add(ListRow(L("DNS block lists (DNSBL)"), config.ActiveDnsBlackLists, config.TotalDnsBlackLists, "dnsbl"));
-         content.Children.Add(ListRow(L("SURBL servers"), config.ActiveSurblServers, config.TotalSurblServers, "surbl"));
-         content.Children.Add(ListRow(L("Spam exemptions"), null, config.WhiteListEntries, "spamwhitelist"));
-         content.Children.Add(ListRow(L("Greylisting exemptions"), null, config.GreylistWhiteListEntries, "greylistwhitelist"));
-         content.Children.Add(ListRow(L("Greylisting bypass list"), null, config.GreylistBypassEntries, "greylistbypass"));
-         content.Children.Add(ListRow(L("Allow and block list"), null, config.SenderListEntries, "senderlist"));
-         content.Children.Add(ListRow(L("Allowed and blocked domains"), null, config.DomainPolicyListEntries, "domainpolicylist"));
+         // The list's names as wide as the widest of them, so that none is cut, and the
+         // three answers sharing what is left.
+         var grid = new Grid { Margin = new Thickness(0, 4, 0, 0) };
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                         // the list and its count
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });     // when it is read
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.2, GridUnitType.Star) });   // what it matches
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.3, GridUnitType.Star) });   // what a match does
 
+         string listHeader = L("List"), whenHeader = L("When it is read"), matchesHeader = L("What it matches"), doesHeader = L("What a match does");
+         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         AddGuideHeader_(grid, 0, listHeader);
+         AddGuideHeader_(grid, 1, whenHeader);
+         AddGuideHeader_(grid, 2, matchesHeader);
+         AddGuideHeader_(grid, 3, doesHeader);
+
+         // Narrower than four columns can be read at - a window of 760 pixels, or a
+         // language whose names are long - each list is a block of its own: its name
+         // and count, then the three answers under their headings.
+         var blocks = new StackPanel { Margin = new Thickness(0, 4, 0, 0), Visibility = Visibility.Collapsed };
+         Grid.SetIsSharedSizeScope(blocks, true);
+
+         int row = 1;
+         foreach (SenderListGuideRow list in SenderListGuide.Rows)
+         {
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            FrameworkElement name = GuideName_(config, list);
+            name.Margin = new Thickness(0, 4, 12, 4);
+            Grid.SetRow(name, row);
+            grid.Children.Add(name);
+
+            AddGuideCell_(grid, row, 1, whenHeader, L(list.When));
+            AddGuideCell_(grid, row, 2, matchesHeader, L(list.Matches));
+            AddGuideCell_(grid, row, 3, doesHeader, L(list.Does));
+            row++;
+
+            blocks.Children.Add(GuideBlock_(config, list, whenHeader, matchesHeader, doesHeader));
+         }
+
+         // The card's own width decides, not the window's: the sidebar open or closed
+         // gives the same window a different card.
+         var host = new Grid();
+         host.Children.Add(grid);
+         host.Children.Add(blocks);
+         host.SizeChanged += (_, e) =>
+         {
+            bool narrow = e.NewSize.Width < GuideTableWidth;
+            grid.Visibility = narrow ? Visibility.Collapsed : Visibility.Visible;
+            blocks.Visibility = narrow ? Visibility.Visible : Visibility.Collapsed;
+         };
+         content.Children.Add(host);
          return card;
       }
 
-      private FrameworkElement ListRow(string name, int? active, int total, string page)
+      /// <summary>
+      /// A list's name as the link to its page, its count under it: "Active: 2 of 3"
+      /// for a list whose entries can be switched off, as its own page says it.
+      /// </summary>
+      private static FrameworkElement GuideName_(SpamPipelineConfig config, SenderListGuideRow list)
       {
-         // The list's name is the link, its count beside it: the row's "Open…" sat
-         // some 600 pixels from the name it opened (review finding F264).
-         var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
-         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         var name = new StackPanel();
+         string title = L(NavigationMap.TitleOf(list.Page));
+         FrameworkElement link = PageLink(list.Page, F("{0} →", title), F("Open {0}", title));
+         link.HorizontalAlignment = HorizontalAlignment.Left;
+         name.Children.Add(link);
+         var count = new TextBlock { Text = ListCount_(config, list.Page), Margin = new Thickness(8, 0, 0, 0), TextWrapping = TextWrapping.Wrap };
+         count.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         name.Children.Add(count);
+         return name;
+      }
 
-         // The list pages' own words for the same count: "Active: 2 of 3".
-         string count = active != null
+      /// <summary>One list as a block, for a card too narrow for the table: its name and count, then its three answers.</summary>
+      private static FrameworkElement GuideBlock_(SpamPipelineConfig config, SenderListGuideRow list, string whenHeader, string matchesHeader, string doesHeader)
+      {
+         var block = new StackPanel { Margin = new Thickness(0, 4, 0, 10) };
+         block.Children.Add(GuideName_(config, list));
+
+         // The headings as wide as the widest of them in every block (the blocks are
+         // the size scope), so that the answers start at one place down the card.
+         var answers = new Grid { Margin = new Thickness(8, 4, 0, 0) };
+         answers.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "SenderListGuideHeading" });
+         answers.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         AddGuideAnswer_(answers, 0, whenHeader, L(list.When));
+         AddGuideAnswer_(answers, 1, matchesHeader, L(list.Matches));
+         AddGuideAnswer_(answers, 2, doesHeader, L(list.Does));
+         block.Children.Add(answers);
+         return block;
+      }
+
+      private static void AddGuideAnswer_(Grid grid, int row, string header, string text)
+      {
+         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         var heading = new TextBlock { Text = header, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, MaxWidth = 180, Margin = new Thickness(0, 2, 12, 2) };
+         heading.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         Grid.SetRow(heading, row);
+         grid.Children.Add(heading);
+
+         var cell = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 2) };
+         cell.SetResourceReference(StyleProperty, "TextCaption");
+         System.Windows.Automation.AutomationProperties.SetName(cell, header + ", " + text);
+         Grid.SetRow(cell, row);
+         Grid.SetColumn(cell, 1);
+         grid.Children.Add(cell);
+      }
+
+      /// <summary>How many entries a list has, in its own page's words, or Not read.</summary>
+      private static string ListCount_(SpamPipelineConfig config, string page)
+      {
+         switch (page)
+         {
+            case "dnsbl": // no-loc: page keys
+               return Count_(config, nameof(config.ActiveDnsBlackLists), config.ActiveDnsBlackLists, config.TotalDnsBlackLists);
+            case "surbl":
+               return Count_(config, nameof(config.ActiveSurblServers), config.ActiveSurblServers, config.TotalSurblServers);
+            case "spamwhitelist":
+               return Count_(config, nameof(config.WhiteListEntries), null, config.WhiteListEntries);
+            case "greylistwhitelist":
+               return Count_(config, nameof(config.GreylistWhiteListEntries), null, config.GreylistWhiteListEntries);
+            case "blockedsenders":
+               return Count_(config, nameof(config.BlockedSenderCount), null, config.BlockedSenderCount);
+            case "greylistbypass":
+               return Count_(config, null, null, config.GreylistBypassEntries);
+            case "senderlist":
+               return Count_(config, null, null, config.SenderListEntries);
+            case "domainpolicylist":
+               return Count_(config, null, null, config.DomainPolicyListEntries);
+            default:
+               return "";
+         }
+      }
+
+      // The list pages' own words for the count: "Active: 2 of 3" for a list whose
+      // entries can be switched off, "3 entries" for one whose cannot; Not read for a
+      // count the server did not give, where 0 would be a finding.
+      private static string Count_(SpamPipelineConfig config, string property, int? active, int total)
+      {
+         if (property != null && !config.WasRead(property))
+            return L("Not read");
+         return active != null
             ? ActiveEntries.PillText(active.Value, total)
             : Plural(total, "{0} entry", "{0} entries");
+      }
 
-         FrameworkElement link = PageLink(page, F("{0} →", name), F("Open {0}", L(NavigationMap.TitleOf(page))));
+      private static void AddGuideHeader_(Grid grid, int column, string text)
+      {
+         var header = new TextBlock { Text = text, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 12, 2) };
+         header.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         Grid.SetColumn(header, column);
+         grid.Children.Add(header);
+      }
+
+      // A cell's accessible name carries its column's header, which a screen reader
+      // walking the cells one by one does not otherwise hear.
+      private static void AddGuideCell_(Grid grid, int row, int column, string header, string text)
+      {
+         var cell = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 12, 6) };
+         cell.SetResourceReference(StyleProperty, "TextCaption");
+         System.Windows.Automation.AutomationProperties.SetName(cell, header + ", " + text);
+         Grid.SetRow(cell, row);
+         Grid.SetColumn(cell, column);
+         grid.Children.Add(cell);
+      }
+
+      /// <summary>
+      /// "Check a sender": an address, a connecting IP address or both, and what
+      /// each list does with them, by the rules the server matches them by
+      /// (<see cref="SenderCheck"/>; review finding F269 - nothing said whether a
+      /// sender was on any list). The lists are read from the server when Check is
+      /// pressed, each on its own, so a list that cannot be read says so and the
+      /// others still answer.
+      /// </summary>
+      private Card CheckCard_()
+      {
+         if (checkCard_ != null)
+         {
+            checkResults_.Children.Clear();
+            checkNotice_.Visibility = Visibility.Collapsed;
+            return checkCard_;
+         }
+
+         checkCard_ = Section(L("Check a sender"), out StackPanel content);
+         content.Children.Add(Paragraph(L("What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both."), Typography.Caption));
+
+         var form = new WrapPanel { Orientation = Orientation.Horizontal };
+         form.Children.Add(new FieldRow { Label = L("Sender _address"), Content = checkAddress_, Margin = new Thickness(0, 0, 12, 8) });
+         form.Children.Add(new FieldRow { Label = L("Connecting _IP address"), Content = checkIp_, Margin = new Thickness(0, 0, 12, 8) });
+         checkButton_.VerticalAlignment = VerticalAlignment.Bottom;
+         checkButton_.Margin = new Thickness(0, 0, 0, 8);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(checkButton_, "spam-overview-check-sender");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(checkAddress_, "spam-overview-check-address");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(checkIp_, "spam-overview-check-ip");
+         checkButton_.Click += (s, e) => RunCheck_();
+         form.Children.Add(checkButton_);
+         content.Children.Add(form);
+         // Enter in either box checks; Escape empties them.
+         FormSubmit.Bind(form, checkButton_, checkAddress_, checkIp_);
+
+         content.Children.Add(checkNotice_);
+         Grid.SetIsSharedSizeScope(checkResults_, true);
+         content.Children.Add(checkResults_);
+         return checkCard_;
+      }
+
+      private void RunCheck_()
+      {
+         string address = checkAddress_.Text.Trim();
+         string ip = checkIp_.Text.Trim();
+         checkResults_.Children.Clear();
+         checkNotice_.Visibility = Visibility.Collapsed;
+
+         if (address.Length == 0 && ip.Length == 0)
+         {
+            SayCheck_(StatusLevel.Information, L("Type the sender's address, the IP address it connects from, or both."));
+            return;
+         }
+
+         if (ip.Length > 0 && !System.Net.IPAddress.TryParse(ip, out _))
+         {
+            SayCheck_(StatusLevel.Warning, F("{0} is not an IP address.", ip));
+            return;
+         }
+
+         dynamic settings = null;
+         dynamic antiSpam = null;
+         try
+         {
+            settings = ServerSession.Current.Application.Settings;
+            antiSpam = settings.AntiSpam;
+
+            foreach (SenderListGuideRow list in SenderListGuide.Rows)
+               checkResults_.Children.Add(CheckRow_(Check_((object)antiSpam, list.Page, address, ip)));
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            checkResults_.Children.Clear();
+            SayCheck_(StatusLevel.Critical, F("Could not read the lists: {0}", ServerSession.DescribeComError(ex)));
+         }
+         finally
+         {
+            ServerSession.Release((object)antiSpam);
+            ServerSession.Release((object)settings);
+         }
+      }
+
+      private void SayCheck_(StatusLevel level, string text)
+      {
+         checkNotice_.Level = level;
+         checkNotice_.Text = text;
+         checkNotice_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>One list's answer, read from the server; a list that cannot be read says why.</summary>
+      private static SenderCheckResult Check_(object source, string page, string address, string ip)
+      {
+         dynamic antiSpam = source;
+         try
+         {
+            switch (page)
+            {
+               case "spamwhitelist": // no-loc: page keys
+                  return SenderCheck.SpamExemptions(ReadItems_((object)antiSpam.WhiteListAddresses, (Func<dynamic, SenderCheck.SpamExemption>)(item =>
+                     new SenderCheck.SpamExemption((string)item.LowerIPAddress, (string)item.UpperIPAddress, (string)item.EmailAddress, (string)item.Description))), address, ip);
+               case "domainpolicylist":
+                  return SenderCheck.DomainPolicy((string)antiSpam.DomainPolicyList, address);
+               case "blockedsenders":
+                  return SenderCheck.BlockedSenders(ReadItems_((object)antiSpam.BlockedSenders, (Func<dynamic, SenderCheck.BlockedSender>)(item =>
+                     new SenderCheck.BlockedSender((string)item.Address, (int)item.Score))), address);
+               case "greylistwhitelist":
+                  return SenderCheck.GreylistingExemptions(ReadItems_((object)antiSpam.GreyListingWhiteAddresses, (Func<dynamic, string>)(item => (string)item.IPAddress)), ip);
+               case "greylistbypass":
+                  return SenderCheck.GreylistingBypass(ReadItems_((object)antiSpam.GreyListingBypassEntries, (Func<dynamic, SenderCheck.BypassEntry>)(item =>
+                     new SenderCheck.BypassEntry((string)item.Pattern, (int)item.MatchOn, (bool)item.RequireSPF, (bool)item.RequireDKIM, (bool)item.RequireDMARC))), address);
+               case "senderlist":
+                  return SenderCheck.SenderList(ReadItems_((object)antiSpam.SenderList, (Func<dynamic, SenderCheck.SenderListEntry>)(item =>
+                     new SenderCheck.SenderListEntry((string)item.Value, (bool)item.Blocked, (bool)item.Expires, ExpiresAt_(item), (string)item.Reason))), address, DateTime.Now);
+               default:
+                  // The DNS block lists and SURBL are asked of the network as mail arrives.
+                  return SenderCheck.AskedOfTheNetwork(page);
+            }
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return SenderCheck.NotRead(page, ServerSession.DescribeComError(ex));
+         }
+      }
+
+      // An expiry that is not a date is taken for one that has passed, as the server takes it.
+      private static DateTime ExpiresAt_(dynamic item)
+      {
+         try
+         {
+            object value = item.ExpiresTime;
+            return value is DateTime date ? date : DateTime.MinValue;
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return DateTime.MinValue;
+         }
+      }
+
+      /// <summary>Every item of a COM collection, read through <paramref name="read"/>, each released.</summary>
+      private static List<T> ReadItems_<T>(object source, Func<dynamic, T> read)
+      {
+         dynamic collection = source;
+         var items = new List<T>();
+         try
+         {
+            int total = (int)collection.Count;
+            for (int i = 0; i < total; i++)
+            {
+               dynamic item = collection.Item[i];
+               try
+               {
+                  items.Add(read(item));
+               }
+               finally
+               {
+                  ServerSession.Release((object)item);
+               }
+            }
+         }
+         finally
+         {
+            ServerSession.Release((object)collection);
+         }
+
+         return items;
+      }
+
+      /// <summary>One list's answer as a row: a pill saying what the list does, the list's page, and the sentence.</summary>
+      private static FrameworkElement CheckRow_(SenderCheckResult result)
+      {
+         (StatusLevel level, string word) = result.Outcome switch
+         {
+            SenderCheckOutcome.Matches when result.Blocks => (StatusLevel.Warning, L("Stops it")),
+            SenderCheckOutcome.Matches => (StatusLevel.Good, L("Lets it through")),
+            SenderCheckOutcome.MatchesIf => (StatusLevel.Information, L("Depends")),
+            SenderCheckOutcome.NotRead => (StatusLevel.Critical, L("Not read")),
+            SenderCheckOutcome.NotChecked => (StatusLevel.Normal, L("Not checked")),
+            _ => (StatusLevel.Normal, L("No match"))
+         };
+
+         // The pills as wide as the widest of them, in every row (the results panel is
+         // the size scope), and the list's page over its sentence beside them, so that
+         // neither a pill's word nor a page's name is cut at any width or in any language.
+         var row = new Grid { Margin = new Thickness(0, 2, 0, 6) };
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "SenderCheckPill" });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+         var pill = new StatusPill { Level = level, Text = word, Margin = new Thickness(0, 4, 12, 4), VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Left };
+         row.Children.Add(pill);
+
+         var answer = new StackPanel();
+         string title = L(NavigationMap.TitleOf(result.Page));
+         FrameworkElement link = PageLink(result.Page, F("{0} →", title), F("Open {0}", title));
          link.HorizontalAlignment = HorizontalAlignment.Left;
-         row.Children.Add(link);
+         answer.Children.Add(link);
 
-         var text = new TextBlock { Text = count, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+         var text = new TextBlock { Text = result.Text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(8, 0, 0, 0) };
          text.SetResourceReference(StyleProperty, "TextBody");
-         Grid.SetColumn(text, 1);
-         row.Children.Add(text);
-
+         System.Windows.Automation.AutomationProperties.SetName(text, word + ", " + title + ", " + result.Text);
+         answer.Children.Add(text);
+         Grid.SetColumn(answer, 1);
+         row.Children.Add(answer);
          return row;
       }
 

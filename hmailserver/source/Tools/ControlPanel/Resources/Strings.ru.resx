@@ -24,6 +24,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>«mx» разрешает всё, на что указывают MX-записи домена {0}; «a:{1}» разрешает адрес того имени узла, которое сервер сообщает в HELO/EHLO (Протоколы &gt; SMTP &gt; Имя узла). «~all» даёт мягкий отказ всему остальному — намеренно мягче, чем «-all», пока вы не убедитесь, что список полон.</value>
   </data>
+  <data name="&quot;{0}&quot; ({1} from {2})" xml:space="preserve">
+    <value>«{0}» ({1} с {2})</value>
+  </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» не сохранено: {1}</value>
   </data>
@@ -1215,6 +1218,15 @@ Control Panel может читать файлы сообщений только
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Добавляет печати ARC к пересылаемой почте, чтобы серверы дальше по цепочке могли доверять исходным результатам аутентификации (RFC 8617). Запечатывание заимствует селектор DKIM и закрытый ключ пересылающего домена, поэтому нужен хотя бы один размещённый домен с настроенным подписыванием DKIM — без него переключатель выглядит включённым, но не запечатывает ничего, сообщая об этом лишь строкой отладочного журнала. Страница «Контрольный список настройки» проверяет ваши домены на этот счёт.</value>
   </data>
+  <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
+    <value>Добавляет оценку записи; значение по умолчанию 100 отклоняет письмо.</value>
+  </data>
+  <data name="Adds the list's score." xml:space="preserve">
+    <value>Добавляет оценку списка.</value>
+  </data>
+  <data name="Adds the server's score." xml:space="preserve">
+    <value>Добавляет оценку сервера.</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Администрирование</value>
   </data>
@@ -1250,6 +1262,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>После повторной инициализации</value>
+  </data>
+  <data name="After the body has arrived" xml:space="preserve">
+    <value>После получения тела письма</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>После получения тела письма — отказ здесь возвращает 554</value>
@@ -1398,11 +1413,17 @@ Control Panel может читать файлы сообщений только
   <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
     <value>Разрешено. Записей в списке: {0}. Выпущено сообщений: {1}.</value>
   </data>
+  <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
+    <value>Разрешён: без серых списков и без отказа по оценке, хотя проверки по-прежнему выполняются. Заблокирован: отказ на этапе MAIL FROM.</value>
+  </data>
   <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
     <value>Разрешён: без серых списков, без отказа по баллу</value>
   </data>
   <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Разрешён: без серых списков, без отказа по антиспам-баллу</value>
+  </data>
+  <data name="Allowed: the spam verdict is skipped. Blocked: held in the quarantine where that is on, otherwise marked as spam." xml:space="preserve">
+    <value>Разрешён: решение о спаме пропускается. Заблокирован: задерживается в карантине, если он включён, иначе помечается как спам.</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Допускает расхождение часов этого сервера с часами подписавшей стороны. Без него часы, спешащие на несколько минут, превращают чужую действительную почту в отказы DKIM.</value>
@@ -1714,8 +1735,23 @@ Control Panel может читать файлы сообщений только
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Требует подтверждения</value>
   </data>
+  <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
+    <value>На этапе MAIL FROM, после исключений антиспама</value>
+  </data>
+  <data name="At MAIL FROM, before any spam check" xml:space="preserve">
+    <value>На этапе MAIL FROM, до любой проверки на спам</value>
+  </data>
+  <data name="At RCPT TO, before greylisting" xml:space="preserve">
+    <value>На этапе RCPT TO, до серых списков</value>
+  </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>На этапе RCPT TO, до передачи тела письма — отказ здесь возвращает 550</value>
+  </data>
+  <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
+    <value>На этапе RCPT TO или после DATA для записи, которой нужен DKIM или DMARC</value>
+  </data>
+  <data name="At delivery, recipient by recipient, after the account's own list and its domain's" xml:space="preserve">
+    <value>При доставке, получатель за получателем, после собственного списка учётной записи и списка её домена</value>
   </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Не менее 12 печатных символов ASCII. Оставьте оба поля пустыми, чтобы сохранить уже заданную парольную фразу. Сервер никогда не возвращает её - ни этой программе, ни кому-либо ещё - поэтому храните её не рядом с резервными копиями: восстановление её запрашивает, и из архива с потерянной парольной фразой никто ничего не восстановит.</value>
@@ -2377,6 +2413,9 @@ Control Panel может читать файлы сообщений только
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Проверить _политику (HTTPS)</value>
   </data>
+  <data name="Check a sender" xml:space="preserve">
+    <value>Проверить отправителя</value>
+  </data>
   <data name="Check an address" xml:space="preserve">
     <value>Проверить адрес</value>
   </data>
@@ -2722,6 +2761,9 @@ Control Panel может читать файлы сообщений только
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Подключено к {0} по {1}.</value>
   </data>
+  <data name="Connecting _IP address" xml:space="preserve">
+    <value>_IP-адрес подключения</value>
+  </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Проверки подключающегося узла</value>
   </data>
@@ -3038,6 +3080,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not read the list: " xml:space="preserve">
     <value>Не удалось прочитать список: </value>
+  </data>
+  <data name="Could not read the list: {0}" xml:space="preserve">
+    <value>Не удалось прочитать список: {0}</value>
+  </data>
+  <data name="Could not read the lists: {0}" xml:space="preserve">
+    <value>Не удалось прочитать списки: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>Не удалось прочитать состояние журналирования: {0}</value>
@@ -3893,6 +3941,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delivery throughput" xml:space="preserve">
     <value>Пропускная способность доставки</value>
+  </data>
+  <data name="Depends" xml:space="preserve">
+    <value>Зависит</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>Получено из настроенного ключа домена: селектор «{0}», файл закрытого ключа {1}.</value>
@@ -4967,6 +5018,9 @@ Control Panel может читать файлы сообщений только
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Сначала: какая из двух половин застряла?</value>
   </data>
+  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Пять списков пропускают отправителя, а три останавливают его; каждый читается в свой момент прихода письма и сравнивается со своей частью письма. В том порядке, в каком письмо их встречает:</value>
+  </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Фиксированный токен (для опытных; используется дословно вместо получения)</value>
   </data>
@@ -6013,6 +6067,9 @@ Control Panel может читать файлы сообщений только
   <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
     <value>Позвольте балансировщику нагрузки или ретранслятору Postfix передавать настоящий адрес клиента по протоколу PROXY или командой XCLIENT.</value>
   </data>
+  <data name="Let past greylisting." xml:space="preserve">
+    <value>Пропускается мимо серого списка.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Разрешить людям редактировать собственную запись в каталоге</value>
   </data>
@@ -6043,6 +6100,9 @@ Control Panel может читать файлы сообщений только
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>Позволяет клиентам входить с токенами bearer от поставщика удостоверений вместо паролей; токены принимаются, только если их подпись проверяется по ключевому материалу, который вы установили.</value>
   </data>
+  <data name="Lets it through" xml:space="preserve">
+    <value>Пропускает</value>
+  </data>
   <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be." xml:space="preserve">
     <value>Позволяет почтовым клиентам загружать и изменять сценарии фильтрации Sieve для отдельных учётных записей по TCP. Аутентификация — SASL PLAIN по базе учётных записей, поэтому пароль почтового ящика идёт по этому соединению. STARTTLS предлагается, только когда есть почтовый порт с поддержкой TLS, у которого можно позаимствовать сертификат; состояние ниже говорит, будет ли он предложен.</value>
   </data>
@@ -6063,6 +6123,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Limits" xml:space="preserve">
     <value>Ограничения</value>
+  </data>
+  <data name="List" xml:space="preserve">
+    <value>Список</value>
   </data>
   <data name="List is _active" xml:space="preserve">
     <value>Список _активен</value>
@@ -6929,6 +6992,9 @@ Control Panel может читать файлы сообщений только
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Никогда не банить автоматически эти адреса (через запятую; допускаются блоки CIDR)</value>
   </data>
+  <data name="Never greylisted." xml:space="preserve">
+    <value>Никогда не попадает в серый список.</value>
+  </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Никогда не оцениваются по стране (адреса и диапазоны CIDR, через запятую)</value>
   </data>
@@ -7094,6 +7160,9 @@ Control Panel может читать файлы сообщений только
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>Нет списков блокировки, поэтому подключающиеся адреса не проверяются ни по одному.</value>
   </data>
+  <data name="No blocked sender matches this address." xml:space="preserve">
+    <value>Ни один заблокированный отправитель не совпадает с этим адресом.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Заблокированные отправители не заданы, поэтому ничего не сопоставляется. У списка нет переключателя вкл/выкл — пустой список и есть выключенное состояние.</value>
   </data>
@@ -7178,6 +7247,12 @@ Control Panel может читать файлы сообщений только
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Нет записей, поэтому этот список никого не разрешает и не блокирует; собственный список учётной записи и список её домена по-прежнему действуют.</value>
   </data>
+  <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
+    <value>Ни одна запись не распространяется на домен этого отправителя; записи, сравниваемые с именем HELO, здесь не проверяются.</value>
+  </data>
+  <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
+    <value>Ни одна запись не совпадает с этим адресом, поэтому список оставляет его проверкам на спам.</value>
+  </data>
   <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
     <value>Сегодня ошибок не записано: в {1} нет файла {0}.</value>
   </data>
@@ -7192,6 +7267,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Исполняемый файл не задан</value>
+  </data>
+  <data name="No exemption covers this address." xml:space="preserve">
+    <value>Ни одно исключение не распространяется на этот адрес.</value>
+  </data>
+  <data name="No exemption covers this sender." xml:space="preserve">
+    <value>Ни одно исключение не распространяется на этого отправителя.</value>
   </data>
   <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
     <value>Исключений нет, поэтому этот список не пропускает ни одного отправителя в обход защиты от спама.</value>
@@ -7252,6 +7333,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
     <value>В hMailServer.INI не задана папка журналов, поэтому серверу некуда записать отчёт о восстановлении.</value>
+  </data>
+  <data name="No match" xml:space="preserve">
+    <value>Нет совпадения</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>В {0} нет подходящих учётных записей.</value>
@@ -7451,11 +7535,26 @@ Control Panel может читать файлы сообщений только
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Отсюда, честно говоря, не проверяется: чтобы проверить PTR, нужен ПУБЛИЧНЫЙ IP-адрес сервера, который эта панель определить не может (за NAT его не знает и сам компьютер), а средство проверки на этой странице читает только записи TXT и MX. Проверьте снаружи: nslookup &lt;your public IP&gt; показывает PTR; он должен называть узел, указанный выше.</value>
   </data>
+  <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
+    <value>Здесь не проверяется: SURBL запрашивается о ссылках в письме после получения его тела.</value>
+  </data>
+  <data name="Not checked here: the DNS block lists are asked about the connecting address over DNS as mail arrives." xml:space="preserve">
+    <value>Здесь не проверяется: списки блокировки DNS запрашиваются об адресе подключения через DNS, когда приходит почта.</value>
+  </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
     <value>Ещё не проверялось (нажмите «Проверить обновления» или включите ниже ежедневную проверку)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Не проверено: не удалось прочитать настройки сервера.</value>
+  </data>
+  <data name="Not checked: this list matches the connecting IP address, and none was given." xml:space="preserve">
+    <value>Не проверено: этот список сравнивается с IP-адресом подключения, а он не указан.</value>
+  </data>
+  <data name="Not checked: this list matches the sender's address, and none was given." xml:space="preserve">
+    <value>Не проверено: этот список сравнивается с адресом отправителя, а он не указан.</value>
+  </data>
+  <data name="Not checked: this list matches the sender's domain or the HELO name, and no address was given." xml:space="preserve">
+    <value>Не проверено: этот список сравнивается с доменом отправителя или именем HELO, а адрес не указан.</value>
   </data>
   <data name="Not connected" xml:space="preserve">
     <value>Не подключено</value>
@@ -10496,6 +10595,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sender MX check" xml:space="preserve">
     <value>Проверка MX отправителя</value>
   </data>
+  <data name="Sender _address" xml:space="preserve">
+    <value>_Адрес отправителя</value>
+  </data>
   <data name="Sender auth" xml:space="preserve">
     <value>Аутентификация отправителя</value>
   </data>
@@ -10997,6 +11099,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Skipped, by reason" xml:space="preserve">
     <value>Пропущено, с разбивкой по причинам</value>
   </data>
+  <data name="Skips every spam check: the message is never scored." xml:space="preserve">
+    <value>Пропускает все проверки на спам: письму никогда не начисляется оценка.</value>
+  </data>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>Замедляет сеанс, называющий больше получателей, чем нужно нормальному сообщению. За пределом этого счётчика каждая следующая команда RCPT TO в сеансе без аутентификации ждёт указанную задержку, прежде чем получит ответ: перебор по словарю или спам-рассылка называют сотни адресов и платят за каждый из них, тогда как отправляющий MTA называет несколько штук и до счётчика не доходит никогда. Сеансы, прошедшие аутентификацию, и диапазоны IP с отключённой защитой от спама освобождены от этого. Ожидание — это таймер на соединении, а не спящий поток. Вступает в силу немедленно.</value>
   </data>
@@ -11179,6 +11284,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Stopping…" xml:space="preserve">
     <value>Остановка…</value>
+  </data>
+  <data name="Stops it" xml:space="preserve">
+    <value>Останавливает</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Перестаёт действовать в дату</value>
@@ -11974,6 +12082,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Настроенная папка журналов не существует на этой машине: {0}</value>
   </data>
+  <data name="The connecting IP address and the envelope sender, with wildcards" xml:space="preserve">
+    <value>IP-адрес подключения и отправитель конверта, с подстановочными знаками</value>
+  </data>
+  <data name="The connecting IP address, asked of each active list's DNS zone" xml:space="preserve">
+    <value>IP-адрес подключения, запрашиваемый в зоне DNS каждого активного списка</value>
+  </data>
+  <data name="The connecting IP address, with wildcards" xml:space="preserve">
+    <value>IP-адрес подключения, с подстановочными знаками</value>
+  </data>
   <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
     <value>Подключение к службе hMailServer потеряно — скорее всего, она была перезапущена. Control Panel подключится заново сам; повторите попытку чуть позже.</value>
   </data>
@@ -12088,14 +12205,59 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
     <value>Запись действует для следующего сеанса из этого домена. К ней обращаются для неаутентифицированных входящих сеансов из диапазона IP, для которого выполняются антиспам-проверки, и никогда - чтобы обойти аутентификацию.</value>
   </data>
+  <data name="The entry {0} allows this domain: its mail is not greylisted or refused by score." xml:space="preserve">
+    <value>Запись {0} разрешает этот домен: его почта не попадает в серый список и не отклоняется по оценке.</value>
+  </data>
+  <data name="The entry {0} allows this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>Запись {0} разрешает этого отправителя для каждого получателя, чей собственный список и список его домена ничего не говорят.</value>
+  </data>
+  <data name="The entry {0} blocks this domain: its mail is refused at MAIL FROM." xml:space="preserve">
+    <value>Запись {0} блокирует этот домен: его почта отклоняется на этапе MAIL FROM.</value>
+  </data>
+  <data name="The entry {0} blocks this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>Запись {0} блокирует этого отправителя для каждого получателя, чей собственный список и список его домена ничего не говорят.</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting when the message passes what it requires: {1}." xml:space="preserve">
+    <value>Запись {0} пропускает этого отправителя мимо серого списка, когда письмо проходит то, что она требует: {1}.</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting." xml:space="preserve">
+    <value>Запись {0} пропускает этого отправителя мимо серого списка.</value>
+  </data>
+  <data name="The entry {0} matches, adding {1} to the score." xml:space="preserve">
+    <value>Запись {0} совпадает и добавляет {1} к оценке.</value>
+  </data>
+  <data name="The envelope sender or the From address: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>Отправитель конверта или адрес From: один адрес или домен вместе с поддоменами</value>
+  </data>
   <data name="The envelope sender's domain" xml:space="preserve">
     <value>Домен отправителя конверта</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>Домен отправителя конверта (MAIL FROM)</value>
   </data>
+  <data name="The envelope sender's domain or the HELO name, exactly or with its subdomains" xml:space="preserve">
+    <value>Домен отправителя конверта или имя HELO, точно или вместе с поддоменами</value>
+  </data>
+  <data name="The envelope sender's domain or the HELO name, with an SPF, DKIM or DMARC pass" xml:space="preserve">
+    <value>Домен отправителя конверта или имя HELO, с успешной проверкой SPF, DKIM или DMARC</value>
+  </data>
+  <data name="The envelope sender: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>Отправитель конверта: один адрес или домен вместе с поддоменами</value>
+  </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>Точные записи SPF, DKIM, DMARC, MTA-STS и TLS-RPT, которые должен опубликовать каждый домен, с проверкой, действительно ли каждая опубликована.</value>
+  </data>
+  <data name="The exemption {0} covers this address, so it is never greylisted." xml:space="preserve">
+    <value>Исключение {0} распространяется на этот адрес, поэтому он никогда не попадает в серый список.</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when it connects from {1} - {2}." xml:space="preserve">
+    <value>Исключение {0} распространяется на этого отправителя, только когда он подключается с {1} - {2}.</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when its address matches {1}." xml:space="preserve">
+    <value>Исключение {0} распространяется на этого отправителя, только когда его адрес соответствует {1}.</value>
+  </data>
+  <data name="The exemption {0} covers this sender, so it skips every spam check." xml:space="preserve">
+    <value>Исключение {0} распространяется на этого отправителя, поэтому он пропускает все проверки на спам.</value>
   </data>
   <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
     <value>Ожидаемая аудитория не задана, поэтому аудитория не проверяется</value>
@@ -12173,6 +12335,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
     <value>Имя узла {0} не является полным DNS-именем, таким как mail.example.com, поэтому никакая запись DNS не может с ним согласоваться.</value>
+  </data>
+  <data name="The host names of the links in the message" xml:space="preserve">
+    <value>Имена узлов в ссылках письма</value>
   </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>Идентификатор ({0}, только что сгенерирован) выбираете вы - любое значение корректно. Его единственная задача - меняться при каждом изменении политики, чтобы кеши перезапрашивали её.</value>
@@ -12299,9 +12464,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The listeners could not be read." xml:space="preserve">
     <value>Прослушиватели не удалось прочитать.</value>
-  </data>
-  <data name="The lists behind the checks" xml:space="preserve">
-    <value>Списки, стоящие за проверками</value>
   </data>
   <data name="The live log carries the SMTP conversation, including the text the far end sent back." xml:space="preserve">
     <value>Живой журнал содержит диалог SMTP, включая текст, который прислала другая сторона.</value>
@@ -13380,6 +13542,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Type the new password." xml:space="preserve">
     <value>Введите новый пароль.</value>
   </data>
+  <data name="Type the sender's address, the IP address it connects from, or both." xml:space="preserve">
+    <value>Введите адрес отправителя, IP-адрес, с которого он подключается, или оба.</value>
+  </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Введите имя пользователя, которому принадлежит пароль.</value>
   </data>
@@ -13704,6 +13869,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Что содержит резервная копия, расписание, проверка каждого архива и восстановление.</value>
   </data>
+  <data name="What a match does" xml:space="preserve">
+    <value>Что делает совпадение</value>
+  </data>
   <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
     <value>Что нужно новому серверу, по порядку: контрольный список того, что сделано и что дальше, профиль параметров для того типа сервера, которым он является, и записи DNS, которые публикует каждый домен.</value>
   </data>
@@ -13718,6 +13886,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="What do you want to do?" xml:space="preserve">
     <value>Что вы хотите сделать?</value>
+  </data>
+  <data name="What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both." xml:space="preserve">
+    <value>Что каждый список делает с отправителем по адресу, который он указывает в MAIL FROM, по адресу, с которого он подключается, или по обоим.</value>
   </data>
   <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Что защищает каждый прослушиватель, что он предъявляет в доказательство того, кто он, и что ещё может быть согласовано. На этой странице ничего нельзя редактировать - в каждом разделе есть кнопка, открывающая страницу, которой принадлежат его параметры.</value>
@@ -13772,6 +13943,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Для чего она</value>
+  </data>
+  <data name="What it matches" xml:space="preserve">
+    <value>С чем сравнивается</value>
   </data>
   <data name="What it may do" xml:space="preserve">
     <value>Что ему разрешено</value>
@@ -13856,6 +14030,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
     <value>Когда в ходе диалога SMTP выполняются запросы к спискам блокировки. Какие списки блокировки опрашиваются - на странице «Списки блокировки DNS (DNSBL)».</value>
+  </data>
+  <data name="When it is read" xml:space="preserve">
+    <value>Когда читается</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Когда конечная точка недоступна</value>
@@ -13967,6 +14144,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Какие записи каталога становятся почтовыми ящиками</value>
+  </data>
+  <data name="Which list do I need?" xml:space="preserve">
+    <value>Какой список мне нужен?</value>
   </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Какой список? Для каждого отдельного отправителя или домена записывается одна запись, а затем на каждом сообщении выполняется действие. Сообщение, для которого запись создать нельзя, остаётся там, где есть.</value>
@@ -14093,6 +14273,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
     <value>Если расписание не настроено, следующую копию никто не создаст.</value>
+  </data>
+  <data name="With the checks before the body" xml:space="preserve">
+    <value>Вместе с проверками до тела письма</value>
+  </data>
+  <data name="With the checks before the body, first among them" xml:space="preserve">
+    <value>Вместе с проверками до тела письма, первым из них</value>
   </data>
   <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value>При включённых сейчас проверках максимально достижимый итог — {0}.</value>
@@ -14285,6 +14471,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Изменить перец</value>
+  </data>
+  <data name="_Check" xml:space="preserve">
+    <value>_Проверить</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Проверить синтаксис</value>
@@ -16273,6 +16462,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} folders.|few" xml:space="preserve">
     <value>Папок: {0}.</value>
   </data>
+  <data name="{0} from {1}" xml:space="preserve">
+    <value>{0} с {1}</value>
+  </data>
   <data name="{0} h ago" xml:space="preserve">
     <value>{0} ч назад</value>
   </data>
@@ -16335,6 +16527,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} никогда не банится автоматически: его обратное имя {1} разрешается обратно в него и покрыто шаблоном {2}.</value>
+  </data>
+  <data name="{0} is not an IP address." xml:space="preserve">
+    <value>{0} - не IP-адрес.</value>
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0}: включено, но оценка равна 0, поэтому на каждое сообщение тратится один запрос, а на исход это повлиять не может. Задайте ему оценку или выключите его.</value>

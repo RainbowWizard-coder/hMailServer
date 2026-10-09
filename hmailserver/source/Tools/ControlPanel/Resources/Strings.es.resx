@@ -24,6 +24,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" autoriza todo aquello a lo que apunten los registros MX de {0}; "a:{1}" autoriza la dirección del nombre de host que este servidor anuncia en HELO/EHLO (Protocolos &gt; SMTP &gt; Nombre de host). "~all" hace fallar suavemente todo lo demás - deliberadamente más suave que "-all" hasta que esté seguro de que la lista está completa.</value>
   </data>
+  <data name="&quot;{0}&quot; ({1} from {2})" xml:space="preserve">
+    <value>"{0}" ({1} desde {2})</value>
+  </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>"{0}" no se guardó: {1}</value>
   </data>
@@ -1209,6 +1212,15 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Añade sellos ARC al correo reenviado para que los servidores posteriores puedan confiar en los resultados de autenticación originales (RFC 8617). El sellado toma prestados el selector DKIM y la clave privada del dominio que reenvía, así que necesita al menos un dominio alojado con la firma DKIM configurada - sin eso el interruptor se lee como activado y no sella nada, con solo una línea de registro de depuración que lo dice. La página Lista de configuración comprueba sus dominios para esto.</value>
   </data>
+  <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
+    <value>Suma la puntuación de la entrada; el valor predeterminado de 100 rechaza el mensaje.</value>
+  </data>
+  <data name="Adds the list's score." xml:space="preserve">
+    <value>Suma la puntuación de la lista.</value>
+  </data>
+  <data name="Adds the server's score." xml:space="preserve">
+    <value>Suma la puntuación del servidor.</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>Administrar</value>
   </data>
@@ -1244,6 +1256,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>Tras reinicializar</value>
+  </data>
+  <data name="After the body has arrived" xml:space="preserve">
+    <value>Después de que haya llegado el cuerpo</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>Tras recibir el cuerpo — un rechazo aquí es un 554</value>
@@ -1386,11 +1401,17 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
     <value>Permitido. Entradas de la lista: {0}. Mensajes liberados: {1}.</value>
   </data>
+  <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
+    <value>Permitido: sin greylisting y sin rechazo por puntuación, aunque las comprobaciones siguen ejecutándose. Bloqueado: rechazado en MAIL FROM.</value>
+  </data>
   <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
     <value>Permitido: sin greylisting, sin rechazo por puntuación</value>
   </data>
   <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>Permitido: sin greylisting, sin rechazo por la puntuación antispam</value>
+  </data>
+  <data name="Allowed: the spam verdict is skipped. Blocked: held in the quarantine where that is on, otherwise marked as spam." xml:space="preserve">
+    <value>Permitido: se omite el veredicto de spam. Bloqueado: retenido en la cuarentena donde esté activada; si no, marcado como spam.</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>Tolera que el reloj de este servidor difiera del del firmante. Sin esto, un reloj unos minutos adelantado convierte el correo válido de otros en fallos DKIM.</value>
@@ -1699,8 +1720,23 @@ Los detalles completos se escribieron en:
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Pide una confirmación</value>
   </data>
+  <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
+    <value>En MAIL FROM, después de las exenciones antispam</value>
+  </data>
+  <data name="At MAIL FROM, before any spam check" xml:space="preserve">
+    <value>En MAIL FROM, antes de cualquier comprobación de spam</value>
+  </data>
+  <data name="At RCPT TO, before greylisting" xml:space="preserve">
+    <value>En RCPT TO, antes del greylisting</value>
+  </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>En RCPT TO, antes de transferir el cuerpo — un rechazo aquí es un 550</value>
+  </data>
+  <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
+    <value>En RCPT TO, o después de DATA para una entrada que requiere DKIM o DMARC</value>
+  </data>
+  <data name="At delivery, recipient by recipient, after the account's own list and its domain's" xml:space="preserve">
+    <value>En la entrega, destinatario por destinatario, después de la lista propia de la cuenta y la de su dominio</value>
   </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>Al menos 12 caracteres ASCII imprimibles. Deje ambas casillas vacías para conservar la frase de contraseña ya establecida. El servidor no la devuelve nunca - ni a este programa ni a nadie más - así que guárdela en otro sitio que no sea junto a las copias de seguridad: una restauración la pide, y de un archivo cuya frase de contraseña se pierde nadie puede recuperar nada.</value>
@@ -2353,6 +2389,9 @@ Los detalles completos se escribieron en:
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Comprobar la _política (HTTPS)</value>
   </data>
+  <data name="Check a sender" xml:space="preserve">
+    <value>Comprobar un remitente</value>
+  </data>
   <data name="Check an address" xml:space="preserve">
     <value>Comprobar una dirección</value>
   </data>
@@ -2698,6 +2737,9 @@ Los detalles completos se escribieron en:
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>Conectado a {0} por {1}.</value>
   </data>
+  <data name="Connecting _IP address" xml:space="preserve">
+    <value>Dirección _IP de conexión</value>
+  </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>Comprobaciones del host que se conecta</value>
   </data>
@@ -3014,6 +3056,12 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not read the list: " xml:space="preserve">
     <value>No se pudo leer la lista: </value>
+  </data>
+  <data name="Could not read the list: {0}" xml:space="preserve">
+    <value>No se pudo leer la lista: {0}</value>
+  </data>
+  <data name="Could not read the lists: {0}" xml:space="preserve">
+    <value>No se pudieron leer las listas: {0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>No se pudo leer el estado del registro: {0}</value>
@@ -3847,6 +3895,9 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   </data>
   <data name="Delivery throughput" xml:space="preserve">
     <value>Rendimiento de entrega</value>
+  </data>
+  <data name="Depends" xml:space="preserve">
+    <value>Depende</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>Derivado de la clave configurada del dominio: selector "{0}", archivo de clave privada {1}.</value>
@@ -4903,6 +4954,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>Primero: ¿qué mitad está atascada?</value>
   </data>
+  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>Cinco listas dejan pasar a un remitente y tres lo detienen; cada una se lee en su propio momento de la llegada de un mensaje y se compara con su propia parte de él. En el orden en que un mensaje las encuentra:</value>
+  </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>Token fijo (avanzado; se usa tal cual en vez de obtenerlo)</value>
   </data>
@@ -5949,6 +6003,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
     <value>Deje que un balanceador de carga o un relé Postfix transmita la dirección real del cliente con el protocolo PROXY o XCLIENT.</value>
   </data>
+  <data name="Let past greylisting." xml:space="preserve">
+    <value>Se deja pasar el greylisting.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Permitir que cada persona edite su propia ficha del directorio</value>
   </data>
@@ -5979,6 +6036,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>Permite que los clientes inicien sesión con tokens de portador de un proveedor de identidad en vez de con contraseñas; los tokens solo se aceptan si su firma se verifica contra el material de claves que usted instale.</value>
   </data>
+  <data name="Lets it through" xml:space="preserve">
+    <value>Lo deja pasar</value>
+  </data>
   <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be." xml:space="preserve">
     <value>Permite que los clientes de correo suban y gestionen scripts de filtro Sieve por cuenta a través de TCP. La autenticación es SASL PLAIN contra la base de datos de cuentas, así que la contraseña del buzón cruza esta conexión. STARTTLS solo se ofrece cuando un puerto de buzón compatible con TLS tiene un certificado que tomar prestado - el estado de abajo dice si será así.</value>
   </data>
@@ -5999,6 +6059,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Limits" xml:space="preserve">
     <value>Límites</value>
+  </data>
+  <data name="List" xml:space="preserve">
+    <value>Lista</value>
   </data>
   <data name="List is _active" xml:space="preserve">
     <value>Lista _activa</value>
@@ -6856,6 +6919,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>Nunca bloquear automáticamente estas direcciones (separadas por comas; se admiten bloques CIDR)</value>
   </data>
+  <data name="Never greylisted." xml:space="preserve">
+    <value>Nunca pasa por greylisting.</value>
+  </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>Nunca evaluadas por país (direcciones y rangos CIDR, separados por comas)</value>
   </data>
@@ -7021,6 +7087,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>No hay listas de bloqueo, así que las direcciones que se conectan no se buscan en ninguna.</value>
   </data>
+  <data name="No blocked sender matches this address." xml:space="preserve">
+    <value>Ningún remitente bloqueado coincide con esta dirección.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>No hay remitentes bloqueados definidos, así que no se compara nada. La lista no tiene interruptor de activación - una lista vacía es el estado desactivado.</value>
   </data>
@@ -7105,6 +7174,12 @@ No se elimina nada de lo que ya está.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>No hay entradas, así que esta lista no permite ni bloquea a nadie; la lista propia de una cuenta y la de su dominio siguen aplicándose.</value>
   </data>
+  <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
+    <value>Ninguna entrada cubre el dominio de este remitente; las entradas que se comparan con el nombre HELO no se comprueban aquí.</value>
+  </data>
+  <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
+    <value>Ninguna entrada coincide con esta dirección, así que la lista la deja a las comprobaciones de spam.</value>
+  </data>
   <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
     <value>Hoy no se ha registrado ningún error: no existe el archivo {0} en {1}.</value>
   </data>
@@ -7119,6 +7194,12 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>Ningún ejecutable definido</value>
+  </data>
+  <data name="No exemption covers this address." xml:space="preserve">
+    <value>Ninguna exención cubre esta dirección.</value>
+  </data>
+  <data name="No exemption covers this sender." xml:space="preserve">
+    <value>Ninguna exención cubre a este remitente.</value>
   </data>
   <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
     <value>No hay excepciones, así que esta lista no libra a ningún remitente de la protección antispam.</value>
@@ -7179,6 +7260,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
     <value>No hay ninguna carpeta de registros configurada en hMailServer.INI, así que el servidor no tiene dónde escribir el informe de recuperación.</value>
+  </data>
+  <data name="No match" xml:space="preserve">
+    <value>Sin coincidencia</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>No hay cuentas coincidentes en {0}.</value>
@@ -7364,16 +7448,31 @@ No se elimina nada de lo que ya está.</value>
     <value>No es un certificado PEM</value>
   </data>
   <data name="Not checked" xml:space="preserve">
-    <value>No comprobado</value>
+    <value>Sin comprobar</value>
   </data>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Sinceramente, no se comprueba desde aquí: verificar el PTR necesita la dirección IP PÚBLICA del servidor, que este panel no puede determinar (detrás de NAT la máquina tampoco la conoce), y el comprobador de esta página solo lee registros TXT y MX. Pruebe desde fuera en su lugar: nslookup &lt;your public IP&gt; muestra el PTR; debería nombrar el host de arriba.</value>
+  </data>
+  <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
+    <value>No se comprueba aquí: a SURBL se le consulta por los enlaces de un mensaje cuando ha llegado su cuerpo.</value>
+  </data>
+  <data name="Not checked here: the DNS block lists are asked about the connecting address over DNS as mail arrives." xml:space="preserve">
+    <value>No se comprueba aquí: a las listas de bloqueo DNS se les consulta por la dirección que se conecta, por DNS, cuando llega el correo.</value>
   </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
     <value>Aún no comprobado (Buscar actualizaciones, o active abajo la comprobación diaria)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Sin comprobar: no se pudo leer la configuración del servidor.</value>
+  </data>
+  <data name="Not checked: this list matches the connecting IP address, and none was given." xml:space="preserve">
+    <value>Sin comprobar: esta lista compara la dirección IP que se conecta, y no se dio ninguna.</value>
+  </data>
+  <data name="Not checked: this list matches the sender's address, and none was given." xml:space="preserve">
+    <value>Sin comprobar: esta lista compara la dirección del remitente, y no se dio ninguna.</value>
+  </data>
+  <data name="Not checked: this list matches the sender's domain or the HELO name, and no address was given." xml:space="preserve">
+    <value>Sin comprobar: esta lista compara el dominio del remitente o el nombre HELO, y no se dio ninguna dirección.</value>
   </data>
   <data name="Not connected" xml:space="preserve">
     <value>No conectado</value>
@@ -10372,6 +10471,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Sender MX check" xml:space="preserve">
     <value>Comprobación del MX del remitente</value>
   </data>
+  <data name="Sender _address" xml:space="preserve">
+    <value>_Dirección del remitente</value>
+  </data>
   <data name="Sender auth" xml:space="preserve">
     <value>Autenticación del remitente</value>
   </data>
@@ -10870,6 +10972,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Skipped, by reason" xml:space="preserve">
     <value>Omitidos, por motivo</value>
   </data>
+  <data name="Skips every spam check: the message is never scored." xml:space="preserve">
+    <value>Se salta todas las comprobaciones de spam: el mensaje nunca se puntúa.</value>
+  </data>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>Ralentiza una sesión que nombra más destinatarios de los que necesita un mensaje legítimo. Pasado el recuento, cada RCPT TO adicional de una sesión sin autenticar espera el retardo antes de recibir respuesta - un ataque de diccionario o una tanda de spam nombra cientos de direcciones y paga por cada una, mientras que un MTA que envía nombra unas pocas y nunca alcanza el recuento. Las sesiones autenticadas y los rangos de IP con la protección antispam desactivada están exentos. La espera es un temporizador en la conexión, no un hilo dormido. Se aplica de inmediato.</value>
   </data>
@@ -11052,6 +11157,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Stopping…" xml:space="preserve">
     <value>Deteniendo…</value>
+  </data>
+  <data name="Stops it" xml:space="preserve">
+    <value>Lo detiene</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>Deja de aplicarse en una fecha</value>
@@ -11823,6 +11931,15 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>La carpeta de registros configurada no existe en esta máquina: {0}</value>
   </data>
+  <data name="The connecting IP address and the envelope sender, with wildcards" xml:space="preserve">
+    <value>La dirección IP que se conecta y el remitente de sobre, con comodines</value>
+  </data>
+  <data name="The connecting IP address, asked of each active list's DNS zone" xml:space="preserve">
+    <value>La dirección IP que se conecta, consultada en la zona DNS de cada lista activa</value>
+  </data>
+  <data name="The connecting IP address, with wildcards" xml:space="preserve">
+    <value>La dirección IP que se conecta, con comodines</value>
+  </data>
   <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
     <value>Se perdió la conexión con el servicio hMailServer - lo más probable es que se haya reiniciado. El Control Panel se reconecta por sí solo; vuelva a intentarlo en un momento.</value>
   </data>
@@ -11931,14 +12048,59 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
     <value>La entrada se aplica a la siguiente sesión desde ese dominio. Se consulta para sesiones entrantes sin autenticar de un rango IP que ejecuta las pruebas antispam, y nunca para saltarse la autenticación.</value>
   </data>
+  <data name="The entry {0} allows this domain: its mail is not greylisted or refused by score." xml:space="preserve">
+    <value>La entrada {0} permite este dominio: su correo no pasa por greylisting ni se rechaza por puntuación.</value>
+  </data>
+  <data name="The entry {0} allows this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>La entrada {0} permite a este remitente para cada destinatario cuya lista propia y la de su dominio no dicen nada.</value>
+  </data>
+  <data name="The entry {0} blocks this domain: its mail is refused at MAIL FROM." xml:space="preserve">
+    <value>La entrada {0} bloquea este dominio: su correo se rechaza en MAIL FROM.</value>
+  </data>
+  <data name="The entry {0} blocks this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>La entrada {0} bloquea a este remitente para cada destinatario cuya lista propia y la de su dominio no dicen nada.</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting when the message passes what it requires: {1}." xml:space="preserve">
+    <value>La entrada {0} deja pasar el greylisting a este remitente cuando el mensaje supera lo que exige: {1}.</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting." xml:space="preserve">
+    <value>La entrada {0} deja pasar el greylisting a este remitente.</value>
+  </data>
+  <data name="The entry {0} matches, adding {1} to the score." xml:space="preserve">
+    <value>La entrada {0} coincide y suma {1} a la puntuación.</value>
+  </data>
+  <data name="The envelope sender or the From address: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>El remitente de sobre o la dirección From: una dirección, o un dominio con sus subdominios</value>
+  </data>
   <data name="The envelope sender's domain" xml:space="preserve">
     <value>El dominio del remitente del sobre</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>El dominio del remitente del sobre (MAIL FROM)</value>
   </data>
+  <data name="The envelope sender's domain or the HELO name, exactly or with its subdomains" xml:space="preserve">
+    <value>El dominio del remitente de sobre o el nombre HELO, exacto o con sus subdominios</value>
+  </data>
+  <data name="The envelope sender's domain or the HELO name, with an SPF, DKIM or DMARC pass" xml:space="preserve">
+    <value>El dominio del remitente de sobre o el nombre HELO, con un SPF, DKIM o DMARC aprobado</value>
+  </data>
+  <data name="The envelope sender: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>El remitente de sobre: una dirección, o un dominio con sus subdominios</value>
+  </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>Los registros SPF, DKIM, DMARC, MTA-STS y TLS-RPT exactos que cada dominio debería publicar, con una comprobación de si cada uno está realmente activo.</value>
+  </data>
+  <data name="The exemption {0} covers this address, so it is never greylisted." xml:space="preserve">
+    <value>La exención {0} cubre esta dirección, así que nunca pasa por greylisting.</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when it connects from {1} - {2}." xml:space="preserve">
+    <value>La exención {0} cubre a este remitente solo cuando se conecta desde {1} - {2}.</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when its address matches {1}." xml:space="preserve">
+    <value>La exención {0} cubre a este remitente solo cuando su dirección coincide con {1}.</value>
+  </data>
+  <data name="The exemption {0} covers this sender, so it skips every spam check." xml:space="preserve">
+    <value>La exención {0} cubre a este remitente, así que se salta todas las comprobaciones de spam.</value>
   </data>
   <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
     <value>La audiencia esperada no está definida, así que la audiencia no se comprueba</value>
@@ -12016,6 +12178,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
     <value>El nombre de host {0} no es un nombre DNS completo, como mail.example.com, así que ningún registro DNS puede coincidir con él.</value>
+  </data>
+  <data name="The host names of the links in the message" xml:space="preserve">
+    <value>Los nombres de host de los enlaces del mensaje</value>
   </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>El id ({0}, generado ahora mismo) es suyo para elegirlo - cualquier valor es correcto. Su única misión es cambiar siempre que cambie la política, para que las cachés vuelvan a obtenerla.</value>
@@ -12136,9 +12301,6 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The listeners could not be read." xml:space="preserve">
     <value>No se pudieron leer los oyentes.</value>
-  </data>
-  <data name="The lists behind the checks" xml:space="preserve">
-    <value>Las listas que hay detrás de las comprobaciones</value>
   </data>
   <data name="The live log carries the SMTP conversation, including the text the far end sent back." xml:space="preserve">
     <value>El registro en vivo lleva la conversación SMTP, incluido el texto que devolvió el otro extremo.</value>
@@ -13214,6 +13376,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Type the new password." xml:space="preserve">
     <value>Escriba la nueva contraseña.</value>
   </data>
+  <data name="Type the sender's address, the IP address it connects from, or both." xml:space="preserve">
+    <value>Escriba la dirección del remitente, la dirección IP desde la que se conecta, o ambas.</value>
+  </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>Escriba el nombre de usuario al que pertenece la contraseña.</value>
   </data>
@@ -13535,6 +13700,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>Qué contiene una copia de seguridad, la programación, la verificación de cada archivo y la restauración.</value>
   </data>
+  <data name="What a match does" xml:space="preserve">
+    <value>Qué hace una coincidencia</value>
+  </data>
   <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
     <value>Lo que necesita un servidor nuevo, en orden: la lista de lo que está hecho y lo que viene después, un perfil de ajustes para el tipo de servidor que es y los registros DNS que publica cada dominio.</value>
   </data>
@@ -13549,6 +13717,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="What do you want to do?" xml:space="preserve">
     <value>¿Qué quiere hacer?</value>
+  </data>
+  <data name="What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both." xml:space="preserve">
+    <value>Qué hace cada lista con un remitente, según la dirección que da en MAIL FROM, la dirección desde la que se conecta, o ambas.</value>
   </data>
   <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>Qué protege cada oyente, qué presenta para demostrar quién es y qué puede negociarse todavía. Nada de esta página puede editarse - cada sección tiene un botón que abre la página propietaria de sus ajustes.</value>
@@ -13603,6 +13774,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>Para qué sirve</value>
+  </data>
+  <data name="What it matches" xml:space="preserve">
+    <value>Con qué se compara</value>
   </data>
   <data name="What it may do" xml:space="preserve">
     <value>Qué puede hacer</value>
@@ -13687,6 +13861,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
     <value>En qué momento de la conversación SMTP se hacen las búsquedas en listas de bloqueo. Qué listas de bloqueo se consultan está en la página Listas de bloqueo DNS (DNSBL).</value>
+  </data>
+  <data name="When it is read" xml:space="preserve">
+    <value>Cuándo se lee</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>Cuando no se puede alcanzar el punto de acceso</value>
@@ -13798,6 +13975,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Qué entradas del directorio se convierten en buzones</value>
+  </data>
+  <data name="Which list do I need?" xml:space="preserve">
+    <value>¿Qué lista necesito?</value>
   </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>¿Qué lista? Se escribe una entrada por cada remitente o dominio distinto, y luego se actúa sobre cada mensaje. Un mensaje para el que no se puede crear ninguna entrada se deja donde está.</value>
@@ -13924,6 +14104,12 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
     <value>Sin una programación configurada, nada tomará la siguiente.</value>
+  </data>
+  <data name="With the checks before the body" xml:space="preserve">
+    <value>Con las comprobaciones previas al cuerpo</value>
+  </data>
+  <data name="With the checks before the body, first among them" xml:space="preserve">
+    <value>Con las comprobaciones previas al cuerpo, la primera de ellas</value>
   </data>
   <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value>Con las comprobaciones activadas ahora, el total más alto alcanzable es {0}.</value>
@@ -14113,6 +14299,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Cambiar el pepper</value>
+  </data>
+  <data name="_Check" xml:space="preserve">
+    <value>_Comprobar</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>_Comprobar la sintaxis</value>
@@ -16017,6 +16206,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} carpetas.</value>
   </data>
+  <data name="{0} from {1}" xml:space="preserve">
+    <value>{0} desde {1}</value>
+  </data>
   <data name="{0} h ago" xml:space="preserve">
     <value>hace {0} h</value>
   </data>
@@ -16073,6 +16265,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} nunca se bloquea automáticamente: su nombre inverso {1} resuelve de vuelta a ella y está cubierto por {2}.</value>
+  </data>
+  <data name="{0} is not an IP address." xml:space="preserve">
+    <value>{0} no es una dirección IP.</value>
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} está activado pero puntúa 0, así que cuesta una búsqueda en cada mensaje y nunca puede cambiar el resultado. Dele una puntuación, o desactívelo.</value>

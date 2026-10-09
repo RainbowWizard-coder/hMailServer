@@ -24,6 +24,9 @@
   <data name="&quot;mx&quot; authorises whatever {0}'s MX records point at; &quot;a:{1}&quot; authorises the address of the host name this server announces in HELO/EHLO (Protocols &gt; SMTP &gt; Host name). &quot;~all&quot; soft-fails everything else - deliberately softer than &quot;-all&quot; until you are sure the list is complete." xml:space="preserve">
     <value>"mx" 授权 {0} 的 MX 记录所指向的一切主机；"a:{1}" 授权本服务器在 HELO/EHLO 中所声明的主机名（“协议 &gt; SMTP &gt; 主机名”）对应的地址。"~all" 对其余一切做软失败处理 - 在您确认这份列表完整之前，这比 "-all" 有意宽松一些。</value>
   </data>
+  <data name="&quot;{0}&quot; ({1} from {2})" xml:space="preserve">
+    <value>“{0}”（来自 {2} 的 {1}）</value>
+  </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>“{0}”未保存：{1}</value>
   </data>
@@ -1209,6 +1212,15 @@
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>为转发邮件添加 ARC 签封，使下游服务器可以信任原始的身份验证结果（RFC 8617）。签封会借用转发域的 DKIM 选择器和私钥，因此至少需要一个已配置 DKIM 签名的托管域 - 没有它，该开关显示为已启用却什么也不签封，只在调试日志中留下一行说明。“设置清单”页会为此检查您的各个域。</value>
   </data>
+  <data name="Adds the entry's score; the default of 100 refuses the message." xml:space="preserve">
+    <value>加上该条目的分数；默认值 100 会拒绝该邮件。</value>
+  </data>
+  <data name="Adds the list's score." xml:space="preserve">
+    <value>加上该列表的分数。</value>
+  </data>
+  <data name="Adds the server's score." xml:space="preserve">
+    <value>加上该服务器的分数。</value>
+  </data>
   <data name="Administer" xml:space="preserve">
     <value>管理</value>
   </data>
@@ -1244,6 +1256,9 @@
   </data>
   <data name="After reinitialise" xml:space="preserve">
     <value>重新初始化后生效</value>
+  </data>
+  <data name="After the body has arrived" xml:space="preserve">
+    <value>正文到达之后</value>
   </data>
   <data name="After the body has been received — a refusal here is a 554" xml:space="preserve">
     <value>在正文接收完毕之后 — 此处的拒绝是 554</value>
@@ -1386,11 +1401,17 @@
   <data name="Allowed. List entries: {0}. Messages released: {1}." xml:space="preserve">
     <value>已允许。名单条目数：{0}。已放行邮件数：{1}。</value>
   </data>
+  <data name="Allowed: no greylisting and no refusal by score, though the checks still run. Blocked: refused at MAIL FROM." xml:space="preserve">
+    <value>允许：不做灰名单处理，也不按分数拒绝，但检查仍会运行。拦截：在 MAIL FROM 时拒绝。</value>
+  </data>
   <data name="Allowed: not greylisted, not refused on score" xml:space="preserve">
     <value>允许：不灰名单，不按分数拒绝</value>
   </data>
   <data name="Allowed: not greylisted, not refused on the spam score" xml:space="preserve">
     <value>允许：不灰名单，不按垃圾邮件分数拒绝</value>
+  </data>
+  <data name="Allowed: the spam verdict is skipped. Blocked: held in the quarantine where that is on, otherwise marked as spam." xml:space="preserve">
+    <value>允许：跳过垃圾邮件判定。拦截：在启用了隔离区的地方保留在隔离区，否则标记为垃圾邮件。</value>
   </data>
   <data name="Allows for this server's clock differing from the signer's. Without it, a clock running a few minutes fast turns other people's valid mail into DKIM failures." xml:space="preserve">
     <value>容许本服务器的时钟与签名方的时钟存在偏差。没有它，快了几分钟的时钟会把别人的有效邮件变成 DKIM 失败。</value>
@@ -1699,8 +1720,23 @@
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>需要确认</value>
   </data>
+  <data name="At MAIL FROM, after the spam exemptions" xml:space="preserve">
+    <value>在 MAIL FROM 时，垃圾邮件豁免之后</value>
+  </data>
+  <data name="At MAIL FROM, before any spam check" xml:space="preserve">
+    <value>在 MAIL FROM 时，任何垃圾邮件检查之前</value>
+  </data>
+  <data name="At RCPT TO, before greylisting" xml:space="preserve">
+    <value>在 RCPT TO 时，灰名单处理之前</value>
+  </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>在 RCPT TO 时、正文传输之前 — 此处的拒绝是 550</value>
+  </data>
+  <data name="At RCPT TO, or after DATA for an entry that needs DKIM or DMARC" xml:space="preserve">
+    <value>在 RCPT TO 时；需要 DKIM 或 DMARC 的条目在 DATA 之后</value>
+  </data>
+  <data name="At delivery, recipient by recipient, after the account's own list and its domain's" xml:space="preserve">
+    <value>投递时逐个收件人处理，在该账户自己的列表及其域的列表之后</value>
   </data>
   <data name="At least 12 printable ASCII characters. Leave both boxes empty to keep the passphrase already set. The server never gives it back - not to this program and not to anyone else - so keep it somewhere other than beside the backups: a restore asks for it, and nothing in an archive whose passphrase is lost can be recovered by anybody." xml:space="preserve">
     <value>至少 12 个可打印的 ASCII 字符。两个框都留空则保留已经设置的口令。服务器不会把口令交还给任何人，本程序也不例外，因此请把它保存在备份旁边以外的地方：还原时需要它，口令一旦丢失，存档中的任何内容都无人能够恢复。</value>
@@ -2353,6 +2389,9 @@
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>检查策略(_P)（HTTPS）</value>
   </data>
+  <data name="Check a sender" xml:space="preserve">
+    <value>检查发件人</value>
+  </data>
   <data name="Check an address" xml:space="preserve">
     <value>检查地址</value>
   </data>
@@ -2698,6 +2737,9 @@
   <data name="Connected to {0} over {1}." xml:space="preserve">
     <value>已通过 {1} 连接到 {0}。</value>
   </data>
+  <data name="Connecting _IP address" xml:space="preserve">
+    <value>连接的 IP 地址(_I)</value>
+  </data>
   <data name="Connecting host checks" xml:space="preserve">
     <value>连接主机检查</value>
   </data>
@@ -3014,6 +3056,12 @@
   </data>
   <data name="Could not read the list: " xml:space="preserve">
     <value>无法读取列表： </value>
+  </data>
+  <data name="Could not read the list: {0}" xml:space="preserve">
+    <value>无法读取该列表：{0}</value>
+  </data>
+  <data name="Could not read the lists: {0}" xml:space="preserve">
+    <value>无法读取这些列表：{0}</value>
   </data>
   <data name="Could not read the logging state: {0}" xml:space="preserve">
     <value>无法读取日志记录状态：{0}</value>
@@ -3847,6 +3895,9 @@
   </data>
   <data name="Delivery throughput" xml:space="preserve">
     <value>投递吞吐量</value>
+  </data>
+  <data name="Depends" xml:space="preserve">
+    <value>视情况</value>
   </data>
   <data name="Derived from the domain's configured key: selector &quot;{0}&quot;, private key file {1}." xml:space="preserve">
     <value>由该域配置的密钥推导：选择器 "{0}"，私钥文件 {1}。</value>
@@ -4903,6 +4954,9 @@
   <data name="First: which half is stuck?" xml:space="preserve">
     <value>首先：卡住的是哪一半？</value>
   </data>
+  <data name="Five lists let a sender through and three stop one, each read at its own moment in a message's arrival and matched against its own part of it. In the order a message meets them:" xml:space="preserve">
+    <value>五个列表会放行发件人，三个会拦下发件人；每个列表在邮件到达过程中的特定时刻读取，并与邮件的特定部分比对。按邮件经过它们的顺序列出：</value>
+  </data>
   <data name="Fixed token (advanced; used verbatim instead of fetching)" xml:space="preserve">
     <value>固定令牌（高级；按原样使用而不是获取）</value>
   </data>
@@ -5949,6 +6003,9 @@
   <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
     <value>让负载均衡器或 Postfix 中继通过 PROXY 协议或 XCLIENT 传递真实的客户端地址。</value>
   </data>
+  <data name="Let past greylisting." xml:space="preserve">
+    <value>放行通过灰名单。</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>允许用户编辑自己的通讯录条目</value>
   </data>
@@ -5979,6 +6036,9 @@
   <data name="Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install." xml:space="preserve">
     <value>让客户端用来自身份提供方的持有者令牌而不是密码登录；只有当令牌的签名能通过您安装的密钥材料验证时才会被接受。</value>
   </data>
+  <data name="Lets it through" xml:space="preserve">
+    <value>放行</value>
+  </data>
   <data name="Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be." xml:space="preserve">
     <value>让邮件客户端通过 TCP 上传和管理每个账户的 Sieve 过滤脚本。身份验证是针对账户数据库的 SASL PLAIN，因此邮箱密码会经过此连接。只有当某个支持 TLS 的邮箱端口有证书可借用时才会提供 STARTTLS - 下面的状态会说明是否如此。</value>
   </data>
@@ -5999,6 +6059,9 @@
   </data>
   <data name="Limits" xml:space="preserve">
     <value>限制</value>
+  </data>
+  <data name="List" xml:space="preserve">
+    <value>列表</value>
   </data>
   <data name="List is _active" xml:space="preserve">
     <value>列表处于活动状态(_A)</value>
@@ -6856,6 +6919,9 @@
   <data name="Never auto-ban these addresses (comma separated; CIDR blocks allowed)" xml:space="preserve">
     <value>永不自动封禁这些地址（逗号分隔；允许 CIDR 块）</value>
   </data>
+  <data name="Never greylisted." xml:space="preserve">
+    <value>从不进行灰名单处理。</value>
+  </data>
   <data name="Never judged by country (addresses and CIDR ranges, comma separated)" xml:space="preserve">
     <value>从不按国家判断（地址和 CIDR 范围，逗号分隔）</value>
   </data>
@@ -7021,6 +7087,9 @@
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
     <value>没有拦截列表，因此不会在任何拦截列表中查询连接方的地址。</value>
   </data>
+  <data name="No blocked sender matches this address." xml:space="preserve">
+    <value>没有已拦截的发件人与此地址匹配。</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>未定义任何被拦截的发件人，因此不会匹配任何内容。该列表没有开关 - 空列表就是关闭状态。</value>
   </data>
@@ -7105,6 +7174,12 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>没有条目，因此此名单不允许也不拦截任何人；账户自己的名单和其所在域的名单仍然适用。</value>
   </data>
+  <data name="No entry covers this sender's domain; entries matched against the HELO name are not checked here." xml:space="preserve">
+    <value>没有条目涵盖此发件人的域；与 HELO 名称比对的条目不在此处检查。</value>
+  </data>
+  <data name="No entry matches this address, so the list leaves it to the spam checks." xml:space="preserve">
+    <value>没有条目与此地址匹配，因此该列表把它交给垃圾邮件检查。</value>
+  </data>
   <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
     <value>今天没有记录任何错误：{1} 中没有 {0}。</value>
   </data>
@@ -7119,6 +7194,12 @@
   </data>
   <data name="No executable set" xml:space="preserve">
     <value>未设置可执行文件</value>
+  </data>
+  <data name="No exemption covers this address." xml:space="preserve">
+    <value>没有豁免涵盖此地址。</value>
+  </data>
+  <data name="No exemption covers this sender." xml:space="preserve">
+    <value>没有豁免涵盖此发件人。</value>
   </data>
   <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
     <value>没有例外，因此此名单不会让任何发件人绕过垃圾邮件防护。</value>
@@ -7179,6 +7260,9 @@
   </data>
   <data name="No log folder is configured in hMailServer.INI, so the server has nowhere to write the recovery report." xml:space="preserve">
     <value>hMailServer.INI 中未配置日志文件夹，因此服务器无处写入恢复报告。</value>
+  </data>
+  <data name="No match" xml:space="preserve">
+    <value>无匹配</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>{0} 中没有匹配的账户。</value>
@@ -7369,11 +7453,26 @@
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>坦率地说，此处未做检查：验证 PTR 需要服务器的公网 IP 地址，而此面板无法确定它（在 NAT 之后机器自己也不知道），而且本页的检查器只读取 TXT 和 MX 记录。请改为从外部测试：nslookup &lt;your public IP&gt; 会显示 PTR；它应当指向上面的主机名。</value>
   </data>
+  <data name="Not checked here: SURBL is asked about the links in a message once its body has arrived." xml:space="preserve">
+    <value>此处不检查：邮件正文到达后，才会就其中的链接查询 SURBL。</value>
+  </data>
+  <data name="Not checked here: the DNS block lists are asked about the connecting address over DNS as mail arrives." xml:space="preserve">
+    <value>此处不检查：邮件到达时，才会通过 DNS 向 DNS 拦截列表查询连接的地址。</value>
+  </data>
   <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
     <value>尚未检查（请检查更新，或在下方开启每日检查）</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>未检查：无法读取服务器的设置。</value>
+  </data>
+  <data name="Not checked: this list matches the connecting IP address, and none was given." xml:space="preserve">
+    <value>未检查：此列表比对连接的 IP 地址，但没有输入地址。</value>
+  </data>
+  <data name="Not checked: this list matches the sender's address, and none was given." xml:space="preserve">
+    <value>未检查：此列表比对发件人地址，但没有输入地址。</value>
+  </data>
+  <data name="Not checked: this list matches the sender's domain or the HELO name, and no address was given." xml:space="preserve">
+    <value>未检查：此列表比对发件人的域或 HELO 名称，但没有输入地址。</value>
   </data>
   <data name="Not connected" xml:space="preserve">
     <value>未连接</value>
@@ -10372,6 +10471,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sender MX check" xml:space="preserve">
     <value>发件人 MX 检查</value>
   </data>
+  <data name="Sender _address" xml:space="preserve">
+    <value>发件人地址(_A)</value>
+  </data>
   <data name="Sender auth" xml:space="preserve">
     <value>发件人身份验证</value>
   </data>
@@ -10870,6 +10972,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Skipped, by reason" xml:space="preserve">
     <value>已跳过，按原因</value>
   </data>
+  <data name="Skips every spam check: the message is never scored." xml:space="preserve">
+    <value>跳过所有垃圾邮件检查：邮件从不计分。</value>
+  </data>
   <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
     <value>减慢指定收件人数量超出正常邮件所需的会话。超过该数量后，未验证会话中的每个后续 RCPT TO 都要等待延迟后才被应答 - 字典攻击或垃圾邮件群发会指定数百个地址并为每一个付出代价，而正常的发送 MTA 只指定寥寥几个，永远达不到该数量。已验证会话和关闭了垃圾邮件防护的 IP 范围不受影响。等待是连接上的计时器，不是休眠的线程。立即生效。</value>
   </data>
@@ -11052,6 +11157,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Stopping…" xml:space="preserve">
     <value>正在停止…</value>
+  </data>
+  <data name="Stops it" xml:space="preserve">
+    <value>拦下</value>
   </data>
   <data name="Stops mattering at a date" xml:space="preserve">
     <value>在某个日期后失效</value>
@@ -11823,6 +11931,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>所配置的日志文件夹在本机上不存在: {0}</value>
   </data>
+  <data name="The connecting IP address and the envelope sender, with wildcards" xml:space="preserve">
+    <value>连接的 IP 地址和信封发件人，可使用通配符</value>
+  </data>
+  <data name="The connecting IP address, asked of each active list's DNS zone" xml:space="preserve">
+    <value>连接的 IP 地址，向每个启用列表的 DNS 区域查询</value>
+  </data>
+  <data name="The connecting IP address, with wildcards" xml:space="preserve">
+    <value>连接的 IP 地址，可使用通配符</value>
+  </data>
   <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
     <value>与 hMailServer 服务的连接已断开 - 很可能是它被重启了。控制面板会自行重新连接；请稍后再试。</value>
   </data>
@@ -11931,14 +12048,59 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication." xml:space="preserve">
     <value>该条目适用于来自该域的下一个会话。它用于运行反垃圾邮件测试的 IP 范围内的未认证入站会话，绝不用于绕过认证。</value>
   </data>
+  <data name="The entry {0} allows this domain: its mail is not greylisted or refused by score." xml:space="preserve">
+    <value>条目 {0} 允许此域：其邮件不做灰名单处理，也不按分数拒绝。</value>
+  </data>
+  <data name="The entry {0} allows this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>对于自己的列表和所在域的列表都未作规定的每个收件人，条目 {0} 会允许此发件人。</value>
+  </data>
+  <data name="The entry {0} blocks this domain: its mail is refused at MAIL FROM." xml:space="preserve">
+    <value>条目 {0} 拦截此域：其邮件在 MAIL FROM 时被拒绝。</value>
+  </data>
+  <data name="The entry {0} blocks this sender for every recipient whose own list and domain's list say nothing." xml:space="preserve">
+    <value>对于自己的列表和所在域的列表都未作规定的每个收件人，条目 {0} 会拦截此发件人。</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting when the message passes what it requires: {1}." xml:space="preserve">
+    <value>当邮件通过条目 {0} 要求的检查（{1}）时，该条目让此发件人通过灰名单。</value>
+  </data>
+  <data name="The entry {0} lets this sender past greylisting." xml:space="preserve">
+    <value>条目 {0} 让此发件人通过灰名单。</value>
+  </data>
+  <data name="The entry {0} matches, adding {1} to the score." xml:space="preserve">
+    <value>条目 {0} 匹配，为分数加上 {1}。</value>
+  </data>
+  <data name="The envelope sender or the From address: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>信封发件人或 From 地址：一个地址，或者一个域及其子域</value>
+  </data>
   <data name="The envelope sender's domain" xml:space="preserve">
     <value>信封发件人的域</value>
   </data>
   <data name="The envelope sender's domain (MAIL FROM)" xml:space="preserve">
     <value>信封发件人的域名（MAIL FROM）</value>
   </data>
+  <data name="The envelope sender's domain or the HELO name, exactly or with its subdomains" xml:space="preserve">
+    <value>信封发件人的域或 HELO 名称，可精确匹配，也可包括其子域</value>
+  </data>
+  <data name="The envelope sender's domain or the HELO name, with an SPF, DKIM or DMARC pass" xml:space="preserve">
+    <value>信封发件人的域或 HELO 名称，并通过 SPF、DKIM 或 DMARC</value>
+  </data>
+  <data name="The envelope sender: one address, or a domain with its subdomains" xml:space="preserve">
+    <value>信封发件人：一个地址，或者一个域及其子域</value>
+  </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>每个域应当发布的确切 SPF、DKIM、DMARC、MTA-STS 和 TLS-RPT 记录，并检查每一条是否已生效。</value>
+  </data>
+  <data name="The exemption {0} covers this address, so it is never greylisted." xml:space="preserve">
+    <value>豁免 {0} 涵盖此地址，因此它从不进行灰名单处理。</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when it connects from {1} - {2}." xml:space="preserve">
+    <value>只有当此发件人从 {1} - {2} 连接时，豁免 {0} 才涵盖它。</value>
+  </data>
+  <data name="The exemption {0} covers this sender only when its address matches {1}." xml:space="preserve">
+    <value>只有当此发件人的地址与 {1} 匹配时，豁免 {0} 才涵盖它。</value>
+  </data>
+  <data name="The exemption {0} covers this sender, so it skips every spam check." xml:space="preserve">
+    <value>豁免 {0} 涵盖此发件人，因此它会跳过所有垃圾邮件检查。</value>
   </data>
   <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
     <value>预期的受众未设置，因此不检查受众</value>
@@ -12016,6 +12178,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The host name {0} is not a full DNS name, such as mail.example.com, so no DNS record can agree with it." xml:space="preserve">
     <value>主机名 {0} 不是完整的 DNS 名称（例如 mail.example.com），因此没有任何 DNS 记录能与之相符。</value>
+  </data>
+  <data name="The host names of the links in the message" xml:space="preserve">
+    <value>邮件中链接的主机名</value>
   </data>
   <data name="The id ({0}, generated just now) is yours to choose - any value is correct. Its only job is to change whenever the policy changes, so caches refetch." xml:space="preserve">
     <value>此 id ({0}，刚刚生成) 由您自行选择 - 任何值都是正确的。它唯一的作用是在策略变化时随之变化，好让缓存重新获取。</value>
@@ -12136,9 +12301,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The listeners could not be read." xml:space="preserve">
     <value>监听器无法读取。</value>
-  </data>
-  <data name="The lists behind the checks" xml:space="preserve">
-    <value>检查背后的列表</value>
   </data>
   <data name="The live log carries the SMTP conversation, including the text the far end sent back." xml:space="preserve">
     <value>实时日志包含 SMTP 会话，包括对端回送的文本。</value>
@@ -13214,6 +13376,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Type the new password." xml:space="preserve">
     <value>请输入新密码。</value>
   </data>
+  <data name="Type the sender's address, the IP address it connects from, or both." xml:space="preserve">
+    <value>请输入发件人的地址、其连接来源的 IP 地址，或两者都输入。</value>
+  </data>
   <data name="Type the user name the password belongs to." xml:space="preserve">
     <value>输入该密码所属的用户名。</value>
   </data>
@@ -13535,6 +13700,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="What a backup holds, the schedule, verification of every archive, and restore." xml:space="preserve">
     <value>备份包含什么、计划、对每个存档的验证以及还原。</value>
   </data>
+  <data name="What a match does" xml:space="preserve">
+    <value>匹配后的作用</value>
+  </data>
   <data name="What a new server needs, in order: the checklist of what is done and what is next, a profile of settings for the kind of server this is, and the DNS records each domain publishes." xml:space="preserve">
     <value>新服务器需要的内容，按顺序：一份显示已完成和下一步事项的清单、适合此类服务器的设置配置方案，以及每个域发布的 DNS 记录。</value>
   </data>
@@ -13549,6 +13717,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="What do you want to do?" xml:space="preserve">
     <value>您想做什么?</value>
+  </data>
+  <data name="What each list does with a sender, by the address it gives at MAIL FROM, the address it connects from, or both." xml:space="preserve">
+    <value>按发件人在 MAIL FROM 中给出的地址、连接来源地址或两者，说明每个列表如何处理该发件人。</value>
   </data>
   <data name="What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
     <value>每个监听器保护什么、出示什么来证明身份，以及还有什么可以协商。本页无法编辑任何内容。每个部分都有一个按钮，可打开拥有其设置的页面。</value>
@@ -13603,6 +13774,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="What it is for" xml:space="preserve">
     <value>用途</value>
+  </data>
+  <data name="What it matches" xml:space="preserve">
+    <value>比对的内容</value>
   </data>
   <data name="What it may do" xml:space="preserve">
     <value>它可以做什么</value>
@@ -13687,6 +13861,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="When during the SMTP conversation block list lookups happen. Which block lists are asked is on the DNS block lists (DNSBL) page." xml:space="preserve">
     <value>拦截列表查询在 SMTP 会话的哪个时刻进行。查询哪些拦截列表在“DNS 拦截列表（DNSBL）”页。</value>
+  </data>
+  <data name="When it is read" xml:space="preserve">
+    <value>何时读取</value>
   </data>
   <data name="When the endpoint cannot be reached" xml:space="preserve">
     <value>端点无法访问时</value>
@@ -13798,6 +13975,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>哪些目录条目会成为邮箱</value>
+  </data>
+  <data name="Which list do I need?" xml:space="preserve">
+    <value>我需要哪个列表？</value>
   </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>写入哪份名单？系统会为每个不同的发件人或域写入一条条目，然后再对每封邮件执行操作。无法为其写入条目的邮件将保留原状。</value>
@@ -13924,6 +14104,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="With no schedule configured, nothing will take the next one." xml:space="preserve">
     <value>由于未配置任何计划，不会有任何机制执行下一次备份。</value>
+  </data>
+  <data name="With the checks before the body" xml:space="preserve">
+    <value>与正文之前的检查一起</value>
+  </data>
+  <data name="With the checks before the body, first among them" xml:space="preserve">
+    <value>与正文之前的检查一起，排在第一位</value>
   </data>
   <data name="With the checks currently enabled the highest total reachable is {0}." xml:space="preserve">
     <value>在当前启用的这些检查下，可达到的最高总分是 {0}。</value>
@@ -14113,6 +14299,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>更改 pepper(_C)</value>
+  </data>
+  <data name="_Check" xml:space="preserve">
+    <value>检查(_C)</value>
   </data>
   <data name="_Check syntax" xml:space="preserve">
     <value>检查语法(_C)</value>
@@ -16017,6 +16206,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} folders." xml:space="preserve">
     <value>{0} 个文件夹。</value>
   </data>
+  <data name="{0} from {1}" xml:space="preserve">
+    <value>来自 {1} 的 {0}</value>
+  </data>
   <data name="{0} h ago" xml:space="preserve">
     <value>{0} 小时前</value>
   </data>
@@ -16073,6 +16265,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}." xml:space="preserve">
     <value>{0} 永远不会被自动封禁：其反向名称 {1} 正向解析回该地址，且被 {2} 覆盖。</value>
+  </data>
+  <data name="{0} is not an IP address." xml:space="preserve">
+    <value>{0} 不是 IP 地址。</value>
   </data>
   <data name="{0} is on but scores 0, so it costs a lookup on every message and can never change the outcome. Give it a score, or turn it off." xml:space="preserve">
     <value>{0} 已开启，但分数为 0，因此它对每封邮件都要付出一次查找，却永远无法改变结果。请给它一个分数，或者把它关掉。</value>
