@@ -3174,53 +3174,50 @@ namespace hMailServer.ControlPanel.Views
          string time = DateTime.Now.ToLongTimeString();
          IReadOnlyList<string> pending = IniFeatureStore.PendingNames();
 
-         if (pending == null)
+         // Null is a server that cannot say - one from before a save could publish,
+         // whose [Settings] keys all apply at its next start, or one that did not
+         // answer.
+         List<string> waiting = null;
+         int waitingForRestart = 0;
+         if (pending != null)
          {
-            // A server that cannot say - one from before a save could publish, whose
-            // [Settings] keys all apply at its next start, or one that did not answer.
-            // What this page said then, and never that the save took effect.
-            SetState_(SettingsPageState.WaitsForRestart, F("Saved {0} - restart the service to apply.", time));
+            var pageKeys = new HashSet<string>(
+               cards_.SelectMany(card => card.Settings).Select(setting => setting.Key).Where(key => !string.IsNullOrEmpty(key)),
+               StringComparer.OrdinalIgnoreCase);
+            waiting = pending.Where(pageKeys.Contains).ToList();
+            waitingForRestart = waiting.Count(key => IniFeatureStore.AppliesFor(key) == SettingApplies.Restart);
+         }
 
-            if (MessageBox.Show(
-                   L("Settings saved. The hMailServer service must be restarted for the changes to take effect.\n\nRestart it now?"),
-                   L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-               RestartService();
-            }
+         // The state is the one SettingsPageStatus.AfterSave gives, the rule its tests
+         // hold, where this method chose it with an if-chain of its own beside it.
+         SettingsPageState state = SettingsPageStatus.AfterSave(waiting?.Count, waitingForRestart);
+
+         if (state == SettingsPageState.Saved)
+         {
+            SetState_(state, F("Saved {0} - every setting on this page is in effect.", time));
             return true;
          }
 
-         var pageKeys = new HashSet<string>(
-            cards_.SelectMany(card => card.Settings).Select(setting => setting.Key).Where(key => !string.IsNullOrEmpty(key)),
-            StringComparer.OrdinalIgnoreCase);
-         List<string> waiting = pending.Where(pageKeys.Contains).ToList();
-         int waitingForRestart = waiting.Count(key => IniFeatureStore.AppliesFor(key) == SettingApplies.Restart);
-
-         if (waiting.Count == 0)
+         if (state == SettingsPageState.WaitsForReinitialise)
          {
-            SetState_(SettingsPageState.Saved, F("Saved {0} - every setting on this page is in effect.", time));
-            return true;
-         }
-
-         if (waitingForRestart == 0)
-         {
-            SetState_(SettingsPageState.WaitsForReinitialise, PluralF(waiting.Count,
+            SetState_(state, PluralF(waiting.Count,
                "Saved {0} - {1} setting waits for a reinitialise; Apply now, in the bar at the foot of the window, takes it.",
                "Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them.",
                time, waiting.Count));
             return true;
          }
 
-         SetState_(SettingsPageState.WaitsForRestart, F("Saved {0} - restart the service to apply.", time));
+         // Some of the page's keys wait for a restart, or the server cannot say what
+         // waits and applies them all at its next start: never that the save took effect.
+         SetState_(state, F("Saved {0} - restart the service to apply.", time));
 
-         if (MessageBox.Show(
-                Plural(waitingForRestart,
-                   "Settings saved. {0} of them takes effect only when the hMailServer service restarts.\n\nRestart it now?",
-                   "Settings saved. {0} of them take effect only when the hMailServer service restarts.\n\nRestart it now?"),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-         {
+         string question = waiting == null
+            ? L("Settings saved. The hMailServer service must be restarted for the changes to take effect.\n\nRestart it now?")
+            : Plural(waitingForRestart,
+               "Settings saved. {0} of them takes effect only when the hMailServer service restarts.\n\nRestart it now?",
+               "Settings saved. {0} of them take effect only when the hMailServer service restarts.\n\nRestart it now?");
+         if (MessageBox.Show(question, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             RestartService();
-         }
 
          return true;
       }

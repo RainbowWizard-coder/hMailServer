@@ -170,6 +170,26 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex("<scaffold:StatusPill x:Name=\"StatePill\" Visibility=\"Collapsed\""), markup);
       }
 
+      /// <summary>
+      /// The feature settings pages settle a save in the state SettingsPageStatus.AfterSave
+      /// gives, the rule SettingsPageStatusTests holds. Save_ chose the state with an
+      /// if-chain of its own beside that rule, so the tested rule never ran and a change
+      /// to the chain passed every test.
+      /// </summary>
+      [Fact]
+      public void TheFeatureSettingsSave_SettlesTheStateTheTestedRuleGives()
+      {
+         string save = WithheldRowTests.MemberText(ReadControlPanelFile("Views/FeatureSettingsView.xaml.cs"), "private bool Save_()");
+         Assert.True(save != null, "FeatureSettingsView.Save_ is gone.");
+
+         int rule = save.IndexOf("SettingsPageState state = SettingsPageStatus.AfterSave(waiting?.Count, waitingForRestart);", StringComparison.Ordinal);
+         Assert.True(rule >= 0, "FeatureSettingsView.Save_ does not take its state from SettingsPageStatus.AfterSave.");
+
+         string settles = save.Substring(rule);
+         Assert.DoesNotContain("SetState_(SettingsPageState.", settles, StringComparison.Ordinal);
+         Assert.Equal(3, Regex.Matches(settles, @"SetState_\(state, ").Count);
+      }
+
       [Fact]
       public void TheServerSettingsPage_SettlesASaveByTheSameRule()
       {
