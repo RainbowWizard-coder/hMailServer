@@ -8,8 +8,8 @@
 #include "RestApiServer.h"
 #include "JsonDocument.h"
 
-#include <cstring>
 #include <stdexcept>
+#include <string_view>
 
 namespace HM
 {
@@ -343,12 +343,11 @@ namespace HM
          }
 
          void
-         Literal_(const char *word)
+         Literal_(std::string_view word)
          {
-            const size_t length = strlen(word);
-            if (text_.compare(at_, length, word) != 0)
-               Fail_(std::string("not ") + word);
-            at_ += length;
+            if (text_.compare(at_, word.size(), word) != 0)
+               Fail_(std::string("not ").append(word));
+            at_ += word.size();
          }
 
          const std::string &text_;
@@ -612,7 +611,7 @@ namespace HM
       struct Served
       {
          const char *methods;  // the methods, separated by spaces; "*" for any
-         const char *path;     // the path, or the prefix of every path under it
+         std::string_view path; // the path, or the prefix of every path under it
          bool under;
       };
 
@@ -645,7 +644,7 @@ namespace HM
       for (const Served &candidate : served)
       {
          const bool pathMatches = candidate.under
-            ? path.compare(0, strlen(candidate.path), candidate.path) == 0 && path.size() > strlen(candidate.path)
+            ? path.compare(0, candidate.path.size(), candidate.path) == 0 && path.size() > candidate.path.size()
             : path == candidate.path;
          if (!pathMatches)
             continue;
