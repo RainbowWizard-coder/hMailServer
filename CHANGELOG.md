@@ -547,54 +547,6 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   unavailable" for a COM failure or a lost link. `NeverBanEditorTests` holds the editor to building afresh and the
   shell to telling the two apart.
 
-### Administration
-
-- **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
-  domains and rules pages cut parts of themselves off in a narrow window.** In 6.3.4 the IP ranges page's list was
-  given the height the window left after the page's title, the toolbar, the permissions card and the add form, and the
-  page did not scroll, so a window less than about 700 pixels high (875 at 125 % scaling) left it no room for a whole
-  row, and one less than about 630 (790) no list at all: no range could be seen or selected, and so none could be
-  edited or deleted. 6.3.5 kept 150 pixels of list by holding the page to the window over a fixed 560 pixels, which
-  knew nothing of how tall the cards are: in the narrowest window (760 by 520), where the permissions wrap, the add
-  form ran past those 560 pixels and could not be scrolled to. The page is now laid out by a new scaffold panel,
-  `FillPanel`: the list takes the height the other parts leave, down to three rows, below which the whole page
-  scrolls, and every other part always keeps its own height, so all of the page can be reached at every window size.
-  In a narrow window the toolbar's buttons wrap where *Delete selected range* and *Restore defaults* ran off the right
-  edge, the grid scrolls sideways where it squeezed the ranges' names to nothing and cut the upper address short, and
-  the permissions take two columns, where a quarter of the card broke a word in two. The permissions card shows the
-  selected range's permissions or none: with no range selected its boxes are clear and disabled, where they kept the
-  last range's values under *Permissions (select a range)*; a save, an edit or an add keeps the range selected, where
-  the reload dropped the selection and with it the card's *(saved)*; and Save, Properties and Delete find the selected
-  range by its ID, where two ranges with one name and one lower address were both taken for the first of them. The
-  domains and rules pages held a grid to the window over a fixed 640 and 620 pixels in the same way, and in the
-  narrowest window the domains page's alias form ran past them and could not be scrolled to, its alias list had no
-  height, *Create account* ran off its card and every domain's *Properties* and *Delete* off the list, and the rules
-  page left a rule's actions no height and cut its match list off. Both pages are laid out by `FillPanel` now, which
-  shares the window between several lists by weight: every list takes what the window leaves, down to three rows, and
-  each card holds its toolbar, its list and its form whole, so all of either page can be reached at every window size.
-  Below a page of 700 pixels the domains card goes above the accounts card, the alias and list cards go one above the
-  other where they would be narrower than 280 pixels and the rules page's criteria and actions where they would be
-  narrower than 340, *Generate* and *Create account* go under the password where they do not fit beside it, a list's
-  rows are its width with a long name cut short and whole in its tool tip, and the rule grid's columns keep a width
-  and scroll sideways.
-- **Fixed: the Control Panel could stop answering on the rules page at some display scalings.** A list of rules,
-  criteria or actions whose rows fitted only without a horizontal scroll bar, at a scaling where its columns came out a
-  fraction of a pixel wider than the list, showed the horizontal bar, which left the rows too little room, so the
-  vertical bar came, the columns narrowed to fit, the horizontal bar went, the rows fitted, the vertical bar went, and
-  so on for ever: the page's layout never settled, and the Control Panel took no more input. In 6.3.6 four rules did it
-  in a 1280 by 800 window at 175 %, and a rule with four criteria or actions in a shorter one. The criteria and actions,
-  one column whose text ends in an ellipsis, no longer scroll sideways, and the list of rules, whose columns keep their
-  widths and scroll sideways in a narrow window, keeps its vertical scroll bar, so that neither bar can turn the other
-  on or off.
-- **Fixed: the REST API's OpenAPI document described either the listing of a folder's messages or the import of a
-  message into one, never both, and `GET /api/v1/status` twice.** `/api/v1/openapi.json` wrote
-  `/api/v1/me/folders/{id}/messages` as two entries, one holding the `GET` and one the `POST`, since the import
-  arrived on 11 September 2026, and `/api/v1/status` as two since 24 September, the second the description from
-  before the event-script languages were listed in it. JSON leaves a reader to do as it likes with a member named
-  twice in one object, and every reader keeps one of the two without a word: a browser's or Python's the last, so a
-  client generated from the document had the import and not the listing, and the older status description; the
-  server's own the first. Each path is now one entry carrying every method it answers, as the other paths with
-  several were written. Nothing changed in what the server answers, only in what it says it answers.
 - **Fixed: the Control Panel threw away unsaved edits without a word.** The window keeps a page once it has been opened,
   and every settings page reads the server again as it is opened, so an edit left behind by a click in the sidebar, a
   *Related* link, a palette result, closing the window or the page's own *Reload* was gone when the page came back -
@@ -869,6 +821,55 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   count of whole days left, whose zero covers a certificate that expires at six tomorrow morning: that one *expires
   tomorrow*, one that expired at five this morning *expired earlier today* rather than *yesterday*, and the day count
   in the certificate's own row on the page is the same calendar count as its note's.
+
+### Administration
+
+- **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
+  domains and rules pages cut parts of themselves off in a narrow window.** In 6.3.4 the IP ranges page's list was
+  given the height the window left after the page's title, the toolbar, the permissions card and the add form, and the
+  page did not scroll, so a window less than about 700 pixels high (875 at 125 % scaling) left it no room for a whole
+  row, and one less than about 630 (790) no list at all: no range could be seen or selected, and so none could be
+  edited or deleted. 6.3.5 kept 150 pixels of list by holding the page to the window over a fixed 560 pixels, which
+  knew nothing of how tall the cards are: in the narrowest window (760 by 520), where the permissions wrap, the add
+  form ran past those 560 pixels and could not be scrolled to. The page is now laid out by a new scaffold panel,
+  `FillPanel`: the list takes the height the other parts leave, down to three rows, below which the whole page
+  scrolls, and every other part always keeps its own height, so all of the page can be reached at every window size.
+  In a narrow window the toolbar's buttons wrap where *Delete selected range* and *Restore defaults* ran off the right
+  edge, the grid scrolls sideways where it squeezed the ranges' names to nothing and cut the upper address short, and
+  the permissions take two columns, where a quarter of the card broke a word in two. The permissions card shows the
+  selected range's permissions or none: with no range selected its boxes are clear and disabled, where they kept the
+  last range's values under *Permissions (select a range)*; a save, an edit or an add keeps the range selected, where
+  the reload dropped the selection and with it the card's *(saved)*; and Save, Properties and Delete find the selected
+  range by its ID, where two ranges with one name and one lower address were both taken for the first of them. The
+  domains and rules pages held a grid to the window over a fixed 640 and 620 pixels in the same way, and in the
+  narrowest window the domains page's alias form ran past them and could not be scrolled to, its alias list had no
+  height, *Create account* ran off its card and every domain's *Properties* and *Delete* off the list, and the rules
+  page left a rule's actions no height and cut its match list off. Both pages are laid out by `FillPanel` now, which
+  shares the window between several lists by weight: every list takes what the window leaves, down to three rows, and
+  each card holds its toolbar, its list and its form whole, so all of either page can be reached at every window size.
+  Below a page of 700 pixels the domains card goes above the accounts card, the alias and list cards go one above the
+  other where they would be narrower than 280 pixels and the rules page's criteria and actions where they would be
+  narrower than 340, *Generate* and *Create account* go under the password where they do not fit beside it, a list's
+  rows are its width with a long name cut short and whole in its tool tip, and the rule grid's columns keep a width
+  and scroll sideways.
+- **Fixed: the Control Panel could stop answering on the rules page at some display scalings.** A list of rules,
+  criteria or actions whose rows fitted only without a horizontal scroll bar, at a scaling where its columns came out a
+  fraction of a pixel wider than the list, showed the horizontal bar, which left the rows too little room, so the
+  vertical bar came, the columns narrowed to fit, the horizontal bar went, the rows fitted, the vertical bar went, and
+  so on for ever: the page's layout never settled, and the Control Panel took no more input. In 6.3.6 four rules did it
+  in a 1280 by 800 window at 175 %, and a rule with four criteria or actions in a shorter one. The criteria and actions,
+  one column whose text ends in an ellipsis, no longer scroll sideways, and the list of rules, whose columns keep their
+  widths and scroll sideways in a narrow window, keeps its vertical scroll bar, so that neither bar can turn the other
+  on or off.
+- **Fixed: the REST API's OpenAPI document described either the listing of a folder's messages or the import of a
+  message into one, never both, and `GET /api/v1/status` twice.** `/api/v1/openapi.json` wrote
+  `/api/v1/me/folders/{id}/messages` as two entries, one holding the `GET` and one the `POST`, since the import
+  arrived on 11 September 2026, and `/api/v1/status` as two since 24 September, the second the description from
+  before the event-script languages were listed in it. JSON leaves a reader to do as it likes with a member named
+  twice in one object, and every reader keeps one of the two without a word: a browser's or Python's the last, so a
+  client generated from the document had the import and not the listing, and the older status description; the
+  server's own the first. Each path is now one entry carrying every method it answers, as the other paths with
+  several were written. Nothing changed in what the server answers, only in what it says it answers.
 
 ### IMAP, POP3 and the webmail
 
