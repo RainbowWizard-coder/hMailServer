@@ -174,11 +174,20 @@ namespace hMailServer.ControlPanel.Services
       /// was read or last saved, and otherwise the state the page settled in after its
       /// last read, save or restart - so an edit undone by hand takes the pill back to
       /// what the save had said, and the first edit after a save replaces Saved.
+      ///
+      /// A page whose link to the service has gone, or whose values were read from
+      /// hMailServer.ini because the server could not give them, keeps saying so
+      /// through an edit: nothing on it can be saved until the server answers, and
+      /// Unsaved changes, a Warning that a save would end, stood in place of the
+      /// Critical Connection lost beside the notice that says why Save waits.
       /// </summary>
       /// <param name="settled">The state of the last read, save or restart.</param>
       /// <param name="hasUnsavedChanges">Whether an editor now differs from what was read or saved.</param>
       public static SettingsPageState Follow(SettingsPageState settled, bool hasUnsavedChanges)
-         => hasUnsavedChanges ? SettingsPageState.Unsaved : settled;
+         => hasUnsavedChanges && !CannotSave_(settled) ? SettingsPageState.Unsaved : settled;
+
+      private static bool CannotSave_(SettingsPageState state)
+         => state == SettingsPageState.NotConnected || state == SettingsPageState.ReadFromFile;
 
       /// <summary>
       /// The state a save that wrote everything settles in: what still waits, as the

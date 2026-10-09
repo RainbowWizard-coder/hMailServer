@@ -96,6 +96,21 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(settled, SettingsPageStatus.Follow(settled, hasUnsavedChanges: false));
       }
 
+      /// <summary>
+      /// An edit on a page that cannot be saved - the link to the service gone, or the
+      /// values read from hMailServer.ini because the server could not give them -
+      /// leaves the pill saying why, where Unsaved changes would stand beside a notice
+      /// that says Save waits for the server.
+      /// </summary>
+      [Theory]
+      [InlineData(SettingsPageState.NotConnected)]
+      [InlineData(SettingsPageState.ReadFromFile)]
+      public void AnEditOnAPageThatCannotBeSaved_KeepsWhyItCannot(SettingsPageState settled)
+      {
+         Assert.Equal(settled, SettingsPageStatus.Follow(settled, hasUnsavedChanges: true));
+         Assert.Equal(settled, SettingsPageStatus.Follow(settled, hasUnsavedChanges: false));
+      }
+
       [Fact]
       public void ASaveSettlesInWhatStillWaits()
       {

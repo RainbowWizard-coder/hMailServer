@@ -1318,7 +1318,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   says why it failed. Its pill and its notice say so at the one level of the cause, as
   the Dashboard and the setup checklist do: *Connection lost* at Critical when the link to the service went, the
   shell's word and level for it, and *Read from file* at Warning when a server older than the call answered, which is
-  connected. The pill's *Not connected*, at Warning, is gone from these pages: the service not coming back after a
+  connected, and an edit leaves it so, since nothing on such a page can be saved: *Unsaved changes* does not take its
+  place. The pill's *Not connected*, at Warning, is gone from these pages: the service not coming back after a
   restart is *Connection lost* at Critical too. The line under the header says "Stored in the server's settings
   database." - naming the file only on Server limits & expert settings, whose sending limits a card says are kept in
   it - and the four subtitles that ended "(hMailServer.INI)" no longer do. `IniFallbackTests` holds the store to
