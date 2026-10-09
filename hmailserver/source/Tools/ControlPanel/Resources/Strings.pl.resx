@@ -6824,7 +6824,7 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
     <value>Do {0} nigdy nie ukończono żadnej kopii zapasowej - nie ma tam archiwum HMBackup.</value>
   </data>
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Brak czarnych list, więc łączące się adresy nie są sprawdzane na żadnej.</value>
+    <value>Brak list blokowanych, więc łączące się adresy nie są sprawdzane na żadnej.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Nie zdefiniowano żadnych zablokowanych nadawców, więc nic nie jest dopasowywane. Lista nie ma przełącznika włącz/wyłącz - pusta lista jest stanem wyłączonym.</value>

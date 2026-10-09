@@ -6824,7 +6824,7 @@
     <value>До {0} ще жодного разу не завершувалося резервне копіювання — там немає архіву HMBackup.</value>
   </data>
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Немає чорних списків, тому адреси, що під'єднуються, не перевіряються за жодним.</value>
+    <value>Немає списків блокування, тому адреси, що під'єднуються, не перевіряються за жодним.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Заблокованих відправників не визначено, тому нічого не зіставляється. Список не має перемикача увімк./вимк. — порожній список і є станом «вимкнено».</value>

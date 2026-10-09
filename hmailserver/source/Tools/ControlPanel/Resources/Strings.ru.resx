@@ -6824,7 +6824,7 @@ Control Panel может читать файлы сообщений только
     <value>В {0} ни одно резервное копирование ни разу не завершилось — архива HMBackup там нет.</value>
   </data>
   <data name="No block lists, so connecting addresses are not looked up in any." xml:space="preserve">
-    <value>Нет чёрных списков, поэтому подключающиеся адреса не проверяются ни по одному.</value>
+    <value>Нет списков блокировки, поэтому подключающиеся адреса не проверяются ни по одному.</value>
   </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Заблокированные отправители не заданы, поэтому ничего не сопоставляется. У списка нет переключателя вкл/выкл — пустой список и есть выключенное состояние.</value>
