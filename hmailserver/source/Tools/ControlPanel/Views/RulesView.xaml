@@ -113,16 +113,25 @@
 
         <!-- The add form, under the grid so the grid keeps the height. -->
         <scaffold:Card Margin="0,12,0,12" Padding="20,12,20,0">
-            <Grid>
+            <!-- Add rule sits under a row as tall as the caption beside it
+                 (FieldRow.LabelGroup), so that it stays beside the box when a
+                 message appears under the box. -->
+            <Grid x:Name="AddRuleForm" Grid.IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MaxWidth="360" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'Ne_w rule name'}" Margin="0,0,8,12">
+                <scaffold:FieldRow x:Name="NewRuleNameRow" Label="{loc:L 'Ne_w rule name'}" Margin="0,0,8,12" LabelGroup="RuleLine">
                     <ui:TextBox x:Name="NewRuleName" />
                 </scaffold:FieldRow>
-                <ui:Button x:Name="AddRuleButton" Grid.Column="1" Content="{loc:L '_Add rule'}" Appearance="Primary" Click="AddRule_Click"
-                           VerticalAlignment="Bottom" Margin="0,0,0,12" />
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" SharedSizeGroup="RuleLine" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ui:Button x:Name="AddRuleButton" Grid.Row="1" Content="{loc:L '_Add rule'}" Appearance="Primary" Click="AddRule_Click"
+                               VerticalAlignment="Top" Margin="0" />
+                </Grid>
             </Grid>
         </scaffold:Card>
 

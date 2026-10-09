@@ -115,8 +115,11 @@
              every port is up. -->
         <scaffold:InlineNotice x:Name="ListenerSummary" Margin="0,12,0,0" Visibility="Collapsed" />
 
+        <!-- The captions of the line share one height (FieldRow.LabelGroup) and Add
+             sits under a row of it, so that a message under one box moves none of
+             the others. -->
         <scaffold:Card Title="{loc:L 'Add port'}" Margin="0,12,0,0">
-            <Grid>
+            <Grid x:Name="AddPortForm" Grid.IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="110" />
                     <ColumnDefinition Width="2*" />
@@ -124,20 +127,20 @@
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'P_rotocol'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Label="{loc:L 'P_rotocol'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ComboBox x:Name="NewProtocol" SelectedIndex="0">
                         <ComboBoxItem Content="SMTP" />
                         <ComboBoxItem Content="POP3" />
                         <ComboBoxItem Content="IMAP" />
                     </ComboBox>
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="1" Label="{loc:L '_Bind address (0.0.0.0)'}" Margin="0,0,8,0">
+                <scaffold:FieldRow x:Name="PortAddressRow" Grid.Column="1" Label="{loc:L '_Bind address (0.0.0.0)'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ui:TextBox x:Name="NewAddress" Text="0.0.0.0" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Por_t'}" Margin="0,0,8,0">
+                <scaffold:FieldRow x:Name="PortNumberRow" Grid.Column="2" Label="{loc:L 'Por_t'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ui:TextBox x:Name="NewPort" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="3" Label="{loc:L '_Security'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Grid.Column="3" Label="{loc:L '_Security'}" Margin="0,0,8,0" LabelGroup="PortLine">
                     <ComboBox x:Name="NewSecurity" SelectedIndex="0">
                         <ComboBoxItem Content="{loc:L 'None'}" />
                         <ComboBoxItem Content="SSL/TLS" />
@@ -145,9 +148,15 @@
                         <ComboBoxItem Content="{loc:L 'STARTTLS (required)'}" />
                     </ComboBox>
                 </scaffold:FieldRow>
-                <ui:Button x:Name="AddPortButton" Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                           AutomationProperties.AutomationId="ports-add"
-                           VerticalAlignment="Bottom" Margin="0" />
+                <Grid Grid.Column="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" SharedSizeGroup="PortLine" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ui:Button x:Name="AddPortButton" Grid.Row="1" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
+                               AutomationProperties.AutomationId="ports-add"
+                               VerticalAlignment="Top" Margin="0" />
+                </Grid>
             </Grid>
         </scaffold:Card>
         </scaffold:FillPanel>

@@ -3973,9 +3973,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Domain aliases" xml:space="preserve">
     <value>Domenealiaser</value>
   </data>
-  <data name="Domain and target host are required." xml:space="preserve">
-    <value>Domene og målvert er påkrevd.</value>
-  </data>
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL for domenehurtigbufferen (sekunder)</value>
   </data>
@@ -4306,17 +4303,26 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter a name for the range." xml:space="preserve">
     <value>Skriv inn et navn på området.</value>
   </data>
+  <data name="Enter a name for the relay." xml:space="preserve">
+    <value>Skriv inn et navn på relayet.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Skriv inn et passord, eller trykk på Generer.</value>
   </data>
   <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
     <value>Skriv inn en port fra 1 til 65535, eller la feltet stå tomt for den automatiske porten.</value>
   </data>
+  <data name="Enter a port from 1 to 65535." xml:space="preserve">
+    <value>Skriv inn en port fra 1 til 65535.</value>
+  </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Skriv inn en rapportpostboks først - en oppføring uten en ekte rua=-postboks ber om ingenting.</value>
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Skriv inn en hemmelighet</value>
+  </data>
+  <data name="Enter a subject." xml:space="preserve">
+    <value>Skriv inn et emne.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Skriv inn et gyldig domenenavn.</value>
@@ -4348,14 +4354,26 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Oppgi adressen til kontoen som skal få postkassen gjenopprettet.</value>
   </data>
+  <data name="Enter the address the message comes from, such as postmaster@example.com." xml:space="preserve">
+    <value>Skriv inn adressen meldingen kommer fra, for eksempel postmaster@example.com.</value>
+  </data>
+  <data name="Enter the address to listen on, such as 0.0.0.0 for every IPv4 address." xml:space="preserve">
+    <value>Skriv inn adressen det skal lyttes på, for eksempel 0.0.0.0 for alle IPv4-adresser.</value>
+  </data>
   <data name="Enter the alias address." xml:space="preserve">
     <value>Skriv inn aliasadressen.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Skriv inn stien til clamscan.exe først.</value>
   </data>
+  <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
+    <value>Skriv inn domenet ruten gjelder for, for eksempel partner.com.</value>
+  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Skriv inn utløpet som ÅÅÅÅ-MM-DD TT:MM:SS.</value>
+  </data>
+  <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
+    <value>Skriv inn verten det skal leveres til: et navn som smtp.partner.com eller en IP-adresse.</value>
   </data>
   <data name="Enter the list's address." xml:space="preserve">
     <value>Skriv inn listens adresse.</value>
@@ -4917,9 +4935,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="From _name" xml:space="preserve">
     <value>Fra-_navn</value>
-  </data>
-  <data name="From address and subject are required." xml:space="preserve">
-    <value>Fra-adresse og emne er påkrevd.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>From tas med automatisk når denne listen ikke er tom - en foranstilt andre From: er angrepet oversignering finnes for. Navn må være utskrivbar ASCII uten kolon; et ugyldig navn forkastes med en feilloggoppføring, og en verdi lengre enn 256 tegn ignoreres helt, også med en feiloppføring, fordi h= må få plass på én ubrettet linje.</value>
@@ -6690,9 +6705,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Navngi arkivet slik sikkerhetskopimålet lister det (HMBackup YYYY-MM-DD HHMMSS.7z), eller med stien inne i målet.</value>
-  </data>
-  <data name="Name, lower IP and upper IP are required." xml:space="preserve">
-    <value>Navn, nedre IP og øvre IP er påkrevd.</value>
   </data>
   <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
     <value>Navngitte _domener (partner.example, eller .example for domenet og alt under det; adskilt med komma eller mellomrom; tomt begrenser ingenting)</value>

@@ -30,6 +30,12 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.TextBox name_ = new();
       private readonly Wpf.Ui.Controls.TextBox lower_ = new();
       private readonly Wpf.Ui.Controls.TextBox upper_ = new();
+
+      // The three boxes' rows, which say a value refused on its box (review
+      // finding F212), on one line whose captions share one height.
+      private readonly FieldRow nameRow_ = new FieldRow { Label = L("_Name"), Margin = new Thickness(0, 0, 8, 0), LabelGroup = "RelayLine" };
+      private readonly FieldRow lowerRow_ = new FieldRow { Label = L("_Lower IP"), Margin = new Thickness(0, 0, 8, 0), LabelGroup = "RelayLine" };
+      private readonly FieldRow upperRow_ = new FieldRow { Label = L("_Upper IP"), Margin = new Thickness(0, 0, 8, 0), LabelGroup = "RelayLine" };
       // Router24, not ArrowRouting24: that one's code point is past U+FFFF,
       // which Wpf.Ui's SymbolIcon draws as a g with a caron (see RoutesView.xaml).
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Router24, Visibility = Visibility.Collapsed };
@@ -41,7 +47,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Content = L("_Add"),
          Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
-         VerticalAlignment = VerticalAlignment.Bottom,
+         VerticalAlignment = VerticalAlignment.Top,
          Margin = new Thickness(0)
       };
 
@@ -83,22 +89,30 @@ namespace hMailServer.ControlPanel.Views
          grid.Children.Add(listCard);
 
          var row = new Grid();
+         Grid.SetIsSharedSizeScope(row, true);
          for (int i = 0; i < 3; i++)
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-         var nameField = new FieldRow { Label = L("_Name"), Content = name_, Margin = new Thickness(0, 0, 8, 0) };
-         row.Children.Add(nameField);
-         var lowerField = new FieldRow { Label = L("_Lower IP"), Content = lower_, Margin = new Thickness(0, 0, 8, 0) };
-         Grid.SetColumn(lowerField, 1);
-         row.Children.Add(lowerField);
-         var upperField = new FieldRow { Label = L("_Upper IP"), Content = upper_, Margin = new Thickness(0, 0, 8, 0) };
-         Grid.SetColumn(upperField, 2);
-         row.Children.Add(upperField);
+         nameRow_.Content = name_;
+         row.Children.Add(nameRow_);
+         lowerRow_.Content = lower_;
+         Grid.SetColumn(lowerRow_, 1);
+         row.Children.Add(lowerRow_);
+         upperRow_.Content = upper_;
+         Grid.SetColumn(upperRow_, 2);
+         row.Children.Add(upperRow_);
 
+         // Add under a row as tall as the captions beside it, so that it stays
+         // beside the boxes when a message appears under one.
          add_.Click += (s, e) => Add();
-         Grid.SetColumn(add_, 3);
-         row.Children.Add(add_);
+         var addLine = new Grid();
+         addLine.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto, SharedSizeGroup = "RelayLine" });
+         addLine.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         Grid.SetRow(add_, 1);
+         addLine.Children.Add(add_);
+         Grid.SetColumn(addLine, 3);
+         row.Children.Add(addLine);
 
          // Delete deletes the selected relay after asking, Insert goes to the form,
          // and Enter in the form adds; Escape empties it (Views/GridKeys, FormSubmit).
@@ -158,11 +172,24 @@ namespace hMailServer.ControlPanel.Views
 
       private void Add()
       {
-         if (name_.Text.Trim().Length == 0 || lower_.Text.Trim().Length == 0 || upper_.Text.Trim().Length == 0)
-         {
-            MessageBox.Show(L("Name, lower IP and upper IP are required."), L("Control Panel"));
+         // Each value refused is said on its box, all on one press, with the
+         // keyboard in the first, where one message box named three boxes and
+         // "abc" to "xyz" went to the server as a range (review finding F212).
+         string lower = lower_.Text;
+         string upper = upper_.Text;
+         DialogFields.ClearErrors(nameRow_, lowerRow_, upperRow_);
+         if (name_.Text.Trim().Length == 0)
+            nameRow_.Error = L("Enter a name for the relay.");
+         if (!InlineFormChecks.IsAddress(lower))
+            lowerRow_.Error = L("Enter the lower address of the range, such as 10.0.0.0.");
+         if (!InlineFormChecks.IsAddress(upper))
+            upperRow_.Error = L("Enter the upper address of the range, such as 10.0.0.255.");
+         else if (InlineFormChecks.OrderOf(lower, upper) is InlineFormChecks.RangeOrder order && order != InlineFormChecks.RangeOrder.InOrder)
+            upperRow_.Error = order == InlineFormChecks.RangeOrder.MixedFamilies
+               ? L("The upper address must be of the same kind as the lower: both IPv4, or both IPv6.")
+               : L("The upper address must not be below the lower.");
+         if (DialogFields.ShowFirstError(nameRow_, lowerRow_, upperRow_))
             return;
-         }
 
          dynamic relays = ServerSession.Current.Application.Settings.IncomingRelays;
          try
@@ -440,8 +467,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
 
       // The message's row, which says on the field that an empty message is not
-      // sent.
-      private readonly FieldRow bodyRow_ = new() { Label = L("_Message") };
+      // sent; the sender's and the subject's, which say an empty box on the box
+      // (review finding F212).
+      private readonly FieldRow bodyRow_ = new FieldRow { Label = L("_Message") };
+      private readonly FieldRow fromRow_ = new FieldRow { Label = L("_From address") };
+      private readonly FieldRow subjectRow_ = new FieldRow { Label = L("Su_bject") };
 
       public SendoutView()
       {
@@ -456,9 +486,11 @@ namespace hMailServer.ControlPanel.Views
          var form = new StackPanel();
 
          form.Children.Add(new FieldRow { Label = L("_Recipient wildcard (* = everyone)"), Content = wildcard_ });
-         form.Children.Add(new FieldRow { Label = L("_From address"), Content = fromAddress_ });
+         fromRow_.Content = fromAddress_;
+         form.Children.Add(fromRow_);
          form.Children.Add(new FieldRow { Label = L("From _name"), Content = fromName_ });
-         form.Children.Add(new FieldRow { Label = L("Su_bject"), Content = subject_ });
+         subjectRow_.Content = subject_;
+         form.Children.Add(subjectRow_);
          body_.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");
          body_.Background = System.Windows.Media.Brushes.Transparent;
          bodyRow_.Content = body_;
@@ -492,20 +524,22 @@ namespace hMailServer.ControlPanel.Views
          status_.Visibility = Visibility.Collapsed;
          bodyRow_.Error = null;
 
-         if (fromAddress_.Text.Trim().Length == 0 || subject_.Text.Trim().Length == 0)
-         {
-            MessageBox.Show(L("From address and subject are required."), L("Control Panel"));
-            return;
-         }
-
-         // An empty message is refused on its field: it would reach every matching
-         // account with nothing in it (review finding F184).
+         // Each box refused is said on that box, all on one press, with the
+         // keyboard in the first, where one message box named the sender and the
+         // subject (review finding F212). An empty message is refused on its field:
+         // it would reach every matching account with nothing in it (review
+         // finding F184).
+         string from = fromAddress_.Text.Trim();
+         DialogFields.ClearErrors(fromRow_, subjectRow_, bodyRow_);
+         int at = from.IndexOf('@');
+         if (at <= 0 || at == from.Length - 1 || from.Any(char.IsWhiteSpace))
+            fromRow_.Error = L("Enter the address the message comes from, such as postmaster@example.com.");
+         if (subject_.Text.Trim().Length == 0)
+            subjectRow_.Error = L("Enter a subject.");
          if (!SendoutAudience.HasBody(body_.Text))
-         {
             bodyRow_.Error = L("Write the message first: an empty one is not sent.");
-            body_.Focus();
+         if (DialogFields.ShowFirstError(fromRow_, subjectRow_, bodyRow_))
             return;
-         }
 
          // The question says how many accounts the message reaches, counted as the
          // server counts them, and asks nothing where it would reach none.

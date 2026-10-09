@@ -92,7 +92,7 @@ namespace hMailServer.ControlPanel.Views
          // Insert goes to the add form, and Enter in the form adds the port;
          // Escape empties the port box and leaves the address (Views/GridKeys, FormSubmit).
          GridKeys.Wire(PortGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewProtocol));
-         FormSubmit.Bind((UIElement)AddPortButton.Parent, AddPortButton, NewPort);
+         FormSubmit.Bind(AddPortForm, AddPortButton, NewPort);
 
          // The empty state under the grid's column headers, centred where the
          // rows would be, never drawn across the headers' line.
@@ -548,11 +548,16 @@ namespace hMailServer.ControlPanel.Views
 
       private void Add_Click(object sender, RoutedEventArgs e)
       {
-         if (!int.TryParse(NewPort.Text.Trim(), out int portNumber) || portNumber <= 0 || portNumber > 65535)
-         {
-            MessageBox.Show(L("Enter a valid port number."), L("Control Panel"));
+         // Said on the box at fault, both on one press, with the keyboard in the
+         // first, where a message box said the port away from its box and the
+         // address went to the server as typed (review finding F212).
+         DialogFields.ClearErrors(PortAddressRow, PortNumberRow);
+         if (!InlineFormChecks.IsAddress(NewAddress.Text))
+            PortAddressRow.Error = L("Enter the address to listen on, such as 0.0.0.0 for every IPv4 address.");
+         if (!InlineFormChecks.TryPort(NewPort.Text, out int portNumber))
+            PortNumberRow.Error = L("Enter a port from 1 to 65535.");
+         if (DialogFields.ShowFirstError(PortAddressRow, PortNumberRow))
             return;
-         }
 
          int protocol = NewProtocol.SelectedIndex switch
          {

@@ -78,10 +78,10 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>Enter in every form on a page presses its button; Escape empties the boxes the page names.</summary>
       [Theory]
-      [InlineData("RoutesView.xaml.cs", "FormSubmit.Bind((UIElement)AddRouteButton.Parent, AddRouteButton, NewDomain, NewHost);")]
-      [InlineData("TcpIpPortsView.xaml.cs", "FormSubmit.Bind((UIElement)AddPortButton.Parent, AddPortButton, NewPort);")]
+      [InlineData("RoutesView.xaml.cs", "FormSubmit.Bind(AddRouteForm, AddRouteButton, NewDomain, NewHost);")]
+      [InlineData("TcpIpPortsView.xaml.cs", "FormSubmit.Bind(AddPortForm, AddPortButton, NewPort);")]
       [InlineData("IPRangesView.xaml.cs", "FormSubmit.Bind(AddRangeForm, AddRangeButton, NewName, NewLower, NewUpper);")]
-      [InlineData("RulesView.xaml.cs", "FormSubmit.Bind((UIElement)AddRuleButton.Parent, AddRuleButton, NewRuleName);")]
+      [InlineData("RulesView.xaml.cs", "FormSubmit.Bind(AddRuleForm, AddRuleButton, NewRuleName);")]
       [InlineData("SslCertificatesView.xaml.cs", "FormSubmit.Bind(AddCertForm, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);")]
       [InlineData("SslCertificatesView.xaml.cs", "FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);")]
       [InlineData("UtilityViews.cs", "FormSubmit.Bind(row, add_, name_, lower_, upper_);")]

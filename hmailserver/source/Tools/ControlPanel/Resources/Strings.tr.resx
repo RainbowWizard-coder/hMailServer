@@ -3973,9 +3973,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Domain aliases" xml:space="preserve">
     <value>Etki alanı diğer adları</value>
   </data>
-  <data name="Domain and target host are required." xml:space="preserve">
-    <value>Etki alanı ve hedef ana bilgisayar gereklidir.</value>
-  </data>
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>Etki alanı önbelleği TTL süresi (saniye)</value>
   </data>
@@ -4306,17 +4303,26 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter a name for the range." xml:space="preserve">
     <value>Aralık için bir ad girin.</value>
   </data>
+  <data name="Enter a name for the relay." xml:space="preserve">
+    <value>Aktarma için bir ad girin.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Bir parola girin veya Üret'e basın.</value>
   </data>
   <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
     <value>1 ile 65535 arasında bir port girin veya otomatik port için kutuyu boş bırakın.</value>
   </data>
+  <data name="Enter a port from 1 to 65535." xml:space="preserve">
+    <value>1 ile 65535 arasında bir port girin.</value>
+  </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Önce bir rapor posta kutusu girin - gerçek bir rua= posta kutusu olmayan bir kayıt hiçbir şey istemez.</value>
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Bir gizli anahtar girin</value>
+  </data>
+  <data name="Enter a subject." xml:space="preserve">
+    <value>Bir konu girin.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Geçerli bir etki alanı adı girin.</value>
@@ -4348,14 +4354,26 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Posta kutusu geri yüklenecek hesabın adresini girin.</value>
   </data>
+  <data name="Enter the address the message comes from, such as postmaster@example.com." xml:space="preserve">
+    <value>İletinin geldiği adresi girin, örneğin postmaster@example.com.</value>
+  </data>
+  <data name="Enter the address to listen on, such as 0.0.0.0 for every IPv4 address." xml:space="preserve">
+    <value>Dinlenecek adresi girin, örneğin tüm IPv4 adresleri için 0.0.0.0.</value>
+  </data>
   <data name="Enter the alias address." xml:space="preserve">
     <value>Takma ad adresini girin.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Önce clamscan.exe yolunu girin.</value>
   </data>
+  <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
+    <value>Yolun geçerli olduğu etki alanını girin, örneğin partner.com.</value>
+  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Süre sonunu YYYY-MM-DD HH:MM:SS olarak girin.</value>
+  </data>
+  <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
+    <value>Teslim edilecek ana bilgisayarı girin: smtp.partner.com gibi bir ad veya bir IP adresi.</value>
   </data>
   <data name="Enter the list's address." xml:space="preserve">
     <value>Listenin adresini girin.</value>
@@ -4917,9 +4935,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="From _name" xml:space="preserve">
     <value>K_imden adı</value>
-  </data>
-  <data name="From address and subject are required." xml:space="preserve">
-    <value>Kimden adresi ve konu gereklidir.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>Bu liste boş olmadığı sürece From otomatik olarak dâhil edilir - başa eklenen ikinci bir From:, aşırı imzalamanın var olma nedeni olan saldırıdır. Adlar iki nokta içermeyen yazdırılabilir ASCII olmalıdır; geçersiz bir ad hata günlüğüne yazılarak atılır ve 256 karakterden uzun bir değer, yine hata günlüğüne yazılarak tamamen yoksayılır, çünkü h= tek bir katlanmamış satıra sığmalıdır.</value>
@@ -6690,9 +6705,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Arşivi yedekleme hedefinin listelediği adla (HMBackup YYYY-MM-DD HHMMSS.7z) ya da hedef içindeki yoluyla belirtin.</value>
-  </data>
-  <data name="Name, lower IP and upper IP are required." xml:space="preserve">
-    <value>Ad, alt IP ve üst IP gereklidir.</value>
   </data>
   <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
     <value>Belirtilen _etki alanları (partner.example veya etki alanı ve altındaki her şey için .example; virgül veya boşlukla ayrılır; boş bırakılırsa hiçbir şey kısıtlanmaz)</value>

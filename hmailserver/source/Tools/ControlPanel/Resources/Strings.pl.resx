@@ -4019,9 +4019,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Domain aliases" xml:space="preserve">
     <value>Aliasy domeny</value>
   </data>
-  <data name="Domain and target host are required." xml:space="preserve">
-    <value>Domena i host docelowy są wymagane.</value>
-  </data>
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL pamięci podręcznej domen (w sekundach)</value>
   </data>
@@ -4352,17 +4349,26 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter a name for the range." xml:space="preserve">
     <value>Należy podać nazwę zakresu.</value>
   </data>
+  <data name="Enter a name for the relay." xml:space="preserve">
+    <value>Należy podać nazwę przekaźnika.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Należy podać hasło lub nacisnąć Generuj.</value>
   </data>
   <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
     <value>Należy podać port od 1 do 65535 lub zostawić pole puste, aby użyć portu automatycznego.</value>
   </data>
+  <data name="Enter a port from 1 to 65535." xml:space="preserve">
+    <value>Należy podać port od 1 do 65535.</value>
+  </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Najpierw należy podać skrzynkę pocztową raportów - rekord bez prawdziwej skrzynki rua= o nic nie prosi.</value>
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Wpisz sekret</value>
+  </data>
+  <data name="Enter a subject." xml:space="preserve">
+    <value>Należy podać temat.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Należy podać prawidłową nazwę domeny.</value>
@@ -4394,14 +4400,26 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Podaj adres konta, którego skrzynkę chcesz przywrócić.</value>
   </data>
+  <data name="Enter the address the message comes from, such as postmaster@example.com." xml:space="preserve">
+    <value>Należy podać adres, z którego przychodzi wiadomość, np. postmaster@example.com.</value>
+  </data>
+  <data name="Enter the address to listen on, such as 0.0.0.0 for every IPv4 address." xml:space="preserve">
+    <value>Należy podać adres nasłuchiwania, np. 0.0.0.0 dla każdego adresu IPv4.</value>
+  </data>
   <data name="Enter the alias address." xml:space="preserve">
     <value>Należy podać adres aliasu.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Najpierw należy podać ścieżkę do clamscan.exe.</value>
   </data>
+  <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
+    <value>Należy podać domenę, której dotyczy trasa, np. partner.com.</value>
+  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Należy podać wygaśnięcie w formacie YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
+    <value>Należy podać host, do którego ma trafiać poczta: nazwę, np. smtp.partner.com, lub adres IP.</value>
   </data>
   <data name="Enter the list's address." xml:space="preserve">
     <value>Należy podać adres listy.</value>
@@ -4981,9 +4999,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="From _name" xml:space="preserve">
     <value>_Nazwa nadawcy</value>
-  </data>
-  <data name="From address and subject are required." xml:space="preserve">
-    <value>Adres nadawcy i temat są wymagane.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>From jest dołączane automatycznie zawsze, gdy ta lista nie jest pusta - dopisany na początku drugi nagłówek From: to właśnie atak, dla którego istnieje nadpodpisywanie. Nazwy muszą być drukowalnym ASCII bez dwukropka; nieprawidłowa nazwa jest odrzucana z wpisem w dzienniku błędów, a wartość dłuższa niż 256 znaków jest całkowicie ignorowana, również z wpisem błędu, ponieważ h= musi się zmieścić w jednym niezawijanym wierszu.</value>
@@ -6763,9 +6778,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Nazwij archiwum tak, jak wyświetla je miejsce docelowe kopii zapasowej (HMBackup YYYY-MM-DD HHMMSS.7z), lub podaj jego ścieżkę w tym miejscu.</value>
-  </data>
-  <data name="Name, lower IP and upper IP are required." xml:space="preserve">
-    <value>Nazwa, dolny adres IP i górny adres IP są wymagane.</value>
   </data>
   <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
     <value>Wskazane _domeny (partner.example lub .example dla domeny i wszystkiego poniżej; rozdzielone przecinkami lub spacjami; puste niczego nie ogranicza)</value>

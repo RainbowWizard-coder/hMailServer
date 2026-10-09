@@ -80,26 +80,34 @@
         </scaffold:Card>
 
         <!-- The add form: three fields in a row and the button that adds, on a
-             card of its own under the grid so the grid keeps the height. -->
+             card of its own under the grid so the grid keeps the height. The
+             captions share one height (FieldRow.LabelGroup) and Add sits under a
+             row of it, so that a message under one box moves none of the others. -->
         <scaffold:Card Title="{loc:L 'Add route'}" Margin="0,12,0,0">
-            <Grid>
+            <Grid x:Name="AddRouteForm" Grid.IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="*" MinWidth="80" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'Do_main (e.g. partner.com)'}" Margin="0,0,8,0">
+                <scaffold:FieldRow x:Name="RouteDomainRow" Label="{loc:L 'Do_main (e.g. partner.com)'}" Margin="0,0,8,0" LabelGroup="RouteLine">
                     <ui:TextBox x:Name="NewDomain" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="1" Label="{loc:L '_Target SMTP host'}" Margin="0,0,8,0">
+                <scaffold:FieldRow x:Name="RouteHostRow" Grid.Column="1" Label="{loc:L '_Target SMTP host'}" Margin="0,0,8,0" LabelGroup="RouteLine">
                     <ui:TextBox x:Name="NewHost" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'P_ort'}" Margin="0,0,8,0">
+                <scaffold:FieldRow x:Name="RoutePortRow" Grid.Column="2" Label="{loc:L 'P_ort'}" Margin="0,0,8,0" LabelGroup="RouteLine">
                     <ui:TextBox x:Name="NewPort" Text="25" />
                 </scaffold:FieldRow>
-                <ui:Button x:Name="AddRouteButton" Grid.Column="3" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                           VerticalAlignment="Bottom" Margin="0" />
+                <Grid Grid.Column="3">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" SharedSizeGroup="RouteLine" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ui:Button x:Name="AddRouteButton" Grid.Row="1" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
+                               VerticalAlignment="Top" Margin="0" />
+                </Grid>
             </Grid>
         </scaffold:Card>
         </scaffold:FillPanel>

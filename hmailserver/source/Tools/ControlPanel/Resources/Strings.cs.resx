@@ -4019,9 +4019,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Domain aliases" xml:space="preserve">
     <value>Aliasy domény</value>
   </data>
-  <data name="Domain and target host are required." xml:space="preserve">
-    <value>Doména a cílový hostitel jsou povinné.</value>
-  </data>
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL cache domén (sekundy)</value>
   </data>
@@ -4352,17 +4349,26 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a name for the range." xml:space="preserve">
     <value>Zadejte název rozsahu.</value>
   </data>
+  <data name="Enter a name for the relay." xml:space="preserve">
+    <value>Zadejte název relay.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Zadejte heslo, nebo stiskněte Generovat.</value>
   </data>
   <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
     <value>Zadejte port od 1 do 65535, nebo nechte pole prázdné pro automatický port.</value>
   </data>
+  <data name="Enter a port from 1 to 65535." xml:space="preserve">
+    <value>Zadejte port od 1 do 65535.</value>
+  </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Nejdřív zadejte schránku pro hlášení - záznam bez skutečné schránky rua= o nic nežádá.</value>
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Zadejte tajný klíč</value>
+  </data>
+  <data name="Enter a subject." xml:space="preserve">
+    <value>Zadejte předmět.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Zadejte platný název domény.</value>
@@ -4394,14 +4400,26 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Zadejte adresu účtu, jehož schránku chcete obnovit.</value>
   </data>
+  <data name="Enter the address the message comes from, such as postmaster@example.com." xml:space="preserve">
+    <value>Zadejte adresu, ze které zpráva přichází, například postmaster@example.com.</value>
+  </data>
+  <data name="Enter the address to listen on, such as 0.0.0.0 for every IPv4 address." xml:space="preserve">
+    <value>Zadejte adresu, na které se má naslouchat, například 0.0.0.0 pro všechny adresy IPv4.</value>
+  </data>
   <data name="Enter the alias address." xml:space="preserve">
     <value>Zadejte adresu aliasu.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Nejdřív zadejte cestu k clamscan.exe.</value>
   </data>
+  <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
+    <value>Zadejte doménu, pro kterou trasa platí, například partner.com.</value>
+  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
+    <value>Zadejte hostitele, kterému se má doručovat: název jako smtp.partner.com, nebo IP adresu.</value>
   </data>
   <data name="Enter the list's address." xml:space="preserve">
     <value>Zadejte adresu seznamu.</value>
@@ -4981,9 +4999,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="From _name" xml:space="preserve">
     <value>_Jméno odesílatele</value>
-  </data>
-  <data name="From address and subject are required." xml:space="preserve">
-    <value>Adresa odesílatele a předmět jsou povinné.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>From se zahrnuje automaticky, kdykoli tento seznam není prázdný - předřazené druhé From: je útok, kvůli kterému nadpodepisování existuje. Názvy musí být tisknutelné ASCII bez dvojtečky; neplatný název se zahodí se záznamem v logu chyb a hodnota delší než 256 znaků se ignoruje celá, také se záznamem chyby, protože h= se musí vejít na jeden nezalomený řádek.</value>
@@ -6763,9 +6778,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Pojmenujte archiv tak, jak ho uvádí cíl zálohy (HMBackup YYYY-MM-DD HHMMSS.7z), nebo cestou uvnitř cíle.</value>
-  </data>
-  <data name="Name, lower IP and upper IP are required." xml:space="preserve">
-    <value>Název, dolní IP a horní IP jsou povinné.</value>
   </data>
   <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
     <value>Vyjmenované _domény (partner.example, nebo .example pro doménu a vše pod ní; oddělené čárkami nebo mezerami; prázdné nic neomezuje)</value>

@@ -3973,9 +3973,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Domain aliases" xml:space="preserve">
     <value>Aliases de domínio</value>
   </data>
-  <data name="Domain and target host are required." xml:space="preserve">
-    <value>O domínio e o host de destino são obrigatórios.</value>
-  </data>
   <data name="Domain cache TTL (seconds)" xml:space="preserve">
     <value>TTL do cache de domínios (segundos)</value>
   </data>
@@ -4306,17 +4303,26 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter a name for the range." xml:space="preserve">
     <value>Informe um nome para a faixa.</value>
   </data>
+  <data name="Enter a name for the relay." xml:space="preserve">
+    <value>Informe um nome para o relay.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Informe uma senha ou pressione Gerar.</value>
   </data>
   <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
     <value>Informe uma porta de 1 a 65535 ou deixe a caixa vazia para a porta automática.</value>
   </data>
+  <data name="Enter a port from 1 to 65535." xml:space="preserve">
+    <value>Informe uma porta de 1 a 65535.</value>
+  </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Informe primeiro uma caixa de relatórios - um registro sem uma caixa rua= real não pede nada.</value>
   </data>
   <data name="Enter a secret" xml:space="preserve">
     <value>Informe um segredo</value>
+  </data>
+  <data name="Enter a subject." xml:space="preserve">
+    <value>Informe um assunto.</value>
   </data>
   <data name="Enter a valid domain name." xml:space="preserve">
     <value>Informe um nome de domínio válido.</value>
@@ -4348,14 +4354,26 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Informe o endereço da conta cuja caixa de correio será restaurada.</value>
   </data>
+  <data name="Enter the address the message comes from, such as postmaster@example.com." xml:space="preserve">
+    <value>Informe o endereço de onde vem a mensagem, como postmaster@example.com.</value>
+  </data>
+  <data name="Enter the address to listen on, such as 0.0.0.0 for every IPv4 address." xml:space="preserve">
+    <value>Informe o endereço em que escutar, como 0.0.0.0 para todos os endereços IPv4.</value>
+  </data>
   <data name="Enter the alias address." xml:space="preserve">
     <value>Informe o endereço do apelido.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Informe primeiro o caminho do clamscan.exe.</value>
   </data>
+  <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
+    <value>Informe o domínio a que a rota se aplica, como partner.com.</value>
+  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Informe a validade como YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
+    <value>Informe o host para o qual entregar: um nome como smtp.partner.com ou um endereço IP.</value>
   </data>
   <data name="Enter the list's address." xml:space="preserve">
     <value>Informe o endereço da lista.</value>
@@ -4917,9 +4935,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="From _name" xml:space="preserve">
     <value>_Nome do remetente</value>
-  </data>
-  <data name="From address and subject are required." xml:space="preserve">
-    <value>O endereço do remetente e o assunto são obrigatórios.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>From é incluído automaticamente sempre que esta lista não estiver vazia - um segundo From: acrescentado à frente é o ataque para o qual o oversigning existe. Os nomes devem ser ASCII imprimível sem dois-pontos; um nome inválido é descartado com uma entrada no log de erros, e um valor com mais de 256 caracteres é ignorado por completo, também com uma entrada de erro, porque h= precisa caber em uma única linha não dobrada.</value>
@@ -6690,9 +6705,6 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Nomeie o arquivo como o destino do backup o lista (HMBackup YYYY-MM-DD HHMMSS.7z), ou pelo caminho dentro do destino.</value>
-  </data>
-  <data name="Name, lower IP and upper IP are required." xml:space="preserve">
-    <value>Nome, IP inferior e IP superior são obrigatórios.</value>
   </data>
   <data name="Named _domains (partner.example, or .example for the domain and everything beneath it; separated by commas or spaces; empty restricts nothing)" xml:space="preserve">
     <value>_Domínios indicados (partner.example, ou .example para o domínio e tudo abaixo dele; separados por vírgulas ou espaços; vazio não restringe nada)</value>

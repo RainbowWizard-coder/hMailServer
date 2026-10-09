@@ -1887,6 +1887,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the Key passphrase box. On both pages' Add forms the boxes and Add line up whatever a caption wraps to, and a
   message under one box moves none of the others.
 
+- **Fixed: the Routes, TCP/IP ports, Rules, Incoming relays and Server sendout forms refused a value in a message
+  box, and some put in or sent on what was typed.** "Domain and target host are required.", "Enter a valid port
+  number.", "Enter a name for the new rule.", "Name, lower IP and upper IP are required." and "From address and
+  subject are required." were message boxes that took the keyboard from the form; a route's port of "25a" became 25
+  and its host went unchecked, a port's bind address went to the server as typed, and the relays page sent "abc" to
+  "xyz" as a range. Each value refused is said under its box now, every box at fault on one press, with the keyboard
+  in the first: a route's domain, its host (a name such as smtp.partner.com or an IP address) and its port from 1 to
+  65535; a port's bind address and number; a rule's name; a relay's name and the lower and upper address of its
+  range, of one kind, the upper not below the lower; and the sendout's sender address, subject and message. On each
+  Add form the boxes and the button line up whatever a caption wraps to, and a message under one box moves none of
+  the others.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

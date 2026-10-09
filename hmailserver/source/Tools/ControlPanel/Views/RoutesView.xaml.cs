@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
@@ -36,7 +37,7 @@ namespace hMailServer.ControlPanel.Views
          // Insert goes to the add form, and Enter in the form adds the route;
          // Escape empties its two boxes and leaves the port (Views/GridKeys, FormSubmit).
          GridKeys.Wire(RouteGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewDomain));
-         FormSubmit.Bind((UIElement)AddRouteButton.Parent, AddRouteButton, NewDomain, NewHost);
+         FormSubmit.Bind(AddRouteForm, AddRouteButton, NewDomain, NewHost);
 
          // The empty state under the grid's column headers, centred where the
          // rows would be, never drawn across the headers' line.
@@ -109,14 +110,19 @@ namespace hMailServer.ControlPanel.Views
          string domain = NewDomain.Text.Trim();
          string host = NewHost.Text.Trim();
 
-         if (domain.Length == 0 || host.Length == 0)
-         {
-            MessageBox.Show(L("Domain and target host are required."), L("Control Panel"));
+         // Each value refused is said on its box, all on one press, with the
+         // keyboard in the first, where one message box named two boxes, a host
+         // was sent unchecked and a port of "25a" became 25 without a word
+         // (review finding F212).
+         DialogFields.ClearErrors(RouteDomainRow, RouteHostRow, RoutePortRow);
+         if (domain.Length == 0 || domain.Any(char.IsWhiteSpace))
+            RouteDomainRow.Error = L("Enter the domain the route is for, such as partner.com.");
+         if (!InlineFormChecks.IsHost(host))
+            RouteHostRow.Error = L("Enter the host to deliver to: a name such as smtp.partner.com, or an IP address.");
+         if (!InlineFormChecks.TryPort(NewPort.Text, out int port))
+            RoutePortRow.Error = L("Enter a port from 1 to 65535.");
+         if (DialogFields.ShowFirstError(RouteDomainRow, RouteHostRow, RoutePortRow))
             return;
-         }
-
-         if (!int.TryParse(NewPort.Text.Trim(), out int port))
-            port = 25;
 
          dynamic routes = ServerSession.Current.Application.Settings.Routes;
          try

@@ -81,7 +81,7 @@ namespace hMailServer.ControlPanel.Views
          GridKeys.Wire(RuleGrid, null, GridKeys.Pressing(DeleteRuleButton), GridKeys.Focusing(NewRuleName));
          GridKeys.Wire(CriteriaGrid, EditCriterionButton, RemoveCriterionButton, AddCriterionButton);
          GridKeys.Wire(ActionsGrid, EditActionButton, RemoveActionButton, AddActionButton);
-         FormSubmit.Bind((UIElement)AddRuleButton.Parent, AddRuleButton, NewRuleName);
+         FormSubmit.Bind(AddRuleForm, AddRuleButton, NewRuleName);
 
          suppressMatchMode_ = true;
          MatchMode.Items.Add(L("Match ALL criteria (AND)"));
@@ -474,9 +474,13 @@ namespace hMailServer.ControlPanel.Views
       private void AddRule_Click(object sender, RoutedEventArgs e)
       {
          string name = NewRuleName.Text.Trim();
+
+         // On the box, with the keyboard in it, where a message box said it
+         // (review finding F212).
+         DialogFields.ClearErrors(NewRuleNameRow);
          if (name.Length == 0)
          {
-            MessageBox.Show(L("Enter a name for the new rule."), L("Control Panel"));
+            DialogFields.ShowError(NewRuleNameRow, L("Enter a name for the new rule."));
             return;
          }
 
