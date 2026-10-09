@@ -798,7 +798,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   squeezing its columns - given less than its columns ask for, a grid took the difference from them, which cut the
   remote domains grid's headers at every width their fields named - and such a grid keeps its vertical bar, as the
   rules page's list does. A test holds every narrow column whose caption is longer than a few words to a header of
-  its own, and every column to its width.
+  its own, and every column to its width. The domain dialog's allow and block list fits its tab: its address
+  column is 200 pixels, where 240 beside Action, Reason and Expires was 36 more than the 564 the tab gives the
+  grid, and scrolled it sideways under a bar in every language at the only width the dialog has.
 - **Fixed: the Control Panel's Create a REST API key dialog clipped the expiry's year, had no heading, and reported
   a refused value in a message box.** Its 200-pixel date picker showed the long date, "Wednesday, January 6, 2" (in
   German "Mittwoch, 6. Januar 202"), and it was the one dialog off the standard frame: no heading, notes at 65 %

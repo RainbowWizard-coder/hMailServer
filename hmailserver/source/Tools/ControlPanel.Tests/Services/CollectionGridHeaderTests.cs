@@ -84,6 +84,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(2, Regex.Matches(Specs(), @"Fields = SenderListFields\(\d+\)").Count);
       }
 
+      /// <summary>
+      /// The domain dialog's list fits its tab: the grid has 564 pixels there, under
+      /// the dialog's frame, the card's padding and the vertical bar the grid always
+      /// keeps, and an address column of 240 beside Action, Reason's floor and Expires
+      /// passed them by 36, so the grid scrolled sideways under a bar in every
+      /// language at the only width the dialog has.
+      /// </summary>
+      [Fact]
+      public void TheDomainDialogsAllowAndBlockList_FitsItsTab()
+      {
+         Match domain = Regex.Match(Specs(), @"DomainSenderList\(string domainName\)[\s\S]*?Fields = SenderListFields\((\d+)\)");
+         Assert.True(domain.Success, "DomainSenderList no longer builds its fields with SenderListFields.");
+         const double action = 90, reasonFloor = 120, expires = 150, tabGrid = 564;
+         double address = double.Parse(domain.Groups[1].Value, CultureInfo.InvariantCulture);
+         Assert.True(address + action + reasonFloor + expires <= tabGrid,
+            "The domain dialog's allow and block list is " + (address + action + reasonFloor + expires - tabGrid) + " pixels wider than its tab, so the grid scrolls sideways.");
+         Assert.True(address >= 160, "The address column is narrower than its widest header, Address or domain in Japanese.");
+      }
+
       [Fact]
       public void TheNamesTab_IsHeadedAliasDomain_AndTheExternalTab_KeepsTheServerColumn()
       {

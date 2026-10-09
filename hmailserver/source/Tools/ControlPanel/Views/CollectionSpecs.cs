@@ -376,7 +376,13 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(domain);
             return list;
          },
-         Fields = SenderListFields(240)
+         // 200 pixels of address, not the server page's 260: the grid has 564 in
+         // the dialog's tab (640 less the frame's and the card's padding, the
+         // borders and the vertical bar the grid always keeps), and its four
+         // columns - the address, Action at 90, Reason's floor of 120 and Expires
+         // at 150 - have to fit them, or the grid scrolls sideways by the
+         // difference, under a bar, at the only width the dialog has.
+         Fields = SenderListFields(200)
       }, embedded: true);
 
       /// <summary>Domain-name aliases for one domain (embedded in the Domain editor).</summary>
