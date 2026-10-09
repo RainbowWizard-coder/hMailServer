@@ -115,25 +115,74 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The quarantine's grid is one tab stop, and its selected row answers
-      /// Space, R, Delete, P and Enter; the row icons' tool tips name the keys.
+      /// The quarantine's rows are one tab stop, after the header's box and its
+      /// four actions, and the selected row answers Space, R, Delete, P, Enter and
+      /// H; the row icons' tool tips name the keys. TabNavigation Once on the grid
+      /// made the header's box the grid's one stop - Tab went through the header
+      /// and out without reaching a row - and left each row's box, four actions,
+      /// fold and two icons a stop each, as they were.
       /// </summary>
       [Fact]
-      public void TheQuarantine_IsOneTabStop_WithKeysOnTheSelectedRow()
+      public void TheQuarantine_RowsAreOneTabStop_WithKeysOnTheSelectedRow()
       {
          string page = Read(Path.Join("Views", "QuarantineView.cs"));
 
-         Assert.Contains("KeyboardNavigation.SetTabNavigation(list_, KeyboardNavigationMode.Once);", page, StringComparison.Ordinal);
+         Assert.DoesNotContain("KeyboardNavigationMode.Once", page, StringComparison.Ordinal);
+         Assert.Contains("GridKeys.RowsAreOneTabStop(list_);", page, StringComparison.Ordinal);
          Assert.Contains("WireRowKeys_();", page, StringComparison.Ordinal);
+
+         // Nothing inside a row is a tab stop: the box, the icons, the fold.
+         Assert.Matches(new Regex(@"private static FrameworkElementFactory CheckBox_\([\s\S]{0,300}?box\.SetValue\(Control\.IsTabStopProperty, false\);"), page);
+         Assert.Matches(new Regex(@"private static FrameworkElementFactory IconButton_\([\s\S]{0,300}?button\.SetValue\(Control\.IsTabStopProperty, false\);"), page);
+         Assert.Contains("fold.SetValue(Control.IsTabStopProperty, false);", page, StringComparison.Ordinal);
+         // A group's row, which has no cells, takes the keyboard itself, and shows
+         // that it is selected and where the keyboard is, as the grid's rows do.
+         Assert.Matches(new Regex(@"groupRow\.Setters\.Add\(new Setter\(FocusableProperty, true\)\);"), page);
+         Assert.Contains("selected.Setters.Add(new Setter(UIElement.OpacityProperty, 1.0, \"Pill\"));", page, StringComparison.Ordinal);
+         Assert.Contains("var focused = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };", page, StringComparison.Ordinal);
+         Assert.Contains("focused.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, \"Ring\"));", page, StringComparison.Ordinal);
+
+         // The rows' keys come from a row: Space on the header's box is the box's.
+         Assert.Contains("if (GridKeys.RowAt(list_, e.OriginalSource as DependencyObject) == null)", page, StringComparison.Ordinal);
+         // Up and Down move between rows, a group's - which has no cells - included.
+         Assert.Matches(new Regex(@"case Key\.Up:\s*case Key\.Down:[\s\S]{0,300}?list_\.SelectedIndex = next;\s*GridKeys\.FocusSelectedRow\(list_\);"), page);
+
          Assert.Matches(new Regex(@"case Key\.Space:\s*review_\.Toggle\(row\);"), page);
          Assert.Matches(new Regex(@"case Key\.R:\s*Act_\(QuarantineReview\.IdsOf\(row\), ""release"", groupTitle\);"), page);
          Assert.Matches(new Regex(@"case Key\.Delete:\s*Act_\(QuarantineReview\.IdsOf\(row\), ""delete"", groupTitle\);"), page);
          Assert.Matches(new Regex(@"case Key\.P when row\.IsMessage:\s*case Key\.Enter when row\.IsMessage:\s*ShowPreview_\("), page);
+         Assert.Matches(new Regex(@"case Key\.H when row\.IsMessage:\s*ShowHeaders_\("), page);
 
          Assert.Contains("nameof(QuarantineRow.ReleaseKeyTip), QuarantineRow.ReleaseKey", page, StringComparison.Ordinal);
          Assert.Contains("nameof(QuarantineRow.DeleteKeyTip), L(QuarantineRow.DeleteKey)", page, StringComparison.Ordinal);
          Assert.Contains("nameof(QuarantineRow.PreviewKeyTip), QuarantineRow.PreviewKey", page, StringComparison.Ordinal);
+         Assert.Contains("nameof(QuarantineRow.HeadersKeyTip), QuarantineRow.HeadersKey", page, StringComparison.Ordinal);
          Assert.Contains("new Binding(nameof(QuarantineRow.CheckKeyTip))", page, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The rows' one stop: no cell is a tab stop, the grid's ItemsPresenter is
+      /// while there are rows, and the keyboard that reaches it goes on to the
+      /// selected row - the first, selected, where none is - or, come back from a
+      /// row with Shift+Tab, to what is before the rows.
+      /// </summary>
+      [Fact]
+      public void RowsAreOneTabStop_StopsOnTheRowsHostAndPassesTheKeyboardOn()
+      {
+         string keys = Read(Path.Join("Views", "GridKeys.cs"));
+         Match helper = Regex.Match(keys, @"public static void RowsAreOneTabStop\(DataGrid grid\)\s*\{(?<body>[\s\S]*?)\r?\n      \}\r?\n");
+         Assert.True(helper.Success, "GridKeys.RowsAreOneTabStop was not found.");
+         string body = helper.Groups["body"].Value;
+
+         Assert.Contains("KeyboardNavigation.SetTabNavigation(grid, KeyboardNavigationMode.Continue);", body, StringComparison.Ordinal);
+         Assert.Contains("cells.Setters.Add(new Setter(Control.IsTabStopProperty, false));", body, StringComparison.Ordinal);
+         Assert.Contains("KeyboardNavigation.SetIsTabStop(host, true);", body, StringComparison.Ordinal);
+         Assert.Contains("new Binding(nameof(ItemsControl.HasItems)) { Source = grid }", body, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"IsWithin_\(old, host\)\)\s*\{\s*host\.MoveFocus\(new TraversalRequest\(FocusNavigationDirection\.Previous\)\);"), body);
+         Assert.Matches(new Regex(@"if \(grid\.SelectedItem == null && grid\.Items\.Count > 0\)\s*grid\.SelectedIndex = 0;\s*FocusSelectedRow\(grid\);"), body);
+
+         // The host is the grid's own presenter, not a column header's or a row's.
+         Assert.Contains("ReferenceEquals(presenter.TemplatedParent, grid)", keys, StringComparison.Ordinal);
       }
 
       /// <summary>The tool tips name the keys; the accessible names stay the actions alone.</summary>
@@ -151,7 +200,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("Delete (Del)", message.DeleteKeyTip);
          Assert.Equal("Preview the text (P)", message.PreviewKeyTip);
          Assert.Equal("Check this message (Space)", message.CheckKeyTip);
+         Assert.Equal("Show the headers (H)", message.HeadersKeyTip);
          Assert.Equal("Release", message.ReleaseTip);
+         Assert.Null(review.Rows.First(r => r.IsGroup).HeadersKeyTip);
       }
 
       /// <summary>The list of keys the palette shows names the keys of a list and of a form.</summary>

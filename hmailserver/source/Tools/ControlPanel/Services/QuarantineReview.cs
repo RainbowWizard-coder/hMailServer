@@ -134,19 +134,21 @@ namespace hMailServer.ControlPanel.Services
       public string PreviewTip => IsGroup ? null : L("Preview the text");
 
       // The same tips with the key that does the same from the keyboard, for the
-      // tool tips: the grid is one tab stop, and its rows answer Space, R, Delete
-      // and P (QuarantineView.WireRowKeys_). The accessible names stay the tips
-      // alone; the key is the buttons' AcceleratorKey.
+      // tool tips: the rows are one tab stop, and the selected row answers Space,
+      // R, Delete, P and H (QuarantineView.WireRowKeys_). The accessible names
+      // stay the tips alone; the key is the buttons' AcceleratorKey.
       public string CheckKeyTip => F("{0} ({1})", CheckTip, L(SpaceKey));
       public string ReleaseKeyTip => F("{0} ({1})", ReleaseTip, ReleaseKey);
       public string DeleteKeyTip => F("{0} ({1})", DeleteTip, L(DeleteKey));
       public string PreviewKeyTip => IsGroup ? null : F("{0} ({1})", PreviewTip, PreviewKey);
+      public string HeadersKeyTip => IsGroup ? null : F("{0} ({1})", HeadersTip, HeadersKey);
 
       /// <summary>The keys the quarantine's rows answer, as a keyboard prints them; the two words translated where they are shown.</summary>
       public static readonly string SpaceKey = N("Space");
       public static readonly string DeleteKey = N("Del");
       public const string ReleaseKey = "R"; // no-loc: a key's name
       public const string PreviewKey = "P"; // no-loc: a key's name
+      public const string HeadersKey = "H"; // no-loc: a key's name
 
       /// <summary>What a screen reader says for the row: the group and its size, or who sent what.</summary>
       public string AccessibleName => IsGroup

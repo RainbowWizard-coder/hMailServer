@@ -289,12 +289,14 @@ namespace hMailServer.ControlPanel.Views
       /// shared ThemeTokens brushes this took once then kept the theme they were
       /// frozen in - after a theme change the row and group glyphs stayed the old
       /// theme's green and red, 2.5:1 on the new card, and every field's danger
-      /// ring with them.
+      /// ring with them. Not a tab stop: the mouse's, while the keyboard has the
+      /// row's keys (WireRowKeys_).
       /// </summary>
       private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, string colourKey, bool filled, string tipPath, string keyTipPath = null, string key = null)
       {
          var button = new FrameworkElementFactory(typeof(Wpf.Ui.Controls.Button));
          button.SetValue(FrameworkElement.TagProperty, action);
+         button.SetValue(Control.IsTabStopProperty, false);
          button.SetValue(Wpf.Ui.Controls.Button.AppearanceProperty, ControlAppearance.Transparent);
          button.SetValue(Control.PaddingProperty, new Thickness(4));
          button.SetValue(FrameworkElement.MarginProperty, new Thickness(1, 0, 1, 0));
@@ -332,10 +334,12 @@ namespace hMailServer.ControlPanel.Views
          return panel;
       }
 
+      /// <summary>A row's box: not a tab stop, Space checks the selected row.</summary>
       private static FrameworkElementFactory CheckBox_(double width, Thickness margin)
       {
          var box = new FrameworkElementFactory(typeof(CheckBox));
          box.SetValue(FrameworkElement.TagProperty, "check");
+         box.SetValue(Control.IsTabStopProperty, false);
          box.SetValue(FrameworkElement.WidthProperty, width);
          box.SetValue(FrameworkElement.MinWidthProperty, 0.0);
          box.SetValue(Control.PaddingProperty, new Thickness(0));
@@ -389,10 +393,18 @@ namespace hMailServer.ControlPanel.Views
       /// A group's header row: its box, its four icons, the fold chevron, the domain
       /// and how many it holds, across the whole width. The box and the icons line
       /// up with the message rows' by the two fixed widths.
+      ///
+      /// Selected, it shows the brand pill, the selection fill and the High
+      /// Contrast outline the grid's other rows show (App.xaml's DataGridRow), and
+      /// a ring in the focus colour while the keyboard is on it, as a list's row
+      /// has: the keyboard reaches the row itself now, and a template of its own
+      /// showed neither.
       /// </summary>
       private static ControlTemplate GroupRowTemplate_()
       {
-         var border = new FrameworkElementFactory(typeof(Border));
+         var root = new FrameworkElementFactory(typeof(Grid));
+
+         var border = new FrameworkElementFactory(typeof(Border)) { Name = "Bd" }; // no-loc: a template part's name
          border.SetResourceReference(Border.BackgroundProperty, "ControlFillColorSecondaryBrush");
          border.SetResourceReference(Border.BorderBrushProperty, "ControlStrokeColorDefaultBrush");
          border.SetValue(Border.BorderThicknessProperty, new Thickness(0, 0, 0, 1));
@@ -406,6 +418,7 @@ namespace hMailServer.ControlPanel.Views
 
          var fold = new FrameworkElementFactory(typeof(Wpf.Ui.Controls.Button));
          fold.SetValue(FrameworkElement.TagProperty, "fold");
+         fold.SetValue(Control.IsTabStopProperty, false);
          fold.SetValue(Wpf.Ui.Controls.Button.AppearanceProperty, ControlAppearance.Transparent);
          fold.SetValue(Control.PaddingProperty, new Thickness(4));
          fold.SetValue(Control.BorderThicknessProperty, new Thickness(0));
@@ -433,7 +446,48 @@ namespace hMailServer.ControlPanel.Views
          line.AppendChild(count);
 
          border.AppendChild(line);
-         return new ControlTemplate(typeof(DataGridRow)) { VisualTree = border };
+         root.AppendChild(border);
+
+         var pill = new FrameworkElementFactory(typeof(System.Windows.Shapes.Rectangle)) { Name = "Pill" }; // no-loc: a template part's name
+         pill.SetValue(FrameworkElement.WidthProperty, 3.0);
+         pill.SetValue(FrameworkElement.HeightProperty, 16.0);
+         pill.SetValue(System.Windows.Shapes.Rectangle.RadiusXProperty, 1.5);
+         pill.SetValue(System.Windows.Shapes.Rectangle.RadiusYProperty, 1.5);
+         pill.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Left);
+         pill.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+         pill.SetValue(FrameworkElement.MarginProperty, new Thickness(1, 0, 0, 0));
+         pill.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "AppBrandBrush");
+         pill.SetValue(UIElement.OpacityProperty, 0.0);
+         pill.SetValue(UIElement.IsHitTestVisibleProperty, false);
+         root.AppendChild(pill);
+
+         var outline = new FrameworkElementFactory(typeof(System.Windows.Shapes.Rectangle)) { Name = "Outline" }; // no-loc: a template part's name
+         outline.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "AppSelectionOutlineBrush");
+         outline.SetValue(System.Windows.Shapes.Shape.StrokeThicknessProperty, 1.0);
+         outline.SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);
+         outline.SetValue(UIElement.IsHitTestVisibleProperty, false);
+         root.AppendChild(outline);
+
+         var ring = new FrameworkElementFactory(typeof(System.Windows.Shapes.Rectangle)) { Name = "Ring" }; // no-loc: a template part's name
+         ring.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "AppFocusBrush");
+         ring.SetValue(System.Windows.Shapes.Shape.StrokeThicknessProperty, 1.5);
+         ring.SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);
+         ring.SetValue(UIElement.IsHitTestVisibleProperty, false);
+         root.AppendChild(ring);
+
+         var template = new ControlTemplate(typeof(DataGridRow)) { VisualTree = root };
+
+         var selected = new Trigger { Property = DataGridRow.IsSelectedProperty, Value = true };
+         selected.Setters.Add(new Setter(UIElement.OpacityProperty, 1.0, "Pill")); // no-loc: a template part's name
+         selected.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "Outline")); // no-loc: a template part's name
+         selected.Setters.Add(new Setter(Border.BackgroundProperty, new DynamicResourceExtension("AppSelectionFillBrush"), "Bd")); // no-loc: a template part's name
+         template.Triggers.Add(selected);
+
+         var focused = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };
+         focused.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Visible, "Ring")); // no-loc: a template part's name
+         template.Triggers.Add(focused);
+
+         return template;
       }
 
       /// <summary>A folded group points right, an open one down.</summary>
@@ -492,7 +546,7 @@ namespace hMailServer.ControlPanel.Views
          list_.Columns.Add(held);
 
          list_.Columns.Add(TemplateColumn_(L("HELO"),
-            WithIcon_("headers", SymbolRegular.DocumentHeader24, nameof(QuarantineRow.HeadersTip), nameof(QuarantineRow.Helo), nameof(QuarantineRow.HeloTip)),
+            WithIcon_("headers", SymbolRegular.DocumentHeader24, nameof(QuarantineRow.HeadersTip), nameof(QuarantineRow.Helo), nameof(QuarantineRow.HeloTip), nameof(QuarantineRow.HeadersKeyTip), QuarantineRow.HeadersKey),
             new DataGridLength(1, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Helo)));
 
          list_.Columns.Add(TemplateColumn_(L("Sender"),
@@ -532,6 +586,12 @@ namespace hMailServer.ControlPanel.Views
 
          var groupRow = new DataTrigger { Binding = new Binding(nameof(QuarantineRow.IsGroup)), Value = true };
          groupRow.Setters.Add(new Setter(TemplateProperty, GroupRowTemplate_()));
+         // A group's row has no cells, so the row itself takes the keyboard -
+         // from the arrow keys and the rows' one tab stop, not as a stop of its own.
+         groupRow.Setters.Add(new Setter(FocusableProperty, true));
+         groupRow.Setters.Add(new Setter(IsTabStopProperty, false));
+         // Its template draws the ring (GroupRowTemplate_).
+         groupRow.Setters.Add(new Setter(FocusVisualStyleProperty, null));
          rowStyle.Triggers.Add(groupRow);
 
          list_.RowStyle = rowStyle;
@@ -552,17 +612,21 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The grid is one tab stop, and its selected row answers the keyboard:
-      /// Space checks it, R releases it, Delete deletes it after asking, and P or
-      /// Enter previews its text - Enter folds or unfolds a group, whose R and
-      /// Delete act on every message in it. Each row carried about seven tab
-      /// stops - its box, four actions and two icons - and no key did what they
-      /// do (review finding F211); the icons stay for the mouse, and their tool
-      /// tips name the keys.
+      /// The rows are one tab stop, after the header's box and its four actions
+      /// on the checked messages, Up and Down move between them, groups
+      /// included, and the selected row answers the keyboard: Space checks it, R
+      /// releases it, Delete deletes it after asking, P or Enter previews its text
+      /// and H shows its headers - Enter folds or unfolds a group, whose R and
+      /// Delete act on every message in it. Each row carried
+      /// about seven tab stops - its box, four actions and two icons - and no key
+      /// did what they do (review finding F211). The row's box and icons are the
+      /// mouse's now, and their tool tips name the keys; a row's whitelist and
+      /// blacklist are its box and the header's two actions on the checked
+      /// messages (GridKeys.RowsAreOneTabStop).
       /// </summary>
       private void WireRowKeys_()
       {
-         KeyboardNavigation.SetTabNavigation(list_, KeyboardNavigationMode.Once);
+         GridKeys.RowsAreOneTabStop(list_);
 
          list_.PreviewKeyDown += (_, e) =>
          {
@@ -571,9 +635,28 @@ namespace hMailServer.ControlPanel.Views
             if (list_.SelectedItem is not QuarantineRow row)
                return;
 
+            // The rows' keys, from a row or a cell: Space on the header's box,
+            // or on a box or an icon a click left the keyboard on, is that
+            // control's own.
+            if (GridKeys.RowAt(list_, e.OriginalSource as DependencyObject) == null)
+               return;
+
             string groupTitle = row.IsGroup ? row.GroupTitle : null;
             switch (e.Key)
             {
+               // From row to row, a group's included: the grid moves the keyboard
+               // only between cells, and a group's row has none, so Down on a
+               // group stayed where it was.
+               case Key.Up:
+               case Key.Down:
+                  int next = list_.Items.IndexOf(row) + (e.Key == Key.Down ? 1 : -1);
+                  if (next >= 0 && next < list_.Items.Count)
+                  {
+                     list_.SelectedIndex = next;
+                     GridKeys.FocusSelectedRow(list_);
+                  }
+                  break;
+
                case Key.Space:
                   review_.Toggle(row);
                   selectAll_.IsChecked = review_.AllChecked;
@@ -594,9 +677,16 @@ namespace hMailServer.ControlPanel.Views
                   ShowPreview_(row, list_.ItemContainerGenerator.ContainerFromItem(row) as FrameworkElement ?? list_);
                   break;
 
+               case Key.H when row.IsMessage:
+                  ShowHeaders_(row, list_.ItemContainerGenerator.ContainerFromItem(row) as FrameworkElement ?? list_);
+                  break;
+
                case Key.Enter:
                   review_.ToggleFold(row);
                   Rebind_();
+                  // The group stays the selected row, so that the next Enter
+                  // undoes this one: the rows rebuilt dropped the selection.
+                  list_.SelectedItem = review_.Rows.FirstOrDefault(r => r.IsGroup && r.GroupKey == row.GroupKey);
                   FocusRowAfter_();
                   break;
 

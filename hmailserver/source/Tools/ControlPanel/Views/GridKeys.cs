@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -154,6 +156,88 @@ namespace hMailServer.ControlPanel.Views
          }
 
          list.Focus();
+      }
+
+      /// <summary>
+      /// Makes <paramref name="grid"/>'s rows one Tab stop, after the controls its
+      /// column headers hold. No cell, and nothing that does not mark itself a tab
+      /// stop inside a row, is one: the arrow keys move between the rows and the
+      /// page's own keys act on the selected one. Tab into the rows - from the
+      /// headers or, with Shift, from after the grid - puts the keyboard on the
+      /// selected row, selecting the first where none is; Tab from a row leaves
+      /// the grid, and Shift+Tab from it goes back to the headers.
+      ///
+      /// The rows' host, the grid's ItemsPresenter, is the stop: it takes the
+      /// keyboard only while the grid has rows, and passes it on at once. Setting
+      /// the grid's TabNavigation to Once instead, as the quarantine did, made the
+      /// header's first control the grid's one stop, so that Tab went through the
+      /// header and left the grid without reaching a row, and the column headers
+      /// and each row kept their own stops inside it (the review's skeptic, on
+      /// F211).
+      /// </summary>
+      public static void RowsAreOneTabStop(DataGrid grid)
+      {
+         if (grid == null)
+            return;
+
+         KeyboardNavigation.SetTabNavigation(grid, KeyboardNavigationMode.Continue);
+
+         var cells = new Style(typeof(DataGridCell));
+         if ((grid.CellStyle ?? Application.Current?.TryFindResource(typeof(DataGridCell))) is Style basis)
+            cells.BasedOn = basis;
+         cells.Setters.Add(new Setter(Control.IsTabStopProperty, false));
+         grid.CellStyle = cells;
+
+         void MakeHostAStop()
+         {
+            if (RowsHost_(grid) is not ItemsPresenter host)
+               return;
+            host.FocusVisualStyle = null;
+            KeyboardNavigation.SetIsTabStop(host, true);
+            BindingOperations.SetBinding(host, UIElement.FocusableProperty, new Binding(nameof(ItemsControl.HasItems)) { Source = grid });
+         }
+
+         grid.Loaded += (_, _) => MakeHostAStop();
+         if (grid.IsLoaded)
+            MakeHostAStop();
+
+         grid.AddHandler(UIElement.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler((_, e) =>
+         {
+            if (e.OriginalSource is not ItemsPresenter host || !ReferenceEquals(host.TemplatedParent, grid))
+               return;
+
+            // Shift+Tab from a row reaches the host, which is before the rows:
+            // the keyboard goes on to what is before the grid's rows.
+            if (e.OldFocus is DependencyObject old && IsWithin_(old, host))
+            {
+               host.MoveFocus(new TraversalRequest(FocusNavigationDirection.Previous));
+               return;
+            }
+
+            if (grid.SelectedItem == null && grid.Items.Count > 0)
+               grid.SelectedIndex = 0;
+            FocusSelectedRow(grid);
+         }));
+      }
+
+      /// <summary>The grid's own ItemsPresenter, which holds its rows - not a column header's or a row's.</summary>
+      private static ItemsPresenter RowsHost_(DataGrid grid)
+      {
+         grid.ApplyTemplate();
+         var pending = new Queue<DependencyObject>();
+         pending.Enqueue(grid);
+         while (pending.Count > 0)
+         {
+            DependencyObject d = pending.Dequeue();
+            if (d is ItemsPresenter presenter && ReferenceEquals(presenter.TemplatedParent, grid))
+               return presenter;
+            if (d is DataGridRow || d is DataGridColumnHeadersPresenter)
+               continue;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(d); i++)
+               pending.Enqueue(VisualTreeHelper.GetChild(d, i));
+         }
+
+         return null;
       }
 
       /// <summary>
