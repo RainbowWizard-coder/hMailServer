@@ -4195,6 +4195,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motorns URL (tomt = ingen extern motor)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>Registrera {0} igen? En ny hemlighet ersätter den nuvarande, och koderna som autentiseringsappen visar nu slutar fungera tills den har skannat den nya QR-koden.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Ange ett värdnamn och en port först.</value>
   </data>
@@ -8745,6 +8748,9 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Ta bort sandlådans bearer-token? Förfrågningar till sandlådan skickas då utan någon.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>Ta bort den andra faktorn för {0}? Kontots eget lösenord loggar in i e-postklienter igen, och autentiseringsappens koder slutar fungera.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Ta bort det valda kontot från den här gruppen</value>
@@ -13551,6 +13557,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Registrera en andra faktor</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Registrera igen (ersätter den nuvarande hemligheten)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Radera spår</value>
   </data>
@@ -13886,6 +13895,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>_Ersätt lösenfrasen</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>_Ersätt hemligheten</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Kräv avsändaradress (tomt = valfri)</value>

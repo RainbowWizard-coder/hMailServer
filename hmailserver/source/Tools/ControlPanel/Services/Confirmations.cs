@@ -12,9 +12,9 @@ namespace hMailServer.ControlPanel.Services
    /// releases or sends something, where the question has more to say than its
    /// page's one line: each is one whole sentence of the catalogue per case, which
    /// names the thing acted on and says what follows, and Views/Dialogs.Confirm asks
-   /// it with a button named for the act (review findings F185, F065, F128, F069 and
-   /// F184). A count that changes the sentence is one sentence per number, never a
-   /// noun inflected by the code, so that each language counts its own way.
+   /// it with a button named for the act (review findings F185, F065, F128, F069,
+   /// F184 and F200). A count that changes the sentence is one sentence per number,
+   /// never a noun inflected by the code, so that each language counts its own way.
    /// </summary>
    public static class Confirmations
    {
@@ -171,6 +171,14 @@ namespace hMailServer.ControlPanel.Services
 
       public static string SendoutToNobody(string wildcard)
          => F("No active account in an active domain matches {0}, so nobody would receive the message.", wildcard);
+
+      // ---- Account two-factor (F200) ---------------------------------------------------
+
+      public static string EnrolAgain(string address)
+         => F("Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code.", address);
+
+      public static string RemoveSecondFactor(string address)
+         => F("Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working.", address);
 
       // ---- Delivery queue, REST API keys, restarts (F185) -----------------------------
 

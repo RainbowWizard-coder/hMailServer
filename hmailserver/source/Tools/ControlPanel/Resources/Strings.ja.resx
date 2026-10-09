@@ -4195,6 +4195,9 @@
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>エンジン URL (空 = 外部エンジンなし)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>{0} を再登録しますか? 新しいシークレットが現在のものを置き換え、認証アプリが今表示しているコードは、新しい QR コードを読み取るまで使えなくなります。</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>先にホスト名とポートを入力してください。</value>
   </data>
@@ -8745,6 +8748,9 @@
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>サンドボックスの Bearer トークンを削除しますか? 以後、サンドボックスへの要求はトークンなしで送信されます。</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>{0} の第 2 要素を削除しますか? アカウント自身のパスワードで再びメール クライアントにサインインできるようになり、認証アプリのコードは使えなくなります。</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>選択したアカウントをこのグループから削除する</value>
@@ -13551,6 +13557,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>第 2 要素を登録する(_E)</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>再登録する (現在のシークレットを置き換えます)(_E)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>痕跡を消去(_E)</value>
   </data>
@@ -13886,6 +13895,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>パスフレーズを置き換える(_R)</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>シークレットを置き換える(_R)</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>必須の送信者アドレス (空 = 制限なし)(_R)</value>

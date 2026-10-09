@@ -47,6 +47,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly Button enrol_;
       private readonly Button disable_;
 
+      // Whether the tab, as last read, shows a factor enrolled: Enrol then
+      // replaces the secret, and says so on its button and asks first.
+      private bool enrolled_;
+
       public AccountTwoFactorPanel(string domainName, string address)
       {
          domainName_ = domainName;
@@ -85,6 +89,7 @@ namespace hMailServer.ControlPanel.Views
 
                enrol_.IsEnabled = true;
                disable_.IsEnabled = enabled;
+               ShowEnrolState_(enabled);
             }
             finally
             {
@@ -111,8 +116,32 @@ namespace hMailServer.ControlPanel.Views
          return account;
       }
 
+      /// <summary>
+      /// The enrol button as the account stands: the primary Enrol a second factor
+      /// with none, and a secondary Enrol again that says it replaces the current
+      /// secret with one, where it stayed the primary Enrol a second factor beside
+      /// Remove and nothing said that pressing it broke the person's authenticator
+      /// (review finding F200).
+      /// </summary>
+      private void ShowEnrolState_(bool enrolled)
+      {
+         enrolled_ = enrolled;
+
+         // Two captions of one button, never on screen together, with one Alt key
+         // between them, so that Alt+E reaches the enrol button whichever it says.
+         string caption = enrolled ? L("_Enrol again (replaces the current secret)") : L("_Enrol a second factor");
+         enrol_.Content = caption;
+         if (enrol_ is Wpf.Ui.Controls.Button fluent)
+            fluent.Appearance = enrolled ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary;
+      }
+
       private void Enrol()
       {
+         // With a factor enrolled, a new secret replaces the one the person's
+         // authenticator holds: asked first, with Cancel the answer Enter gives.
+         if (enrolled_ && !Dialogs.Confirm(Confirmations.EnrolAgain(address_), L("Control Panel"), L("_Replace the secret"), destructive: true))
+            return;
+
          try
          {
             dynamic account = OpenAccount();
@@ -166,6 +195,11 @@ namespace hMailServer.ControlPanel.Views
 
       private void Disable()
       {
+         // The person's codes stop working and the account's own password signs in
+         // to mail clients again: asked first, with Cancel the answer Enter gives.
+         if (!Dialogs.Confirm(Confirmations.RemoveSecondFactor(address_), L("Control Panel"), L("_Remove"), destructive: true))
+            return;
+
          try
          {
             dynamic account = OpenAccount();

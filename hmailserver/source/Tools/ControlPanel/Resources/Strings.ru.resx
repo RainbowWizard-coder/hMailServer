@@ -4231,6 +4231,9 @@ Control Panel может читать файлы сообщений только
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL движка (пусто — внешнего движка нет)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>Зарегистрировать {0} заново? Новый секрет заменит текущий, и коды, которые сейчас показывает приложение-аутентификатор, перестанут работать, пока оно не отсканирует новый QR-код.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Сначала укажите имя узла и порт.</value>
   </data>
@@ -8829,6 +8832,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Удалить bearer-токен песочницы? Тогда запросы к песочнице будут отправляться без него.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>Удалить второй фактор {0}? Собственный пароль снова позволит входить в почтовые клиенты, а коды приложения-аутентификатора перестанут работать.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Удалить выбранную учётную запись из этой группы</value>
@@ -13709,6 +13715,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Зарегистрировать второй фактор</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Зарегистрировать заново (заменяет текущий секрет)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Стереть следы</value>
   </data>
@@ -14044,6 +14053,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>_Заменить парольную фразу</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>_Заменить секрет</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Требовать адрес отправителя (пусто — любой)</value>

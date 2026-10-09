@@ -4195,6 +4195,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Engine-URL (leeg = geen externe engine)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>{0} opnieuw inschrijven? Een nieuw geheim vervangt het huidige, en de codes die de authenticator-app nu toont, werken niet meer totdat die de nieuwe QR-code heeft gescand.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Voer eerst een hostnaam en poort in.</value>
   </data>
@@ -8745,6 +8748,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Het bearer-token van de sandbox verwijderen? Verzoeken aan de sandbox worden dan zonder token verstuurd.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>De tweede factor van {0} verwijderen? Het eigen wachtwoord meldt weer aan bij e-mailclients, en de codes van de authenticator-app werken niet meer.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Het geselecteerde account uit deze groep verwijderen</value>
@@ -13551,6 +13557,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Tweede factor inschrijven</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Tweede factor opnieuw inschrijven (vervangt het huidige geheim)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>Sporen _wissen</value>
   </data>
@@ -13886,6 +13895,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>Wachtwoordzin _vervangen</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>Geheim _vervangen</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Afzenderadres _vereisen (leeg = elk adres)</value>

@@ -4195,6 +4195,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motor-URL (tom = ingen ekstern motor)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>Registrere {0} på nytt? En ny hemmelighet erstatter den nåværende, og kodene autentiseringsappen viser nå, slutter å virke til den skanner den nye QR-koden.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Skriv inn et vertsnavn og en port først.</value>
   </data>
@@ -8745,6 +8748,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Fjerne sandkassens bearer-token? Forespørsler til sandkassen sendes da uten et.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>Fjerne den andre faktoren for {0}? Kontoens eget passord logger igjen inn i e-postklienter, og kodene fra autentiseringsappen slutter å virke.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Fjern den valgte kontoen fra denne gruppen</value>
@@ -13551,6 +13557,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Registrer en andre faktor</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Registrer på nytt (erstatter den nåværende hemmeligheten)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Slett spor</value>
   </data>
@@ -13886,6 +13895,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>_Erstatt passfrasen</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>_Erstatt hemmeligheten</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Krev avsenderadresse (_tom = alle)</value>

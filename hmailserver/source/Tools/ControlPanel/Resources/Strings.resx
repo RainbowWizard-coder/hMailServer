@@ -4195,6 +4195,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Engine URL (empty = no external engine)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Enter a host name and port first.</value>
   </data>
@@ -8745,6 +8748,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Remove the sandbox's bearer token? Requests to the sandbox are then sent without one.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Remove the selected account from this group</value>
@@ -13551,6 +13557,9 @@ It will keep trying as you use the application.</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Enrol a second factor</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Enrol again (replaces the current secret)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Erase traces</value>
   </data>
@@ -13886,6 +13895,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>_Replace the passphrase</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>_Replace the secret</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Require sender address (empty = any)</value>

@@ -4195,6 +4195,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL do mecanismo (vazio = sem mecanismo externo)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>Registrar {0} de novo? Um novo segredo substitui o atual, e os códigos que o aplicativo autenticador mostra agora param de funcionar até ele escanear o novo código QR.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Informe primeiro um nome de host e uma porta.</value>
   </data>
@@ -8745,6 +8748,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Remover o token bearer do sandbox? As solicitações ao sandbox passam a ser enviadas sem ele.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>Remover o segundo fator de {0}? A própria senha volta a fazer login em clientes de e-mail, e os códigos do aplicativo autenticador param de funcionar.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Remover a conta selecionada deste grupo</value>
@@ -13551,6 +13557,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Registrar um segundo fator</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Registrar de novo (substitui o segredo atual)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Apagar rastros</value>
   </data>
@@ -13886,6 +13895,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>_Substituir a frase secreta</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>_Substituir o segredo</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Exigir endereço _do remetente (vazio = qualquer um)</value>

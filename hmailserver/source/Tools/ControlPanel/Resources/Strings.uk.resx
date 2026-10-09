@@ -4231,6 +4231,9 @@
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>URL рушія (порожньо = без зовнішнього рушія)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>Зареєструвати {0} знову? Новий секрет замінить поточний, і коди, які зараз показує застосунок автентифікації, перестануть працювати, доки він не відсканує новий QR-код.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Спершу введіть ім'я вузла та порт.</value>
   </data>
@@ -8829,6 +8832,9 @@
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Видалити bearer-токен пісочниці? Тоді запити до пісочниці надсилатимуться без нього.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>Видалити другий фактор {0}? Власний пароль знову даватиме вхід у поштові клієнти, а коди застосунку автентифікації перестануть працювати.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Вилучити вибраний обліковий запис із цієї групи</value>
@@ -13709,6 +13715,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Зареєструвати другий фактор</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>_Зареєструвати знову (замінює поточний секрет)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Стерти сліди</value>
   </data>
@@ -14044,6 +14053,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>_Замінити парольну фразу</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>_Замінити секрет</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Вимагати адресу відправника (порожньо = будь-яка)</value>

@@ -4195,6 +4195,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Engine URL (empty = no external engine)" xml:space="preserve">
     <value>Motor URL'si (boş = dış motor yok)</value>
   </data>
+  <data name="Enrol {0} again? A new secret replaces the current one, and the codes the authenticator app shows now stop working until it scans the new QR code." xml:space="preserve">
+    <value>{0} yeniden kaydedilsin mi? Yeni bir gizli anahtar geçerli olanın yerini alır ve kimlik doğrulama uygulamasının şu anda gösterdiği kodlar, yeni QR kodunu tarayana kadar çalışmaz.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Önce bir ana bilgisayar adı ve port girin.</value>
   </data>
@@ -8745,6 +8748,9 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
     <value>Korumalı alanın bearer belirteci kaldırılsın mı? Korumalı alana istekler bundan sonra belirteçsiz gönderilir.</value>
+  </data>
+  <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
+    <value>{0} hesabının ikinci faktörü kaldırılsın mı? Kendi parolası yeniden posta istemcilerinde oturum açar ve kimlik doğrulama uygulamasının kodları çalışmaz olur.</value>
   </data>
   <data name="Remove the selected account from this group" xml:space="preserve">
     <value>Seçili hesabı bu gruptan kaldır</value>
@@ -13551,6 +13557,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>İkinci etken _kaydet</value>
   </data>
+  <data name="_Enrol again (replaces the current secret)" xml:space="preserve">
+    <value>Yeniden _kaydet (geçerli gizli anahtarın yerini alır)</value>
+  </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>_İzleri sil</value>
   </data>
@@ -13886,6 +13895,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Replace the passphrase" xml:space="preserve">
     <value>Parola ifadesini _değiştir</value>
+  </data>
+  <data name="_Replace the secret" xml:space="preserve">
+    <value>Gizli anahtarı _değiştir</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Gönderen adresi gerektir (boş = herhangi biri)</value>

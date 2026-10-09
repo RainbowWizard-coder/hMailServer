@@ -308,6 +308,46 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(ask >= 0 && clear > ask && clear - ask < 600, "Clear greylisting triplets clears without asking first.");
       }
 
+      // ---- Account two-factor (F200) ---------------------------------------------------------
+
+      [Fact]
+      public void TheTwoFactorQuestions_NameTheAccount_AndWhatStopsWorking()
+      {
+         string again = Confirmations.EnrolAgain("user00@example.com");
+         Assert.Contains("user00@example.com", again, StringComparison.Ordinal);
+         Assert.Contains("replaces the current one", again, StringComparison.Ordinal);
+         Assert.Contains("stop working", again, StringComparison.Ordinal);
+
+         string remove = Confirmations.RemoveSecondFactor("user00@example.com");
+         Assert.Contains("user00@example.com", remove, StringComparison.Ordinal);
+         Assert.Contains("password signs in to mail clients again", remove, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void EnrolAgain_SaysItReplacesTheSecret_IsSecondary_AndAsksFirst()
+      {
+         string panel = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "AccountTwoFactorPanel.cs"));
+
+         string state = WithheldRowTests.MemberText(panel, "private void ShowEnrolState_(bool enrolled)");
+         Assert.True(state != null, "AccountTwoFactorPanel.ShowEnrolState_ is gone.");
+         Assert.Contains("L(\"_Enrol again (replaces the current secret)\")", state, StringComparison.Ordinal);
+         Assert.Contains("enrolled ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary", state, StringComparison.Ordinal);
+
+         string reload = WithheldRowTests.MemberText(panel, "public void Reload()");
+         Assert.Contains("ShowEnrolState_(enabled);", reload, StringComparison.Ordinal);
+
+         string enrol = WithheldRowTests.MemberText(panel, "private void Enrol()");
+         int asks = enrol.IndexOf("Confirmations.EnrolAgain(address_)", StringComparison.Ordinal);
+         int enrols = enrol.IndexOf("account.EnrolTOTP()", StringComparison.Ordinal);
+         Assert.True(asks >= 0 && enrols > asks, "Enrol again replaces the secret without asking first.");
+         Assert.Contains("enrolled_ &&", enrol, StringComparison.Ordinal);
+
+         string disable = WithheldRowTests.MemberText(panel, "private void Disable()");
+         int asksRemove = disable.IndexOf("Confirmations.RemoveSecondFactor(address_)", StringComparison.Ordinal);
+         int removes = disable.IndexOf("account.DisableTOTP()", StringComparison.Ordinal);
+         Assert.True(asksRemove >= 0 && removes > asksRemove, "Remove takes the second factor away without asking first.");
+      }
+
       [Theory]
       [InlineData("DomainsView.xaml.cs", "private void DeleteAccount_(string address)", "Confirmations.DeleteAccount(address)", "L(\"_Delete account\")")]
       [InlineData("DomainsView.xaml.cs", "private void DeleteAlias_(string name)", "Confirmations.DeleteAlias(name)", "L(\"_Delete alias\")")]

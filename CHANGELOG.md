@@ -1293,6 +1293,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   permissions' *Delete* and the distribution list's *Remove selected* both read *Remove*, the word for taking an entry
   out of a list the thing outlives. Deleting an account's IMAP folder in any language but English no longer names and
   looks for the folder with "(not subscribed)" still after its name.
+- **Fixed: an account's two-factor tab offered to enrol again, as its primary action, without saying that it replaces
+  the secret.** With a factor enrolled the tab still showed the primary *Enrol a second factor* beside *Remove*, and
+  pressing it made a new secret at once, so that the codes of the person's authenticator app stopped working; *Remove*
+  took the factor away at once too. With a factor enrolled the button now reads *Enrol again (replaces the current
+  secret)* as a secondary button, and asks first - the new secret replaces the current one and the app's codes stop
+  working until it scans the new QR code - with *Replace the secret* and Cancel the answer Enter gives; *Remove* asks
+  first as well, saying that the account's own password signs in to mail clients again.
 
 ### Administration
 
