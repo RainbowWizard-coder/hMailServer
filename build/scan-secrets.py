@@ -13,10 +13,11 @@ the repository ships (build/hooks/pre-commit and build/hooks/pre-push, turned on
 every commit a batch brings to master and pushes nothing when it finds something
 (CONTRIBUTING.md, "Secrets"; SECURITY.md, "Secrets and credentials").
 
-It runs gitleaks - by preference the one in GitLab's secrets analyzer image, pinned by
-the digest the secret_detection job names (read from .gitlab/ci/gitlab-security.yml, so
-the two never differ), with GitLab's rules (/gitleaks.toml in the image) and the
-repository's .gitleaksignore: the same scan the pipeline runs. Where it runs:
+It runs gitleaks - by preference the one in GitLab's secrets analyzer image, as the
+project's registry holds it (build/ci/mirror-secrets.sh) and the secret_detection job
+names it, by digest (read from .gitlab/ci/gitlab-security.yml, so the two never differ),
+with GitLab's rules (/gitleaks.toml in the image) and the repository's .gitleaksignore:
+the same scan the pipeline runs. Where it runs:
 
   docker    Docker on this machine: the image, with the repository's git directory
             mounted read-only.
@@ -474,9 +475,10 @@ def self_test():
            % pre_push_ranges(pushed, "gitlab"))
     expect(tip_of("%s..%s" % (a, b)) == b and tip_of("%s --not --remotes=gitlab" % b) == b, "the range's tip")
 
+    mirrored = "registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:7.40.0-222222222222@sha256:"
     yml = ("semgrep-sast:\n  image:\n    name: registry.example/semgrep@sha256:%s\n\nsecret_detection:\n"
-           "  image: registry.gitlab.com/security-products/secrets:7@sha256:%s\n  needs: []\n" % ("1" * 64, "2" * 64))
-    expect(image_of(yml) == "registry.gitlab.com/security-products/secrets:7@sha256:" + "2" * 64, "the image is secret_detection's")
+           "  # a comment before the image\n  image: %s%s\n  needs: []\n" % ("1" * 64, mirrored, "2" * 64))
+    expect(image_of(yml) == mirrored + "2" * 64, "the image is secret_detection's")
     expect(image_of(yml.replace("\n", "\r\n")).endswith("2" * 64), "a CRLF checkout's file is read the same")
     try:
         image_of(yml.replace("@sha256:" + "2" * 64, ":7"))

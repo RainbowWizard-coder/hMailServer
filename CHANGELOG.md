@@ -1275,6 +1275,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it ran 1,094,254 in a minute, and 1,934,356 more in three minutes from sixteen threads on two processors, without
   one. .NET Framework's `Stop` marks its socket closed before it closes it, so on Windows the test passed before as it
   passes now.
+- **`secret_detection` runs GitLab's secrets analyzer from a copy in the project's registry**
+  (`mirror/secrets:7.40.0-1f54871d97a7`, made by the new `build/ci/mirror-secrets.sh` as `mirror-semgrep.sh` makes
+  `semgrep-sast`'s). GitLab's registry had stopped serving the digest pinned on 5 October 2026, and the job failed
+  before it ran in `master`'s pipelines of 7 and 9 October; `build/scan-secrets.py`, the landing's and the hooks' scan,
+  which takes the same image, could run only where an earlier pull had left it cached. The copy is 7.40.0 as GitLab
+  rebuilt it on 9 October: the analyzer, gitleaks 8.30.1 and GitLab's rules byte for byte the ones before, Alpine's zlib
+  1.3.2-r1 where it had r0; over `master`'s whole history the two images' gitleaks found the same.
+  `build/check-release-chain.py` fails when the job names another image, or names it over two lines, which
+  `scan-secrets.py` would not read, or by a tag that is not the digest's (ContinuousIntegration.md, "Change checks").
 
 ### Documentation
 

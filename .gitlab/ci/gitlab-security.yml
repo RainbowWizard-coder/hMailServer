@@ -92,24 +92,30 @@
 #
 # The analyzer images are pinned by digest, as the other scans' images in
 # .gitlab-ci.yml are, rather than taken by the moving major tag the templates
-# name: registry.gitlab.com's security-products/semgrep:6 and
-# security-products/secrets:7 as they were on 5 October 2026. GitLab's registry does
-# not keep serving a digest these tags have moved on from: the ones taken on 26
-# September 2026 answered "manifest unknown" on 5 October, and v6.3.6's first tag
-# pipeline could not start semgrep-sast, whose report the release job needs. The new
-# semgrep digest is the same analyzer, 6.26.1 with Semgrep 1.174.0, rebuilt.
-# semgrep-sast blocks every change through semgrep-sast-gate, so its image is not
-# GitLab's registry's but a copy of that digest in the project's own registry, digest
-# preserved (build/ci/mirror-semgrep.sh, which says why the analyzer's licences allow
-# it): registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep, tagged with the
-# analyzer's version and the digest's first twelve hex digits, named here by the same
-# digest GitLab's own index has, so the bytes are GitLab's. GitLab rebuilding the
-# analyzer no longer stops a gate. Renovate does not look up the project's own
-# registry (renovate.json), so a new semgrep digest is taken by hand: mirror-semgrep.sh
-# with the tag, and the line it prints here, before a release tag. secret_detection
-# stays on GitLab's registry for now, where Renovate's gitlabci manager reads it
-# through the include and proposes its new digests; a new major version of either is a
-# change to the tag here.
+# name: registry.gitlab.com's security-products/semgrep:6 as it was on 5 October 2026,
+# and security-products/secrets:7 as it was on 9 October. GitLab's registry does not
+# keep serving a digest these tags have moved on from: the ones taken on 26 September
+# 2026 answered "manifest unknown" on 5 October, and v6.3.6's first tag pipeline could
+# not start semgrep-sast, whose report the release job needs; the secrets digest taken
+# on 5 October answered the same by 7 October, and secret_detection failed in master's
+# pipelines of 7 and 9 October before it ran. The new semgrep digest is the same
+# analyzer, 6.26.1 with Semgrep 1.174.0, rebuilt; the new secrets one the same 7.40.0,
+# rebuilt on 9 October: in its linux/amd64 image the analyzer, gitleaks 8.30.1 and
+# GitLab's rules 0.25.1 are byte for byte the ones before, Alpine's zlib 1.3.2-r1 where
+# it had r0, and over master's whole history the two found the same findings.
+# So neither image is GitLab's registry's, but a copy of that digest in the project's
+# own registry, digest preserved (build/ci/mirror-semgrep.sh and
+# build/ci/mirror-secrets.sh, which say why the analyzers' licences allow it):
+# registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep and mirror/secrets, each
+# tagged with the analyzer's version and the digest's first twelve hex digits, named
+# here by the same digest GitLab's own index has, so the bytes are GitLab's. GitLab
+# rebuilding an analyzer no longer stops a gate - semgrep-sast holds every change
+# through semgrep-sast-gate, and secret_detection fails master's pipeline and a merge
+# request's on a finding - nor the landing's secret scan, which takes secret_detection's
+# image (build/scan-secrets.py). Renovate does not look up the project's own registry
+# (renovate.json), so a new digest of either is taken by hand: the script with the
+# tag, and the line it prints here, before a release tag. A new major version of
+# either is a change to the tag here.
 # The registry also has a semgrep:7 (7.0.0, 13 May 2026), which Renovate offers as
 # the next major version. It is not one: GitLab released it for GitLab 19.0 and
 # withdrew it the next day (the analyzer's merge requests !723 and !724), has no v7
@@ -220,7 +226,9 @@ semgrep-sast:
       - semgrep.sarif
 
 secret_detection:
-  image: registry.gitlab.com/security-products/secrets:7@sha256:17b94c35f59ebf58d976ae380580da198b6a0ea07e266307b6bac587bad067a2
+  # GitLab's analyzer as the project's registry holds it (the header says why), on one
+  # line: build/scan-secrets.py reads its gitleaks from this line.
+  image: registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:7.40.0-1f54871d97a7@sha256:1f54871d97a7d1ab311495408eb12e5217ef0633db115a27ca51f381f2fbe641
   needs: []
   # The whole history took under a minute on linix (2,214 commits, 720 MB of diffs);
   # a shared runner's fetch of it is the rest.

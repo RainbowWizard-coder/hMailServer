@@ -77,7 +77,7 @@ same way.
 | `semgrep-sast` | test | GitLab's shared runners | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
 | `semgrep-sast-gate` | test | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
 | `mr-dependency-check` | check | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
-| `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
+| `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule, in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the sixty files a release carries before the two installers' SBOMs, the PowerShell module's two unsigned among them (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The two installers, x64 and ARM64, and the PowerShell module's manifest and script, Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
@@ -659,6 +659,39 @@ rm -rf "$DOCKER_CONFIG"; unset DOCKER_CONFIG
 the RPM jobs ([PackagesRpm.md](PackagesRpm.md)), takes the same login in the
 same way.
 
+**`secret_detection`'s image is the project's own copy too.** The digest of
+GitLab's `security-products/secrets:7` pinned on 5 October 2026 answered
+"manifest unknown" by 7 October, and `secret_detection` failed with
+`runner_configuration_error` in `master`'s pipelines of 7 and 9 October
+(2923938530, 2930660579) before it ran; `build/scan-secrets.py`, which takes its
+gitleaks from the image the job names, could then run only on linix, where an
+earlier pull had left the image cached. The job now runs
+`registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:7.40.0-1f54871d97a7`,
+named by the digest GitLab's index for 7.40.0 had on 9 October 2026, which
+`bash build/ci/mirror-secrets.sh <version> [sha256:<digest>]` copies as
+`mirror-semgrep.sh` copies its analyzer, with the same login. The image the
+pin had named could not be copied instead: its index is GitLab's no longer, and
+linix's cache holds its linux/amd64 half alone. The new digest is the same
+analyzer rebuilt: in its linux/amd64 image the analyzer, gitleaks 8.30.1 and
+GitLab's rules 0.25.1 (`/gitleaks.toml`) are byte for byte the old image's, and
+of its Alpine packages only zlib moved, from 1.3.2-r0 to 1.3.2-r1. gitleaks in
+each image, run as `scan-secrets.py` runs it over `master`'s whole history
+(1,808 commits), found nothing with `.gitleaksignore` and the same 40 findings
+without it. The analyzer is MIT-licensed, GitLab's rules in it MIT Expat and
+gitleaks MIT; the copy is the image unmodified, for this project's CI (the
+script's header says more). Renovate does not look up the project's own
+registry, so a new digest is taken by hand, as `semgrep-sast`'s is. The job
+names it on one `image:` line, the line `scan-secrets.py` reads.
+
+**Re-pinning `secret_detection`'s analyzer.** A new analyzer can bring a new
+gitleaks, and `scan-secrets.py` reads gitleaks' own words: a scan whose `git log`
+failed is told from a clean one by the `ERR` lines gitleaks 8.30.1 logs before it
+writes an empty report and exits 0 (`findings_of`, and the log its self-test
+holds). Before the pin moves to an image whose `SCANNER_VERSION` is another,
+`scan-secrets.py` is run over a range whose base the repository does not have,
+and what the new gitleaks logs read; and the whole history is scanned in both
+images and the two reports compared. `mirror-secrets.sh`'s header says the same.
+
 **Re-pinning `semgrep-sast`'s analyzer.** A new analyzer is a new Semgrep, and
 `semgrep-sast-gate` reads Semgrep's own words in `semgrep.sarif`: the kind of
 each notification and the file its text names (`security-gate.py`'s
@@ -676,7 +709,9 @@ does not know stops `semgrep-sast-gate` (exit 2) rather than passing a file the
 scan gave up on. `mirror-semgrep.sh`'s header says the same.
 
 **What holds the jobs to this.** `build/check-release-chain.py`, which
-`checkers` runs in every pipeline, fails when `semgrep-sast` has no rule for a
+`checkers` runs in every pipeline, fails when `secret_detection` runs any image
+but the project's copy, named by its digest on one `image:` line, with the
+digest's first twelve hex digits in its tag; when `semgrep-sast` has no rule for a
 protected `batch*` branch, reads `SAST_DISABLED`, runs any image but the
 project's copy named by its digest, does not take `.gate-retry`, is
 `allow_failure`, does not remove `gl-sast-report.json` and `semgrep.sarif`
@@ -1655,6 +1690,7 @@ pinned by digest where the CI file names it.
 | `package-templates`, `roadmap` | `mcr.microsoft.com/dotnet/sdk:10.0` (Microsoft) | `pwsh`, in Microsoft's SDK image; PyYAML and jsonschema, Ubuntu's packages |
 | `linux-build`, `linux-build-gcc`, `linux-suite`, `linux-cross`, `linux-sanitize`, `linux-db-upgrade-*`, `linux-sbom`, `linux-repro`, `linux-fuzz` | `registry.gitlab.com/hmailserver/hmailserver/ci-linux`, by digest (built on linix) | Ubuntu's packages; the .NET SDK and PowerShell from Microsoft's SDK image; Syft 1.52.0 from `anchore/syft` on Docker Hub ([The image](#the-image)) |
 | `semgrep-sast` | `registry.gitlab.com/hmailserver/hmailserver/mirror/semgrep`, by digest: GitLab's `security-products/semgrep` 6.26.1, copied digest for digest ([Change checks](#change-checks)) | the analyzer, Semgrep and GitLab's rules, all in the image |
+| `secret_detection` | `registry.gitlab.com/hmailserver/hmailserver/mirror/secrets`, by digest: GitLab's `security-products/secrets` 7.40.0, copied digest for digest ([Change checks](#change-checks)) | the analyzer, gitleaks 8.30.1 and GitLab's rules 0.25.1, all in the image; `build/scan-secrets.py` takes the same image |
 | `semgrep-sast-gate`, `mr-dependency-check` | `python:3.14-slim-trixie` (Docker Hub) | git from Debian's archive; OSV's export from Google Cloud Storage (`osv-vulnerabilities.storage.googleapis.com`) and OSV's API (`api.osv.dev`); the checkers are the standard library's Python |
 | `scorecard` | `nixos/nix:2.35.2` (Docker Hub) | OpenSSF Scorecard 5.5.0 and its closure from `cache.nixos.org`, by its Nix store path and pinned NAR hash, each path checked against the signature of the `cache.nixos.org-1` key the image trusts ([OpenSSF Scorecard](#openssf-scorecard)) |
 | `linux-db-upgrade-*` services | `postgres:18`, `mariadb:13` (Docker Hub) | the database servers |
@@ -3525,10 +3561,10 @@ rules over every language of the tree, the server's C and C++ included, and
 pipeline brings. They run on GitLab's shared runners, for `master` and a merge
 request; `semgrep-sast` for a protected `batch*` branch too, whose
 `semgrep-sast-gate` reads its report, and for a `v*` tag, whose release job does.
-Their images are pinned by digest: `secret_detection`'s from GitLab's registry,
-`semgrep-sast`'s from the project's copy of it ([Change
-checks](#change-checks)). Each leaves its JSON report for Developers and above
-to download. `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable, turns
+Their images are pinned by digest, each from the project's copy of GitLab's
+image ([Change checks](#change-checks)), since GitLab's registry stops serving a
+digest its tag has moved on from. Each leaves its JSON report for Developers and
+above to download. `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable, turns
 `secret_detection` off. Nothing turns `semgrep-sast` off: GitLab's template
 skips it when `SAST_DISABLED` is set, and the job's own rules, which replace the
 template's, do not read it. A third, `container_scanning`, and its twin
@@ -3724,10 +3760,10 @@ GitLab Ultimate. What the Free tier allows is built instead, before the push:
   `git add`, but for the test fixtures' directories, which hold throwaway keys on
   purpose.
 
-`build/scan-secrets.py` runs gitleaks from the image `secret_detection` pins -
-it reads the digest from `.gitlab/ci/gitlab-security.yml`, so the two cannot
-differ - with GitLab's rules and the repository's `.gitleaksignore`: in Docker on
-the machine, or in Docker on another machine that sees the repository's git
+`build/scan-secrets.py` runs gitleaks from the image `secret_detection` pins,
+the project's copy of GitLab's analyzer - it reads the digest from
+`.gitlab/ci/gitlab-security.yml`, so the two cannot differ - with GitLab's rules
+and the repository's `.gitleaksignore`: in Docker on the machine, or in Docker on another machine that sees the repository's git
 directory (`HM_SECRET_SCAN_SSH=user@host:/path/.git`, as linix sees the
 maintainer's clone at `/mnt/hmailserver`), or, without Docker, a `gitleaks` on
 `PATH` with gitleaks' own rules. With none of them it refuses (exit 3). The

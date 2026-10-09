@@ -140,7 +140,10 @@ refuses it. This checker holds them to each other. It fails when:
   * linux-fuzz does not keep fuzz-results/ as its artifact, whatever the result,
     for Developers only (a reproducer may be an exploit), or another job claims it;
   * secret_detection lets a finding pass: it must be allow_failure: false and read
-    its report after the analyzer, which exits 0 whatever it finds;
+    its report after the analyzer, which exits 0 whatever it finds; or runs another
+    image than the analyzer as the project's registry holds it, on the one line
+    build/scan-secrets.py reads (image: mirror/secrets:<version>-<the digest's first
+    twelve hex digits>@<digest>, build/ci/mirror-secrets.sh);
   * the release can be collected past the security scans: release must need
     static-analysis, semgrep, dependency-scan and GitLab's semgrep-sast, not
     optionally, with their artifacts - the scans build/ci/security-gate.py reads -
@@ -593,6 +596,11 @@ GATE_RETRY_REASONS = ("runner_system_failure", "runner_external_dependency_failu
 # named by.
 MIRRORED_SAST = re.compile(r"^    name: registry\.gitlab\.com/hmailserver/hmailserver/mirror/semgrep:"
                            r"[0-9]+(?:\.[0-9]+)*-([0-9a-f]{12})@sha256:([0-9a-f]{64})\s*$", re.MULTILINE)
+# secret_detection's analyzer as the project's registry holds it (build/ci/mirror-secrets.sh),
+# tagged as semgrep-sast's is, on the one image: line build/scan-secrets.py takes the
+# landing's scanner from.
+MIRRORED_SECRETS = re.compile(r"^  image: registry\.gitlab\.com/hmailserver/hmailserver/mirror/secrets:"
+                              r"[0-9]+(?:\.[0-9]+)*-([0-9a-f]{12})@sha256:([0-9a-f]{64})\s*$", re.MULTILINE)
 # The scans on linix that judge a batch as a whole: on a protected batch* branch their
 # rules compare the tree with master, not with the push before.
 WHOLE_CHANGE_SCANS = ["static-analysis", "semgrep", "ci-image-packages", "dependency-scan"]
@@ -2248,6 +2256,16 @@ def check(texts, chain, feed):
                         "the job must fail unless the report's vulnerabilities are []")
     if not re.search(r'== "security"[^\n]*\n\s+variables:\s*\n\s+SECRET_DETECTION_HISTORIC_SCAN: "true"', detection):
         problems.append("secret_detection does not scan the whole history for the schedule described \"security\"")
+    mirrored = MIRRORED_SECRETS.search(detection)
+    if not mirrored:
+        problems.append("secret_detection does not run GitLab's analyzer as the project's registry holds it, on one line "
+                        "(image: registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:<version>-<12 hex>@sha256:<digest>, "
+                        "build/ci/mirror-secrets.sh): GitLab's registry stops serving a digest its tag moves on from, which "
+                        "would stop the job and the landing's secret scan (build/scan-secrets.py), which takes this image")
+    elif not mirrored.group(2).startswith(mirrored.group(1)):
+        problems.append("secret_detection's image tag ends in %s, and it is named by the digest %s...: the copy's tag is "
+                        "the digest's first twelve hex digits (build/ci/mirror-secrets.sh)"
+                        % (mirrored.group(1), mirrored.group(2)[:12]))
     if not os.path.isfile(os.path.join(ROOT, ".gitleaksignore")):
         problems.append(".gitleaksignore is missing: the findings read and found not to be secrets would fail secret_detection")
 
@@ -3275,6 +3293,17 @@ def self_test(chain, feed):
            "repo-hygiene claims fuzz-results/")
     broken("a secret found as a warning", "security", "  allow_failure: false\n  rules:\n    - if: $SECRET_DETECTION_DISABLED",
            "  rules:\n    - if: $SECRET_DETECTION_DISABLED", "secret_detection does not say allow_failure: false")
+    secrets = MIRRORED_SECRETS.search(texts["security"])
+    secrets_pin = secrets.group(0) if secrets else "the mirrored secrets image is not found"
+    broken("secret_detection from GitLab's registry again", "security", secrets_pin,
+           "  image: registry.gitlab.com/security-products/secrets:7@sha256:%s" % (secrets.group(2) if secrets else ""),
+           "secret_detection does not run GitLab's analyzer as the project's registry holds it")
+    broken("secret_detection's image named over two lines, which build/scan-secrets.py does not read", "security",
+           secrets_pin, secrets_pin.replace("  image: ", "  image:\n    name: ", 1),
+           "secret_detection does not run GitLab's analyzer as the project's registry holds it")
+    broken("the secrets mirror's tag naming another digest", "security", secrets_pin,
+           secrets_pin.replace("-%s@" % (secrets.group(1) if secrets else ""), "-000000000000@"),
+           "secret_detection's image tag ends in")
     broken("the analyzer's exit taken as the verdict", "security", "      if grep -Eq '\"vulnerabilities\" *: *\\[ *\\]' \"$report\"; then", "      if true; then",
            "secret_detection does not read its report")
     broken("the verifier trusting another file", "verifier", '//.gitlab-ci.yml@refs/tags/v"', '//.gitlab/ci.yml@refs/tags/v"', "GITLAB_IDENTITY_PREFIX")
