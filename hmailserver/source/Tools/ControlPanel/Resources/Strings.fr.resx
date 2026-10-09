@@ -3787,9 +3787,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Done" xml:space="preserve">
     <value>Terminé</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Desce_ndre</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Télécharger et vérifier l'installateur dès qu'une version est trouvée</value>
   </data>
@@ -6283,6 +6280,12 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Move _up" xml:space="preserve">
     <value>_Monter</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Descendre l'action</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Monter l'action</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Déplacer ou renommer {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Déplacer le fichier de message vers SpamAssassin au lieu de le copier</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Descendre l'action sélectionnée (Alt+Flèche bas)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Monter l'action sélectionnée (Alt+Flèche haut)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Décaler la fenêtre à un réessai qui arrive trop tôt</value>

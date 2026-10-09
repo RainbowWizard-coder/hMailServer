@@ -3820,9 +3820,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Done" xml:space="preserve">
     <value>Gotowe</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>_W dół</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Pobieraj i weryfikuj instalator, gdy tylko zostanie znalezione wydanie</value>
   </data>
@@ -6343,6 +6340,12 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Przesuń w _górę</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Przesuń akcję w dół</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Przesuń akcję w górę</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Przenieś lub zmień nazwę {0}</value>
   </data>
@@ -6351,6 +6354,12 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Przenieś plik wiadomości do SpamAssassin zamiast go kopiować</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Przesuń zaznaczoną akcję w dół (Alt+Strzałka w dół)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Przesuń zaznaczoną akcję w górę (Alt+Strzałka w górę)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Przesuwaj okno przy ponowieniu, które przychodzi zbyt wcześnie</value>

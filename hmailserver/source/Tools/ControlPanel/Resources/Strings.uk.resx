@@ -3820,9 +3820,6 @@
   <data name="Done" xml:space="preserve">
     <value>Готово</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>В_низ</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Завантажувати й перевіряти інсталятор, щойно знайдено випуск</value>
   </data>
@@ -6343,6 +6340,12 @@
   <data name="Move _up" xml:space="preserve">
     <value>_Перемістити вгору</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Перемістити дію вниз</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Перемістити дію вгору</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Перенести або перейменувати {0}</value>
   </data>
@@ -6351,6 +6354,12 @@
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Переміщати файл повідомлення до SpamAssassin замість копіювання</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Перемістити вибрану дію вниз (Alt+Стрілка вниз)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Перемістити вибрану дію вгору (Alt+Стрілка вгору)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Зсувати вікно за надто ранньої повторної спроби</value>

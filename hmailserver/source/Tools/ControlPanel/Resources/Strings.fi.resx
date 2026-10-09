@@ -3787,9 +3787,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Done" xml:space="preserve">
     <value>Valmis</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Alasp_äin</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Lataa ja varmenna asennusohjelma heti kun julkaisu löytyy</value>
   </data>
@@ -6283,6 +6280,12 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Siirrä _ylös</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Siirrä toimintoa alas</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Siirrä toimintoa ylös</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Siirrä tai nimeä uudelleen {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Siirrä viestitiedosto SpamAssassinille kopioimisen sijaan</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Siirrä valittua toimintoa alas (Alt+Nuoli alas)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Siirrä valittua toimintoa ylös (Alt+Nuoli ylös)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Siirrä ikkunaa, kun uudelleenyritys tulee liian aikaisin</value>

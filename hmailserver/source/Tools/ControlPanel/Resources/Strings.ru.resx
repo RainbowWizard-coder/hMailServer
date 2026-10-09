@@ -3820,9 +3820,6 @@ Control Panel может читать файлы сообщений только
   <data name="Done" xml:space="preserve">
     <value>Готово</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>В_низ</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Загружать и проверять установщик, как только найден выпуск</value>
   </data>
@@ -6343,6 +6340,12 @@ Control Panel может читать файлы сообщений только
   <data name="Move _up" xml:space="preserve">
     <value>Переместить в_верх</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Переместить действие вниз</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Переместить действие вверх</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Перенести или переименовать {0}</value>
   </data>
@@ -6351,6 +6354,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Перемещать файл сообщения в SpamAssassin вместо копирования</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Переместить выбранное действие вниз (Alt+Стрелка вниз)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Переместить выбранное действие вверх (Alt+Стрелка вверх)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Сдвигать окно при слишком ранней повторной попытке</value>

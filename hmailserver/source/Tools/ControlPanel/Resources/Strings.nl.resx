@@ -3787,9 +3787,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Done" xml:space="preserve">
     <value>Klaar</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Omlaa_g</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Het installatieprogramma downloaden en verifiëren zodra er een release is gevonden</value>
   </data>
@@ -6283,6 +6280,12 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Om_hoog verplaatsen</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Actie omlaag verplaatsen</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Actie omhoog verplaatsen</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>{0} verplaatsen of hernoemen</value>
   </data>
@@ -6291,6 +6294,12 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Het berichtbestand naar SpamAssassin verplaatsen in plaats van het te kopiëren</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Geselecteerde actie omlaag verplaatsen (Alt+Pijl-omlaag)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Geselecteerde actie omhoog verplaatsen (Alt+Pijl-omhoog)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Venster verschuiven bij een te vroege nieuwe poging</value>

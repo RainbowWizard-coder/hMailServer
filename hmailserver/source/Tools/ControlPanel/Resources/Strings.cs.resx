@@ -3820,9 +3820,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Done" xml:space="preserve">
     <value>Hotovo</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Dol_ů</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Stáhnout a ověřit instalační program, jakmile se najde vydání</value>
   </data>
@@ -6343,6 +6340,12 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Přesunout _nahoru</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Přesunout akci dolů</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Přesunout akci nahoru</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Přesunout nebo přejmenovat {0}</value>
   </data>
@@ -6351,6 +6354,12 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Přesunout soubor zprávy do SpamAssassinu místo jeho kopírování</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Přesunout vybranou akci dolů (Alt+šipka dolů)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Přesunout vybranou akci nahoru (Alt+šipka nahoru)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Posunout okno při pokusu, který přijde příliš brzy</value>

@@ -3787,9 +3787,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Done" xml:space="preserve">
     <value>Fatto</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>_Giù</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Scarica e verifica il programma di installazione non appena viene trovata una versione</value>
   </data>
@@ -6283,6 +6280,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Sposta in _alto</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Sposta l'azione in basso</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Sposta l'azione in alto</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Sposta o rinomina {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Spostare il file del messaggio verso SpamAssassin invece di copiarlo</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Sposta in basso l'azione selezionata (Alt+Freccia giù)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Sposta in alto l'azione selezionata (Alt+Freccia su)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Sposta la finestra a un nuovo tentativo arrivato troppo presto</value>

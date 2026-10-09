@@ -980,6 +980,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   address", which it now shows as "All addresses" (and the same for :: and an empty binding). Both are translated in
   all seventeen languages; `OverviewHonestyTests` holds them.
 
+- **Fixed: the rule card's Up button was English in every language, and Down wrapped onto a line of its own.** The
+  THEN list's Up and Down buttons were captioned words, and Up's was never translated (Japanese read "アクションを削除(M)
+  | Up | 下へ(N)"); at 1280 wide the card's five buttons did not fit, so Down sat alone below the rest. Up and Down are
+  arrow glyphs now, named "Move action up" and "Move action down" for a screen reader and explained in their tool
+  tips in all seventeen languages; Alt+Up and Alt+Down in the list move the selected action as well, and the moved
+  action stays selected so that a second press moves it again. `build/check-localisation.py` now sees a one-word
+  caption split by its access key, as "U_p" was, and its self-test holds it; `RulesActionOrderTests` holds the
+  buttons, the keys and the translations.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

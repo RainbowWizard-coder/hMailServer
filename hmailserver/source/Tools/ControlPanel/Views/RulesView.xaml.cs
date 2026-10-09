@@ -66,6 +66,27 @@ namespace hMailServer.ControlPanel.Views
          MatchMode.Items.Add(L("Match ANY criterion (OR)"));
          MatchMode.SelectedIndex = 0;
          suppressMatchMode_ = false;
+
+         // Alt+Up and Alt+Down move the selected action, as the glyph buttons
+         // under the list do, whose captions no longer carry an access key.
+         ActionsGrid.PreviewKeyDown += ActionsGrid_PreviewKeyDown;
+      }
+
+      private void ActionsGrid_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+      {
+         if (System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.Alt)
+            return;
+
+         System.Windows.Input.Key key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+         if (key != System.Windows.Input.Key.Up && key != System.Windows.Input.Key.Down)
+            return;
+
+         e.Handled = true;
+         if (ActionsGrid.SelectedItem is DetailRow)
+         {
+            MoveAction(key == System.Windows.Input.Key.Up);
+            ActionsGrid.Focus();
+         }
       }
 
       // The criteria and the actions side by side where each keeps 340 pixels -
@@ -583,6 +604,18 @@ namespace hMailServer.ControlPanel.Views
          }
 
          RefreshDetails();
+
+         // The moved action stays selected, so that the next Up or Down moves it
+         // again rather than finding nothing selected.
+         foreach (object item in ActionsGrid.Items)
+         {
+            if (item is DetailRow moved && moved.Id == row.Id)
+            {
+               ActionsGrid.SelectedItem = moved;
+               ActionsGrid.ScrollIntoView(moved);
+               break;
+            }
+         }
       }
    }
 }

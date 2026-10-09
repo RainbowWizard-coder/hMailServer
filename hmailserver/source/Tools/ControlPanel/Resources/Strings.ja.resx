@@ -3787,9 +3787,6 @@
   <data name="Done" xml:space="preserve">
     <value>完了</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>下へ(_N)</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>リリースが見つかったら直ちにインストーラーをダウンロードして検証する</value>
   </data>
@@ -6283,6 +6280,12 @@
   <data name="Move _up" xml:space="preserve">
     <value>上へ移動(_U)</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>アクションを下へ移動</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>アクションを上へ移動</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>{0} の移動または名前の変更</value>
   </data>
@@ -6291,6 +6294,12 @@
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>メッセージ ファイルをコピーする代わりに SpamAssassin に移動する</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>選択したアクションを下へ移動 (Alt+↓)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>選択したアクションを上へ移動 (Alt+↑)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>早すぎる再試行でウィンドウをずらす</value>

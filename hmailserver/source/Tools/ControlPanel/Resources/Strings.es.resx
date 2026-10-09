@@ -3787,9 +3787,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Done" xml:space="preserve">
     <value>Hecho</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Ba_jar</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Descargar y verificar el instalador en cuanto se encuentre una versión</value>
   </data>
@@ -6283,6 +6280,12 @@ No se elimina nada de lo que ya está.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Mover _arriba</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Bajar la acción</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Subir la acción</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Mover o renombrar {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Mover el archivo del mensaje a SpamAssassin en vez de copiarlo</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Bajar la acción seleccionada (Alt+Flecha abajo)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Subir la acción seleccionada (Alt+Flecha arriba)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Mover la ventana ante un reintento que llega demasiado pronto</value>

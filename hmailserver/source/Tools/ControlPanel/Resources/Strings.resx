@@ -3787,9 +3787,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Done" xml:space="preserve">
     <value>Done</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Dow_n</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Download and verify the installer as soon as a release is found</value>
   </data>
@@ -6283,6 +6280,12 @@ Nothing already there is removed.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Move _up</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Move action down</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Move action up</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Move or rename {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ Nothing already there is removed.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Move the message file to SpamAssassin instead of copying it</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Move the selected action down (Alt+Down)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Move the selected action up (Alt+Up)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Move the window on a retry that comes too soon</value>

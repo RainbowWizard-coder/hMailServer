@@ -603,6 +603,22 @@ NON_UI_CONTEXT = re.compile(r"(?:\bcase\s|==|!=|\bis\s|\[|\bTag\s*=|\bKey\s*=|\b
 NON_UI_ARGUMENT = re.compile(r"\b(?:aliases|seeAlso|icon):")
 
 
+# The access key's underscore in a caption, which splits a one-word caption so that
+# it no longer holds two letters together: "U_p", the THEN card's Up button, was
+# never translated because the scan did not see a word in it (review finding F178).
+# Only a one-word caption is read this way, its underscore first or between a letter
+# and a small one ("_Save", "U_p", "Dow_n", "Re_fresh..."): PART_Search, MAX_SIZE and
+# max_age are names, and a caption of several words is seen by its space already.
+ONE_WORD_WITH_MNEMONIC = re.compile(r"_?[A-Za-z]+(?:_[a-z][A-Za-z]*)?(?:\.\.\.|\u2026)?")
+
+
+def without_mnemonic(text):
+   """A one-word caption as it reads on screen, its access-key underscore removed; any other text as it is."""
+   if text.count("_") != 1 or not ONE_WORD_WITH_MNEMONIC.fullmatch(text):
+      return text
+   return text.replace("_", "", 1)
+
+
 def cs_untranslated(src):
    """(line, literal) for every literal that reads as a caption and carries no marker.
 
@@ -622,7 +638,7 @@ def cs_untranslated(src):
          continue
       raw = m.group(1)
       interpolated = m.group(0).startswith("$")
-      text = unescape_cs(re.sub(r"\{[^}]*\}", "", raw) if interpolated else raw)
+      text = without_mnemonic(unescape_cs(re.sub(r"\{[^}]*\}", "", raw) if interpolated else raw))
       if not re.search(r"[A-Za-z]{2,}", text) or text.strip() in EXEMPT:
          continue
       sentence_word = SENTENCE_WORD.fullmatch(text.strip()) is not None
@@ -667,7 +683,7 @@ def xaml_untranslated(src):
    lines = src.split("\n")
    for m in XAML_CAPTION_ATTR.finditer(src):
       value = html.unescape(m.group(1))
-      if value.startswith("{") or not is_caption(value):
+      if value.startswith("{") or not is_caption(without_mnemonic(value)):
          continue
       line = src.count("\n", 0, m.start()) + 1
       if "<!-- no-loc -->" in lines[line - 1]:
@@ -835,11 +851,26 @@ def self_test():
       'int position = diagnostic.IndexOf("data ", StringComparison.Ordinal);': False,
       'string id = "case " + Id + ":"; // no-loc': False,
       'title_.Text = "Help";': True,
+      'var up = new Button { Content = "U_p" };': True,
+      'var up = new Button { Content = L("U_p") };': False,
+      'string key = "MAX_SIZE";': False,
+      'string key = "Log_File";': False,
    }
    for line, expected in captions.items():
       found = bool(cs_untranslated(line + "\n"))
       if found != expected:
          print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as an untranslated caption")
+         failures += 1
+
+   xaml = {
+      '<ui:Button x:Name="ActionUpButton" Content="U_p" />': True,
+      '<ui:Button Content="{loc:L \'U_p\'}" />': False,
+      '<TextBlock Text="example.com" />': False,
+   }
+   for line, expected in xaml.items():
+      found = bool(xaml_untranslated(line + "\n"))
+      if found != expected:
+         print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as an untranslated XAML caption")
          failures += 1
 
    edges = {

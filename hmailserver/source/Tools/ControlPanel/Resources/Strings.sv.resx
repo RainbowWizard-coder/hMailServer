@@ -3787,9 +3787,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Done" xml:space="preserve">
     <value>Klart</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>N_er</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Hämta och verifiera installationsprogrammet så snart en utgåva hittas</value>
   </data>
@@ -6283,6 +6280,12 @@ Inget som redan finns där tas bort.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Flytta _upp</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Flytta åtgärden nedåt</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Flytta åtgärden uppåt</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Flytta eller byt namn på {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Flytta meddelandefilen till SpamAssassin i stället för att kopiera den</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Flytta den markerade åtgärden nedåt (Alt+Nedpil)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Flytta den markerade åtgärden uppåt (Alt+Uppil)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Flytta fönstret vid ett omförsök som kommer för tidigt</value>

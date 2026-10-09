@@ -3787,9 +3787,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Done" xml:space="preserve">
     <value>Ferdig</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>Ne_d</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Last ned og verifiser installasjonsprogrammet så snart en utgivelse blir funnet</value>
   </data>
@@ -6283,6 +6280,12 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Move _up" xml:space="preserve">
     <value>Flytt _opp</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Flytt handlingen ned</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Flytt handlingen opp</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>Flytt eller gi nytt navn til {0}</value>
   </data>
@@ -6291,6 +6294,12 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>Flytt meldingsfilen til SpamAssassin i stedet for å kopiere den</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Flytt den valgte handlingen ned (Alt+Pil ned)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Flytt den valgte handlingen opp (Alt+Pil opp)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Flytt vinduet ved et nytt forsøk som kommer for tidlig</value>

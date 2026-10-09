@@ -3787,9 +3787,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Done" xml:space="preserve">
     <value>Bitti</value>
   </data>
-  <data name="Dow_n" xml:space="preserve">
-    <value>A_şağı</value>
-  </data>
   <data name="Download and verify the installer as soon as a release is found" xml:space="preserve">
     <value>Bir sürüm bulunur bulunmaz kurulum programını indir ve doğrula</value>
   </data>
@@ -6283,6 +6280,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Move _up" xml:space="preserve">
     <value>_Yukarı taşı</value>
   </data>
+  <data name="Move action down" xml:space="preserve">
+    <value>Eylemi aşağı taşı</value>
+  </data>
+  <data name="Move action up" xml:space="preserve">
+    <value>Eylemi yukarı taşı</value>
+  </data>
   <data name="Move or rename {0}" xml:space="preserve">
     <value>{0} posta kutusunu taşı veya yeniden adlandır</value>
   </data>
@@ -6291,6 +6294,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Move the message file to SpamAssassin instead of copying it" xml:space="preserve">
     <value>İleti dosyasını SpamAssassin'e kopyalamak yerine taşı</value>
+  </data>
+  <data name="Move the selected action down (Alt+Down)" xml:space="preserve">
+    <value>Seçili eylemi aşağı taşı (Alt+Aşağı Ok)</value>
+  </data>
+  <data name="Move the selected action up (Alt+Up)" xml:space="preserve">
+    <value>Seçili eylemi yukarı taşı (Alt+Yukarı Ok)</value>
   </data>
   <data name="Move the window on a retry that comes too soon" xml:space="preserve">
     <value>Çok erken gelen bir yeniden denemede pencereyi kaydır</value>
