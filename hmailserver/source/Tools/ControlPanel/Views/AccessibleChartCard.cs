@@ -860,9 +860,11 @@ namespace hMailServer.ControlPanel.Views
          viewButton_.ToolTip = tableVisible_
             ? F("Show {0} as a chart", title)
             : F("Show every {0} sample as a table of numbers", title);
+         // The caption, then the chart: "Show table of delivery throughput", so
+         // that the name starts with the words on the button (Label in Name).
          AutomationProperties.SetName(viewButton_, tableVisible_
-            ? F("Show {0} as a chart", title)
-            : F("Show {0} as a data table", title));
+            ? F("Show chart of {0}", title)
+            : F("Show table of {0}", title));
          AutomationProperties.SetAutomationId(viewButton_, definition_.Id + ".view");
       }
 

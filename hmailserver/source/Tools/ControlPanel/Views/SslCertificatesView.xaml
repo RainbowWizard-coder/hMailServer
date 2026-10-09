@@ -40,7 +40,7 @@
                           SearchTextChanged="Search_TextChanged">
             <scaffold:Toolbar.Actions>
                 <ui:Button x:Name="DeleteButton" Content="{loc:L '_Delete selected'}" Style="{StaticResource DangerTextButton}" Click="Delete_Click"
-                           AutomationProperties.Name="{loc:L 'Delete the selected certificate'}" />
+                           AutomationProperties.HelpText="{loc:L 'Delete the selected certificate'}" ToolTip="{loc:L 'Delete the selected certificate'}" />
             </scaffold:Toolbar.Actions>
         </scaffold:Toolbar>
 
@@ -109,9 +109,9 @@
             <scaffold:Card.Footer>
                 <StackPanel Orientation="Horizontal">
                     <ui:Button x:Name="SavePassphraseButton" Content="{loc:L 'Save _passphrase'}" Appearance="Primary" Click="SavePassphrase_Click" Margin="0,0,8,0"
-                               AutomationProperties.Name="{loc:L 'Save the private key passphrase for the selected certificate'}" />
+                               AutomationProperties.HelpText="{loc:L 'Save the private key passphrase for the selected certificate'}" ToolTip="{loc:L 'Save the private key passphrase for the selected certificate'}" />
                     <ui:Button Content="{loc:L '_Remove stored passphrase'}" Click="ClearPassphrase_Click"
-                               AutomationProperties.Name="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" />
+                               AutomationProperties.HelpText="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" ToolTip="{loc:L 'Remove the stored private key passphrase from the selected certificate'}" />
                 </StackPanel>
             </scaffold:Card.Footer>
         </scaffold:Card>

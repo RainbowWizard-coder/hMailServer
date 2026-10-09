@@ -2695,6 +2695,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Copy host" xml:space="preserve">
     <value>Kopioi kone</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Kopioi kone ({0}-tietue)</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Kopioi HELO-konenimi</value>
   </data>
@@ -2703,12 +2706,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Kopioi {0}-tiedot leikepöydälle</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Kopioi {0}-tietueen konenimi</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Kopioi {0}-tietueen arvo</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Kopioi tämä avain nyt</value>
@@ -2721,6 +2718,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Kopioi arvo</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Kopioi arvo ({0}-tietue)</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer on omistajiensa tavaramerkki; tämä on itsenäinen, yhteisön ylläpitämä haara.</value>
@@ -3398,9 +3398,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Palvelimella säilytettävät päivät (0 = älä koskaan poista, -1 = poista latauksen jälkeen)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Päivät merkinnän vanhenemiseen</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>Poista sää_ntö</value>
@@ -10288,6 +10285,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Näytä kaavio</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Näytä kaavio: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Näytä kunkin verkkotunnuksen hakemisto sen väelle</value>
   </data>
@@ -10309,6 +10309,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Show table" xml:space="preserve">
     <value>Näytä taulukko</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Näytä taulukko: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Näytetäänkö Control Panel kielellä {0}? Se käynnistyy uudelleen kielen vaihtamiseksi.</value>
   </data>
@@ -10326,9 +10329,6 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Näytä {0} kaaviona</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Näytä {0} tietotaulukkona</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Näytä {0} navigoinnissa</value>
@@ -13182,9 +13182,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Mistä hakemistomerkinnöistä tulee postilaatikoita</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Mikä verkkotunnus synkronoidaan</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Mikä lista? Jokaista erillistä lähettäjää tai verkkotunnusta kohden kirjoitetaan yksi merkintä, ja sen jälkeen jokainen viesti käsitellään. Viesti, jolle ei voida tehdä merkintää, jätetään paikalleen.</value>
   </data>
@@ -13247,9 +13244,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Miksi (valinnainen)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Miksi se on listalla</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Laajenna esto naapureihin</value>

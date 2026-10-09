@@ -69,7 +69,7 @@ namespace hMailServer.ControlPanel.Views
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
 
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
-         System.Windows.Automation.AutomationProperties.SetName(refresh, L("Re-read the anti-virus configuration from the server"));
+         ControlHelp.Explain(refresh, L("Re-read the anti-virus configuration from the server"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "virus-overview-refresh");
          refresh.Click += (s, e) => Reload();
 
@@ -603,7 +603,7 @@ namespace hMailServer.ControlPanel.Views
             ToolTip = accessibleName,
             HorizontalAlignment = HorizontalAlignment.Left
          };
-         System.Windows.Automation.AutomationProperties.SetName(button, accessibleName);
+         ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "virus-overview-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
          return button;

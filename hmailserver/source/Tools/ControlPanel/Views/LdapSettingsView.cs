@@ -262,13 +262,13 @@ namespace hMailServer.ControlPanel.Views
          var buttons = new StackPanel { Orientation = Orientation.Horizontal };
 
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
-         System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read the LDAP settings from hMailServer.INI"));
+         ControlHelp.Explain(reload, L("Re-read the LDAP settings from hMailServer.INI"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "ldap-reload");
          reload.Click += (s, e) => Reload_();
          buttons.Children.Add(reload);
 
          saveButton_ = new Wpf.Ui.Controls.Button { Content = L("_Save changes"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
-         System.Windows.Automation.AutomationProperties.SetName(saveButton_, L("Save the LDAP settings to hMailServer.INI"));
+         ControlHelp.Explain(saveButton_, L("Save the LDAP settings to hMailServer.INI"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(saveButton_, "ldap-save");
          saveButton_.Click += (s, e) => Save_();
          buttons.Children.Add(saveButton_);
@@ -594,7 +594,7 @@ namespace hMailServer.ControlPanel.Views
          });
 
          testButton_ = new Wpf.Ui.Controls.Button { Content = L("_Test connection") };
-         System.Windows.Automation.AutomationProperties.SetName(testButton_, L("Test the directory connection with the values on this page"));
+         ControlHelp.Explain(testButton_, L("Test the directory connection with the values on this page"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(testButton_, "ldap-test-button");
          testButton_.Click += async (s, e) => await RunTest_();
          content.Children.Add(testButton_);
@@ -622,7 +622,7 @@ namespace hMailServer.ControlPanel.Views
             Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
-         System.Windows.Automation.AutomationProperties.SetName(button, accessibleName);
+         ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "ldap-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
          return button;

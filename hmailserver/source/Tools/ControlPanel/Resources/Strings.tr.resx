@@ -2695,6 +2695,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Copy host" xml:space="preserve">
     <value>Ana bilgisayarı kopyala</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Ana bilgisayarı kopyala ({0} kaydı)</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>HELO ana bilgisayar adını kopyala</value>
   </data>
@@ -2703,12 +2706,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>{0} verilerini panoya kopyala</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>{0} kaydının ana bilgisayar adını kopyala</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>{0} kaydının değerini kopyala</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Bu anahtarı şimdi kopyalayın</value>
@@ -2721,6 +2718,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Değeri kopyala</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Değeri kopyala ({0} kaydı)</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Telif Hakkı © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer ilgili sahiplerinin ticari markasıdır; bu, topluluk tarafından sürdürülen bağımsız bir çataldır.</value>
@@ -3398,9 +3398,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Sunucuda tutulacak gün (0 = asla silme, -1 = indirdikten sonra sil)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Kaydın süresinin dolmasına kalan gün</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>Kura_lı sil</value>
@@ -10288,6 +10285,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Show chart" xml:space="preserve">
     <value>Grafiği göster</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Grafiği göster: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Her etki alanının rehberini kendi kişilerine göster</value>
   </data>
@@ -10309,6 +10309,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Show table" xml:space="preserve">
     <value>Tabloyu göster</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Tabloyu göster: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Denetim Masası {0} dilinde gösterilsin mi? Dili değiştirmek için yeniden başlar.</value>
   </data>
@@ -10326,9 +10329,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} öğesini grafik olarak göster</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>{0} öğesini veri tablosu olarak göster</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>{0} öğesini gezintide göster</value>
@@ -13182,9 +13182,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Hangi dizin girdilerinin posta kutusu olacağı</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Hangi etki alanının eşitleneceği</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Hangi liste? Her ayrı gönderen veya alan adı için bir kayıt yazılır, ardından her iletide işlem uygulanır. Kaydı oluşturulamayan bir ileti olduğu yerde bırakılır.</value>
   </data>
@@ -13247,9 +13244,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Neden (isteğe bağlı)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Neden listede</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Bir yasağı komşularına genişlet</value>

@@ -2695,6 +2695,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Copy host" xml:space="preserve">
     <value>Kopier vert</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Kopier vert for {0}-oppføringen</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Kopier HELO-vertsnavnet</value>
   </data>
@@ -2703,12 +2706,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Kopier {0}-dataene til utklippstavlen</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Kopier {0}-oppføringens vertsnavn</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Kopier {0}-oppføringens verdi</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Kopier denne nøkkelen nå</value>
@@ -2721,6 +2718,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Kopier verdi</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Kopier verdi for {0}-oppføringen</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer er et varemerke som tilhører de respektive eierne; dette er en uavhengig fork vedlikeholdt av fellesskapet.</value>
@@ -3398,9 +3398,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Dager som skal beholdes på serveren (0 = slett aldri, -1 = slett etter nedlasting)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Dager til oppføringen utløper</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>S_lett regel</value>
@@ -10288,6 +10285,9 @@ Starte den på nytt nå?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Vis diagram</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Vis diagram: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Vis hvert domenes katalog for folkene i domenet</value>
   </data>
@@ -10309,6 +10309,9 @@ Starte den på nytt nå?</value>
   <data name="Show table" xml:space="preserve">
     <value>Vis tabell</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Vis tabell: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Vise Control Panel på {0}? Det starter på nytt for å bytte språk.</value>
   </data>
@@ -10326,9 +10329,6 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Vis {0} som et diagram</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Vis {0} som en datatabell</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Vis {0} i navigasjonen</value>
@@ -13182,9 +13182,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Hvilke katalogoppføringer som blir postbokser</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Hvilket domene som skal synkroniseres</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Hvilken liste? Det skrives én oppføring for hver enkelt avsender eller domene, og deretter behandles hver melding. En melding det ikke kan lages en oppføring for, blir liggende der den er.</value>
   </data>
@@ -13247,9 +13244,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Hvorfor (valgfritt)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Hvorfor den er listet</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Utvid en utestenging til naboene</value>

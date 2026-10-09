@@ -121,7 +121,7 @@ namespace hMailServer.ControlPanel.Views
          row.Children.Add(enable);
 
          var disable = debugOff_ = new Wpf.Ui.Controls.Button { Content = L("Turn it _off again"), Margin = new Thickness(0, 4, 8, 0) };
-         AutomationProperties.SetName(disable, L("Turn debug logging off again"));
+         ControlHelp.Explain(disable, L("Turn debug logging off again"));
          disable.Click += (s, e) => SetDebugLogging(false);
          row.Children.Add(disable);
 
@@ -220,7 +220,7 @@ namespace hMailServer.ControlPanel.Views
          var content = (StackPanel)card.Content;
 
          var open = new Wpf.Ui.Controls.Button { Content = L("Open the full _guide (DiagnosingStalledMail.md)"), Margin = new Thickness(0, 6, 8, 0) };
-         AutomationProperties.SetName(open, L("Open the full guide in a web browser"));
+         ControlHelp.Explain(open, L("Open the full guide in a web browser"));
          open.Click += (s, e) => OpenGuide();
          content.Children.Add(open);
          return card;

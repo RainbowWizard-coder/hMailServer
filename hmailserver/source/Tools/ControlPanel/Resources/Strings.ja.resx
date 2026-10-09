@@ -2695,6 +2695,9 @@
   <data name="Copy host" xml:space="preserve">
     <value>ホストをコピー</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>ホストをコピー ({0} レコード)</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>HELO ホスト名をコピー</value>
   </data>
@@ -2703,12 +2706,6 @@
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>{0} のデータをクリップボードにコピー</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>{0} レコードのホスト名をコピー</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>{0} レコードの値をコピー</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>このキーを今すぐコピー</value>
@@ -2721,6 +2718,9 @@
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>値をコピー</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>値をコピー ({0} レコード)</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer はそれぞれの所有者の商標です。これは独立した、コミュニティによって保守されているフォークです。</value>
@@ -3398,9 +3398,6 @@
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>サーバーに残す日数 (0 = 削除しない、-1 = ダウンロード後に削除)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>エントリーが期限切れになるまでの日数</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>ルールを削除(_L)</value>
@@ -10288,6 +10285,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Show chart" xml:space="preserve">
     <value>グラフを表示</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>グラフを表示 ({0})</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>各ドメインのディレクトリをその利用者に表示する</value>
   </data>
@@ -10309,6 +10309,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Show table" xml:space="preserve">
     <value>表を表示</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>表を表示 ({0})</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>コントロールパネルを {0} で表示しますか? 言語を変更するために再起動します。</value>
   </data>
@@ -10326,9 +10329,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} をグラフとして表示</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>{0} をデータ表として表示</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>ナビゲーションに {0} を表示する</value>
@@ -13182,9 +13182,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>どのディレクトリ エントリがメールボックスになるか</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>同期するドメイン</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>どちらの一覧ですか? 異なる送信者またはドメインごとに 1 件のエントリが書き込まれ、それから各メッセージが処理されます。エントリを作成できないメッセージは、そのままにされます。</value>
   </data>
@@ -13247,9 +13244,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>理由 (任意)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>リストに載っている理由</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>BAN を近隣に広げる</value>

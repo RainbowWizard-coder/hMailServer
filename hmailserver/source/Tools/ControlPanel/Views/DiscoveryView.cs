@@ -371,7 +371,7 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh"), MinWidth = 110 };
-         AutomationProperties.SetName(refresh, L("Read the cases again"));
+         ControlHelp.Explain(refresh, L("Read the cases again"));
          refresh.Click += (_, _) => Reload_();
 
          root.Children.Add(new PageHeader

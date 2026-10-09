@@ -2713,6 +2713,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Copy host" xml:space="preserve">
     <value>Kopiuj host</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Kopiuj host rekordu {0}</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Skopiuj nazwę hosta z HELO</value>
   </data>
@@ -2721,12 +2724,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Skopiuj dane {0} do schowka</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Skopiuj nazwę hosta rekordu {0}</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Skopiuj wartość rekordu {0}</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Skopiuj ten klucz teraz</value>
@@ -2739,6 +2736,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Kopiuj wartość</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Kopiuj wartość rekordu {0}</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer jest znakiem towarowym swoich właścicieli; to jest niezależny fork utrzymywany przez społeczność.</value>
@@ -3416,9 +3416,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Liczba dni przechowywania na serwerze (0 = nigdy nie usuwaj, -1 = usuń po pobraniu)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Liczba dni do wygaśnięcia wpisu</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>_Usuń regułę</value>
@@ -10401,6 +10398,9 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Pokaż wykres</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Pokaż wykres: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Pokazuj każdej domenie jej katalog</value>
   </data>
@@ -10422,6 +10422,9 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Show table" xml:space="preserve">
     <value>Pokaż tabelę</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Pokaż tabelę: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Wyświetlić aplikację Control Panel w języku {0}? Zmiana języka wymaga ponownego uruchomienia.</value>
   </data>
@@ -10439,9 +10442,6 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Pokaż {0} jako wykres</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Pokaż {0} jako tabelę danych</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Pokaż {0} w nawigacji</value>
@@ -13337,9 +13337,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Które wpisy katalogu stają się skrzynkami pocztowymi</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Którą domenę synchronizować</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Która lista? Dla każdego odrębnego nadawcy lub domeny zapisywany jest jeden wpis, a następnie na każdej wiadomości wykonywana jest akcja. Wiadomość, dla której nie można zapisać wpisu, pozostaje tam, gdzie jest.</value>
   </data>
@@ -13402,9 +13399,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Dlaczego (opcjonalnie)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Dlaczego jest na liście</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Rozszerz blokadę na sąsiadów</value>

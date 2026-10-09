@@ -2695,6 +2695,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Copy host" xml:space="preserve">
     <value>Copier l'hôte</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Copier l'hôte de l'enregistrement {0}</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Copier le nom d'hôte HELO</value>
   </data>
@@ -2703,12 +2706,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Copier les données de {0} dans le presse-papiers</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Copier le nom d'hôte de l'enregistrement {0}</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Copier la valeur de l'enregistrement {0}</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Copiez cette clé maintenant</value>
@@ -2721,6 +2718,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Copier la valeur</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Copier la valeur de l'enregistrement {0}</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer est une marque de ses propriétaires respectifs ; ceci est un fork indépendant, maintenu par la communauté.</value>
@@ -3398,9 +3398,6 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Jours à conserver sur le serveur (0 = ne jamais supprimer, -1 = supprimer après téléchargement)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Jours avant l'expiration de l'entrée</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>Supprimer la règ_le</value>
@@ -10288,6 +10285,9 @@ Le redémarrer maintenant ?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Afficher le graphique</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Afficher le graphique de {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Montrer à chaque domaine son annuaire</value>
   </data>
@@ -10309,6 +10309,9 @@ Le redémarrer maintenant ?</value>
   <data name="Show table" xml:space="preserve">
     <value>Afficher le tableau</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Afficher le tableau de {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Afficher le Control Panel en {0} ? Il redémarre pour changer de langue.</value>
   </data>
@@ -10326,9 +10329,6 @@ Le redémarrer maintenant ?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Afficher {0} sous forme de graphique</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Afficher {0} sous forme de tableau de données</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Afficher {0} dans la navigation</value>
@@ -13182,9 +13182,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Quelles entrées d'annuaire deviennent des boîtes</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Quel domaine synchroniser</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Quelle liste ? Une entrée est écrite pour chaque expéditeur ou domaine distinct, puis on agit sur chaque message. Un message pour lequel aucune entrée ne peut être créée reste où il est.</value>
   </data>
@@ -13247,9 +13244,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Pourquoi (facultatif)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Pourquoi elle est listée</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Étendre un bannissement à ses voisins</value>

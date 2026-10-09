@@ -649,7 +649,7 @@ namespace hMailServer.ControlPanel.Views
             MinWidth = 110,
             IsEnabled = false
          };
-         AutomationProperties.SetName(membersButton_, L("Edit the members of the selected group"));
+         ControlHelp.Explain(membersButton_, L("Edit the members of the selected group"));
          membersButton_.Click += (_, _) => OpenMembers();
          membersRow.Children.Add(membersButton_);
 

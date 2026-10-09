@@ -394,7 +394,6 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(action, L("Action"));
 
          var note = new Wpf.Ui.Controls.TextBox();
-         AutomationProperties.SetName(note, L("Why it is listed"));
 
          var body = new StackPanel();
          var patternRow = DialogFields.Field(L("_Domain or suffix"), pattern, L("example.com is that domain alone; .example.com is the domain and everything beneath it."));

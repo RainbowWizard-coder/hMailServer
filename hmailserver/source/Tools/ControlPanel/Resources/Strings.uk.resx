@@ -2713,6 +2713,9 @@
   <data name="Copy host" xml:space="preserve">
     <value>Копіювати вузол</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Копіювати вузол запису {0}</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Скопіювати ім’я вузла з HELO</value>
   </data>
@@ -2721,12 +2724,6 @@
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Скопіювати дані {0} до буфера обміну</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Скопіювати ім’я вузла запису {0}</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Скопіювати значення запису {0}</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Скопіюйте цей ключ зараз</value>
@@ -2739,6 +2736,9 @@
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Копіювати значення</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Копіювати значення запису {0}</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Авторське право © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer — торговельна марка відповідних власників; це незалежне відгалуження, яке підтримує спільнота.</value>
@@ -3416,9 +3416,6 @@
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Скільки днів зберігати на сервері (0 = ніколи не видаляти, -1 = видаляти після завантаження)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Днів до спливання запису</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>В_идалити правило</value>
@@ -10401,6 +10398,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Show chart" xml:space="preserve">
     <value>Показати діаграму</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Показати діаграму: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Показувати людям кожного домену його каталог</value>
   </data>
@@ -10422,6 +10422,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Show table" xml:space="preserve">
     <value>Показати таблицю</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Показати таблицю: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Показати Панель керування мовою {0}? Для зміни мови вона перезапуститься.</value>
   </data>
@@ -10439,9 +10442,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Показати {0} у вигляді діаграми</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Показати {0} у вигляді таблиці даних</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Показувати {0} у навігації</value>
@@ -13337,9 +13337,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Які записи каталогу стають поштовими скриньками</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Який домен синхронізувати</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Який список? Для кожного окремого відправника або домену записується один запис, а потім на кожному повідомленні виконується дія. Повідомлення, для якого запис створити не можна, залишається там, де є.</value>
   </data>
@@ -13402,9 +13399,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Чому (необов'язково)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Чому вона у списку</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Розширювати бан на сусідів</value>

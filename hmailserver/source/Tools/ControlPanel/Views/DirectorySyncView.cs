@@ -322,7 +322,6 @@ namespace hMailServer.ControlPanel.Views
          domainChoice_.MinWidth = 320;
          domainChoice_.MaxWidth = 620;
          domainChoice_.HorizontalAlignment = HorizontalAlignment.Left;
-         System.Windows.Automation.AutomationProperties.SetName(domainChoice_, L("Which domain to synchronise"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainChoice_, "dirsync-domain");
          domainChoice_.SelectionChanged += (s, e) => InvalidatePreview_();
          content.Children.Add(new FieldRow
@@ -360,14 +359,14 @@ namespace hMailServer.ControlPanel.Views
             Margin = new Thickness(0, 0, 8, 0),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary
          };
-         System.Windows.Automation.AutomationProperties.SetName(previewButton_,
+         ControlHelp.Explain(previewButton_,
             L("Show what a synchronisation would do, changing nothing"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(previewButton_, "dirsync-preview");
          previewButton_.Click += async (s, e) => await RunAsync_(false);
          buttons.Children.Add(previewButton_);
 
          applyButton_ = new Wpf.Ui.Controls.Button { Content = L("_Apply"), IsEnabled = false };
-         System.Windows.Automation.AutomationProperties.SetName(applyButton_,
+         ControlHelp.Explain(applyButton_,
             L("Create and update the accounts the preview listed"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(applyButton_, "dirsync-apply");
          applyButton_.Click += async (s, e) => await ApplyAsync_();
@@ -412,7 +411,7 @@ namespace hMailServer.ControlPanel.Views
          var buttons = new StackPanel { Orientation = Orientation.Horizontal };
 
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
-         System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read these settings from hMailServer.INI"));
+         ControlHelp.Explain(reload, L("Re-read these settings from hMailServer.INI"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "dirsync-reload");
          reload.Click += (s, e) => Reload_();
          buttons.Children.Add(reload);
@@ -422,7 +421,7 @@ namespace hMailServer.ControlPanel.Views
             Content = L("_Save changes"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary
          };
-         System.Windows.Automation.AutomationProperties.SetName(saveButton_, L("Save these settings to hMailServer.INI"));
+         ControlHelp.Explain(saveButton_, L("Save these settings to hMailServer.INI"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(saveButton_, "dirsync-save");
          saveButton_.Click += (s, e) => Save_();
          buttons.Children.Add(saveButton_);

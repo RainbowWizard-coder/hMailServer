@@ -40,6 +40,8 @@
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\AccessibleNames.cs" />
     <Compile Include="..\ControlPanel\Services\MnemonicText.cs" />
+    <!-- A control's name starts with its caption: the rule LabelInNameTests holds, and the names of links. -->
+    <Compile Include="..\ControlPanel\Services\LabelInName.cs" />
     <Compile Include="..\ControlPanel\Services\SettingClaims.cs" />
     <Compile Include="..\ControlPanel\Services\ChartPalette.cs" />
     <Compile Include="..\ControlPanel\Services\StatusPalette.cs" />

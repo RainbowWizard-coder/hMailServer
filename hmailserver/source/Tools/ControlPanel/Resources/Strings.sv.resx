@@ -2695,6 +2695,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Copy host" xml:space="preserve">
     <value>Kopiera värd</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Kopiera värd för {0}-posten</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Kopiera HELO-värdnamnet</value>
   </data>
@@ -2703,12 +2706,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Kopiera {0}-data till urklipp</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Kopiera {0}-postens värdnamn</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Kopiera {0}-postens värde</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Kopiera den här nyckeln nu</value>
@@ -2721,6 +2718,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Kopiera värde</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Kopiera värde för {0}-posten</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer är ett varumärke som tillhör sina respektive ägare; detta är en oberoende, gemenskapsunderhållen förgrening.</value>
@@ -3398,9 +3398,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Dagar att behålla på servern (0 = ta aldrig bort, -1 = ta bort efter hämtning)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Dagar tills posten upphör</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>_Ta bort regel</value>
@@ -10288,6 +10285,9 @@ Starta om den nu?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Visa diagram</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Visa diagram: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Visa varje domäns katalog för dess folk</value>
   </data>
@@ -10309,6 +10309,9 @@ Starta om den nu?</value>
   <data name="Show table" xml:space="preserve">
     <value>Visa tabell</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Visa tabell: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Visa Kontrollpanelen på {0}? Den startar om för att byta språk.</value>
   </data>
@@ -10326,9 +10329,6 @@ Starta om den nu?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Visa {0} som ett diagram</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Visa {0} som en datatabell</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Visa {0} i navigeringen</value>
@@ -13182,9 +13182,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Vilka katalogposter som blir brevlådor</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Vilken domän som ska synkroniseras</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Vilken lista? En post skrivs för varje unik avsändare eller domän, och sedan hanteras varje meddelande. Ett meddelande som ingen post kan skapas för lämnas kvar där det är.</value>
   </data>
@@ -13247,9 +13244,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Varför (valfritt)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Varför den är listad</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Vidga en spärr till dess grannar</value>

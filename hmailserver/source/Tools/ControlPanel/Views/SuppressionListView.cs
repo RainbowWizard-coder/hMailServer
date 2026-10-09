@@ -576,9 +576,7 @@ namespace hMailServer.ControlPanel.Views
          var address = new Wpf.Ui.Controls.TextBox();
          AutomationProperties.SetName(address, L("Address to stop sending to"));
          var note = new Wpf.Ui.Controls.TextBox();
-         AutomationProperties.SetName(note, L("Why it is listed"));
          var expires = new Wpf.Ui.Controls.NumberBox { Minimum = 0, Maximum = 3650, Value = 0, SmallChange = 1, LargeChange = 10, MaxDecimalPlaces = 0 };
-         AutomationProperties.SetName(expires, L("Days until the entry expires"));
 
          var body = new StackPanel();
          var addressRow = DialogFields.Field(L("A_ddress"), address, L("An address this server hosts is refused: the list only applies to mail leaving the server."));

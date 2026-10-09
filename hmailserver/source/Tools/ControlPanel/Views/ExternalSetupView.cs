@@ -99,7 +99,7 @@ namespace hMailServer.ControlPanel.Views
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
 
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
-         System.Windows.Automation.AutomationProperties.SetName(refresh, L("Re-check the external prerequisites"));
+         ControlHelp.Explain(refresh, L("Re-check the external prerequisites"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "external-setup-refresh");
          refresh.Click += (s, e) => Reload();
 
@@ -362,7 +362,7 @@ namespace hMailServer.ControlPanel.Views
             Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
-         System.Windows.Automation.AutomationProperties.SetName(button, accessibleName);
+         ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "external-setup-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
          return button;

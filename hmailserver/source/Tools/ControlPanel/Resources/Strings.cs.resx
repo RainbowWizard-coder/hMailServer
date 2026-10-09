@@ -2713,6 +2713,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Copy host" xml:space="preserve">
     <value>Kopírovat hostitele</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Kopírovat hostitele záznamu {0}</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Zkopírovat název hostitele z HELO</value>
   </data>
@@ -2721,12 +2724,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Zkopírovat data {0} do schránky</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Zkopírovat název hostitele záznamu {0}</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Zkopírovat hodnotu záznamu {0}</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Zkopírujte si tento klíč nyní</value>
@@ -2739,6 +2736,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Kopírovat hodnotu</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Kopírovat hodnotu záznamu {0}</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer je ochranná známka příslušných vlastníků; toto je nezávislý fork udržovaný komunitou.</value>
@@ -3416,9 +3416,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Počet dní k ponechání na serveru (0 = nikdy nemazat, -1 = smazat po stažení)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Počet dní do vypršení záznamu</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>Smazat pravid_lo</value>
@@ -10401,6 +10398,9 @@ Restartovat ji nyní?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Zobrazit graf</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Zobrazit graf: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Zobrazit adresář každé domény jejím lidem</value>
   </data>
@@ -10422,6 +10422,9 @@ Restartovat ji nyní?</value>
   <data name="Show table" xml:space="preserve">
     <value>Zobrazit tabulku</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Zobrazit tabulku: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Zobrazit Control Panel v jazyce {0}? Kvůli změně jazyka se restartuje.</value>
   </data>
@@ -10439,9 +10442,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Zobrazit {0} jako graf</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Zobrazit {0} jako tabulku dat</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Zobrazit {0} v navigaci</value>
@@ -13337,9 +13337,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Které položky adresáře se stanou schránkami</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Kterou doménu synchronizovat</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Který seznam? Pro každého odlišného odesílatele nebo doménu se zapíše jeden záznam a poté se na každé zprávě provede akce. Zpráva, pro kterou nelze záznam vytvořit, zůstane tam, kde je.</value>
   </data>
@@ -13402,9 +13399,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Proč (nepovinné)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Proč je na seznamu</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Rozšířit zákaz na sousedy</value>

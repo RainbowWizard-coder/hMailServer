@@ -372,7 +372,7 @@
                             </scaffold:FieldRow>
                             <ui:Button x:Name="AddListButton" Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
                                        VerticalAlignment="Bottom" Margin="0"
-                                       AutomationProperties.Name="{loc:L 'Add distribution list'}" />
+                                       AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
                         </Grid>
                         <!-- The floor: three rows of 34 pixels, the list's own pixel
                              above and below them, and one for layout rounding. -->

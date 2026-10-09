@@ -127,7 +127,7 @@ namespace hMailServer.ControlPanel.Views
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
 
          var refresh = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
-         System.Windows.Automation.AutomationProperties.SetName(refresh, L("Re-read the domains and server configuration"));
+         ControlHelp.Explain(refresh, L("Re-read the domains and server configuration"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "dns-records-refresh");
          refresh.Click += (s, e) => Reload();
 
@@ -607,7 +607,7 @@ namespace hMailServer.ControlPanel.Views
             selectorRow.Children.Add(selectorBox);
 
             var generate = new Wpf.Ui.Controls.Button { Content = L("_Generate key pair…"), Margin = new Thickness(8, 0, 0, 0) };
-            System.Windows.Automation.AutomationProperties.SetName(generate, F("Generate a DKIM key pair for {0}", domain.Name));
+            ControlHelp.Explain(generate, F("Generate a DKIM key pair for {0}", domain.Name));
             System.Windows.Automation.AutomationProperties.SetAutomationId(generate, "dns-records-dkim-generate");
             generate.Click += (s, e) => GenerateDkim(domain.Name, selectorBox.Text.Trim());
             selectorRow.Children.Add(generate);
@@ -1034,7 +1034,7 @@ namespace hMailServer.ControlPanel.Views
 
          // ---- fetch what is actually served ----
          var fetchButton = new Wpf.Ui.Controls.Button { Content = L("Check _policy (HTTPS)"), Margin = new Thickness(0, 4, 0, 0) };
-         System.Windows.Automation.AutomationProperties.SetName(fetchButton,
+         ControlHelp.Explain(fetchButton,
             F("Fetch the MTA-STS policy for {0} over HTTPS and show what is served", domain.Name));
          System.Windows.Automation.AutomationProperties.SetAutomationId(fetchButton, "dns-records-mtasts-fetch");
          content.Children.Add(fetchButton);
@@ -1469,7 +1469,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(heloBox);
 
          var copy = new Wpf.Ui.Controls.Button { Content = L("Copy _host name"), Margin = new Thickness(0, 0, 0, 6) };
-         System.Windows.Automation.AutomationProperties.SetName(copy, L("Copy the HELO host name"));
+         ControlHelp.Explain(copy, L("Copy the HELO host name"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(copy, "dns-records-ptr-copy");
          bool copyable = serverHostNameKnown_ && serverHostName_.Length > 0;
          copy.IsEnabled = copyable;
@@ -1559,13 +1559,13 @@ namespace hMailServer.ControlPanel.Views
          var copyRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
 
          var copyHost = new Wpf.Ui.Controls.Button { Content = L("Copy host") };   // per record: no access key, the rows are reached with the arrow keys
-         System.Windows.Automation.AutomationProperties.SetName(copyHost, F("Copy the {0} record host name", recordName));
+         System.Windows.Automation.AutomationProperties.SetName(copyHost, F("Copy host of the {0} record", recordName));
          System.Windows.Automation.AutomationProperties.SetAutomationId(copyHost, idPrefix + "-copy-host");
          copyHost.Click += (s, e) => CopyToClipboard(block.HostBox.Text);
          copyRow.Children.Add(copyHost);
 
          block.CopyValue = new Wpf.Ui.Controls.Button { Content = L("Copy value"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = valueCopyable };   // per record: no access key, the rows are reached with the arrow keys
-         System.Windows.Automation.AutomationProperties.SetName(block.CopyValue, F("Copy the {0} record value", recordName));
+         System.Windows.Automation.AutomationProperties.SetName(block.CopyValue, F("Copy value of the {0} record", recordName));
          System.Windows.Automation.AutomationProperties.SetAutomationId(block.CopyValue, idPrefix + "-copy-value");
          if (!valueCopyable)
          {
@@ -1831,7 +1831,7 @@ namespace hMailServer.ControlPanel.Views
             Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
-         System.Windows.Automation.AutomationProperties.SetName(button, accessibleName);
+         ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "dns-records-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
          return button;

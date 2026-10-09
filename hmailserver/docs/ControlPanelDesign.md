@@ -154,6 +154,7 @@ A list page's list answers the **keyboard** through `Views/GridKeys`: Enter and 
 - **Brushes by DynamicResource or by key**, never by a held instance, for the reason under *Colour*.
 - **Colour, shape and word** for every status, and the word first in the accessible name.
 - **Every element keeps its automation name.** A `PageHeader` names the page, a `Card` its group, a `FieldRow` its editor; the ids the shell and the pages carry (`nav-<key>`, `breadcrumb-*`, `dashboard-*`) are what `build/capture-cp.ps1` and any automation hold on to and do not change.
+- **A control's name starts with its caption** (WCAG 2.5.3, Label in Name), so that what a screen reader says is what is on screen and voice control can press it by the words on it. A sentence that explains a button is its help text and tool tip (`Views/ControlHelp.Explain`), never its name; a link whose caption says less than where it goes ("Settings…" beside each of ten checks) is named by the caption and then the destination (`ControlHelp.NameLink`, `Services/LabelInName`); a row's button carries its row after its caption ("Copy host of the MX record"). `LabelInNameTests` reads every page and dialog for a name that does not start with its caption.
 - **One page, one `ScrollViewer`, padded with `AppPagePadding`.**
 - **A tour is never the only way to do anything, and never blocks the product while it runs.** See *Tours* below.
 

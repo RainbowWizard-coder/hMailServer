@@ -80,13 +80,13 @@ namespace hMailServer.ControlPanel.Views
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Margin = new Thickness(0, 0, 8, 0)
          };
-         System.Windows.Automation.AutomationProperties.SetName(create, L("Create a new REST API key"));
+         ControlHelp.Explain(create, L("Create a new REST API key"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(create, "apikeys-create");
          create.Click += (s, e) => CreateKey_();
          actions.Children.Add(create);
 
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Refresh") };
-         System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read the key store from disk"));
+         ControlHelp.Explain(reload, L("Re-read the key store from disk"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(reload, "apikeys-reload");
          reload.Click += (s, e) => Reload_();
          actions.Children.Add(reload);
@@ -182,7 +182,7 @@ namespace hMailServer.ControlPanel.Views
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
             Margin = new Thickness(0, 0, 8, 0)
          };
-         System.Windows.Automation.AutomationProperties.SetName(copy, L("Copy the new API key to the clipboard"));
+         ControlHelp.Explain(copy, L("Copy the new API key to the clipboard"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(copy, "apikeys-copy");
          copy.Click += (s, e) =>
          {
@@ -198,7 +198,7 @@ namespace hMailServer.ControlPanel.Views
          buttons.Children.Add(copy);
 
          var done = new Wpf.Ui.Controls.Button { Content = L("_I have copied it") };
-         System.Windows.Automation.AutomationProperties.SetName(done, L("Hide the new API key"));
+         ControlHelp.Explain(done, L("Hide the new API key"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(done, "apikeys-dismiss");
          done.Click += (s, e) => HideNewKey_();
          buttons.Children.Add(done);
@@ -260,7 +260,7 @@ namespace hMailServer.ControlPanel.Views
             Cursor = System.Windows.Input.Cursors.Hand,
             ToolTip = accessibleName
          };
-         System.Windows.Automation.AutomationProperties.SetName(button, accessibleName);
+         ControlHelp.NameLink(button, caption, accessibleName);
          System.Windows.Automation.AutomationProperties.SetAutomationId(button, "apikeys-open-" + page);
          button.Click += (s, e) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
          return button;

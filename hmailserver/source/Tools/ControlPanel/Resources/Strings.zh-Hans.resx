@@ -2695,6 +2695,9 @@
   <data name="Copy host" xml:space="preserve">
     <value>复制主机</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>复制主机（{0} 记录）</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>复制 HELO 主机名</value>
   </data>
@@ -2703,12 +2706,6 @@
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>把 {0} 数据复制到剪贴板</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>复制 {0} 记录的主机名</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>复制 {0} 记录的值</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>请立即复制此密钥</value>
@@ -2721,6 +2718,9 @@
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>复制值</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>复制值（{0} 记录）</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer 是其各自所有者的商标；本软件是一个独立的、由社区维护的分支版本。</value>
@@ -3398,9 +3398,6 @@
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>在服务器上保留的天数（0 = 从不删除，-1 = 下载后删除）</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>条目过期前的天数</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>删除规则(_L)</value>
@@ -10288,6 +10285,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Show chart" xml:space="preserve">
     <value>显示图表</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>显示图表（{0}）</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>向每个域的用户显示该域的通讯录</value>
   </data>
@@ -10309,6 +10309,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Show table" xml:space="preserve">
     <value>显示表格</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>显示表格（{0}）</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>以 {0} 显示控制面板? 它会重启以更改语言。</value>
   </data>
@@ -10326,9 +10329,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>将 {0} 显示为图表</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>将 {0} 显示为数据表</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>在导航中显示 {0}</value>
@@ -13182,9 +13182,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>哪些目录条目会成为邮箱</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>要同步哪个域</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>写入哪份名单？系统会为每个不同的发件人或域写入一条条目，然后再对每封邮件执行操作。无法为其写入条目的邮件将保留原状。</value>
   </data>
@@ -13247,9 +13244,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>原因（可选）</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>列入原因</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>将封禁扩展到相邻地址</value>

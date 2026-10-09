@@ -262,7 +262,6 @@ namespace hMailServer.ControlPanel.Views
             AutomationProperties.SetName(pattern, L("Name or suffix"));
 
             var note = new Wpf.Ui.Controls.TextBox();
-            AutomationProperties.SetName(note, L("Why it is listed"));
 
             var body = new StackPanel();
             var patternRow = DialogFields.Field(L("_Name or suffix"), pattern,

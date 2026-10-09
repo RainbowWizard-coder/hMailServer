@@ -255,7 +255,7 @@ namespace hMailServer.ControlPanel.Views
             Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm)
          };
          AutomationProperties.SetAutomationId(moveButton, "AccountMove");
-         AutomationProperties.SetName(moveButton, L("Move this mailbox to another domain, or rename it and keep the old address"));
+         ControlHelp.Explain(moveButton, L("Move this mailbox to another domain, or rename it and keep the old address"));
          moveButton.Click += (s, e) => MoveMailbox();
          panel.Children.Add(moveButton);
 

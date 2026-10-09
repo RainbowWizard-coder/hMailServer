@@ -2695,6 +2695,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Copy host" xml:space="preserve">
     <value>Copy host</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Copy host of the {0} record</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Copy the HELO host name</value>
   </data>
@@ -2703,12 +2706,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Copy the {0} data to the clipboard</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Copy the {0} record host name</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Copy the {0} record value</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Copy this key now</value>
@@ -2721,6 +2718,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Copy value</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Copy value of the {0} record</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork.</value>
@@ -3398,9 +3398,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Days to keep on server (0 = never delete, -1 = delete after download)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Days until the entry expires</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>De_lete rule</value>
@@ -10288,6 +10285,9 @@ Restart it now?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Show chart</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Show chart of {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Show each domain's directory to its people</value>
   </data>
@@ -10309,6 +10309,9 @@ Restart it now?</value>
   <data name="Show table" xml:space="preserve">
     <value>Show table</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Show table of {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Show the Control Panel in {0}? It restarts to change language.</value>
   </data>
@@ -10326,9 +10329,6 @@ Restart it now?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Show {0} as a chart</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Show {0} as a data table</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Show {0} in the navigation</value>
@@ -13182,9 +13182,6 @@ It will keep trying as you use the application.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Which directory entries become mailboxes</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Which domain to synchronise</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is.</value>
   </data>
@@ -13247,9 +13244,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Why (optional)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Why it is listed</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Widen a ban to its neighbours</value>

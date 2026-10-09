@@ -55,7 +55,7 @@
                                    Appearance="Transparent" FontSize="12" Padding="8,3,8,3"
                                    VerticalAlignment="Top" Cursor="Hand" Click="OpenExternalSetup_Click"
                                    ToolTip="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
-                                   AutomationProperties.Name="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
+                                   AutomationProperties.HelpText="{loc:L 'Open the setup checklist: every item, what is done and what to do next'}"
                                    AutomationProperties.AutomationId="dashboard-open-external-setup" />
                     </Grid>
                     <StackPanel x:Name="AttentionItems" Margin="0,4,0,0" />

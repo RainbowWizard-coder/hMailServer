@@ -1412,6 +1412,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   leaving defaults such as a port's 25. The palette's Keyboard shortcuts list names the keys. `GridKeysTests` holds
   the helpers, every page's wiring, the quarantine's keys and the tool tips.
 
+- **Fixed: a screen reader said other words than the Control Panel's buttons showed, and voice control could not
+  press them by name.** Some thirty buttons and boxes had their accessible name replaced by a sentence that explained
+  them: Refresh was "Re-check the external prerequisites" on the setup checklist and "Re-read the domains and server
+  configuration" on DNS records, Preview and Apply on Directory synchronisation were "Show what a synchronisation
+  would do, changing nothing" and "Create and update the accounts the preview listed", Reload, Save changes and Test
+  connection on Directory authentication were sentences about hMailServer.INI, Members… on the groups page was "Edit
+  the members of the selected group", Delete selected, Save passphrase and Remove stored passphrase on SSL certificates
+  were sentences, and the Note box of the never-ban, domain policy and suppression dialogs was "Why it is listed" -
+  so what was heard was not what was seen, and somebody who said "click Refresh" or "click Preview" reached nothing
+  (WCAG 2.5.3, Label in Name). Each is named by its caption now, and the sentence is its help text, which a screen
+  reader says after the name, and its tool tip (`Views/ControlHelp`). The links whose captions say less than where
+  they go - ten "Settings…" and six "Open…" on the spam filtering overview, "Versions and ciphers…" on the transport
+  encryption overview - are named by the caption and then the destination, "Settings: Open Blocked senders, which owns
+  the Blocked senders settings", so that they are told apart and each starts with the words on it; the DNS records'
+  per-record buttons are "Copy host of the MX record" and "Copy value of the MX record", and the dashboard charts'
+  "Show table of delivery throughput". `LabelInNameTests` reads every page and dialog for a captioned control whose
+  name does not start with its caption, so the defect cannot return unseen.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

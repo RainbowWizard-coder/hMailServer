@@ -82,7 +82,7 @@ namespace hMailServer.ControlPanel.Views
             Margin = new Thickness(0, 0, DesignTokens.Space.Sm, 0),
             MinWidth = 110
          };
-         AutomationProperties.SetName(add, L("Add an account to this group"));
+         ControlHelp.Explain(add, L("Add an account to this group"));
          AutomationProperties.SetAutomationId(add, "group-members-add");
          add.Click += (s, e) => AddMember();
          actions.Children.Add(add);

@@ -2695,6 +2695,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Copy host" xml:space="preserve">
     <value>Host kopiëren</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Host kopiëren ({0}-record)</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>De HELO-hostnaam kopiëren</value>
   </data>
@@ -2703,12 +2706,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>De gegevens van {0} naar het klembord kopiëren</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>De hostnaam van het {0}-record kopiëren</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>De waarde van het {0}-record kopiëren</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Kopieer deze sleutel nu</value>
@@ -2721,6 +2718,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Waarde kopiëren</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Waarde kopiëren ({0}-record)</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is een handelsmerk van de respectievelijke eigenaren; dit is een onafhankelijke, door de gemeenschap onderhouden fork.</value>
@@ -3398,9 +3398,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Dagen bewaren op de server (0 = nooit verwijderen, -1 = verwijderen na het downloaden)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Dagen tot de vermelding verloopt</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>_Regel verwijderen</value>
@@ -10288,6 +10285,9 @@ Nu opnieuw starten?</value>
   <data name="Show chart" xml:space="preserve">
     <value>Grafiek tonen</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Grafiek tonen: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Elk domein zijn adresboek laten zien aan zijn mensen</value>
   </data>
@@ -10309,6 +10309,9 @@ Nu opnieuw starten?</value>
   <data name="Show table" xml:space="preserve">
     <value>Tabel tonen</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Tabel tonen: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Het Control Panel in het {0} tonen? Het herstart om van taal te wisselen.</value>
   </data>
@@ -10326,9 +10329,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>{0} als grafiek tonen</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>{0} als gegevenstabel tonen</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>{0} in de navigatie tonen</value>
@@ -13182,9 +13182,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Welke directoryvermeldingen postvakken worden</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Welk domein moet worden gesynchroniseerd</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Welke lijst? Voor elke afzonderlijke afzender of elk afzonderlijk domein wordt één vermelding geschreven, en daarna wordt op elk bericht gehandeld. Een bericht waarvoor geen vermelding kan worden gemaakt, blijft waar het is.</value>
   </data>
@@ -13247,9 +13244,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Waarom (optioneel)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Waarom het op de lijst staat</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Een ban uitbreiden naar de buren</value>

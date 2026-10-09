@@ -2713,6 +2713,9 @@ Control Panel может читать файлы сообщений только
   <data name="Copy host" xml:space="preserve">
     <value>Копировать узел</value>
   </data>
+  <data name="Copy host of the {0} record" xml:space="preserve">
+    <value>Копировать узел записи {0}</value>
+  </data>
   <data name="Copy the HELO host name" xml:space="preserve">
     <value>Копировать имя узла из HELO</value>
   </data>
@@ -2721,12 +2724,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Copy the {0} data to the clipboard" xml:space="preserve">
     <value>Копировать данные {0} в буфер обмена</value>
-  </data>
-  <data name="Copy the {0} record host name" xml:space="preserve">
-    <value>Копировать имя узла записи {0}</value>
-  </data>
-  <data name="Copy the {0} record value" xml:space="preserve">
-    <value>Копировать значение записи {0}</value>
   </data>
   <data name="Copy this key now" xml:space="preserve">
     <value>Скопируйте этот ключ сейчас</value>
@@ -2739,6 +2736,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Copy value" xml:space="preserve">
     <value>Копировать значение</value>
+  </data>
+  <data name="Copy value of the {0} record" xml:space="preserve">
+    <value>Копировать значение записи {0}</value>
   </data>
   <data name="Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer is a trademark of its respective owners; this is an independent, community-maintained fork." xml:space="preserve">
     <value>Copyright © 2026 Christopher Holloway / Progressive Robot Ltd. hMailServer является товарным знаком соответствующих владельцев; это независимое ответвление, поддерживаемое сообществом.</value>
@@ -3416,9 +3416,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Days to keep on server (0 = never delete, -1 = delete after download)" xml:space="preserve">
     <value>Сколько дней хранить на сервере (0 — никогда не удалять, -1 — удалять после загрузки)</value>
-  </data>
-  <data name="Days until the entry expires" xml:space="preserve">
-    <value>Дней до истечения записи</value>
   </data>
   <data name="De_lete rule" xml:space="preserve">
     <value>_Удалить правило</value>
@@ -10401,6 +10398,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Show chart" xml:space="preserve">
     <value>Показать график</value>
   </data>
+  <data name="Show chart of {0}" xml:space="preserve">
+    <value>Показать график: {0}</value>
+  </data>
   <data name="Show each domain's directory to its people" xml:space="preserve">
     <value>Показывать людям каждого домена его каталог</value>
   </data>
@@ -10422,6 +10422,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Show table" xml:space="preserve">
     <value>Показать таблицу</value>
   </data>
+  <data name="Show table of {0}" xml:space="preserve">
+    <value>Показать таблицу: {0}</value>
+  </data>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Показывать Control Panel на языке {0}? Для смены языка он перезапустится.</value>
   </data>
@@ -10439,9 +10442,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Show {0} as a chart" xml:space="preserve">
     <value>Показать {0} в виде графика</value>
-  </data>
-  <data name="Show {0} as a data table" xml:space="preserve">
-    <value>Показать {0} в виде таблицы данных</value>
   </data>
   <data name="Show {0} in the navigation" xml:space="preserve">
     <value>Показывать {0} в навигации</value>
@@ -13337,9 +13337,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Which directory entries become mailboxes" xml:space="preserve">
     <value>Какие записи каталога становятся почтовыми ящиками</value>
   </data>
-  <data name="Which domain to synchronise" xml:space="preserve">
-    <value>Какой домен синхронизировать</value>
-  </data>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Какой список? Для каждого отдельного отправителя или домена записывается одна запись, а затем на каждом сообщении выполняется действие. Сообщение, для которого запись создать нельзя, остаётся там, где есть.</value>
   </data>
@@ -13402,9 +13399,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Why (optional)" xml:space="preserve">
     <value>Почему (необязательно)</value>
-  </data>
-  <data name="Why it is listed" xml:space="preserve">
-    <value>Почему он в списке</value>
   </data>
   <data name="Widen a ban to its neighbours" xml:space="preserve">
     <value>Расширять бан на соседей</value>
