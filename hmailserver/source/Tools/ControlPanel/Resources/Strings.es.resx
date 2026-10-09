@@ -15259,6 +15259,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} dirección en la lista.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Se añadió {0}.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} direcciones en la lista; se muestran las {1} más recientes. Busque para acotarlas.</value>
   </data>
@@ -15348,6 +15351,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>hace {0} días</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Se eliminó {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} no respondió en el puerto {1}, que Windows necesita para alcanzar la API COM de hMailServer de forma remota. Compruebe que la máquina está encendida, que su cortafuegos permite DCOM y que se está conectando al nombre correcto.</value>
@@ -15678,6 +15684,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} ajustes guardados esperan un reinicio del servicio.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Se guardó {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} puntúa {1} por sí solo, lo que alcanza el {2} en el que el servidor deja de comprobar - así que {3} no se ejecutarán para un mensaje que no la supere, y no aparecerán en el registro.</value>

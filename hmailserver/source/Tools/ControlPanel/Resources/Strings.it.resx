@@ -15259,6 +15259,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} indirizzo in lista.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Aggiunto: {0}.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} indirizzi in lista, mostrati i {1} più recenti. Cerca per restringerli.</value>
   </data>
@@ -15348,6 +15351,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} giorni fa</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Eliminato: {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} non ha risposto sulla porta {1}, di cui Windows ha bisogno per raggiungere da remoto l'API COM di hMailServer. Verifica che la macchina sia accesa, che il suo firewall consenta DCOM e che ti stia connettendo al nome giusto.</value>
@@ -15678,6 +15684,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} impostazioni salvate attendono un riavvio del servizio.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Salvato: {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} da solo assegna {1}, il che raggiunge {2}, il valore al quale il server smette di verificare - quindi {3} non verrà eseguito per un messaggio che lo fallisce, e non comparirà nel registro.</value>

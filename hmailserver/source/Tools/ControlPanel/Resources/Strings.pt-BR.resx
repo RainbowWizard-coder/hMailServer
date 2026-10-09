@@ -15259,6 +15259,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} endereço listado.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Adicionado: {0}.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} endereços listados; mostrando os {1} mais recentes. Pesquise para restringir.</value>
   </data>
@@ -15348,6 +15351,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} dias atrás</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Excluído: {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} não respondeu na porta {1}, de que o Windows precisa para alcançar a API COM do hMailServer remotamente. Verifique se a máquina está ligada, se o firewall dela permite DCOM e se você está se conectando ao nome certo.</value>
@@ -15678,6 +15684,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} configurações salvas aguardam um reinício do serviço.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Salvo: {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} pontua {1} sozinho, o que já atinge {2}, valor a partir do qual o servidor para de testar - então {3} não roda para uma mensagem que ele reprove, e não aparece no log.</value>

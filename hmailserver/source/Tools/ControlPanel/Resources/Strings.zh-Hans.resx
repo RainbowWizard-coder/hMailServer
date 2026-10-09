@@ -15259,6 +15259,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} address listed." xml:space="preserve">
     <value>列表中有 {0} 个地址。</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>已添加 {0}。</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>列表中有 {0} 个地址，显示最近的 {1} 个。可通过搜索缩小范围。</value>
   </data>
@@ -15348,6 +15351,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} 天前</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>已删除 {0}。</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} 没有在端口 {1} 上应答，而 Windows 需要该端口才能远程访问 hMailServer COM API。请检查该计算机是否已开机、它的防火墙是否允许 DCOM，以及您连接的名称是否正确。</value>
@@ -15678,6 +15684,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>已保存的设置中有 {0} 项等待服务重启。</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>已保存 {0}。</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} 单独就得 {1} 分，达到了服务器停止继续检测的{2}，因此对于它判定失败的邮件，{3} 不会运行，也不会出现在日志中。</value>

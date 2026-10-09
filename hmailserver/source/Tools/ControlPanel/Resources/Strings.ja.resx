@@ -15259,6 +15259,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあります。</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} を追加しました。</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあり、新しい {1} 件を表示しています。検索して絞り込んでください。</value>
   </data>
@@ -15348,6 +15351,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} 日前</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} を削除しました。</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} がポート {1} で応答しませんでした。Windows が hMailServer COM API にリモートで到達するには、このポートが必要です。コンピューターの電源が入っていること、ファイアウォールが DCOM を許可していること、そして正しい名前に接続していることを確認してください。</value>
@@ -15678,6 +15684,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>保存した設定のうち {0} 件がサービスの再起動を待っています。</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} を保存しました。</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} は単独で {1} のスコアを付け、これはサーバーがテストを打ち切る {2} に達します。そのため、これに失敗したメッセージについて {3} は実行されず、ログにも現れません。</value>

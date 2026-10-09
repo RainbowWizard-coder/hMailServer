@@ -15453,6 +15453,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Nalezeny {0} účty.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Přidáno: {0}.</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Na seznamu je {0} adresa, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
   </data>
@@ -15578,6 +15581,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} days ago|few" xml:space="preserve">
     <value>před {0} dny</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Smazáno: {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} neodpověděl na portu {1}, který Windows potřebují, aby vzdáleně dosáhly na hMailServer COM API. Zkontrolujte, že je počítač zapnutý, že jeho firewall povoluje DCOM a že se připojujete ke správnému názvu.</value>
@@ -16004,6 +16010,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} saved settings wait for a service restart.|few" xml:space="preserve">
     <value>{0} uložená nastavení čekají na restart služby.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Uloženo: {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} má samo o sobě skóre {1}, které dosahuje {2}, při níž server přestává testovat – takže {3} u zprávy, která jím neprojde, nepoběží a v logu se neobjeví.</value>

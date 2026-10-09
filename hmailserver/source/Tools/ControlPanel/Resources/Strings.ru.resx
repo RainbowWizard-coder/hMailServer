@@ -15453,6 +15453,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Найдено учётных записей: {0}.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Добавлено: {0}.</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адресов в списке: {0}, показаны {1} последних. Воспользуйтесь поиском, чтобы сузить список.</value>
   </data>
@@ -15578,6 +15581,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} days ago|few" xml:space="preserve">
     <value>{0} дн. назад</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Удалено: {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} не ответил на порту {1}, а он нужен Windows, чтобы обратиться к COM API hMailServer удалённо. Проверьте, что компьютер включён, что его межсетевой экран разрешает DCOM и что вы подключаетесь к правильному имени.</value>
@@ -16004,6 +16010,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} saved settings wait for a service restart.|few" xml:space="preserve">
     <value>{0} сохранённых параметра ждут перезапуска службы.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Сохранено: {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} сам по себе даёт оценку {1} — это уже {2}, при котором сервер прекращает проверки, поэтому {3} не будет выполняться для сообщения, не прошедшего эту проверку, и не появится в журнале.</value>

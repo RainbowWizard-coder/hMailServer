@@ -15259,6 +15259,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} adresse på listen.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} er tilføjet.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresser på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
   </data>
@@ -15348,6 +15351,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>for {0} dage siden</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} er slettet.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} svarede ikke på port {1}, som Windows skal bruge for at nå hMailServers COM-API eksternt. Kontrollér, at maskinen er tændt, at dens firewall tillader DCOM, og at du forbinder til det rigtige navn.</value>
@@ -15678,6 +15684,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} gemte indstillinger venter på en genstart af tjenesten.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} er gemt.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scorer {1} alene, hvilket når den {2}, hvor serveren holder op med at teste - så {3} kører ikke for en meddelelse, der fejler den, og vises ikke i loggen.</value>

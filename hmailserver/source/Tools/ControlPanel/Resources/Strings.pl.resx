@@ -15453,6 +15453,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Znaleziono {0} konta.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Dodano: {0}.</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Adresów na liście: {0}, pokazano {1} najnowszych. Wyszukaj, aby zawęzić.</value>
   </data>
@@ -15578,6 +15581,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} days ago|few" xml:space="preserve">
     <value>{0} dni temu</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Usunięto: {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} nie odpowiedział na porcie {1}, którego Windows potrzebuje, aby zdalnie dosięgnąć COM API hMailServer. Należy sprawdzić, czy komputer jest włączony, czy jego zapora przepuszcza DCOM i czy połączenie jest nawiązywane z właściwą nazwą.</value>
@@ -16004,6 +16010,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} saved settings wait for a service restart.|few" xml:space="preserve">
     <value>{0} zapisane ustawienia czekają na ponowne uruchomienie usługi.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Zapisano: {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} sam w sobie daje punktację {1}, co osiąga {2} - wartość, przy której serwer przerywa dalsze kontrole - więc {3} nie zostanie uruchomione dla wiadomości, która go nie przejdzie, i nie pojawi się w dzienniku.</value>

@@ -15259,6 +15259,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} Adresse gelistet.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} hinzugefügt.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} Adressen gelistet, die {1} neuesten werden angezeigt. Suchen Sie, um sie einzugrenzen.</value>
   </data>
@@ -15348,6 +15351,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>vor {0} Tagen</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} gelöscht.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} hat auf Port {1} nicht geantwortet, den Windows braucht, um die COM-API von hMailServer aus der Ferne zu erreichen. Prüfen Sie, ob der Rechner eingeschaltet ist, ob seine Firewall DCOM erlaubt und ob Sie sich mit dem richtigen Namen verbinden.</value>
@@ -15678,6 +15684,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} gespeicherte Einstellungen warten auf einen Neustart des Dienstes.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} gespeichert.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} bewertet für sich allein mit {1} und erreicht damit die {2}, bei der der Server das Prüfen einstellt - {3} läuft also für eine Nachricht, die daran scheitert, nicht und erscheint nicht im Protokoll.</value>

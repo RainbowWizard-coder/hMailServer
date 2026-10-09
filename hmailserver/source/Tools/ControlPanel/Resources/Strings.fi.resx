@@ -15259,6 +15259,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} osoite listalla.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} lisätty.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} osoitetta listalla, {1} uusinta näytetään. Rajaa hakemalla.</value>
   </data>
@@ -15348,6 +15351,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} päivää sitten</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} poistettu.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} ei vastannut portissa {1}, jota Windows tarvitsee hMailServerin COM-rajapinnan tavoittamiseen etänä. Tarkista, että kone on päällä, että sen palomuuri sallii DCOM:n ja että yhdistät oikeaan nimeen.</value>
@@ -15678,6 +15684,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} tallennettua asetusta odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} tallennettu.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} antaa yksin {1} pistettä, mikä saavuttaa {2}, jossa palvelin lopettaa testaamisen - joten {3} ei ajeta viestille, jossa se epäonnistuu, eikä se näy lokissa.</value>

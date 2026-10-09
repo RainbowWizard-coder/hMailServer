@@ -15259,6 +15259,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>Listede {0} adres var.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} eklendi.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Listede {0} adres var, en yeni {1} tanesi gösteriliyor. Daraltmak için arayın.</value>
   </data>
@@ -15348,6 +15351,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} gün önce</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} silindi.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0}, Windows'un hMailServer COM API'sine uzaktan ulaşmak için gereksinim duyduğu {1} portunda yanıt vermedi. Makinenin açık olduğunu, güvenlik duvarının DCOM'a izin verdiğini ve doğru ada bağlandığınızı denetleyin.</value>
@@ -15678,6 +15684,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>Kaydedilen {0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} kaydedildi.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} tek başına {1} puan veriyor; bu, sunucunun sınamayı durdurduğu {2} değerine ulaşıyor - bu yüzden {3}, onda başarısız olan bir ileti için çalışmayacak ve günlükte görünmeyecek.</value>

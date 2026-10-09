@@ -118,6 +118,9 @@
     <!-- What a screen reader says for a list's row: its cells, a bare value with
          its column's name. Held by RowSpeechTests. -->
     <Compile Include="..\ControlPanel\Services\RowSpeech.cs" />
+    <!-- What a list page says after an Add, an Edit or a Delete, naming the
+         entry, and which row it keeps in view (review finding F208). -->
+    <Compile Include="..\ControlPanel\Services\ListOutcome.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

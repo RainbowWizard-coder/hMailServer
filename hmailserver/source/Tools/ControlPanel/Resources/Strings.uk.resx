@@ -15453,6 +15453,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Знайдено {0} облікові записи.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Додано: {0}.</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
   </data>
@@ -15578,6 +15581,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} days ago|few" xml:space="preserve">
     <value>{0} дн. тому</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Видалено: {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} не відповів на порту {1}, який потрібен Windows для віддаленого доступу до COM API hMailServer. Перевірте, що комп’ютер увімкнено, що його брандмауер дозволяє DCOM і що ви підключаєтеся до правильного імені.</value>
@@ -16004,6 +16010,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} saved settings wait for a service restart.|few" xml:space="preserve">
     <value>{0} збережені параметри чекають на перезапуск служби.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Збережено: {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} сама по собі дає {1}, що досягає {2}, на якому сервер припиняє перевірку, — тому {3} не виконуватиметься для повідомлення, яке її не проходить, і не з’явиться в журналі.</value>

@@ -491,7 +491,23 @@ namespace hMailServer.ControlPanel.Views
 
       // ---- Data --------------------------------------------------------------
 
+      /// <summary>
+      /// Reads the list again and keeps the selected entry selected: Refresh, Try
+      /// again and a visit to the page do not lose the list's place.
+      /// </summary>
       private void Reload()
+         => Load_(grid_.SelectedItem is Row selected ? selected.Id : 0, -1, focus: false);
+
+      /// <summary>
+      /// Reads the list, then selects the entry with <paramref name="selectId"/>
+      /// (or, where none is given or it is gone, the row at
+      /// <paramref name="selectIndex"/>, or the last row where the list has
+      /// become shorter than that), scrolls it into view and, with
+      /// <paramref name="focus"/>, puts the keyboard on it - the entry an Add or an
+      /// Edit acted on, or the row that took a deleted one's place (review finding
+      /// F208). A list rebuilt without it lost its selection and jumped to the top.
+      /// </summary>
+      private void Load_(int selectId, int selectIndex, bool focus)
       {
          rows_.Clear();
          dynamic collection = null;
@@ -549,6 +565,17 @@ namespace hMailServer.ControlPanel.Views
          countBadge_.Text = activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count) : rows_.Count == 1
             ? L(spec_.CountOne)
             : F(spec_.CountMany, rows_.Count);
+
+         Row keep = selectId > 0 ? rows_.FirstOrDefault(r => r.Id == selectId) : null;
+         if (keep == null)
+         {
+            int at = ListOutcome.IndexAfterDelete(rows_.Count, selectIndex);
+            if (at >= 0)
+               keep = rows_[at];
+         }
+
+         if (keep != null)
+            Select_(keep, focus);
       }
 
       /// <summary>
@@ -605,13 +632,42 @@ namespace hMailServer.ControlPanel.Views
          return f.Kind == FieldKind.Multiline ? string.Join(" ", words.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)) : words;
       }
 
-      /// <summary>What the last action said, at its level.</summary>
+      /// <summary>Selects the row, brings it into view and, with <paramref name="focus"/>, gives it the keyboard.</summary>
+      private void Select_(Row row, bool focus)
+      {
+         grid_.SelectedItem = row;
+         grid_.ScrollIntoView(row);
+         if (!focus || grid_.Columns.Count == 0)
+            return;
+
+         // The keyboard on the row's first cell, so that the arrow keys, Enter
+         // and Delete go on from the entry just acted on.
+         grid_.CurrentCell = new DataGridCellInfo(row, grid_.Columns[0]);
+         grid_.UpdateLayout();
+         if (grid_.ItemContainerGenerator.ContainerFromItem(row) is DataGridRow container)
+            container.Focus();
+         else
+            grid_.Focus();
+      }
+
+      /// <summary>The words the entry is known by in a sentence: its first shown text value.</summary>
+      private string EntryName_(Row row)
+         => row == null ? null : ListOutcome.EntryName(spec_.Fields
+               .Where(f => f.ShowInGrid && (f.Kind == FieldKind.Text || f.Kind == FieldKind.Multiline))
+               .Select(f => row.Display(f.Prop)));
+
+      /// <summary>What the last action said, at its level, above the list it acted on.</summary>
       private void Say_(StatusLevel level, string text)
       {
          ReadFailure.Clear(status_);
          status_.Level = level;
          status_.Text = text;
          status_.Visibility = Visibility.Visible;
+
+         // Said again when it is the same words as the last time - a second
+         // entry saved under the same name - which a text that does not change
+         // would not be.
+         Announce.Request(status_);
       }
 
       private void EditSelected()
@@ -630,21 +686,26 @@ namespace hMailServer.ControlPanel.Views
 
          dynamic collection = null;
          dynamic item = null;
+         int savedId = 0;
+         bool saved = false;
+         bool gone = false;
          try
          {
             collection = spec_.GetCollection();
             item = existing == null ? collection.Add() : FindById(collection, existing.Id);
             if (item == null)
             {
-               Say_(StatusLevel.Warning, L("The item no longer exists."));
-               return;
+               gone = true;
             }
+            else
+            {
+               foreach (KeyValuePair<string, object> kv in dlg.Result)
+                  SetProp(item, kv.Key, kv.Value);
 
-            foreach (KeyValuePair<string, object> kv in dlg.Result)
-               SetProp(item, kv.Key, kv.Value);
-
-            item.Save();
-            Say_(StatusLevel.Good, existing == null ? F("Added at {0}.", DateTime.Now.ToLongTimeString()) : F("Saved at {0}.", DateTime.Now.ToLongTimeString()));
+               item.Save();
+               savedId = existing?.Id ?? TryGetId(item);
+               saved = true;
+            }
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -656,7 +717,21 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)collection);
          }
 
-         Reload();
+         // The list first, then the outcome: the read hides the notice of the
+         // last read, and said before it the outcome was never seen. The entry
+         // saved is selected, in view and has the keyboard; the sentence names
+         // it.
+         Load_(savedId, -1, focus: saved);
+         if (ReadFailure.IsShown(status_))
+            return;
+
+         if (gone)
+            Say_(StatusLevel.Warning, L("The item no longer exists."));
+         else if (saved)
+         {
+            string name = EntryName_(rows_.FirstOrDefault(r => r.Id == savedId));
+            Say_(StatusLevel.Good, existing == null ? ListOutcome.Added(name, DateTime.Now) : ListOutcome.Saved(name, DateTime.Now));
+         }
       }
 
       private void DeleteSelected()
@@ -670,6 +745,13 @@ namespace hMailServer.ControlPanel.Views
          if (!MessageBox.Confirm(F(spec_.DeletePrompt, DeleteName_(row)), L("Control Panel"), L("_Delete"), destructive: true))
             return;
 
+         // Where the row was and what it was called, for after the list is read
+         // again: the row that takes its place is selected, and the sentence
+         // names what went.
+         int index = rows_.IndexOf(row);
+         string name = EntryName_(row);
+         bool deleted = false;
+
          dynamic collection = null;
          dynamic item = null;
          try
@@ -678,7 +760,7 @@ namespace hMailServer.ControlPanel.Views
             item = FindById(collection, row.Id);
             if (item != null)
                item.Delete();
-            Say_(StatusLevel.Good, L("Deleted."));
+            deleted = true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -690,7 +772,15 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release((object)collection);
          }
 
-         Reload();
+         // The list first, then the outcome, as after an Add. A delete that
+         // failed keeps the row it was asked about.
+         if (deleted)
+            Load_(0, index, focus: true);
+         else
+            Load_(row.Id, -1, focus: false);
+
+         if (deleted && !ReadFailure.IsShown(status_))
+            Say_(StatusLevel.Good, ListOutcome.Deleted(name));
       }
 
       /// <summary>

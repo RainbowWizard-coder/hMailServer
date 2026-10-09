@@ -1531,6 +1531,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   where the card's fixed 157 pixels held a glyph and a sentence and nothing more; the dialogs' lists and the
   never-ban list show their empty state in the list's place, and only after a read that worked.
 
+- **Fixed: an Add, an Edit or a Delete on a Control Panel list said nothing, and the list lost its place.** Every list
+  the generic editor draws - the SURBL servers, DNS blacklists, white list, blocked senders, allow and block list,
+  greylisting lists, blocked attachments, groups, remote domains, and the lists on the domain and account dialogs'
+  tabs - set "Added at…", "Saved at…" or "Deleted." and then read the list again, and the read hid the notice when it
+  worked, so the outcome was never seen; the read rebuilt the rows, so the edited row lost its selection, the list
+  jumped to the top and a new entry was neither selected nor in view. The list is read first now and the outcome said
+  after it, in the notice above the list, naming the entry - "multi.surbl.org added." - and said again when the words
+  are the same as the last time; the entry added or saved is selected, scrolled into view and has the keyboard, a
+  delete selects the row that took its place, and Refresh keeps the selected entry selected.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

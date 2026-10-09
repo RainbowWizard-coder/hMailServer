@@ -67,8 +67,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("OpenDialog(null)", build, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"if \(spec_\.CanAdd\)\s*\{\s*var first = new Button \{ Content = L\(""Add the _first entry…""\) \};"), build);
 
-         string reload = WithheldRowTests.MemberText(code, "private void Reload(");
-         Assert.True(reload != null, "CollectionEditorView.Reload is gone.");
+         string reload = WithheldRowTests.MemberText(code, "private void Load_(int selectId, int selectIndex, bool focus)");
+         Assert.True(reload != null, "CollectionEditorView.Load_ is gone.");
          Assert.Contains("spec_.EmptyText ??", reload, StringComparison.Ordinal);
       }
 

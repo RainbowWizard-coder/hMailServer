@@ -15259,6 +15259,9 @@ It will keep trying as you use the application.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} address listed.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} added.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} addresses listed, showing the {1} most recent. Search to narrow them.</value>
   </data>
@@ -15348,6 +15351,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} days ago</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} deleted.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name.</value>
@@ -15678,6 +15684,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} saved settings wait for a service restart.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} saved.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log.</value>

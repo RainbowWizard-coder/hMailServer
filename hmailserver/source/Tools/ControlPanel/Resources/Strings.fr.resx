@@ -15259,6 +15259,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} adresse listée.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>Ajouté : {0}.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresses listées, les {1} plus récentes sont affichées. Recherchez pour les restreindre.</value>
   </data>
@@ -15348,6 +15351,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>il y a {0} jours</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>Supprimé : {0}.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} n'a pas répondu sur le port {1}, dont Windows a besoin pour atteindre l'API COM de hMailServer à distance. Vérifiez que la machine est allumée, que son pare-feu autorise DCOM, et que vous vous connectez au bon nom.</value>
@@ -15678,6 +15684,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} réglages enregistrés attendent un redémarrage du service.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>Enregistré : {0}.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} obtient à lui seul un score de {1}, ce qui atteint le {2} auquel le serveur arrête de tester - {3} ne s'exécutera donc pas pour un message qui y échoue, et n'apparaîtra pas dans le journal.</value>

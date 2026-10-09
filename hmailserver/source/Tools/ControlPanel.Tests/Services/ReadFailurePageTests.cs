@@ -49,7 +49,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "AuditTrailView.cs", "private void Reload()", "Could not read the audit trail: " },
          { "JournalingView.cs", "private void Unread_(string prefix, string why)", "Could not read the journaling rules: " },
          { "RolesView.cs", "private void Reload_()", "Could not read the roles: " },
-         { "CollectionEditorView.cs", "private void Reload()", "Could not read the list: " },
+         { "CollectionEditorView.cs", "private void Load_(int selectId, int selectIndex, bool focus)", "Could not read the list: " },
          { "BackupView.xaml.cs", "public void OnEnter()", "Could not read the backup settings: " },
          { "DomainsView.xaml.cs", "private void ReloadDomains(string select = null)", "Could not read the domains: " },
          { "DomainsView.xaml.cs", "private void ReloadAccounts()", "Could not read the accounts: " },

@@ -15259,6 +15259,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} adres op de lijst.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} toegevoegd.</value>
+  </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adressen op de lijst, de {1} nieuwste worden getoond. Zoek om ze te beperken.</value>
   </data>
@@ -15348,6 +15351,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} days ago" xml:space="preserve">
     <value>{0} dagen geleden</value>
+  </data>
+  <data name="{0} deleted." xml:space="preserve">
+    <value>{0} verwijderd.</value>
   </data>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} antwoordde niet op poort {1}, die Windows nodig heeft om de hMailServer COM-API op afstand te bereiken. Controleer of de machine aanstaat, of de firewall ervan DCOM toestaat, en of u verbinding maakt met de juiste naam.</value>
@@ -15678,6 +15684,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} opgeslagen instellingen wachten op een herstart van de service.</value>
+  </data>
+  <data name="{0} saved." xml:space="preserve">
+    <value>{0} opgeslagen.</value>
   </data>
   <data name="{0} scores {1} on its own, which reaches the {2} at which the server stops testing - so {3} will not run for a message it fails, and will not appear in the log." xml:space="preserve">
     <value>{0} scoort op zichzelf al {1}, wat de {2} bereikt waarbij de server stopt met testen - dus {3} draait niet voor een bericht dat erop faalt, en verschijnt niet in het logboek.</value>
