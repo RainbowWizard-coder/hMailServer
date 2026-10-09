@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -237,6 +238,138 @@ namespace hMailServer.ControlPanel.Tests.Services
             .Select(source => source.Relative).ToList();
          Assert.True(offenders.Count == 0,
             "A page stops the server's services without being held to giving Enter to the decline; add its question to StopsTheServer:\n" + string.Join("\n", offenders));
+      }
+
+      /// <summary>
+      /// A question's act and the button that declines it have Alt keys of their own
+      /// in every language. Where two buttons share one, WPF's AccessKeyManager only
+      /// moves the keyboard between them and presses neither, so the key of both the
+      /// act and the decline stops working: Czech gave Apply now and Later both Alt+P,
+      /// and Ukrainian gave them, and Reinitialise now and Later, both Alt+З. The two
+      /// captions meet only in the dialog, at run time, so check-mnemonics.py, which
+      /// reads each page's own captions, cannot see them; this reads every question
+      /// whose act and decline are both a caption of the catalogue.
+      /// </summary>
+      [Fact]
+      public void EachQuestionsActAndDecline_HaveAltKeysOfTheirOwn_InEveryLanguage()
+      {
+         var pairs = new List<(string Where, string Action, string Decline)>();
+         foreach ((string relative, string source) in SourceFiles())
+         {
+            foreach (string call in Calls(source, "Confirm("))
+            {
+               Match decline = Regex.Match(call, @"decline:\s*L\(""((?:[^""\\]|\\.)*)""\)");
+               if (!decline.Success)
+                  continue;
+
+               // The act is the third argument: Confirm(text, caption, action, ...).
+               List<string> arguments = Arguments(call);
+               Match action = arguments.Count > 2 ? Regex.Match(arguments[2], @"^L\(""((?:[^""\\]|\\.)*)""\)$") : Match.Empty;
+               Assert.True(action.Success, relative + ": a question with a decline of its own names its act with something other than one caption, which this cannot check: " + call.Split('\n')[0].Trim());
+               pairs.Add((relative, Regex.Unescape(action.Groups[1].Value), Regex.Unescape(decline.Groups[1].Value)));
+            }
+         }
+
+         // The two that clashed are among those read, so that the scan cannot go blind.
+         Assert.Contains(pairs, pair => pair.Action == "_Apply now" && pair.Decline == "_Later");
+         Assert.Contains(pairs, pair => pair.Action == "Reinitialise _now" && pair.Decline == "_Later");
+
+         string resources = Path.GetDirectoryName(ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         var offenders = new List<string>();
+         int catalogues = 0;
+         foreach (string path in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         {
+            string tag = Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length);
+            var catalogue = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+
+            foreach ((string where, string action, string decline) in pairs)
+            {
+               // A text the catalogue leaves empty is shown in English.
+               string act = catalogue.TryGetValue(action, out string a) && a.Length > 0 ? a : action;
+               string no = catalogue.TryGetValue(decline, out string d) && d.Length > 0 ? d : decline;
+               char? actKey = AccessKeyOf_(act), noKey = AccessKeyOf_(no);
+               if (actKey != null && actKey == noKey)
+                  offenders.Add(tag + ", " + where + ": \"" + act + "\" and \"" + no + "\" are both Alt+" + actKey);
+            }
+
+            catalogues++;
+         }
+
+         Assert.Equal(17, catalogues);
+         foreach ((string where, string action, string decline) in pairs)
+         {
+            if (AccessKeyOf_(action) is char key && key == AccessKeyOf_(decline))
+               offenders.Add("en, " + where + ": \"" + action + "\" and \"" + decline + "\" are both Alt+" + key);
+         }
+
+         Assert.True(offenders.Count == 0,
+            "A question's act and its decline share an Alt key, so neither key presses its button; move one of them in the catalogue:\n" + string.Join("\n", offenders.Distinct()));
+      }
+
+      /// <summary>
+      /// The key a caption's Alt key is, as WPF's AccessText reads it: the character
+      /// after the first underscore that is not doubled, upper-cased as
+      /// AccessKeyManager compares keys; null where there is none.
+      /// </summary>
+      private static char? AccessKeyOf_(string caption)
+      {
+         for (int i = 0; i < caption.Length - 1; i++)
+         {
+            if (caption[i] != '_')
+               continue;
+            if (caption[i + 1] == '_')
+            {
+               i++;
+               continue;
+            }
+
+            return char.ToUpperInvariant(caption[i + 1]);
+         }
+
+         return null;
+      }
+
+      /// <summary>A call's arguments, each trimmed, split at the commas outside any parenthesis, bracket, brace or string.</summary>
+      private static List<string> Arguments(string call)
+      {
+         var arguments = new List<string>();
+         int open = call.IndexOf('(');
+         int depth = 0;
+         int start = open + 1;
+         bool inString = false;
+         for (int i = open; i < call.Length; i++)
+         {
+            char c = call[i];
+            if (inString)
+            {
+               if (c == '\\')
+                  i++;
+               else if (c == '"')
+                  inString = false;
+               continue;
+            }
+
+            if (c == '"')
+               inString = true;
+            else if (c is '(' or '[' or '{')
+               depth++;
+            else if (c is ')' or ']' or '}')
+            {
+               if (--depth == 0)
+               {
+                  arguments.Add(call.Substring(start, i - start).Trim());
+                  break;
+               }
+            }
+            else if (c == ',' && depth == 1)
+            {
+               arguments.Add(call.Substring(start, i - start).Trim());
+               start = i + 1;
+            }
+         }
+
+         return arguments;
       }
 
       [Fact]

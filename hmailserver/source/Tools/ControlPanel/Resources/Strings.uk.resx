@@ -14292,7 +14292,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Прізвище</value>
   </data>
   <data name="_Later" xml:space="preserve">
-    <value>Пі_зніше</value>
+    <value>Піз_ніше</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Обмежити кількість облікових записів</value>
