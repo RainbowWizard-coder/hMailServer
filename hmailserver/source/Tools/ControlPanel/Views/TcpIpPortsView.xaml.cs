@@ -174,6 +174,11 @@ namespace hMailServer.ControlPanel.Views
             : System.Array.Empty<System.Net.IPEndPoint>();
          Dictionary<string, bool?> protocolEnabled = LoadProtocolSwitches();
 
+         // The server's state, read once with the ports: while it is not running
+         // none of its ports is listened on, and each row says so at the level of
+         // the line under the list, which says why.
+         int? serverState = local ? ReadServerState_() : null;
+
          dynamic ports = ServerSession.Current.Application.Settings.TCPIPPorts;
          try
          {
@@ -192,7 +197,7 @@ namespace hMailServer.ControlPanel.Views
                protocolEnabled.TryGetValue(protocol, out bool? enabled);
 
                ListenerState state = ListenerProbe.StateOf(address, portNumber, enabled, listeners, local);
-               StatusPresentation presentation = StatusSemantics.For(ListenerProbe.LevelFor(state));
+               StatusPresentation presentation = StatusSemantics.For(ListenerProbe.LevelFor(state, serverState));
 
                rows.Add(new PortRow
                {
@@ -204,7 +209,7 @@ namespace hMailServer.ControlPanel.Views
                   Certificate = certId > 0 && certNames.TryGetValue(certId, out string n) ? n : "",
                   Auth = auth,
                   ListeningWord = ListenerProbe.WordFor(state),
-                  ListeningTip = ListenerProbe.WordFor(state) + ". " + ListenerProbe.ExplainFor(state, protocol),
+                  ListeningTip = ListenerProbe.WordFor(state) + ". " + ListenerProbe.ExplainFor(state, protocol, serverState),
                   ListeningMark = MakeListeningMark(presentation)
                });
                ServerSession.Release(port);
@@ -220,7 +225,7 @@ namespace hMailServer.ControlPanel.Views
          ListSearch.Apply(PortGrid, SearchBar.SearchText);
          StatusText.Show(EmptyStatus, null, rows.Count, null, L("No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection."));
 
-         ShowListenerSummary(rows, local);
+         ShowListenerSummary(rows, local, serverState);
       }
 
       /// <summary>
@@ -253,9 +258,11 @@ namespace hMailServer.ControlPanel.Views
       /// stopped", which is the question somebody opens this page with. A port that
       /// is configured, enabled and not bound is the single most likely cause and
       /// the least visible, so it gets said in words at the bottom of the page as
-      /// well as shown in a column.
+      /// well as shown in a column. <paramref name="state"/> is the server's
+      /// state as the rows were read with it (ListenerProbe.ServerStopped and the
+      /// rest), or null where it could not be read.
       /// </summary>
-      private void ShowListenerSummary(List<PortRow> rows, bool local)
+      private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)
       {
          if (!local)
          {
@@ -276,7 +283,6 @@ namespace hMailServer.ControlPanel.Views
          // the reason: said at the Information level, with Open Server status
          // where a resume is the answer, and never Reinitialise now, which would
          // end maintenance mode or resume the paused server.
-         int? state = ReadServerState_();
          string notRunning = ListenerProbe.WhyNoPortIsListenedOn(state);
          if (notRunning != null)
          {

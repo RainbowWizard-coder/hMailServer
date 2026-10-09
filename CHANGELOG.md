@@ -951,20 +951,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a notice opens to a page of the map, and `StatusWarningLevelTests` each check to its level and its page and the
   count to a group of its own.
 - **Fixed: the TCP/IP ports page's listening warning led with the wrong cause, offered nothing to do about it, and
-  printed an IPv6 listener as "IMAP :::993".** The warning under the list named a port conflict, a missing address and a
-  certificate first and sent the reader to an error-log entry that a port never bound does not have, while the commonest
-  cause by far - each row's tool tip already led with it - is a port added or changed since the server started, which is
-  not bound until the server reinitialises, since it reads its port list at start-up. It now says so first, in one whole
-  sentence for one port and one for several, and carries *Reinitialise now*, which asks first (every connected client is
-  disconnected for a moment), with Cancel the answer Enter gives, and reads the page again after. A server that is
-  paused, in maintenance mode, starting or stopping listens on none of its ports, and the line says that instead, at the
-  Information level - "The server is paused, so none of its ports is being listened on. Resuming it opens them again."
-  with *Open Server status* - with no *Reinitialise now*, which stops the servers and starts them again and so would
-  have ended maintenance mode or resumed the paused server under a question that said only that clients are disconnected
-  for a moment; a reinitialise of a server in maintenance mode or paused, from the line or after a save, now asks again
-  first, saying which it ends. An IPv6 address is written in brackets, *IMAP [::]:993*, in the warning and in each row's
-  accessible name (`ListenerProbe.Endpoint`). `ListenerProbeTests` and `TcpIpPortsPageTests` hold the sentences, the
-  brackets, the action and the server's state.
+  printed an IPv6 listener as "IMAP :::993".** The warning under the list named a port conflict, a missing address and
+  a certificate first and sent the reader to an error-log entry that a port never bound does not have, while the
+  commonest cause by far - each row's tool tip already led with it - is a port added or changed since the server
+  started, which is not bound until the server reinitialises, since it reads its port list at start-up. It now says so
+  first, in one whole sentence for one port and one for several, and carries *Reinitialise now*, which asks first
+  (every connected client is disconnected for a moment), with Cancel the answer Enter gives, and reads the page again
+  after. A server that is paused, in maintenance mode, starting or stopping listens on none of its ports, and the line
+  says that instead, at the Information level - "The server is paused, so none of its ports is being listened on.
+  Resuming it opens them again." with *Open Server status* - with no *Reinitialise now*, which stops the servers and
+  starts them again and so would have ended maintenance mode or resumed the paused server under a question that said
+  only that clients are disconnected for a moment. Each row says the same at the same level, in its mark, its tool tip
+  and its accessible name, where each was a Warning that blamed a port just added or another program. A reinitialise of
+  a server in maintenance mode or paused, from the line or after a save, now asks again first, saying which it ends. An
+  IPv6 address is written in brackets, *IMAP [::]:993*, in the warning and in each row's accessible name
+  (`ListenerProbe.Endpoint`). `ListenerProbeTests` and `TcpIpPortsPageTests` hold the sentences, the brackets, the
+  action and the server's state.
 - **Fixed: the REST API keys page's pills said how much attention a key wanted and not what it was, two of its texts
   were never translated, and an empty store was said twice.** Each key's pill read a severity word - *Warning* for a
   key with full authority, *OK* for a read-only one, *Information* for an expired one; it now names the key's state

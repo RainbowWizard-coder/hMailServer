@@ -318,6 +318,37 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// A port not listened on while the server is not running is no fault of its
+      /// own: each row says it at the Information level of the line under the list,
+      /// in that line's sentence, where each was a Warning whose tool tip blamed a
+      /// port just added or another program. A running server, or one whose state
+      /// could not be read, leaves each row as it was, and every other state keeps
+      /// its level and its sentence whatever the server's state.
+      /// </summary>
+      [Fact]
+      public void APortNotListenedOn_WhileTheServerIsNotRunning_IsInformation_InTheLinesSentence()
+      {
+         foreach (int notRunning in new[] { ListenerProbe.ServerStopped, ListenerProbe.ServerStarting, ListenerProbe.ServerStopping, ListenerProbe.ServerDraining })
+         {
+            Assert.Equal(StatusLevel.Information, ListenerProbe.LevelFor(ListenerState.NotListening, notRunning));
+            Assert.Equal(ListenerProbe.WhyNoPortIsListenedOn(notRunning), ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP", notRunning));
+            Assert.DoesNotContain("just added", ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP", notRunning));
+         }
+
+         foreach (int? running in new int?[] { ListenerProbe.ServerRunning, null })
+         {
+            Assert.Equal(StatusLevel.Warning, ListenerProbe.LevelFor(ListenerState.NotListening, running));
+            Assert.Equal(ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP"), ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP", running));
+         }
+
+         foreach (ListenerState other in new[] { ListenerState.Listening, ListenerState.ProtocolDisabled, ListenerState.Unknown })
+         {
+            Assert.Equal(ListenerProbe.LevelFor(other), ListenerProbe.LevelFor(other, ListenerProbe.ServerStopped));
+            Assert.Equal(ListenerProbe.ExplainFor(other, "IMAP"), ListenerProbe.ExplainFor(other, "IMAP", ListenerProbe.ServerDraining));
+         }
+      }
+
+      /// <summary>
       /// A reinitialise of a server in maintenance mode asks the question Apply now
       /// asks, which says that it ends maintenance mode, and of a paused one says
       /// that it starts it again; of a running one, or one whose state could not be

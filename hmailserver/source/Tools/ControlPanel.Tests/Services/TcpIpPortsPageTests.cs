@@ -106,7 +106,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheListenerWarning_OffersReinitialiseNow()
       {
          string code = Source();
-         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local)");
+         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)");
          Assert.True(summary != null, "ShowListenerSummary is gone.");
          Assert.Contains("ListenerProbe.NotListeningSummary(names), ReinitialiseButton_()", summary, StringComparison.Ordinal);
          Assert.Contains("ListenerProbe.Endpoint(row.Address, row.Port)", summary, StringComparison.Ordinal);
@@ -135,28 +135,56 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AServerNotRunning_IsSaidAtInformation_WithNoReinitialise_AndAReinitialiseOfItAsksAgain()
       {
          string code = Source();
-         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local)");
+         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)");
          Assert.True(summary != null, "ShowListenerSummary is gone.");
 
          int state = summary.IndexOf("ListenerProbe.WhyNoPortIsListenedOn(state)", StringComparison.Ordinal);
          int information = summary.IndexOf("ShowSummary_(StatusLevel.Information, notRunning,", StringComparison.Ordinal);
          int warning = summary.IndexOf("ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names)", StringComparison.Ordinal);
          Assert.True(state >= 0 && information > state && warning > information, "The server's state is not read before the warning.");
-         Assert.Contains("int? state = ReadServerState_();", summary, StringComparison.Ordinal);
+         string read = WithheldRowTests.MemberText(code, "private void Read_()");
+         Assert.True(read != null, "Read_ is gone.");
+         Assert.Contains("int? serverState = local ? ReadServerState_() : null;", read, StringComparison.Ordinal);
+         Assert.Contains("ShowListenerSummary(rows, local, serverState);", read, StringComparison.Ordinal);
          Assert.Contains("OpenStatusButton_()", summary, StringComparison.Ordinal);
          Assert.Contains("NoticeActions.OpenPage(\"status\",", WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button OpenStatusButton_()") ?? "", StringComparison.Ordinal);
          string notRunning = summary.Substring(information, summary.IndexOf("return;", information, StringComparison.Ordinal) - information);
          Assert.DoesNotContain("ReinitialiseButton_", notRunning, StringComparison.Ordinal);
 
-         string read = WithheldRowTests.MemberText(code, "private static int? ReadServerState_()");
-         Assert.True(read != null, "ReadServerState_ is gone.");
-         Assert.Contains("(int)ServerSession.Current.Application.ServerState", read, StringComparison.Ordinal);
-         Assert.Contains("return null;", read, StringComparison.Ordinal);
+         string readState = WithheldRowTests.MemberText(code, "private static int? ReadServerState_()");
+         Assert.True(readState != null, "ReadServerState_ is gone.");
+         Assert.Contains("(int)ServerSession.Current.Application.ServerState", readState, StringComparison.Ordinal);
+         Assert.Contains("return null;", readState, StringComparison.Ordinal);
 
          string reinitialise = WithheldRowTests.MemberText(code, "private void Reinitialise_()");
          int ask = reinitialise.IndexOf("ListenerProbe.ReinitialiseQuestionWhenNotRunning(ReadServerState_())", StringComparison.Ordinal);
          int act = reinitialise.IndexOf("Application.Reinitialize()", StringComparison.Ordinal);
          Assert.True(ask >= 0 && act > ask, "A reinitialise of a server not running does not ask first.");
+      }
+
+      /// <summary>
+      /// Each row of a server that is not running says what the line under the
+      /// list says, at its level: the rows were each a Warning beside the
+      /// Information line, and each row's tool tip and accessible name blamed a
+      /// port just added or another program for a port that a paused server, or
+      /// one in maintenance mode, does not listen on. The state is read once, with
+      /// the ports, for the rows and the line alike.
+      /// </summary>
+      [Fact]
+      public void EachRowOfAServerNotRunning_SaysWhatTheLineSays_AtItsLevel()
+      {
+         string read = WithheldRowTests.MemberText(Source(), "private void Read_()");
+         Assert.True(read != null, "Read_ is gone.");
+         int state = read.IndexOf("int? serverState = local ? ReadServerState_() : null;", StringComparison.Ordinal);
+         int rows = read.IndexOf("rows.Add(new PortRow", StringComparison.Ordinal);
+         Assert.True(state >= 0 && rows > state, "The server's state is not read before the rows are built.");
+         Assert.Contains("StatusSemantics.For(ListenerProbe.LevelFor(state, serverState))", read, StringComparison.Ordinal);
+         Assert.Contains("ListenerProbe.ExplainFor(state, protocol, serverState)", read, StringComparison.Ordinal);
+         Assert.DoesNotContain("ListenerProbe.LevelFor(state))", read, StringComparison.Ordinal);
+         // Once, for the rows and the line alike: the line reads no state of its own.
+         string summary = WithheldRowTests.MemberText(Source(), "private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)");
+         Assert.True(summary != null, "ShowListenerSummary is gone.");
+         Assert.DoesNotContain("ReadServerState_()", summary, StringComparison.Ordinal);
       }
 
       /// <summary>

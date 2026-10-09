@@ -266,6 +266,31 @@ namespace hMailServer.ControlPanel.Services
          _ => L("Unknown")
       };
 
+      /// <summary>
+      /// <see cref="LevelFor(ListenerState)"/> with the server's state, as
+      /// Application.ServerState numbers it: while the server is not running -
+      /// paused, in maintenance mode, starting or stopping - a port not listened
+      /// on is Information, not a fault of its own, at the level of the line under
+      /// the list that says why (<see cref="WhyNoPortIsListenedOn"/>). Each row was
+      /// a Warning beside that Information line. Every other state keeps its level.
+      /// </summary>
+      public static StatusLevel LevelFor(ListenerState state, int? serverState)
+         => state == ListenerState.NotListening && WhyNoPortIsListenedOn(serverState) != null
+            ? StatusLevel.Information
+            : LevelFor(state);
+
+      /// <summary>
+      /// <see cref="ExplainFor(ListenerState, string)"/> with the server's state:
+      /// while the server is not running, a port not listened on is explained by
+      /// that, in the line's own sentence, where each row's tool tip and accessible
+      /// name blamed a port just added or another program. Every other state keeps
+      /// its sentence.
+      /// </summary>
+      public static string ExplainFor(ListenerState state, string protocol, int? serverState)
+         => state == ListenerState.NotListening && WhyNoPortIsListenedOn(serverState) is string why
+            ? why
+            : ExplainFor(state, protocol);
+
       public static StatusLevel LevelFor(ListenerState state) => state switch
       {
          ListenerState.Listening => StatusLevel.Good,
