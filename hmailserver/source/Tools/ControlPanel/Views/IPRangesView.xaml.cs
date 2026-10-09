@@ -386,12 +386,15 @@ namespace hMailServer.ControlPanel.Views
          bool saved = SavePermissions_(row);
 
          // After the reload, which selects the range again and so reads its
-         // permissions back: the pill says Saved until the next change.
+         // permissions back: the pill says Saved until the next change - to a screen
+         // reader as well, which heard nothing of the save: the keyboard stays on Save
+         // permissions, and the pill is the one place the card says it.
          Reload();
          if (saved && permsRow_ != null && permsRow_.Id == row.Id)
          {
             permsSettled_ = SettingsPageState.Saved;
             ShowPermsState_();
+            Announce.Request(PermsStatePill);
          }
       }
 

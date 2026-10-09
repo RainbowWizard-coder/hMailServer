@@ -1259,7 +1259,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: the IP ranges page's permissions card said a save by adding "(saved)" to its title, and said nothing of a
   change.** The card now keeps the settings pages' model in a pill beside *Save permissions*: none while the boxes
   hold what the range has, *Unsaved changes* from the first box ticked or cleared, and *Saved* after a save until
-  the next change.
+  the next change - said to a screen reader too, the pill a polite live region announced when a save settles it,
+  where the save reached none: the keyboard stays on *Save permissions*, and the card has no notice to say it.
 
 - **Fixed: a lost link to the service was drawn at a different level on each page that said it, and on the Dashboard
   at none.** The Dashboard put "Connection to the server lost." in its grey subtitle with no mark, word or colour, and

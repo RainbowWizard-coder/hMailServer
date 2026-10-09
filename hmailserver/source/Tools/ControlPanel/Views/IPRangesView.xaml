@@ -101,7 +101,9 @@
              Save is the card's own action, in its footer, with the pill that says
              where the card stands by the settings pages' model (SettingsPageStatus):
              none while the boxes hold what the range has, Unsaved changes from the
-             first change, Saved after a save until the next. With no range selected
+             first change, Saved after a save until the next. The pill is a polite
+             live region, announced when a save settles it, since the card has no
+             notice to say the save as the settings pages' notices do. With no range selected
              the boxes are clear and disabled, so that they never show the
              permissions of a range that is no longer the one selected. -->
         <scaffold:Card x:Name="PermCard" Title="{loc:L 'Permissions (select a range)'}" Margin="0,12,0,0">
@@ -134,7 +136,7 @@
                     <ui:Button x:Name="SavePermsButton" Content="{loc:L 'Sa_ve permissions'}" Appearance="Primary"
                                Click="SavePerms_Click" IsEnabled="False" HorizontalAlignment="Left" />
                     <scaffold:StatusPill x:Name="PermsStatePill" Visibility="Collapsed" Margin="12,0,0,0"
-                                         VerticalAlignment="Center"
+                                         VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite"
                                          AutomationProperties.AutomationId="ip-range-permissions-state" />
                 </StackPanel>
             </scaffold:Card.Footer>

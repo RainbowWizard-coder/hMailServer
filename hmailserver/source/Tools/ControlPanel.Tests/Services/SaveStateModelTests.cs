@@ -444,6 +444,30 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("x:Name=\"PermsStatePill\" Visibility=\"Collapsed\"", markup, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The card's save reached a screen reader nowhere: the keyboard stays on Save
+      /// permissions, the card has no notice, and the pill that says Saved was no live
+      /// region. It is a polite one, announced when a save settles it - and only then,
+      /// so a box ticked is not read out as Unsaved changes on every change.
+      /// </summary>
+      [Fact]
+      public void TheIPRangesPermissionsCard_SaysItsSaveToAScreenReader()
+      {
+         string markup = ReadControlPanelFile("Views/IPRangesView.xaml");
+         int pill = markup.IndexOf("x:Name=\"PermsStatePill\"", StringComparison.Ordinal);
+         Assert.True(pill >= 0, "The permissions card's pill is gone.");
+         string element = markup.Substring(pill, markup.IndexOf("/>", pill, StringComparison.Ordinal) - pill);
+         Assert.Contains("AutomationProperties.LiveSetting=\"Polite\"", element, StringComparison.Ordinal);
+
+         string code = ReadControlPanelFile("Views/IPRangesView.xaml.cs");
+         string save = WithheldRowTests.MemberText(code, "private void SavePerms_Click(object sender, RoutedEventArgs e)");
+         Assert.True(save != null, "SavePerms_Click is gone.");
+         int settled = save.IndexOf("permsSettled_ = SettingsPageState.Saved;", StringComparison.Ordinal);
+         int announced = save.IndexOf("Announce.Request(PermsStatePill);", StringComparison.Ordinal);
+         Assert.True(settled >= 0 && announced > settled, "A saved range's Saved is not announced.");
+         Assert.Single(Regex.Matches(code, @"Announce\.Request\(PermsStatePill\)"));
+      }
+
       // ---- helpers -------------------------------------------------------------------------
 
       /// <summary>The text of a class from its declaration to its closing brace.</summary>
