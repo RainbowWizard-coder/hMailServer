@@ -62,7 +62,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// not hide it, and neither an Add nor a Delete says anything before the read.
       /// </summary>
       [Theory]
-      [InlineData("private void OpenDialog(Row existing)", "Load_(savedId, -1, focus: saved);", "ListOutcome.Added(name, DateTime.Now)")]
+      [InlineData("private void OpenDialog(Row existing)", "Load_(keep, -1, focus: saved);", "ListOutcome.Added(name, DateTime.Now)")]
       [InlineData("private void DeleteSelected()", "Load_(0, index, focus: true);", "ListOutcome.Deleted(name)")]
       public void TheEditor_ReadsTheListFirst_ThenSaysTheOutcome(string member, string read, string outcome)
       {
@@ -75,6 +75,26 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(sayAt > readAt, member + " says the outcome before it reads the list, and the read hides it.");
          Assert.True(body.IndexOf("Say_(StatusLevel.Good", StringComparison.Ordinal) > readAt, member + " says its outcome before it reads the list.");
          Assert.DoesNotContain("Reload();", body, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// An Add or an Edit that could not be saved keeps the row it was asked about
+      /// selected - the one edited, or the one selected before the Add - as a Delete
+      /// that failed does: the list was read with nothing selected, and the row being
+      /// edited was lost.
+      /// </summary>
+      [Fact]
+      public void ASaveThatFailed_KeepsTheRowItWasAskedAbout()
+      {
+         string body = WithheldRowTests.MemberText(ReadEditor(), "private void OpenDialog(Row existing)");
+         Assert.True(body != null, "CollectionEditorView.OpenDialog is gone.");
+         Assert.Contains("int keep = saved ? savedId : existing?.Id ?? (grid_.SelectedItem as Row)?.Id ?? 0;", body, StringComparison.Ordinal);
+         Assert.True(body.IndexOf("int keep =", StringComparison.Ordinal) < body.IndexOf("Load_(keep, -1, focus: saved);", StringComparison.Ordinal),
+            "OpenDialog reads the list before it knows which row to keep.");
+
+         string delete = WithheldRowTests.MemberText(ReadEditor(), "private void DeleteSelected()");
+         Assert.True(delete != null, "CollectionEditorView.DeleteSelected is gone.");
+         Assert.Contains("Load_(row.Id, -1, focus: false);", delete, StringComparison.Ordinal);
       }
 
       [Fact]

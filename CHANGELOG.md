@@ -1540,7 +1540,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   jumped to the top and a new entry was neither selected nor in view. The list is read first now and the outcome said
   after it, in the notice above the list, naming the entry - "multi.surbl.org added." - and said again when the words
   are the same as the last time; the entry added or saved is selected, scrolled into view and has the keyboard, a
-  delete selects the row that took its place, and Refresh keeps the selected entry selected.
+  delete selects the row that took its place, an Add, an Edit or a Delete that failed keeps the row it was asked
+  about, and Refresh keeps the selected entry selected.
 
 - **Fixed: the Control Panel's Backup & restore page said what its buttons did a screen or more away from them,
   printed a restore job's raw state, and made a restore type what it could have chosen.** Restore started, a mailbox

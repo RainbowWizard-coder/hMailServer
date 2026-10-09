@@ -724,8 +724,11 @@ namespace hMailServer.ControlPanel.Views
          // The list first, then the outcome: the read hides the notice of the
          // last read, and said before it the outcome was never seen. The entry
          // saved is selected, in view and has the keyboard; the sentence names
-         // it.
-         Load_(savedId, -1, focus: saved);
+         // it. A save that failed keeps the row it was asked about selected - the
+         // one edited, or the one selected before an Add - as a delete that
+         // failed does, where the list was read with nothing selected.
+         int keep = saved ? savedId : existing?.Id ?? (grid_.SelectedItem as Row)?.Id ?? 0;
+         Load_(keep, -1, focus: saved);
          if (ReadFailure.IsShown(status_))
             return;
 
