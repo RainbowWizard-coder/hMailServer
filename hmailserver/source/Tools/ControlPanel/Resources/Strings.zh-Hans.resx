@@ -4504,6 +4504,9 @@
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>可以构成收件人信号的每小时最少收件人数（1 到 100000）</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>{0} 的数据，即最后一次能读取服务器的时间。</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>文件尚不存在；保存时将创建它。</value>
   </data>
@@ -15362,8 +15365,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}，来自 {1}，分数 {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}，不可用</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}（{1} 页面）</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}，{1}，读取于 {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}，{1}，分数 {2}。{3}</value>

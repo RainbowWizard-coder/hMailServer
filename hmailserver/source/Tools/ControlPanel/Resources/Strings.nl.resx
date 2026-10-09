@@ -4504,6 +4504,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Minste ontvangers in een uur die een ontvangerssignaal kunnen zijn (1 tot 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Cijfers van {0}, de laatste keer dat de server kon worden gelezen.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Het bestand bestaat nog niet; opslaan maakt het aan.</value>
   </data>
@@ -15362,8 +15365,14 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, van {1}, score {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, niet beschikbaar</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, op de pagina {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, gelezen om {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>

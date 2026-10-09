@@ -73,7 +73,11 @@
                  on every refresh. AutomationProperties.LabeledBy looks like the
                  right tool and is not: on a TextBlock it *replaces* the announced
                  name, so a screen reader would read "In queue" and never say the
-                 number. -->
+                 number.
+
+                 Every value starts as a dash, which is what it shows while the
+                 statistics cannot be read: a 0 here is a count, and "In queue 0"
+                 is a statement the page cannot make before it has asked. -->
             <UniformGrid Columns="5" Margin="{StaticResource AppCardGap}">
                 <scaffold:Card MinHeight="96" Margin="0,0,12,0">
                     <Grid>
@@ -91,7 +95,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiProcessed" Text="0" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiProcessed" Text="—" Style="{StaticResource KpiValue}" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Messages processed'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </scaffold:Card>
@@ -107,7 +111,7 @@
                              "Backlog", and the value's accessible name says it in
                              words as well. -->
                         <StackPanel>
-                            <TextBlock x:Name="KpiQueue" Text="0" Style="{StaticResource KpiValue}" />
+                            <TextBlock x:Name="KpiQueue" Text="—" Style="{StaticResource KpiValue}" />
                             <!-- Hidden, not Collapsed, and for the reason ShowQueue_
                                  documents: a collapsed badge gives its space back,
                                  so the KPI row grows taller the first time the queue
@@ -133,7 +137,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiSpam" Text="0" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiSpam" Text="—" Style="{StaticResource KpiValue}" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Spam blocked'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </scaffold:Card>
@@ -143,7 +147,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="KpiViruses" Text="0" Style="{StaticResource KpiValue}" />
+                        <TextBlock x:Name="KpiViruses" Text="—" Style="{StaticResource KpiValue}" />
                         <TextBlock Grid.Row="1" Text="{loc:L 'Viruses removed'}" Style="{StaticResource KpiLabel}" />
                     </Grid>
                 </scaffold:Card>

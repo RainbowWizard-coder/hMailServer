@@ -4504,6 +4504,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Wenigste Empfänger in einer Stunde, die ein Empfängersignal sein können (1 bis 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Zahlen von {0}, als der Server zuletzt gelesen werden konnte.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Die Datei existiert noch nicht; Speichern legt sie an.</value>
   </data>
@@ -15364,6 +15367,12 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, auf der Seite {1}</value>
+  </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, nicht verfügbar</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, Stand {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, Bewertung {2}. {3}</value>

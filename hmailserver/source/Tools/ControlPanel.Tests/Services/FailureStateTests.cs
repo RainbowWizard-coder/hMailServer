@@ -90,6 +90,53 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains(line, ReadView(file), StringComparison.Ordinal);
       }
 
+      // ---- the Dashboard's figures while they cannot be read ---------------------
+
+      /// <summary>
+      /// Every KPI starts as a dash, not a 0: "In queue 0" is a statement the page
+      /// cannot make before it has asked, and the XAML's 0s were what the cards
+      /// showed under a lost link.
+      /// </summary>
+      [Theory]
+      [InlineData("KpiUptime")]
+      [InlineData("KpiProcessed")]
+      [InlineData("KpiQueue")]
+      [InlineData("KpiSpam")]
+      [InlineData("KpiViruses")]
+      public void EveryKpi_StartsAsADash(string name)
+      {
+         XElement page = XDocument.Parse(ReadView("DashboardView.xaml")).Root;
+         XElement value = page.Descendants().Single(e => (string)e.Attribute(X + "Name") == name);
+         Assert.Equal("—", (string)value.Attribute("Text"));
+      }
+
+      /// <summary>
+      /// A failed read of the statistics shows a dash in every card when nothing
+      /// was ever read, and otherwise keeps the last figures, dimmed, named with the
+      /// time they were read, under a subtitle that says when that was.
+      /// </summary>
+      [Fact]
+      public void TheKpis_SayTheyWereNotRead_OrWhenTheyWere()
+      {
+         string source = ReadView("DashboardView.xaml.cs");
+         string refresh = WithheldRowTests.MemberText(source, "private bool Refresh()");
+         int catchAt = refresh.IndexOf("catch (Exception", StringComparison.Ordinal);
+         Assert.True(catchAt > 0 && refresh.IndexOf("ShowKpisUnread_();", catchAt, StringComparison.Ordinal) > catchAt,
+            "The Dashboard's failed read leaves the KPI cards as they were.");
+
+         string unread = WithheldRowTests.MemberText(source, "private void ShowKpisUnread_()");
+         Assert.True(unread != null, "DashboardView.xaml.cs no longer has ShowKpisUnread_.");
+         foreach (string kpi in new[] { "KpiUptime", "KpiProcessed", "KpiQueue", "KpiSpam", "KpiViruses" })
+            Assert.Contains("(" + kpi + ", L(", unread, StringComparison.Ordinal);
+         Assert.Contains("if (lastRead_ == null)", unread, StringComparison.Ordinal);
+         Assert.Contains("value.Text = NotRead;", unread, StringComparison.Ordinal);
+         Assert.Contains("F(\"{0}, not available\", label)", unread, StringComparison.Ordinal);
+         Assert.Contains("KpiQueueBadge.Visibility = Visibility.Hidden;", unread, StringComparison.Ordinal);
+         Assert.Contains("\"TextFillColorSecondaryBrush\"", unread, StringComparison.Ordinal);
+         Assert.Contains("Header.Subtitle = F(\"Figures from {0}, the last time the server could be read.\", time);", unread, StringComparison.Ordinal);
+         Assert.Contains("private const string NotRead = \"—\";", source, StringComparison.Ordinal);
+      }
+
       /// <summary>Every COM read the checks count as failed also records whether the link went.</summary>
       [Theory]
       [InlineData("Services/ExternalSetupChecks.cs")]

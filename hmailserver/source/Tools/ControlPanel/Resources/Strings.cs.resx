@@ -4558,6 +4558,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Nejmenší počet příjemců za hodinu, který může být signálem příjemců (1 až 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Údaje z {0}, kdy se server naposledy podařilo přečíst.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Soubor zatím neexistuje; uložení ho vytvoří.</value>
   </data>
@@ -15727,8 +15730,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, od {1}, skóre {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, není k dispozici</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, na stránce {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, podle čtení v {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, skóre {2}. {3}</value>

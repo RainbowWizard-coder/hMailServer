@@ -311,16 +311,67 @@ namespace hMailServer.ControlPanel.Views
             lastSampleUtc_ = nowUtc;
 
             Header.Subtitle = F("Live server statistics - last update {0}", nowLocal.ToLongTimeString());
+            lastRead_ = nowLocal;
             ReadFailure.Clear(ReadNotice);
             return true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             timer_.Stop();
+            ShowKpisUnread_();
             ReadFailure.Show(ReadNotice, null, null, L("Could not read the server's statistics: "), ex, TryAgain_);
             return false;
          }
       }
+
+      /// <summary>When the statistics were last read, or null before the first read that worked.</summary>
+      private DateTime? lastRead_;
+
+      /// <summary>
+      /// What the KPI cards say while the statistics cannot be read. Never read: a
+      /// dash in every card, named "not available" - a 0 is a count, and "In queue
+      /// 0" is a statement the page cannot make. Read before: the figures stay, as
+      /// the last the server gave, dimmed and each named with the time it was read,
+      /// and the subtitle says when that was - figures that froze with nothing to
+      /// flag them would read as current. Dimmed to the secondary text colour rather
+      /// than by opacity, which would take the 11-pixel labels under 4.5:1.
+      /// </summary>
+      private void ShowKpisUnread_()
+      {
+         var cards = new (TextBlock value, string label)[]
+         {
+            (KpiUptime, L("Uptime")),
+            (KpiProcessed, L("Messages processed")),
+            (KpiQueue, L("In queue")),
+            (KpiSpam, L("Spam blocked")),
+            (KpiViruses, L("Viruses removed"))
+         };
+
+         if (lastRead_ == null)
+         {
+            foreach ((TextBlock value, string label) in cards)
+            {
+               value.Text = NotRead;
+               value.ClearValue(TextBlock.ForegroundProperty);
+               AutomationProperties.SetName(value, F("{0}, not available", label));
+            }
+
+            KpiQueueBadge.Visibility = Visibility.Hidden;
+            return;
+         }
+
+         string time = lastRead_.Value.ToLongTimeString();
+         foreach ((TextBlock value, string label) in cards)
+         {
+            value.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
+            AutomationProperties.SetName(value, F("{0}, {1}, as read at {2}", label, value.Text, time));
+         }
+
+         Header.Subtitle = F("Figures from {0}, the last time the server could be read.", time);
+      }
+
+      /// <summary>What a KPI card shows for a figure that has not been read.</summary>
+      private const string NotRead = "—"; // no-loc: the dash a card shows for no figure
 
       /// <summary>
       /// Try again on the notice: reads once more and, when that works, starts the
@@ -345,6 +396,7 @@ namespace hMailServer.ControlPanel.Views
       private static void SetKpi_(TextBlock value, string label, string text)
       {
          value.Text = text;
+         value.ClearValue(TextBlock.ForegroundProperty);   // a current figure, no longer dimmed
          AutomationProperties.SetName(value, label + ", " + text);
       }
 

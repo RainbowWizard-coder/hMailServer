@@ -4504,6 +4504,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Nombre minimal de destinataires en une heure pouvant constituer un signal de destinataires (1 à 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Chiffres de {0}, la dernière fois que le serveur a pu être lu.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Le fichier n'existe pas encore ; l'enregistrer le créera.</value>
   </data>
@@ -15362,8 +15365,14 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, de {1}, score {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, non disponible</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, sur la page {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, lu à {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>

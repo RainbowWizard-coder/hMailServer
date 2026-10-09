@@ -4558,6 +4558,9 @@
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Найменша кількість отримувачів за годину, що може бути сигналом отримувачів (від 1 до 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Дані на {0}, коли сервер востаннє вдалося прочитати.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Файлу ще не існує; збереження створить його.</value>
   </data>
@@ -15727,8 +15730,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, від {1}, бали {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, немає даних</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, на сторінці «{1}»</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, за даними на {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, оцінка {2}. {3}</value>

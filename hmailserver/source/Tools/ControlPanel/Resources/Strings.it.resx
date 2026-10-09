@@ -4504,6 +4504,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Numero minimo di destinatari in un'ora che può essere un segnale di destinatari (da 1 a 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Dati delle {0}, l'ultima volta che è stato possibile leggere il server.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Il file non esiste ancora; il salvataggio lo creerà.</value>
   </data>
@@ -15362,8 +15365,14 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, da {1}, punteggio {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, non disponibile</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, nella pagina {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, letto alle {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, punteggio {2}. {3}</value>

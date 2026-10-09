@@ -4504,6 +4504,9 @@
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>受信者の信号になりうる 1 時間あたりの最小受信者数 (1 から 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>{0} の値です。これが最後にサーバーを読み取れた時点です。</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>ファイルはまだ存在しません。保存すると作成されます。</value>
   </data>
@@ -15362,8 +15365,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}、{1} から、スコア {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}、利用できません</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0} ({1} ページ)</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}、{1}、{2} 時点の値</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}、{1}、スコア {2}。{3}</value>

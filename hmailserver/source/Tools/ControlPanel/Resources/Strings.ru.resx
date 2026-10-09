@@ -4558,6 +4558,9 @@ Control Panel может читать файлы сообщений только
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Наименьшее число получателей за час, которое может быть сигналом получателей (от 1 до 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Данные на {0}, когда сервер в последний раз удалось прочитать.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Файла ещё нет; при сохранении он будет создан.</value>
   </data>
@@ -15727,8 +15730,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, от {1}, баллы {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, нет данных</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, на странице «{1}»</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, по данным на {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, оценка {2}. {3}</value>

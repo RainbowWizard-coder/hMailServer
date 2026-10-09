@@ -4504,6 +4504,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Menor número de destinatários em uma hora que pode ser um sinal de destinatários (1 a 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Números das {0}, a última vez em que foi possível ler o servidor.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>O arquivo ainda não existe; salvar o criará.</value>
   </data>
@@ -15362,8 +15365,14 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, de {1}, pontuação {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, não disponível</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, na página {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, conforme lido às {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, pontuação {2}. {3}</value>

@@ -4504,6 +4504,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Færrest modtagere i en time, der kan være et modtagersignal (1 til 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Tal fra {0}, sidste gang serveren kunne læses.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Filen findes ikke endnu; den oprettes, når der gemmes.</value>
   </data>
@@ -15362,8 +15365,14 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, fra {1}, score {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, ikke tilgængelig</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, på siden {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, som læst kl. {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>

@@ -4504,6 +4504,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Mínimo de destinatarios en una hora que puede ser una señal de destinatarios (1 a 100000)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Cifras de las {0}, la última vez que se pudo leer el servidor.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>El archivo aún no existe; guardar lo creará.</value>
   </data>
@@ -15362,8 +15365,14 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, de {1}, puntuación {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, no disponible</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, en la página {1}</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, según la lectura de las {2}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puntuación {2}. {3}</value>

@@ -1137,6 +1137,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   answered and some values could not be read. The Dashboard's timer runs only while its statistics can be read; Try
   again starts it and checks the setup again. `ComErrorTextTests` and `FailureStateTests` hold the classification, the
   levels and the three pages to it.
+- **Fixed: the Dashboard's KPI cards showed 0 as a count while the statistics could not be read.** Under a lost link the
+  cards read "-", 0, 0, 0, 0 - the page's starting values - so "In queue 0" was a statement the page could not make,
+  and after a loss in the middle of a session the last figures froze with nothing to flag them. Every card now starts
+  as a dash. When the first read fails each stays a dash, named "not available" to a screen reader, with the queue's
+  backlog badge hidden; when figures were read earlier they stay, in the secondary text colour, each named with the
+  time it was read, and the subtitle says "Figures from 04:33:43, the last time the server could be read." A read that
+  works puts the figures back in the primary colour. `FailureStateTests` holds the cards to their dash and the page
+  to both cases.
 
 ### Administration
 

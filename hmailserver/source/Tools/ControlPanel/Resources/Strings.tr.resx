@@ -4504,6 +4504,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Fewest recipients in an hour that can be a recipients signal (1 to 100000)" xml:space="preserve">
     <value>Alıcı sinyali olabilecek en düşük saatlik alıcı sayısı (1 ile 100000 arası)</value>
   </data>
+  <data name="Figures from {0}, the last time the server could be read." xml:space="preserve">
+    <value>Sunucunun en son okunabildiği {0} anındaki değerler.</value>
+  </data>
   <data name="File does not exist yet; saving will create it." xml:space="preserve">
     <value>Dosya henüz yok; kaydetmek onu oluşturacak.</value>
   </data>
@@ -15362,8 +15365,14 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, {1} kaynaklı, puan {2}</value>
   </data>
+  <data name="{0}, not available" xml:space="preserve">
+    <value>{0}, kullanılamıyor</value>
+  </data>
   <data name="{0}, on the {1} page" xml:space="preserve">
     <value>{0}, {1} sayfasında</value>
+  </data>
+  <data name="{0}, {1}, as read at {2}" xml:space="preserve">
+    <value>{0}, {1}, {2} itibarıyla</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puan {2}. {3}</value>
