@@ -71,11 +71,49 @@ namespace hMailServer.ControlPanel.Views
          return mode >= 0 && mode < SmtpAuthNames.Length ? SmtpAuthNames[mode] : "#" + mode;
       }
 
+      /// <summary>The listening mark's box, and the gap between it and its word (the cell template's Margin).</summary>
+      private const double ListeningMarkWidth = 10;
+      private const double ListeningMarkGap = 6;
+
       public TcpIpPortsView()
       {
          InitializeComponent();
          hMailServer.ControlPanel.Services.SelectionGate.Bind(PortGrid, PropertiesButton, DeleteButton);
+         FloorColumns_();
       }
+
+      /// <summary>
+      /// No column of the grid is narrower than its own header or than the widest
+      /// of its words in the current language - the security and authentication
+      /// names, the listening word with the mark before it, the widest IPv4
+      /// address, the highest port - so that a narrow window scrolls the grid
+      /// sideways rather than cutting a word, as the Suppression list floors its
+      /// columns. Once the grid is narrower than its columns and the certificate
+      /// column has given up all it can, WPF takes the rest from the fixed columns
+      /// down to their MinWidth, which was 20, and a cell's words are cut mid-glyph
+      /// with nothing to say so: the 12 pixels the page keeps clear of its scroll
+      /// bar took the last glyph from 待ち受けていません (Not listening) in a
+      /// 1280-pixel window. The floors leave the grid narrower than a 1280-pixel
+      /// window in every language, so the words are whole without a scroll bar
+      /// there; the smallest window scrolls.
+      /// </summary>
+      private void FloorColumns_()
+      {
+         foreach (DataGridColumn column in PortGrid.Columns)
+            Floor_(column, GridStyles.HeaderWidth(column.Header as string));
+
+         Floor_(AddressColumn, GridStyles.CellWidth("255.255.255.255")); // no-loc: the widest IPv4 address
+         Floor_(PortColumn, GridStyles.CellWidth("65535")); // no-loc: the highest port
+         foreach (string name in SecurityNames)
+            Floor_(SecurityColumn, GridStyles.CellWidth(name));
+         foreach (string name in SmtpAuthNames)
+            Floor_(AuthColumn, GridStyles.CellWidth(name));
+         foreach (ListenerState state in Enum.GetValues<ListenerState>())
+            Floor_(ListeningColumn, GridStyles.CellWidth(ListenerProbe.WordFor(state), ListeningMarkWidth + ListeningMarkGap));
+      }
+
+      /// <summary>Raises a column's floor to <paramref name="width"/> where that is more.</summary>
+      private static void Floor_(DataGridColumn column, double width) => column.MinWidth = Math.Max(column.MinWidth, width);
 
       public void OnEnter() => Reload();
 
@@ -186,8 +224,8 @@ namespace hMailServer.ControlPanel.Views
       {
          var path = new System.Windows.Shapes.Path
          {
-            Width = 10,
-            Height = 10,
+            Width = ListeningMarkWidth,
+            Height = ListeningMarkWidth,
             Stretch = System.Windows.Media.Stretch.Fill,
             VerticalAlignment = VerticalAlignment.Center
          };

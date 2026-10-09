@@ -69,6 +69,50 @@ namespace hMailServer.ControlPanel.Services
          return Math.Ceiling(words.WidthIncludingTrailingWhitespace) + padding.Left + padding.Right;
       }
 
+      /// <summary>
+      /// The width a cell's words take in the cell's font - 13 pixels regular in
+      /// the window's family, read off the application's cell style - with the
+      /// cell's padding and whatever else the cell draws before them, so that a
+      /// column can be floored at its widest word. A fixed column shrinks to its
+      /// MinWidth when the grid is narrower than its columns and a star column
+      /// has given up all it can, and a cell's TextBlock does not trim by itself,
+      /// so a word wider than the column is cut mid-glyph with nothing to say so:
+      /// the TCP/IP ports page's Listening column read "待ち受けていませ" for
+      /// 待ち受けていません (Not listening) once the page kept 12 pixels clear
+      /// of its scroll bar.
+      /// </summary>
+      public static double CellWidth(string text, double before = 0)
+      {
+         if (string.IsNullOrEmpty(text))
+            return 0;
+
+         Style style = Application.Current?.TryFindResource(typeof(DataGridCell)) as Style;
+         double size = Setting(style, Control.FontSizeProperty, 13.0);
+         FontWeight weight = Setting(style, Control.FontWeightProperty, FontWeights.Normal);
+         Window window = Application.Current?.MainWindow;
+         FontFamily family = window?.FontFamily ?? new FontFamily("Segoe UI Variable Text, Segoe UI"); // no-loc
+         // Measured the way the window draws its words: in its text formatting
+         // mode (Display snaps each glyph's advance to a whole pixel, so a word
+         // comes out a little wider than its ideal metrics) and at its DPI.
+         TextFormattingMode mode = window != null ? TextOptions.GetTextFormattingMode(window) : TextFormattingMode.Ideal;
+         double pixelsPerDip = window != null ? VisualTreeHelper.GetDpi(window).PixelsPerDip : 1.0;
+         var words = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            new Typeface(family, FontStyles.Normal, weight, FontStretches.Normal), size, Brushes.Black, null, mode, pixelsPerDip);
+         return Math.Ceiling(words.WidthIncludingTrailingWhitespace) + CellTextMargin.Left + CellTextMargin.Right + CellPadding.Left + CellPadding.Right + before;
+      }
+
+      /// <summary>The cell template's padding (App.xaml, the DataGridCell style's Border): 10 pixels each side.</summary>
+      private static readonly Thickness CellPadding = new(10, 0, 10, 0);
+
+      /// <summary>
+      /// The margin WPF's DataGridTextColumn gives the TextBlock in each of its
+      /// cells (DataGridTextColumn.DefaultElementStyle): 2 pixels each side,
+      /// which a floor measured from the words and the padding alone left out,
+      /// so that "STARTTLS (required)" lost its bracket at the floor. A template
+      /// column's content carries no such margin; there the four pixels are slack.
+      /// </summary>
+      private static readonly Thickness CellTextMargin = new(2, 0, 2, 0);
+
       /// <summary>A style's own value of a property, or the nearest base style's, or the fallback.</summary>
       private static T Setting<T>(Style style, DependencyProperty property, T fallback)
       {

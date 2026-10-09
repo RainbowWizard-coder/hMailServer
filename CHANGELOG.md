@@ -822,6 +822,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   tomorrow*, one that expired at five this morning *expired earlier today* rather than *yesterday*, and the day count
   in the certificate's own row on the page is the same calendar count as its note's.
 
+- **Fixed: the TCP/IP ports page's Listening column cut its word short in Japanese once the page kept clear of its
+  scroll bar.** In a 1280 by 800 window the column read "待ち受けていませ" for 待ち受けていません (Not listening), the
+  last glyph cut with nothing to say so: the grid's fixed columns shrink to their floor once the grid is narrower than
+  they are and the certificate column has given up all it can, none of them had a floor of its own, and the 12 pixels
+  the page now keeps clear of its scroll bar took three from the Listening column, which had held the word by that
+  much. No column of the grid is narrower than its own header now, or than the widest of its words in the current
+  language - the security and authentication names, the listening word with its mark, the widest IPv4 address, the
+  highest port - measured as the window draws them, with the cell's margin and padding, so a narrow window scrolls the
+  grid sideways rather than cutting a word, as the Suppression list's grids already do; a 1280-pixel window has room
+  for every floor in every language.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
