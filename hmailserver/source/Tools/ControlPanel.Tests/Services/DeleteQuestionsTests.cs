@@ -431,6 +431,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          int clear = page.IndexOf("a.ClearGreyListingTriplets()", StringComparison.Ordinal);
          int ask = page.IndexOf("Confirmations.ClearGreylisting", StringComparison.Ordinal);
          Assert.True(ask >= 0 && clear > ask && clear - ask < 600, "Clear greylisting triplets clears without asking first.");
+
+         // A Cancel answers the press, as every other settings action that asks
+         // first does: with no text the result line kept the last press's
+         // "Greylisting triplets cleared.", so that a cancelled press read as a
+         // second clear.
+         string question = ConfirmationPatternTests.Calls(page.Substring(ask - 40, clear - ask + 40), "MessageBox.Confirm(").Single();
+         string onCancel = page.Substring(page.IndexOf(question, StringComparison.Ordinal) + question.Length, 80);
+         Assert.Matches(@"^\)\s*return \(true, L\(""Nothing was changed\.""\)\);", onCancel);
       }
 
       // ---- Account two-factor (F200) ---------------------------------------------------------

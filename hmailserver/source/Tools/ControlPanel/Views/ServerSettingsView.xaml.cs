@@ -2658,8 +2658,11 @@ namespace hMailServer.ControlPanel.Views
             {
                // Asked first, with Cancel on Enter: every known sender is delayed
                // again, and the records cannot be put back (review finding F184).
+               // A Cancel says so, as every other action that asks first does,
+               // where it left the last press's "Greylisting triplets cleared."
+               // standing, so that a cancelled press read as a second clear.
                if (!MessageBox.Confirm(Confirmations.ClearGreylisting, L("Greylisting"), L("_Clear"), destructive: true))
-                  return (true, null);
+                  return (true, L("Nothing was changed."));
 
                dynamic a = ServerSession.Current.Application.Settings.AntiSpam;
                try { a.ClearGreyListingTriplets(); return (true, L("Greylisting triplets cleared.")); }

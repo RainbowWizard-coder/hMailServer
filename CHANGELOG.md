@@ -1409,7 +1409,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   retention window in days, where *Remove expired* - on the quarantine and on the trace alike - cannot be pressed at a
   window of 0 and says why in its tool tip; and the sendout's subject, the wildcard and how many active accounts of
   active domains it reaches, counted as the server counts them, saying so and sending nothing where that is none. An
-  empty message is refused on its field.
+  empty message is refused on its field. A *Clear greylisting triplets* answered Cancel says *Nothing was changed.*,
+  as the settings pages' other actions that ask first do.
 - **Fixed: the Control Panel drew destructive buttons too loud on lists and too quiet where they delete in bulk.** The
   group members' *Remove*, the folder permissions' *Delete*, the account dialog's *Delete folder*, *Empty mailbox* and
   *Erase traces...*, its two-factor *Remove* and recovery *Clear* buttons, the SSL certificates' *Delete selected* and
