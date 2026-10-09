@@ -1203,6 +1203,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Přidává pečeti ARC k přeposlané poště, aby navazující servery mohly důvěřovat původním výsledkům ověření (RFC 8617). Pečetění si vypůjčuje DKIM selektor a soukromý klíč přeposílající domény, takže vyžaduje alespoň jednu hostovanou doménu s nastaveným podepisováním DKIM – bez toho přepínač hlásí, že je zapnuto, a nepečetí nic, přičemž to oznámí jen jedním ladicím řádkem v logu. Stránka Kontrolní seznam nastavení vaše domény kvůli tomu kontroluje.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Správa</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Spravovat (správa ACL)</value>
   </data>
@@ -3195,6 +3198,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Bariéra odolnosti proti pádu a volitelná kontrola integrity úložiště zpráv na disku. Výchozí hodnoty zachovávají dosavadní chování; zapnutí fsync přidá malou režii na každou zprávu.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Vytváření</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Vytvářet novým účtům složky Drafts, Sent, Trash a Junk</value>
   </data>
@@ -4801,6 +4807,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Označit: přidat hlavičku, kterou čtenář vidí jako varování</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Příznaky</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Zapsat každou přijatou zprávu na disk před potvrzením (trvanlivé, pomalejší)</value>
   </data>
@@ -5524,6 +5533,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Vkládání</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Vkládat / připojovat zprávy</value>
   </data>
@@ -6014,6 +6026,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Vyhledá domény odkazů nalezených v těle zprávy na každém aktivním SURBL serveru</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Vyhledání</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Vyhledání (složka je viditelná)</value>
@@ -8664,6 +8679,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Odvolat / obnovit</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Čtení</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Načteno při MAIL FROM: blokovaná doména je odmítnuta kódem 550 dříve, než proběhne cokoli dalšího, pro každého příjemce. Záznam pokrývá doménu organizace a vše pod ní.</value>
   </data>
@@ -10153,6 +10171,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Podívejte se, co čeká na odeslání</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Přečteno</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Vybrat účty z Active Directory</value>

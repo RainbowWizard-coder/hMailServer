@@ -1197,6 +1197,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Lägger till ARC-sigill på vidarebefordrad post så att servrar längre fram kan lita på de ursprungliga autentiseringsresultaten (RFC 8617). Förseglingen lånar den vidarebefordrande domänens DKIM-selektor och privata nyckel, så den kräver minst en hyst domän med DKIM-signering konfigurerad - utan det står strömbrytaren som aktiverad och förseglar ingenting, med bara en felsökningsrad i loggen som säger det. Sidan Konfigurationschecklista kontrollerar dina domäner för detta.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Administrera</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Administrera (hantera ACL)</value>
   </data>
@@ -3177,6 +3180,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Kraschsäkerhetsbarriär och en valfri integritetskontroll för meddelandelagret på disk. Standardvärdena bevarar det tidigare beteendet; att aktivera fsync lägger till en liten kostnad per meddelande.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Skapa</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Skapa Utkast, Skickat, Papperskorg och Skräppost för nya konton</value>
   </data>
@@ -4747,6 +4753,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Märk: lägg till en rubrikrad som läsaren ser som en varning</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Flaggor</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Skriv varje mottaget meddelande till disk innan det bekräftas (hållbart, långsammare)</value>
   </data>
@@ -5470,6 +5479,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Infoga</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Infoga / lägg till meddelanden</value>
   </data>
@@ -5960,6 +5972,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Slår upp domänerna för länkar som hittats i kroppen på varje aktiv SURBL-server</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Uppslagning</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Uppslagning (mappen syns)</value>
@@ -8586,6 +8601,9 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Återkalla / återställ</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Läsa</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Läses vid MAIL FROM: en blockerad domän avvisas med 550 innan något annat körs, för varje mottagare. Posten omfattar organisationens domän och allt därunder.</value>
   </data>
@@ -10045,6 +10063,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Se vad som väntar på att gå ut</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Läst</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Välj Active Directory-konton</value>

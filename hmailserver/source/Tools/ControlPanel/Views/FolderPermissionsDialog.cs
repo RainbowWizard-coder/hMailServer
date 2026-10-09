@@ -30,8 +30,8 @@ namespace hMailServer.ControlPanel.Views
    public class FolderPermissionsDialog : FluentDialogWindow
    {
       // eACLPermission bit flags. The label is the check box's caption in the entry
-      // dialog and, its first word, the right's name in an entry's row; a note is
-      // the sentence under the box for a right that does more than its name says.
+      // dialog; a note is the sentence under the box for a right that does more
+      // than its name says. The right's name in an entry's row is RightWords'.
       private static readonly (string Label, int Bit, string Note)[] Flags =
       {
          (L("Lookup (folder is visible)"), 1, null),
@@ -45,6 +45,26 @@ namespace hMailServer.ControlPanel.Views
          (L("Delete messages"), 256, null),
          (L("Expunge"), 512, null),
          (L("Administer (manage ACL)"), 1024, null)
+      };
+
+      // Each right's short name in an entry's row, by its bit, catalogued whole
+      // (review finding F204): the row took the first word of each caption, so
+      // Delete folder and Delete messages both read "Delete", and in German the
+      // rights were "Ordner", "Nachrichten" and "Gelesen/Ungelesen-Status". The
+      // names are RFC 4314's rights.
+      private static readonly (int Bit, string Word)[] RightWords =
+      {
+         (1, L("Lookup")),
+         (2, L("Read")),
+         (4, L("Seen")),
+         (8, L("Flags")),
+         (16, L("Insert")),
+         (32, L("Post")),
+         (64, L("Create")),
+         (128, L("Delete folder")),
+         (256, L("Delete messages")),
+         (512, L("Expunge")),
+         (1024, L("Administer"))
       };
 
       private static readonly (int Value, string Label)[] Types =
@@ -160,9 +180,9 @@ namespace hMailServer.ControlPanel.Views
          };
          int value = (int)p.Value;
          var rights = new List<string>();
-         foreach ((string label, int bit, _) in Flags)
+         foreach ((int bit, string word) in RightWords)
             if ((value & bit) != 0)
-               rights.Add(label.Split(' ')[0]);
+               rights.Add(word);
          return subject + "   —   " + (rights.Count == 0 ? L("no rights") : string.Join(", ", rights));
       }
 

@@ -1197,6 +1197,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Lisää ARC-sinetit edelleenlähetettyyn postiin, jotta ketjun myöhemmät palvelimet voivat luottaa alkuperäisiin todennustuloksiin (RFC 8617). Sinetöinti lainaa edelleenlähettävän verkkotunnuksen DKIM-valitsimen ja yksityisen avaimen, joten se vaatii vähintään yhden isännöidyn verkkotunnuksen jolle DKIM-allekirjoitus on määritetty – ilman sitä kytkin näyttää käytössä olevalta eikä sinetöi mitään, ja siitä kertoo vain yksi virheenjäljityslokin rivi. Käyttöönoton tarkistuslista -sivu tarkistaa verkkotunnuksesi tämän osalta.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Ylläpito</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Ylläpito (ACL:n hallinta)</value>
   </data>
@@ -3177,6 +3180,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Kaatumiskestävyyden este ja valinnainen eheystarkistus levyllä olevalle viestivarastolle. Oletukset säilyttävät aiemman käyttäytymisen; fsyncin käyttöönotto lisää pienen viestikohtaisen kustannuksen.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Luonti</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Luo Luonnokset, Lähetetyt, Roskakori ja Roskaposti uusille tileille</value>
   </data>
@@ -4747,6 +4753,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Merkitse: lisää otsake, jonka lukija näkee varoituksena</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Liput</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Kirjoita jokainen vastaanotettu viesti levylle ennen kuittausta (kestävä, hitaampi)</value>
   </data>
@@ -5470,6 +5479,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Lisäys</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Lisää / liitä viestejä</value>
   </data>
@@ -5960,6 +5972,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Hakee rungosta löytyneiden linkkien verkkotunnukset jokaiselta aktiiviselta SURBL-palvelimelta</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Haku</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Haku (kansio on näkyvissä)</value>
@@ -8586,6 +8601,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Kumoa / palauta</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Luku</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Luetaan MAIL FROM -komennossa: estetty verkkotunnus hylätään koodilla 550 ennen kuin mikään muu suoritetaan, jokaiselle vastaanottajalle. Merkintä kattaa organisaation verkkotunnuksen ja kaiken sen alla.</value>
   </data>
@@ -10045,6 +10063,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Näe, mikä odottaa lähtöä</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Luettu</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Valitse Active Directory -tilit</value>

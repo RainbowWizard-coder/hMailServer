@@ -1747,6 +1747,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and the row of the update's state is captioned Update status, where its caption was the verb, "Aktualisieren" in
   German.
 
+- **Fixed: the folder permissions list named an entry's rights by the first word of each right's caption.** A row read
+  "user00@example.com - Lookup, Read, Keep, Set, Delete, Delete", Delete folder and Delete messages both being
+  "Delete", and in German the rights were "Ordner", "Nachrichten" and "Gelesen/Ungelesen-Status". Each right has a
+  short name of its own, translated whole - Lookup, Read, Seen, Flags, Insert, Post, Create, Delete folder, Delete
+  messages, Expunge, Administer, as the IMAP rights are named - and the entry dialog keeps the full captions.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

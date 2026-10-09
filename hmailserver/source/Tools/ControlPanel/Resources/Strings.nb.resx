@@ -1197,6 +1197,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Legger ARC-forseglinger på videresendt e-post slik at servere lenger ned i kjeden kan stole på de opprinnelige autentiseringsresultatene (RFC 8617). Forseglingen låner DKIM-selektoren og den private nøkkelen til domenet som videresender, så den krever minst ett driftet domene med DKIM-signering satt opp - uten det står bryteren som påslått og forsegler ingenting, med bare en linje i feilsøkingsloggen som sier fra. Siden Sjekkliste for oppsett kontrollerer domenene dine for dette.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Administrere</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Administrere (håndtere ACL)</value>
   </data>
@@ -3177,6 +3180,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Barriere for holdbarhet ved krasj og en valgfri integritetsskanning av meldingslageret på disk. Standardene beholder den tidligere oppførselen; å aktivere fsync legger til en liten kostnad per melding.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Opprett</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Opprett Utkast, Sendt, Papirkurv og Søppelpost for nye kontoer</value>
   </data>
@@ -4747,6 +4753,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Merk: legg til en hodelinje som leseren ser som en advarsel</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Flagg</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Skriv hver mottatt melding til disk før den bekreftes (holdbart, tregere)</value>
   </data>
@@ -5470,6 +5479,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Sett inn</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Sett inn / legg til meldinger</value>
   </data>
@@ -5960,6 +5972,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Slår opp domenene til lenker funnet i meldingskroppen på hver aktive SURBL-server</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Oppslag</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Oppslag (mappen er synlig)</value>
@@ -8586,6 +8601,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Tilbake_kall / gjenopprett</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Lese</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Leses ved MAIL FROM: et blokkert domene avvises med 550 før noe annet kjører, for hver mottaker. Oppføringen dekker organisasjonens domene og alt under det.</value>
   </data>
@@ -10045,6 +10063,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Se hva som venter på å gå ut</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Lest</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Velg Active Directory-kontoer</value>

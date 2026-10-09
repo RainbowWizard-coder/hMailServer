@@ -1203,6 +1203,9 @@
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Додає печатки ARC до пересланої пошти, щоб сервери далі за ланцюжком могли довіряти початковим результатам автентифікації (RFC 8617). Запечатування позичає селектор DKIM і закритий ключ домену, який пересилає пошту, тому потребує принаймні одного обслуговуваного домену з налаштованим підписуванням DKIM — без цього перемикач показує «увімкнено», але нічого не запечатує, і сказати про це може лише рядок у журналі налагодження. Сторінка «Контрольний список налаштування» перевіряє ваші домени саме на це.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Адміністрування</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Адмініструвати (керувати ACL)</value>
   </data>
@@ -3195,6 +3198,9 @@
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Бар’єр надійності на випадок аварійного завершення та необов’язкова перевірка цілісності сховища повідомлень на диску. Типові значення зберігають попередню поведінку; увімкнення fsync додає невелику вартість на кожне повідомлення.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Створення</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Створювати Drafts, Sent, Trash і Junk для нових облікових записів</value>
   </data>
@@ -4801,6 +4807,9 @@
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Позначити: додати заголовок, який читач бачить як попередження</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Прапорці</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Скидати кожне отримане повідомлення на диск перед підтвердженням (надійно, повільніше)</value>
   </data>
@@ -5524,6 +5533,9 @@
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Вставлення</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Вставляти / додавати повідомлення</value>
   </data>
@@ -6014,6 +6026,9 @@
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Шукає домени посилань, знайдених у тілі, на кожному активному сервері SURBL</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Пошук</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Пошук (папку видно)</value>
@@ -8664,6 +8679,9 @@
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Відкликати / відновити</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Читання</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Зчитується при MAIL FROM: заблокований домен відхиляється кодом 550 раніше, ніж виконається щось інше, для кожного одержувача. Запис охоплює домен організації і все під ним.</value>
   </data>
@@ -10153,6 +10171,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Подивитися, що чекає на відправлення</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Прочитання</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Виберіть облікові записи Active Directory</value>

@@ -1203,6 +1203,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Dodaje pieczęcie ARC do przekazywanej poczty, aby serwery położone dalej mogły zaufać oryginalnym wynikom uwierzytelniania (RFC 8617). Pieczętowanie pożycza selektor DKIM i klucz prywatny domeny przekazującej, wymaga więc co najmniej jednej obsługiwanej domeny ze skonfigurowanym podpisywaniem DKIM - bez tego przełącznik pokazuje stan włączony i nie pieczętuje niczego, informując o tym jedynie wierszem w dzienniku diagnostycznym. Strona Lista kontrolna konfiguracji sprawdza pod tym kątem domeny tego serwera.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Administrowanie</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Administruj (zarządzaj ACL)</value>
   </data>
@@ -3195,6 +3198,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Bariera trwałości na wypadek awarii oraz opcjonalna kontrola integralności magazynu wiadomości na dysku. Wartości domyślne zachowują dotychczasowe zachowanie; włączenie fsync dokłada niewielki koszt do każdej wiadomości.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Tworzenie</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Twórz foldery Drafts, Sent, Trash i Junk dla nowych kont</value>
   </data>
@@ -4801,6 +4807,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Oznacz: dodaj nagłówek, który czytelnik widzi jako ostrzeżenie</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Flagi</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Zrzucaj każdą odebraną wiadomość na dysk przed jej potwierdzeniem (trwałe, wolniejsze)</value>
   </data>
@@ -5524,6 +5533,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Wstawianie</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Wstawianie / dopisywanie wiadomości</value>
   </data>
@@ -6014,6 +6026,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Sprawdza domeny odnośników znalezionych w treści na każdym aktywnym serwerze SURBL</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Wyszukiwanie</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Wyszukiwanie (folder jest widoczny)</value>
@@ -8664,6 +8679,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Unieważnij / p_rzywróć</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Odczyt</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Odczytywane przy MAIL FROM: zablokowana domena jest odrzucana kodem 550, zanim uruchomi się cokolwiek innego, dla każdego odbiorcy. Wpis obejmuje domenę organizacji i wszystko poniżej niej.</value>
   </data>
@@ -10153,6 +10171,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Zobacz, co czeka na wysłanie</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Przeczytanie</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Wybierz konta Active Directory</value>

@@ -1197,6 +1197,9 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Añade sellos ARC al correo reenviado para que los servidores posteriores puedan confiar en los resultados de autenticación originales (RFC 8617). El sellado toma prestados el selector DKIM y la clave privada del dominio que reenvía, así que necesita al menos un dominio alojado con la firma DKIM configurada - sin eso el interruptor se lee como activado y no sella nada, con solo una línea de registro de depuración que lo dice. La página Lista de configuración comprueba sus dominios para esto.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Administrar</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Administrar (gestionar la ACL)</value>
   </data>
@@ -3177,6 +3180,9 @@ Los detalles completos se escribieron en:
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Barrera de durabilidad ante fallos y un análisis de integridad opcional para el almacén de mensajes en disco. Los valores por defecto conservan el comportamiento anterior; activar fsync añade un pequeño coste por mensaje.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Crear Borradores, Enviados, Papelera y Correo no deseado para las cuentas nuevas</value>
   </data>
@@ -4747,6 +4753,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Marcar: añadir una cabecera que el lector ve como aviso</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Marcas</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Volcar cada mensaje recibido a disco antes de confirmarlo (duradero, más lento)</value>
   </data>
@@ -5470,6 +5479,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Ins" xml:space="preserve">
     <value>Insert</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Insertar</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Insertar / añadir mensajes</value>
   </data>
@@ -5960,6 +5972,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Busca los dominios de los enlaces encontrados en el cuerpo en cada servidor SURBL activo</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Localizar</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Localizar (la carpeta es visible)</value>
@@ -8586,6 +8601,9 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Re_voke / restore" xml:space="preserve">
     <value>Re_vocar / restaurar</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Leer</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Se lee en MAIL FROM: un dominio bloqueado se rechaza con 550 antes de que se ejecute cualquier otra cosa, para cada destinatario. La entrada cubre el dominio de la organización y todo lo que hay debajo.</value>
   </data>
@@ -10045,6 +10063,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Vea qué está esperando para salir</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Leído</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Seleccionar cuentas de Active Directory</value>

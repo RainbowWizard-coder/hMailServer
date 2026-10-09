@@ -1203,6 +1203,9 @@ Control Panel может читать файлы сообщений только
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Добавляет печати ARC к пересылаемой почте, чтобы серверы дальше по цепочке могли доверять исходным результатам аутентификации (RFC 8617). Запечатывание заимствует селектор DKIM и закрытый ключ пересылающего домена, поэтому нужен хотя бы один размещённый домен с настроенным подписыванием DKIM — без него переключатель выглядит включённым, но не запечатывает ничего, сообщая об этом лишь строкой отладочного журнала. Страница «Контрольный список настройки» проверяет ваши домены на этот счёт.</value>
   </data>
+  <data name="Administer" xml:space="preserve">
+    <value>Администрирование</value>
+  </data>
   <data name="Administer (manage ACL)" xml:space="preserve">
     <value>Администрирование (управление ACL)</value>
   </data>
@@ -3195,6 +3198,9 @@ Control Panel может читать файлы сообщений только
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Барьер устойчивости к сбоям и необязательная проверка целостности для хранилища сообщений на диске. Значения по умолчанию сохраняют прежнее поведение; включение fsync добавляет небольшую плату за каждое сообщение.</value>
   </data>
+  <data name="Create" xml:space="preserve">
+    <value>Создание</value>
+  </data>
   <data name="Create Drafts, Sent, Trash and Junk for new accounts" xml:space="preserve">
     <value>Создавать Drafts, Sent, Trash и Junk для новых учётных записей</value>
   </data>
@@ -4801,6 +4807,9 @@ Control Panel может читать файлы сообщений только
   <data name="Flag: add a header the reader sees as a warning" xml:space="preserve">
     <value>Пометить: добавить заголовок, который читатель видит как предупреждение</value>
   </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Флаги</value>
+  </data>
   <data name="Flush each received message to disk before it is acknowledged (durable, slower)" xml:space="preserve">
     <value>Сбрасывать каждое принятое сообщение на диск до подтверждения приёма (надёжно, медленнее)</value>
   </data>
@@ -5524,6 +5533,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ins" xml:space="preserve">
     <value>Ins</value>
   </data>
+  <data name="Insert" xml:space="preserve">
+    <value>Вставка</value>
+  </data>
   <data name="Insert / append messages" xml:space="preserve">
     <value>Вставлять / добавлять сообщения</value>
   </data>
@@ -6014,6 +6026,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Looks up the domains of links found in the body on each active SURBL server" xml:space="preserve">
     <value>Ищет домены ссылок, найденных в теле письма, на каждом активном сервере SURBL</value>
+  </data>
+  <data name="Lookup" xml:space="preserve">
+    <value>Обнаружение</value>
   </data>
   <data name="Lookup (folder is visible)" xml:space="preserve">
     <value>Обнаружение (папка видна)</value>
@@ -8664,6 +8679,9 @@ Control Panel может читать файлы сообщений только
   <data name="Re_voke / restore" xml:space="preserve">
     <value>_Отозвать / восстановить</value>
   </data>
+  <data name="Read" xml:space="preserve">
+    <value>Чтение</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Считывается при MAIL FROM: заблокированный домен отклоняется кодом 550 раньше, чем выполнится что-либо ещё, для каждого получателя. Запись охватывает домен организации и всё, что ниже него.</value>
   </data>
@@ -10153,6 +10171,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="See what is waiting to go out" xml:space="preserve">
     <value>Посмотреть, что ожидает отправки</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Прочтение</value>
   </data>
   <data name="Select Active Directory accounts" xml:space="preserve">
     <value>Выбор учётных записей Active Directory</value>
