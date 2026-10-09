@@ -57,6 +57,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(silent.Count == 0, "These lists say nothing of their own when empty: " + string.Join(", ", silent));
       }
 
+      /// <summary>
+      /// An exemption list's empty state says what the list itself lets past, and
+      /// nothing more: an empty one does not put every sender through the protection,
+      /// since others are let past by other means - an SPF pass (Bypass on SPF
+      /// success, on as shipped), the greylisting bypass list and the MX/A bypass
+      /// past greylisting, and an IP range with spam protection off and an
+      /// authenticated sender past spam protection. "every server that connects is
+      /// greylisted" and "every sender goes through spam protection" said otherwise.
+      /// </summary>
+      [Theory]
+      [InlineData("SpamWhiteList")]
+      [InlineData("GreyListWhiteList")]
+      [InlineData("GreyListBypass")]
+      public void AnExemptionListsEmptyState_SaysWhatTheListLetsPast_NotThatEveryoneGoesThrough(string list)
+      {
+         string specs = ReadControlPanelFile(Path.Join("Views", "CollectionSpecs.cs"));
+         int at = specs.IndexOf("public static CollectionEditorView " + list + "()", StringComparison.Ordinal);
+         Assert.True(at >= 0, "CollectionSpecs." + list + " is gone.");
+         string body = SpecBodies(specs.Substring(at)).First();
+
+         string empty = Regex.Match(body, @"EmptyText = L\(""(?<t>[^""]*)""\)").Groups["t"].Value;
+         Assert.Contains(" let past ", empty, StringComparison.Ordinal);
+         Assert.DoesNotContain("every", empty, StringComparison.OrdinalIgnoreCase);
+      }
+
       [Fact]
       public void TheCollectionEditor_ShowsTheSpecsSentence_AndOffersTheFirstEntry()
       {

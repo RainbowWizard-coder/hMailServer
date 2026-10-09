@@ -6727,8 +6727,8 @@ Nothing already there is removed.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one.</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>No addresses, so every server that connects is greylisted while greylisting is on.</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>No addresses, so no server is let past greylisting for its IP address.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>No aliases for this domain.</value>
@@ -6853,8 +6853,8 @@ Nothing already there is removed.</value>
   <data name="No executable set" xml:space="preserve">
     <value>No executable set</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>No exemptions, so every sender goes through spam protection.</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>No exemptions, so no sender is let past spam protection by this list.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>No external accounts, so no mail is collected from elsewhere for this account.</value>

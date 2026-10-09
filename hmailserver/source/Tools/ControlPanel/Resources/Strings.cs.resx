@@ -6790,8 +6790,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Na seznamu blokovaných této domény není žádná adresa. Adresa se sem dostane, když se pošta na ni trvale vrátí jako nedoručitelná, nebo když nějakou přidáte.</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>Žádné adresy, takže každý připojující se server prochází greylistingem, dokud je greylisting zapnutý.</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>Žádné adresy, takže žádný server není propuštěn přes greylisting kvůli své IP adrese.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Pro tuto doménu nejsou žádné aliasy.</value>
@@ -6916,8 +6916,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Není nastaven žádný spustitelný soubor</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>Žádné výjimky, takže každý odesílatel prochází ochranou proti spamu.</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>Žádné výjimky, takže tento seznam nepropouští přes ochranu proti spamu žádného odesílatele.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Žádné externí účty, takže se pro tento účet odjinud žádná pošta nestahuje.</value>

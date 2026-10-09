@@ -117,7 +117,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} spam exemptions"),
          DeletePrompt = N("Delete the spam exemption {0}? Mail it covers goes through the spam checks again."),
          DeleteNameProps = new[] { "Description", "EmailAddress", "LowerIPAddress" }, // no-loc: the properties that name an entry
-         EmptyText = L("No exemptions, so every sender goes through spam protection."),
+         EmptyText = L("No exemptions, so no sender is let past spam protection by this list."),
          GetCollection = () => AntiSpam.WhiteListAddresses,
          Fields =
          {
@@ -200,7 +200,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} IP addresses"),
          DeletePrompt = N("Delete the greylisting white-list entry {0}? Mail from it is greylisted again."),
          DeleteNameProps = new[] { "IPAddress" }, // no-loc: the properties that name an entry
-         EmptyText = L("No addresses, so every server that connects is greylisted while greylisting is on."),
+         EmptyText = L("No addresses, so no server is let past greylisting for its IP address."),
          GetCollection = () => AntiSpam.GreyListingWhiteAddresses,
          Fields =
          {

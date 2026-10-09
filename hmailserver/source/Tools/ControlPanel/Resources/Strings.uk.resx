@@ -6790,8 +6790,8 @@
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>У списку придушення цього домену немає адрес. Адреса потрапляє сюди, коли пошта на неї остаточно повертається з відмовою або коли ви її додаєте.</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>Немає адрес, тому кожен сервер, що під'єднується, проходить greylisting, поки greylisting увімкнено.</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>Немає адрес, тому жоден сервер не пропускається повз greylisting через свою IP-адресу.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>У цього домену немає псевдонімів.</value>
@@ -6916,8 +6916,8 @@
   <data name="No executable set" xml:space="preserve">
     <value>Виконуваний файл не задано</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>Винятків немає, тому кожен відправник проходить захист від спаму.</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>Винятків немає, тому цей список не пропускає жодного відправника повз захист від спаму.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Немає зовнішніх облікових записів, тому для цього облікового запису пошта ззовні не збирається.</value>

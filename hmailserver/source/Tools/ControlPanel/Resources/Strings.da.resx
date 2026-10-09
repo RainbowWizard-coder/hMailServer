@@ -6727,8 +6727,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Der er ingen adresse på dette domænes spærreliste. En adresse kommer her, når post til den kommer retur for altid, eller når du tilføjer en.</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>Ingen adresser, så hver server, der forbinder, greylistes, mens greylisting er slået til.</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>Ingen adresser, så ingen server slippes forbi greylisting på grund af sin IP-adresse.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Ingen aliasser for dette domæne.</value>
@@ -6853,8 +6853,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Ingen eksekverbar fil angivet</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>Ingen undtagelser, så hver afsender går gennem spambeskyttelsen.</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>Ingen undtagelser, så denne liste slipper ingen afsender forbi spambeskyttelsen.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Ingen eksterne konti, så der hentes ingen post andre steder fra til denne konto.</value>

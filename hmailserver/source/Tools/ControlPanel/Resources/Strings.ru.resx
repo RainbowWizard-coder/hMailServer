@@ -6790,8 +6790,8 @@ Control Panel может читать файлы сообщений только
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>В списке подавления этого домена нет адресов. Адрес попадает сюда, когда почта на него окончательно возвращается с отказом или когда вы его добавляете.</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>Нет адресов, поэтому каждый подключающийся сервер проходит greylisting, пока greylisting включён.</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>Нет адресов, поэтому ни один сервер не пропускается в обход greylisting по своему IP-адресу.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Псевдонимов для этого домена нет.</value>
@@ -6916,8 +6916,8 @@ Control Panel может читать файлы сообщений только
   <data name="No executable set" xml:space="preserve">
     <value>Исполняемый файл не задан</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>Исключений нет, поэтому каждый отправитель проходит защиту от спама.</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>Исключений нет, поэтому этот список не пропускает ни одного отправителя в обход защиты от спама.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Нет внешних учётных записей, поэтому для этой учётной записи почта извне не собирается.</value>

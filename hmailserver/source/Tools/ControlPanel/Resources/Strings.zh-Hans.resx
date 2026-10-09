@@ -6727,8 +6727,8 @@
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>此域的抑制列表中没有地址。当发往某地址的邮件被永久退回，或您手动添加时，地址会出现在这里。</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>没有地址，因此在灰名单开启期间，每个连接的服务器都会被灰名单处理。</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>没有地址，因此不会因为 IP 地址而让任何服务器绕过灰名单。</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>此域没有别名。</value>
@@ -6853,8 +6853,8 @@
   <data name="No executable set" xml:space="preserve">
     <value>未设置可执行文件</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>没有例外，因此每个发件人都要经过垃圾邮件防护。</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>没有例外，因此此名单不会让任何发件人绕过垃圾邮件防护。</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>没有外部账户，因此不会为此账户从其他地方收取邮件。</value>

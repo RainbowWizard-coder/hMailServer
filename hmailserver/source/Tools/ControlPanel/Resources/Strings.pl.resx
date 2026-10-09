@@ -6790,8 +6790,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Na liście blokowanych tej domeny nie ma żadnego adresu. Adres trafia tutaj, gdy poczta do niego wraca trwale jako niedoręczona albo gdy go dodasz.</value>
   </data>
-  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
-    <value>Brak adresów, więc każdy łączący się serwer podlega greylistingowi, dopóki greylisting jest włączony.</value>
+  <data name="No addresses, so no server is let past greylisting for its IP address." xml:space="preserve">
+    <value>Brak adresów, więc żaden serwer nie jest przepuszczany obok greylistingu ze względu na swój adres IP.</value>
   </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Brak aliasów dla tej domeny.</value>
@@ -6916,8 +6916,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Nie ustawiono pliku wykonywalnego</value>
   </data>
-  <data name="No exemptions, so every sender goes through spam protection." xml:space="preserve">
-    <value>Brak wyjątków, więc każdy nadawca przechodzi przez ochronę antyspamową.</value>
+  <data name="No exemptions, so no sender is let past spam protection by this list." xml:space="preserve">
+    <value>Brak wyjątków, więc ta lista nie przepuszcza żadnego nadawcy obok ochrony antyspamowej.</value>
   </data>
   <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
     <value>Brak kont zewnętrznych, więc dla tego konta nie jest pobierana poczta z innych miejsc.</value>
