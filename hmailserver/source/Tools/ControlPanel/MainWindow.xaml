@@ -353,15 +353,20 @@
                 BorderThickness="0,1,0,0" BorderBrush="{DynamicResource AppDividerBrush}"
                 AutomationProperties.AutomationId="pending-settings-bar">
             <DockPanel LastChildFill="True">
-                <ui:Button x:Name="ApplyPendingButton" DockPanel.Dock="Right" Margin="12,0,0,0"
-                           Content="{loc:L '_Apply now'}" Appearance="Primary" VerticalAlignment="Center"
-                           AutomationProperties.AutomationId="apply-pending-settings"
-                           Click="ApplyPending_Click" />
-                <ui:Button x:Name="RestartServiceButton" DockPanel.Dock="Right" Margin="12,0,0,0"
-                           Content="{loc:L 'Restart the ser_vice…'}" Appearance="Secondary" VerticalAlignment="Center"
-                           Visibility="Collapsed"
-                           AutomationProperties.AutomationId="restart-service-pending"
-                           Click="RestartPending_Click" />
+                <!-- The two buttons in one panel, in the order they are drawn, so that
+                     Tab and a screen reader meet them left to right: docked right one by
+                     one, the first declared was drawn rightmost and reached first. -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <ui:Button x:Name="RestartServiceButton" Margin="12,0,0,0"
+                               Content="{loc:L 'Restart the ser_vice…'}" Appearance="Secondary" VerticalAlignment="Center"
+                               Visibility="Collapsed"
+                               AutomationProperties.AutomationId="restart-service-pending"
+                               Click="RestartPending_Click" />
+                    <ui:Button x:Name="ApplyPendingButton" Margin="12,0,0,0"
+                               Content="{loc:L '_Apply now'}" Appearance="Primary" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="apply-pending-settings"
+                               Click="ApplyPending_Click" />
+                </StackPanel>
                 <scaffold:InlineNotice x:Name="PendingNotice" Level="Warning" VerticalAlignment="Center"
                                        AutomationProperties.AutomationId="pending-settings-notice" />
             </DockPanel>

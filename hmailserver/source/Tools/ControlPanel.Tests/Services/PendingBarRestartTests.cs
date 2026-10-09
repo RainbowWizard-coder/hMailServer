@@ -35,6 +35,37 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("SetHelpText(PendingNotice, detail", refresh, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The bar's two buttons are met in the order they are drawn. Each was docked
+      /// right on its own, so Apply now, declared first, was drawn rightmost and
+      /// Restart the service… to its left, while Tab and UI Automation, which follow
+      /// declaration order, reached Apply now first: right to left.
+      /// </summary>
+      [Fact]
+      public void TheBarsButtons_AreReached_InTheOrderTheyAreDrawn()
+      {
+         string markup = SaveStateModelTests.ReadControlPanelFile("MainWindow.xaml");
+         int bar = markup.IndexOf("x:Name=\"PendingBar\"", StringComparison.Ordinal);
+         Assert.True(bar >= 0, "The pending bar is gone.");
+         int end = markup.IndexOf("</Border>", bar, StringComparison.Ordinal);
+         string body = markup.Substring(bar, end - bar);
+
+         int panel = body.IndexOf("<StackPanel DockPanel.Dock=\"Right\" Orientation=\"Horizontal\">", StringComparison.Ordinal);
+         int restart = body.IndexOf("x:Name=\"RestartServiceButton\"", StringComparison.Ordinal);
+         int apply = body.IndexOf("x:Name=\"ApplyPendingButton\"", StringComparison.Ordinal);
+         int panelEnd = body.IndexOf("</StackPanel>", StringComparison.Ordinal);
+         int notice = body.IndexOf("x:Name=\"PendingNotice\"", StringComparison.Ordinal);
+
+         Assert.True(panel >= 0, "The bar's buttons are not in one horizontal panel docked right.");
+         Assert.True(panel < restart && restart < apply && apply < panelEnd,
+            "The bar's buttons are not declared in the panel in the order they are drawn: Restart the service…, then Apply now.");
+         Assert.True(panelEnd < notice, "The notice is not the bar's fill, after its buttons.");
+
+         // Neither button is docked on its own, which is what reversed them.
+         string buttons = body.Substring(restart, panelEnd - restart);
+         Assert.DoesNotContain("DockPanel.Dock", buttons, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void TheBarsRestart_AsksBeforeItStopsTheService()
       {
