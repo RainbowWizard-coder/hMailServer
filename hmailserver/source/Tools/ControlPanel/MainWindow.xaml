@@ -358,12 +358,12 @@
                      one, the first declared was drawn rightmost and reached first. -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <ui:Button x:Name="RestartServiceButton" Margin="12,0,0,0"
-                               Content="{loc:L 'Restart the ser_vice…'}" Appearance="Secondary" VerticalAlignment="Center"
+                               Content="{loc:L 'Restart the service…'}" Appearance="Secondary" VerticalAlignment="Center"
                                Visibility="Collapsed"
                                AutomationProperties.AutomationId="restart-service-pending"
                                Click="RestartPending_Click" />
                     <ui:Button x:Name="ApplyPendingButton" Margin="12,0,0,0"
-                               Content="{loc:L '_Apply now'}" Appearance="Primary" VerticalAlignment="Center"
+                               Content="{loc:L 'Apply now'}" Appearance="Primary" VerticalAlignment="Center"
                                AutomationProperties.AutomationId="apply-pending-settings"
                                Click="ApplyPending_Click" />
                 </StackPanel>

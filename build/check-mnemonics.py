@@ -42,6 +42,11 @@ What is checked
     in, and the view file as well for a XAML page - so a key it carries is
     checked against each of those pages. Such a caption is on screen with
     pages it never knows about, and the one in the tree carries no key at all.
+  * A bar of the window's own (MainWindow.xaml's pending bar) is on screen
+    under every page the window shows, in the same access-key scope, so its
+    captions join the scope of every one of those pages - the classes
+    MainWindow.xaml.cs's pageFactories_ make, in each of their files - as a
+    shared helper's do. The pending bar's two carry no key.
 
 Usage: python3 build/check-mnemonics.py [--list]
 Exit status 0 when every caption is covered and every scope is collision-free.
@@ -58,11 +63,28 @@ EXEMPT = {"Cancel", "OK", "Close", "…", "...",
           # the role away, Restore settings and Test connection - and WPF, given two
           # enabled targets for one key, moves the focus between them and presses
           # neither, so the caption carries no key in any language.
-          "Try again"}
+          "Try again",
+          # The pending bar's two buttons (MainWindow.xaml), on screen with every
+          # page until the settings it counts are applied - a restart's for as long
+          # as the service is not restarted. No letter of either is free on every
+          # page: in English R, E, S, T, V and C of Restart the service are each on
+          # six pages or more and A of Apply now on eighteen, and the bar is in the
+          # window's one access-key scope (WINDOW_BARS), so neither carries a key in
+          # any language and both are reached by Tab.
+          "Apply now", "Restart the service…"}
 
 # Shared helpers, each with the call that places its captions on a page: every
 # caption of the helper joins the scope of every page whose code makes the call.
 SHARED = {os.path.join("Services", "ReadFailure.cs"): "ReadFailure.Show("}
+
+# The window's own bars, each the element (by x:Name) of MainWindow.xaml that
+# holds one: shown under whichever page the window shows, and in the same
+# access-key scope, since nothing in the window sets one of its own - WPF, given
+# two enabled targets for one key, moves the focus between them and presses
+# neither. A bar's captions join the scope of every page MainWindow.xaml.cs
+# makes (its pageFactories_), as a shared helper's join the pages that call it;
+# a dialog is a window of its own and is not one of them.
+WINDOW_BARS = {"MainWindow.xaml": ["PendingBar"]}
 
 
 def parse(caption):
@@ -286,6 +308,86 @@ def placed_captions(own, call, files):
     return out
 
 
+def element_span(src, name):
+    """(start, end) of the XAML element whose x:Name is name, by counting the
+    opening and closing tags of its own type; None when there is none."""
+    m = re.search(r'<([\w:.]+)\b[^>]*?\bx:Name="' + re.escape(name) + '"', src)
+    if not m:
+        return None
+    tag, depth = re.escape(m.group(1)), 0
+    for t in re.finditer(r"<(/?)" + tag + r"\b[^>]*?(/?)>", src[m.start():]):
+        if t.group(1):
+            depth -= 1
+        elif not t.group(2):
+            depth += 1
+        if depth == 0:
+            return m.start(), m.start() + t.end()
+    return m.start(), len(src)
+
+
+def window_pages():
+    """The classes of the pages MainWindow shows: the class each pageFactories_
+    entry makes with new, or the class the helper method it calls returns."""
+    with open(os.path.join(ROOT, "MainWindow.xaml.cs"), encoding="utf-8") as handle:
+        src = handle.read()
+    names = set()
+    for m in re.finditer(r"pageFactories_\[[^\]]+\]\s*=\s*\(\)\s*=>\s*(?:new\s+(\w+)\s*\(|(\w+)\.(\w+)\s*\()", src):
+        if m.group(1):
+            names.add(m.group(1))
+            continue
+        helper = os.path.join(ROOT, "Views", m.group(2) + ".cs")
+        if os.path.exists(helper):
+            # The class the method's body makes when it is "=> new X(", else the
+            # class it returns: Groups() returns a UserControl and makes a GroupsPageView.
+            with open(helper, encoding="utf-8") as handle:
+                made = re.search(r"\bstatic\s+(\w+)\s+" + re.escape(m.group(3)) + r"\s*\([^)]*\)\s*(?:=>\s*new\s+(\w*)\s*\()?", handle.read())
+            if made:
+                names.add(made.group(2) or made.group(1))
+    return names
+
+
+def bar_captions(files):
+    """Each window bar's captions, copied onto every page the window shows: into
+    the scope of the page's class in each of its code files, and for a XAML page
+    into the view file's scope as well. The bars' own captions are MainWindow.xaml's,
+    checked for coverage with the rest of that file."""
+    pages = window_pages()
+    out = []
+    for window, bars in WINDOW_BARS.items():
+        path = os.path.join(ROOT, window)
+        with open(path, encoding="utf-8") as handle:
+            src = handle.read()
+        for bar in bars:
+            span = element_span(src, bar)
+            if span is None:
+                continue
+            captions = [c for c in xaml_captions(path) if span[0] <= line_start(src, c.line) < span[1]]
+            targets = []
+            for page in files:
+                base = os.path.basename(page)
+                if page.endswith(".xaml") and base[:-5] in pages and page != path:
+                    targets.append((page, base, None))
+                elif page.endswith(".cs"):
+                    with open(page, encoding="utf-8") as handle:
+                        code = handle.read()
+                    for name, _, _ in body_ranges(code, CLASS):
+                        if name in pages:
+                            targets.append((page, name, name))
+            for c in captions:
+                via = (path, c.line, f"MainWindow's {bar}")
+                for page, scope, scoped_class in targets:
+                    out.append(Caption(c.file, c.line, scope, c.raw, scoped_class, page=page, via=via))
+    return out
+
+
+def line_start(src, line):
+    """The offset of the first character of a 1-based line."""
+    pos = 0
+    for _ in range(line - 1):
+        pos = src.index("\n", pos) + 1
+    return pos
+
+
 def collisions(captions, tag=None):
     """No two captions in one scope share a key; a tabbed class's constructor scope
     is global to its methods. One problem line per collision, for the caption that
@@ -362,6 +464,8 @@ def main():
         own = cs_captions(os.path.join(ROOT, helper))
         all_captions += own
         placed += placed_captions(own, call, files)
+    # The window's bars: on screen with every page the window shows.
+    placed += bar_captions(files)
     # coverage
     for c in all_captions:
         if c.text in EXEMPT:

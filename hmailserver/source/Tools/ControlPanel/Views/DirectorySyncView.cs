@@ -570,7 +570,7 @@ namespace hMailServer.ControlPanel.Views
 
          var button = new Wpf.Ui.Controls.Button
          {
-            Content = L("Restart the ser_vice…"),
+            Content = L("Restart the service…"),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
             VerticalAlignment = VerticalAlignment.Center
          };

@@ -1091,7 +1091,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   disconnected, with Cancel the answer Enter gives, and runs the restart the feature settings pages use, now one
   shared flow (`Services/ServiceRestart`). The bar's tool tip and help text name the waiting settings by their
   captions and pages, under what each waits for. Directory synchronisation offers the same restart beside a saved
-  schedule that waits for one.
+  schedule that waits for one. Neither of the bar's buttons carries an Alt key: the bar stays under every page, in
+  the same access-key scope, until what it counts is applied, and no letter of either caption is free on all of
+  them - Apply now's Alt+A was taken on eighteen pages, by Add among others, and on such a page the key only moved
+  the focus between the two buttons - so both are reached by Tab, Restart the service… first, in the order they are
+  drawn.
 
 - **Fixed: a secret stored on the Control Panel's feature settings pages could not be removed.** The shared HMAC
   secret and the introspection client secret on the Authentication page, the SRS and BATV signing secrets on

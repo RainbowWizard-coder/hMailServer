@@ -1600,6 +1600,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Aplicar sincronização de diretório</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>Aplicar agora</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Aplicar a _filtragem de spam do servidor a esta conta</value>
   </data>
@@ -8834,8 +8837,8 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Resolvido pelo próprio servidor, então um DNSServer personalizado no hMailServer.INI é respeitado - é para cá que o e-mail realmente vai, o que um nslookup desta estação de trabalho não pode garantir.</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>Reiniciar o ser_viço…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>Reiniciar o serviço…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Aplica-se ao reiniciar</value>
@@ -13191,9 +13194,6 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Aplicar</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>_Aplicar agora</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Aplicar este perfil</value>

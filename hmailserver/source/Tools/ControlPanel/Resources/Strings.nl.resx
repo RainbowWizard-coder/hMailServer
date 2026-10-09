@@ -1600,6 +1600,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Directorysynchronisatie toepassen</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>Nu toepassen</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>De spam_filtering van de server op dit account toepassen</value>
   </data>
@@ -8834,8 +8837,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Wordt door de server zelf opgezocht, dus een aangepaste DNSServer in hMailServer.INI wordt gerespecteerd - dit is waar mail werkelijk heen gaat, en dat kan een nslookup vanaf dit werkstation niet beloven.</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>Service _herstarten…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>Service herstarten…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Van kracht na herstart</value>
@@ -13191,9 +13194,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Toepassen</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>Nu _toepassen</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>Dit profiel _toepassen</value>

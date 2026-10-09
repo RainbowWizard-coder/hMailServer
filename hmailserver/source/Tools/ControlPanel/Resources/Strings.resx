@@ -1600,6 +1600,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Apply directory synchronisation</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>Apply now</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Apply the server's spam _filtering to this account</value>
   </data>
@@ -8834,8 +8837,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise.</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>Restart the ser_vice…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>Restart the service…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Restart to apply</value>
@@ -13191,9 +13194,6 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Apply</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>_Apply now</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Apply this profile</value>

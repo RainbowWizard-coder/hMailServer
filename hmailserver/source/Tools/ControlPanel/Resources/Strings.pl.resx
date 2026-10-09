@@ -1609,6 +1609,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Zastosuj synchronizację katalogu</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>Zastosuj teraz</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Stosuj serwerowe _filtrowanie spamu do tego konta</value>
   </data>
@@ -8918,8 +8921,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Rozwiązywane przez sam serwer, więc własne ustawienie DNSServer w hMailServer.INI jest honorowane - to pokazuje, dokąd poczta naprawdę trafia, czego nslookup z tej stacji roboczej zagwarantować nie może.</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>Uruchom usługę ponowni_e…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>Uruchom usługę ponownie…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Czeka na ponowne uruchomienie</value>
@@ -13349,9 +13352,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Zastosuj</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>_Zastosuj teraz</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Zastosuj ten profil</value>

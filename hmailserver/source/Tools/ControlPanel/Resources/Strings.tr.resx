@@ -1600,6 +1600,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Dizin eşitlemesini uygula</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>Şimdi uygula</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Sunucunun spam _filtrelemesini bu hesaba uygula</value>
   </data>
@@ -8834,8 +8837,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Sunucunun kendisi tarafından çözümlendi; bu yüzden hMailServer.INI'deki özel bir DNSServer'a uyulur - postanın gerçekten gittiği yer budur; bu iş istasyonundan yapılan bir nslookup bunu vaat edemez.</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>Hizmeti yeniden _başlat…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>Hizmeti yeniden başlat…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Hizmet yeniden başlatılınca uygulanır</value>
@@ -13191,9 +13194,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>_Uygula</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>Şimdi _uygula</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>Bu profili _uygula</value>

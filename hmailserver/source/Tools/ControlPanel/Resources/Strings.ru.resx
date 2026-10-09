@@ -1609,6 +1609,9 @@ Control Panel может читать файлы сообщений только
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>Применить синхронизацию с каталогом</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>Применить сейчас</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>_Применять серверную фильтрацию спама к этой учётной записи</value>
   </data>
@@ -8918,8 +8921,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Разрешается самим сервером, поэтому пользовательское значение DNSServer в hMailServer.INI учитывается — именно туда почта действительно уходит, а nslookup с этой рабочей станции такого гарантировать не может.</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>Перезапустить служ_бу…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>Перезапустить службу…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Ждёт перезапуска</value>
@@ -13349,9 +13352,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>П_рименить</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>_Применить сейчас</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>П_рименить этот профиль</value>

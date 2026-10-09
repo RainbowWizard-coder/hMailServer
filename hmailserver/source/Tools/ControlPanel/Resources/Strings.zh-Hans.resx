@@ -1600,6 +1600,9 @@
   <data name="Apply directory synchronisation" xml:space="preserve">
     <value>应用目录同步</value>
   </data>
+  <data name="Apply now" xml:space="preserve">
+    <value>立即应用</value>
+  </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>对此账户应用服务器的垃圾邮件过滤(_F)</value>
   </data>
@@ -8834,8 +8837,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>由服务器自己解析，因此 hMailServer.INI 中自定义的 DNSServer 会被采用 - 这才是邮件真正的去向，而从这台工作站执行 nslookup 无法保证这一点。</value>
   </data>
-  <data name="Restart the ser_vice…" xml:space="preserve">
-    <value>重启服务(_V)…</value>
+  <data name="Restart the service…" xml:space="preserve">
+    <value>重启服务…</value>
   </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>需重启才能生效</value>
@@ -13191,9 +13194,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Apply" xml:space="preserve">
     <value>应用(_A)</value>
-  </data>
-  <data name="_Apply now" xml:space="preserve">
-    <value>立即应用(_A)</value>
   </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>应用此配置方案(_A)</value>
