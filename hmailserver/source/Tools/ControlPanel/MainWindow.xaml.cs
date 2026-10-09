@@ -487,6 +487,16 @@ namespace hMailServer.ControlPanel
          item.FontWeight = FontWeights.SemiBold;
          System.Windows.Automation.AutomationProperties.SetAutomationId(item, "navgroup-" + NavigationMap.Slug(node.Title));
 
+         // The group's pages are rows of the shell's own as well. A TreeView
+         // gives its ItemContainerStyle to its own items alone, and hands it on
+         // to a child only when the child is a container the tree made for a
+         // data item - these rows are TreeViewItems added as they are, their own
+         // containers - so every page inside a group took WPF-UI's row: the
+         // Windows accent's bar outside a shorter highlight in place of the
+         // brand pill, the primary text at rest where the group rows have the
+         // secondary, and no hover rule or keyboard border of the shell's.
+         item.ItemContainerStyle = NavTree.ItemContainerStyle;
+
          foreach (NavNode child in node.Children)
             item.Items.Add(BuildNavItem(child));
 

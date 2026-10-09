@@ -1354,6 +1354,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   now take their colours by name, as every other colour in the Control Panel does, and follow the theme; the Control
   Panel's log says so if a shared colour is ever found frozen again, and a test refuses a page that holds one.
 
+- **Fixed: the pages inside a group of the Control Panel's sidebar were drawn as WPF-UI's rows, not the sidebar's
+  own.** The tree gave its row style to its own rows alone - Welcome, Dashboard, the groups and About - and the
+  sixty-odd pages inside the groups fell back to WPF-UI's row: the selected page was marked by a bar in the Windows
+  accent colour outside a highlight three pixels shorter, where the top-level rows have the brand pill inside theirs,
+  the pages were drawn in the primary text at rest where the groups take the secondary, and neither the hover rule
+  nor the border round the row the keyboard is on reached them. Every row of the sidebar is now the sidebar's own at
+  every level: the brand pill on the selected page, the secondary text at rest, the same height and highlight, the
+  keyboard's border, and each page's label lined up under its group's.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
