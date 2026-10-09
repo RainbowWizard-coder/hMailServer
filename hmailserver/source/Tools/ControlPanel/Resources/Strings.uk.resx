@@ -4612,9 +4612,6 @@
   <data name="Expired on {0} ({1} days ago)|few" xml:space="preserve">
     <value>Сплив {0} ({1} дн. тому)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Сплив {0}. Кожен його запит відхиляється.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Спливає</value>
   </data>
@@ -5442,9 +5439,6 @@
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Ігнорується</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Ігнорується сервером - збережений дайджест не є придатним значенням SHA-256, тому цей розділ нічого не автентифікує. Відкличте його і створіть заміну.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Зображення (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10799,6 +10793,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Since {0}" xml:space="preserve">
     <value>Від {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>З {0} кожен його запит відхиляється.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Єдиний вхід через OpenID Connect</value>
   </data>
@@ -12562,6 +12559,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію захисту від спаму: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>Збережений дайджест не є придатним значенням SHA-256, тому цей розділ нічого не автентифікує. Відкличте його і створіть заміну.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Збережений термін дії не вдалося прочитати у формі, якої очікує ця сторінка (РРРР-ММ-ДД ГГ:ХХ:СС), тому звідси не можна сказати, чи сервер ще приймає цей ключ. Якщо рядок редагували вручну, виправте його; інакше відкличте ключ і створіть заміну.</value>

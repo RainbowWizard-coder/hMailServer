@@ -4554,9 +4554,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Verlopen op {0} ({1} dagen geleden)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Verlopen op {0}. Elke aanvraag die ermee wordt gedaan wordt geweigerd.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Verloopt</value>
   </data>
@@ -5378,9 +5375,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Genegeerd</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Wordt door de server genegeerd - de opgeslagen digest is geen bruikbare SHA-256-waarde, dus deze sectie authenticeert niets. Trek hem in en maak een vervanger aan.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Afbeeldingen (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10669,6 +10663,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Since {0}" xml:space="preserve">
     <value>Sinds {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>Sinds {0} wordt elke aanvraag die ermee wordt gedaan geweigerd.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Single sign-on met OpenID Connect</value>
   </data>
@@ -12399,6 +12396,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>Kon de spamconfiguratie niet lezen: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>De opgeslagen digest is geen bruikbare SHA-256-waarde, dus deze sectie authenticeert niets. Trek hem in en maak een vervanger aan.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>De opgeslagen vervaldatum kon niet worden gelezen in de vorm die deze pagina verwacht (YYYY-MM-DD HH:MM:SS), dus hiervandaan valt niet te zeggen of de server deze sleutel nog accepteert. Is de regel met de hand bewerkt, corrigeer die dan; trek anders de sleutel in en maak een vervanger aan.</value>

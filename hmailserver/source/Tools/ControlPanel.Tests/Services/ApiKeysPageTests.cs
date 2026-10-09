@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -37,20 +38,33 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// The sentence beside a pill says what the state means for the key and
       /// does not name the state again: with the state in the pill, "Read-only"
-      /// stood beside "Read-only. Expires ..." and "Full authority" beside "Full
-      /// authority - this key can change...", each said twice to the eye and to
-      /// a screen reader, which reads the pill and then the sentence.
+      /// stood beside "Read-only. Expires ...", "Full authority" beside "Full
+      /// authority - this key can change...", "Expired" beside "Expired on ..."
+      /// and "Ignored" beside "Ignored by the server - ...", each said twice to
+      /// the eye and to a screen reader, which reads the pill and then the
+      /// sentence.
       /// </summary>
-      [Theory]
-      [InlineData("Full authority")]
-      [InlineData("Read-only")]
-      public void TheSentenceBesideAPill_DoesNotNameItsStateAgain(string word)
+      [Fact]
+      public void TheSentenceBesideAPill_DoesNotNameAnyPillsStateAgain()
       {
          string row = KeyRow();
-         Match state = Regex.Match(row, @"pill = L\(""" + Regex.Escape(word) + @"""\);\s*state = F\(""([^""]*)""");
-         Assert.True(state.Success, "The key whose pill reads \"" + word + "\" has no sentence beside it.");
-         Assert.DoesNotContain(word, state.Groups[1].Value, StringComparison.OrdinalIgnoreCase);
-         Assert.EndsWith("Expires {0}.", state.Groups[1].Value, StringComparison.Ordinal);
+         var words = Regex.Matches(row, @"pill = [^;]*;").Cast<Match>()
+            .SelectMany(pill => Regex.Matches(pill.Value, @"L\(""([^""]+)""\)").Cast<Match>().Select(word => word.Groups[1].Value))
+            .ToList();
+         Assert.Equal(new[] { "Ignored", "Expiry unreadable", "Expired", "Full authority", "Read-only" }, words);
+
+         var sentences = Regex.Matches(row, @"state = (.*?);\s*(?://[^\n]*)?\r?\n", RegexOptions.Singleline).Cast<Match>()
+            .SelectMany(state => Regex.Matches(state.Groups[1].Value, @"[LF]\(""((?:[^""\\]|\\.)*)""").Cast<Match>().Select(text => text.Groups[1].Value))
+            .ToList();
+         Assert.Equal(5, sentences.Count);
+         foreach (string sentence in sentences)
+         {
+            foreach (string word in words)
+               Assert.False(sentence.Contains(word, StringComparison.OrdinalIgnoreCase), "\"" + sentence + "\" names the state \"" + word + "\" its pill says.");
+         }
+
+         Assert.Contains("state = F(\"Expires {0}.\"", row, StringComparison.Ordinal);
+         Assert.Contains("state = F(\"This key can change and delete things. Expires {0}.\"", row, StringComparison.Ordinal);
       }
 
       [Fact]

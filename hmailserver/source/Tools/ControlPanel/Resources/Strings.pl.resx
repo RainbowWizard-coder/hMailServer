@@ -4612,9 +4612,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expired on {0} ({1} days ago)|few" xml:space="preserve">
     <value>Wygasł {0} ({1} dni temu)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Wygasł {0}. Każde żądanie, które składa, jest odrzucane.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Wygasa</value>
   </data>
@@ -5442,9 +5439,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Ignorowany</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Ignorowane przez serwer - zapisany skrót nie jest użyteczną wartością SHA-256, więc ta sekcja niczego nie uwierzytelnia. Należy ją unieważnić i utworzyć nową w jej miejsce.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Obrazy (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10799,6 +10793,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Since {0}" xml:space="preserve">
     <value>Od {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>Od {0} każde żądanie, które składa, jest odrzucane.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Logowanie jednokrotne przez OpenID Connect</value>
   </data>
@@ -12562,6 +12559,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>Nie udało się odczytać konfiguracji antyspamowej: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>Zapisany skrót nie jest użyteczną wartością SHA-256, więc ta sekcja niczego nie uwierzytelnia. Należy ją unieważnić i utworzyć nową w jej miejsce.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Nie udało się odczytać zapisanego terminu wygaśnięcia w postaci, jakiej oczekuje ta strona (YYYY-MM-DD HH:MM:SS), więc nie da się stąd stwierdzić, czy serwer nadal przyjmuje ten klucz. Jeśli wiersz był edytowany ręcznie, należy go poprawić; w przeciwnym razie należy unieważnić klucz i utworzyć nowy w jego miejsce.</value>

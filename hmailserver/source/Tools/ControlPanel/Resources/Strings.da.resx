@@ -4554,9 +4554,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Udløb {0} (for {1} dage siden)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Udløb den {0}. Hver forespørgsel, den sender, afvises.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Udløber</value>
   </data>
@@ -5378,9 +5375,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Ignoreret</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Ignoreres af serveren - den gemte digest er ikke en brugbar SHA-256-værdi, så denne sektion godkender ingenting. Tilbagekald den, og opret en erstatning.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Billeder (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10669,6 +10663,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Since {0}" xml:space="preserve">
     <value>Siden {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>Siden {0} afvises hver forespørgsel, den sender.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Single sign-on med OpenID Connect</value>
   </data>
@@ -12399,6 +12396,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>Spamkonfigurationen kunne ikke læses: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>Den gemte digest er ikke en brugbar SHA-256-værdi, så denne sektion godkender ingenting. Tilbagekald den, og opret en erstatning.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Det gemte udløb kunne ikke læses i den form, denne side forventer (ÅÅÅÅ-MM-DD TT:MM:SS), så om serveren stadig accepterer denne nøgle, kan ikke afgøres herfra. Hvis linjen blev redigeret i hånden, så ret den; ellers tilbagekald nøglen og opret en erstatning.</value>

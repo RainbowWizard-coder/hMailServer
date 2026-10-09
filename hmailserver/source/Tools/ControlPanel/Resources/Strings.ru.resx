@@ -4612,9 +4612,6 @@ Control Panel может читать файлы сообщений только
   <data name="Expired on {0} ({1} days ago)|few" xml:space="preserve">
     <value>Срок действия истёк {0} ({1} дн. назад)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Срок действия истёк {0}. Каждый запрос с ним отклоняется.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Срок действия</value>
   </data>
@@ -5442,9 +5439,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Игнорируется</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Игнорируется сервером — сохранённая контрольная сумма не является пригодным значением SHA-256, поэтому этот раздел никого не аутентифицирует. Отзовите его и создайте замену.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Изображения (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10799,6 +10793,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Since {0}" xml:space="preserve">
     <value>С {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>С {0} каждый запрос с ним отклоняется.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Единый вход через OpenID Connect</value>
   </data>
@@ -12562,6 +12559,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>Не удалось прочитать конфигурацию защиты от спама: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>Сохранённая контрольная сумма не является пригодным значением SHA-256, поэтому этот раздел никого не аутентифицирует. Отзовите его и создайте замену.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Сохранённый срок действия не удалось прочитать в форме, которую ожидает эта страница (ГГГГ-ММ-ДД ЧЧ:ММ:СС), поэтому отсюда нельзя сказать, принимает ли сервер ещё этот ключ. Если строка редактировалась вручную, исправьте её; иначе отзовите ключ и создайте замену.</value>

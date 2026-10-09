@@ -4554,9 +4554,6 @@
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>{0} に期限切れ ({1} 日前)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>{0} に期限切れになりました。これによるリクエストはすべて拒否されます。</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>有効期限</value>
   </data>
@@ -5378,9 +5375,6 @@
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>無視</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>サーバーに無視されます。保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>画像 (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10669,6 +10663,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Since {0}" xml:space="preserve">
     <value>開始 {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>{0} 以降、これによるリクエストはすべて拒否されます。</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>OpenID Connect によるシングル サインオン</value>
   </data>
@@ -12399,6 +12396,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>スパム設定を読み取れませんでした: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>保存された有効期限を、このページが期待する形式 (YYYY-MM-DD HH:MM:SS) で読み取れなかったため、サーバーがこのキーをまだ受け入れるかどうかはここからは分かりません。行を手で編集した場合は修正してください。そうでなければ、キーを失効させて代わりを作成してください。</value>

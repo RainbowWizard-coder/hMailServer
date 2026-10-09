@@ -4554,9 +4554,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Scaduta il {0} ({1} giorni fa)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Scaduta il {0}. Ogni richiesta che effettua viene rifiutata.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Scade</value>
   </data>
@@ -5378,9 +5375,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Ignorata</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Ignorata dal server - il digest memorizzato non è un valore SHA-256 utilizzabile, quindi questa sezione non autentica nulla. Revocala e creane una sostitutiva.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Immagini (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10669,6 +10663,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Since {0}" xml:space="preserve">
     <value>Dal {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>Dal {0} ogni richiesta che effettua viene rifiutata.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Single sign-on con OpenID Connect</value>
   </data>
@@ -12399,6 +12396,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>Impossibile leggere la configurazione antispam: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>Il digest memorizzato non è un valore SHA-256 utilizzabile, quindi questa sezione non autentica nulla. Revocala e creane una sostitutiva.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>Non è stato possibile leggere la scadenza memorizzata nel formato che questa pagina si aspetta (YYYY-MM-DD HH:MM:SS), quindi da qui non si può dire se il server accetti ancora questa chiave. Se la riga è stata modificata a mano, correggerla; altrimenti revocare la chiave e crearne una sostitutiva.</value>

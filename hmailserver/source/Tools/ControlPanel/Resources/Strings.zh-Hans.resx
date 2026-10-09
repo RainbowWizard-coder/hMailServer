@@ -4554,9 +4554,6 @@
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>已于 {0} 过期（{1} 天前）</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>已于 {0} 过期。它发出的每个请求都会被拒绝。</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>到期</value>
   </data>
@@ -5378,9 +5375,6 @@
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>已忽略</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>被服务器忽略 - 存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>图像 (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10669,6 +10663,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Since {0}" xml:space="preserve">
     <value>自 {0} 起</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>自 {0} 起，它发出的每个请求都会被拒绝。</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>通过 OpenID Connect 单点登录</value>
   </data>
@@ -12399,6 +12396,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>无法读取垃圾邮件配置： </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>无法以本页预期的格式 (YYYY-MM-DD HH:MM:SS) 读取存储的到期时间，因此从此处无法判断服务器是否仍接受此密钥。如果该行是手动编辑的，请更正它；否则请吊销该密钥并创建一个替代。</value>

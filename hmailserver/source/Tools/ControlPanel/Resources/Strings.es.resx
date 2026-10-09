@@ -4554,9 +4554,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expired on {0} ({1} days ago)" xml:space="preserve">
     <value>Caducó el {0} (hace {1} días)</value>
   </data>
-  <data name="Expired on {0}. Every request it makes is refused." xml:space="preserve">
-    <value>Caducó el {0}. Toda petición que haga se rechaza.</value>
-  </data>
   <data name="Expires" xml:space="preserve">
     <value>Caduca</value>
   </data>
@@ -5378,9 +5375,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Ignored" xml:space="preserve">
     <value>Ignorada</value>
-  </data>
-  <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
-    <value>Ignorado por el servidor - el resumen almacenado no es un valor SHA-256 utilizable, así que esta sección no autentica nada. Revóquela y cree un reemplazo.</value>
   </data>
   <data name="Images (*.jpg;*.jpeg;*.png;*.gif)" xml:space="preserve">
     <value>Imágenes (*.jpg;*.jpeg;*.png;*.gif)</value>
@@ -10669,6 +10663,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Since {0}" xml:space="preserve">
     <value>Desde {0}</value>
   </data>
+  <data name="Since {0}, every request it makes is refused." xml:space="preserve">
+    <value>Desde el {0}, toda petición que haga se rechaza.</value>
+  </data>
   <data name="Single sign-on with OpenID Connect" xml:space="preserve">
     <value>Inicio de sesión único con OpenID Connect</value>
   </data>
@@ -12399,6 +12396,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="The spam configuration could not be read: " xml:space="preserve">
     <value>No se pudo leer la configuración antispam: </value>
+  </data>
+  <data name="The stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
+    <value>El resumen almacenado no es un valor SHA-256 utilizable, así que esta sección no autentica nada. Revóquela y cree un reemplazo.</value>
   </data>
   <data name="The stored expiry could not be read in the form this page expects (YYYY-MM-DD HH:MM:SS), so whether the server still accepts this key cannot be told from here. If the line was edited by hand, correct it; otherwise revoke the key and create a replacement." xml:space="preserve">
     <value>La caducidad guardada no pudo leerse en el formato que esta página espera (YYYY-MM-DD HH:MM:SS), así que desde aquí no puede saberse si el servidor sigue aceptando esta clave. Si la línea se editó a mano, corríjala; en caso contrario, revoque la clave y cree una de repuesto.</value>
