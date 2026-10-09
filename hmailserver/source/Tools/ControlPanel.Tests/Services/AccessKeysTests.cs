@@ -101,6 +101,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // first control inside it that does.
          Assert.Contains("e.Target = Editor(target, true) ?? target;", mnemonic, StringComparison.Ordinal);
          Assert.Contains("element.Focusable && KeyboardNavigation.GetIsTabStop(element)", mnemonic, StringComparison.Ordinal);
+         // Never a button of the row: a key presses a button it reaches, and a
+         // field's key only moves the keyboard.
+         Assert.Contains("element is not ButtonBase && Editor(element, reachable) is { } editor", mnemonic, StringComparison.Ordinal);
          Assert.Contains("AutomationProperties.SetAccessKey(Editor(target, false) ?? target,", mnemonic, StringComparison.Ordinal);
 
          // A caption applied again registers its key once, and gives a changed one up.

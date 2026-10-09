@@ -5,6 +5,7 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using hMailServer.ControlPanel.Services;
@@ -134,7 +135,10 @@ namespace hMailServer.ControlPanel.Views
       /// file and the destination folder, a DKIM key file, the route's address to
       /// add - and the row's panel takes no focus, so the key did nothing at all.
       /// At a key press only a control that can be reached counts; when the
-      /// caption is applied, before the row is laid out, any that would.
+      /// caption is applied, before the row is laid out, any that would. A button
+      /// inside the row is never the one: a key presses a button it reaches, and
+      /// a field's key only moves the keyboard - the row's buttons have keys of
+      /// their own.
       /// </summary>
       public static UIElement Editor(FrameworkElement target, bool reachable)
       {
@@ -145,7 +149,7 @@ namespace hMailServer.ControlPanel.Views
 
          foreach (object child in LogicalTreeHelper.GetChildren(target))
          {
-            if (child is FrameworkElement element && Editor(element, reachable) is { } editor)
+            if (child is FrameworkElement element && element is not ButtonBase && Editor(element, reachable) is { } editor)
                return editor;
          }
 
