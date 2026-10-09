@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 lijstvermelding</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>1 mailserver ontvangt mail voor {0}.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 bericht kan niet worden vermeld en blijft waar het is: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 patroon</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>1 probleem</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 weigert een wachtwoord dat ook maar één keer in de verzameling is voorgekomen.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>1 regel van de server, van boven naar beneden geëvalueerd.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>1 regel van {0}, van boven naar beneden geëvalueerd.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 opgeslagen instelling wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee. 1 wacht op een herstart van de service.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee. {0} wachten op een herstart van de service.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 opgeslagen instelling wacht op een herstart van de service.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 beveiligingsgroep</value>
@@ -1302,6 +1275,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="All linked domains" xml:space="preserve">
     <value>Alle gekoppelde domeinen</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Alle {0} controles geslaagd.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>Alle {0} controles geslaagd.</value>
   </data>
@@ -1737,6 +1713,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Bijlageblokkering staat uit, dus een patroon dat hier wordt toegevoegd, wordt pas toegepast als de blokkering wordt ingeschakeld.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Bijlageblokkering staat uit, dus geen van deze {0} patronen wordt toegepast.</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>Bijlageblokkering staat uit, dus geen van deze {0} patronen wordt toegepast.</value>
@@ -2713,9 +2692,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Connections in the pool" xml:space="preserve">
     <value>Verbindingen in de pool</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Verbindingen in de pool (genegeerd: deze server gebruikt de ingebouwde database)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Verbindingen met één bronhost, over alle lopende migraties samen (1 tot 64)</value>
   </data>
@@ -3561,11 +3537,17 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Alle gebeurtenissen van de berichttracering die ouder zijn dan een dag verwijderen? De berichten die ze beschrijven, kunnen dan hier niet meer worden gevolgd.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Alle gebeurtenissen van de berichttracering die ouder zijn dan {0} dag verwijderen? De berichten die ze beschrijven, kunnen dan hier niet meer worden gevolgd.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Alle gebeurtenissen van de berichttracering die ouder zijn dan {0} dagen verwijderen? De berichten die ze beschrijven, kunnen dan hier niet meer worden gevolgd.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Alle berichten die langer dan een dag in quarantaine staan verwijderen? De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opnieuw geprobeerd en er is geen andere kopie.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Alle berichten die langer dan {0} dag in quarantaine staan verwijderen? De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opnieuw geprobeerd en er is geen andere kopie.</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Alle berichten die langer dan {0} dagen in quarantaine staan verwijderen? De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opnieuw geprobeerd en er is geen andere kopie.</value>
@@ -3639,21 +3621,14 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>De domeinalias {0} verwijderen? Mail aan adressen onder die naam wordt niet meer aan dit domein bezorgd.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Het domein {0} verwijderen?
-
-Dit verwijdert definitief het {1} account ervan, samen met elk bericht dat daarin is opgeslagen en alle aliassen en distributielijsten van het domein. Dit kan niet ongedaan worden gemaakt.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Het domein {0} verwijderen?
-
-Dit verwijdert definitief de {1} accounts ervan, samen met elk bericht dat daarin is opgeslagen en alle aliassen en distributielijsten van het domein. Dit kan niet ongedaan worden gemaakt.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Het domein {0} verwijderen? Het heeft geen accounts; de aliassen en distributielijsten worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Het domein {0} verwijderen? Het enige account, elk bericht dat daarin is opgeslagen en de aliassen en distributielijsten van het domein worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Het domein {0} verwijderen? Het {1} account, elk bericht dat daarin is opgeslagen en de aliassen en distributielijsten van het domein worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Het domein {0} verwijderen? De {1} accounts, elk bericht dat daarin is opgeslagen en de aliassen en distributielijsten van het domein worden samen met het domein verwijderd. Dit kan niet ongedaan worden gemaakt.</value>
@@ -4449,9 +4424,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Elke bijlage wordt vervangen door een korte notitie, niet alleen de besmette; een versleuteld bericht wordt ongewijzigd bezorgd.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Elke controle in de volgorde waarin de server ze uitvoert, en wat de score die ze toevoegen met het bericht doet. Op deze pagina kan niets worden bewerkt - elke sectie heeft een knop naar de pagina waar de instellingen ervan thuishoren.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Elke controle in de volgorde waarin de server ze uitvoert, de score ervan, en wat het totaal met het bericht doet.</value>
@@ -5601,9 +5573,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (de door de provider gepubliceerde ondertekeningssleutels; leeg = alleen het sleutelbestand)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Taak {0} is {1} - mappen: {2}, berichten toegevoegd: {3}, overgeslagen omdat ze nog in de mailbox staan: {4}, mislukt: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journaling en dubbele bezorging</value>
   </data>
@@ -6381,9 +6350,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Bericht _voor lokale afzenders (leeg = hetzelfde als hierboven)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Bericht-_id, uit de lijst</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Berichtindexering</value>
@@ -7270,9 +7236,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Pas geldig vanaf {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Nog niet - {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Notitie</value>
   </data>
@@ -7638,9 +7601,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Eén patroon voor geblokkeerde bijlagen is geconfigureerd, maar bijlageblokkering staat uit, dus het wordt niet toegepast.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Op één geconfigureerde poort wordt niet geluisterd: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Op één geconfigureerde poort wordt niet geluisterd: {0}. Als u die net hebt toegevoegd of gewijzigd, herinitialiseer dan de server: die leest zijn poortlijst bij het opstarten. Anders houdt een ander programma de poort vast, bestaat het adres niet op deze machine, of kon het certificaat van een TLS-poort niet worden geladen - het foutenlogboek zegt welke.</value>
@@ -8974,8 +8934,14 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Het bericht van {0} vrijgeven aan de ontvangers? Het wordt meteen bezorgd.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>{0} aangevinkt bericht vrijgeven aan de ontvangers? Het wordt meteen bezorgd.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>De {0} aangevinkte berichten vrijgeven aan de ontvangers? Ze worden meteen bezorgd.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>{0} bericht van {1} vrijgeven aan de ontvangers? Het wordt meteen bezorgd.</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>De {0} berichten van {1} vrijgeven aan de ontvangers? Ze worden meteen bezorgd.</value>
@@ -10220,6 +10186,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>‘{0}’ verzenden naar het ene actieve account dat overeenkomt met ‘{1}’?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>‘{0}’ verzenden naar het {1} actieve account dat overeenkomt met ‘{2}’?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>‘{0}’ verzenden naar de {1} actieve accounts die overeenkomen met ‘{2}’?</value>
   </data>
@@ -10514,10 +10483,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Instellingen opgeslagen. {0} ervan worden pas van kracht wanneer de hMailServer-service opnieuw start, en een herstart verbreekt elke open sessie.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Instellingen opgeslagen. {0} ervan wordt pas van kracht wanneer de hMailServer-service opnieuw start.
-
-Nu opnieuw starten?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Instellingen opgeslagen. {0} ervan wordt pas van kracht wanneer de hMailServer-service opnieuw start, en een herstart verbreekt elke open sessie.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Instellingen die vroeger op deze pagina stonden</value>
@@ -11034,9 +11001,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>DAN</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>DEZE SERVER GEBRUIKT DE INGEBOUWDE DATABASE (MSSQLCE), waarbij de waarde op 1 wordt afgedwongen, wat hier ook is ingesteld. Dat is bewust: SQL Server Compact gedraagt zich niet betrouwbaar bij gelijktijdige verbindingen. Een wijziging hieronder heeft geen effect totdat de server naar MySQL, MSSQL of PostgreSQL is verhuisd.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Het token is verwijderd; verzoeken aan de sandbox bevatten er nu geen.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Het totaal is onbegrensd, omdat een lijstvermelding of de eigen score van SpamAssassin elke grootte kan hebben.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Het totaal is onbegrensd, omdat een lijstvermelding, de eigen score van SpamAssassin of die van de externe engine elke grootte kan hebben.</value>
   </data>
@@ -12553,9 +12514,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Er zijn geen domeinen, dus er is geen lijst om te tonen.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Er zijn in totaal {0} IP-bereiken voor automatisch verbannen.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Er is nog geen geconfigureerde hostnaam om te kopiëren.</value>
   </data>
@@ -12564,9 +12522,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Er is maar één stap, bij 2. Vanaf 3 (de standaard is 9) wordt elke ingeschakelde categorie volledig gelogd. Bij 2 of lager laat de server IMAP FETCH- en STATUS-antwoorden uit het logboek weg en kort hij regels die langer zijn dan de limiet hieronder in tot hun eerste en laatste tekens. Debugberichten hierboven aanzetten herstelt het volledige detail, ongeacht het niveau.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Er is in totaal {0} IP-bereik voor automatisch verbannen.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Dit zijn alleen de tellingen van de eerste {0} accounts; deze pagina stopt daar in plaats van u op de rest te laten wachten.</value>
@@ -15548,9 +15503,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Verbindingen met een poort waarop niet wordt geluisterd, worden geweigerd. De gebruikelijke oorzaken zijn een ander programma dat de poort al vasthoudt, een bindadres dat niet op deze machine bestaat, of - op een TLS-poort - een certificaat dat de server niet kon laden; de server legt eenmalig vast welke, in het foutenlogboek bij het opstarten.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} DNS-record wordt op de achtergrond opgezocht; de rij gemarkeerd met "controleren" wordt bijgewerkt.</value>
   </data>
@@ -15689,20 +15641,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} wijzigingen doorgevoerd, geen enkele mislukt.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} clientlistener heeft geen versleuteling beschikbaar, dus de wachtwoorden die op deze listener worden gebruikt, gaan in klare tekst over het netwerk.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} clientlistener biedt STARTTLS zonder het te vereisen, dus een client die niet om versleuteling vraagt, authenticeert zich onversleuteld, en niets meldt dat dat is gebeurd.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}” gesloten. De rondleiding gaat verder waar u gebleven was.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>Er wordt niet geluisterd op {0} geconfigureerde poort: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>Er wordt niet geluisterd op {0} geconfigureerde poorten: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Er wordt niet geluisterd op {0} geconfigureerde poort: {1}. Als u die net hebt toegevoegd of gewijzigd, herinitialiseer dan de server: die leest zijn poortlijst bij het opstarten. Anders houdt een ander programma de poort vast, bestaat het adres niet op deze machine, of kon het certificaat van een TLS-poort niet worden geladen - het foutenlogboek zegt welke.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Er wordt niet geluisterd op {0} geconfigureerde poorten: {1}. Als u er net een hebt toegevoegd of gewijzigd, herinitialiseer dan de server: die leest zijn poortlijst bij het opstarten. Anders houdt een ander programma de poort vast, bestaat het adres niet op deze machine, of kon het certificaat van een TLS-poort niet worden geladen - het foutenlogboek zegt welke.</value>
@@ -15884,8 +15827,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} lijstvermeldingen</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} listener is geconfigureerd voor TLS maar kan dat niet serveren, dus die poort luistert helemaal niet.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{0} mailserver ontvangt mail voor {1}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} mailservers ontvangen mail voor {1}.</value>
@@ -15998,6 +15941,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} patronen worden op bestandsnaam uit elk bericht verwijderd, wat de scanners ook zeggen.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>{0} probleem</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemen</value>
   </data>
@@ -16040,8 +15986,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rijen moeten worden gelezen voordat u toepast - een overgeslagen vermelding is een postvak dat iemand verwacht en niet zal krijgen, en een uitgeschakelde is een postvak dat wordt afgenomen.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel, van boven naar beneden geëvalueerd.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel van de server, van boven naar beneden geëvalueerd.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel van {1}, van boven naar beneden geëvalueerd.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regels</value>
@@ -16051,9 +16000,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{0} regels van {1}, van boven naar beneden geëvalueerd.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regels, van boven naar beneden geëvalueerd.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} meetpunt naar het klembord gekopieerd.</value>
@@ -16067,11 +16013,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} meetpunten.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} opgeslagen instelling wacht op een herinitialisatie, en {1} op een herstart van de service.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} opgeslagen instelling wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} opgeslagen instelling wacht op een herinitialisatie.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} opgeslagen instelling wacht op een herstart van de service.</value>
@@ -16081,18 +16027,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>{0} opgeslagen instellingen wachten op een herinitialisatie - Nu toepassen neemt ze mee.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>{0} opgeslagen instellingen wachten op een herinitialisatie - Nu toepassen neemt ze mee. 1 wacht op een herstart van de service.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>{0} opgeslagen instellingen wachten op een herinitialisatie - Nu toepassen neemt ze mee. {1} wachten op een herstart van de service.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} opgeslagen instellingen wachten op een herinitialisatie, en {1} op een herstart van de service.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} opgeslagen instellingen wachten op een herinitialisatie.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} opgeslagen instellingen wachten op een herstart van de service.</value>
@@ -16109,17 +16043,17 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} servermeldingen</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} instelling kon niet worden gelezen: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} instelling kon niet worden gelezen en is daarom op haar kaart gemarkeerd als Niet gelezen; opslaan laat haar op de server zoals ze is. De eerste reden: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} instelling kon niet worden geschreven.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>{0} instelling op deze kaart kon niet worden gelezen en is daarom gemarkeerd als Niet gelezen; opslaan laat haar op de server zoals ze is.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>{0} instellingen konden niet worden gelezen en zijn daarom op hun kaarten gemarkeerd als Niet gelezen; opslaan laat ze op de server zoals ze zijn. De eerste reden: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} instellingen konden niet worden gelezen: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} instellingen konden niet worden geschreven.</value>
@@ -16148,20 +16082,20 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} waarde kon niet van de server worden gelezen, dus deze samenvatting kan onvolledig zijn.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} waarde kon niet worden gelezen: {1} De kaarten hieronder kunnen onvolledig zijn.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} waarde kon niet worden gelezen: {1} De items hierboven kunnen onvolledig zijn.</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} waarden konden niet van de server worden gelezen, dus deze samenvatting kan onvolledig zijn.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} waarden konden niet worden gelezen: {1} De kaarten hieronder kunnen onvolledig zijn.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} waarden konden niet worden gelezen: {1} De items hierboven kunnen onvolledig zijn.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} wachten op een herstart van de service.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} wacht op een herstart van de service.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} is gemaakt met {1} postbus.</value>

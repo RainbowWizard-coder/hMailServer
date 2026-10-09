@@ -158,7 +158,10 @@ namespace hMailServer.ControlPanel.Services
 
          return failedReads == 1
             ? F("One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}", diagnosis ?? "")
-            : F("{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}", failedReads, diagnosis ?? "");
+            : PluralF(failedReads,
+               "{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}",
+               "{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}",
+               failedReads, diagnosis ?? "");
       }
 
       /// <summary>

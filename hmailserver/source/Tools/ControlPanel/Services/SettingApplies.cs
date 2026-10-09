@@ -155,24 +155,21 @@ namespace hMailServer.ControlPanel.Services
          if (waitingForReinitialize <= 0 && waitingForRestart <= 0)
             return null;
 
+         string reinitialise = waitingForReinitialize <= 0 ? null
+            : Plural(waitingForReinitialize,
+               "{0} saved setting waits for a reinitialise - Apply now takes it.",
+               "{0} saved settings wait for a reinitialise - Apply now takes them.");
+
          if (waitingForRestart <= 0)
-            return waitingForReinitialize == 1
-               ? L("1 saved setting waits for a reinitialise - Apply now takes it.")
-               : F("{0} saved settings wait for a reinitialise - Apply now takes them.", waitingForReinitialize);
+            return reinitialise;
 
-         if (waitingForReinitialize <= 0)
-            return waitingForRestart == 1
-               ? L("1 saved setting waits for a service restart.")
-               : F("{0} saved settings wait for a service restart.", waitingForRestart);
+         if (reinitialise == null)
+            return Plural(waitingForRestart, "{0} saved setting waits for a service restart.", "{0} saved settings wait for a service restart.");
 
-         if (waitingForReinitialize == 1)
-            return waitingForRestart == 1
-               ? L("1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart.")
-               : F("1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart.", waitingForRestart);
-
-         return waitingForRestart == 1
-            ? F("{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart.", waitingForReinitialize)
-            : F("{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart.", waitingForReinitialize, waitingForRestart);
+         // Both, in two sentences, each counting its own way; the second's subject
+         // is the first's, as "3 saved settings wait ... 1 waits for a service restart."
+         return Sentences(reinitialise,
+            Plural(waitingForRestart, "{0} waits for a service restart.", "{0} wait for a service restart."));
       }
 
       /// <summary>
@@ -182,9 +179,9 @@ namespace hMailServer.ControlPanel.Services
       /// the settings any page saved.
       /// </summary>
       public static string RestartQuestion(int waitingForRestart)
-         => waitingForRestart == 1
-            ? L("1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.")
-            : F("{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.", waitingForRestart);
+         => Plural(waitingForRestart,
+            "{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.",
+            "{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.");
 
       /// <summary>
       /// Which settings the pending bar counts, for its tool tip and its help text:

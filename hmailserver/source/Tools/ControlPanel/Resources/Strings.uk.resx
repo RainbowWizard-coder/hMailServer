@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>Записів списку: 1</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>Поштових серверів, які приймають пошту для {0}: 1.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 повідомлення не можна створити запис; воно залишиться там, де є: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>Шаблонів: 1</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>Проблем: 1</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 відхиляє пароль, який трапився в базі хоча б один раз.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>Правил: 1</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Правил сервера: 1, оцінюються згори донизу.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>Правил домену {0}: 1, оцінюються згори донизу.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 збережений параметр набуде чинності лише після перезапуску служби hMailServer. Перезапустити службу зараз? Усі клієнти, підключені до сервера, буде від'єднано, поки вона зупиняється й запускається знову.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 збережений параметр чекає на повторну ініціалізацію — «Застосувати зараз» застосує його.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 збережений параметр чекає на повторну ініціалізацію — «Застосувати зараз» застосує його. 1 чекає на перезапуск служби.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 збережений параметр чекає на повторну ініціалізацію — «Застосувати зараз» застосує його. Чекають на перезапуск служби: {0}.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 збережений параметр чекає на перезапуск служби.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>Груп безпеки: 1</value>
@@ -1308,7 +1281,13 @@
   <data name="All linked domains" xml:space="preserve">
     <value>Усі пов’язані домени</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Усі перевірки пройдено: {0}.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
+    <value>Усі перевірки пройдено: {0}.</value>
+  </data>
+  <data name="All {0} checks passed.|few" xml:space="preserve">
     <value>Усі перевірки пройдено: {0}.</value>
   </data>
   <data name="Allo_w and release" xml:space="preserve">
@@ -1753,7 +1732,13 @@
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Блокування вкладень вимкнено, тож доданий тут шаблон не застосовується, доки блокування не буде ввімкнено.</value>
   </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Блокування вкладень вимкнено, тож жоден із цих шаблонів (усього: {0}) не застосовується.</value>
+  </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Блокування вкладень вимкнено, тож жоден із цих шаблонів (усього: {0}) не застосовується.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied.|few" xml:space="preserve">
     <value>Блокування вкладень вимкнено, тож жоден із цих шаблонів (усього: {0}) не застосовується.</value>
   </data>
   <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
@@ -2731,9 +2716,6 @@
   <data name="Connections in the pool" xml:space="preserve">
     <value>Підключення в пулі</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Підключення в пулі (ігнорується: цей сервер використовує вбудовану базу даних)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Підключення до одного вихідного вузла за всіма запущеними міграціями (від 1 до 64)</value>
   </data>
@@ -3579,13 +3561,25 @@
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Видалити всі події трасування повідомлень, старші за один день? Описані в них повідомлення тут більше не можна буде відстежити.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Видалити всі події трасування повідомлень, старші за строк зберігання (днів: {0})? Описані в них повідомлення тут більше не можна буде відстежити.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Видалити всі події трасування повідомлень, старші за строк зберігання (днів: {0})? Описані в них повідомлення тут більше не можна буде відстежити.</value>
+  </data>
+  <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here.|few" xml:space="preserve">
     <value>Видалити всі події трасування повідомлень, старші за строк зберігання (днів: {0})? Описані в них повідомлення тут більше не можна буде відстежити.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Видалити всі повідомлення, що перебувають у карантині довше одного дня? Відправникам сказали, що їх прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
   </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Видалити всі повідомлення, що перебувають у карантині довше за строк зберігання (днів: {0})? Відправникам сказали, що їх прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
+  </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Видалити всі повідомлення, що перебувають у карантині довше за строк зберігання (днів: {0})? Відправникам сказали, що їх прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy.|few" xml:space="preserve">
     <value>Видалити всі повідомлення, що перебувають у карантині довше за строк зберігання (днів: {0})? Відправникам сказали, що їх прийнято, тому ніщо не повторить спробу, а іншої копії немає.</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
@@ -3657,28 +3651,19 @@
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Видалити псевдонім домену {0}? Пошта на адреси з цією назвою більше не доставляється до цього домену.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Видалити домен {0}?
-
-Це назавжди вилучить його {1} обліковий запис, кожне повідомлення, збережене в ньому, і всі псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Видалити домен {0}?
-
-Це назавжди вилучить його {1} облікових записів, кожне повідомлення, збережене в них, і всі псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo.|few" xml:space="preserve">
-    <value>Видалити домен {0}?
-
-Це назавжди вилучить його {1} облікові записи, кожне повідомлення, збережене в них, і всі псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Видалити домен {0}? У ньому немає облікових записів; його псевдоніми та списки розсилки буде видалено разом із ним. Скасувати це неможливо.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Видалити домен {0}? Разом із ним буде видалено його єдиний обліковий запис, кожне збережене в ньому повідомлення, а також псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
   </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Видалити домен {0}? Разом із ним буде видалено його облікові записи (кількість: {1}), кожне збережене в них повідомлення, а також псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
+  </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Видалити домен {0}? Разом із ним буде видалено його облікові записи (кількість: {1}), кожне збережене в них повідомлення, а також псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo.|few" xml:space="preserve">
     <value>Видалити домен {0}? Разом із ним буде видалено його облікові записи (кількість: {1}), кожне збережене в них повідомлення, а також псевдоніми та списки розсилки домену. Скасувати це неможливо.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
@@ -4488,9 +4473,6 @@
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Кожне вкладення замінюється короткою приміткою, а не лише заражене; зашифроване повідомлення доставляється без змін.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Кожна перевірка в порядку, в якому сервер їх виконує, і що оцінка, яку вона додає, робить із повідомленням. На цій сторінці нічого не можна редагувати - у кожному розділі є кнопка, що відкриває сторінку, якій належать його параметри.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Кожна перевірка в порядку, в якому сервер їх виконує, її оцінка і що сума робить із повідомленням.</value>
@@ -5655,9 +5637,6 @@
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL-адреса JWK Set (опубліковані ключі підписування провайдера; порожньо = лише файл ключа)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Завдання {0}: {1}. Тек: {2}, додано повідомлень: {3}, пропущено (ще у скриньці): {4}, не вдалося: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Журналювання та подвійна доставка</value>
   </data>
@@ -6441,9 +6420,6 @@
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Повідомлення _для локальних відправників (порожньо = як вище)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>_Ідентифікатор повідомлення зі списку</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Індексування повідомлень</value>
@@ -7342,9 +7318,6 @@
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Недійсний до {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Ще ні — {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Примітка</value>
   </data>
@@ -7716,9 +7689,6 @@
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Налаштовано один шаблон блокування вкладень, але блокування вкладень вимкнено, тому він не застосовується.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Один налаштований порт не прослуховується: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Один налаштований порт не прослуховується: {0}. Якщо ви щойно його додали або змінили, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
@@ -9055,10 +9025,22 @@
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Випустити повідомлення від {0} його одержувачам? Його буде доставлено одразу.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Випустити позначені повідомлення (кількість: {0}) їхнім одержувачам? Їх буде доставлено одразу.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>Випустити позначені повідомлення (кількість: {0}) їхнім одержувачам? Їх буде доставлено одразу.</value>
   </data>
+  <data name="Release the {0} checked messages to their recipients? They are delivered at once.|few" xml:space="preserve">
+    <value>Випустити позначені повідомлення (кількість: {0}) їхнім одержувачам? Їх буде доставлено одразу.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Випустити повідомлення від {1} (кількість: {0}) їхнім одержувачам? Їх буде доставлено одразу.</value>
+  </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
+    <value>Випустити повідомлення від {1} (кількість: {0}) їхнім одержувачам? Їх буде доставлено одразу.</value>
+  </data>
+  <data name="Release the {0} messages from {1} to their recipients? They are delivered at once.|few" xml:space="preserve">
     <value>Випустити повідомлення від {1} (кількість: {0}) їхнім одержувачам? Їх буде доставлено одразу.</value>
   </data>
   <data name="Release this group" xml:space="preserve">
@@ -10328,7 +10310,13 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>Надіслати «{0}» єдиному активному обліковому запису, що відповідає «{1}»?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>Надіслати «{0}» активним обліковим записам, що відповідають «{2}» (кількість: {1})?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Надіслати «{0}» активним обліковим записам, що відповідають «{2}» (кількість: {1})?</value>
+  </data>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?|few" xml:space="preserve">
     <value>Надіслати «{0}» активним обліковим записам, що відповідають «{2}» (кількість: {1})?</value>
   </data>
   <data name="Sender" xml:space="preserve">
@@ -10622,15 +10610,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Параметри збережено. Кількість параметрів, які наберуть чинності лише після перезапуску служби hMailServer: {0}. Перезапуск обриває всі відкриті сеанси.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?|few" xml:space="preserve">
-    <value>Параметри збережено. {0} з них наберуть чинності лише після перезапуску служби hMailServer.
-
-Перезапустити її зараз?</value>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session.|few" xml:space="preserve">
+    <value>Параметри збережено. Кількість параметрів, які наберуть чинності лише після перезапуску служби hMailServer: {0}. Перезапуск обриває всі відкриті сеанси.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Параметри збережено. {0} з них набере чинності лише після перезапуску служби hMailServer.
-
-Перезапустити її зараз?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Параметри збережено. Кількість параметрів, які наберуть чинності лише після перезапуску служби hMailServer: {0}. Перезапуск обриває всі відкриті сеанси.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Параметри, які раніше були на цій сторінці</value>
@@ -11150,9 +11134,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="THEN" xml:space="preserve">
     <value>ТО</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>ЦЕЙ СЕРВЕР ВИКОРИСТОВУЄ ВБУДОВАНУ БАЗУ ДАНИХ (MSSQLCE), у якій це значення примусово дорівнює 1, що б тут не було задано. Так зроблено навмисно: SQL Server Compact працює ненадійно за одночасних підключень. Зміна значення нижче нічого не дасть, доки сервер не буде переведено на MySQL, MSSQL або PostgreSQL.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12606,9 +12587,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Токен видалено; запити до пісочниці тепер надсилаються без нього.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Загальна сума не має верхньої межі, бо запис у списку чи власна оцінка SpamAssassin може бути будь-якого розміру.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Загальна сума не має верхньої межі, бо запис у списку, власна оцінка SpamAssassin чи оцінка зовнішнього рушія може бути будь-якого розміру.</value>
   </data>
@@ -12699,12 +12677,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Доменів немає, тож показувати нічого.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Усього діапазонів IP автоблокування: {0}.</value>
-  </data>
-  <data name="There are {0} auto-ban IP ranges in all.|few" xml:space="preserve">
-    <value>Усього діапазонів IP автоблокування: {0}.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Поки немає налаштованого імені вузла для копіювання.</value>
   </data>
@@ -12713,9 +12685,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Сходинка лише одна, на 2. З 3 і вище (типово 9) кожна увімкнена категорія пишеться в журнал повністю. На 2 і нижче сервер вилучає з журналу відповіді IMAP FETCH і STATUS та скорочує рядки, довші за межу нижче, до їхніх перших і останніх символів. Увімкнення «Повідомлень налагодження» вище повертає повну деталізацію незалежно від рівня.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Усього діапазонів IP автоблокування: {0}.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Це підрахунки лише для перших {0} облікових записів; сторінка зупиняється на них, щоб не змушувати вас чекати на решту.</value>
@@ -15721,9 +15690,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Підключення до порту, який не прослуховується, відхиляються. Звичайні причини — інша програма вже утримує порт, адреса прив’язки, якої немає на цьому комп’ютері, або, на порту TLS, сертифікат, який серверу не вдалося завантажити; сервер один раз записує причину до журналу помилок під час запуску.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>У фоновому режимі виконується пошук DNS-записів ({0}); рядки з позначкою «перевіряється» оновляться.</value>
   </data>
@@ -15907,32 +15873,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} changes carried out, none failed.|few" xml:space="preserve">
     <value>Виконано {0} зміни, жодна не зазнала невдачі.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Клієнтських слухачів без доступного шифрування: {0}; паролі, використані на них, перетинають мережу відкритим текстом.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
-  </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
-    <value>Клієнтських слухачів без доступного шифрування: {0}; паролі, використані на них, перетинають мережу відкритим текстом.</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
-    <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>«{0}» закрито. Екскурсія продовжиться з того місця, де ви зупинилися.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>{0} налаштований порт не прослуховується: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>{0} налаштованих портів не прослуховуються: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Налаштованих портів, які не прослуховуються: {0} ({1}). Якщо ви щойно додали або змінили один із них, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Налаштованих портів, які не прослуховуються: {0} ({1}). Якщо ви щойно додали або змінили один із них, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
   </data>
-  <data name="{0} configured ports are not being listened on: {1}.|few" xml:space="preserve">
-    <value>{0} налаштовані порти не прослуховуються: {1}.</value>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.|few" xml:space="preserve">
+    <value>Налаштованих портів, які не прослуховуються: {0} ({1}). Якщо ви щойно додали або змінили один із них, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} не вдалося отримати з цього комп’ютера: {1} Імовірні причини: немає запису A/CNAME для mta-sts.{2}, слухач HTTPS не працює (WebServicesHttpsPort=0 — типове значення з постачання) або сертифікат не охоплює mta-sts.{2}. Перевірено лише з цього комп’ютера.</value>
@@ -16141,13 +16092,13 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} list entries" xml:space="preserve">
     <value>Записів списку: {0}</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
-    <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>Поштових серверів, які приймають пошту для {1}: {0}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
+    <value>Поштових серверів, які приймають пошту для {1}: {0}.</value>
+  </data>
+  <data name="{0} mail servers receive mail for {1}.|few" xml:space="preserve">
     <value>Поштових серверів, які приймають пошту для {1}: {0}.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
@@ -16291,7 +16242,13 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} шаблони вилучаються з кожного повідомлення за ім’ям файлу, хай що кажуть сканери.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>Проблем: {0}</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
+    <value>Проблем: {0}</value>
+  </data>
+  <data name="{0} problems|few" xml:space="preserve">
     <value>Проблем: {0}</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
@@ -16348,8 +16305,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.|few" xml:space="preserve">
     <value>{0} рядки потрібно прочитати перед застосуванням — пропущений запис означає поштову скриньку, на яку хтось розраховує й не отримає, а вимкнений — поштову скриньку, яку забирають.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} правило, оцінюється згори донизу.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Правил сервера: {0}, оцінюються згори донизу.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Правил: {0}</value>
@@ -16357,14 +16317,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
     <value>Правил сервера: {0}, оцінюються згори донизу.</value>
   </data>
+  <data name="{0} rules of the server, evaluated top to bottom.|few" xml:space="preserve">
+    <value>Правил сервера: {0}, оцінюються згори донизу.</value>
+  </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
   </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} правил, оцінюються згори донизу.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom.|few" xml:space="preserve">
-    <value>{0} правила, оцінюються згори донизу.</value>
+  <data name="{0} rules of {1}, evaluated top to bottom.|few" xml:space="preserve">
+    <value>Правил домену {1}: {0}, оцінюються згори донизу.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} зразок скопійовано до буфера обміну.</value>
@@ -16384,11 +16344,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} samples.|few" xml:space="preserve">
     <value>{0} зразки.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} збережений параметр чекає на повторну ініціалізацію, а {1} — на перезапуск служби.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} збережений параметр набуде чинності лише після перезапуску служби hMailServer. Перезапустити службу зараз? Усі клієнти, підключені до сервера, буде від'єднано, поки вона зупиняється й запускається знову.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} збережений параметр чекає на повторну ініціалізацію.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} збережений параметр чекає на повторну ініціалізацію — «Застосувати зараз» застосує його.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} збережений параметр чекає на перезапуск служби.</value>
@@ -16396,26 +16356,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>Збережені параметри ({0}) наберуть чинності лише після перезапуску служби hMailServer. Перезапустити службу зараз? Усі клієнти, підключені до сервера, буде від'єднано, поки вона зупиняється й запускається знову.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.|few" xml:space="preserve">
+    <value>Збережені параметри ({0}) наберуть чинності лише після перезапуску служби hMailServer. Перезапустити службу зараз? Усі клієнти, підключені до сервера, буде від'єднано, поки вона зупиняється й запускається знову.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>Збережених параметрів, що чекають на повторну ініціалізацію: {0} — «Застосувати зараз» застосує їх.</value>
   </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>Збережених параметрів, що чекають на повторну ініціалізацію: {0} — «Застосувати зараз» застосує їх. 1 чекає на перезапуск служби.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>Збережених параметрів, що чекають на повторну ініціалізацію: {0} — «Застосувати зараз» застосує їх. Чекають на перезапуск служби: {1}.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} збережених параметрів чекають на повторну ініціалізацію, а {1} — на перезапуск служби.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart.|few" xml:space="preserve">
-    <value>{0} збережені параметри чекають на повторну ініціалізацію, а {1} — на перезапуск служби.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} збережених параметрів чекають на повторну ініціалізацію.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise.|few" xml:space="preserve">
-    <value>{0} збережені параметри чекають на повторну ініціалізацію.</value>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them.|few" xml:space="preserve">
+    <value>Збережених параметрів, що чекають на повторну ініціалізацію: {0} — «Застосувати зараз» застосує їх.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} збережених параметрів чекають на перезапуск служби.</value>
@@ -16435,20 +16383,20 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} server messages" xml:space="preserve">
     <value>Повідомлень сервера: {0}</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>Параметрів, які не вдалося прочитати: {0}. {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>Параметрів, які не вдалося прочитати: {0}. На своїх картках вони позначені «Не прочитано», а під час збереження залишаються на сервері без змін. Перша причина: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>Не вдалося записати параметрів: {0}.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Параметрів на цій картці, які не вдалося прочитати: {0}. Вони позначені «Не прочитано»; під час збереження вони залишаються на сервері без змін.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>Параметрів, які не вдалося прочитати: {0}. На своїх картках вони позначені «Не прочитано», а під час збереження залишаються на сервері без змін. Перша причина: {1}</value>
   </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>Параметрів, які не вдалося прочитати: {0}. {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}|few" xml:space="preserve">
-    <value>Параметрів, які не вдалося прочитати: {0}. {1}</value>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}|few" xml:space="preserve">
+    <value>Параметрів, які не вдалося прочитати: {0}. На своїх картках вони позначені «Не прочитано», а під час збереження залишаються на сервері без змін. Перша причина: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>Не вдалося записати параметрів: {0}.</value>
@@ -16457,6 +16405,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Не вдалося записати параметрів: {0}.</value>
   </data>
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметрів на цій картці, які не вдалося прочитати: {0}. Вони позначені «Не прочитано»; під час збереження вони залишаються на сервері без змін.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.|few" xml:space="preserve">
     <value>Параметрів на цій картці, які не вдалося прочитати: {0}. Вони позначені «Не прочитано»; під час збереження вони залишаються на сервері без змін.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
@@ -16483,9 +16434,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} значення не вдалося прочитати з сервера, тому цей підсумок може бути неповним.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} значення не вдалося прочитати: {1} Картки нижче можуть бути неповними.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} значення не вдалося прочитати: {1} Пункти вище можуть бути неповними.</value>
   </data>
@@ -16495,17 +16443,20 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} values could not be read from the server, so this summary may be incomplete.|few" xml:space="preserve">
     <value>{0} значення не вдалося прочитати з сервера, тому цей підсумок може бути неповним.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} значень не вдалося прочитати: {1} Картки нижче можуть бути неповними.</value>
-  </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete.|few" xml:space="preserve">
-    <value>{0} значення не вдалося прочитати: {1} Картки нижче можуть бути неповними.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} значень не вдалося прочитати: {1} Пункти вище можуть бути неповними.</value>
   </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete.|few" xml:space="preserve">
     <value>{0} значення не вдалося прочитати: {1} Пункти вище можуть бути неповними.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>Чекають на перезапуск служби: {0}.</value>
+  </data>
+  <data name="{0} wait for a service restart.|few" xml:space="preserve">
+    <value>Чекають на перезапуск служби: {0}.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} чекає на перезапуск служби.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} створено з {1} скринькою.</value>

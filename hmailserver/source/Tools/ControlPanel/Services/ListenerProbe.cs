@@ -211,7 +211,10 @@ namespace hMailServer.ControlPanel.Services
          string names = string.Join(", ", endpoints ?? Array.Empty<string>());
          return endpoints == null || endpoints.Count <= 1
             ? F("One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.", names)
-            : F("{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.", endpoints.Count, names);
+            : PluralF(endpoints.Count,
+               "{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.",
+               "{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.",
+               endpoints.Count, names);
       }
 
       /// <summary>ServerStatus's states, as the COM enum numbers them (Application.ServerState).</summary>

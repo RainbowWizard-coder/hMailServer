@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>一覧のエントリ 1 件</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>{0} 宛てのメールを受け取るメール サーバーは 1 台です。</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 件のメッセージは一覧に登録できないため、そのままにします: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>パターン 1 件</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>問題 1 件</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 にすると、コーパスに一度でも現れたパスワードを拒否します。</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>ルール 1 件</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>サーバーのルール 1 件。上から順に評価されます。</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} のルール 1 件。上から順に評価されます。</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>保存した設定 1 件は、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>保存した設定 1 件が再初期化を待っています。[今すぐ適用] で適用されます。</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>保存した設定 1 件が再初期化を待っています。[今すぐ適用] で適用されます。1 件はサービスの再起動を待っています。</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>保存した設定 1 件が再初期化を待っています。[今すぐ適用] で適用されます。{0} 件はサービスの再起動を待っています。</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>保存した設定 1 件がサービスの再起動を待っています。</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>セキュリティ グループ 1 件</value>
@@ -1302,6 +1275,9 @@
   <data name="All linked domains" xml:space="preserve">
     <value>連携しているすべてのドメイン</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>{0} 件のチェックはすべて合格しました。</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>{0} 件のチェックはすべて合格しました。</value>
   </data>
@@ -1737,6 +1713,9 @@
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>添付ファイルのブロックはオフです。有効にするまで、ここで追加したパターンは適用されません。</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>添付ファイルのブロックはオフのため、これら {0} 件のパターンはどれも適用されていません。</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>添付ファイルのブロックはオフのため、これら {0} 件のパターンはどれも適用されていません。</value>
@@ -2713,9 +2692,6 @@
   <data name="Connections in the pool" xml:space="preserve">
     <value>プール内の接続数</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>プール内の接続数 (無視されます: このサーバーは組み込みデータベースを使用しています)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>実行中のすべての移行を通じた、1 つの移行元ホストへの接続数 (1 から 64)</value>
   </data>
@@ -3561,11 +3537,17 @@
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>メッセージ トレースのイベントのうち、一日より古いものをすべて削除しますか? それらが記録しているメッセージは、ここで追跡できなくなります。</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>メッセージ トレースのイベントのうち、{0} 日より古いものをすべて削除しますか? それらが記録しているメッセージは、ここで追跡できなくなります。</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>メッセージ トレースのイベントのうち、{0} 日より古いものをすべて削除しますか? それらが記録しているメッセージは、ここで追跡できなくなります。</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>検疫で一日より長く保留されているメッセージをすべて削除しますか? 送信者にはメッセージが受理されたと伝えてあるため、再試行されることはなく、ほかにコピーもありません。</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>検疫で {0} 日より長く保留されているメッセージをすべて削除しますか? 送信者にはメッセージが受理されたと伝えてあるため、再試行されることはなく、ほかにコピーもありません。</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>検疫で {0} 日より長く保留されているメッセージをすべて削除しますか? 送信者にはメッセージが受理されたと伝えてあるため、再試行されることはなく、ほかにコピーもありません。</value>
@@ -3639,21 +3621,14 @@
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>ドメイン エイリアス {0} を削除しますか? その名前のアドレス宛てのメールは、このドメインに配信されなくなります。</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>ドメイン {0} を削除しますか?
-
-これにより、このドメインの {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのすべてのエイリアスと配布リストが完全に削除されます。元に戻すことはできません。</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>ドメイン {0} を削除しますか?
-
-これにより、このドメインの {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのすべてのエイリアスと配布リストが完全に削除されます。元に戻すことはできません。</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>ドメイン {0} を削除しますか? アカウントはありません。このドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>ドメイン {0} を削除しますか? その唯一のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>ドメイン {0} を削除しますか? その {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>ドメイン {0} を削除しますか? その {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのエイリアスと配布リストも一緒に削除されます。元に戻すことはできません。</value>
@@ -4449,9 +4424,6 @@
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>感染した添付ファイルだけでなく、すべての添付ファイルが短い注記に置き換えられます。暗号化されたメッセージはそのまま配信されます。</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>サーバーが実行する順に並べたすべてのチェックと、それぞれが加えるスコアがメッセージに何をもたらすか。このページでは何も編集できません。各セクションに、その設定を持つページを開くボタンがあります。</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのチェックと、そのスコア、そして合計がメッセージに何をもたらすか。</value>
@@ -5601,9 +5573,6 @@
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL (プロバイダーが公開している署名鍵。空 = 鍵ファイルのみ)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>ジョブ {0} は {1} - フォルダー: {2}、追加したメッセージ: {3} 件、メールボックスに残っているため省略: {4} 件、失敗: {5} 件。</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>ジャーナリングと二重配信</value>
   </data>
@@ -6381,9 +6350,6 @@
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>ローカルの送信者向けメッセージ (空 = 上と同じ)(_E)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>一覧のメッセージ ID(_D)</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>メッセージ インデックス</value>
@@ -7270,9 +7236,6 @@
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} まで無効</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>まだです - {0}。</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>メモ</value>
   </data>
@@ -7638,9 +7601,6 @@
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>1 件のブロック対象の添付ファイル パターンが設定されていますが、添付ファイルのブロックは無効になっているため、適用されません。</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>設定済みのポートのうち 1 つが待ち受けされていません: {0}。</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>設定済みのポートのうち 1 つが待ち受けされていません: {0}。このポートを追加または変更したばかりの場合は、サーバーを再初期化してください。サーバーはポートの一覧を起動時に読み込みます。そうでない場合は、別のプログラムがそのポートを使用している、このコンピューターにそのアドレスが存在しない、または TLS ポートの証明書を読み込めなかった、のいずれかです。どれに当たるかはエラー ログに記録されています。</value>
@@ -8974,8 +8934,14 @@
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>{0} からのメッセージを受信者に解放しますか? 直ちに配信されます。</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>チェックした {0} 件のメッセージを受信者に解放しますか? 直ちに配信されます。</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>チェックした {0} 件のメッセージを受信者に解放しますか? 直ちに配信されます。</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>{1} からの {0} 件のメッセージを受信者に解放しますか? 直ちに配信されます。</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>{1} からの {0} 件のメッセージを受信者に解放しますか? 直ちに配信されます。</value>
@@ -10220,6 +10186,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>「{0}」を「{1}」に一致する唯一の有効なアカウントに送信しますか?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>「{0}」を「{2}」に一致する {1} 件の有効なアカウントに送信しますか?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>「{0}」を「{2}」に一致する {1} 件の有効なアカウントに送信しますか?</value>
   </data>
@@ -10514,10 +10483,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。再起動すると、開いているすべてのセッションが切断されます。</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。
-
-今すぐ再起動しますか?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。再起動すると、開いているすべてのセッションが切断されます。</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>以前このページにあった設定</value>
@@ -11034,9 +11001,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="THEN" xml:space="preserve">
     <value>アクション</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>このサーバーは組み込みデータベース (MSSQLCE) を使用しており、ここで何を設定しても値は 1 に強制されます。これは意図的な動作です。SQL Server Compact は同時接続のもとで信頼できる動作をしません。下で変更しても、サーバーを MySQL、MSSQL または PostgreSQL に移行するまでは効果がありません。</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>トークンを削除しました。サンドボックスへの要求にはトークンが付きません。</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>合計に上限はありません。リストの項目や SpamAssassin 自身のスコアは任意の大きさになり得るためです。</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>合計に上限はありません。リストの項目、SpamAssassin 自身のスコア、外部エンジンのスコアは任意の大きさになり得るためです。</value>
   </data>
@@ -12553,9 +12514,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>ドメインがないため、表示するリストはありません。</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>自動ブロックの IP 範囲は合計 {0} 件です。</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>コピーするホスト名がまだ設定されていません。</value>
   </data>
@@ -12564,9 +12522,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>段階は 2 の位置に 1 つだけあります。3 以上 (既定は 9) では、有効なカテゴリすべてが完全に記録されます。2 以下では、サーバーは IMAP FETCH と STATUS の応答をログから省き、下の制限より長い行を先頭と末尾の文字に短縮します。上の「デバッグ メッセージ」をオンにすると、レベルに関係なく完全な詳細が復元されます。</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>自動ブロックの IP 範囲は合計 {0} 件です。</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>これは先頭 {0} 件のアカウントのみを数えた結果です。このページは残りを待たせるのではなく、そこで打ち切ります。</value>
@@ -15548,9 +15503,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0}待ち受けされていないポートへの接続は拒否されます。よくある原因は、別のプログラムがすでにそのポートを使用している、このコンピューターに存在しないバインド アドレスが指定されている、または TLS ポートの場合はサーバーが証明書を読み込めなかった、のいずれかです。どれに当たるかは、起動時にエラー ログへ一度だけ記録されます。</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} 件の DNS レコードをバックグラウンドで参照しています。「確認中」と表示されている行は自動的に更新されます。</value>
   </data>
@@ -15689,20 +15641,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} 件の変更を実行し、失敗はありませんでした。</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} 件のクライアント リスナーには暗号化が利用できないため、それらのリスナーで使われるパスワードは平文でネットワークを流れます。</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} 件のクライアント リスナーが STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>「{0}」を閉じました。中断したところから再開します。</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>設定済みのポートのうち {0} 件が待ち受けされていません: {1}。</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>設定済みのポートのうち {0} 件が待ち受けされていません: {1}。</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>設定済みのポートのうち {0} 件が待ち受けされていません: {1}。いずれかを追加または変更したばかりの場合は、サーバーを再初期化してください。サーバーはポートの一覧を起動時に読み込みます。そうでない場合は、別のプログラムがそのポートを使用している、このコンピューターにそのアドレスが存在しない、または TLS ポートの証明書を読み込めなかった、のいずれかです。どれに当たるかはエラー ログに記録されています。</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>設定済みのポートのうち {0} 件が待ち受けされていません: {1}。いずれかを追加または変更したばかりの場合は、サーバーを再初期化してください。サーバーはポートの一覧を起動時に読み込みます。そうでない場合は、別のプログラムがそのポートを使用している、このコンピューターにそのアドレスが存在しない、または TLS ポートの証明書を読み込めなかった、のいずれかです。どれに当たるかはエラー ログに記録されています。</value>
@@ -15884,8 +15827,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} list entries" xml:space="preserve">
     <value>一覧のエントリ {0} 件</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、それらのポートはまったく待ち受けていません。</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{1} 宛てのメールを受け取るメール サーバーは {0} 台です。</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{1} 宛てのメールを受け取るメール サーバーは {0} 台です。</value>
@@ -15998,6 +15941,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、{0} 件のパターンに一致する添付ファイルが、ファイル名によってすべてのメッセージから取り除かれます。</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>問題 {0} 件</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>問題 {0} 件</value>
   </data>
@@ -16040,8 +15986,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>適用する前に読むべき行が {0} 件あります。スキップされたエントリは、誰かが期待しているのに手に入らないメールボックスであり、無効にされたエントリは取り上げられるメールボックスです。</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} 件のルール。上から順に評価されます。</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>サーバーのルール {0} 件。上から順に評価されます。</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{1} のルール {0} 件。上から順に評価されます。</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>ルール {0} 件</value>
@@ -16051,9 +16000,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{1} のルール {0} 件。上から順に評価されます。</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} 件のルール。上から順に評価されます。</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} 件のサンプルをクリップボードにコピーしました。</value>
@@ -16067,11 +16013,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} samples." xml:space="preserve">
     <value>{0} 件のサンプル。</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>保存した設定のうち {0} 件が再初期化を、{1} 件がサービスの再起動を待っています。</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>保存した設定 {0} 件は、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>保存した設定のうち {0} 件が再初期化を待っています。</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>保存した設定のうち {0} 件がサービスの再起動を待っています。</value>
@@ -16081,18 +16027,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。1 件はサービスの再起動を待っています。</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。{1} 件はサービスの再起動を待っています。</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>保存した設定のうち {0} 件が再初期化を、{1} 件がサービスの再起動を待っています。</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>保存した設定のうち {0} 件が再初期化を待っています。</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>保存した設定のうち {0} 件がサービスの再起動を待っています。</value>
@@ -16109,17 +16043,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} server messages" xml:space="preserve">
     <value>サーバー メッセージ {0} 件</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} 件の設定を読み取れませんでした: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>設定を {0} 件読み取れなかったため、それぞれのカードに「未読み取り」と表示しています。保存しても、サーバー上のこれらの設定は変わりません。最初の理由: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} 件の設定を書き込めませんでした。</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>このカードの設定を {0} 件読み取れなかったため、「未読み取り」と表示しています。保存しても、サーバー上のこれらの設定は変わりません。</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>設定を {0} 件読み取れなかったため、それぞれのカードに「未読み取り」と表示しています。保存しても、サーバー上のこれらの設定は変わりません。最初の理由: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} 件の設定を読み取れませんでした: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} 件の設定を書き込めませんでした。</value>
@@ -16148,20 +16082,20 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>サーバーから {0} 件の値を読み取れなかったため、この概要は不完全な可能性があります。</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} 件の値を読み取れませんでした: {1} 下のカードは不完全な可能性があります。</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} 件の値を読み取れませんでした: {1} 上の項目は不完全な可能性があります。</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>サーバーから {0} 件の値を読み取れなかったため、この概要は不完全な可能性があります。</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} 件の値を読み取れませんでした: {1} 下のカードは不完全な可能性があります。</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} 件の値を読み取れませんでした: {1} 上の項目は不完全な可能性があります。</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} 件はサービスの再起動を待っています。</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} 件はサービスの再起動を待っています。</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} を作成しました。メールボックスは {1} 件です。</value>

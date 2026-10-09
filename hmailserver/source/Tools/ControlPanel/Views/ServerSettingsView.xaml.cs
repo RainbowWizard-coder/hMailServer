@@ -5457,7 +5457,9 @@ namespace hMailServer.ControlPanel.Views
                   Level = StatusLevel.Warning,
                   Text = unread == 1
                      ? L("One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.")
-                     : F("{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.", unread),
+                     : Plural(unread,
+                        "{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.",
+                        "{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server."),
                   Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
                });
             }
@@ -5516,7 +5518,7 @@ namespace hMailServer.ControlPanel.Views
          var notice = new Scaffold.InlineNotice
          {
             Level = StatusLevel.Warning,
-            Text = L("These settings are read through the REST API, which this session cannot use.") + " " + reason,
+            Text = Sentences(L("These settings are read through the REST API, which this session cannot use."), reason),
             Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(notice, "settings-rest-unusable");

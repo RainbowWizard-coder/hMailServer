@@ -292,13 +292,11 @@ namespace hMailServer.ControlPanel.Views
          if (scopeDomain_ == null)
          {
             return count == 0 ? L("Server-wide message rules, evaluated top to bottom.")
-               : count == 1 ? L("1 rule of the server, evaluated top to bottom.")
-               : F("{0} rules of the server, evaluated top to bottom.", count);
+               : Plural(count, "{0} rule of the server, evaluated top to bottom.", "{0} rules of the server, evaluated top to bottom.");
          }
 
          return count == 0 ? F("Message rules of {0}, evaluated top to bottom.", scopeDomain_)
-            : count == 1 ? F("1 rule of {0}, evaluated top to bottom.", scopeDomain_)
-            : F("{0} rules of {1}, evaluated top to bottom.", count, scopeDomain_);
+            : PluralF(count, "{0} rule of {1}, evaluated top to bottom.", "{0} rules of {1}, evaluated top to bottom.", count, scopeDomain_);
       }
 
       private void Search_TextChanged(object sender, EventArgs e)

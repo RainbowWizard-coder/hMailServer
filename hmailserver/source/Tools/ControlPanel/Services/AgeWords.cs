@@ -26,13 +26,13 @@ namespace hMailServer.ControlPanel.Services
          if (age.TotalHours < 1)
          {
             int minutes = (int)age.TotalMinutes;
-            return minutes == 1 ? L("1 minute ago") : F("{0} minutes ago", minutes);
+            return Plural(minutes, "{0} minute ago", "{0} minutes ago");
          }
 
          if (age.TotalDays < 2)
          {
             int hours = (int)age.TotalHours;
-            return hours == 1 ? L("1 hour ago") : F("{0} hours ago", hours);
+            return Plural(hours, "{0} hour ago", "{0} hours ago");
          }
 
          return F("{0} days ago", (int)age.TotalDays);

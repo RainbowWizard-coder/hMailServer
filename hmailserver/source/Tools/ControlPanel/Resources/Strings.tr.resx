@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 liste kaydı</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>{0} için postayı 1 posta sunucusu alıyor.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 ileti için liste kaydı oluşturulamıyor; olduğu yerde bırakılacak: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 desen</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>1 sorun</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1, derlemde tek bir kez bile görülmüş bir parolayı reddeder.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>1 kural</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Sunucunun 1 kuralı, yukarıdan aşağıya değerlendirilir.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>{0} için 1 kural, yukarıdan aşağıya değerlendirilir.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>Kaydedilen 1 ayar yalnızca hMailServer hizmeti yeniden başlatıldığında geçerli olur. Hizmet şimdi yeniden başlatılsın mı? Hizmet durup yeniden başlarken sunucuya bağlı tüm istemcilerin bağlantısı kesilir.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>Kaydedilen 1 ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>Kaydedilen 1 ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular. 1 ayar hizmetin yeniden başlatılmasını bekliyor.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>Kaydedilen 1 ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular. {0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>Kaydedilen 1 ayar hizmetin yeniden başlatılmasını bekliyor.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 güvenlik grubu</value>
@@ -1302,6 +1275,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="All linked domains" xml:space="preserve">
     <value>Bağlı tüm etki alanları</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>{0} denetimin tümü geçti.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>{0} denetimin tümü geçti.</value>
   </data>
@@ -1737,6 +1713,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Ek engelleme kapalı; bu nedenle buraya eklenen bir desen, engelleme açılana kadar uygulanmaz.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Ek engelleme kapalı; bu nedenle bu {0} desenin hiçbiri uygulanmıyor.</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>Ek engelleme kapalı; bu nedenle bu {0} desenin hiçbiri uygulanmıyor.</value>
@@ -2713,9 +2692,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Connections in the pool" xml:space="preserve">
     <value>Havuzdaki bağlantılar</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Havuzdaki bağlantılar (yoksayıldı: bu sunucu yerleşik veritabanını kullanıyor)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Çalışan tüm geçişlerde tek bir kaynak ana bilgisayara bağlantılar (1 ile 64 arası)</value>
   </data>
@@ -3561,11 +3537,17 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Bir günden eski tüm ileti izleme olayları silinsin mi? Anlattıkları iletiler bundan sonra burada izlenemez.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>{0} günden eski tüm ileti izleme olayları silinsin mi? Anlattıkları iletiler bundan sonra burada izlenemez.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>{0} günden eski tüm ileti izleme olayları silinsin mi? Anlattıkları iletiler bundan sonra burada izlenemez.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Karantinada bir günden uzun süredir tutulan tüm iletiler silinsin mi? Gönderenlere kabul edildikleri söylendi; bu nedenle hiçbir şey yeniden denemeyecek ve başka bir kopyaları yok.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Karantinada {0} günden uzun süredir tutulan tüm iletiler silinsin mi? Gönderenlere kabul edildikleri söylendi; bu nedenle hiçbir şey yeniden denemeyecek ve başka bir kopyaları yok.</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Karantinada {0} günden uzun süredir tutulan tüm iletiler silinsin mi? Gönderenlere kabul edildikleri söylendi; bu nedenle hiçbir şey yeniden denemeyecek ve başka bir kopyaları yok.</value>
@@ -3639,21 +3621,14 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>{0} etki alanı diğer adı silinsin mi? O addaki adreslere gelen posta artık bu etki alanına teslim edilmez.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>{0} etki alanı silinsin mi?
-
-Bu işlem etki alanının {1} hesabını, içinde saklanan her iletiyi ve etki alanının tüm diğer adlarıyla dağıtım listelerini kalıcı olarak kaldırır. Geri alınamaz.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>{0} etki alanı silinsin mi?
-
-Bu işlem etki alanının {1} hesabını, içlerinde saklanan her iletiyi ve etki alanının tüm diğer adlarıyla dağıtım listelerini kalıcı olarak kaldırır. Geri alınamaz.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>{0} etki alanı silinsin mi? Hiç hesabı yok; diğer adları ve dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>{0} etki alanı silinsin mi? Tek hesabı, o hesapta saklanan her ileti ve etki alanının diğer adlarıyla dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>{0} etki alanı silinsin mi? {1} hesabı, bu hesaplarda saklanan her ileti ve etki alanının diğer adlarıyla dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>{0} etki alanı silinsin mi? {1} hesabı, bu hesaplarda saklanan her ileti ve etki alanının diğer adlarıyla dağıtım listeleri onunla birlikte silinir. Geri alınamaz.</value>
@@ -4449,9 +4424,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Yalnızca virüslü olan değil, her ek kısa bir notla değiştirilir; şifrelenmiş bir ileti değiştirilmeden teslim edilir.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Sunucunun çalıştırdığı sırayla her denetim ve ekledikleri puanın iletiye ne yaptığı. Bu sayfada hiçbir şey düzenlenemez - her bölümde, ayarlarının ait olduğu sayfayı açan bir düğme vardır.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Sunucunun çalıştırdığı sırayla her denetim, puanı ve toplamın iletiye ne yaptığı.</value>
@@ -5601,9 +5573,6 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set URL'si (sağlayıcının yayımlanan imzalama anahtarları; boş = yalnızca anahtar dosyası)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>İş {0} şu durumda: {1}. Klasörler: {2}, eklenen iletiler: {3}, hâlâ posta kutusunda olduğu için atlananlar: {4}, başarısız olanlar: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Günlükleme ve çift teslim</value>
   </data>
@@ -6381,9 +6350,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Yerel gönderenler _için ileti (boş = yukarıdakiyle aynı)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Listedeki ileti k_imliği</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>İleti indeksleme</value>
@@ -7270,9 +7236,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>{0} tarihine kadar geçerli değil</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Henüz değil - {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Not</value>
   </data>
@@ -7638,9 +7601,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Bir engellenen ek deseni yapılandırılmış ama ek engelleme kapalı; bu yüzden uygulanmıyor.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Yapılandırılmış bir port dinlenmiyor: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Yapılandırılmış bir port dinlenmiyor: {0}. Bu portu yeni eklediyseniz veya değiştirdiyseniz sunucuyu yeniden başlatın (Reinitialize): port listesini başlangıçta okur. Aksi halde portu başka bir program tutuyordur, adres bu makinede yoktur ya da bir TLS portunun sertifikası yüklenememiştir - hangisi olduğunu hata günlüğü söyler.</value>
@@ -8974,8 +8934,14 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>{0} kaynaklı ileti alıcılarına serbest bırakılsın mı? Hemen teslim edilir.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>İşaretli {0} ileti alıcılarına serbest bırakılsın mı? Hemen teslim edilir.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>İşaretli {0} ileti alıcılarına serbest bırakılsın mı? Hemen teslim edilirler.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>{1} kaynaklı {0} ileti alıcılarına serbest bırakılsın mı? Hemen teslim edilir.</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>{1} kaynaklı {0} ileti alıcılarına serbest bırakılsın mı? Hemen teslim edilirler.</value>
@@ -10220,6 +10186,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>“{0}”, “{1}” ile eşleşen tek etkin hesaba gönderilsin mi?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>“{0}”, “{2}” ile eşleşen {1} etkin hesaba gönderilsin mi?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>“{0}”, “{2}” ile eşleşen {1} etkin hesaba gönderilsin mi?</value>
   </data>
@@ -10514,10 +10483,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Ayarlar kaydedildi. Bunlardan {0} tanesi ancak hMailServer hizmeti yeniden başlatıldığında geçerli olur ve yeniden başlatma açık tüm oturumları keser.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Ayarlar kaydedildi. Bunlardan {0} tanesi ancak hMailServer hizmeti yeniden başlatıldığında geçerli olur.
-
-Şimdi yeniden başlatılsın mı?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Ayarlar kaydedildi. Bunlardan {0} tanesi ancak hMailServer hizmeti yeniden başlatıldığında geçerli olur ve yeniden başlatma açık tüm oturumları keser.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Eskiden bu sayfada olan ayarlar</value>
@@ -11034,9 +11001,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="THEN" xml:space="preserve">
     <value>O ZAMAN</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>BU SUNUCU YERLEŞİK VERİTABANINI (MSSQLCE) KULLANIYOR; burada ne ayarlanırsa ayarlansın değer 1'e zorlanır. Bu bilinçli bir tercihtir: SQL Server Compact eşzamanlı bağlantılar altında güvenilir davranmaz. Aşağıdaki değişikliğin, sunucu MySQL, MSSQL veya PostgreSQL'e taşınana kadar hiçbir etkisi olmaz.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Belirteç kaldırıldı; korumalı alana giden istekler artık belirteç taşımıyor.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Toplam açık uçludur, çünkü bir liste girdisi veya SpamAssassin'in kendi puanı herhangi bir büyüklükte olabilir.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Toplam açık uçludur, çünkü bir liste girdisi, SpamAssassin'in kendi puanı veya dış motorun puanı herhangi bir büyüklükte olabilir.</value>
   </data>
@@ -12553,9 +12514,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Hiç etki alanı yok, bu yüzden gösterilecek liste yok.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Toplam {0} otomatik yasaklama IP aralığı var.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Henüz kopyalanacak yapılandırılmış bir ana bilgisayar adı yok.</value>
   </data>
@@ -12564,9 +12522,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Yalnızca tek bir basamak var, 2'de. 3 ve üstünde (varsayılan 9) etkin her kategori tam olarak günlüğe yazılır. 2 ve altında sunucu IMAP FETCH ve STATUS yanıtlarını günlükten çıkarır ve aşağıdaki sınırdan uzun satırları ilk ve son karakterlerine kısaltır. Yukarıdaki Hata ayıklama iletilerini açmak, düzey ne olursa olsun tam ayrıntıyı geri getirir.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Toplam {0} otomatik yasaklama IP aralığı var.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Bunlar yalnızca ilk {0} hesabın sayımlarıdır; bu sayfa, geri kalanı beklemenize yol açmak yerine orada durur.</value>
@@ -15548,9 +15503,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Dinlenmeyen bir porta yapılan bağlantılar reddedilir. Olağan nedenler şunlardır: portu zaten tutan başka bir program, bu makinede var olmayan bir bağlanma adresi veya - bir TLS portunda - sunucunun yükleyemediği bir sertifika; sunucu hangisi olduğunu başlangıçta bir kez hata günlüğüne yazar.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} DNS kaydı arka planda sorgulanıyor; "denetleniyor" olarak işaretlenen satır güncellenecek.</value>
   </data>
@@ -15689,20 +15641,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} değişiklik yapıldı, hiçbiri başarısız olmadı.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} istemci dinleyicisinde hiçbir şifreleme yok; bu yüzden onda kullanılan parolalar ağdan düz metin olarak geçer.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} istemci dinleyicisi STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}” kapatıldı. Kaldığınız yerden devam eder.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>{0} yapılandırılmış port dinlenmiyor: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>{0} yapılandırılmış port dinlenmiyor: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} yapılandırılmış port dinlenmiyor: {1}. Bunlardan birini yeni eklediyseniz veya değiştirdiyseniz sunucuyu yeniden başlatın (Reinitialize): port listesini başlangıçta okur. Aksi halde portu başka bir program tutuyordur, adres bu makinede yoktur ya da bir TLS portunun sertifikası yüklenememiştir - hangisi olduğunu hata günlüğü söyler.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>{0} yapılandırılmış port dinlenmiyor: {1}. Bunlardan birini yeni eklediyseniz veya değiştirdiyseniz sunucuyu yeniden başlatın (Reinitialize): port listesini başlangıçta okur. Aksi halde portu başka bir program tutuyordur, adres bu makinede yoktur ya da bir TLS portunun sertifikası yüklenememiştir - hangisi olduğunu hata günlüğü söyler.</value>
@@ -15884,8 +15827,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} liste kaydı</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o port hiç dinlemiyor.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{1} için postayı {0} posta sunucusu alıyor.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{1} için postayı {0} posta sunucusu alıyor.</value>
@@ -15998,6 +15941,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} desen, tarayıcılar ne derse desin her iletiden dosya adına göre çıkarılıyor.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>{0} sorun</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} sorun</value>
   </data>
@@ -16040,8 +15986,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>Uygulamadan önce {0} satırın okunması gerekiyor - atlanan bir girdi, birinin beklediği ve alamayacağı bir posta kutusudur; devre dışı bırakılan biri ise elinden alınan bir posta kutusudur.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} kural, yukarıdan aşağıya değerlendirilir.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Sunucunun {0} kuralı, yukarıdan aşağıya değerlendirilir.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{1} için {0} kural, yukarıdan aşağıya değerlendirilir.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} kural</value>
@@ -16051,9 +16000,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{1} için {0} kural, yukarıdan aşağıya değerlendirilir.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} kural, yukarıdan aşağıya değerlendirilir.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} örnek panoya kopyalandı.</value>
@@ -16067,11 +16013,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} örnek.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize), {1} ayar ise hizmetin yeniden başlatılmasını bekliyor.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Kaydedilen {0} ayar yalnızca hMailServer hizmeti yeniden başlatıldığında geçerli olur. Hizmet şimdi yeniden başlatılsın mı? Hizmet durup yeniden başlarken sunucuya bağlı tüm istemcilerin bağlantısı kesilir.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>Kaydedilen {0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
@@ -16081,18 +16027,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onları uygular.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onları uygular. 1 ayar hizmetin yeniden başlatılmasını bekliyor.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onları uygular. {1} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize), {1} ayar ise hizmetin yeniden başlatılmasını bekliyor.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>Kaydedilen {0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
@@ -16109,17 +16043,17 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} sunucu iletisi</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} ayar okunamadı: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} ayar okunamadı, bu yüzden kartında Okunmadı olarak işaretlendi ve kaydetmek onu sunucuda olduğu gibi bırakır. İlk neden: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} ayar yazılamadı.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Bu karttaki {0} ayar okunamadı, bu yüzden Okunmadı olarak işaretlendi; kaydetmek onu sunucuda olduğu gibi bırakır.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>{0} ayar okunamadı, bu yüzden kartlarında Okunmadı olarak işaretlendi ve kaydetmek onları sunucuda olduğu gibi bırakır. İlk neden: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} ayar okunamadı: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} ayar yazılamadı.</value>
@@ -16148,20 +16082,20 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} değer sunucudan okunamadı; bu yüzden bu özet eksik olabilir.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} değer okunamadı: {1} Aşağıdaki kartlar eksik olabilir.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} değer okunamadı: {1} Yukarıdaki öğeler eksik olabilir.</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} değer sunucudan okunamadı; bu yüzden bu özet eksik olabilir.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} değer okunamadı: {1} Aşağıdaki kartlar eksik olabilir.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} değer okunamadı: {1} Yukarıdaki öğeler eksik olabilir.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0}, {1} posta kutusuyla oluşturuldu.</value>

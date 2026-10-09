@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>Položky seznamu: 1</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>Poštovní servery přijímající poštu pro {0}: 1.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Pro 1 zprávu nelze zapsat záznam; zůstane tam, kde je: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>Vzory: 1</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>Problémy: 1</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 odmítne heslo, které se v databázi objevilo byť jen jednou.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>Pravidla: 1</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>Pravidla serveru: 1, vyhodnocovaná shora dolů.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>Pravidla domény {0}: 1, vyhodnocovaná shora dolů.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 uložené nastavení se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní. 1 čeká na restart služby.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní. {0} čeká na restart služby.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 uložené nastavení čeká na restart služby.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>Skupiny zabezpečení: 1</value>
@@ -1308,7 +1281,13 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="All linked domains" xml:space="preserve">
     <value>Všechny propojené domény</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Všechny kontroly prošly: {0}.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
+    <value>Všechny kontroly prošly: {0}.</value>
+  </data>
+  <data name="All {0} checks passed.|few" xml:space="preserve">
     <value>Všechny kontroly prošly: {0}.</value>
   </data>
   <data name="Allo_w and release" xml:space="preserve">
@@ -1753,7 +1732,13 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Blokování příloh je vypnuté, takže vzor přidaný zde se neuplatní, dokud se blokování nezapne.</value>
   </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Blokování příloh je vypnuté, takže se neuplatňuje žádný z těchto vzorů (celkem {0}).</value>
+  </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Blokování příloh je vypnuté, takže se neuplatňuje žádný z těchto vzorů (celkem {0}).</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied.|few" xml:space="preserve">
     <value>Blokování příloh je vypnuté, takže se neuplatňuje žádný z těchto vzorů (celkem {0}).</value>
   </data>
   <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
@@ -2731,9 +2716,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Connections in the pool" xml:space="preserve">
     <value>Připojení ve fondu</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Připojení ve fondu (ignorováno: tento server používá vestavěnou databázi)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Spojení s jedním zdrojovým hostitelem napříč všemi běžícími migracemi (1 až 64)</value>
   </data>
@@ -3579,13 +3561,25 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Smazat všechny události trasování zpráv starší než jeden den? Zprávy, které popisují, pak už zde nepůjde sledovat.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Smazat všechny události trasování zpráv starší než doba uchování (dnů: {0})? Zprávy, které popisují, pak už zde nepůjde sledovat.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Smazat všechny události trasování zpráv starší než doba uchování (dnů: {0})? Zprávy, které popisují, pak už zde nepůjde sledovat.</value>
+  </data>
+  <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here.|few" xml:space="preserve">
     <value>Smazat všechny události trasování zpráv starší než doba uchování (dnů: {0})? Zprávy, které popisují, pak už zde nepůjde sledovat.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Smazat všechny zprávy držené v karanténě déle než jeden den? Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jiná kopie neexistuje.</value>
   </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Smazat všechny zprávy držené v karanténě déle, než je doba uchování (dnů: {0})? Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jiná kopie neexistuje.</value>
+  </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Smazat všechny zprávy držené v karanténě déle, než je doba uchování (dnů: {0})? Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jiná kopie neexistuje.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy.|few" xml:space="preserve">
     <value>Smazat všechny zprávy držené v karanténě déle, než je doba uchování (dnů: {0})? Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jiná kopie neexistuje.</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
@@ -3657,28 +3651,19 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Odstranit alias domény {0}? Pošta na adresy s tímto názvem se už nebude doručovat do této domény.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Odstranit doménu {0}?
-
-Tím se trvale odstraní její {1} účet, každá zpráva v něm uložená a všechny aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Odstranit doménu {0}?
-
-Tím se trvale odstraní jejích {1} účtů, každá zpráva v nich uložená a všechny aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo.|few" xml:space="preserve">
-    <value>Odstranit doménu {0}?
-
-Tím se trvale odstraní její {1} účty, každá zpráva v nich uložená a všechny aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Odstranit doménu {0}? Nemá žádné účty; spolu s ní se odstraní její aliasy a distribuční seznamy. Nelze vrátit zpět.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Odstranit doménu {0}? Spolu s ní se odstraní její jediný účet, každá zpráva v něm uložená a aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
   </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Odstranit doménu {0}? Spolu s ní se odstraní její účty (počet: {1}), každá zpráva v nich uložená a aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
+  </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Odstranit doménu {0}? Spolu s ní se odstraní její účty (počet: {1}), každá zpráva v nich uložená a aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo.|few" xml:space="preserve">
     <value>Odstranit doménu {0}? Spolu s ní se odstraní její účty (počet: {1}), každá zpráva v nich uložená a aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
@@ -4488,9 +4473,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Každá příloha je nahrazena krátkou poznámkou, nejen ta infikovaná; šifrovaná zpráva je doručena beze změny.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Každá kontrola v pořadí, v jakém je server spouští, a co skóre, které přidává, udělá se zprávou. Na této stránce nelze nic upravovat - každá část má tlačítko, které otevře stránku, jíž patří její nastavení.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Každá kontrola v pořadí, v jakém je server spouští, její skóre a co součet udělá se zprávou.</value>
@@ -5655,9 +5637,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL sady JWK (podpisové klíče publikované poskytovatelem; prázdné = pouze soubor klíče)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Úloha {0} je {1} - složky: {2}, přidané zprávy: {3}, přeskočené, protože jsou stále ve schránce: {4}, neúspěšné: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Žurnálování a dvojí doručení</value>
   </data>
@@ -6441,9 +6420,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Zpráva pro místní od_esílatele (prázdné = stejná jako výše)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Id zprávy z výp_isu</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Indexování zpráv</value>
@@ -7342,9 +7318,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Platný až od {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Zatím ne – {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Poznámka</value>
   </data>
@@ -7716,9 +7689,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>V konfiguraci je jeden vzor blokovaných příloh, ale blokování příloh je vypnuté, takže se neuplatní.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Na jednom nastaveném portu se nenaslouchá: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Na jednom nastaveném portu se nenaslouchá: {0}. Pokud jste ho právě přidali nebo změnili, reinicializujte server: seznam portů čte při spuštění. Jinak port drží jiný program, adresa na tomto počítači neexistuje, nebo se na portu s TLS nepodařilo načíst certifikát - kterou z možností, uvádí chybový log.</value>
@@ -9055,10 +9025,22 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Uvolnit zprávu od {0} jejím příjemcům? Doručí se okamžitě.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Uvolnit zaškrtnuté zprávy (počet: {0}) jejich příjemcům? Doručí se okamžitě.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>Uvolnit zaškrtnuté zprávy (počet: {0}) jejich příjemcům? Doručí se okamžitě.</value>
   </data>
+  <data name="Release the {0} checked messages to their recipients? They are delivered at once.|few" xml:space="preserve">
+    <value>Uvolnit zaškrtnuté zprávy (počet: {0}) jejich příjemcům? Doručí se okamžitě.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Uvolnit zprávy od {1} (počet: {0}) jejich příjemcům? Doručí se okamžitě.</value>
+  </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
+    <value>Uvolnit zprávy od {1} (počet: {0}) jejich příjemcům? Doručí se okamžitě.</value>
+  </data>
+  <data name="Release the {0} messages from {1} to their recipients? They are delivered at once.|few" xml:space="preserve">
     <value>Uvolnit zprávy od {1} (počet: {0}) jejich příjemcům? Doručí se okamžitě.</value>
   </data>
   <data name="Release this group" xml:space="preserve">
@@ -10328,7 +10310,13 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>Odeslat „{0}“ jedinému aktivnímu účtu, který odpovídá výrazu „{1}“?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>Odeslat „{0}“ aktivním účtům, které odpovídají výrazu „{2}“ (počet: {1})?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Odeslat „{0}“ aktivním účtům, které odpovídají výrazu „{2}“ (počet: {1})?</value>
+  </data>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?|few" xml:space="preserve">
     <value>Odeslat „{0}“ aktivním účtům, které odpovídají výrazu „{2}“ (počet: {1})?</value>
   </data>
   <data name="Sender" xml:space="preserve">
@@ -10622,15 +10610,11 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer a restart ukončí všechny otevřené relace.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?|few" xml:space="preserve">
-    <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer.
-
-Restartovat ji nyní?</value>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session.|few" xml:space="preserve">
+    <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer a restart ukončí všechny otevřené relace.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer.
-
-Restartovat ji nyní?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer a restart ukončí všechny otevřené relace.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Nastavení, která dříve byla na této stránce</value>
@@ -11150,9 +11134,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>POTOM</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>TENTO SERVER POUŽÍVÁ VESTAVĚNOU DATABÁZI (MSSQLCE), u které je hodnota vynucena na 1 bez ohledu na to, co je nastaveno zde. Je to záměr: SQL Server Compact se při souběžných připojeních nechová spolehlivě. Změna níže nebude mít žádný účinek, dokud server nepřejde na MySQL, MSSQL nebo PostgreSQL.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12606,9 +12587,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Token byl odebrán; požadavky na sandbox teď žádný nenesou.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Celkový součet není nijak omezen, protože položka seznamu nebo vlastní skóre SpamAssassinu může mít libovolnou velikost.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Celkový součet není nijak omezen, protože položka seznamu, vlastní skóre SpamAssassinu nebo skóre externího enginu může mít libovolnou velikost.</value>
   </data>
@@ -12699,12 +12677,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Neexistují žádné domény, takže není co zobrazit.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Celkem je {0} rozsahů IP automatického blokování.</value>
-  </data>
-  <data name="There are {0} auto-ban IP ranges in all.|few" xml:space="preserve">
-    <value>Celkem jsou {0} rozsahy IP automatického blokování.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Zatím není nakonfigurován žádný název hostitele ke zkopírování.</value>
   </data>
@@ -12713,9 +12685,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Je jen jeden schod, na 2. Od 3 výše (výchozí je 9) se každá zapnutá kategorie loguje celá. Na 2 a níže server vynechává z logu odpovědi IMAP FETCH a STATUS a zkracuje řádky delší než limit níže na jejich první a poslední znaky. Zapnutí Ladicích zpráv výše obnoví plné detaily bez ohledu na úroveň.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Celkem je {0} rozsah IP automatického blokování.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Jde o počty pouze z prvních {0} účtů; stránka zde končí, místo aby vás nechala čekat na zbytek.</value>
@@ -15721,9 +15690,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Připojení k portu, na kterém se nenaslouchá, jsou odmítána. Obvyklé příčiny jsou jiný program, který port už drží, adresa pro navázání, která na tomto počítači neexistuje, nebo – na portu s TLS – certifikát, který se serveru nepodařilo načíst; server při startu jednou zapíše do chybového logu, o kterou z nich šlo.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>Na pozadí se vyhledává {0} záznam DNS; řádek označený „kontroluje se“ se aktualizuje.</value>
   </data>
@@ -15907,32 +15873,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} changes carried out, none failed.|few" xml:space="preserve">
     <value>Provedeny {0} změny, žádná neselhala.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Klientských listenerů bez jakéhokoli šifrování: {0}; hesla použitá na nich procházejí sítí v otevřeném textu.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
-  </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
-    <value>Klientských listenerů bez jakéhokoli šifrování: {0}; hesla použitá na nich procházejí sítí v otevřeném textu.</value>
-  </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
-    <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>„{0}“ zavřeno. Prohlídka bude pokračovat tam, kde jste skončili.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>Na {0} nastaveném portu se nenaslouchá: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>Na {0} nastavených portech se nenaslouchá: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Počet nastavených portů, na kterých se nenaslouchá: {0} ({1}). Pokud jste některý z nich právě přidali nebo změnili, reinicializujte server: seznam portů čte při spuštění. Jinak port drží jiný program, adresa na tomto počítači neexistuje, nebo se na portu s TLS nepodařilo načíst certifikát - kterou z možností, uvádí chybový log.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Počet nastavených portů, na kterých se nenaslouchá: {0} ({1}). Pokud jste některý z nich právě přidali nebo změnili, reinicializujte server: seznam portů čte při spuštění. Jinak port drží jiný program, adresa na tomto počítači neexistuje, nebo se na portu s TLS nepodařilo načíst certifikát - kterou z možností, uvádí chybový log.</value>
   </data>
-  <data name="{0} configured ports are not being listened on: {1}.|few" xml:space="preserve">
-    <value>Na {0} nastavených portech se nenaslouchá: {1}.</value>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.|few" xml:space="preserve">
+    <value>Počet nastavených portů, na kterých se nenaslouchá: {0} ({1}). Pokud jste některý z nich právě přidali nebo změnili, reinicializujte server: seznam portů čte při spuštění. Jinak port drží jiný program, adresa na tomto počítači neexistuje, nebo se na portu s TLS nepodařilo načíst certifikát - kterou z možností, uvádí chybový log.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} se z tohoto počítače nepodařilo stáhnout: {1} Pravděpodobné příčiny: žádný záznam A/CNAME pro mta-sts.{2}, neběžící HTTPS listener (WebServicesHttpsPort=0 je dodávaná výchozí hodnota), nebo certifikát, který mta-sts.{2} nepokrývá. Zkontrolováno pouze z tohoto počítače.</value>
@@ -16141,13 +16092,13 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>Položky seznamu: {0}</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
-  </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
-    <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>Poštovní servery přijímající poštu pro {1}: {0}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
+    <value>Poštovní servery přijímající poštu pro {1}: {0}.</value>
+  </data>
+  <data name="{0} mail servers receive mail for {1}.|few" xml:space="preserve">
     <value>Poštovní servery přijímající poštu pro {1}: {0}.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
@@ -16291,7 +16242,13 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} vzory se z každé zprávy odstraňují podle názvu souboru, ať skenery říkají cokoli.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>Problémy: {0}</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
+    <value>Problémy: {0}</value>
+  </data>
+  <data name="{0} problems|few" xml:space="preserve">
     <value>Problémy: {0}</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
@@ -16348,8 +16305,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away.|few" xml:space="preserve">
     <value>{0} řádky je třeba přečíst, než použijete – přeskočená položka je poštovní schránka, kterou někdo očekává a nedostane, a zakázaná je poštovní schránka, která se někomu odebírá.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} pravidlo, vyhodnocované shora dolů.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>Pravidla serveru: {0}, vyhodnocovaná shora dolů.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>Pravidla domény {1}: {0}, vyhodnocovaná shora dolů.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>Pravidla: {0}</value>
@@ -16357,14 +16317,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} rules of the server, evaluated top to bottom." xml:space="preserve">
     <value>Pravidla serveru: {0}, vyhodnocovaná shora dolů.</value>
   </data>
+  <data name="{0} rules of the server, evaluated top to bottom.|few" xml:space="preserve">
+    <value>Pravidla serveru: {0}, vyhodnocovaná shora dolů.</value>
+  </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>Pravidla domény {1}: {0}, vyhodnocovaná shora dolů.</value>
   </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} pravidel, vyhodnocovaných shora dolů.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom.|few" xml:space="preserve">
-    <value>{0} pravidla, vyhodnocovaná shora dolů.</value>
+  <data name="{0} rules of {1}, evaluated top to bottom.|few" xml:space="preserve">
+    <value>Pravidla domény {1}: {0}, vyhodnocovaná shora dolů.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} vzorek zkopírován do schránky.</value>
@@ -16384,11 +16344,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} samples.|few" xml:space="preserve">
     <value>{0} vzorky.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} uložené nastavení čeká na reinicializaci a {1} na restart služby.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} uložené nastavení se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} uložené nastavení čeká na reinicializaci.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} uložené nastavení čeká na restart služby.</value>
@@ -16396,26 +16356,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
     <value>{0} uložených nastavení se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.|few" xml:space="preserve">
+    <value>{0} uložená nastavení se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>{0} uložených nastavení čeká na reinicializaci – použije je tlačítko Použít nyní.</value>
   </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>{0} uložených nastavení čeká na reinicializaci – použije je tlačítko Použít nyní. 1 čeká na restart služby.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>{0} uložených nastavení čeká na reinicializaci – použije je tlačítko Použít nyní. {1} čeká na restart služby.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} uložených nastavení čeká na reinicializaci a {1} na restart služby.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart.|few" xml:space="preserve">
-    <value>{0} uložená nastavení čekají na reinicializaci a {1} na restart služby.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} uložených nastavení čeká na reinicializaci.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise.|few" xml:space="preserve">
-    <value>{0} uložená nastavení čekají na reinicializaci.</value>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them.|few" xml:space="preserve">
+    <value>{0} uložená nastavení čekají na reinicializaci – použije je tlačítko Použít nyní.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} uložených nastavení čeká na restart služby.</value>
@@ -16435,20 +16383,20 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>Zprávy serveru: {0}</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} nastavení nešlo přečíst: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>Nastavení, která se nepodařilo přečíst: {0}. Na svých kartách jsou označena „Nepřečteno“ a uložení je na serveru ponechá beze změny. První důvod: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} nastavení nešlo zapsat.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Nastavení na této kartě, která se nepodařilo přečíst: {0}. Jsou označena „Nepřečteno“; uložení je na serveru ponechá beze změny.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>Nastavení, která se nepodařilo přečíst: {0}. Na svých kartách jsou označena „Nepřečteno“ a uložení je na serveru ponechá beze změny. První důvod: {1}</value>
   </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} nastavení nešlo přečíst: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}|few" xml:space="preserve">
-    <value>{0} nastavení nešlo přečíst: {1}</value>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}|few" xml:space="preserve">
+    <value>Nastavení, která se nepodařilo přečíst: {0}. Na svých kartách jsou označena „Nepřečteno“ a uložení je na serveru ponechá beze změny. První důvod: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} nastavení nešlo zapsat.</value>
@@ -16457,6 +16405,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>{0} nastavení nešlo zapsat.</value>
   </data>
   <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Nastavení na této kartě, která se nepodařilo přečíst: {0}. Jsou označena „Nepřečteno“; uložení je na serveru ponechá beze změny.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.|few" xml:space="preserve">
     <value>Nastavení na této kartě, která se nepodařilo přečíst: {0}. Jsou označena „Nepřečteno“; uložení je na serveru ponechá beze změny.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
@@ -16483,9 +16434,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} hodnotu nešlo přečíst ze serveru, takže tento souhrn může být neúplný.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} hodnotu nešlo přečíst: {1} Karty níže mohou být neúplné.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} hodnotu nešlo přečíst: {1} Položky výše mohou být neúplné.</value>
   </data>
@@ -16495,17 +16443,20 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} values could not be read from the server, so this summary may be incomplete.|few" xml:space="preserve">
     <value>{0} hodnoty nešlo přečíst ze serveru, takže tento souhrn může být neúplný.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} hodnot nešlo přečíst: {1} Karty níže mohou být neúplné.</value>
-  </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete.|few" xml:space="preserve">
-    <value>{0} hodnoty nešlo přečíst: {1} Karty níže mohou být neúplné.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} hodnot nešlo přečíst: {1} Položky výše mohou být neúplné.</value>
   </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete.|few" xml:space="preserve">
     <value>{0} hodnoty nešlo přečíst: {1} Položky výše mohou být neúplné.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} čeká na restart služby.</value>
+  </data>
+  <data name="{0} wait for a service restart.|few" xml:space="preserve">
+    <value>{0} čekají na restart služby.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} čeká na restart služby.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} byla vytvořena s {1} schránkou.</value>

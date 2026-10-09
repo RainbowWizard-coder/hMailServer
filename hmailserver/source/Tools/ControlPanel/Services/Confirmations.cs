@@ -50,7 +50,10 @@ namespace hMailServer.ControlPanel.Services
          if (accounts == 1)
             return F("Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo.", name);
 
-         return F("Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo.", name, accounts);
+         return PluralF(accounts,
+            "Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo.",
+            "Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo.",
+            name, accounts);
       }
 
       public static string DeletePublicFolder(string name)
@@ -128,25 +131,34 @@ namespace hMailServer.ControlPanel.Services
          {
             return count == 1
                ? F("Release the message from {0} to its recipients? It is delivered at once.", group)
-               : F("Release the {0} messages from {1} to their recipients? They are delivered at once.", count, group);
+               : PluralF(count,
+                  "Release the {0} message from {1} to its recipients? It is delivered at once.",
+                  "Release the {0} messages from {1} to their recipients? They are delivered at once.",
+                  count, group);
          }
 
          return count == 1
             ? L("Release the checked message to its recipients? It is delivered at once.")
-            : F("Release the {0} checked messages to their recipients? They are delivered at once.", count);
+            : Plural(count,
+               "Release the {0} checked message to its recipients? It is delivered at once.",
+               "Release the {0} checked messages to their recipients? They are delivered at once.");
       }
 
       /// <summary>Remove expired on the quarantine, with its retention in days (above 0).</summary>
       public static string DeleteExpiredQuarantine(int days)
          => days == 1
             ? L("Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy.")
-            : F("Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy.", days);
+            : Plural(days,
+               "Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy.",
+               "Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy.");
 
       /// <summary>Remove expired on the message trace, with its retention in days (above 0).</summary>
       public static string DeleteExpiredTrace(int days)
          => days == 1
             ? L("Delete every message trace event older than a day? The messages they describe can then no longer be followed here.")
-            : F("Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here.", days);
+            : Plural(days,
+               "Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here.",
+               "Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here.");
 
       /// <summary>Why Remove expired cannot be pressed while the retention is 0.</summary>
       public static string NothingExpires
@@ -169,7 +181,10 @@ namespace hMailServer.ControlPanel.Services
 
          return recipients.Value == 1
             ? F("Send “{0}” to the one active account matching “{1}”?", subject, wildcard)
-            : F("Send “{0}” to the {1} active accounts matching “{2}”?", subject, recipients.Value, wildcard);
+            : PluralF(recipients.Value,
+               "Send “{0}” to the {1} active account matching “{2}”?",
+               "Send “{0}” to the {1} active accounts matching “{2}”?",
+               subject, recipients.Value, wildcard);
       }
 
       public static string SendoutToNobody(string wildcard)
@@ -206,7 +221,9 @@ namespace hMailServer.ControlPanel.Services
          if (waiting.Value == 1)
             return L("Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session.");
 
-         return F("Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session.", waiting.Value);
+         return Plural(waiting.Value,
+            "Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session.",
+            "Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session.");
       }
    }
 }

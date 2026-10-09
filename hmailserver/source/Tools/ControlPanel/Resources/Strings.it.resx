@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 voce di elenco</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>1 server di posta riceve la posta per {0}.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 messaggio non può essere elencato e sarà lasciato dove si trova: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 schema</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>1 problema</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 rifiuta una password comparsa nel corpus anche una sola volta.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>1 regola</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>1 regola del server, valutata dall'alto verso il basso.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>1 regola di {0}, valutata dall'alto verso il basso.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 impostazione salvata si applica solo al riavvio del servizio hMailServer. Riavviare il servizio ora? Tutti i client connessi al server vengono disconnessi mentre si ferma e riparte.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 impostazione salvata attende una reinizializzazione - Applica ora la applica.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 impostazione salvata attende una reinizializzazione - Applica ora la applica. 1 attende un riavvio del servizio.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 impostazione salvata attende una reinizializzazione - Applica ora la applica. {0} attendono un riavvio del servizio.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 impostazione salvata attende un riavvio del servizio.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 gruppo di sicurezza</value>
@@ -1302,6 +1275,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="All linked domains" xml:space="preserve">
     <value>Tutti i domini collegati</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Tutti i {0} controlli superati.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>Tutti i {0} controlli superati.</value>
   </data>
@@ -1737,6 +1713,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Il blocco degli allegati è disattivato, quindi uno schema aggiunto qui non viene applicato finché il blocco non viene attivato.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Il blocco degli allegati è disattivato, quindi nessuno di questi {0} schemi viene applicato.</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>Il blocco degli allegati è disattivato, quindi nessuno di questi {0} schemi viene applicato.</value>
@@ -2713,9 +2692,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Connections in the pool" xml:space="preserve">
     <value>Connessioni nel pool</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Connessioni nel pool (ignorato: questo server usa il database integrato)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Connessioni verso un host di origine, su tutte le migrazioni in corso (da 1 a 64)</value>
   </data>
@@ -3561,11 +3537,17 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Eliminare tutti gli eventi del tracciamento dei messaggi più vecchi di un giorno? I messaggi che descrivono non potranno più essere seguiti qui.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Eliminare tutti gli eventi del tracciamento dei messaggi più vecchi di {0} giorno? I messaggi che descrivono non potranno più essere seguiti qui.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Eliminare tutti gli eventi del tracciamento dei messaggi più vecchi di {0} giorni? I messaggi che descrivono non potranno più essere seguiti qui.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Eliminare tutti i messaggi trattenuti in quarantena da più di un giorno? Ai mittenti è stato detto che erano stati accettati, quindi nulla riproverà e non esiste un'altra copia.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Eliminare tutti i messaggi trattenuti in quarantena da più di {0} giorno? Ai mittenti è stato detto che erano stati accettati, quindi nulla riproverà e non esiste un'altra copia.</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Eliminare tutti i messaggi trattenuti in quarantena da più di {0} giorni? Ai mittenti è stato detto che erano stati accettati, quindi nulla riproverà e non esiste un'altra copia.</value>
@@ -3639,21 +3621,14 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Eliminare l'alias di dominio {0}? La posta agli indirizzi con quel nome non viene più consegnata a questo dominio.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Eliminare il dominio {0}?
-
-Questo rimuove definitivamente il suo {1} account, ogni messaggio in esso memorizzato e tutti gli alias e le liste di distribuzione del dominio. Non si può annullare.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Eliminare il dominio {0}?
-
-Questo rimuove definitivamente i suoi {1} account, ogni messaggio in essi memorizzato e tutti gli alias e le liste di distribuzione del dominio. Non si può annullare.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Eliminare il dominio {0}? Non ha account; i suoi alias e le sue liste di distribuzione vengono eliminati con esso. Non si può annullare.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Eliminare il dominio {0}? Il suo unico account, ogni messaggio in esso memorizzato e gli alias e le liste di distribuzione del dominio vengono eliminati con esso. Non si può annullare.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Eliminare il dominio {0}? Il suo {1} account, ogni messaggio in esso memorizzato e gli alias e le liste di distribuzione del dominio vengono eliminati con esso. Non si può annullare.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Eliminare il dominio {0}? I suoi {1} account, ogni messaggio in essi memorizzato e gli alias e le liste di distribuzione del dominio vengono eliminati con esso. Non si può annullare.</value>
@@ -4449,9 +4424,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Ogni allegato viene sostituito da una breve nota, non solo quello infetto; un messaggio cifrato viene consegnato invariato.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Ogni controllo nell'ordine in cui il server li esegue, e cosa fa al messaggio il punteggio che aggiungono. Nulla in questa pagina è modificabile - ogni sezione ha un pulsante che apre la pagina a cui appartengono le sue impostazioni.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Ogni controllo nell'ordine in cui il server li esegue, il suo punteggio, e cosa fa al messaggio il totale.</value>
@@ -5601,9 +5573,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>URL del JWK Set (le chiavi di firma pubblicate dal provider; vuoto = solo il file della chiave)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Il lavoro {0} è {1} - cartelle: {2}, messaggi aggiunti: {3}, saltati perché ancora nella casella: {4}, falliti: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journaling e consegna doppia</value>
   </data>
@@ -6381,9 +6350,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Messaggio per i mitt_enti locali (vuoto = come sopra)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Id del messaggio, dall'ele_nco</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Indicizzazione dei messaggi</value>
@@ -7270,9 +7236,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Non valido prima del {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Non ancora - {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Nota</value>
   </data>
@@ -7638,9 +7601,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Uno schema di allegato bloccato è configurato ma il blocco degli allegati è disattivato, quindi non viene applicato.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Su una porta configurata non è in ascolto nulla: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Su una porta configurata non è in ascolto nulla: {0}. Se l'hai appena aggiunta o modificata, reinizializza il server: legge l'elenco delle porte all'avvio. Altrimenti un altro programma occupa la porta, l'indirizzo non esiste su questa macchina oppure non è stato possibile caricare il certificato di una porta TLS - il registro errori dice quale.</value>
@@ -8974,8 +8934,14 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Rilasciare il messaggio da {0} ai suoi destinatari? Viene consegnato subito.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Rilasciare {0} messaggio selezionato ai suoi destinatari? Viene consegnato subito.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>Rilasciare i {0} messaggi selezionati ai loro destinatari? Vengono consegnati subito.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Rilasciare {0} messaggio da {1} ai suoi destinatari? Viene consegnato subito.</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>Rilasciare i {0} messaggi da {1} ai loro destinatari? Vengono consegnati subito.</value>
@@ -10220,6 +10186,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>Inviare «{0}» all'unico account attivo che corrisponde a «{1}»?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>Inviare «{0}» al {1} account attivo che corrisponde a «{2}»?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>Inviare «{0}» ai {1} account attivi che corrispondono a «{2}»?</value>
   </data>
@@ -10514,10 +10483,8 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Impostazioni salvate. {0} di esse hanno effetto solo al riavvio del servizio hMailServer, e un riavvio interrompe tutte le sessioni aperte.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Impostazioni salvate. {0} di esse ha effetto solo al riavvio del servizio hMailServer.
-
-Riavviarlo ora?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Impostazioni salvate. {0} di esse ha effetto solo al riavvio del servizio hMailServer, e un riavvio interrompe tutte le sessioni aperte.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Impostazioni che un tempo si trovavano su questa pagina</value>
@@ -11034,9 +11001,6 @@ Riavviarlo ora?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>ALLORA</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>QUESTO SERVER USA IL DATABASE INTEGRATO (MSSQLCE), dove il valore è forzato a 1 qualunque cosa sia impostata qui. È voluto: SQL Server Compact non si comporta in modo affidabile con connessioni concorrenti. Cambiarlo qui sotto non avrà effetto finché il server non passa a MySQL, MSSQL o PostgreSQL.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Il token è stato rimosso; le richieste alla sandbox ora non ne portano nessuno.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Il totale è aperto, perché una voce di lista o il punteggio di SpamAssassin possono avere qualsiasi dimensione.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Il totale è aperto, perché una voce di lista, il punteggio di SpamAssassin o quello del motore esterno possono avere qualsiasi dimensione.</value>
   </data>
@@ -12553,9 +12514,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Non ci sono domini, quindi non c'è nessuna lista da mostrare.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>In totale ci sono {0} intervalli IP di ban automatico.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Non c'è ancora alcun nome host configurato da copiare.</value>
   </data>
@@ -12564,9 +12522,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>C'è un solo scalino, a 2. Da 3 in su (il valore predefinito è 9) ogni categoria attiva viene registrata per intero. A 2 o meno il server esclude dal registro le risposte IMAP FETCH e STATUS e accorcia le righe più lunghe del limite qui sotto ai loro primi e ultimi caratteri. Attivare i messaggi di debug qui sopra ripristina il dettaglio completo qualunque sia il livello.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>In totale c'è {0} intervallo IP di ban automatico.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Sono conteggi dei soli primi {0} account; questa pagina si ferma lì invece di farti aspettare il resto.</value>
@@ -15548,9 +15503,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Le connessioni verso una porta non in ascolto vengono rifiutate. Le cause abituali sono un altro programma che già occupa la porta, un indirizzo di binding che non esiste su questa macchina, oppure - su una porta TLS - un certificato che il server non è riuscito a caricare; il server annota quale, una volta, nel registro errori all'avvio.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} record DNS in ricerca in background; la riga contrassegnata "in verifica" si aggiornerà.</value>
   </data>
@@ -15689,20 +15641,11 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} modifiche eseguite, nessuna fallita.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} listener client non ha nessuna cifratura disponibile, quindi le password usate su di esso attraversano la rete in chiaro.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} listener client offre STARTTLS senza imporlo, quindi un client che non chiede la cifratura si autentica senza di essa e nulla segnala che è successo.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>«{0}» chiusa. Riprende da dove l'hai lasciata.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>{0} porta configurata non è in ascolto: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>{0} porte configurate non sono in ascolto: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} porta configurata non è in ascolto: {1}. Se l'hai appena aggiunta o modificata, reinizializza il server: legge l'elenco delle porte all'avvio. Altrimenti un altro programma occupa la porta, l'indirizzo non esiste su questa macchina oppure non è stato possibile caricare il certificato di una porta TLS - il registro errori dice quale.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>{0} porte configurate non sono in ascolto: {1}. Se ne hai appena aggiunta o modificata una, reinizializza il server: legge l'elenco delle porte all'avvio. Altrimenti un altro programma occupa la porta, l'indirizzo non esiste su questa macchina oppure non è stato possibile caricare il certificato di una porta TLS - il registro errori dice quale.</value>
@@ -15884,8 +15827,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} voci di elenco</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} listener è configurato per TLS ma non riesce a servirlo, quindi quella porta non è affatto in ascolto.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{0} server di posta riceve la posta per {1}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} server di posta ricevono la posta per {1}.</value>
@@ -15998,6 +15941,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} pattern vengono rimossi da ogni messaggio in base al nome del file, qualunque cosa dicano gli scanner.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>{0} problema</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemi</value>
   </data>
@@ -16040,8 +15986,11 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} righe vanno lette prima di applicare: una voce saltata è una casella che qualcuno si aspetta e non riceverà, e una disattivata è una casella che viene tolta.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regola, valutata dall'alto verso il basso.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regola del server, valutata dall'alto verso il basso.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regola di {1}, valutata dall'alto verso il basso.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regole</value>
@@ -16051,9 +16000,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{0} regole di {1}, valutate dall'alto verso il basso.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regole, valutate dall'alto verso il basso.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} campione copiato negli appunti.</value>
@@ -16067,11 +16013,11 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} campioni.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} impostazione salvata attende una reinizializzazione, e {1} un riavvio del servizio.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} impostazione salvata si applica solo al riavvio del servizio hMailServer. Riavviare il servizio ora? Tutti i client connessi al server vengono disconnessi mentre si ferma e riparte.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} impostazione salvata attende una reinizializzazione.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} impostazione salvata attende una reinizializzazione - Applica ora la applica.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} impostazione salvata attende un riavvio del servizio.</value>
@@ -16081,18 +16027,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>{0} impostazioni salvate attendono una reinizializzazione - Applica ora le applica.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>{0} impostazioni salvate attendono una reinizializzazione - Applica ora le applica. 1 attende un riavvio del servizio.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>{0} impostazioni salvate attendono una reinizializzazione - Applica ora le applica. {1} attendono un riavvio del servizio.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} impostazioni salvate attendono una reinizializzazione, e {1} un riavvio del servizio.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} impostazioni salvate attendono una reinizializzazione.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} impostazioni salvate attendono un riavvio del servizio.</value>
@@ -16109,17 +16043,17 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} messaggi del server</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>Non è stato possibile leggere {0} impostazione: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>Non è stato possibile leggere {0} impostazione, quindi è contrassegnata come «Non letto» sulla sua scheda e il salvataggio la lascia com'è sul server. Primo motivo: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>Non è stato possibile scrivere {0} impostazione.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Non è stato possibile leggere {0} impostazione di questa scheda, quindi è contrassegnata come «Non letto»; il salvataggio la lascia com'è sul server.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>Non è stato possibile leggere {0} impostazioni, quindi sono contrassegnate come «Non letto» sulle loro schede e il salvataggio le lascia come sono sul server. Primo motivo: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>Non è stato possibile leggere {0} impostazioni: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>Non è stato possibile scrivere {0} impostazioni.</value>
@@ -16148,20 +16082,20 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>Non è stato possibile leggere {0} valore dal server, quindi questo riepilogo potrebbe essere incompleto.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>Non è stato possibile leggere {0} valore: {1} Le schede qui sotto potrebbero essere incomplete.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>Non è stato possibile leggere {0} valore: {1} Gli elementi qui sopra potrebbero essere incompleti.</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>Non è stato possibile leggere {0} valori dal server, quindi questo riepilogo potrebbe essere incompleto.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>Non è stato possibile leggere {0} valori: {1} Le schede qui sotto potrebbero essere incomplete.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>Non è stato possibile leggere {0} valori: {1} Gli elementi qui sopra potrebbero essere incompleti.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} attendono un riavvio del servizio.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} attende un riavvio del servizio.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} è stato creato con {1} casella.</value>

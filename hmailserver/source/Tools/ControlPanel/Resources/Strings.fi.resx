@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 luettelon merkintä</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>1 postipalvelin vastaanottaa postin kohteelle {0}.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 viesti ei mahdu luetteloon, ja se jätetään paikalleen: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 kuvio</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>1 ongelma</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 hylkää salasanan, joka on esiintynyt kokoelmassa edes kerran.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>1 sääntö</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>1 palvelimen sääntö, arvioidaan ylhäältä alas.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>1 sääntö kohteelle {0}, arvioidaan ylhäältä alas.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 tallennettu asetus tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön. 1 odottaa palvelun uudelleenkäynnistystä.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön. {0} odottaa palvelun uudelleenkäynnistystä.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 tallennettu asetus odottaa palvelun uudelleenkäynnistystä.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 suojausryhmä</value>
@@ -1302,6 +1275,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="All linked domains" xml:space="preserve">
     <value>Kaikki liitetyt verkkotunnukset</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Kaikki {0} tarkistusta läpäistiin.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>Kaikki {0} tarkistusta läpäistiin.</value>
   </data>
@@ -1737,6 +1713,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Liitteiden esto on pois käytöstä, joten tähän lisättyä kuviota ei sovelleta ennen kuin esto otetaan käyttöön.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Liitteiden esto on pois käytöstä, joten yhtäkään näistä kuvioista ({0}) ei sovelleta.</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>Liitteiden esto on pois käytöstä, joten yhtäkään näistä kuvioista ({0}) ei sovelleta.</value>
@@ -2713,9 +2692,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Connections in the pool" xml:space="preserve">
     <value>Yhteydet varannossa</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Yhteydet varannossa (ohitetaan: tämä palvelin käyttää sisäänrakennettua tietokantaa)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Yhteydet yhteen lähdepalvelimeen kaikkien käynnissä olevien siirtojen kesken (1–64)</value>
   </data>
@@ -3561,11 +3537,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Poistetaanko kaikki yli päivän vanhat viestin jäljityksen tapahtumat? Niiden kuvaamia viestejä ei sen jälkeen voi enää seurata täällä.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Poistetaanko kaikki yli {0} päivän vanhat viestin jäljityksen tapahtumat? Niiden kuvaamia viestejä ei sen jälkeen voi enää seurata täällä.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Poistetaanko kaikki yli {0} päivää vanhat viestin jäljityksen tapahtumat? Niiden kuvaamia viestejä ei sen jälkeen voi enää seurata täällä.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Poistetaanko kaikki yli päivän karanteenissa olleet viestit? Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yritä uudelleen eikä muuta kopiota ole.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Poistetaanko kaikki yli {0} päivän karanteenissa olleet viestit? Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yritä uudelleen eikä muuta kopiota ole.</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Poistetaanko kaikki yli {0} päivää karanteenissa olleet viestit? Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yritä uudelleen eikä muuta kopiota ole.</value>
@@ -3639,21 +3621,14 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Poistetaanko verkkotunnusalias {0}? Sen nimisiin osoitteisiin tulevaa postia ei enää toimiteta tähän verkkotunnukseen.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Poistetaanko verkkotunnus {0}?
-
-Tämä poistaa pysyvästi sen {1} tilin, jokaisen siihen tallennetun viestin sekä kaikki verkkotunnuksen aliakset ja jakelulistat. Tätä ei voi kumota.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Poistetaanko verkkotunnus {0}?
-
-Tämä poistaa pysyvästi sen {1} tiliä, jokaisen niihin tallennetun viestin sekä kaikki verkkotunnuksen aliakset ja jakelulistat. Tätä ei voi kumota.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Poistetaanko verkkotunnus {0}? Sillä ei ole tilejä; sen aliakset ja jakelulistat poistetaan sen mukana. Tätä ei voi kumota.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Poistetaanko verkkotunnus {0}? Sen ainoa tili, jokainen siihen tallennettu viesti sekä verkkotunnuksen aliakset ja jakelulistat poistetaan sen mukana. Tätä ei voi kumota.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Poistetaanko verkkotunnus {0}? Sen {1} tili, jokainen siihen tallennettu viesti sekä verkkotunnuksen aliakset ja jakelulistat poistetaan sen mukana. Tätä ei voi kumota.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Poistetaanko verkkotunnus {0}? Sen {1} tiliä, jokainen niihin tallennettu viesti sekä verkkotunnuksen aliakset ja jakelulistat poistetaan sen mukana. Tätä ei voi kumota.</value>
@@ -4449,9 +4424,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Jokainen liite korvataan lyhyellä huomautuksella, ei vain saastunut; salattu viesti toimitetaan muuttamattomana.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Jokainen tarkistus siinä järjestyksessä, jossa palvelin ajaa ne, ja mitä sen lisäämä pistemäärä tekee viestille. Mitään tällä sivulla ei voi muokata - jokaisessa osiossa on painike sivulle, joka omistaa sen asetukset.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Jokainen tarkistus siinä järjestyksessä, jossa palvelin ajaa ne, sen pistemäärä ja mitä kokonaissumma tekee viestille.</value>
@@ -5601,9 +5573,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set -URL (tarjoajan julkaisemat allekirjoitusavaimet; tyhjä = vain avaintiedosto)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Työ {0} on {1} - kansioita: {2}, lisättyjä viestejä: {3}, ohitettu, koska yhä postilaatikossa: {4}, epäonnistuneita: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalointi ja kaksoistoimitus</value>
   </data>
@@ -6381,9 +6350,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Viesti paikallisille _lähettäjille (tyhjä = sama kuin yllä)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Viestin tunnus l_uettelosta</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Viestien indeksointi</value>
@@ -7270,9 +7236,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ei voimassa ennen {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Ei vielä - {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Huomautus</value>
   </data>
@@ -7638,9 +7601,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Yksi estetyn liitteen kuvio on määritetty, mutta liitteiden esto on pois päältä, joten sitä ei sovelleta.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Yhtä määritettyä porttia ei kuunnella: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Yhtä määritettyä porttia ei kuunnella: {0}. Jos lisäsit tai muutit sen juuri, alusta palvelin uudelleen: se lukee porttiluettelonsa käynnistyessään. Muuten toinen ohjelma varaa portin, osoitetta ei ole tällä koneella tai TLS-portin varmennetta ei voitu ladata - virheloki kertoo, mikä näistä.</value>
@@ -8974,8 +8934,14 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Vapautetaanko viesti lähettäjältä {0} vastaanottajilleen? Se toimitetaan heti.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Vapautetaanko {0} valittu viesti vastaanottajilleen? Se toimitetaan heti.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>Vapautetaanko {0} valittua viestiä vastaanottajilleen? Ne toimitetaan heti.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Vapautetaanko {0} viesti lähettäjältä {1} vastaanottajilleen? Se toimitetaan heti.</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>Vapautetaanko {0} viestiä lähettäjältä {1} vastaanottajilleen? Ne toimitetaan heti.</value>
@@ -10220,6 +10186,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>Lähetetäänkö ”{0}” ainoalle aktiiviselle tilille, joka vastaa lauseketta ”{1}”?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” {1} aktiiviselle tilille, joka vastaa lauseketta ”{2}”?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>Lähetetäänkö ”{0}” niille {1} aktiiviselle tilille, jotka vastaavat lauseketta ”{2}”?</value>
   </data>
@@ -10514,10 +10483,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen, ja uudelleenkäynnistys katkaisee kaikki avoimet istunnot.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen.
-
-Käynnistetäänkö se uudelleen nyt?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen, ja uudelleenkäynnistys katkaisee kaikki avoimet istunnot.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Asetukset, jotka olivat ennen tällä sivulla</value>
@@ -11034,9 +11001,6 @@ Käynnistetäänkö se uudelleen nyt?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>NIIN</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>TÄMÄ PALVELIN KÄYTTÄÄ SISÄÄNRAKENNETTUA TIETOKANTAA (MSSQLCE), jolloin arvoksi pakotetaan 1 riippumatta siitä, mitä tähän asetetaan. Se on tarkoituksellista: SQL Server Compact ei toimi luotettavasti rinnakkaisten yhteyksien kanssa. Arvon muuttamisella alla ei ole vaikutusta ennen kuin palvelin siirretään MySQL-, MSSQL- tai PostgreSQL-tietokantaan.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Tunnus poistettiin; pyynnöt hiekkalaatikolle eivät nyt sisällä tunnusta.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Yhteispistemäärällä ei ole ylärajaa, koska listamerkinnän tai SpamAssassinin oman pistemäärän suuruutta ei ole rajoitettu.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Yhteispistemäärällä ei ole ylärajaa, koska listamerkinnän, SpamAssassinin oman pistemäärän tai ulkoisen moottorin pistemäärän suuruutta ei ole rajoitettu.</value>
   </data>
@@ -12553,9 +12514,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Verkkotunnuksia ei ole, joten näytettävää listaa ei ole.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Automaattisen eston IP-alueita on yhteensä {0}.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Kopioitavaa määritettyä konenimeä ei vielä ole.</value>
   </data>
@@ -12564,9 +12522,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Porrasta on vain yksi, arvossa 2. Arvosta 3 ylöspäin (oletus on 9) jokainen käytössä oleva luokka kirjataan kokonaan. Arvossa 2 tai sen alla palvelin jättää IMAP FETCH- ja STATUS-vastaukset pois lokista ja lyhentää alla olevaa rajaa pidemmät rivit niiden ensimmäisiin ja viimeisiin merkkeihin. Vianjäljitysviestien kytkeminen päälle yllä palauttaa täydet yksityiskohdat tasosta riippumatta.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Automaattisen eston IP-alueita on yhteensä {0}.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Nämä ovat vain {0} ensimmäisen tilin lukumääriä; sivu pysähtyy siihen sen sijaan että pakottaisi odottamaan loppuja.</value>
@@ -15548,9 +15503,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Yhteydet porttiin, jota ei kuunnella, hylätään. Tavallisimmat syyt ovat toinen ohjelma joka jo varaa portin, sidososoite jota tällä koneella ei ole, tai – TLS-portissa – varmenne jota palvelin ei saanut ladattua; palvelin kirjaa syyn kerran virhelokiin käynnistyksen yhteydessä.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} DNS-tietue haetaan taustalla; "tarkistetaan"-merkinnällä varustettu rivi päivittyy.</value>
   </data>
@@ -15689,20 +15641,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} muutosta tehty, yksikään ei epäonnistunut.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} asiakaskuuntelijalla ei ole salausta saatavilla, joten siinä käytetyt salasanat kulkevat verkon yli selväkielisinä.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} asiakaskuuntelija tarjoaa STARTTLS:n vaatimatta sitä, joten asiakas, joka ei pyydä salausta, todentaa ilman sitä eikä mikään raportoi tapahtuneesta.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>”{0}” suljettu. Se jatkuu siitä, mihin jäit.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>{0} määritettyä porttia ei kuunnella: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>{0} määritettyä porttia ei kuunnella: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} määritettyä porttia ei kuunnella: {1}. Jos lisäsit tai muutit sen juuri, alusta palvelin uudelleen: se lukee porttiluettelonsa käynnistyessään. Muuten toinen ohjelma varaa portin, osoitetta ei ole tällä koneella tai TLS-portin varmennetta ei voitu ladata - virheloki kertoo, mikä näistä.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>{0} määritettyä porttia ei kuunnella: {1}. Jos lisäsit tai muutit jonkin niistä juuri, alusta palvelin uudelleen: se lukee porttiluettelonsa käynnistyessään. Muuten toinen ohjelma varaa portin, osoitetta ei ole tällä koneella tai TLS-portin varmennetta ei voitu ladata - virheloki kertoo, mikä näistä.</value>
@@ -15884,8 +15827,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} luettelon merkintää</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} kuuntelija on määritetty TLS:lle, mutta se ei voi tarjota sitä, joten tuo portti ei kuuntele lainkaan.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{0} postipalvelin vastaanottaa postin kohteelle {1}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} postipalvelinta vastaanottaa postin kohteelle {1}.</value>
@@ -15998,6 +15941,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} kuviota poistetaan jokaisesta viestistä tiedostonimen perusteella riippumatta siitä, mitä tarkistimet sanovat.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>{0} ongelma</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} ongelmaa</value>
   </data>
@@ -16040,8 +15986,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} riviä on luettava ennen käyttöönottoa - ohitettu merkintä on postilaatikko, jota joku odottaa eikä saa, ja käytöstä poistettu on postilaatikko, joka otetaan pois.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} sääntö, arvioidaan ylhäältä alas.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} palvelimen sääntö, arvioidaan ylhäältä alas.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} sääntö kohteelle {1}, arvioidaan ylhäältä alas.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} sääntöä</value>
@@ -16051,9 +16000,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{0} sääntöä kohteelle {1}, arvioidaan ylhäältä alas.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} sääntöä, arvioidaan ylhäältä alas.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} näyte kopioitu leikepöydälle.</value>
@@ -16067,11 +16013,11 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} näytettä.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} tallennettu asetus odottaa uudelleenalustusta ja {1} palvelun uudelleenkäynnistystä.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} tallennettu asetus tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} tallennettu asetus odottaa uudelleenalustusta.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} tallennettu asetus odottaa palvelun uudelleenkäynnistystä.</value>
@@ -16081,18 +16027,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>{0} tallennettua asetusta odottaa uudelleenalustusta - Ota käyttöön nyt ottaa ne käyttöön.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>{0} tallennettua asetusta odottaa uudelleenalustusta - Ota käyttöön nyt ottaa ne käyttöön. 1 odottaa palvelun uudelleenkäynnistystä.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>{0} tallennettua asetusta odottaa uudelleenalustusta - Ota käyttöön nyt ottaa ne käyttöön. {1} odottaa palvelun uudelleenkäynnistystä.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} tallennettua asetusta odottaa uudelleenalustusta ja {1} palvelun uudelleenkäynnistystä.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} tallennettua asetusta odottaa uudelleenalustusta.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} tallennettua asetusta odottaa palvelun uudelleenkäynnistystä.</value>
@@ -16109,17 +16043,17 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} palvelimen viestiä</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} asetusta ei voitu lukea: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} asetusta ei voitu lukea, joten se on merkitty kortillaan tekstillä Ei luettu, ja tallennus jättää sen palvelimella ennalleen. Ensimmäinen syy: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} asetusta ei voitu kirjoittaa.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>{0} asetusta tällä kortilla ei voitu lukea, joten se on merkitty tekstillä Ei luettu; tallennus jättää sen palvelimella ennalleen.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>{0} asetusta ei voitu lukea, joten ne on merkitty korteillaan tekstillä Ei luettu, ja tallennus jättää ne palvelimella ennalleen. Ensimmäinen syy: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} asetusta ei voitu lukea: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} asetusta ei voitu kirjoittaa.</value>
@@ -16148,20 +16082,20 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea palvelimelta, joten tämä yhteenveto voi olla puutteellinen.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} arvoa ei voitu lukea: {1} Alla olevat kortit voivat olla puutteellisia.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea: {1} Yllä olevat kohteet voivat olla puutteellisia.</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea palvelimelta, joten tämä yhteenveto voi olla puutteellinen.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} arvoa ei voitu lukea: {1} Alla olevat kortit voivat olla puutteellisia.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} arvoa ei voitu lukea: {1} Yllä olevat kohteet voivat olla puutteellisia.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} odottaa palvelun uudelleenkäynnistystä.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} luotiin, ja siinä on {1} postilaatikko.</value>

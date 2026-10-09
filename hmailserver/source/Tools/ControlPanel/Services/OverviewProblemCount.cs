@@ -34,7 +34,7 @@ namespace hMailServer.ControlPanel.Services
          if (problems == 0)
             return everythingRead ? (StatusLevel.Good, L("No problems found")) : null;
 
-         return (worst, problems == 1 ? L("1 problem") : F("{0} problems", problems));
+         return (worst, Plural(problems, "{0} problem", "{0} problems"));
       }
    }
 }

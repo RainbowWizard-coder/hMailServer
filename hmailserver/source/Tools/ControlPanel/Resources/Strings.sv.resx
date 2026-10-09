@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 listpost</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>1 e-postserver tar emot e-post för {0}.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 meddelande kan inte listas och lämnas kvar där det är: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 mönster</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>1 problem</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 avvisar ett lösenord som har förekommit i samlingen bara en enda gång.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>1 regel för servern, utvärderad uppifrån och ned.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>1 regel för {0}, utvärderad uppifrån och ned.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 sparad inställning börjar gälla först när tjänsten hMailServer startas om. Starta om tjänsten nu? Alla klienter som är anslutna till servern kopplas från medan den stoppas och startar igen.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 sparad inställning väntar på en ominitiering - Tillämpa nu tar den.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 sparad inställning väntar på en ominitiering - Tillämpa nu tar den. 1 väntar på en omstart av tjänsten.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 sparad inställning väntar på en ominitiering - Tillämpa nu tar den. {0} väntar på en omstart av tjänsten.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 sparad inställning väntar på en omstart av tjänsten.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 säkerhetsgrupp</value>
@@ -1302,6 +1275,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="All linked domains" xml:space="preserve">
     <value>Alla kopplade domäner</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Alla {0} kontroller godkändes.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>Alla {0} kontroller godkändes.</value>
   </data>
@@ -1737,6 +1713,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Blockering av bilagor är avstängd, så ett mönster som läggs till här tillämpas inte förrän blockeringen slås på.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Blockering av bilagor är avstängd, så inget av dessa {0} mönster tillämpas.</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>Blockering av bilagor är avstängd, så inget av dessa {0} mönster tillämpas.</value>
@@ -2713,9 +2692,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Connections in the pool" xml:space="preserve">
     <value>Anslutningar i poolen</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Anslutningar i poolen (ignoreras: den här servern använder den inbyggda databasen)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Anslutningar till en källvärd, över alla pågående migreringar (1 till 64)</value>
   </data>
@@ -3561,11 +3537,17 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Ta bort alla händelser i meddelandespårningen som är äldre än en dag? Meddelandena de beskriver kan då inte längre följas här.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Ta bort alla händelser i meddelandespårningen som är äldre än {0} dag? Meddelandena de beskriver kan då inte längre följas här.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Ta bort alla händelser i meddelandespårningen som är äldre än {0} dagar? Meddelandena de beskriver kan då inte längre följas här.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Ta bort alla meddelanden som har legat i karantän i mer än en dag? Avsändarna fick beskedet att de hade accepterats, så inget kommer att försöka igen och det finns ingen annan kopia.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Ta bort alla meddelanden som har legat i karantän i mer än {0} dag? Avsändarna fick beskedet att de hade accepterats, så inget kommer att försöka igen och det finns ingen annan kopia.</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Ta bort alla meddelanden som har legat i karantän i mer än {0} dagar? Avsändarna fick beskedet att de hade accepterats, så inget kommer att försöka igen och det finns ingen annan kopia.</value>
@@ -3639,21 +3621,14 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Ta bort domänaliaset {0}? E-post till adresser under det namnet levereras inte längre till den här domänen.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Ta bort domänen {0}?
-
-Det tar permanent bort dess {1} konto, varje meddelande som lagras i det, och alla domänens alias och distributionslistor. Det går inte att ångra.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Ta bort domänen {0}?
-
-Det tar permanent bort dess {1} konton, varje meddelande som lagras i dem, och alla domänens alias och distributionslistor. Det går inte att ångra.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Ta bort domänen {0}? Den har inga konton; dess alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Ta bort domänen {0}? Dess enda konto, varje meddelande som lagras i det och domänens alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Ta bort domänen {0}? Dess {1} konto, varje meddelande som lagras i det och domänens alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Ta bort domänen {0}? Dess {1} konton, varje meddelande som lagras i dem och domänens alias och distributionslistor tas bort tillsammans med den. Det går inte att ångra.</value>
@@ -4449,9 +4424,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Varje bilaga ersätts av en kort notering, inte bara den infekterade; ett krypterat meddelande levereras oförändrat.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Varje kontroll i den ordning servern kör dem, och vad poängen de lägger till gör med meddelandet. Inget på den här sidan kan redigeras - varje avsnitt har en knapp till sidan som äger dess inställningar.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Varje kontroll i den ordning servern kör dem, dess poäng, och vad summan gör med meddelandet.</value>
@@ -5601,9 +5573,6 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (leverantörens publicerade signeringsnycklar; tomt = bara nyckelfilen)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Jobb {0} är {1} - mappar: {2}, tillagda meddelanden: {3}, överhoppade eftersom de ännu finns i brevlådan: {4}, misslyckade: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalföring och dubbel leverans</value>
   </data>
@@ -6381,9 +6350,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Meddelande för lokala avsändar_e (tomt = samma som ovan)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Meddelandets _id, från listan</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Meddelandeindexering</value>
@@ -7270,9 +7236,6 @@ Inget som redan finns där tas bort.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Inte giltigt förrän {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Inte ännu - {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Anteckning</value>
   </data>
@@ -7638,9 +7601,6 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Ett mönster för blockerade bilagor är konfigurerat men bilageblockering är avstängd, så det tillämpas inte.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>En konfigurerad port lyssnas inte på: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>En konfigurerad port lyssnas inte på: {0}. Om du nyss har lagt till eller ändrat den, ominitiera servern: den läser sin portlista vid start. Annars håller ett annat program porten, adressen finns inte på den här datorn, eller så kunde en TLS-ports certifikat inte läsas in - felloggen säger vilket.</value>
@@ -8974,8 +8934,14 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Släppa meddelandet från {0} till mottagarna? Det levereras genast.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Släppa {0} markerat meddelande till mottagarna? Det levereras genast.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>Släppa de {0} markerade meddelandena till mottagarna? De levereras genast.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Släppa {0} meddelande från {1} till mottagarna? Det levereras genast.</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>Släppa de {0} meddelandena från {1} till mottagarna? De levereras genast.</value>
@@ -10220,6 +10186,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>Skicka ”{0}” till det enda aktiva kontot som matchar ”{1}”?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>Skicka ”{0}” till det {1} aktiva konto som matchar ”{2}”?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>Skicka ”{0}” till de {1} aktiva konton som matchar ”{2}”?</value>
   </data>
@@ -10514,10 +10483,8 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Inställningarna är sparade. {0} av dem träder i kraft först när tjänsten hMailServer startas om, och en omstart bryter alla öppna sessioner.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Inställningarna är sparade. {0} av dem träder i kraft först när tjänsten hMailServer startas om.
-
-Starta om den nu?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Inställningarna är sparade. {0} av dem träder i kraft först när tjänsten hMailServer startas om, och en omstart bryter alla öppna sessioner.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Inställningar som tidigare fanns på den här sidan</value>
@@ -11034,9 +11001,6 @@ Starta om den nu?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>DÅ</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>DEN HÄR SERVERN ANVÄNDER DEN INBYGGDA DATABASEN (MSSQLCE), där värdet tvingas till 1 oavsett vad som anges här. Det är avsiktligt: SQL Server Compact beter sig inte tillförlitligt vid samtidiga anslutningar. Att ändra det nedan har ingen effekt förrän servern flyttas till MySQL, MSSQL eller PostgreSQL.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Token har tagits bort; förfrågningar till sandlådan har nu ingen.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Summan är öppen, eftersom en listpost eller SpamAssassins egen poäng kan vara hur stor som helst.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Summan är öppen, eftersom en listpost, SpamAssassins egen poäng eller den externa motorns kan vara hur stor som helst.</value>
   </data>
@@ -12553,9 +12514,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Det finns inga domäner, så det finns ingen lista att visa.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Det finns totalt {0} automatiskt spärrade IP-intervall.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Det finns inget konfigurerat värdnamn att kopiera ännu.</value>
   </data>
@@ -12564,9 +12522,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Det finns bara ett steg, vid 2. Från 3 och uppåt (standard är 9) loggas varje aktiverad kategori i sin helhet. Vid 2 eller lägre utelämnar servern IMAP FETCH- och STATUS-svar från loggen och förkortar rader längre än gränsen nedan till deras första och sista tecken. Att slå på Felsökningsmeddelanden ovan återställer full detalj oavsett nivå.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Det finns totalt {0} automatiskt spärrat IP-intervall.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Detta är antal för bara de första {0} kontona; den här sidan stannar där i stället för att låta dig vänta på resten.</value>
@@ -15548,9 +15503,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Anslutningar till en port som inte lyssnas på avvisas. De vanliga orsakerna är ett annat program som redan håller porten, en bindningsadress som inte finns på den här datorn, eller - på en TLS-port - ett certifikat som servern inte kunde läsa in; servern skriver vilket, en gång, i felloggen vid start.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} DNS-post slås upp i bakgrunden; raden markerad "kontrollerar" uppdateras.</value>
   </data>
@@ -15689,20 +15641,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} ändringar genomförda, ingen misslyckades.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} klientlyssnare har ingen kryptering tillgänglig, så lösenord som används på den korsar nätverket i klartext.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} klientlyssnare erbjuder STARTTLS utan att kräva det, så en klient som inte ber om kryptering autentiserar utan den och inget rapporterar att det hände.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>”{0}” stängd. Den fortsätter där du slutade.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>{0} konfigurerad port lyssnas inte på: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>{0} konfigurerade portar lyssnas inte på: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} konfigurerad port lyssnas inte på: {1}. Om du nyss har lagt till eller ändrat den, ominitiera servern: den läser sin portlista vid start. Annars håller ett annat program porten, adressen finns inte på den här datorn, eller så kunde en TLS-ports certifikat inte läsas in - felloggen säger vilket.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>{0} konfigurerade portar lyssnas inte på: {1}. Om du nyss har lagt till eller ändrat en av dem, ominitiera servern: den läser sin portlista vid start. Annars håller ett annat program porten, adressen finns inte på den här datorn, eller så kunde en TLS-ports certifikat inte läsas in - felloggen säger vilket.</value>
@@ -15884,8 +15827,8 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} listposter</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} lyssnare är konfigurerad för TLS men kan inte leverera det, så den porten lyssnar inte alls.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{0} e-postserver tar emot e-post för {1}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} e-postservrar tar emot e-post för {1}.</value>
@@ -15998,6 +15941,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mönster tas bort från varje meddelande efter filnamn, oavsett vad skannrarna säger.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>{0} problem</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problem</value>
   </data>
@@ -16040,8 +15986,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rader behöver läsas innan du tillämpar - en överhoppad post är en brevlåda någon förväntar sig och inte får, och en inaktiverad är en brevlåda som tas bort.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel, utvärderad uppifrån och ned.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel för servern, utvärderad uppifrån och ned.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel för {1}, utvärderad uppifrån och ned.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
@@ -16051,9 +16000,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{0} regler för {1}, utvärderade uppifrån och ned.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler, utvärderade uppifrån och ned.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} stickprov kopierat till urklipp.</value>
@@ -16067,11 +16013,11 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} stickprov.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} sparad inställning väntar på en ominitiering, och {1} på en omstart av tjänsten.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} sparad inställning börjar gälla först när tjänsten hMailServer startas om. Starta om tjänsten nu? Alla klienter som är anslutna till servern kopplas från medan den stoppas och startar igen.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} sparad inställning väntar på en ominitiering.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} sparad inställning väntar på en ominitiering - Tillämpa nu tar den.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} sparad inställning väntar på en omstart av tjänsten.</value>
@@ -16081,18 +16027,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>{0} sparade inställningar väntar på en ominitiering - Tillämpa nu tar dem.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>{0} sparade inställningar väntar på en ominitiering - Tillämpa nu tar dem. 1 väntar på en omstart av tjänsten.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>{0} sparade inställningar väntar på en ominitiering - Tillämpa nu tar dem. {1} väntar på en omstart av tjänsten.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} sparade inställningar väntar på en ominitiering, och {1} på en omstart av tjänsten.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} sparade inställningar väntar på en ominitiering.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} sparade inställningar väntar på en omstart av tjänsten.</value>
@@ -16109,17 +16043,17 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} servermeddelanden</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} inställning kunde inte läsas: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} inställning kunde inte läsas, så den är markerad Inte läst på sitt kort, och när du sparar lämnas den som den är på servern. Den första orsaken: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} inställning kunde inte skrivas.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>{0} inställning på det här kortet kunde inte läsas, så den är markerad Inte läst; när du sparar lämnas den som den är på servern.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>{0} inställningar kunde inte läsas, så de är markerade Inte läst på sina kort, och när du sparar lämnas de som de är på servern. Den första orsaken: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} inställningar kunde inte läsas: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} inställningar kunde inte skrivas.</value>
@@ -16148,20 +16082,20 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} värde kunde inte läsas från servern, så den här sammanfattningen kan vara ofullständig.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} värde kunde inte läsas: {1} Korten nedan kan vara ofullständiga.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} värde kunde inte läsas: {1} Posterna ovan kan vara ofullständiga.</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} värden kunde inte läsas från servern, så den här sammanfattningen kan vara ofullständig.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} värden kunde inte läsas: {1} Korten nedan kan vara ofullständiga.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} värden kunde inte läsas: {1} Posterna ovan kan vara ofullständiga.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} väntar på en omstart av tjänsten.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} väntar på en omstart av tjänsten.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} skapades med {1} brevlåda.</value>

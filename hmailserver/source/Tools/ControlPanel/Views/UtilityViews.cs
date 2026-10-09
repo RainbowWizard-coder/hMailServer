@@ -377,9 +377,10 @@ namespace hMailServer.ControlPanel.Views
             report.AppendLine();
             report.Append(L("Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise."));
 
-            Say_(StatusLevel.Good, servers.Length == 1
-               ? F("1 mail server receives mail for {0}.", domain)
-               : F("{0} mail servers receive mail for {1}.", servers.Length, domain));
+            Say_(StatusLevel.Good, PluralF(servers.Length,
+               "{0} mail server receives mail for {1}.",
+               "{0} mail servers receive mail for {1}.",
+               servers.Length, domain));
             details_.Text = report.ToString();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
@@ -923,7 +924,7 @@ namespace hMailServer.ControlPanel.Views
          else if (passed < checks.Count)
             Say_(StatusLevel.Information, F("{0} of {1} checks passed; the server gave no result for the others.", passed, checks.Count));
          else
-            Say_(StatusLevel.Good, checks.Count == 1 ? L("The check passed.") : F("All {0} checks passed.", checks.Count));
+            Say_(StatusLevel.Good, checks.Count == 1 ? L("The check passed.") : Plural(checks.Count, "All {0} check passed.", "All {0} checks passed."));
 
          var copy = new System.Text.StringBuilder(summary_.Text);
          copy.AppendLine();
@@ -1171,7 +1172,7 @@ namespace hMailServer.ControlPanel.Views
          bool fresh = enabled && Services.MessageStoreConsistencyReport.IsFresh(age);
          if (!fresh && age is TimeSpan old)
          {
-            when += " " + (enabled
+            when = Sentences(when, enabled
                ? F("That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed.", AgeWords.Ago(old))
                : F("That scan was {0}.", AgeWords.Ago(old)));
          }

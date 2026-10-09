@@ -298,7 +298,9 @@ namespace hMailServer.ControlPanel.Views
             Level = StatusLevel.Warning,
             Text = patterns == 0 ? L("Attachment blocking is switched off, so a pattern added here is not applied until it is turned on.")
                : patterns == 1 ? L("Attachment blocking is switched off, so this pattern is not applied.")
-               : F("Attachment blocking is switched off, so none of these {0} patterns is applied.", patterns),
+               : Plural(patterns,
+                  "Attachment blocking is switched off, so none of these {0} pattern is applied.",
+                  "Attachment blocking is switched off, so none of these {0} patterns is applied."),
             Page = "antivirus",
             ActionCaption = L("_Open Anti-virus settings")
          };

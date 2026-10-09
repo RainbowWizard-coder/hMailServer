@@ -168,17 +168,11 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 listepost</value>
   </data>
-  <data name="1 mail server receives mail for {0}." xml:space="preserve">
-    <value>1 mailserver modtager mail for {0}.</value>
-  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 meddelelse kan ikke vises på listen og efterlades, hvor den er: {0}</value>
   </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 mønster</value>
-  </data>
-  <data name="1 problem" xml:space="preserve">
-    <value>1 problem</value>
   </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 afviser en adgangskode, der er dukket op i samlingen blot én gang.</value>
@@ -188,27 +182,6 @@
   </data>
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
-  </data>
-  <data name="1 rule of the server, evaluated top to bottom." xml:space="preserve">
-    <value>1 regel for serveren, evalueret fra top til bund.</value>
-  </data>
-  <data name="1 rule of {0}, evaluated top to bottom." xml:space="preserve">
-    <value>1 regel for {0}, evalueret fra top til bund.</value>
-  </data>
-  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
-    <value>1 gemt indstilling træder først i kraft, når hMailServer-tjenesten genstartes. Genstart tjenesten nu? Alle klienter, der er forbundet til serveren, afbrydes, mens den stopper og starter igen.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
-    <value>1 gemt indstilling venter på en reinitialisering - Anvend nu tager den.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
-    <value>1 gemt indstilling venter på en reinitialisering - Anvend nu tager den. 1 venter på en genstart af tjenesten.</value>
-  </data>
-  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
-    <value>1 gemt indstilling venter på en reinitialisering - Anvend nu tager den. {0} venter på en genstart af tjenesten.</value>
-  </data>
-  <data name="1 saved setting waits for a service restart." xml:space="preserve">
-    <value>1 gemt indstilling venter på en genstart af tjenesten.</value>
   </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 sikkerhedsgruppe</value>
@@ -1302,6 +1275,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="All linked domains" xml:space="preserve">
     <value>Alle tilknyttede domæner</value>
   </data>
+  <data name="All {0} check passed." xml:space="preserve">
+    <value>Alle {0} kontroller bestod.</value>
+  </data>
   <data name="All {0} checks passed." xml:space="preserve">
     <value>Alle {0} kontroller bestod.</value>
   </data>
@@ -1737,6 +1713,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
     <value>Blokering af vedhæftede filer er slået fra, så et mønster, der tilføjes her, anvendes ikke, før blokeringen slås til.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} pattern is applied." xml:space="preserve">
+    <value>Blokering af vedhæftede filer er slået fra, så ingen af disse {0} mønstre anvendes.</value>
   </data>
   <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
     <value>Blokering af vedhæftede filer er slået fra, så ingen af disse {0} mønstre anvendes.</value>
@@ -2713,9 +2692,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Connections in the pool" xml:space="preserve">
     <value>Forbindelser i puljen</value>
   </data>
-  <data name="Connections in the pool (ignored: this server uses the built-in database)" xml:space="preserve">
-    <value>Forbindelser i puljen (ignoreres: denne server bruger den indbyggede database)</value>
-  </data>
   <data name="Connections to one source host, across every running migration (1 to 64)" xml:space="preserve">
     <value>Forbindelser til én kildevært, på tværs af alle kørende migreringer (1 til 64)</value>
   </data>
@@ -3561,11 +3537,17 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Slet alle hændelser i meddelelsessporingen, der er ældre end en dag? De meddelelser, de beskriver, kan derefter ikke længere følges her.</value>
   </data>
+  <data name="Delete every message trace event older than {0} day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Slet alle hændelser i meddelelsessporingen, der er ældre end {0} dag? De meddelelser, de beskriver, kan derefter ikke længere følges her.</value>
+  </data>
   <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
     <value>Slet alle hændelser i meddelelsessporingen, der er ældre end {0} dage? De meddelelser, de beskriver, kan derefter ikke længere følges her.</value>
   </data>
   <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Slet alle meddelelser, der har været i karantæne i mere end en dag? Afsenderne fik besked om, at de var blevet accepteret, så intet vil forsøge igen, og der er ingen anden kopi.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Slet alle meddelelser, der har været i karantæne i mere end {0} dag? Afsenderne fik besked om, at de var blevet accepteret, så intet vil forsøge igen, og der er ingen anden kopi.</value>
   </data>
   <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
     <value>Slet alle meddelelser, der har været i karantæne i mere end {0} dage? Afsenderne fik besked om, at de var blevet accepteret, så intet vil forsøge igen, og der er ingen anden kopi.</value>
@@ -3639,21 +3621,14 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
     <value>Slet domænealiasset {0}? Post til adresser under det navn leveres ikke længere til dette domæne.</value>
   </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Slet domænet {0}?
-
-Dette fjerner permanent dets {1} konto, hver eneste meddelelse, der er gemt i den, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
-  </data>
-  <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} accounts, every message stored in them, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
-    <value>Slet domænet {0}?
-
-Dette fjerner permanent dets {1} konti, hver eneste meddelelse, der er gemt i dem, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
-  </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Slet domænet {0}? Det har ingen konti; dets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Slet domænet {0}? Dets ene konto, hver meddelelse, der er gemt i den, og domænets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
+  </data>
+  <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
+    <value>Slet domænet {0}? Dets {1} konto, hver meddelelse, der er gemt i den, og domænets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Slet domænet {0}? Dets {1} konti, hver meddelelse, der er gemt i dem, og domænets aliasser og distributionslister slettes sammen med det. Det kan ikke fortrydes.</value>
@@ -4449,9 +4424,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged." xml:space="preserve">
     <value>Hver vedhæftet fil erstattes af en kort note, ikke kun den inficerede; en krypteret meddelelse leveres uændret.</value>
-  </data>
-  <data name="Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings." xml:space="preserve">
-    <value>Hver kontrol i den rækkefølge, serveren kører dem, og hvad den score, de lægger til, gør ved meddelelsen. Intet på denne side kan redigeres - hvert afsnit har en knap til den side, der ejer dets indstillinger.</value>
   </data>
   <data name="Every check in the order the server runs them, its score, and what the total does to the message." xml:space="preserve">
     <value>Hver kontrol i den rækkefølge, serveren kører dem, dens score, og hvad totalen gør ved meddelelsen.</value>
@@ -5601,9 +5573,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   <data name="JWK Set URL (the provider's published signing keys; empty = the key file only)" xml:space="preserve">
     <value>JWK Set-URL (udbyderens offentliggjorte signeringsnøgler; tomt = kun nøglefilen)</value>
   </data>
-  <data name="Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}." xml:space="preserve">
-    <value>Job {0} er {1} - mapper: {2}, tilføjede beskeder: {3}, sprunget over, fordi de stadig er i postkassen: {4}, mislykkede: {5}.</value>
-  </data>
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journalisering og dobbelt levering</value>
   </data>
@@ -6381,9 +6350,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Meddelelse _til lokale afsendere (tomt = samme som ovenfor)</value>
-  </data>
-  <data name="Message i_d, from the listing" xml:space="preserve">
-    <value>Beskedens _id, fra listen</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Meddelelsesindeksering</value>
@@ -7270,9 +7236,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Not valid until {0}" xml:space="preserve">
     <value>Ikke gyldigt før {0}</value>
   </data>
-  <data name="Not yet - {0}." xml:space="preserve">
-    <value>Ikke endnu - {0}.</value>
-  </data>
   <data name="Note" xml:space="preserve">
     <value>Note</value>
   </data>
@@ -7638,9 +7601,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Ét mønster for blokerede vedhæftede filer er konfigureret, men blokering af vedhæftede filer er slået fra, så det anvendes ikke.</value>
-  </data>
-  <data name="One configured port is not being listened on: {0}." xml:space="preserve">
-    <value>Der lyttes ikke på én konfigureret port: {0}.</value>
   </data>
   <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Der lyttes ikke på én konfigureret port: {0}. Hvis du lige har tilføjet eller ændret den, så reinitialiser serveren: den læser sin portliste ved opstart. Ellers holder et andet program porten, adressen findes ikke på denne maskine, eller en TLS-ports certifikat kunne ikke indlæses - fejlloggen siger hvilket.</value>
@@ -8974,8 +8934,14 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
     <value>Frigiv meddelelsen fra {0} til modtagerne? Den leveres med det samme.</value>
   </data>
+  <data name="Release the {0} checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Frigiv {0} markeret meddelelse til modtagerne? Den leveres med det samme.</value>
+  </data>
   <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
     <value>Frigiv de {0} markerede meddelelser til modtagerne? De leveres med det samme.</value>
+  </data>
+  <data name="Release the {0} message from {1} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Frigiv {0} meddelelse fra {1} til modtagerne? Den leveres med det samme.</value>
   </data>
   <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
     <value>Frigiv de {0} meddelelser fra {1} til modtagerne? De leveres med det samme.</value>
@@ -10220,6 +10186,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
     <value>Send »{0}« til den ene aktive konto, der matcher »{1}«?</value>
   </data>
+  <data name="Send “{0}” to the {1} active account matching “{2}”?" xml:space="preserve">
+    <value>Send »{0}« til den {1} aktive konto, der matcher »{2}«?</value>
+  </data>
   <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
     <value>Send »{0}« til de {1} aktive konti, der matcher »{2}«?</value>
   </data>
@@ -10514,10 +10483,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
     <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes, og en genstart afbryder alle åbne sessioner.</value>
   </data>
-  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes.
-
-Genstart den nu?</value>
+  <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes, og en genstart afbryder alle åbne sessioner.</value>
   </data>
   <data name="Settings that used to be on this page" xml:space="preserve">
     <value>Indstillinger, der plejede at være på denne side</value>
@@ -11034,9 +11001,6 @@ Genstart den nu?</value>
   </data>
   <data name="THEN" xml:space="preserve">
     <value>SÅ</value>
-  </data>
-  <data name="THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL." xml:space="preserve">
-    <value>DENNE SERVER BRUGER DEN INDBYGGEDE DATABASE (MSSQLCE), hvor værdien tvinges til 1, uanset hvad der er angivet her. Det er med vilje: SQL Server Compact opfører sig ikke pålideligt ved samtidige forbindelser. En ændring nedenfor har ingen virkning, før serveren er flyttet til MySQL, MSSQL eller PostgreSQL.</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
@@ -12460,9 +12424,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The token was removed; requests to the sandbox now carry none." xml:space="preserve">
     <value>Tokenet er fjernet; forespørgsler til sandkassen har nu intet.</value>
   </data>
-  <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
-    <value>Totalen er uden øvre grænse, fordi en listepost eller SpamAssassins egen score kan have en hvilken som helst størrelse.</value>
-  </data>
   <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
     <value>Totalen er uden øvre grænse, fordi en listepost, SpamAssassins egen score eller den eksterne motors kan have en hvilken som helst størrelse.</value>
   </data>
@@ -12553,9 +12514,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="There are no domains, so there is no list to show." xml:space="preserve">
     <value>Der er ingen domæner, så der er ingen liste at vise.</value>
   </data>
-  <data name="There are {0} auto-ban IP ranges in all." xml:space="preserve">
-    <value>Der er i alt {0} IP-intervaller fra automatisk blokering.</value>
-  </data>
   <data name="There is no configured host name to copy yet." xml:space="preserve">
     <value>Der er endnu intet konfigureret værtsnavn at kopiere.</value>
   </data>
@@ -12564,9 +12522,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="There is only one step, at 2. From 3 upwards (the default is 9) every enabled category is logged in full. At 2 or lower the server drops IMAP FETCH and STATUS responses from the log and shortens lines longer than the limit below to their first and last characters. Turning on Debug messages above restores full detail whatever the level." xml:space="preserve">
     <value>Der er kun ét trin, ved 2. Fra 3 og opefter (standarden er 9) logges hver aktiveret kategori fuldt ud. Ved 2 eller lavere udelader serveren IMAP FETCH- og STATUS-svar fra loggen og forkorter linjer længere end grænsen nedenfor til deres første og sidste tegn. Slås Debug-meddelelser ovenfor til, gendannes fuld detaljering uanset niveau.</value>
-  </data>
-  <data name="There is {0} auto-ban IP range in all." xml:space="preserve">
-    <value>Der er i alt {0} IP-interval fra automatisk blokering.</value>
   </data>
   <data name="These are counts of the first {0} accounts only; this page stops there rather than making you wait for the rest." xml:space="preserve">
     <value>Dette er kun optællinger for de første {0} konti; siden stopper der frem for at lade dig vente på resten.</value>
@@ -15548,9 +15503,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} - {1}" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
-  <data name="{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up." xml:space="preserve">
-    <value>{0} Forbindelser til en port, der ikke lyttes på, afvises. De sædvanlige årsager er et andet program, der allerede holder porten, en bind-adresse, der ikke findes på denne maskine, eller – på en TLS-port – et certifikat, som serveren ikke kunne indlæse; serveren noterer hvilken af delene, én gang, i fejlloggen ved opstart.</value>
-  </data>
   <data name="{0} DNS record is being looked up in the background; the row marked &quot;checking&quot; will update." xml:space="preserve">
     <value>{0} DNS-post slås op i baggrunden; rækken markeret med "kontrollerer" bliver opdateret.</value>
   </data>
@@ -15689,20 +15641,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} changes carried out, none failed." xml:space="preserve">
     <value>{0} ændringer udført, ingen mislykkedes.</value>
   </data>
-  <data name="{0} client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>{0} klientlytter har ingen kryptering tilgængelig, så adgangskoder, der bruges på den, krydser netværket i klartekst.</value>
-  </data>
-  <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} klientlytter tilbyder STARTTLS uden at kræve det, så en klient, der ikke beder om kryptering, godkender uden den, og intet rapporterer, at det skete.</value>
-  </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>»{0}« lukket. Den fortsætter, hvor du slap.</value>
   </data>
-  <data name="{0} configured port is not being listened on: {1}." xml:space="preserve">
-    <value>Der lyttes ikke på {0} konfigureret port: {1}.</value>
-  </data>
-  <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
-    <value>Der lyttes ikke på {0} konfigurerede porte: {1}.</value>
+  <data name="{0} configured port is not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Der lyttes ikke på {0} konfigureret port: {1}. Hvis du lige har tilføjet eller ændret den, så reinitialiser serveren: den læser sin portliste ved opstart. Ellers holder et andet program porten, adressen findes ikke på denne maskine, eller en TLS-ports certifikat kunne ikke indlæses - fejlloggen siger hvilket.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Der lyttes ikke på {0} konfigurerede porte: {1}. Hvis du lige har tilføjet eller ændret en af dem, så reinitialiser serveren: den læser sin portliste ved opstart. Ellers holder et andet program porten, adressen findes ikke på denne maskine, eller en TLS-ports certifikat kunne ikke indlæses - fejlloggen siger hvilket.</value>
@@ -15884,8 +15827,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} list entries" xml:space="preserve">
     <value>{0} listeposter</value>
   </data>
-  <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>{0} lytter er konfigureret til TLS, men kan ikke levere det, så den port lytter slet ikke.</value>
+  <data name="{0} mail server receives mail for {1}." xml:space="preserve">
+    <value>{0} mailserver modtager mail for {1}.</value>
   </data>
   <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
     <value>{0} mailservere modtager mail for {1}.</value>
@@ -15998,6 +15941,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mønstre fjernes fra hver meddelelse efter filnavn, uanset hvad scannerne siger.</value>
   </data>
+  <data name="{0} problem" xml:space="preserve">
+    <value>{0} problem</value>
+  </data>
   <data name="{0} problems" xml:space="preserve">
     <value>{0} problemer</value>
   </data>
@@ -16040,8 +15986,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} rows need reading before you apply - a skipped entry is a mailbox somebody expects and will not get, and a disabled one is a mailbox being taken away." xml:space="preserve">
     <value>{0} rækker skal læses, før du anvender - en oversprunget post er en postkasse, nogen forventer og ikke får, og en deaktiveret er en postkasse, der bliver taget fra nogen.</value>
   </data>
-  <data name="{0} rule, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regel, evalueret fra top til bund.</value>
+  <data name="{0} rule of the server, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel for serveren, evalueret fra top til bund.</value>
+  </data>
+  <data name="{0} rule of {1}, evaluated top to bottom." xml:space="preserve">
+    <value>{0} regel for {1}, evalueret fra top til bund.</value>
   </data>
   <data name="{0} rules" xml:space="preserve">
     <value>{0} regler</value>
@@ -16051,9 +16000,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} rules of {1}, evaluated top to bottom." xml:space="preserve">
     <value>{0} regler for {1}, evalueret fra top til bund.</value>
-  </data>
-  <data name="{0} rules, evaluated top to bottom." xml:space="preserve">
-    <value>{0} regler, evalueret fra top til bund.</value>
   </data>
   <data name="{0} sample copied to the clipboard." xml:space="preserve">
     <value>{0} måling kopieret til udklipsholderen.</value>
@@ -16067,11 +16013,11 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} samples." xml:space="preserve">
     <value>{0} målinger.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} gemt indstilling venter på en reinitialisering og {1} på en genstart af tjenesten.</value>
+  <data name="{0} saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} gemt indstilling træder først i kraft, når hMailServer-tjenesten genstartes. Genstart tjenesten nu? Alle klienter, der er forbundet til serveren, afbrydes, mens den stopper og starter igen.</value>
   </data>
-  <data name="{0} saved setting waits for a reinitialise." xml:space="preserve">
-    <value>{0} gemt indstilling venter på en reinitialisering.</value>
+  <data name="{0} saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>{0} gemt indstilling venter på en reinitialisering - Anvend nu tager den.</value>
   </data>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} gemt indstilling venter på en genstart af tjenesten.</value>
@@ -16081,18 +16027,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
     <value>{0} gemte indstillinger venter på en reinitialisering - Anvend nu tager dem.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
-    <value>{0} gemte indstillinger venter på en reinitialisering - Anvend nu tager dem. 1 venter på en genstart af tjenesten.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
-    <value>{0} gemte indstillinger venter på en reinitialisering - Anvend nu tager dem. {1} venter på en genstart af tjenesten.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
-    <value>{0} gemte indstillinger venter på en reinitialisering og {1} på en genstart af tjenesten.</value>
-  </data>
-  <data name="{0} saved settings wait for a reinitialise." xml:space="preserve">
-    <value>{0} gemte indstillinger venter på en reinitialisering.</value>
   </data>
   <data name="{0} saved settings wait for a service restart." xml:space="preserve">
     <value>{0} gemte indstillinger venter på en genstart af tjenesten.</value>
@@ -16109,17 +16043,17 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} server messages" xml:space="preserve">
     <value>{0} servermeddelelser</value>
   </data>
-  <data name="{0} setting could not be read: {1}" xml:space="preserve">
-    <value>{0} indstilling kunne ikke læses: {1}</value>
+  <data name="{0} setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} indstilling kunne ikke læses, så den er markeret Ikke læst på sit kort, og når der gemmes, forbliver den, som den er på serveren. Den første årsag: {1}</value>
   </data>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} indstilling kunne ikke skrives.</value>
   </data>
+  <data name="{0} setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>{0} indstilling på dette kort kunne ikke læses, så den er markeret Ikke læst; når der gemmes, forbliver den, som den er på serveren.</value>
+  </data>
   <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
     <value>{0} indstillinger kunne ikke læses, så de er markeret Ikke læst på deres kort, og når der gemmes, forbliver de, som de er på serveren. Den første årsag: {1}</value>
-  </data>
-  <data name="{0} settings could not be read: {1}" xml:space="preserve">
-    <value>{0} indstillinger kunne ikke læses: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} indstillinger kunne ikke skrives.</value>
@@ -16148,20 +16082,20 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0} value could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} værdi kunne ikke læses fra serveren, så denne oversigt kan være ufuldstændig.</value>
   </data>
-  <data name="{0} value could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} værdi kunne ikke læses: {1} Kortene nedenfor kan være ufuldstændige.</value>
-  </data>
   <data name="{0} value could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} værdi kunne ikke læses: {1} Elementerne ovenfor kan være ufuldstændige.</value>
   </data>
   <data name="{0} values could not be read from the server, so this summary may be incomplete." xml:space="preserve">
     <value>{0} værdier kunne ikke læses fra serveren, så denne oversigt kan være ufuldstændig.</value>
   </data>
-  <data name="{0} values could not be read: {1} The cards below may be incomplete." xml:space="preserve">
-    <value>{0} værdier kunne ikke læses: {1} Kortene nedenfor kan være ufuldstændige.</value>
-  </data>
   <data name="{0} values could not be read: {1} The items above may be incomplete." xml:space="preserve">
     <value>{0} værdier kunne ikke læses: {1} Elementerne ovenfor kan være ufuldstændige.</value>
+  </data>
+  <data name="{0} wait for a service restart." xml:space="preserve">
+    <value>{0} venter på en genstart af tjenesten.</value>
+  </data>
+  <data name="{0} waits for a service restart." xml:space="preserve">
+    <value>{0} venter på en genstart af tjenesten.</value>
   </data>
   <data name="{0} was made with {1} mailbox." xml:space="preserve">
     <value>{0} blev oprettet med {1} postkasse.</value>
