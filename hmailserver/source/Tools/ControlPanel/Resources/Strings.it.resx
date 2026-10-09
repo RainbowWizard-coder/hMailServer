@@ -4495,6 +4495,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Fai scadere le password dopo (giorni; 0 = mai)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Scaduta</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>Scaduta il {0} (meno di un giorno fa)</value>
   </data>
@@ -4527,6 +4530,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>La scadenza non può essere letta da qui: i file del certificato si trovano sul server e questo Control Panel vi è connesso da remoto. Tutto il resto in questa pagina arriva tramite COM ed è accurato.</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>Scadenza illeggibile</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Esportazione</value>
@@ -4738,6 +4744,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Per ogni certificato il cui file della chiave è un PEM cifrato, imposta la password della chiave privata del certificato nella pagina Certificati SSL (la passphrase è stata scelta da chi ha creato la chiave, quindi solo tu puoi fornirla) - oppure sostituisci il file con una chiave non cifrata.</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>Per esempio 10.0.0.5 o 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Per esempio http://127.0.0.1:11333/checkv2. Per ora solo HTTP in chiaro, quindi il motore dovrebbe trovarsi su questa macchina o su una rete di cui ti fidi - gli viene inviato l'intero messaggio.</value>
   </data>
@@ -4809,6 +4818,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Proxy di frontend (protocollo PROXY e XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>Autorità completa</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Autorità completa - questa chiave può modificare ed eliminare cose. Scade il {0}.</value>
@@ -5310,6 +5322,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Se {0} riceve già posta altrove - presso un provider di caselle in hosting, su un altro server - pubblicare questo record sposta quella posta qui. Modificalo solo quando questo server è pronto a riceverla.</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Ignorata</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ignorata dal server - il digest memorizzato non è un valore SHA-256 utilizzabile, quindi questa sezione non autentica nulla. Revocala e creane una sostitutiva.</value>
@@ -6652,8 +6667,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No" xml:space="preserve">
     <value>No</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>Non esiste alcuna chiave API. Ogni richiesta REST deve quindi portare con sé la password di amministratore, che ha piena autorità su ogni dominio e non può essere limitata nell'ambito, dotata di scadenza o revocata singolarmente.</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>Non ci sono ancora chiavi API, quindi ogni richiesta REST deve portare la password dell'amministratore, che ha autorità completa su ogni dominio e non può essere limitata, fatta scadere né revocata da sola. Crea una chiave da usare al suo posto.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>Non è stato trovato alcun dominio Active Directory nella foresta attuale.</value>
@@ -8522,6 +8537,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>Rileggi i casi</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>Sola lettura</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Sola lettura. Scade il {0}.</value>
@@ -14214,8 +14232,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>_Mostra negli intervalli IP</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>_Indirizzi di origine da cui può essere usata (facoltativo)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>_Indirizzo o intervallo di origine da cui può essere usata (facoltativo)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Inizia la visita</value>
@@ -14531,9 +14549,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>inoltrare un indirizzo a un altro</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>autorità completa</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (separato da tabulazioni)</value>

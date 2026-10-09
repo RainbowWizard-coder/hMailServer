@@ -4540,6 +4540,9 @@ Control Panel может читать файлы сообщений только
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Считать пароли просроченными через (дней; 0 — никогда)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Истёк</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>Срок действия истёк {0} (меньше суток назад)</value>
   </data>
@@ -4578,6 +4581,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Срок действия отсюда прочитать нельзя: файлы сертификата находятся на сервере, а этот Control Panel подключён к нему удалённо. Всё остальное на этой странице приходит по COM и является достоверным.</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>Срок не читается</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Экспорт</value>
@@ -4792,6 +4798,9 @@ Control Panel может читать файлы сообщений только
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Для каждого сертификата, файл ключа которого является зашифрованным PEM, задайте пароль закрытого ключа сертификата на странице «Сертификаты SSL» (парольную фразу задал тот, кто создавал ключ, поэтому предоставить её можете только вы) — либо замените файл незашифрованным ключом.</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>Например, 10.0.0.5 или 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Например, http://127.0.0.1:11333/checkv2. Пока поддерживается только незашифрованный HTTP, поэтому движок должен находиться на этом компьютере или в сети, которой вы доверяете, — ему передаётся всё сообщение целиком.</value>
   </data>
@@ -4863,6 +4872,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Фронтальные прокси (протокол PROXY и XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>Полные полномочия</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Полные полномочия — этот ключ может изменять и удалять. Срок действия истекает {0}.</value>
@@ -5364,6 +5376,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Если {0} уже получает почту где-то ещё — у поставщика размещённых почтовых ящиков, на другом сервере, — публикация этой записи перенесёт эту почту сюда. Меняйте запись, только когда этот сервер готов принимать эту почту.</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Игнорируется</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Игнорируется сервером — сохранённая контрольная сумма не является пригодным значением SHA-256, поэтому этот раздел никого не аутентифицирует. Отзовите его и создайте замену.</value>
@@ -6715,8 +6730,8 @@ Control Panel может читать файлы сообщений только
   <data name="No" xml:space="preserve">
     <value>Нет</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>Ключей API нет. Поэтому каждый запрос REST вынужден нести пароль администратора, который даёт полные полномочия над каждым доменом и который нельзя ограничить областью действия, снабдить сроком действия или отозвать отдельно.</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>Ключей API пока нет, поэтому каждый запрос REST должен передавать пароль администратора, у которого полные полномочия над всеми доменами и который нельзя отдельно ограничить, снабдить сроком действия или отозвать. Создайте ключ, чтобы использовать его вместо пароля.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>В текущем лесу не удалось найти ни одного домена Active Directory.</value>
@@ -8600,6 +8615,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>Перечитать дела</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>Только чтение</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Только чтение. Истекает {0}.</value>
@@ -14372,8 +14390,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>Показать в _диапазонах IP</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>_Исходные адреса, с которых его разрешено использовать (необязательно)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>_Исходный адрес или диапазон, с которого его можно использовать (необязательно)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Начать экскурсию</value>
@@ -14695,9 +14713,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>переслать один адрес на другой</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>полные права</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (с разделителями-табуляциями)</value>

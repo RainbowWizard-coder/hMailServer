@@ -4495,6 +4495,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Vanhenna salasanat (päivää; 0 = ei koskaan)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Vanhentunut</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>Vanheni {0} (alle vuorokausi sitten)</value>
   </data>
@@ -4527,6 +4530,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vanhenemista ei voi lukea täältä: varmennetiedostot ovat palvelimella ja tämä Control Panel on yhteydessä siihen etänä. Kaikki muu tällä sivulla tulee COM-rajapinnan kautta ja pitää paikkansa.</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>Vanhenemista ei voi lukea</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Vienti</value>
@@ -4738,6 +4744,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Aseta jokaiselle varmenteelle, jonka avaintiedosto on salattu PEM, varmenteen yksityisen avaimen salasana SSL-varmenteet-sivulla (tunnuslauseen asetti se, joka loi avaimen, joten vain sinä voit antaa sen) - tai korvaa tiedosto salaamattomalla avaimella.</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>Esimerkiksi 10.0.0.5 tai 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Esimerkiksi http://127.0.0.1:11333/checkv2. Toistaiseksi vain tavallinen HTTP, joten moottorin pitäisi olla tällä koneella tai luotetussa verkossa - sille lähetetään koko viesti.</value>
   </data>
@@ -4809,6 +4818,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Edustaproxyt (PROXY-protokolla ja XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>Täydet oikeudet</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Täydet oikeudet - tämä avain voi muuttaa ja poistaa asioita. Vanhenee {0}.</value>
@@ -5310,6 +5322,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Jos verkkotunnus {0} vastaanottaa jo postia muualla - isännöidyn postilaatikkopalvelun tarjoajalla tai toisella palvelimella - tämän tietueen julkaiseminen siirtää sen postin tänne. Muuta sitä vasta, kun tämä palvelin on valmis ottamaan postin vastaan.</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Ohitettu</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Palvelin ohittaa - tallennettu tiiviste ei ole käyttökelpoinen SHA-256-arvo, joten tämä osio ei todenna mitään. Kumoa se ja luo korvaava.</value>
@@ -6652,8 +6667,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No" xml:space="preserve">
     <value>Ei</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>API-avaimia ei ole. Jokaisen REST-pyynnön on siksi kuljetettava järjestelmänvalvojan salasana, jolla on täydet oikeudet jokaiseen verkkotunnukseen ja jota ei voi rajata, vanhentaa tai kumota erikseen.</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>API-avaimia ei vielä ole, joten jokaisen REST-pyynnön on kannettava ylläpitäjän salasanaa, jolla on täydet oikeudet jokaiseen toimialueeseen ja jota ei voi yksinään rajata, vanhentaa eikä kumota. Luo avain käytettäväksi sen sijaan.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>Nykyisestä metsästä ei löytynyt Active Directory -toimialueita.</value>
@@ -8522,6 +8537,9 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>Lue tapaukset uudelleen</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>Vain luku</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Vain luku. Vanhenee {0}.</value>
@@ -14214,8 +14232,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>_Näytä IP-alueissa</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>Lähdeosoitteet, joista _sitä saa käyttää (valinnainen)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>Lähdeosoite tai -alue, josta _sitä saa käyttää (valinnainen)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>Aloita _kierros</value>
@@ -14531,9 +14549,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>edelleenlähetä osoite toiseen</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>täydet oikeudet</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (sarkaimin eroteltu)</value>

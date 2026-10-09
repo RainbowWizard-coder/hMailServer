@@ -958,6 +958,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   after. An IPv6 address is written in brackets, *IMAP [::]:993*, in the warning and in each row's accessible name
   (`ListenerProbe.Endpoint`). `ListenerProbeTests` and `TcpIpPortsPageTests` hold the sentence, the brackets and the
   action.
+- **Fixed: the REST API keys page's pills said how much attention a key wanted and not what it was, two of its texts
+  were never translated, and an empty store was said twice.** Each key's pill read a severity word - *Warning* for a
+  key with full authority, *OK* for a read-only one, *Information* for an expired one; it now names the key's state
+  at its level: *Full authority* (Warning), *Read-only* (Good), *Expired* (Normal), *Ignored* (Warning) for a section
+  with no usable digest, and *Expiry unreadable* (Warning) for an expiry this page cannot read. The new key's line put
+  the English "read-only" into every language, and the source field's example, "10.0.0.5, or 10.0.0.0/24, or
+  10.0.0.1-10.0.0.99", carried the English "or" into German and Japanese under a caption that promised a list where
+  the store takes one value: the line uses the translated state, and the field is *Source address or range it may be
+  used from (optional)* with "For example 10.0.0.5 or 10.0.0.0/24" in each language. An empty store is said once, by
+  the list's empty state, with *Create the first key...*, where an Information notice above it said the same. Held by
+  `ApiKeysPageTests`.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

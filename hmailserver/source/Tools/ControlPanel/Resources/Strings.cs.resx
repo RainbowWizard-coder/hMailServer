@@ -4540,6 +4540,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Platnost hesel vyprší po (dny; 0 = nikdy)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Vypršel</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>Vypršel {0} (před méně než dnem)</value>
   </data>
@@ -4578,6 +4581,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vypršení odsud nelze přečíst: soubory certifikátů jsou na serveru a tento Control Panel je k němu připojen vzdáleně. Vše ostatní na této stránce přichází přes COM a je přesné.</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>Platnost nečitelná</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Export</value>
@@ -4792,6 +4798,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Pro každý certifikát, jehož soubor klíče je šifrovaný PEM, nastavte heslo soukromého klíče certifikátu na stránce Certifikáty SSL (přístupové heslo nastavil ten, kdo klíč vytvořil, takže ho můžete zadat jen vy) - nebo soubor nahraďte nešifrovaným klíčem.</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>Například 10.0.0.5 nebo 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Například http://127.0.0.1:11333/checkv2. Zatím jen prosté HTTP, takže engine by měl být na tomto počítači nebo v síti, které důvěřujete - posílá se mu celá zpráva.</value>
   </data>
@@ -4863,6 +4872,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Předřazené proxy (protokol PROXY a XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>Plná pravomoc</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Plná pravomoc - tento klíč může měnit a mazat. Vyprší {0}.</value>
@@ -5364,6 +5376,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Pokud {0} už přijímá poštu někde jinde – u poskytovatele hostovaných schránek, na jiném serveru –, zveřejnění tohoto záznamu tuto poštu přesune sem. Změňte ho, až když je tento server připraven ji přijímat.</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Ignorován</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Server ignoruje - uložený digest není použitelná hodnota SHA-256, takže tato sekce nic neověřuje. Odvolejte ji a vytvořte náhradu.</value>
@@ -6715,8 +6730,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No" xml:space="preserve">
     <value>Ne</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>Neexistují žádné klíče API. Každý požadavek REST proto musí nést heslo správce, které má plnou pravomoc nad každou doménou a nelze mu omezit rozsah, nastavit vypršení platnosti ani je samostatně odvolat.</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>Zatím žádné klíče API, takže každý požadavek REST musí nést heslo správce, které má plnou pravomoc nad každou doménou a nelze je samostatně omezit, nechat vypršet ani odvolat. Vytvořte klíč, který se použije místo něj.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>V aktuální doménové struktuře se nepodařilo najít žádné domény Active Directory.</value>
@@ -8600,6 +8615,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>Znovu načíst případy</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>Pouze pro čtení</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Pouze pro čtení. Platnost vyprší {0}.</value>
@@ -14372,8 +14390,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>Zobrazit v _rozsazích IP</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>_Zdrojové adresy, ze kterých jej lze používat (nepovinné)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>_Zdrojová adresa nebo rozsah, odkud jej lze použít (volitelné)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Spustit prohlídku</value>
@@ -14695,9 +14713,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>přeposílat jednu adresu na jinou</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>plná pravomoc</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (oddělené tabulátory)</value>

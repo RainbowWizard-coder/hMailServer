@@ -322,7 +322,7 @@ namespace hMailServer.ControlPanel.Views
             list_.Children.Add(BuildKeyRow_(key));
 
          StatusText.Show(empty_, null, keys.Count, null,
-            L("No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own."));
+            L("No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place."));
       }
 
       private FrameworkElement BuildKeyRow_(ApiKeyRecord key)
@@ -355,18 +355,26 @@ namespace hMailServer.ControlPanel.Views
 
          // The status line carries a word as well as a shape and a colour, so the
          // difference between a live full-authority key and an expired read-only
-         // one survives greyscale and colour blindness.
+         // one survives greyscale and colour blindness. The pill names the key's
+         // state - Full authority, Read-only, Expired, Ignored - where it read a
+         // severity word, "Warning" or "OK", which said how much attention the
+         // key wanted and not what it was.
          StatusLevel level;
+         string pill;
          string state;
 
          if (key.Unusable)
          {
             level = StatusLevel.Warning;
+            pill = L("Ignored");
             state = L("Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement.");
          }
          else if (key.IsExpired)
          {
-            level = StatusLevel.Information;
+            // An expired key is a fact that needs nothing done, Normal; one whose
+            // expiry this page cannot read needs a person, a Warning.
+            level = key.ExpiresAt == null ? StatusLevel.Warning : StatusLevel.Normal;
+            pill = key.ExpiresAt == null ? L("Expiry unreadable") : L("Expired");
 
             // Two different states, and the unreadable one is not "expired". This
             // page parses the timestamp with one exact format; the server parses it
@@ -382,31 +390,31 @@ namespace hMailServer.ControlPanel.Views
          else if (!key.ReadOnly)
          {
             level = StatusLevel.Warning;
+            pill = L("Full authority");
             state = F("Full authority - this key can change and delete things. Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
          }
          else
          {
             level = StatusLevel.Good;
+            pill = L("Read-only");
             state = F("Read-only. Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
          }
 
-         StatusPresentation presentation = StatusSemantics.For(level);
-
          var stateRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
 
-         // The pill carries the colour, the shape and the severity word together;
-         // the sentence beside it says what that means for this key.
+         // The pill carries the colour, the shape and the state's name together,
+         // and is named "Warning: Full authority" by the component; the sentence
+         // beside it says what that means for this key, and is named by itself.
          stateRow.Children.Add(new StatusPill
          {
             Level = level,
-            Text = presentation.SeverityWord,
+            Text = pill,
             Margin = new Thickness(0, 1, 8, 0),
             VerticalAlignment = VerticalAlignment.Top
          });
 
          var stateText = new TextBlock { Text = state, TextWrapping = TextWrapping.Wrap, MaxWidth = 560 };
          stateText.SetResourceReference(StyleProperty, "TextCaption");
-         System.Windows.Automation.AutomationProperties.SetName(stateText, presentation.SeverityWord + ": " + state);
          stateRow.Children.Add(stateText);
 
          details.Children.Add(stateRow);
@@ -475,7 +483,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         newKeyLabel_.Text = F("{0}  -  {1}, expires {2}", request.Label, request.Full ? L("full authority") : "read-only",
+         newKeyLabel_.Text = F("{0}  -  {1}, expires {2}", request.Label, request.Full ? L("Full authority") : L("Read-only"),
                              request.Expires.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc // no-loc
          newKeyToken_.Text = result.Token;
          newKeyCard_.Visibility = Visibility.Visible;
@@ -593,9 +601,11 @@ namespace hMailServer.ControlPanel.Views
             L("A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain."));
          panel.Children.Add(domainsRow);
 
-         var sourceBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = "10.0.0.5, or 10.0.0.0/24, or 10.0.0.1-10.0.0.99" }; // no-loc
+         // One address or one range: the store takes a single value, so the
+         // caption is singular, and the example's "or" is the language's own.
+         var sourceBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("For example 10.0.0.5 or 10.0.0.0/24") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(sourceBox, "apikeys-dialog-source");
-         FieldRow sourceRow = DialogFields.Field(L("_Source addresses it may be used from (optional)"), sourceBox, L("Leave empty for any address"));
+         FieldRow sourceRow = DialogFields.Field(L("_Source address or range it may be used from (optional)"), sourceBox, L("Leave empty for any address"));
          sourceRow.Margin = new Thickness(0);
          panel.Children.Add(sourceRow);
 

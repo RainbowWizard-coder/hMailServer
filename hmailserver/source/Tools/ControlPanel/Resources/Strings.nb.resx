@@ -4495,6 +4495,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>La passord utløpe etter (dager; 0 = aldri)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Utløpt</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>Utløp {0} (for mindre enn en dag siden)</value>
   </data>
@@ -4527,6 +4530,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Utløp kan ikke leses herfra: sertifikatfilene er på serveren, og dette Control Panel er koblet til den eksternt. Alt annet på denne siden kommer over COM og er riktig.</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>Utløp uleselig</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Eksport</value>
@@ -4738,6 +4744,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>For hvert sertifikat der nøkkelfilen er en kryptert PEM, sett sertifikatets passord for privat nøkkel på siden SSL-sertifikater (passfrasen ble satt av den som laget nøkkelen, så bare du kan oppgi den) - eller bytt ut filen med en ukryptert nøkkel.</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>For eksempel 10.0.0.5 eller 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>For eksempel http://127.0.0.1:11333/checkv2. Bare ren HTTP foreløpig, så motoren bør være på denne maskinen eller på et nettverk du stoler på - hele meldingen sendes til den.</value>
   </data>
@@ -4809,6 +4818,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Front-end-proxyer (PROXY-protokollen og XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>Full myndighet</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Full myndighet - denne nøkkelen kan endre og slette ting. Utløper {0}.</value>
@@ -5310,6 +5322,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Hvis {0} allerede mottar e-post et annet sted - hos en driftet postkasseleverandør, en annen server - flytter publisering av denne oppføringen den e-posten hit. Endre den bare når denne serveren er klar til å ta imot den.</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Ignorert</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Ignorert av serveren - den lagrede digesten er ikke en brukbar SHA-256-verdi, så denne seksjonen autentiserer ingenting. Tilbakekall den og opprett en erstatning.</value>
@@ -6652,8 +6667,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No" xml:space="preserve">
     <value>Nei</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>Ingen API-nøkler finnes. Hver REST-forespørsel må derfor bære administratorpassordet, som har full myndighet over hvert domene og ikke kan avgrenses, utløpe eller tilbakekalles for seg selv.</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>Ingen API-nøkler ennå, så hver REST-forespørsel må ha med administratorpassordet, som har full myndighet over alle domener og ikke kan avgrenses, utløpe eller tilbakekalles for seg selv. Opprett en nøkkel som kan brukes i stedet.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>Ingen Active Directory-domener kunne finnes i gjeldende skog.</value>
@@ -8522,6 +8537,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>Les sakene på nytt</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>Skrivebeskyttet</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Skrivebeskyttet. Utløper {0}.</value>
@@ -14214,8 +14232,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>_Vis i IP-områder</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>_Kildeadresser den kan brukes fra (valgfritt)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>_Kildeadresse eller -område den kan brukes fra (valgfritt)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Start omvisningen</value>
@@ -14531,9 +14549,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>videresend én adresse til en annen</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>full myndighet</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (tabulatorseparert)</value>

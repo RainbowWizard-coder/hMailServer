@@ -4495,6 +4495,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>Parolaların süresi şu süre sonra dolsun (gün; 0 = asla)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Süresi doldu</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>Süresi doldu: {0} (bir günden kısa süre önce)</value>
   </data>
@@ -4527,6 +4530,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Süre sonu buradan okunamıyor: sertifika dosyaları sunucuda ve bu Denetim Masası ona uzaktan bağlı. Bu sayfadaki diğer her şey COM üzerinden gelir ve doğrudur.</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>Süre sonu okunamıyor</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Dışa aktarma</value>
@@ -4738,6 +4744,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>Anahtar dosyası şifreli bir PEM olan her sertifika için, sertifikanın özel anahtar parolasını SSL sertifikaları sayfasında ayarlayın (parola ifadesini anahtarı oluşturan kişi belirledi; bu yüzden onu yalnızca siz sağlayabilirsiniz) - ya da dosyayı şifrelenmemiş bir anahtarla değiştirin.</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>Örneğin 10.0.0.5 veya 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>Örneğin http://127.0.0.1:11333/checkv2. Şimdilik yalnızca düz HTTP; bu yüzden motor bu makinede ya da güvendiğiniz bir ağda olmalı - iletinin tamamı ona gönderilir.</value>
   </data>
@@ -4809,6 +4818,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Ön uç vekil sunucular (PROXY protokolü ve XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>Tam yetki</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Tam yetki - bu anahtar bir şeyleri değiştirebilir ve silebilir. Süre sonu {0}.</value>
@@ -5310,6 +5322,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>{0} postayı zaten başka bir yerde alıyorsa - barındırılan bir posta kutusu sağlayıcısında, başka bir sunucuda - bu kaydı yayımlamak o postayı buraya taşır. Kaydı yalnızca bu sunucu o postayı almaya hazır olduğunda değiştirin.</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>Yoksayılıyor</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>Sunucu tarafından yoksayılıyor - saklanan özet kullanılabilir bir SHA-256 değeri değil; bu yüzden bu bölüm hiçbir şeyi doğrulamıyor. İptal edip yerine yenisini oluşturun.</value>
@@ -6652,8 +6667,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No" xml:space="preserve">
     <value>Hayır</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>Hiç API anahtarı yok. Bu yüzden her REST isteğinin, her etki alanı üzerinde tam yetki taşıyan ve tek başına kapsamlanamayan, süresi dolduramayan ya da iptal edilemeyen yönetici parolasını taşıması gerekiyor.</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>Henüz API anahtarı yok; bu yüzden her REST isteği, her etki alanı üzerinde tam yetkisi olan ve tek başına kapsamı daraltılamayan, süresi doldurulamayan ya da iptal edilemeyen yönetici parolasını taşımak zorunda. Onun yerine kullanılacak bir anahtar oluşturun.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>Geçerli ormanda hiçbir Active Directory etki alanı bulunamadı.</value>
@@ -8522,6 +8537,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>Davaları yeniden oku</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>Salt okunur</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>Salt okunur. Süre sonu {0}.</value>
@@ -14214,8 +14232,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>IP aralıklarında _göster</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>_Kullanılabileceği kaynak adresler (isteğe bağlı)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>_Kullanılabileceği kaynak adres veya aralık (isteğe bağlı)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>Tura _başla</value>
@@ -14531,9 +14549,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>bir adresi başka bir adrese ilet</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>tam yetki</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (sekmeyle ayrılmış)</value>

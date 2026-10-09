@@ -4495,6 +4495,9 @@
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>密码在多少天后过期（天；0 = 永不）</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>已于 {0} 过期（不到一天前）</value>
   </data>
@@ -4527,6 +4530,9 @@
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>无法从此处读取到期时间：证书文件在服务器上，而此控制面板是远程连接到服务器的。本页的其他所有内容都通过 COM 获取，是准确的。</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>无法读取到期时间</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>导出</value>
@@ -4738,6 +4744,9 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>对于密钥文件是加密 PEM 的每个证书，请在“SSL 证书”页设置该证书的私钥密码（密码短语由创建密钥的人设置，因此只有您能提供）- 或者把该文件替换为未加密的密钥。</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>例如 10.0.0.5 或 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>例如 http://127.0.0.1:11333/checkv2。目前仅支持纯 HTTP，因此引擎应当位于本机或您信任的网络上 - 整封邮件都会发送给它。</value>
   </data>
@@ -4809,6 +4818,9 @@
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>前端代理（PROXY 协议和 XCLIENT）</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>完全权限</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>完全权限 - 此密钥可以更改和删除内容。{0} 到期。</value>
@@ -5310,6 +5322,9 @@
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>如果 {0} 已经在其他地方接收邮件（托管邮箱提供商或另一台服务器），发布这条记录会把这些邮件转到这里。只有在本服务器准备好接收时才更改它。</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>已忽略</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>被服务器忽略 - 存储的摘要不是可用的 SHA-256 值，因此此节无法验证任何内容。请吊销它并创建一个替代品。</value>
@@ -6652,8 +6667,8 @@
   <data name="No" xml:space="preserve">
     <value>否</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>不存在任何 API 密钥。因此每个 REST 请求都必须携带管理员密码，而它对每个域都拥有完全权限，无法限定作用域、设置到期或单独吊销。</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>还没有 API 密钥，因此每个 REST 请求都必须携带管理员密码；它对每个域都拥有完全权限，而且无法单独限定范围、设置过期或吊销。请创建一个密钥来代替它。</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>在当前林中找不到任何 Active Directory 域。</value>
@@ -8522,6 +8537,9 @@
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>重新读取案件</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>只读</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>只读。{0} 过期。</value>
@@ -14214,8 +14232,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>在 IP 范围中显示(_S)</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>可以从中使用它的来源地址 (可选)(_S)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>允许使用它的源地址或范围（可选）(_S)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>开始导览(_S)</value>
@@ -14531,9 +14549,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>把一个地址转发到另一个地址</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>完全权限</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer（制表符分隔）</value>

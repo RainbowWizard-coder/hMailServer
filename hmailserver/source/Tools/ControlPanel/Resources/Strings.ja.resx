@@ -4495,6 +4495,9 @@
   <data name="Expire passwords after (days; 0 = never)" xml:space="preserve">
     <value>パスワードの有効期限 (日、0 = 期限なし)</value>
   </data>
+  <data name="Expired" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
   <data name="Expired on {0} (less than a day ago)" xml:space="preserve">
     <value>{0} に期限切れ (1 日以内)</value>
   </data>
@@ -4527,6 +4530,9 @@
   </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>有効期限をここから読み取れません: 証明書ファイルはサーバー上にあり、このコントロールパネルはサーバーにリモート接続しています。このページのそれ以外の項目は COM 経由で取得しており、正確です。</value>
+  </data>
+  <data name="Expiry unreadable" xml:space="preserve">
+    <value>有効期限を読めません</value>
   </data>
   <data name="Export" xml:space="preserve">
     <value>エクスポート</value>
@@ -4738,6 +4744,9 @@
   <data name="For each certificate whose key file is an encrypted PEM, set the certificate's private key password on the SSL certificates page (the passphrase was set by whoever created the key, so only you can supply it) - or replace the file with an unencrypted key." xml:space="preserve">
     <value>鍵ファイルが暗号化された PEM である各証明書について、SSL 証明書ページで証明書の秘密鍵パスワードを設定してください (パスフレーズは鍵を作成した人が決めたものなので、あなただけが提供できます)。または、ファイルを暗号化されていない鍵に置き換えてください。</value>
   </data>
+  <data name="For example 10.0.0.5 or 10.0.0.0/24" xml:space="preserve">
+    <value>例: 10.0.0.5 または 10.0.0.0/24</value>
+  </data>
   <data name="For example http://127.0.0.1:11333/checkv2. Plain HTTP only for now, so the engine should be on this machine or on a network you trust - the whole message is sent to it." xml:space="preserve">
     <value>例: http://127.0.0.1:11333/checkv2。現時点では平文の HTTP のみなので、エンジンはこのコンピューター上か、信頼できるネットワーク上に置いてください。メッセージ全体がそこに送られます。</value>
   </data>
@@ -4809,6 +4818,9 @@
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>フロントエンド プロキシ (PROXY プロトコルと XCLIENT)</value>
+  </data>
+  <data name="Full authority" xml:space="preserve">
+    <value>完全な権限</value>
   </data>
   <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
     <value>完全な権限 - このキーは変更と削除ができます。有効期限 {0}。</value>
@@ -5310,6 +5322,9 @@
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>{0} がすでに別の場所 (ホスティングされたメールボックス プロバイダーや別のサーバー) でメールを受け取っている場合、このレコードを公開するとそのメールはこちらに移ります。変更するのは、このサーバーがそのメールを受け取る準備ができてからにしてください。</value>
+  </data>
+  <data name="Ignored" xml:space="preserve">
+    <value>無視</value>
   </data>
   <data name="Ignored by the server - the stored digest is not a usable SHA-256 value, so this section authenticates nothing. Revoke it and create a replacement." xml:space="preserve">
     <value>サーバーに無視されます。保存されているダイジェストが使用可能な SHA-256 値ではないため、このセクションは何も認証しません。失効させて代わりを作成してください。</value>
@@ -6652,8 +6667,8 @@
   <data name="No" xml:space="preserve">
     <value>いいえ</value>
   </data>
-  <data name="No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own." xml:space="preserve">
-    <value>API キーが存在しません。そのため、すべての REST リクエストは管理者パスワードを持ち歩く必要があります。管理者パスワードはすべてのドメインに対する完全な権限を持ち、スコープの限定、有効期限の設定、個別の失効ができません。</value>
+  <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
+    <value>API キーはまだありません。そのため、REST リクエストのたびに管理者パスワードを送る必要があります。管理者パスワードはすべてのドメインに対する完全な権限を持ち、それだけを範囲で限定したり、期限を設けたり、失効させたりすることはできません。代わりに使うキーを作成してください。</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>現在のフォレストに Active Directory ドメインが見つかりませんでした。</value>
@@ -8522,6 +8537,9 @@
   </data>
   <data name="Read the cases again" xml:space="preserve">
     <value>ケースを再読み込み</value>
+  </data>
+  <data name="Read-only" xml:space="preserve">
+    <value>読み取り専用</value>
   </data>
   <data name="Read-only. Expires {0}." xml:space="preserve">
     <value>読み取り専用。{0} に期限切れになります。</value>
@@ -14214,8 +14232,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>IP 範囲に表示(_S)</value>
   </data>
-  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>使用を許可する送信元アドレス (省略可)(_S)</value>
+  <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
+    <value>使用を許可する送信元アドレスまたは範囲 (省略可)(_S)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>案内を開始(_S)</value>
@@ -14531,9 +14549,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="forward one address to another" xml:space="preserve">
     <value>あるアドレスを別のアドレスに転送する</value>
-  </data>
-  <data name="full authority" xml:space="preserve">
-    <value>完全な権限</value>
   </data>
   <data name="hMailServer (tab separated)" xml:space="preserve">
     <value>hMailServer (タブ区切り)</value>
