@@ -42,7 +42,7 @@ namespace hMailServer.ControlPanel.Views
          // every second visit. The actions below act on whichever build is on
          // the page, which is these.
          private DataGrid grid_;
-         private TextBlock status_;
+         private Scaffold.InlineNotice status_;
 
          // What an empty list means, in the grid's place rather than a blank box
          // (review finding F207), below the column headers. Add name… under the
@@ -64,9 +64,9 @@ namespace hMailServer.ControlPanel.Views
                MaxHeight = 280
             };
 
-            status_ = new TextBlock
+            status_ = new Scaffold.InlineNotice
             {
-               TextWrapping = TextWrapping.Wrap,
+               Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0),
                Visibility = Visibility.Collapsed
             };
 
@@ -75,12 +75,15 @@ namespace hMailServer.ControlPanel.Views
             grid_.Columns.Add(Column_(L("Added"), nameof(NeverBanNameRow.Created), DataGridLength.Auto));
             Describe(grid_, "never-ban-names");
 
-            // A polite live region whose accessible name is its text: with a fixed
-            // name ("Never-ban list status") a reader said the label in place of
-            // the outcome, and nothing raised the event that announces it at all.
-            status_.Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0);
-            status_.FontSize = Typography.Caption;
-            AutomationProperties.SetLiveSetting(status_, AutomationLiveSetting.Polite);
+            // The status is a notice at the level of what it says: an address
+            // spared or an entry added is Good, an address the list would not
+            // spare is a Warning, a hint such as "Select an entry first." is
+            // Information, and only a failure is Critical. It was a line of
+            // caption text in the success green or the danger red with no mark
+            // or word, so a usage hint read as a failure. A notice is a polite
+            // live region named "Word: text", which announces itself (Scaffold
+            // InlineNotice): with a fixed name ("Never-ban list status") a reader
+            // said the label in place of the outcome.
 
             var add = MakeButton(L("_Add name…"), Wpf.Ui.Controls.ControlAppearance.Secondary, "never-ban-add");
             add.Click += (_, _) => Add_();
@@ -135,11 +138,11 @@ namespace hMailServer.ControlPanel.Views
             return button;
          }
 
-         private void Say_(string text, bool ok)
+         private void Say_(StatusLevel level, string text)
          {
+            status_.Level = level;
             status_.Text = text;
             status_.Visibility = Visibility.Visible;
-            status_.SetResourceReference(TextBlock.ForegroundProperty, ok ? "AppSuccessFillTextBrush" : "AppDangerFillTextBrush");
             Announce.Request(status_);
          }
 
@@ -166,13 +169,13 @@ namespace hMailServer.ControlPanel.Views
                   empty_.Visibility = Visibility.Collapsed;
 
                if (error != null)
-                  Say_(error, false);
+                  Say_(StatusLevel.Critical, error);
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
                grid_.ItemsSource = Array.Empty<NeverBanNameRow>();
                empty_.Visibility = Visibility.Collapsed;
-               Say_(ServerSession.DescribeComError(ex), false);
+               Say_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
             }
          }
 
@@ -183,14 +186,14 @@ namespace hMailServer.ControlPanel.Views
                return;
 
             Reload_();
-            Say_(F("{0} is on the never-ban list. It applies to the next ban.", added), true);
+            Say_(StatusLevel.Good, F("{0} is on the never-ban list. It applies to the next ban.", added));
          }
 
          private void Remove_()
          {
             if (grid_.SelectedItem is not NeverBanNameRow selected)
             {
-               Say_(L("Select an entry first."), false);
+               Say_(StatusLevel.Information, L("Select an entry first."));
                return;
             }
 
@@ -218,11 +221,14 @@ namespace hMailServer.ControlPanel.Views
                }
 
                Reload_();
-               Say_(removed ? F("{0} was removed from the never-ban list.", selected.Pattern) : F("{0} was not on the never-ban list any more.", selected.Pattern), true);
+               if (removed)
+                  Say_(StatusLevel.Good, F("{0} was removed from the never-ban list.", selected.Pattern));
+               else
+                  Say_(StatusLevel.Information, F("{0} was not on the never-ban list any more.", selected.Pattern));
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
-               Say_(ServerSession.DescribeComError(ex), false);
+               Say_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
             }
          }
 
@@ -248,15 +254,17 @@ namespace hMailServer.ControlPanel.Views
                NeverBanCheck verdict = NeverBanNames.ParseCheck(json, out string error);
                if (verdict == null)
                {
-                  Say_(error, false);
+                  Say_(StatusLevel.Critical, error);
                   return;
                }
 
-               Say_(NeverBanNames.Describe(verdict), verdict.Spared);
+               // Spared is Good; an address the list would not spare is a
+               // Warning - an answer to read, not a failure of the check.
+               Say_(verdict.Spared ? StatusLevel.Good : StatusLevel.Warning, NeverBanNames.Describe(verdict));
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
-               Say_(ServerSession.DescribeComError(ex), false);
+               Say_(StatusLevel.Critical, ServerSession.DescribeComError(ex));
             }
          }
       }

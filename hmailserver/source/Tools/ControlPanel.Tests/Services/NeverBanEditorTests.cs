@@ -34,12 +34,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          rows = rows.Substring(0, rows.IndexOf("private static class AddNeverBanNameDialog", StringComparison.Ordinal));
 
          Assert.False(Regex.IsMatch(rows, @"readonly\s+DataGrid\s+grid_"), "The never-ban editor keeps one grid for every build, which the second build cannot add to its panel.");
-         Assert.False(Regex.IsMatch(rows, @"readonly\s+TextBlock\s+status_"), "The never-ban editor keeps one status line for every build.");
+         Assert.False(Regex.IsMatch(rows, @"readonly\s+[\w.]+\s+status_"), "The never-ban editor keeps one status line for every build.");
 
          string build = WithheldRowTests.MemberText(rows, "protected override FrameworkElement BuildEditor(object value)");
          Assert.True(build != null, "NeverBanNameRows.BuildEditor is gone.");
          Assert.True(build.Contains("grid_ = new DataGrid", StringComparison.Ordinal), "BuildEditor does not make a new grid.");
-         Assert.True(build.Contains("status_ = new TextBlock", StringComparison.Ordinal), "BuildEditor does not make a new status line.");
+         Assert.True(build.Contains("status_ = new Scaffold.InlineNotice", StringComparison.Ordinal), "BuildEditor does not make a new status line.");
       }
 
       [Fact]

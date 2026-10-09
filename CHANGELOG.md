@@ -926,6 +926,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   highest port - measured as the window draws them, with the cell's margin and padding, so a narrow window scrolls the
   grid sideways rather than cutting a word, as the Suppression list's grids already do; a 1280-pixel window has room
   for every floor in every language.
+- **Fixed: the answer of a settings page's action button, and the Auto-ban page's never-ban status, were coloured
+  text with no mark and no word, and a hint was drawn as a failure.** The line under *Test ClamAV connection*, *Clear
+  logon-failure list*, the two-factor set-ups and the other action buttons, and the line under the never-ban list, were
+  text in the success green or the danger red, so their outcome was a colour alone, and "Select an entry first.",
+  "Enter a host name and port first." and "Control-Panel-only two-factor authentication is off." read as failures.
+  Each is now a notice at the level of what it says, with the level's mark and word: Good for done or spared,
+  Information for a hint, a declined confirmation's "Nothing was changed." and a switch legitimately off (message
+  indexing, either second factor), Warning for an answer that needs reading (an address the never-ban list would not
+  spare, a scanner command with no program in it, a log folder that is not there), and Critical for a failure. An
+  action names its level through `ComAction.Outcome`; one that answers only good or bad is Good or Critical.
+  `ActionOutcomeLevelTests` holds the two result lines to notices and each hint to Information.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

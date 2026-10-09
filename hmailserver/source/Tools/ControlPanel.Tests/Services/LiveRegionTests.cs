@@ -79,13 +79,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// A result line built from a TextBlock and declared a live region announces
       /// what it says and is named by it: with a fixed name, a reader said "Clear
       /// logon-failure list result" and "Never-ban list status" where the outcome
-      /// was. Held over every view, so that the next result line is held too.
+      /// was. Held over every view, so that the next result line is held too. The
+      /// two lines it was written for are notices now, which announce themselves
+      /// and are named "Word: text" by the component, and carry their level as a
+      /// mark and a word rather than as a colour alone.
       /// </summary>
       [Fact]
       public void EveryTextBlockLiveRegion_Announces_AndIsNamedByItsText()
       {
          string views = ControlPanelDirectory(Path.Join("Views", "ServerSettingsView.xaml.cs"));
-         var checkedLines = 0;
          foreach (string path in Directory.EnumerateFiles(views, "*.cs"))
          {
             string source = File.ReadAllText(path);
@@ -100,11 +102,15 @@ namespace hMailServer.ControlPanel.Tests.Services
                   name + " declares " + field + " a live region and never announces it.");
                Assert.False(Regex.IsMatch(source, @"AutomationProperties\.SetName\(\s*" + Regex.Escape(field) + @"\s*,"),
                   name + " gives " + field + " a fixed accessible name, which a reader says in place of its text.");
-               checkedLines++;
             }
          }
 
-         Assert.True(checkedLines >= 2, "The ComAction result line and the never-ban status line were not found; the rule checked nothing.");
+         string settings = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         Assert.True(settings.Contains("result_ = new Scaffold.InlineNotice", StringComparison.Ordinal),
+            "The ComAction result line is not a notice: a line of coloured text carries its outcome by colour alone.");
+         string neverBan = ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.NeverBanNames.cs"));
+         Assert.True(neverBan.Contains("status_ = new Scaffold.InlineNotice", StringComparison.Ordinal),
+            "The never-ban status line is not a notice: a line of coloured text carries its outcome by colour alone.");
       }
 
       // ---- helpers -------------------------------------------------------------------------

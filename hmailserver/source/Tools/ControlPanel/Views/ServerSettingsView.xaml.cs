@@ -1053,9 +1053,20 @@ namespace hMailServer.ControlPanel.Views
          /// <summary>
          /// What the button did, in a word of good or bad and a sentence; a null
          /// sentence says nothing happened worth reporting - a dialog that was
-         /// cancelled - and leaves the line as it was.
+         /// cancelled - and leaves the line as it was. Good is shown as Good and
+         /// bad as Critical, so an action whose answer can be neither - a usage
+         /// hint, a legitimate "off", a finding that warns - says its level
+         /// through <see cref="Outcome"/> instead.
          /// </summary>
          public Func<(bool ok, string text)> Action;
+
+         /// <summary>
+         /// What the button did, at the level the answer is shown at: Good for
+         /// done, Information for a hint or a cancelled question, Warning for an
+         /// answer that is not a failure but needs attention, Critical for a
+         /// failure. Used in place of <see cref="Action"/> when it is set.
+         /// </summary>
+         public Func<(StatusLevel level, string text)> Outcome;
 
          /// <summary>
          /// Whether the row's Label is printed above the button. A row whose button
@@ -1075,8 +1086,19 @@ namespace hMailServer.ControlPanel.Views
 
          protected override bool CaptionOnRow => CaptionAbove;
 
-         private System.Windows.Controls.TextBlock result_;
+         private Scaffold.InlineNotice result_;
          public override bool WantsInitialValue => false;
+
+         /// <summary>
+         /// The level a plain good-or-bad answer is shown at. "Nothing was
+         /// changed." - the answer of every action whose confirmation was
+         /// declined - is Information whichever way it was returned: a question
+         /// answered No is neither a success nor a failure.
+         /// </summary>
+         internal static StatusLevel LevelOf(bool ok, string text)
+            => !ok ? StatusLevel.Critical
+               : string.Equals(text, L("Nothing was changed."), StringComparison.Ordinal) ? StatusLevel.Information
+               : StatusLevel.Good;
 
          protected override FrameworkElement BuildEditor(object value)
          {
@@ -1091,45 +1113,45 @@ namespace hMailServer.ControlPanel.Views
             if (Destructive)
                ButtonStyles.DangerText(btn);
 
-            // Collapsed until there is a result: an empty line still takes its
-            // margin and its line height, which pushed the note under the button
-            // away from the button it belongs to.
-            result_ = new System.Windows.Controls.TextBlock
+            // The outcome as a notice at its level: the mark, the severity word
+            // and the sentence, so that "Done" and "failed" differ by more than
+            // a colour, and a usage hint or a legitimate "off" is not drawn in
+            // the danger red of a failure, as the plain line in a success or a
+            // danger colour drew them. Collapsed until there is a result: an
+            // empty notice still takes its margin, which pushed the note under
+            // the button away from the button it belongs to.
+            //
+            // The notice is a polite live region that announces itself as its
+            // text or level changes and is named "Word: text" (Scaffold
+            // InlineNotice): the answer to the button just pressed is heard, and
+            // a reader moved to it hears the outcome, never a fixed label such as
+            // "Clear logon-failure list result".
+            result_ = new Scaffold.InlineNotice
             {
-               FontSize = Typography.Caption,
                Margin = new Thickness(0, DesignTokens.Space.Sm, 0, 0),
-               TextWrapping = TextWrapping.Wrap,
                Visibility = Visibility.Collapsed
             };
-
-            // A polite live region, so the outcome of "Test ClamAV connection" is
-            // announced rather than only coloured. Colour is the only other channel
-            // this line has - green for success, red for failure - so without this a
-            // screen-reader user pressed the button and was told nothing whatsoever,
-            // and there is no way to discover the answer by moving around, because
-            // the text did not exist before the click.
-            //
-            // Polite rather than assertive, and safe to make a live region here in a
-            // way the dashboard's summary line is not (see AccessibleChartCard): this
-            // text changes only when the user presses the button, so an announcement
-            // is the answer to something they just asked. The line's accessible name
-            // is its text and nothing else: a fixed name ("Clear logon-failure list
-            // result") was what a reader said in place of the outcome, both when the
-            // line was announced and when the reader moved to it.
-            System.Windows.Automation.AutomationProperties.SetLiveSetting(
-               result_, System.Windows.Automation.AutomationLiveSetting.Polite);
 
             btn.Click += (s, e) =>
             {
                try
                {
-                  (bool ok, string text) r = Action();
-                  if (r.text != null)
-                     Report_(r.text, r.ok);
+                  if (Outcome != null)
+                  {
+                     (StatusLevel level, string text) o = Outcome();
+                     if (o.text != null)
+                        Report_(o.level, o.text);
+                  }
+                  else
+                  {
+                     (bool ok, string text) r = Action();
+                     if (r.text != null)
+                        Report_(LevelOf(r.ok, r.text), r.text);
+                  }
                }
                catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
                {
-                  Report_(F("Test failed: {0}", ServerSession.DescribeComError(ex)), false);
+                  Report_(StatusLevel.Critical, F("Test failed: {0}", ServerSession.DescribeComError(ex)));
                }
             };
 
@@ -1139,19 +1161,18 @@ namespace hMailServer.ControlPanel.Views
          }
 
          /// <summary>
-         /// The outcome, in its level's colour by resource key rather than in a
-         /// brush held here: ThemeTokens republishes the status brushes on every
-         /// theme change, and a line holding a resolved brush would keep the colour
-         /// of the theme it was pressed under. The words say which it is as well,
-         /// which is what carries the outcome in High Contrast and to an eye that
-         /// cannot separate the two colours.
+         /// The outcome, at its level. The notice draws the level's colour by
+         /// resource key, so a theme change reaches it, and its mark and word say
+         /// the level in High Contrast and to an eye that cannot separate the
+         /// colours; it announces itself as its text or level changes, and is
+         /// asked to here as well, so that the same answer to a second press -
+         /// "Greylisting triplets cleared." twice - is heard twice.
          /// </summary>
-         private void Report_(string text, bool ok)
+         private void Report_(StatusLevel level, string text)
          {
+            result_.Level = level;
             result_.Text = text;
             result_.Visibility = Visibility.Visible;
-            result_.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
-               ok ? "AppSuccessFillTextBrush" : "AppDangerFillTextBrush");
             Announce.Request(result_);
          }
 
@@ -2590,7 +2611,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.SpamAssassinEnabled",
             ButtonText = L("Test SpamAssassin connection"),
-            Action = () =>
+            Outcome = () =>
             {
                string host = saHost.CurrentText;
                int.TryParse(saPort.CurrentText, out int port);
@@ -2787,7 +2808,7 @@ namespace hMailServer.ControlPanel.Views
          clamav.Settings.Add(new ComAction
          {
             ButtonText = L("Test ClamAV connection"),
-            Action = () => TestClamAv(clamHost.CurrentText, ParsePort(clamPort.CurrentText))
+            Outcome = () => TestClamAv(clamHost.CurrentText, ParsePort(clamPort.CurrentText))
          });
          // See the SpamAssassin tab: scanner timeouts live with their scanner.
          clamav.Settings.Add(new IniNumber { Path = "ClamMinTimeout", Label = L("Minimum timeout (seconds)"), Default = 15, IniStore = iniStore_ });
@@ -2810,12 +2831,12 @@ namespace hMailServer.ControlPanel.Views
          clamwin.Settings.Add(new ComAction
          {
             ButtonText = L("Auto-detect ClamWin"),
-            Action = () => AutoDetectClamWin(clamWinExe, clamWinDb)
+            Outcome = () => AutoDetectClamWin(clamWinExe, clamWinDb)
          });
          clamwin.Settings.Add(new ComAction
          {
             ButtonText = L("Test ClamWin scanner"),
-            Action = () => TestClamWin(clamWinExe.CurrentText, clamWinDb.CurrentText)
+            Outcome = () => TestClamWin(clamWinExe.CurrentText, clamWinDb.CurrentText)
          });
          Tab(L("ClamWin")).Cards.Add(clamwin);
 
@@ -2835,7 +2856,7 @@ namespace hMailServer.ControlPanel.Views
          custom.Settings.Add(new ComAction
          {
             ButtonText = L("Test custom scanner"),
-            Action = () => TestCustomScanner(customExe.CurrentText)
+            Outcome = () => TestCustomScanner(customExe.CurrentText)
          });
          Tab(L("Custom")).Cards.Add(custom);
 
@@ -3549,7 +3570,7 @@ namespace hMailServer.ControlPanel.Views
             Blurb = string.IsNullOrWhiteSpace(logFolder)
                ? L("Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server.")
                : logFolder,
-            Action = () => OpenLogFolder(logFolder)
+            Outcome = () => OpenLogFolder(logFolder)
          });
 
          logging.Cards.Add(logFiles);
@@ -3778,24 +3799,26 @@ namespace hMailServer.ControlPanel.Views
       /// failing silently - the two ordinary reasons are a Control Panel running away
       /// from the server, and a LogFolder that names a directory which is not there.
       /// </summary>
-      private static (bool ok, string text) OpenLogFolder(string path)
+      private static (StatusLevel level, string text) OpenLogFolder(string path)
       {
+         // The ordinary case of a Control Panel away from the server: said, not
+         // drawn as a failure.
          if (string.IsNullOrWhiteSpace(path))
-            return (false, L("No log folder could be read from hMailServer.INI on this machine."));
+            return (StatusLevel.Information, L("No log folder could be read from hMailServer.INI on this machine."));
 
          if (!System.IO.Directory.Exists(path))
-            return (false, F("The configured log folder does not exist on this machine: {0}", path));
+            return (StatusLevel.Warning, F("The configured log folder does not exist on this machine: {0}", path));
 
          try
          {
             using var process = System.Diagnostics.Process.Start(
                new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
 
-            return (true, F("Opened {0}", path));
+            return (StatusLevel.Good, F("Opened {0}", path));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            return (false, F("Could not open the folder: {0}", ex.Message));
+            return (StatusLevel.Critical, F("Could not open the folder: {0}", ex.Message));
          }
       }
 
@@ -3926,7 +3949,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "MessageIndexing.Enabled",
             ButtonText = L("Index now, and show how far behind it is"),
             Blurb = L("Wakes the indexer instead of waiting for its next pass, and reports how many of this server's messages are currently indexed. The pass itself runs in the background and is bounded by the limits above, so on a large backlog it makes progress rather than finishing. With indexing switched off there is no indexer to wake, and this says so rather than reporting success."),
-            Action = () => RunIndexNow_()
+            Outcome = () => WhenIndexingIsOn_(RunIndexNow_)
          });
          index.Settings.Add(new ComAction
          {
@@ -3934,7 +3957,7 @@ namespace hMailServer.ControlPanel.Views
             ButtonText = L("Discard the index and rebuild it"),
             Destructive = true,
             Blurb = L("Empties the index and asks the indexer to rebuild it. No mail is touched - the index is derived data - but until the rebuild catches up, IMAP SEARCH finds less than it should. Worth doing when the index has more entries than the server has messages, which means entries for mail that no longer exists."),
-            Action = () => RebuildIndex_()
+            Outcome = () => WhenIndexingIsOn_(RebuildIndex_)
          });
          Tab(L("Indexing")).Cards.Add(index);
 
@@ -5071,15 +5094,17 @@ namespace hMailServer.ControlPanel.Views
          serverTwoFactor.Settings.Add(new ComAction
          {
             ButtonText = L("Set up or turn off the server-enforced second factor…"),
-            Action = () =>
+            // A factor that is off is a legitimate state, said as Information
+            // and not in the danger red of a failure.
+            Outcome = () =>
             {
                new AdministratorTwoFactorDialog(Application.Current?.MainWindow).ShowDialog();
                bool on = false;
                try { on = (bool)ServerSession.Current.Application.AdministratorTOTPEnabled; }
                catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Leave the summary reading "off" if the state cannot be read back. */ }
                return on
-                  ? (true, L("A second factor is enforced on the administrator credential, on every client."))
-                  : (false, L("No second factor is enforced - the administrator password alone signs in."));
+                  ? (StatusLevel.Good, L("A second factor is enforced on the administrator credential, on every client."))
+                  : (StatusLevel.Information, L("No second factor is enforced - the administrator password alone signs in."));
             }
          });
          Tab(L("Two-factor")).Cards.Add(serverTwoFactor);
@@ -5089,12 +5114,12 @@ namespace hMailServer.ControlPanel.Views
          twoFactor.Settings.Add(new ComAction
          {
             ButtonText = L("Set up or turn off Control-Panel-only two-factor authentication…"),
-            Action = () =>
+            Outcome = () =>
             {
                new TotpSetupDialog(Application.Current?.MainWindow).ShowDialog();
                return TotpManager.IsConfigured()
-                  ? (true, L("Control-Panel-only two-factor authentication is on."))
-                  : (false, L("Control-Panel-only two-factor authentication is off."));
+                  ? (StatusLevel.Good, L("Control-Panel-only two-factor authentication is on."))
+                  : (StatusLevel.Information, L("Control-Panel-only two-factor authentication is off."));
             }
          });
          Tab(L("Two-factor")).Cards.Add(twoFactor);
@@ -5543,10 +5568,11 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private static (bool ok, string text) TestSpamAssassin(string host, int port)
+      private static (StatusLevel level, string text) TestSpamAssassin(string host, int port)
       {
+         // A usage hint, not a failed test: nothing was asked of the server.
          if (string.IsNullOrWhiteSpace(host) || port <= 0)
-            return (false, L("Enter a host name and port first."));
+            return (StatusLevel.Information, L("Enter a host name and port first."));
 
          dynamic antispam = ServerSession.Current.Application.Settings.AntiSpam;
          try
@@ -5558,7 +5584,7 @@ namespace hMailServer.ControlPanel.Views
             string msg = args.Length > 2 ? args[2] as string : null;
             if (string.IsNullOrEmpty(msg))
                msg = ok ? L("Connection succeeded.") : L("Connection failed.");
-            return (ok, msg);
+            return (ok ? StatusLevel.Good : StatusLevel.Critical, msg);
          }
          finally
          {
@@ -5758,6 +5784,20 @@ namespace hMailServer.ControlPanel.Views
       private static string IndexingOffNote =>
          L("Message indexing is switched off, so there is no indexer running to ask. Tick \"Enable message indexing\" above and save first - nothing was done.");
 
+      /// <summary>
+      /// An index action's answer at its level: with indexing switched off, the
+      /// note that says so, as Information - a switch that is off is a state and
+      /// a hint, not a failure - and otherwise the action's own answer.
+      /// </summary>
+      private static (StatusLevel level, string text) WhenIndexingIsOn_(Func<(bool ok, string text)> action)
+      {
+         if (!IndexingEnabled_())
+            return (StatusLevel.Information, IndexingOffNote);
+
+         (bool ok, string text) result = action();
+         return (ComAction.LevelOf(result.ok, result.text), result.text);
+      }
+
       private static (bool ok, string text) RunIndexNow_()
       {
          if (!IndexingEnabled_())
@@ -5874,10 +5914,10 @@ namespace hMailServer.ControlPanel.Views
 
       private static int ParsePort(string text) => int.TryParse(text, out int p) ? p : 0;
 
-      private static (bool ok, string text) TestClamAv(string host, int port)
+      private static (StatusLevel level, string text) TestClamAv(string host, int port)
       {
          if (string.IsNullOrWhiteSpace(host) || port <= 0)
-            return (false, L("Enter a host name and port first."));
+            return (StatusLevel.Information, L("Enter a host name and port first."));
 
          dynamic av = ServerSession.Current.Application.Settings.AntiVirus;
          try
@@ -5889,7 +5929,7 @@ namespace hMailServer.ControlPanel.Views
             string msg = args.Length > 2 ? args[2] as string : null;
             if (string.IsNullOrEmpty(msg))
                msg = ok ? L("Connection succeeded.") : L("Connection failed.");
-            return (ok, msg);
+            return (ok ? StatusLevel.Good : StatusLevel.Critical, msg);
          }
          finally
          {
@@ -5897,10 +5937,10 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private static (bool ok, string text) TestClamWin(string executable, string database)
+      private static (StatusLevel level, string text) TestClamWin(string executable, string database)
       {
          if (string.IsNullOrWhiteSpace(executable))
-            return (false, L("Enter the clamscan.exe path first."));
+            return (StatusLevel.Information, L("Enter the clamscan.exe path first."));
 
          dynamic av = ServerSession.Current.Application.Settings.AntiVirus;
          try
@@ -5912,7 +5952,7 @@ namespace hMailServer.ControlPanel.Views
             string msg = args.Length > 2 ? args[2] as string : null;
             if (string.IsNullOrEmpty(msg))
                msg = ok ? L("Scanner test succeeded.") : L("Scanner test failed.");
-            return (ok, msg);
+            return (ok ? StatusLevel.Good : StatusLevel.Critical, msg);
          }
          finally
          {
@@ -5920,19 +5960,22 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private static (bool ok, string text) TestCustomScanner(string command)
+      private static (StatusLevel level, string text) TestCustomScanner(string command)
       {
          if (string.IsNullOrWhiteSpace(command))
-            return (false, L("Enter the scanner command first."));
+            return (StatusLevel.Information, L("Enter the scanner command first."));
 
+         // The command as typed has no program in it that can be looked for: a
+         // finding about the box, which needs attention, rather than a test that
+         // ran and failed.
          string path = ExtractProgramPath(command);
          if (string.IsNullOrEmpty(path))
-            return (false, L("Couldn't determine the executable from the command."));
+            return (StatusLevel.Warning, L("Couldn't determine the executable from the command."));
 
          if (System.IO.File.Exists(path))
-            return (true, F("Executable found: {0}", path));
+            return (StatusLevel.Good, F("Executable found: {0}", path));
 
-         return (false, F("Executable not found: {0}", path));
+         return (StatusLevel.Critical, F("Executable not found: {0}", path));
       }
 
       // Pulls the program path out of a command line that may be quoted and carry
@@ -5949,7 +5992,7 @@ namespace hMailServer.ControlPanel.Views
          return space < 0 ? command : command.Substring(0, space);
       }
 
-      private static (bool ok, string text) AutoDetectClamWin(ComText exeField, ComText dbField)
+      private static (StatusLevel level, string text) AutoDetectClamWin(ComText exeField, ComText dbField)
       {
          string[] exeCandidates =
          {
@@ -5963,11 +6006,13 @@ namespace hMailServer.ControlPanel.Views
             string db = FindClamWinDatabase();
             if (!string.IsNullOrEmpty(db))
                dbField.SetText(db);
-            return (true, F("Found ClamWin at {0}", candidate) +
+            return (StatusLevel.Good, F("Found ClamWin at {0}", candidate) +
                (string.IsNullOrEmpty(db) ? "" : F("; database folder {0}", db)));
          }
 
-         return (false, L("ClamWin was not found in the standard install locations."));
+         // An answer, not a failure: ClamWin installed elsewhere is entered by
+         // hand, and a machine without it is not at fault.
+         return (StatusLevel.Information, L("ClamWin was not found in the standard install locations."));
       }
 
       private static string FindClamWinDatabase()
