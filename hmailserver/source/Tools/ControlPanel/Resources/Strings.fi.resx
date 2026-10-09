@@ -3833,6 +3833,9 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Hakemistotodennus (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Hakemistotodennus on pois päältä.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Hakemistotiedot</value>
   </data>
@@ -6850,6 +6853,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Yhdelläkään verkkotunnuksella ei ole DKIM-allekirjoitusta päällä, joten DNS-tietuetta ei tarvita.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Yhdelläkään verkkotunnuksella ei ole Active Directory -toimialueen nimeä, joten mikään ei voi osallistua.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Yhtään verkkotunnusta ei ole vielä lisätty.</value>
   </data>
@@ -7051,6 +7057,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Aikataulua ei ole määritetty, joten yksikään varmuuskopio ei koskaan aja itsestään. Varmuuskopioita otetaan vain, kun joku napsauttaa Aloita varmuuskopiointi nyt.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Hakukantaa ei ole asetettu (Hakemistotodennus (LDAP), Käyttäjän hakemistomerkinnän etsiminen).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Toista tunnistustekijää ei vaadita - pelkkä järjestelmänvalvojan salasana kirjaa sisään.</value>
   </data>
@@ -7155,6 +7164,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Ei luettu</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Ei vielä valmis. Jokainen alla oleva rivi kertoo, mitä puuttuu, ja avaa sivun, jolla se korjataan.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Ei ilmoitettu</value>
@@ -14520,9 +14532,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="digest settings" xml:space="preserve">
     <value>koosteen asetukset</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>hakemiston käyttö on pois päältä ([LDAP] Enabled=0 - Hakemistotodennus (LDAP) -sivu kytkee sen päälle)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>poista tili käytöstä</value>
   </data>
@@ -14902,9 +14911,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="no answer" xml:space="preserve">
     <value>ei vastausta</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>yhdelläkään tämän palvelimen verkkotunnuksella ei ole Active Directory -toimialueen nimeä asetettuna, joten yksikään verkkotunnus ei ole kelvollinen (aseta se verkkotunnuksen omalla sivulla)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>ei virhettä</value>
   </data>
@@ -14913,9 +14919,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>ei oikeuksia</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>hakukantaa ei ole asetettu, joten ei ole mistä luetella</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>ei aloitettu</value>

@@ -3869,6 +3869,9 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Uwierzytelnianie katalogowe (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Uwierzytelnianie katalogowe jest wyłączone.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Wpis w katalogu</value>
   </data>
@@ -6913,6 +6916,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Żadna domena nie ma włączonego podpisywania DKIM, więc żaden rekord DNS nie jest wymagany.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Żadna domena nie ma nazwy domeny Active Directory, więc żadna nie może wziąć udziału.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Nie dodano jeszcze żadnej domeny.</value>
   </data>
@@ -7120,6 +7126,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Nie skonfigurowano harmonogramu, więc żadna kopia zapasowa nigdy nie wykona się sama. Kopie powstają wyłącznie wtedy, gdy ktoś naciśnie Rozpocznij kopię zapasową teraz.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Nie ustawiono bazy wyszukiwania (Uwierzytelnianie katalogowe (LDAP), Odnajdywanie wpisu użytkownika w katalogu).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Nie jest wymuszany żaden drugi składnik - samo hasło administratora wystarcza do zalogowania.</value>
   </data>
@@ -7227,6 +7236,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Nieodczytane</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Jeszcze nie gotowe. Każdy wiersz poniżej mówi, czego brakuje, i otwiera stronę, na której można to naprawić.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Nie zgłoszono</value>
@@ -14678,9 +14690,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="digest settings" xml:space="preserve">
     <value>ustawienia podsumowania</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>dostęp do katalogu jest wyłączony ([LDAP] Enabled=0 - włącza go strona Uwierzytelnianie katalogowe)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>wyłącz konto</value>
   </data>
@@ -15075,9 +15084,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="no answer" xml:space="preserve">
     <value>brak odpowiedzi</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>żadna domena na tym serwerze nie ma ustawionej nazwy domeny Active Directory, więc żadna domena się nie kwalifikuje (ustawia się ją na stronie samej domeny)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>brak błędu</value>
   </data>
@@ -15086,9 +15092,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>brak uprawnień</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>nie ustawiono bazy wyszukiwania, więc nie ma skąd wyliczać wpisów</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>nie rozpoczęto</value>

@@ -3833,6 +3833,9 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Autenticação de diretório (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>A autenticação de diretório está desligada.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Ficha no diretório</value>
   </data>
@@ -6850,6 +6853,9 @@ Nada do que já está lá é removido.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Nenhum domínio tem a assinatura DKIM ligada, então nenhum registro DNS é necessário.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Nenhum domínio tem um nome de domínio do Active Directory, então nenhum pode participar.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Nenhum domínio foi adicionado ainda.</value>
   </data>
@@ -7051,6 +7057,9 @@ Nada do que já está lá é removido.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Nenhum agendamento está configurado, então nenhum backup jamais rodará por conta própria. Os backups só acontecem quando alguém clica em Iniciar backup agora.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Nenhuma base de pesquisa está definida (Autenticação de diretório (LDAP), Localizar a entrada do usuário no diretório).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Nenhum segundo fator é exigido - a senha de administrador sozinha faz o login.</value>
   </data>
@@ -7155,6 +7164,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Não lido</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Ainda não está pronto. Cada linha abaixo diz o que falta e abre a página que corrige isso.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Não informado</value>
@@ -14520,9 +14532,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="digest settings" xml:space="preserve">
     <value>configurações do resumo</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>o acesso ao diretório está desligado ([LDAP] Enabled=0 - a página Autenticação de diretório o liga)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>desativar uma conta</value>
   </data>
@@ -14902,9 +14911,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="no answer" xml:space="preserve">
     <value>sem resposta</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>nenhum domínio neste servidor tem um nome de domínio do Active Directory definido, então nenhum domínio é elegível (defina-o na página do próprio domínio)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>nenhum erro</value>
   </data>
@@ -14913,9 +14919,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>sem direitos</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>nenhuma base de busca está definida, então não há de onde enumerar</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>não iniciado</value>

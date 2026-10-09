@@ -3833,6 +3833,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Directoryauthenticatie (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Directoryauthenticatie staat uit.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Vermelding in het adresboek</value>
   </data>
@@ -6850,6 +6853,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Geen enkel domein heeft DKIM-ondertekening aanstaan, dus er is geen DNS-record vereist.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Geen enkel domein heeft een Active Directory-domeinnaam, dus geen enkel domein kan meedoen.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Er is nog geen domein toegevoegd.</value>
   </data>
@@ -7051,6 +7057,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Er is geen schema geconfigureerd, dus er draait nooit uit zichzelf een back-up. Back-ups gebeuren alleen wanneer iemand op "Back-up nu starten" klikt.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Er is geen zoekbasis ingesteld (Directoryauthenticatie (LDAP), De directoryvermelding van de gebruiker vinden).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Er wordt geen tweede factor afgedwongen - het beheerderswachtwoord alleen meldt aan.</value>
   </data>
@@ -7155,6 +7164,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Niet gelezen</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Nog niet klaar. Elke regel hieronder noemt wat er ontbreekt en opent de pagina waar het wordt opgelost.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Niet gemeld</value>
@@ -14520,9 +14532,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="digest settings" xml:space="preserve">
     <value>overzichtsinstellingen</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>directorytoegang staat uit ([LDAP] Enabled=0 - de pagina Directoryauthenticatie zet het aan)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>een account uitschakelen</value>
   </data>
@@ -14902,9 +14911,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="no answer" xml:space="preserve">
     <value>geen antwoord</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>geen enkel domein op deze server heeft een Active Directory-domeinnaam ingesteld, dus geen enkel domein komt in aanmerking (stel die in op de eigen pagina van het domein)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>geen fout</value>
   </data>
@@ -14913,9 +14919,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>geen rechten</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>er is geen zoekbasis ingesteld, dus er is geen plek om vanaf op te sommen</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>niet begonnen</value>

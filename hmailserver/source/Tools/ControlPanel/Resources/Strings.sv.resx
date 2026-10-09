@@ -3833,6 +3833,9 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Katalogautentisering (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Katalogautentisering är avstängd.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Post i katalogen</value>
   </data>
@@ -6850,6 +6853,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ingen domän har DKIM-signering påslagen, så ingen DNS-post krävs.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Ingen domän har ett Active Directory-domännamn, så ingen kan delta.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Ingen domän har lagts till ännu.</value>
   </data>
@@ -7051,6 +7057,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Inget schema är konfigurerat, så ingen säkerhetskopiering körs någonsin av sig själv. Säkerhetskopior tas bara när någon klickar på Starta säkerhetskopiering nu.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Ingen sökbas är satt (Katalogautentisering (LDAP), Hittar användarens katalogpost).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Ingen andra faktor krävs - administratörslösenordet ensamt loggar in.</value>
   </data>
@@ -7155,6 +7164,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Inte läst</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Inte klart än. Varje rad nedan säger vad som saknas och öppnar sidan som rättar det.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Inte rapporterat</value>
@@ -14520,9 +14532,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="digest settings" xml:space="preserve">
     <value>inställningar för sammanfattning</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>katalogåtkomst är avstängd ([LDAP] Enabled=0 - sidan Katalogautentisering slår på den)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>inaktivera ett konto</value>
   </data>
@@ -14902,9 +14911,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="no answer" xml:space="preserve">
     <value>inget svar</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>ingen domän på den här servern har ett Active Directory-domännamn satt, så ingen domän är behörig (sätt det på domänens egen sida)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>inget fel</value>
   </data>
@@ -14913,9 +14919,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>inga rättigheter</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>ingen sökbas är satt, så det finns ingenstans att räkna upp från</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>inte påbörjat</value>

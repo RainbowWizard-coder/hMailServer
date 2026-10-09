@@ -3833,6 +3833,9 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Authentification par annuaire (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>L'authentification par annuaire est désactivée.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Fiche d'annuaire</value>
   </data>
@@ -6850,6 +6853,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Aucun domaine n'a la signature DKIM activée : aucun enregistrement DNS n'est donc requis.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Aucun domaine n'a de nom de domaine Active Directory, donc aucun ne peut participer.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Aucun domaine n'a encore été ajouté.</value>
   </data>
@@ -7051,6 +7057,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Aucune planification n'est configurée : aucune sauvegarde ne s'exécutera donc jamais d'elle-même. Les sauvegardes n'ont lieu que lorsque quelqu'un clique sur « Démarrer la sauvegarde maintenant ».</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Aucune base de recherche n'est définie (Authentification par annuaire (LDAP), Recherche de l'entrée d'annuaire de l'utilisateur).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Aucun second facteur n'est imposé - le mot de passe administrateur seul suffit à se connecter.</value>
   </data>
@@ -7155,6 +7164,9 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Non lu</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Pas encore prêt. Chaque ligne ci-dessous indique ce qui manque et ouvre la page qui le corrige.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Non signalé</value>
@@ -14520,9 +14532,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="digest settings" xml:space="preserve">
     <value>réglages du récapitulatif</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>l'accès à l'annuaire est désactivé ([LDAP] Enabled=0 - la page Authentification d'annuaire l'active)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>désactiver un compte</value>
   </data>
@@ -14902,9 +14911,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="no answer" xml:space="preserve">
     <value>pas de réponse</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>aucun domaine de ce serveur n'a de nom de domaine Active Directory défini, aucun domaine n'est donc éligible (définissez-le sur la page du domaine lui-même)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>aucune erreur</value>
   </data>
@@ -14913,9 +14919,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>aucun droit</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>aucune base de recherche n'est définie, il n'y a donc nulle part où énumérer</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>pas commencé</value>

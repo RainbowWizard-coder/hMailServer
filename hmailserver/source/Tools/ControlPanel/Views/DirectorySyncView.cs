@@ -78,8 +78,10 @@ namespace hMailServer.ControlPanel.Views
 
       // Whether a run can happen at all, as a notice at the level of the answer:
       // yes is good, a missing prerequisite is a warning, and an answer that
-      // cannot be reached from this machine is information.
+      // cannot be reached from this machine is information. Under it, one row
+      // per missing prerequisite, each with the page that puts it right.
       private readonly InlineNotice stateText_ = new();
+      private readonly StackPanel stateRows_ = new();
 
       // What the last run said, and what in it needs a person - two notices at
       // the run's level (DirectorySyncReport.SummaryLevel). The second was a
@@ -272,6 +274,10 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetLiveSetting(stateText_,
             System.Windows.Automation.AutomationLiveSetting.Polite);
          content.Children.Add(stateText_);
+
+         stateRows_.Margin = new Thickness(0, 4, 0, 0);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(stateRows_, "dirsync-state-rows");
+         content.Children.Add(stateRows_);
 
          return card;
       }
@@ -691,6 +697,7 @@ namespace hMailServer.ControlPanel.Views
       private void RefreshState_()
       {
          int linkedDomains = Math.Max(0, domainChoice_.Items.Count - 1);
+         stateRows_.Children.Clear();
 
          // Two things this card must never do, both of which are the same mistake:
          // report an unread value as a configured one. IniRead_ answers its fallback
@@ -720,16 +727,20 @@ namespace hMailServer.ControlPanel.Views
          bool ldapOn = string.Equals(IniRead_("Enabled", "0"), "1", StringComparison.Ordinal);
          string searchBase = IniRead_("SearchBase", "");
 
-         var problems = new List<string>();
+         // One row per missing prerequisite, each a whole sentence with the page
+         // that puts it right. It was one run-on sentence of three clauses, in
+         // the INI file's own syntax ("[LDAP] Enabled=0"), naming three pages and
+         // linking none.
+         var problems = new List<(string Text, string Page)>();
 
          if (!ldapOn)
-            problems.Add(L("directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)"));
+            problems.Add((L("Directory authentication is switched off."), "ldap"));
 
          if (searchBase.Length == 0)
-            problems.Add(L("no search base is set, so there is nowhere to enumerate from"));
+            problems.Add((L("No search base is set (Directory authentication (LDAP), Finding the user's directory entry)."), "ldap"));
 
          if (linkedDomains == 0)
-            problems.Add(L("no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)"));
+            problems.Add((L("No domain has an Active Directory domain name, so none can take part."), "domains"));
 
          if (problems.Count == 0)
          {
@@ -739,7 +750,26 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         State_(StatusLevel.Warning, F("Not yet - {0}.", string.Join("; ", problems)));
+         State_(StatusLevel.Warning, L("Not ready yet. Each line below names what is missing and opens the page that fixes it."));
+         foreach ((string text, string page) in problems)
+            stateRows_.Children.Add(StateRow_(text, page));
+      }
+
+      /// <summary>A missing prerequisite: the sentence, and the button to the page that puts it right.</summary>
+      private static FrameworkElement StateRow_(string text, string page)
+      {
+         var row = new Grid { Margin = new Thickness(0, 6, 0, 0) };
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+         var sentence = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
+         sentence.SetResourceReference(StyleProperty, "TextBody");
+         row.Children.Add(sentence);
+
+         Wpf.Ui.Controls.Button open = NoticeActions.OpenPage(page, "dirsync-state-open-" + page);
+         Grid.SetColumn(open, 1);
+         row.Children.Add(open);
+         return row;
       }
 
       private void State_(StatusLevel level, string text)

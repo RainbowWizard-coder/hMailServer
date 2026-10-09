@@ -3833,6 +3833,9 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Dizin kimlik doğrulaması (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Dizin kimlik doğrulaması kapalı.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Rehber kaydı</value>
   </data>
@@ -6850,6 +6853,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Hiçbir etki alanında DKIM imzalama açık değil; bu yüzden DNS kaydı gerekmiyor.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Hiçbir etki alanının Active Directory etki alanı adı yok; bu yüzden hiçbiri katılamaz.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Henüz alan adı eklenmedi.</value>
   </data>
@@ -7051,6 +7057,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Hiç zamanlama yapılandırılmamış; bu yüzden hiçbir yedekleme kendiliğinden çalışmayacak. Yedeklemeler yalnızca biri Yedeklemeyi şimdi başlat'a tıkladığında olur.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Arama tabanı ayarlanmamış (Dizin kimlik doğrulaması (LDAP), Kullanıcının dizin girdisi bulunuyor).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>İkinci etken zorunlu değil - yönetici parolası tek başına oturum açar.</value>
   </data>
@@ -7155,6 +7164,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Okunmadı</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Henüz hazır değil. Aşağıdaki her satır neyin eksik olduğunu söyler ve onu düzelten sayfayı açar.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Bildirilmedi</value>
@@ -14520,9 +14532,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="digest settings" xml:space="preserve">
     <value>özet ayarları</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>dizin erişimi kapalı ([LDAP] Enabled=0 - Dizin kimlik doğrulaması sayfası bunu açar)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>bir hesabı devre dışı bırak</value>
   </data>
@@ -14902,9 +14911,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="no answer" xml:space="preserve">
     <value>yanıt yok</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>bu sunucudaki hiçbir etki alanında Active Directory etki alanı adı ayarlanmamış; bu yüzden hiçbir etki alanı uygun değil (etki alanının kendi sayfasında ayarlayın)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>hata yok</value>
   </data>
@@ -14913,9 +14919,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>hak yok</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>arama tabanı ayarlanmamış; bu yüzden sıralamaya başlanacak bir yer yok</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>başlamadı</value>

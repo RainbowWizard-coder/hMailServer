@@ -40,6 +40,30 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Text = row.Word,", row, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The readiness check names each missing prerequisite in a sentence of its
+      /// own, with the page that puts it right: it was one run-on sentence in the
+      /// INI file's own syntax, "[LDAP] Enabled=0", naming three pages and linking
+      /// none.
+      /// </summary>
+      [Fact]
+      public void TheReadinessCheck_IsOneRowPerPrerequisite_WithItsPage()
+      {
+         string state = WithheldRowTests.MemberText(Source(), "private void RefreshState_()");
+         Assert.True(state != null, "DirectorySyncView.RefreshState_ is gone.");
+         Assert.False(System.Text.RegularExpressions.Regex.IsMatch(state, @"L\(""[^""]*\[LDAP\] Enabled=0"), "The readiness check says \"[LDAP] Enabled=0\" to the reader.");
+         Assert.DoesNotContain("string.Join(\"; \", problems)", state, StringComparison.Ordinal);
+
+         var pages = System.Text.RegularExpressions.Regex.Matches(state, @"problems\.Add\(\(L\(""[^""]+""\), ""([\w-]+)""\)\);");
+         Assert.Equal(3, pages.Count);
+         foreach (System.Text.RegularExpressions.Match page in pages)
+            Assert.True(hMailServer.ControlPanel.Services.NavigationMap.Find(page.Groups[1].Value) != null, "The readiness check opens \"" + page.Groups[1].Value + "\", which is no page.");
+
+         string row = WithheldRowTests.MemberText(Source(), "private static FrameworkElement StateRow_(string text, string page)");
+         Assert.True(row != null, "DirectorySyncView.StateRow_ is gone.");
+         Assert.Contains("NoticeActions.OpenPage(page,", row, StringComparison.Ordinal);
+      }
+
       internal static string Source()
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

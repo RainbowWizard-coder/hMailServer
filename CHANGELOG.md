@@ -998,6 +998,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (Good), *Unchanged* (Normal), *Not in the directory* (Information), and *Not reported* where an older server does
   not say whether a change was carried out. `DirectorySyncReport` decides the levels and words, held by
   `DirectorySyncReportTests`; `DirectorySyncPageTests` holds the page to drawing them.
+- **Fixed: the Directory synchronisation page's readiness check was one run-on sentence in the INI file's syntax,
+  naming the fixes on three pages and linking none.** "Not yet - directory access is switched off ([LDAP] Enabled=0 -
+  the Directory authentication page turns it on); no search base is set...; no domain on this server has an Active
+  Directory domain name set..." is now a short Warning - "Not ready yet. Each line below names what is missing and
+  opens the page that fixes it." - and a line per missing prerequisite, each with a button to the page that puts it
+  right: *Directory authentication is switched off.* and *No search base is set (Directory authentication (LDAP),
+  Finding the user's directory entry).* with *Open Directory authentication (LDAP)*, and *No domain has an Active
+  Directory domain name, so none can take part.* with *Open Domains*. Held by `DirectorySyncPageTests`.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

@@ -3869,6 +3869,9 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Ověřování proti adresáři (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Ověřování proti adresáři je vypnuté.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Záznam v adresáři</value>
   </data>
@@ -6913,6 +6916,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Žádná doména nemá zapnuté podepisování DKIM, takže není potřeba žádný DNS záznam.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Žádná doména nemá název domény Active Directory, takže se žádná nemůže účastnit.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Zatím nebyla přidána žádná doména.</value>
   </data>
@@ -7120,6 +7126,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Není nastaven žádný plán, takže se žádná záloha nikdy nespustí sama od sebe. Zálohy proběhnou jen tehdy, když někdo klikne na Spustit zálohu nyní.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Není nastavena báze hledání (Ověřování proti adresáři (LDAP), Hledání položky uživatele v adresáři).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Není vynucen žádný druhý faktor – přihlásí samotné heslo správce.</value>
   </data>
@@ -7227,6 +7236,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Nepřečteno</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Zatím to nejde. Každý řádek níže uvádí, co chybí, a otevírá stránku, kde se to napraví.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Neuvedeno</value>
@@ -14678,9 +14690,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="digest settings" xml:space="preserve">
     <value>nastavení souhrnu</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>přístup k adresáři je vypnutý ([LDAP] Enabled=0 – zapíná se na stránce Ověřování proti adresáři)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>zakázat účet</value>
   </data>
@@ -15075,9 +15084,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="no answer" xml:space="preserve">
     <value>žádná odpověď</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>žádná doména na tomto serveru nemá nastavený název domény Active Directory, takže žádná doména není způsobilá (nastavte jej na stránce dané domény)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>žádná chyba</value>
   </data>
@@ -15086,9 +15092,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>žádná práva</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>není nastavena žádná báze hledání, takže není odkud vypisovat</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>nezahájeno</value>

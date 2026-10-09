@@ -3833,6 +3833,9 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Katalogautentisering (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Katalogautentisering er slått av.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Oppføring i katalogen</value>
   </data>
@@ -6850,6 +6853,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>Ingen domener har DKIM-signering slått på, så ingen DNS-oppføring kreves.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Ingen domener har et Active Directory-domenenavn, så ingen kan delta.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Ingen domener er lagt til ennå.</value>
   </data>
@@ -7051,6 +7057,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Ingen tidsplan er konfigurert, så ingen sikkerhetskopi vil noen gang kjøre av seg selv. Sikkerhetskopier skjer bare når noen klikker Start sikkerhetskopi nå.</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Ingen søkebase er satt (Katalogautentisering (LDAP), Finner brukerens katalogoppføring).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Ingen andre faktor håndheves - administratorpassordet alene logger på.</value>
   </data>
@@ -7155,6 +7164,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Ikke lest</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Ikke klar ennå. Hver linje nedenfor nevner hva som mangler, og åpner siden som retter det.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Ikke oppgitt</value>
@@ -14520,9 +14532,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="digest settings" xml:space="preserve">
     <value>innstillinger for sammendrag</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>katalogtilgang er slått av ([LDAP] Enabled=0 - siden Katalogautentisering slår den på)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>deaktiver en konto</value>
   </data>
@@ -14902,9 +14911,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="no answer" xml:space="preserve">
     <value>intet svar</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>ingen domener på denne serveren har et Active Directory-domenenavn satt, så ingen domener er kvalifisert (sett det på domenets egen side)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>ingen feil</value>
   </data>
@@ -14913,9 +14919,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="no rights" xml:space="preserve">
     <value>ingen rettigheter</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>ingen søkebase er satt, så det er ingen steder å enumerere fra</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>ikke startet</value>

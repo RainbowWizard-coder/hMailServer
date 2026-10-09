@@ -3833,6 +3833,9 @@
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>目录身份验证（LDAP）</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>目录身份验证已关闭。</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>通讯录资料</value>
   </data>
@@ -6850,6 +6853,9 @@
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>没有任何域打开了 DKIM 签名，因此不需要 DNS 记录。</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>没有任何域设置了 Active Directory 域名，因此没有域可以参与。</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>尚未添加任何域。</value>
   </data>
@@ -7051,6 +7057,9 @@
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>未配置计划，因此备份永远不会自行运行。只有在有人点击“立即开始备份”时才会备份。</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>未设置搜索基准（目录身份验证（LDAP），查找用户的目录条目）。</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>未强制使用第二重验证 - 仅凭管理员密码即可登录。</value>
   </data>
@@ -7155,6 +7164,9 @@
   </data>
   <data name="Not read" xml:space="preserve">
     <value>未读取</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>尚未就绪。下面每一行都写明缺少什么，并可打开修正它的页面。</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>未报告</value>
@@ -14520,9 +14532,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="digest settings" xml:space="preserve">
     <value>摘要设置</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>目录访问已关闭（[LDAP] Enabled=0 - “目录身份验证”页可以把它打开）</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>禁用账户</value>
   </data>
@@ -14902,9 +14911,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="no answer" xml:space="preserve">
     <value>无应答</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>本服务器上没有任何域设置了 Active Directory 域名，因此没有域符合条件（请在该域自己的页面上设置）</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>无错误</value>
   </data>
@@ -14913,9 +14919,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="no rights" xml:space="preserve">
     <value>无权限</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>未设置搜索基准，因此没有可供枚举的起点</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>未开始</value>

@@ -3833,6 +3833,9 @@
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>ディレクトリ認証 (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>ディレクトリ認証がオフになっています。</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>ディレクトリの情報</value>
   </data>
@@ -6850,6 +6853,9 @@
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>DKIM 署名がオンになっているドメインがないため、DNS レコードは不要です。</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Active Directory ドメイン名が設定されたドメインがないため、対象にできるドメインはありません。</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>ドメインはまだ追加されていません。</value>
   </data>
@@ -7051,6 +7057,9 @@
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>スケジュールが設定されていないため、バックアップが自動的に実行されることはありません。バックアップは誰かが「今すぐバックアップを開始」をクリックしたときだけ行われます。</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>検索ベースが設定されていません (ディレクトリ認証 (LDAP)、ユーザーのディレクトリ エントリの検索)。</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>第 2 要素は強制されていません。管理者パスワードだけでサインインできます。</value>
   </data>
@@ -7155,6 +7164,9 @@
   </data>
   <data name="Not read" xml:space="preserve">
     <value>未読み取り</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>まだ準備ができていません。下の各行に不足しているものが示され、それを直すページを開けます。</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>報告なし</value>
@@ -14520,9 +14532,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="digest settings" xml:space="preserve">
     <value>ダイジェスト設定</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>ディレクトリ アクセスは無効になっています ([LDAP] Enabled=0。「ディレクトリ認証」ページで有効にできます)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>アカウントを無効にする</value>
   </data>
@@ -14902,9 +14911,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="no answer" xml:space="preserve">
     <value>応答なし</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>このサーバーのどのドメインにも Active Directory ドメイン名が設定されていないため、対象になるドメインはありません (各ドメイン自身のページで設定してください)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>エラーなし</value>
   </data>
@@ -14913,9 +14919,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="no rights" xml:space="preserve">
     <value>権限なし</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>検索ベースが設定されていないため、列挙の起点がありません</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>未開始</value>

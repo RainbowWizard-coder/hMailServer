@@ -3869,6 +3869,9 @@
   <data name="Directory authentication (LDAP)" xml:space="preserve">
     <value>Автентифікація через каталог (LDAP)</value>
   </data>
+  <data name="Directory authentication is switched off." xml:space="preserve">
+    <value>Автентифікацію через каталог вимкнено.</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Запис у каталозі</value>
   </data>
@@ -6913,6 +6916,9 @@
   <data name="No domain has DKIM signing switched on, so no DNS record is required." xml:space="preserve">
     <value>У жодного домену не ввімкнено підписування DKIM, тому DNS-запис не потрібен.</value>
   </data>
+  <data name="No domain has an Active Directory domain name, so none can take part." xml:space="preserve">
+    <value>Жоден домен не має імені домену Active Directory, тож жоден не може брати участь.</value>
+  </data>
   <data name="No domain has been added yet." xml:space="preserve">
     <value>Жодного домену ще не додано.</value>
   </data>
@@ -7120,6 +7126,9 @@
   <data name="No schedule is configured, so no backup will ever run on its own. Backups happen only when someone clicks Start backup now." xml:space="preserve">
     <value>Розклад не налаштовано, тому резервне копіювання ніколи не запуститься саме по собі. Резервні копії створюються лише тоді, коли хтось натискає «Створити резервну копію зараз».</value>
   </data>
+  <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
+    <value>Не задано базу пошуку («Автентифікація через каталог (LDAP)», «Пошук запису користувача в каталозі»).</value>
+  </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Другий фактор не вимагається — для входу достатньо самого пароля адміністратора.</value>
   </data>
@@ -7227,6 +7236,9 @@
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Не прочитано</value>
+  </data>
+  <data name="Not ready yet. Each line below names what is missing and opens the page that fixes it." xml:space="preserve">
+    <value>Ще не готово. Кожен рядок нижче називає, чого бракує, і відкриває сторінку, де це виправляється.</value>
   </data>
   <data name="Not reported" xml:space="preserve">
     <value>Не повідомлено</value>
@@ -14678,9 +14690,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="digest settings" xml:space="preserve">
     <value>налаштування зведення</value>
   </data>
-  <data name="directory access is switched off ([LDAP] Enabled=0 - the Directory authentication page turns it on)" xml:space="preserve">
-    <value>доступ до каталогу вимкнено ([LDAP] Enabled=0 — вмикає його сторінка «Автентифікація через каталог»)</value>
-  </data>
   <data name="disable an account" xml:space="preserve">
     <value>вимкнути обліковий запис</value>
   </data>
@@ -15075,9 +15084,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="no answer" xml:space="preserve">
     <value>немає відповіді</value>
   </data>
-  <data name="no domain on this server has an Active Directory domain name set, so no domain is eligible (set it on the domain's own page)" xml:space="preserve">
-    <value>на цьому сервері жоден домен не має заданого імені домену Active Directory, тож жоден домен не підходить (задайте його на власній сторінці домену)</value>
-  </data>
   <data name="no error" xml:space="preserve">
     <value>помилок немає</value>
   </data>
@@ -15086,9 +15092,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="no rights" xml:space="preserve">
     <value>без прав</value>
-  </data>
-  <data name="no search base is set, so there is nowhere to enumerate from" xml:space="preserve">
-    <value>базу пошуку не задано, тож немає звідки перелічувати</value>
   </data>
   <data name="not started" xml:space="preserve">
     <value>не розпочато</value>
