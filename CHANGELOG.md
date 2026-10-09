@@ -1051,12 +1051,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   restart was not running yet, and it stayed green through every edit after it. The server settings pages said
   *Saved* in green over a save whose settings waited for a reinitialise or a restart too. Every settings page now
   keeps the one model the server settings pages began: no pill while the page shows what it read; *Unsaved changes*,
-  a warning, from the first edit and for as long as an editor differs from what was read or saved, so an edit undone
-  by hand takes the pill back to what the save had said; and after a save, until the next edit, *Saved* when every
-  setting written is in effect, *Reinitialise to apply* when some wait for **Apply now**, or *Restart to apply* when
-  some wait for a service restart or the server cannot say what waits. A save that could not be written says why in
-  a Critical notice under the header. The per-address overrides box of the per-account sending limits now says when
-  it changes as well, and a test holds every setting with a value to doing so.
+  a warning, from the first edit - on the hMailServer.ini pages for as long as an editor differs from what was read
+  or saved, so that an edit undone by hand takes the pill back to what the save had said; and after a save, until
+  the next edit, *Saved* when every setting written is in effect, *Reinitialise to apply* when some wait for **Apply
+  now**, or *Restart to apply* when some wait for a service restart or the server cannot say what waits. A save that
+  could not be written says why in a Critical notice under the header. The per-address overrides box of the
+  per-account sending limits now says when it changes as well, and a test holds every setting with a value to doing
+  so.
 
 - **Fixed: the Directory authentication (LDAP) and Directory synchronisation pages kept Reload and Save changes in a
   footer, where their result was grey caption text and a failed save a message box.** Every other settings page in
