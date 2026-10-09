@@ -63,6 +63,9 @@ namespace hMailServer.ControlPanel.Views
       // Where the values came from - a provenance footnote, the quietest text.
       private readonly TextBlock status_ = new();
 
+      // The page's title, whose status is the count of problems found.
+      private readonly PageHeader header_;
+
       public TlsOverviewView()
       {
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
@@ -72,7 +75,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "tls-overview-refresh");
          refresh.Click += (s, e) => Reload();
 
-         page.Children.Add(new PageHeader
+         page.Children.Add(header_ = new PageHeader
          {
             Title = L("Transport encryption overview"),
             Subtitle = L("What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
@@ -402,20 +405,28 @@ namespace hMailServer.ControlPanel.Views
          if (!configRead_)
          {
             ReadFailure.Show(readFailure_, null, null, L("The transport security configuration could not be read: "), firstError_, Reload);
+            header_.Status = null;
             status_.Text = "";
             return;
          }
 
          ReadFailure.Clear(readFailure_);
-         body_.Children.Add(VerdictCard(config));
+
+         // The problems - Warning and above - under the verdict, each with the
+         // page that puts it right; the rest at the foot, where all of them were.
+         IReadOnlyList<TlsPostureNote> notes = TlsPosture.Notes(config);
+         List<TlsPostureNote> problems = OverviewNotices.Problems(notes, n => n.Level);
+         List<TlsPostureNote> worthKnowing = OverviewNotices.WorthKnowing(notes, n => n.Level);
+         header_.Status = OverviewNotices.ProblemsPill(problems.Count, problems.Count == 0 ? StatusLevel.Good : problems[0].Level);
+
+         body_.Children.Add(VerdictCard(config, problems));
          body_.Children.Add(ListenersCard(config));
          body_.Children.Add(CertificatesCard(config));
          body_.Children.Add(NegotiationCard(config));
          body_.Children.Add(AuthenticationCard(config));
 
-         IReadOnlyList<TlsPostureNote> notes = TlsPosture.Notes(config);
-         if (notes.Count > 0)
-            body_.Children.Add(NotesCard(notes));
+         if (worthKnowing.Count > 0)
+            body_.Children.Add(NotesCard(worthKnowing));
 
          status_.Text = L("Read from the server. Values are read again every time this page is opened.");
 
@@ -443,11 +454,20 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
-      private static Card VerdictCard(TlsPostureConfig config)
+      /// <summary>
+      /// The verdict as a notice at its level, naming its listeners, with the page
+      /// that owns their security; then every problem, worst first, each with the
+      /// page that puts it right.
+      /// </summary>
+      private static Card VerdictCard(TlsPostureConfig config, IReadOnlyList<TlsPostureNote> problems)
       {
          Card card = Section(L("Where this server stands"), out StackPanel content);
 
-         content.Children.Add(Paragraph(TlsPosture.Verdict(config), Typography.Body));
+         content.Children.Add(OverviewNotices.Notice(TlsPosture.VerdictLevel(config), TlsPosture.Verdict(config),
+            TlsPosture.VerdictPage(config), "tls-overview-verdict"));
+
+         foreach (TlsPostureNote problem in problems)
+            content.Children.Add(OverviewNotices.Notice(problem.Level, problem.Text, problem.Page, "tls-overview-problem"));
 
          content.Children.Add(Paragraph(L("Port 25 is judged differently from the rest and deliberately so: the peer there is normally another mail server, and requiring encryption on it refuses mail from senders that cannot offer any. On every other port the peer is a client with a password."),
             Typography.Caption));
@@ -541,7 +561,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Level = verdict.Level,
             Text = verdict.Word,
-            MaxWidth = 150,
+            MaxWidth = 240,
             Margin = new Thickness(0, 6, 0, 6),
             VerticalAlignment = VerticalAlignment.Top
          };

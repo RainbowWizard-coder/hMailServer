@@ -59,6 +59,9 @@ namespace hMailServer.ControlPanel.Views
       // Where the values came from - a provenance footnote, the quietest text.
       private readonly TextBlock status_ = new();
 
+      // The page's title, whose status is the count of problems found.
+      private readonly PageHeader header_;
+
       public SpamOverviewView()
       {
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
@@ -68,7 +71,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "spam-overview-refresh");
          refresh.Click += (s, e) => Reload();
 
-         page.Children.Add(new PageHeader
+         page.Children.Add(header_ = new PageHeader
          {
             Title = L("Spam filtering overview"),
             Subtitle = L("Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
@@ -328,19 +331,27 @@ namespace hMailServer.ControlPanel.Views
          if (!configRead_)
          {
             ReadFailure.Show(readFailure_, null, null, L("The spam configuration could not be read: "), firstError_, Reload);
+            header_.Status = null;
             status_.Text = "";
             return;
          }
 
          ReadFailure.Clear(readFailure_);
-         body_.Children.Add(VerdictCard(config));
+
+         // The problems - Warning and above - under the verdict, each with the
+         // page that puts it right; the rest at the foot, where all of them were.
+         IReadOnlyList<SpamPipelineNote> notes = SpamPipeline.Notes(config);
+         List<SpamPipelineNote> problems = OverviewNotices.Problems(notes, n => n.Level);
+         List<SpamPipelineNote> worthKnowing = OverviewNotices.WorthKnowing(notes, n => n.Level);
+         header_.Status = OverviewNotices.ProblemsPill(problems.Count, problems.Count == 0 ? StatusLevel.Good : problems[0].Level);
+
+         body_.Children.Add(VerdictCard(config, problems));
          body_.Children.Add(ChecksCard(config));
          body_.Children.Add(GreylistingCard(config));
          body_.Children.Add(ListsCard(config));
 
-         IReadOnlyList<SpamPipelineNote> notes = SpamPipeline.Notes(config);
-         if (notes.Count > 0)
-            body_.Children.Add(NotesCard(notes));
+         if (worthKnowing.Count > 0)
+            body_.Children.Add(NotesCard(worthKnowing));
 
          status_.Text = L("Read from the server. Values are read again every time this page is opened.");
 
@@ -368,11 +379,20 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
-      private static Card VerdictCard(SpamPipelineConfig config)
+      /// <summary>
+      /// The verdict as a notice at its level, with the page that owns the
+      /// thresholds when it has something to put right; then every problem, worst
+      /// first, each with the page that puts it right.
+      /// </summary>
+      private static Card VerdictCard(SpamPipelineConfig config, IReadOnlyList<SpamPipelineNote> problems)
       {
          Card card = Section(L("What happens to a message"), out StackPanel content);
 
-         content.Children.Add(Paragraph(SpamPipeline.Verdict(config), Typography.Body));
+         content.Children.Add(OverviewNotices.Notice(SpamPipeline.VerdictLevel(config), SpamPipeline.Verdict(config),
+            SpamPipeline.VerdictPage(config), "spam-overview-verdict"));
+
+         foreach (SpamPipelineNote problem in problems)
+            content.Children.Add(OverviewNotices.Notice(problem.Level, problem.Text, problem.Page, "spam-overview-problem"));
 
          // The stop score is the higher threshold: with a threshold unread it
          // would be 0, and the sentence would say the server stops at once. The
@@ -418,7 +438,7 @@ namespace hMailServer.ControlPanel.Views
             foreach (SpamCheck check in SpamPipeline.Checks(config).Where(c => c.Phase == phase))
             {
                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-               AddChecksRow(grid, row, check);
+               AddChecksRow(grid, row, check, config);
                row++;
             }
 
@@ -428,7 +448,7 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
-      private void AddChecksRow(Grid grid, int row, SpamCheck check)
+      private void AddChecksRow(Grid grid, int row, SpamCheck check, SpamPipelineConfig config)
       {
          var order = new TextBlock
          {
@@ -454,8 +474,9 @@ namespace hMailServer.ControlPanel.Views
          // nothing ever reads. The five columns are otherwise announced as five
          // unrelated fragments and the listener has to reassemble the row.
          // "Not read" for a check whose settings the server did not answer: it
-         // is neither on nor off, and a score of 0 would be a finding.
-         string state = check.Unread ? L("Not read") : check.Enabled ? L("On") : L("Off");
+         // is neither on nor off, and a score of 0 would be a finding. A check
+         // that is on and can change nothing says so at the Warning level.
+         (StatusLevel stateLevel, string state) = SpamPipeline.StateOf(config, check);
 
          System.Windows.Automation.AutomationProperties.SetName(name,
             F("{0}, {1}, score {2}. {3}", check.Name, state, check.ScoreText, check.Detail));
@@ -473,7 +494,7 @@ namespace hMailServer.ControlPanel.Views
          // colour together, with Off drawn in the neutral grey that says nothing.
          var pill = new StatusPill
          {
-            Level = check.Enabled ? StatusLevel.Good : StatusLevel.Normal,
+            Level = stateLevel,
             Text = state,
             Margin = new Thickness(0, 6, 14, 6),
             VerticalAlignment = VerticalAlignment.Top

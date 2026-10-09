@@ -670,5 +670,82 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain(SpamPipeline.Checks(config), c => c.Unread);
          Assert.True(config.WasRead(nameof(config.MarkThreshold), nameof(config.GreylistingEnabled)));
       }
+
+      // ---- the verdict's level, and a check that is on and can change nothing ----
+
+      /// <summary>
+      /// The verdict is shown at the level of what it says - it was plain body
+      /// text - with Anti-spam settings as its action when it has something to
+      /// put right.
+      /// </summary>
+      [Fact]
+      public void TheVerdict_HasTheLevelOfWhatItSays()
+      {
+         SpamPipelineConfig config = Defaults();
+         Assert.Equal(StatusLevel.Good, SpamPipeline.VerdictLevel(config));
+         Assert.Null(SpamPipeline.VerdictPage(config));
+
+         config.MarkThreshold = 0;
+         Assert.Equal(StatusLevel.Warning, SpamPipeline.VerdictLevel(config));
+         Assert.Equal("antispam", SpamPipeline.VerdictPage(config));
+
+         config.DeleteThreshold = 0;
+         Assert.Equal(StatusLevel.Critical, SpamPipeline.VerdictLevel(config));
+
+         config.MarkThreshold = 10;
+         config.DeleteThreshold = 5;
+         Assert.Equal(StatusLevel.Critical, SpamPipeline.VerdictLevel(config));
+
+         config.Unread.Add(nameof(config.MarkThreshold));
+         Assert.Equal(StatusLevel.Information, SpamPipeline.VerdictLevel(config));
+         Assert.Null(SpamPipeline.VerdictPage(config));
+      }
+
+      /// <summary>
+      /// A check that is on but can never change the outcome is a Warning - On,
+      /// scores 0, or On, no host for SpamAssassin - where it showed the same
+      /// green On as one that works.
+      /// </summary>
+      [Fact]
+      public void ACheckThatIsOnAndCanChangeNothing_IsAWarning()
+      {
+         SpamPipelineConfig config = Defaults();
+         config.CheckPtr = true;
+         config.PtrScore = 0;
+         config.CheckSpf = true;
+         config.SpfScore = 3;
+         config.SpamAssassinEnabled = true;
+
+         (StatusLevel level, string text) State(string key) => SpamPipeline.StateOf(config, SpamPipeline.Checks(config).Single(c => c.Key == key));
+
+         Assert.Equal((StatusLevel.Warning, "On, scores 0"), State("ptr"));
+         Assert.Equal((StatusLevel.Good, "On"), State("spf"));
+         Assert.Equal((StatusLevel.Normal, "Off"), State("helo"));
+         Assert.Equal((StatusLevel.Good, "On"), State("spamassassin"));
+
+         config.SpamAssassinHost = "";
+         Assert.Equal((StatusLevel.Warning, "On, no host"), State("spamassassin"));
+
+         config.SpamAssassinHost = "127.0.0.1";
+         config.SpamAssassinMergesScore = false;
+         config.SpamAssassinScore = 0;
+         Assert.Equal((StatusLevel.Warning, "On, scores 0"), State("spamassassin"));
+
+         config.Unread.Add(nameof(config.CheckSpf));
+         Assert.Equal((StatusLevel.Normal, "Not read"), State("spf"));
+      }
+
+      /// <summary>Every note names the page that puts it right, which a problem opens from the overview.</summary>
+      [Fact]
+      public void EveryNote_NamesAPage()
+      {
+         SpamPipelineConfig config = Defaults();
+         config.MarkThreshold = 0;
+         config.DeleteThreshold = 0;
+         config.CheckPtr = true;
+         config.PtrScore = 0;
+         Assert.NotEmpty(SpamPipeline.Notes(config));
+         Assert.All(SpamPipeline.Notes(config), n => Assert.NotNull(NavigationMap.Find(n.Page)));
+      }
    }
 }

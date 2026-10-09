@@ -86,16 +86,24 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public sealed class VirusPipelineNote
    {
-      internal VirusPipelineNote(StatusLevel level, string text)
+      internal VirusPipelineNote(StatusLevel level, string text, string page = null)
       {
          Level = level;
          Text = text;
+         Page = page ?? VirusPipeline.NotesPage;
       }
 
       public StatusLevel Level { get; }
 
       /// <summary>The whole note, in a sentence or two. Never empty.</summary>
       public string Text { get; }
+
+      /// <summary>
+      /// The navigation key of the page that puts the note right, which a note at
+      /// the Warning or Critical level opens from the overview: Anti-virus
+      /// settings unless the note names another.
+      /// </summary>
+      public string Page { get; }
    }
 
    /// <summary>What the server does with a message a scanner has condemned.</summary>
@@ -295,6 +303,33 @@ namespace hMailServer.ControlPanel.Services
       public static bool ScannersRead(VirusPipelineConfig config)
          => config != null && !Scanners(config).Any(scanner => scanner.Unread);
 
+      /// <summary>The page a note is about unless it names another.</summary>
+      public const string NotesPage = "antivirus";
+
+      /// <summary>
+      /// The level the verdict is shown at, from what it says: Critical when no
+      /// scanner can run; a Warning when a larger message is delivered unscanned
+      /// or an infected one is delivered with its attachments stripped; Good
+      /// otherwise; Information when it cannot be said. "No message is scanned
+      /// for viruses... Everything is delivered as it arrives." was plain body
+      /// text with no level.
+      /// </summary>
+      public static StatusLevel VerdictLevel(VirusPipelineConfig config)
+      {
+         if (config == null || !ScannersRead(config) || !config.WasRead(nameof(config.Action), nameof(config.MaxScanKilobytes),
+                nameof(config.AttachmentBlockingEnabled), nameof(config.BlockedAttachmentPatterns)))
+            return StatusLevel.Information;
+
+         if (CountUsable(config) == 0)
+            return StatusLevel.Critical;
+
+         return config.MaxScanKilobytes > 0 || config.Action == VirusAction.StripAttachments ? StatusLevel.Warning : StatusLevel.Good;
+      }
+
+      /// <summary>The page the verdict's action opens - where the scanners are - when it has something to put right.</summary>
+      public static string VerdictPage(VirusPipelineConfig config)
+         => VerdictLevel(config) >= StatusLevel.Warning ? NotesPage : null;
+
       /// <summary>
       /// One sentence answering "what will happen to an infected message", written
       /// for somebody who has just arrived at the page.
@@ -458,7 +493,8 @@ namespace hMailServer.ControlPanel.Services
          if (blocking && config.AttachmentBlockingEnabled && config.BlockedAttachmentPatterns == 0)
          {
             notes.Add(new VirusPipelineNote(StatusLevel.Warning,
-               L("Attachment blocking is switched on with no patterns to block, so it does nothing at all.")));
+               L("Attachment blocking is switched on with no patterns to block, so it does nothing at all."),
+               "blockedattachments"));
          }
 
          if (config.WasRead(nameof(config.FetchAccountsWithScanningOff)) && config.FetchAccountsWithScanningOff > 0)
@@ -485,7 +521,8 @@ namespace hMailServer.ControlPanel.Services
                      "{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.",
                      "{0} external POP3 fetch accounts have anti-virus turned off, so mail collected by them is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page.");
             }
-            notes.Add(new VirusPipelineNote(StatusLevel.Warning, text));
+            // The switch is on each fetch account, on the Domains page.
+            notes.Add(new VirusPipelineNote(StatusLevel.Warning, text, "domains"));
          }
 
          // ---- worth knowing ----------------------------------------------------

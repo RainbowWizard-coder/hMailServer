@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Pro 1 zprávu nelze zapsat záznam; zůstane tam, kde je: {0}</value>
   </data>
+  <data name="1 problem" xml:space="preserve">
+    <value>Problémy: 1</value>
+  </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 odmítne heslo, které se v databázi objevilo byť jen jednou.</value>
   </data>
@@ -7078,6 +7081,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Není nastaven žádný soubor soukromého klíče, takže tento certifikát nemůže použít žádný TLS port.</value>
   </data>
+  <data name="No problems found" xml:space="preserve">
+    <value>Žádné problémy</value>
+  </data>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Nebyly nalezeny žádné problémy – každý řádek zprávy má svůj soubor na disku.</value>
   </data>
@@ -7591,6 +7597,12 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Zapnuto, ale nemůže běžet</value>
   </data>
+  <data name="On, no host" xml:space="preserve">
+    <value>Zapnuto, bez hostitele</value>
+  </data>
+  <data name="On, scores 0" xml:space="preserve">
+    <value>Zapnuto, skóre 0</value>
+  </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Zapnuto. Trojice odesílatel/příjemce/adresa, která ještě nebyla viděna, dostane při RCPT TO odpověď 451 „Please try again later.“ a je přijata, až když se pokus zopakuje. Běží až po kontrolách připojení výše a nepřidává žádné skóre.</value>
   </data>
@@ -7618,12 +7630,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>V konfiguraci je jeden vzor blokovaných příloh, ale blokování příloh je vypnuté, takže se neuplatní.</value>
   </data>
-  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Jeden klientský listener nemá k dispozici žádné šifrování, takže hesla použitá na něm procházejí sítí v otevřeném textu.</value>
-  </data>
-  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Jeden klientský listener nabízí STARTTLS, aniž by ho vyžadoval, takže klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
-  </data>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Na jednom nastaveném portu se nenaslouchá: {0}.</value>
   </data>
@@ -7641,9 +7647,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Jeden seznam devíti kontrol, které z nich jsou zapnuté a ve které ze dvou fází každá běží.</value>
-  </data>
-  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Jeden listener má nastavené TLS, ale nemůže ho poskytovat, takže na tomto portu se vůbec nenaslouchá.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Jedna zpráva každému účtu této domény, pro který se nově něco zadrželo, se seznamem zadržených zpráv a odkazem, který je doručí. Odkaz funguje jednou a přestane platit po počtu hodin nastaveném na stránce Karanténa, kde se nastavuje i adresa, na kterou odkazy vedou - bez ní se nic neodešle. Prázdný souhrn se nikdy neposílá a každá zpráva říká, jak jej zastavit.</value>
@@ -13004,6 +13007,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Unchanged" xml:space="preserve">
     <value>Beze změny</value>
   </data>
+  <data name="Unencrypted (server mail)" xml:space="preserve">
+    <value>Nešifrováno (pošta serverů)</value>
+  </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Rozbalit tuto skupinu</value>
   </data>
@@ -15717,14 +15723,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
   </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>Klientských listenerů bez jakéhokoli šifrování: {0}; hesla použitá na nich procházejí sítí v otevřeném textu.</value>
+  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>Klientských listenerů bez jakéhokoli šifrování: {0} ({1}); hesla použitá na nich procházejí sítí v otevřeném textu.</value>
   </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
     <value>Klientských listenerů bez jakéhokoli šifrování: {0}; hesla použitá na nich procházejí sítí v otevřeném textu.</value>
   </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
+  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0} ({1}); klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
   </data>
   <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
     <value>Klientských listenerů, které nabízejí STARTTLS, aniž by ho vyžadovaly: {0}; klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
@@ -15837,6 +15843,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} vypršel a je odmítán</value>
   </data>
+  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} nemá k dispozici žádné šifrování, takže hesla použitá na něm procházejí sítí v otevřeném textu.</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} nemá nastavenou adresu postmastera a tato stránka si poštovní schránku nevymyslí – zadejte adresu, která má hlášení přijímat. Dokud není zadána, není žádný záznam ke zkopírování.</value>
   </data>
@@ -15869,6 +15878,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} je k dispozici (publikováno {1})</value>
+  </data>
+  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} má nastavené TLS, ale nemůže ho poskytovat, takže na tomto portu se vůbec nenaslouchá.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} je pokryt vzorem {1}, ale nepřekládá se zpět na {2}, takže adresa ušetřena není: kdokoli, kdo má adresu, si může její reverzní název napsat sám.</value>
@@ -15939,8 +15951,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
   </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
-    <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
+  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
+    <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0} ({1}); na těchto portech se vůbec nenaslouchá.</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Listenerů s nastaveným TLS, které ho ale nemohou poskytovat: {0}; na těchto portech se vůbec nenaslouchá.</value>
@@ -16050,6 +16062,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} z {1}: {2}</value>
   </data>
+  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} nabízí STARTTLS, aniž by ho vyžadoval, takže klient, který o šifrování nepožádá, se ověří bez něj a nic nehlásí, že se to stalo.</value>
+  </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} na portu {1} nemá k dispozici žádné šifrování. Poštovní klienti se na tomto portu ověřují, takže každé heslo na něm použité je čitelné pro cokoli mezi klientem a tímto serverem.</value>
   </data>
@@ -16070,6 +16085,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} vzory se z každé zprávy odstraňují podle názvu souboru, ať skenery říkají cokoli.</value>
+  </data>
+  <data name="{0} problems" xml:space="preserve">
+    <value>Problémy: {0}</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
     <value>{0} veřejná složka.</value>

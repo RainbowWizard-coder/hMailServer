@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 повідомлення не можна створити запис; воно залишиться там, де є: {0}</value>
   </data>
+  <data name="1 problem" xml:space="preserve">
+    <value>Проблем: 1</value>
+  </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 відхиляє пароль, який трапився в базі хоча б один раз.</value>
   </data>
@@ -7078,6 +7081,9 @@
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Файл закритого ключа не налаштовано, тому цей сертифікат не може використовувати жоден порт TLS.</value>
   </data>
+  <data name="No problems found" xml:space="preserve">
+    <value>Проблем не знайдено</value>
+  </data>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Проблем не знайдено — кожен рядок повідомлення має свій файл на диску.</value>
   </data>
@@ -7591,6 +7597,12 @@
   <data name="On, but cannot run" xml:space="preserve">
     <value>Увімкнено, але не може працювати</value>
   </data>
+  <data name="On, no host" xml:space="preserve">
+    <value>Увімкнено, немає хоста</value>
+  </data>
+  <data name="On, scores 0" xml:space="preserve">
+    <value>Увімкнено, 0 балів</value>
+  </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Увімкнено. Трійці відправник/отримувач/адреса, якої раніше не бачили, на RCPT TO відповідають 451 «Please try again later.», а за повторної спроби приймають. Виконується після перевірок підключення вище й не додає оцінки.</value>
   </data>
@@ -7618,12 +7630,6 @@
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Налаштовано один шаблон блокування вкладень, але блокування вкладень вимкнено, тому він не застосовується.</value>
   </data>
-  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Один клієнтський слухач не має доступного шифрування, тому паролі, використані на ньому, перетинають мережу відкритим текстом.</value>
-  </data>
-  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Один клієнтський слухач пропонує STARTTLS, не вимагаючи його, тому клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
-  </data>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Один налаштований порт не прослуховується: {0}.</value>
   </data>
@@ -7641,9 +7647,6 @@
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Один список із дев’яти перевірок: які ввімкнено та в якій із двох фаз виконується кожна.</value>
-  </data>
-  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Один слухач налаштовано для TLS, але він не може його надати, тому цей порт взагалі не прослуховується.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Один лист кожному обліковому запису цього домену, для якого затримано щось нове, зі списком затриманого та посиланням, яке це доставить. Посилання спрацьовує один раз і перестає діяти через кількість годин, задану на сторінці Карантин, де задається й адреса, на яку ведуть посилання, — без неї нічого не надсилається. Порожнє зведення ніколи не надсилається, і в кожному листі сказано, як його вимкнути.</value>
@@ -13004,6 +13007,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Unchanged" xml:space="preserve">
     <value>Без змін</value>
   </data>
+  <data name="Unencrypted (server mail)" xml:space="preserve">
+    <value>Без шифрування (пошта серверів)</value>
+  </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Розгорнути цю групу</value>
   </data>
@@ -15717,14 +15723,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
   </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>Клієнтських слухачів без доступного шифрування: {0}; паролі, використані на них, перетинають мережу відкритим текстом.</value>
+  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>Клієнтських слухачів без доступного шифрування: {0} ({1}); паролі, використані на них, перетинають мережу відкритим текстом.</value>
   </data>
   <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.|few" xml:space="preserve">
     <value>Клієнтських слухачів без доступного шифрування: {0}; паролі, використані на них, перетинають мережу відкритим текстом.</value>
   </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
+  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0} ({1}); клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
   </data>
   <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.|few" xml:space="preserve">
     <value>Клієнтських слухачів, що пропонують STARTTLS, не вимагаючи його: {0}; клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
@@ -15837,6 +15843,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} прострочений і відхиляється</value>
   </data>
+  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} не має доступного шифрування, тому паролі, використані на ньому, перетинають мережу відкритим текстом.</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Для {0} не налаштовано адресу postmaster, а ця сторінка не вигадуватиме поштову скриньку — введіть адресу, яка має отримувати звіти. Доки її не введено, копіювати нема якого запису.</value>
   </data>
@@ -15869,6 +15878,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} доступна (опубліковано {1})</value>
+  </data>
+  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} налаштовано для TLS, але він не може його надати, тому цей порт взагалі не прослуховується.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} покрито шаблоном {1}, але воно не розв'язується назад у {2}, тож адресу не звільнено: будь-хто, хто має адресу, може сам записати її зворотне ім'я.</value>
@@ -15939,8 +15951,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
   </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
-    <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
+  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
+    <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0} ({1}); ці порти взагалі не прослуховуються.</value>
   </data>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
@@ -16050,6 +16062,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} з {1}: {2}</value>
   </data>
+  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} пропонує STARTTLS, не вимагаючи його, тому клієнт, який не просить шифрування, автентифікується без нього, і ніщо не повідомляє, що це сталося.</value>
+  </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} на порту {1} не має доступного шифрування. На цьому порту автентифікуються поштові клієнти, тому кожен пароль, використаний на ньому, може прочитати будь-що між клієнтом і цим сервером.</value>
   </data>
@@ -16070,6 +16085,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say.|few" xml:space="preserve">
     <value>{0} шаблони вилучаються з кожного повідомлення за ім’ям файлу, хай що кажуть сканери.</value>
+  </data>
+  <data name="{0} problems" xml:space="preserve">
+    <value>Проблем: {0}</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
     <value>{0} публічна папка.</value>

@@ -64,6 +64,9 @@ namespace hMailServer.ControlPanel.Views
       // Where the values came from - a provenance footnote, the quietest text.
       private readonly TextBlock status_ = new();
 
+      // The page's title, whose status is the count of problems found.
+      private readonly PageHeader header_;
+
       public VirusOverviewView()
       {
          var page = new StackPanel { MaxWidth = 1000, HorizontalAlignment = HorizontalAlignment.Left };
@@ -73,7 +76,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "virus-overview-refresh");
          refresh.Click += (s, e) => Reload();
 
-         page.Children.Add(new PageHeader
+         page.Children.Add(header_ = new PageHeader
          {
             Title = L("Virus scanning overview"),
             Subtitle = L("Which scanners can actually run, what they are asked to look at, and what happens to a message one of them condemns. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
@@ -341,20 +344,28 @@ namespace hMailServer.ControlPanel.Views
          if (!configRead_)
          {
             ReadFailure.Show(readFailure_, null, null, L("The anti-virus configuration could not be read: "), firstError_, Reload);
+            header_.Status = null;
             status_.Text = "";
             return;
          }
 
          ReadFailure.Clear(readFailure_);
-         body_.Children.Add(VerdictCard(config));
+
+         // The problems - Warning and above - under the verdict, each with the
+         // page that puts it right; the rest at the foot, where all of them were.
+         IReadOnlyList<VirusPipelineNote> notes = VirusPipeline.Notes(config);
+         List<VirusPipelineNote> problems = OverviewNotices.Problems(notes, n => n.Level);
+         List<VirusPipelineNote> worthKnowing = OverviewNotices.WorthKnowing(notes, n => n.Level);
+         header_.Status = OverviewNotices.ProblemsPill(problems.Count, problems.Count == 0 ? StatusLevel.Good : problems[0].Level);
+
+         body_.Children.Add(VerdictCard(config, problems));
          body_.Children.Add(ScannersCard(config));
          body_.Children.Add(WhatIsScannedCard(config));
          body_.Children.Add(InfectedCard(config));
          body_.Children.Add(AttachmentsCard(config));
 
-         IReadOnlyList<VirusPipelineNote> notes = VirusPipeline.Notes(config);
-         if (notes.Count > 0)
-            body_.Children.Add(NotesCard(notes));
+         if (worthKnowing.Count > 0)
+            body_.Children.Add(NotesCard(worthKnowing));
 
          status_.Text = L("Read from the server. Values are read again every time this page is opened.");
 
@@ -382,11 +393,20 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
-      private static Card VerdictCard(VirusPipelineConfig config)
+      /// <summary>
+      /// The verdict as a notice at its level, with the page that owns the
+      /// scanners when it has something to put right; then every problem, worst
+      /// first, each with the page that puts it right.
+      /// </summary>
+      private static Card VerdictCard(VirusPipelineConfig config, IReadOnlyList<VirusPipelineNote> problems)
       {
          Card card = Section(L("What happens to an infected message"), out StackPanel content);
 
-         content.Children.Add(Paragraph(VirusPipeline.Verdict(config), Typography.Body));
+         content.Children.Add(OverviewNotices.Notice(VirusPipeline.VerdictLevel(config), VirusPipeline.Verdict(config),
+            VirusPipeline.VerdictPage(config), "virus-overview-verdict"));
+
+         foreach (VirusPipelineNote problem in problems)
+            content.Children.Add(OverviewNotices.Notice(problem.Level, problem.Text, problem.Page, "virus-overview-problem"));
 
          content.Children.Add(Paragraph(VirusPipeline.WhenNoScannerAnswers(config), Typography.Caption));
 

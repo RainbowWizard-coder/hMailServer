@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 件のメッセージは一覧に登録できないため、そのままにします: {0}</value>
   </data>
+  <data name="1 problem" xml:space="preserve">
+    <value>問題 1 件</value>
+  </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 にすると、コーパスに一度でも現れたパスワードを拒否します。</value>
   </data>
@@ -7012,6 +7015,9 @@
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>秘密鍵ファイルが設定されていないため、この証明書はどの TLS ポートでも使えません。</value>
   </data>
+  <data name="No problems found" xml:space="preserve">
+    <value>問題は見つかりません</value>
+  </data>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>問題は見つかりませんでした。すべてのメッセージ行のファイルがディスク上にあります。</value>
   </data>
@@ -7513,6 +7519,12 @@
   <data name="On, but cannot run" xml:space="preserve">
     <value>オンですが、実行できません</value>
   </data>
+  <data name="On, no host" xml:space="preserve">
+    <value>オン、ホストなし</value>
+  </data>
+  <data name="On, scores 0" xml:space="preserve">
+    <value>オン、スコア 0</value>
+  </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>オン。初めて見る送信者/受信者/アドレスのトリプレットには RCPT TO で 451 "Please try again later." が返され、再試行時に受け入れられます。上の接続チェックの後に実行され、スコアは加えません。</value>
   </data>
@@ -7540,12 +7552,6 @@
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>1 件のブロック対象の添付ファイル パターンが設定されていますが、添付ファイルのブロックは無効になっているため、適用されません。</value>
   </data>
-  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>1 件のクライアント リスナーには暗号化が利用できないため、そのリスナーで使われるパスワードは平文でネットワークを流れます。</value>
-  </data>
-  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>1 件のクライアント リスナーが STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
-  </data>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>設定済みのポートのうち 1 つが待ち受けされていません: {0}。</value>
   </data>
@@ -7563,9 +7569,6 @@
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>9 つのチェックの一覧。どれがオンか、それぞれが 2 つのフェーズのどちらで実行されるか。</value>
-  </data>
-  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>1 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、そのポートはまったく待ち受けていません。</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>このドメインで新たに何かが保留されたアカウントそれぞれに、保留されたものの一覧と配信用のリンクを 1 通で送ります。リンクは一度だけ使え、検疫 ページで設定した時間が過ぎると無効になります。リンクが指すアドレスも同じページで設定し、それがなければ何も送られません。空のダイジェストは送られず、各メールには停止方法が書かれています。</value>
@@ -12852,6 +12855,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Unchanged" xml:space="preserve">
     <value>変更なし</value>
   </data>
+  <data name="Unencrypted (server mail)" xml:space="preserve">
+    <value>暗号化なし (サーバー間メール)</value>
+  </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>このグループを展開</value>
   </data>
@@ -15499,11 +15505,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>{0} 件のクライアント リスナーが STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
   </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>{0} 件のクライアント リスナーには暗号化が利用できないため、それらのリスナーで使われるパスワードは平文でネットワークを流れます。</value>
+  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} 件のクライアント リスナー ({1}) では暗号化が利用できないため、それらで使われるパスワードは平文でネットワークを流れます。</value>
   </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} 件のクライアント リスナーが STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
+  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} 件のクライアント リスナー ({1}) が STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
   </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>「{0}」を閉じました。中断したところから再開します。</value>
@@ -15589,6 +15595,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} 件は期限切れで、拒否されます</value>
   </data>
+  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} では暗号化が利用できないため、そこで使われるパスワードは平文でネットワークを流れます。</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} には postmaster アドレスが設定されておらず、このページが勝手にメールボックスを作り出すことはありません。レポートを受け取るべきアドレスを入力してください。入力されるまで、コピーできるレコードはありません。</value>
   </data>
@@ -15615,6 +15624,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} が利用可能です (公開日 {1})</value>
+  </data>
+  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} は TLS 用に設定されていますが TLS を提供できないため、そのポートはまったく待ち受けていません。</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} は {1} の対象ですが {2} に正引きで戻らないため、免除されません: アドレスを持つ人なら誰でも逆引き名を自分で書けます。</value>
@@ -15682,8 +15694,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>{0} 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、それらのポートはまったく待ち受けていません。</value>
   </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
-    <value>{0} 件のリスナーが TLS 用に設定されていますが TLS を提供できないため、それらのポートはまったく待ち受けていません。</value>
+  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
+    <value>{0} 件のリスナー ({1}) が TLS 用に設定されていますが TLS を提供できないため、それらのポートはまったく待ち受けていません。</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} 件のメッセージ</value>
@@ -15760,6 +15772,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0}/{1}: {2}</value>
   </data>
+  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} は STARTTLS を提供していますが必須にはしていないため、暗号化を要求しないクライアントは暗号化なしで認証し、そのことは何にも報告されません。</value>
+  </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>ポート {1} の {0} では暗号化が利用できません。メール クライアントはこのポートで認証するため、そこで使われるパスワードはすべて、クライアントとこのサーバーの間にあるあらゆるものから読み取れます。</value>
   </data>
@@ -15777,6 +15792,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、{0} 件のパターンに一致する添付ファイルが、ファイル名によってすべてのメッセージから取り除かれます。</value>
+  </data>
+  <data name="{0} problems" xml:space="preserve">
+    <value>問題 {0} 件</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
     <value>公開フォルダー {0} 件。</value>

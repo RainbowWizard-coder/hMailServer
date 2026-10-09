@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 Nachricht kann nicht aufgelistet werden und bleibt, wo sie ist: {0}</value>
   </data>
+  <data name="1 problem" xml:space="preserve">
+    <value>1 Problem</value>
+  </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 lehnt ein Passwort ab, das auch nur einmal in der Sammlung vorkommt.</value>
   </data>
@@ -7012,6 +7015,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Es ist keine private Schlüsseldatei konfiguriert, dieses Zertifikat kann also von keinem TLS-Port verwendet werden.</value>
   </data>
+  <data name="No problems found" xml:space="preserve">
+    <value>Keine Probleme gefunden</value>
+  </data>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Keine Probleme gefunden - jede Nachrichtenzeile hat ihre Datei auf der Festplatte.</value>
   </data>
@@ -7513,6 +7519,12 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Ein, kann aber nicht laufen</value>
   </data>
+  <data name="On, no host" xml:space="preserve">
+    <value>Ein, kein Host</value>
+  </data>
+  <data name="On, scores 0" xml:space="preserve">
+    <value>Ein, bewertet mit 0</value>
+  </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Ein. Ein Absender/Empfänger/Adresse-Tripel, das noch nie gesehen wurde, wird bei RCPT TO mit 451 „Please try again later." beantwortet und angenommen, wenn es erneut versucht wird. Es läuft nach den Verbindungsprüfungen oben und fügt keine Bewertung hinzu.</value>
   </data>
@@ -7540,12 +7552,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Ein Muster für gesperrte Anhänge ist konfiguriert, aber die Anhangsperre ist abgeschaltet, es wird also nicht angewendet.</value>
   </data>
-  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Ein Client-Listener hat keine Verschlüsselung verfügbar, sodass Passwörter, die auf ihm verwendet werden, das Netz im Klartext überqueren.</value>
-  </data>
-  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Ein Client-Listener bietet STARTTLS, ohne es zu verlangen, sodass ein Client, der keine Verschlüsselung anfordert, sich ohne sie authentifiziert und nichts meldet, dass es geschehen ist.</value>
-  </data>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Auf einem konfigurierten Port wird nicht gelauscht: {0}.</value>
   </data>
@@ -7563,9 +7569,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Eine Liste der neun Prüfungen, welche davon an sind und in welcher der zwei Phasen jede läuft.</value>
-  </data>
-  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Ein Listener ist für TLS konfiguriert, kann es aber nicht ausliefern, sodass auf diesem Port gar nichts lauscht.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Eine Nachricht an jedes Konto dieser Domain, für das neu etwas zurückgehalten wurde, mit einer Liste des Zurückgehaltenen und einem Link, der es zustellt. Ein Link funktioniert einmal und verfällt nach den Stunden, die auf der Seite Quarantäne festgelegt sind, wo auch die Adresse steht, auf die die Links zeigen - ohne diese Adresse wird nichts gesendet. Ein leerer Digest wird nie gesendet, und jede Nachricht sagt, wie man ihn abbestellt.</value>
@@ -12852,6 +12855,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="Unchanged" xml:space="preserve">
     <value>Unverändert</value>
   </data>
+  <data name="Unencrypted (server mail)" xml:space="preserve">
+    <value>Unverschlüsselt (Server-Mail)</value>
+  </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Diese Gruppe ausklappen</value>
   </data>
@@ -15499,11 +15505,11 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>{0} Client-Listener bietet STARTTLS, ohne es zu verlangen, sodass ein Client, der keine Verschlüsselung anfordert, sich ohne sie authentifiziert und nichts meldet, dass es geschehen ist.</value>
   </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>{0} Client-Listener haben keine Verschlüsselung verfügbar, sodass Passwörter, die auf ihnen verwendet werden, das Netz im Klartext überqueren.</value>
+  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} Client-Listener haben keine Verschlüsselung verfügbar ({1}), sodass Passwörter, die auf ihnen verwendet werden, das Netz im Klartext überqueren.</value>
   </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} Client-Listener bieten STARTTLS, ohne es zu verlangen, sodass ein Client, der keine Verschlüsselung anfordert, sich ohne sie authentifiziert und nichts meldet, dass es geschehen ist.</value>
+  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} Client-Listener bieten STARTTLS, ohne es zu verlangen ({1}), sodass ein Client, der keine Verschlüsselung anfordert, sich ohne sie authentifiziert und nichts meldet, dass es geschehen ist.</value>
   </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>„{0}“ geschlossen. Der Rundgang macht dort weiter, wo Sie aufgehört haben.</value>
@@ -15589,6 +15595,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} ist abgelaufen und wird abgelehnt</value>
   </data>
+  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} hat keine Verschlüsselung verfügbar, sodass Passwörter, die darauf verwendet werden, das Netz im Klartext überqueren.</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Für {0} ist keine Postmaster-Adresse konfiguriert, und diese Seite erfindet kein Postfach - geben Sie die Adresse ein, die die Berichte empfangen soll. Solange keine eingetragen ist, gibt es keinen Eintrag zum Kopieren.</value>
   </data>
@@ -15615,6 +15624,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} ist verfügbar (veröffentlicht {1})</value>
+  </data>
+  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} ist für TLS konfiguriert, kann es aber nicht ausliefern, sodass auf diesem Port gar nichts lauscht.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} ist von {1} abgedeckt, löst aber nicht wieder auf {2} auf, wird also nicht verschont: Wer eine Adresse besitzt, kann ihren Reverse-Namen selbst schreiben.</value>
@@ -15682,8 +15694,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>{0} Listener ist für TLS konfiguriert, kann es aber nicht ausliefern, sodass auf diesem Port gar nichts lauscht.</value>
   </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
-    <value>{0} Listener sind für TLS konfiguriert, können es aber nicht ausliefern, sodass auf diesen Ports gar nichts lauscht.</value>
+  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
+    <value>{0} Listener sind für TLS konfiguriert, können es aber nicht ausliefern ({1}), sodass auf diesen Ports gar nichts lauscht.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} Nachricht</value>
@@ -15760,6 +15772,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} von {1}: {2}</value>
   </data>
+  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} bietet STARTTLS, ohne es zu verlangen, sodass ein Client, der keine Verschlüsselung anfordert, sich ohne sie authentifiziert und nichts meldet, dass es geschehen ist.</value>
+  </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} auf Port {1} hat keine Verschlüsselung verfügbar. Mailclients authentifizieren sich auf diesem Port, jedes darauf verwendete Passwort ist also für alles zwischen dem Client und diesem Server lesbar.</value>
   </data>
@@ -15777,6 +15792,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} Muster werden anhand des Dateinamens aus jeder Nachricht entfernt, egal was die Scanner sagen.</value>
+  </data>
+  <data name="{0} problems" xml:space="preserve">
+    <value>{0} Probleme</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
     <value>{0} öffentlicher Ordner.</value>

@@ -108,16 +108,24 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public sealed class SpamPipelineNote
    {
-      internal SpamPipelineNote(StatusLevel level, string text)
+      internal SpamPipelineNote(StatusLevel level, string text, string page = null)
       {
          Level = level;
          Text = text;
+         Page = page ?? SpamPipeline.NotesPage;
       }
 
       public StatusLevel Level { get; }
 
       /// <summary>The whole note, in one sentence or two. Never empty.</summary>
       public string Text { get; }
+
+      /// <summary>
+      /// The navigation key of the page that puts the note right, which a note at
+      /// the Warning or Critical level opens from the overview: Anti-spam
+      /// settings, which owns the thresholds and every scored check.
+      /// </summary>
+      public string Page { get; }
    }
 
    /// <summary>
@@ -380,6 +388,66 @@ namespace hMailServer.ControlPanel.Services
          };
 
          return checks;
+      }
+
+      /// <summary>The page a note is about unless it names another.</summary>
+      public const string NotesPage = "antispam";
+
+      /// <summary>
+      /// The level the verdict is shown at, from what it says: Critical when no
+      /// score can mark or refuse anything, or when the delete threshold, tested
+      /// first, leaves nothing to mark; a Warning when nothing is ever marked;
+      /// Good otherwise; Information when the thresholds could not be read. It was
+      /// plain body text with no level.
+      /// </summary>
+      public static StatusLevel VerdictLevel(SpamPipelineConfig config)
+      {
+         if (!ThresholdsRead(config))
+            return StatusLevel.Information;
+
+         bool marks = config.MarkThreshold > 0;
+         bool refuses = config.DeleteThreshold > 0;
+
+         if (!marks && !refuses)
+            return StatusLevel.Critical;
+
+         if (marks && refuses && config.DeleteThreshold <= config.MarkThreshold)
+            return StatusLevel.Critical;
+
+         return marks ? StatusLevel.Good : StatusLevel.Warning;
+      }
+
+      /// <summary>The page the verdict's action opens - where the thresholds are - when it has something to put right.</summary>
+      public static string VerdictPage(SpamPipelineConfig config)
+         => VerdictLevel(config) >= StatusLevel.Warning ? NotesPage : null;
+
+      /// <summary>
+      /// The state a check's row shows, as a level and a word: Not read and Off
+      /// say nothing; a check that is on but can never change the outcome - it
+      /// scores 0, or it is SpamAssassin with no host to ask - is a Warning, On,
+      /// scores 0 or On, no host, where it showed the same green On as one that
+      /// works.
+      /// </summary>
+      public static (StatusLevel Level, string Text) StateOf(SpamPipelineConfig config, SpamCheck check)
+      {
+         if (check.Unread)
+            return (StatusLevel.Normal, L("Not read"));
+
+         if (!check.Enabled)
+            return (StatusLevel.Normal, L("Off"));
+
+         if (check.Key == "spamassassin" && config != null)
+         {
+            if (config.WasRead(nameof(config.SpamAssassinHost)) && string.IsNullOrWhiteSpace(config.SpamAssassinHost))
+               return (StatusLevel.Warning, L("On, no host"));
+
+            if (!config.SpamAssassinMergesScore && config.SpamAssassinScore <= 0)
+               return (StatusLevel.Warning, L("On, scores 0"));
+
+            return (StatusLevel.Good, L("On"));
+         }
+
+         return check.Score == 0 ? (StatusLevel.Warning, L("On, scores 0")) : (StatusLevel.Good, L("On"));
       }
 
       /// <summary>

@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 ileti için liste kaydı oluşturulamıyor; olduğu yerde bırakılacak: {0}</value>
   </data>
+  <data name="1 problem" xml:space="preserve">
+    <value>1 sorun</value>
+  </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1, derlemde tek bir kez bile görülmüş bir parolayı reddeder.</value>
   </data>
@@ -7012,6 +7015,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Hiç özel anahtar dosyası yapılandırılmamış; bu yüzden bu sertifika hiçbir TLS portu tarafından kullanılamaz.</value>
   </data>
+  <data name="No problems found" xml:space="preserve">
+    <value>Sorun bulunmadı</value>
+  </data>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Sorun bulunamadı - her ileti satırının dosyası diskte.</value>
   </data>
@@ -7513,6 +7519,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Açık, ama çalışamıyor</value>
   </data>
+  <data name="On, no host" xml:space="preserve">
+    <value>Açık, sunucu yok</value>
+  </data>
+  <data name="On, scores 0" xml:space="preserve">
+    <value>Açık, puan 0</value>
+  </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Açık. Daha önce görülmemiş bir gönderen/alıcı/adres üçlüsü RCPT TO'da 451 "Please try again later." ile yanıtlanır ve yeniden denediğinde kabul edilir. Yukarıdaki bağlantı denetimlerinden sonra çalışır ve puan eklemez.</value>
   </data>
@@ -7540,12 +7552,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Bir engellenen ek deseni yapılandırılmış ama ek engelleme kapalı; bu yüzden uygulanmıyor.</value>
   </data>
-  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Bir istemci dinleyicisinde hiçbir şifreleme yok; bu yüzden onda kullanılan parolalar ağdan düz metin olarak geçer.</value>
-  </data>
-  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Bir istemci dinleyicisi STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
-  </data>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Yapılandırılmış bir port dinlenmiyor: {0}.</value>
   </data>
@@ -7563,9 +7569,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Dokuz denetimin tek bir listesi, hangilerinin açık olduğu ve her birinin iki aşamadan hangisinde çalıştığı.</value>
-  </data>
-  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Bir dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o port hiç dinlemiyor.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Bu alan adının, kendisi için yeni bir şey alıkonan her hesabına, alıkonanları listeleyen ve bunları teslim eden bir bağlantı içeren tek bir ileti. Bağlantı bir kez çalışır ve Karantina sayfasında ayarlanan saat dolunca geçersiz olur; bağlantıların gösterdiği adres de aynı sayfada ayarlanır - o adres olmadan hiçbir şey gönderilmez. Boş bir özet asla gönderilmez ve her ileti nasıl durdurulacağını söyler.</value>
@@ -12852,6 +12855,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Unchanged" xml:space="preserve">
     <value>Değişmedi</value>
   </data>
+  <data name="Unencrypted (server mail)" xml:space="preserve">
+    <value>Şifrelenmemiş (sunucu postası)</value>
+  </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Bu grubu genişlet</value>
   </data>
@@ -15499,11 +15505,11 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>{0} istemci dinleyicisi STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
   </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>{0} istemci dinleyicisinde hiçbir şifreleme yok; bu yüzden onlarda kullanılan parolalar ağdan düz metin olarak geçer.</value>
+  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} istemci dinleyicisinde ({1}) hiçbir şifreleme yok; bu yüzden onlarda kullanılan parolalar ağdan düz metin olarak geçer.</value>
   </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} istemci dinleyicisi STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
+  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} istemci dinleyicisi ({1}) STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
   </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}” kapatıldı. Kaldığınız yerden devam eder.</value>
@@ -15589,6 +15595,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} anahtarın süresi doldu ve reddediliyor</value>
   </data>
+  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} üzerinde hiçbir şifreleme yok; bu yüzden onda kullanılan parolalar ağdan düz metin olarak geçer.</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} için yapılandırılmış bir postmaster adresi yok ve bu sayfa bir posta kutusu uydurmaz - raporları alması gereken adresi girin. Biri girilene kadar kopyalanacak kayıt yoktur.</value>
   </data>
@@ -15615,6 +15624,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} kullanılabilir (yayımlandı: {1})</value>
+  </data>
+  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o port hiç dinlemiyor.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0}, {1} tarafından kapsanıyor ama {2} adresine geri çözümlenmiyor, bu yüzden adres korunmuyor: bir adrese sahip olan herkes onun ters adını kendisi yazabilir.</value>
@@ -15682,8 +15694,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>{0} dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o port hiç dinlemiyor.</value>
   </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
-    <value>{0} dinleyici TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o portlar hiç dinlemiyor.</value>
+  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
+    <value>{0} dinleyici ({1}) TLS için yapılandırılmış ama bunu sunamıyor; bu yüzden o portlar hiç dinlemiyor.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} ileti</value>
@@ -15760,6 +15772,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0}/{1}: {2}</value>
   </data>
+  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} STARTTLS'yi zorunlu kılmadan sunuyor; bu yüzden şifreleme istemeyen bir istemci onsuz kimlik doğrular ve hiçbir şey bunun olduğunu bildirmez.</value>
+  </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{1} portundaki {0} için şifreleme yok. Posta istemcileri bu portta kimlik doğrular; bu yüzden üzerinde kullanılan her parola, istemciyle bu sunucu arasındaki herhangi bir şey tarafından okunabilir.</value>
   </data>
@@ -15777,6 +15792,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} desen, tarayıcılar ne derse desin her iletiden dosya adına göre çıkarılıyor.</value>
+  </data>
+  <data name="{0} problems" xml:space="preserve">
+    <value>{0} sorun</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
     <value>{0} genel klasör.</value>

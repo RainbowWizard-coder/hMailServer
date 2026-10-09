@@ -86,18 +86,36 @@ namespace hMailServer.ControlPanel.Services
       public bool InUse { get; set; }
    }
 
+   /// <summary>
+   /// What a listener's arrangement amounts to, apart from the words that say it,
+   /// so that the verdict and the notes can count listeners by it in any language:
+   /// they compared the translated word with "Will not start", which matched only
+   /// in English.
+   /// </summary>
+   public enum TlsListenerState
+   {
+      NotRead,
+      WillNotStart,
+      CannotNegotiate,
+      Encrypted,
+      Opportunistic,
+      InTheClear
+   }
+
    /// <summary>What a listener's arrangement amounts to, with the wording to say it.</summary>
    public sealed class TlsListenerVerdict
    {
-      internal TlsListenerVerdict(TlsListener listener, StatusLevel level, string word, string detail)
+      internal TlsListenerVerdict(TlsListener listener, TlsListenerState state, StatusLevel level, string word, string detail)
       {
          Listener = listener;
+         State = state;
          Level = level;
          Word = word;
          Detail = detail;
       }
 
       public TlsListener Listener { get; }
+      public TlsListenerState State { get; }
       public StatusLevel Level { get; }
 
       /// <summary>"Encrypted", "Opportunistic", "In the clear", "Will not start" - never colour alone.</summary>
@@ -110,14 +128,22 @@ namespace hMailServer.ControlPanel.Services
    /// <summary>Something worth saying about the transport-security posture as a whole.</summary>
    public sealed class TlsPostureNote
    {
-      internal TlsPostureNote(StatusLevel level, string text)
+      internal TlsPostureNote(StatusLevel level, string text, string page = null)
       {
          Level = level;
          Text = text;
+         Page = page ?? TlsPosture.NotesPage;
       }
 
       public StatusLevel Level { get; }
       public string Text { get; }
+
+      /// <summary>
+      /// The navigation key of the page that puts the note right, which a note
+      /// at the Warning or Critical level opens from the overview: the SSL/TLS
+      /// page unless the note names another.
+      /// </summary>
+      public string Page { get; }
    }
 
    /// <summary>
@@ -237,7 +263,7 @@ namespace hMailServer.ControlPanel.Services
          // virus overviews say of a check they could not read.
          if (WantsTls(listener.Security) && listener.CertificateUnread)
          {
-            return new TlsListenerVerdict(listener, StatusLevel.Normal, L("Not read"),
+            return new TlsListenerVerdict(listener, TlsListenerState.NotRead, StatusLevel.Normal, L("Not read"),
                L("Whether a certificate is assigned could not be read, so whether this listener starts cannot be said."));
          }
 
@@ -247,7 +273,7 @@ namespace hMailServer.ControlPanel.Services
          // That is a different failure from "unencrypted" and gets its own word.
          if (WantsTls(listener.Security) && string.IsNullOrWhiteSpace(listener.CertificateName))
          {
-            return new TlsListenerVerdict(listener, StatusLevel.Critical, L("Will not start"),
+            return new TlsListenerVerdict(listener, TlsListenerState.WillNotStart, StatusLevel.Critical, L("Will not start"),
                L("TLS is configured with no certificate assigned, so this listener fails to start and nothing can connect to this port at all. The server log records this as error HM5113 on every start."));
          }
 
@@ -256,32 +282,35 @@ namespace hMailServer.ControlPanel.Services
          // could not be read are not "none enabled".
          if (WantsTls(listener.Security) && VersionsRead(config) && !AnyVersionEnabled(config))
          {
-            return new TlsListenerVerdict(listener, StatusLevel.Critical, L("Cannot negotiate"),
+            return new TlsListenerVerdict(listener, TlsListenerState.CannotNegotiate, StatusLevel.Critical, L("Cannot negotiate"),
                L("No TLS version is enabled anywhere on this server, so no handshake on this port can succeed."));
          }
 
          switch (listener.Security)
          {
             case TlsListenerSecurity.Implicit:
-               return new TlsListenerVerdict(listener, StatusLevel.Good, L("Encrypted"),
+               return new TlsListenerVerdict(listener, TlsListenerState.Encrypted, StatusLevel.Good, L("Encrypted"),
                   L("TLS from the first byte. Nothing on this port is ever sent unencrypted."));
 
             case TlsListenerSecurity.StartTlsRequired:
-               return new TlsListenerVerdict(listener, StatusLevel.Good, L("Encrypted"),
+               return new TlsListenerVerdict(listener, TlsListenerState.Encrypted, StatusLevel.Good, L("Encrypted"),
                   L("The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted."));
 
             case TlsListenerSecurity.StartTlsOptional:
                return IsClientPort(listener)
-                  ? new TlsListenerVerdict(listener, StatusLevel.Warning, L("Opportunistic"),
+                  ? new TlsListenerVerdict(listener, TlsListenerState.Opportunistic, StatusLevel.Warning, L("Opportunistic"),
                      L("STARTTLS is offered but not required. A client that does not ask for it - or one talked out of asking by something in the middle - authenticates in the clear, and neither end is told."))
-                  : new TlsListenerVerdict(listener, StatusLevel.Good, L("Opportunistic"),
+                  : new TlsListenerVerdict(listener, TlsListenerState.Opportunistic, StatusLevel.Good, L("Opportunistic"),
                      L("STARTTLS is offered and not required, which is the correct arrangement for port 25: requiring it would refuse mail from senders that cannot offer it."));
 
+            // Port 25 unencrypted is a Warning and a client port a Critical, and
+            // the two said the same "In the clear" in two colours: port 25 says
+            // what is in the clear there, mail from other servers.
             default:
                return IsClientPort(listener)
-                  ? new TlsListenerVerdict(listener, StatusLevel.Critical, L("In the clear"),
+                  ? new TlsListenerVerdict(listener, TlsListenerState.InTheClear, StatusLevel.Critical, L("In the clear"),
                      L("No encryption is available on this port at all. Every password and every message on it crosses the network readable by anything on the path."))
-                  : new TlsListenerVerdict(listener, StatusLevel.Warning, L("In the clear"),
+                  : new TlsListenerVerdict(listener, TlsListenerState.InTheClear, StatusLevel.Warning, L("Unencrypted (server mail)"),
                      L("No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear."));
          }
       }
@@ -333,45 +362,87 @@ namespace hMailServer.ControlPanel.Services
          if (listeners.Count == 0)
             return L("No listeners are configured, so nothing can connect to this server.");
 
-         int broken = listeners.Count(v => v.Word == "Will not start" || v.Word == "Cannot negotiate");
-         int exposed = listeners.Count(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.None);
-         int optional = listeners.Count(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.StartTlsOptional);
+         List<TlsListenerVerdict> broken = Broken(listeners);
+         List<TlsListenerVerdict> exposed = Exposed(listeners);
+         List<TlsListenerVerdict> optional = Optional(listeners);
 
          // Each verdict is one whole text for one listener and one for several:
          // a sentence put together from a counted noun, its verb and a pronoun
          // read "przechodzą przez przez sieć" in Polish and "kann es aber nicht"
          // in German, since no translator can agree three pieces that are
-         // translated apart. Several is Loc.Plural's, so that Czech, Polish,
-         // Russian and Ukrainian say two listeners apart from five.
-         if (broken > 0)
+         // translated apart. Each names its ports - "POP3 110 has no encryption
+         // available" - where it said "1 client listener" and left the reader to
+         // find which in the list below.
+         if (broken.Count > 0)
          {
-            return broken == 1
-               ? L("One listener is configured for TLS but cannot serve it, so that port is not listening at all.")
-               : Plural(broken,
-                  "{0} listener is configured for TLS but cannot serve it, so that port is not listening at all.",
-                  "{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.");
+            return broken.Count == 1
+               ? F("{0} is configured for TLS but cannot serve it, so that port is not listening at all.", Ports(broken))
+               : F("{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all.", broken.Count, Ports(broken));
          }
 
-         if (exposed > 0)
+         if (exposed.Count > 0)
          {
-            return exposed == 1
-               ? L("One client listener has no encryption available, so passwords used on it cross the network in the clear.")
-               : Plural(exposed,
-                  "{0} client listener has no encryption available, so passwords used on it cross the network in the clear.",
-                  "{0} client listeners have no encryption available, so passwords used on them cross the network in the clear.");
+            return exposed.Count == 1
+               ? F("{0} has no encryption available, so passwords used on it cross the network in the clear.", Ports(exposed))
+               : F("{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear.", exposed.Count, Ports(exposed));
          }
 
-         if (optional > 0)
+         if (optional.Count > 0)
          {
-            return optional == 1
-               ? L("One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.")
-               : Plural(optional,
-                  "{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
-                  "{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.");
+            return optional.Count == 1
+               ? F("{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", Ports(optional))
+               : F("{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened.", optional.Count, Ports(optional));
          }
 
          return L("Every listener that a mail client connects to requires encryption before it will accept a password.");
       }
+
+      private static List<TlsListenerVerdict> Broken(IReadOnlyList<TlsListenerVerdict> listeners) =>
+         listeners.Where(v => v.State == TlsListenerState.WillNotStart || v.State == TlsListenerState.CannotNegotiate).ToList();
+
+      private static List<TlsListenerVerdict> Exposed(IReadOnlyList<TlsListenerVerdict> listeners) =>
+         listeners.Where(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.None).ToList();
+
+      private static List<TlsListenerVerdict> Optional(IReadOnlyList<TlsListenerVerdict> listeners) =>
+         listeners.Where(v => IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.StartTlsOptional).ToList();
+
+      /// <summary>
+      /// The level the verdict is shown at: Critical for a listener that cannot
+      /// serve TLS, one that offers a client no encryption, or none at all;
+      /// a Warning for STARTTLS a client may skip; Good when every client port
+      /// requires encryption; Information when the listeners could not be read.
+      /// It was plain body text with no level.
+      /// </summary>
+      public static StatusLevel VerdictLevel(TlsPostureConfig config)
+      {
+         if (config == null || !config.WasRead(nameof(config.Listeners)))
+            return StatusLevel.Information;
+
+         IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
+         if (listeners.Count == 0 || Broken(listeners).Count > 0 || Exposed(listeners).Count > 0)
+            return StatusLevel.Critical;
+
+         return Optional(listeners).Count > 0 ? StatusLevel.Warning : StatusLevel.Good;
+      }
+
+      /// <summary>
+      /// The page the verdict's action opens: TCP/IP ports, which owns each
+      /// listener's security, while the verdict names listeners there; none when
+      /// it has nothing to put right there.
+      /// </summary>
+      public static string VerdictPage(TlsPostureConfig config)
+      {
+         if (config == null || !config.WasRead(nameof(config.Listeners)))
+            return null;
+
+         IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
+         return listeners.Count == 0 || Broken(listeners).Count > 0 || Exposed(listeners).Count > 0 || Optional(listeners).Count > 0
+            ? "ports"
+            : null;
+      }
+
+      /// <summary>The page a note is about unless it names another: SSL/TLS, which owns the versions and ciphers.</summary>
+      public const string NotesPage = "tls";
 
       /// <summary>
       /// Everything about this posture an administrator would rather be told than
@@ -406,17 +477,19 @@ namespace hMailServer.ControlPanel.Services
                L("No TLS version is enabled, and there are listeners configured to use TLS. Not one of their handshakes can succeed until at least TLS 1.2 is switched on.")));
          }
 
-         foreach (TlsListenerVerdict verdict in listeners.Where(v => v.Word == "Will not start"))
+         foreach (TlsListenerVerdict verdict in listeners.Where(v => v.State == TlsListenerState.WillNotStart))
          {
             notes.Add(new TlsPostureNote(StatusLevel.Critical,
-               F("{0} on port {1} is set to use TLS with no certificate assigned, so that port does not come up. Anything expecting to reach this server on it gets a refused connection, not an unencrypted session.", verdict.Listener.Protocol, verdict.Listener.Port)));
+               F("{0} on port {1} is set to use TLS with no certificate assigned, so that port does not come up. Anything expecting to reach this server on it gets a refused connection, not an unencrypted session.", verdict.Listener.Protocol, verdict.Listener.Port),
+               "ports"));
          }
 
          foreach (TlsListenerVerdict verdict in listeners.Where(v =>
                      IsClientPort(v.Listener) && v.Listener.Security == TlsListenerSecurity.None))
          {
             notes.Add(new TlsPostureNote(StatusLevel.Critical,
-               F("{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server.", verdict.Listener.Protocol, verdict.Listener.Port)));
+               F("{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server.", verdict.Listener.Protocol, verdict.Listener.Port),
+               "ports"));
          }
 
          // ---- weak, rather than absent -----------------------------------------
@@ -463,13 +536,15 @@ namespace hMailServer.ControlPanel.Services
                F("STARTTLS is optional on {0}. A client that never asks for it, or one whose STARTTLS offer is stripped in transit, carries on unencrypted and neither end is told. {1}", Ports(optional),
                   (!ranges ? L("Whether an IP range requires TLS for authentication could not be read.")
                      : config.RangesRequiringTlsForAuth > 0 ? L("Requiring TLS for authentication on the IP ranges closes the credential half of this.")
-                     : L("No IP range requires TLS for authentication either, so nothing else is closing this.")))));
+                     : L("No IP range requires TLS for authentication either, so nothing else is closing this."))),
+               "ports"));
          }
 
          if (ranges && config.RangesTotal > 0 && config.RangesRequiringTlsForAuth == 0 && optional.Count > 0)
          {
             notes.Add(new TlsPostureNote(StatusLevel.Warning,
-               L("No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows.")));
+               L("No IP range requires TLS before authentication. That setting lives on each IP range rather than with the rest of TLS, which is why it is easy to have never seen: it is the one control that refuses a plaintext password regardless of what the port allows."),
+               "ipranges"));
          }
 
          // ---- certificates -----------------------------------------------------
@@ -479,7 +554,8 @@ namespace hMailServer.ControlPanel.Services
             if (certificate.Problem != null && certificate.InUse)
             {
                notes.Add(new TlsPostureNote(StatusLevel.Critical,
-                  F("The certificate \"{0}\" is in use by a listener and has a problem: {1}", certificate.Name, certificate.Problem)));
+                  F("The certificate \"{0}\" is in use by a listener and has a problem: {1}", certificate.Name, certificate.Problem),
+                  "certs"));
                continue;
             }
 
@@ -503,12 +579,12 @@ namespace hMailServer.ControlPanel.Services
             if (days < 0)
             {
                notes.Add(new TlsPostureNote(certificate.InUse ? StatusLevel.Critical : StatusLevel.Warning,
-                  ExpiredNote(certificate.Name, Math.Max(0, -calendar), certificate.InUse)));
+                  ExpiredNote(certificate.Name, Math.Max(0, -calendar), certificate.InUse), "certs"));
             }
             else if (days <= ExpiryWarningDays)
             {
                notes.Add(new TlsPostureNote(certificate.InUse ? StatusLevel.Warning : StatusLevel.Information,
-                  ExpiringNote(certificate.Name, Math.Max(0, calendar), certificate.InUse)));
+                  ExpiringNote(certificate.Name, Math.Max(0, calendar), certificate.InUse), "certs"));
             }
          }
 

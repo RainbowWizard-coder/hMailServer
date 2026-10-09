@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
@@ -556,6 +557,54 @@ namespace hMailServer.ControlPanel.Tests.Services
                Assert.EndsWith(".", text);
             }
          }
+      }
+
+      // ---- the verdict's level, and the problems' pages ------------------------
+
+      /// <summary>
+      /// The verdict is shown at the level of what it says: "No message is scanned
+      /// for viruses... Everything is delivered as it arrives." was plain body text.
+      /// </summary>
+      [Fact]
+      public void TheVerdict_HasTheLevelOfWhatItSays()
+      {
+         Assert.Equal(StatusLevel.Critical, VirusPipeline.VerdictLevel(Defaults()));
+         Assert.Equal("antivirus", VirusPipeline.VerdictPage(Defaults()));
+
+         VirusPipelineConfig scanning = Scanning();
+         Assert.Equal(StatusLevel.Good, VirusPipeline.VerdictLevel(scanning));
+         Assert.Null(VirusPipeline.VerdictPage(scanning));
+
+         scanning.MaxScanKilobytes = 10240;
+         Assert.Equal(StatusLevel.Warning, VirusPipeline.VerdictLevel(scanning));
+
+         scanning.MaxScanKilobytes = 0;
+         scanning.Action = VirusAction.StripAttachments;
+         Assert.Equal(StatusLevel.Warning, VirusPipeline.VerdictLevel(scanning));
+
+         scanning.Unread.Add(nameof(scanning.Action));
+         Assert.Equal(StatusLevel.Information, VirusPipeline.VerdictLevel(scanning));
+      }
+
+      /// <summary>
+      /// Each note names the page that puts it right: attachment blocking with no
+      /// patterns on Blocked attachments, fetch accounts on Domains, the rest on
+      /// Anti-virus settings.
+      /// </summary>
+      [Fact]
+      public void EachNote_NamesThePageThatPutsItRight()
+      {
+         VirusPipelineConfig config = Scanning();
+         config.BlockedAttachmentPatterns = 0;
+         config.FetchAccountsTotal = 3;
+         config.FetchAccountsWithScanningOff = 1;
+         config.MaxScanKilobytes = 10240;
+
+         IReadOnlyList<VirusPipelineNote> notes = VirusPipeline.Notes(config);
+         Assert.Equal("blockedattachments", notes.Single(n => n.Text.StartsWith("Attachment blocking is switched on with no patterns", StringComparison.Ordinal)).Page);
+         Assert.Equal("domains", notes.Single(n => n.Text.Contains("fetch account", StringComparison.Ordinal)).Page);
+         Assert.Equal("antivirus", notes.Single(n => n.Text.StartsWith("Messages larger than", StringComparison.Ordinal)).Page);
+         Assert.All(notes, n => Assert.NotNull(NavigationMap.Find(n.Page)));
       }
    }
 }

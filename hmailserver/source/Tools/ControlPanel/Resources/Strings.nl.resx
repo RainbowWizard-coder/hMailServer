@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 bericht kan niet worden vermeld en blijft waar het is: {0}</value>
   </data>
+  <data name="1 problem" xml:space="preserve">
+    <value>1 probleem</value>
+  </data>
   <data name="1 refuses a password that has appeared in the corpus even once." xml:space="preserve">
     <value>1 weigert een wachtwoord dat ook maar één keer in de verzameling is voorgekomen.</value>
   </data>
@@ -7012,6 +7015,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Er is geen privésleutelbestand geconfigureerd, dus dit certificaat kan door geen enkele TLS-poort worden gebruikt.</value>
   </data>
+  <data name="No problems found" xml:space="preserve">
+    <value>Geen problemen gevonden</value>
+  </data>
   <data name="No problems found - every message row has its file on disk." xml:space="preserve">
     <value>Geen problemen gevonden - elke berichtrij heeft zijn bestand op schijf.</value>
   </data>
@@ -7513,6 +7519,12 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Aan, maar kan niet draaien</value>
   </data>
+  <data name="On, no host" xml:space="preserve">
+    <value>Aan, geen host</value>
+  </data>
+  <data name="On, scores 0" xml:space="preserve">
+    <value>Aan, score 0</value>
+  </data>
   <data name="On. A sender/recipient/address triplet that has not been seen before is answered 451 &quot;Please try again later.&quot; at RCPT TO, and accepted when it retries. It runs after the connection checks above and adds no score." xml:space="preserve">
     <value>Aan. Een triplet van afzender/ontvanger/adres dat nog niet eerder is gezien, krijgt bij RCPT TO 451 "Please try again later." als antwoord en wordt geaccepteerd wanneer het opnieuw wordt geprobeerd. Het draait na de verbindingscontroles hierboven en telt geen score op.</value>
   </data>
@@ -7540,12 +7552,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="One blocked-attachment pattern is configured but attachment blocking is switched off, so it is not applied." xml:space="preserve">
     <value>Eén patroon voor geblokkeerde bijlagen is geconfigureerd, maar bijlageblokkering staat uit, dus het wordt niet toegepast.</value>
   </data>
-  <data name="One client listener has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
-    <value>Eén clientlistener heeft geen versleuteling beschikbaar, dus de wachtwoorden die op deze listener worden gebruikt, gaan in klare tekst over het netwerk.</value>
-  </data>
-  <data name="One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>Eén clientlistener biedt STARTTLS zonder het te vereisen, dus een client die niet om versleuteling vraagt, authenticeert zich onversleuteld, en niets meldt dat dat is gebeurd.</value>
-  </data>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Op één geconfigureerde poort wordt niet geluisterd: {0}.</value>
   </data>
@@ -7563,9 +7569,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="One list of the nine checks, which are on, and which of the two phases each one runs in." xml:space="preserve">
     <value>Eén lijst van de negen controles, welke aanstaan, en in welke van de twee fasen elke controle draait.</value>
-  </data>
-  <data name="One listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
-    <value>Eén listener is geconfigureerd voor TLS maar kan dat niet serveren, dus die poort luistert helemaal niet.</value>
   </data>
   <data name="One message to each account of this domain that has something newly held for it, listing what was held with a link that delivers it. A link works once and stops working after the hours set on the Quarantine page, which is also where the address the links point at is set - without that address nothing is sent. An empty digest is never sent, and each message says how to stop it." xml:space="preserve">
     <value>Eén bericht aan elk account van dit domein waarvoor iets nieuws is vastgehouden, met een lijst van wat werd vastgehouden en een koppeling die het aflevert. Een koppeling werkt één keer en vervalt na het aantal uren dat op de pagina Quarantaine is ingesteld, waar ook het adres wordt ingesteld waar de koppelingen naar wijzen - zonder dat adres wordt niets verstuurd. Een leeg overzicht wordt nooit verstuurd, en elk bericht zegt hoe u het stopt.</value>
@@ -12852,6 +12855,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Unchanged" xml:space="preserve">
     <value>Ongewijzigd</value>
   </data>
+  <data name="Unencrypted (server mail)" xml:space="preserve">
+    <value>Onversleuteld (servermail)</value>
+  </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Deze groep uitvouwen</value>
   </data>
@@ -15499,11 +15505,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
     <value>{0} clientlistener biedt STARTTLS zonder het te vereisen, dus een client die niet om versleuteling vraagt, authenticeert zich onversleuteld, en niets meldt dat dat is gebeurd.</value>
   </data>
-  <data name="{0} client listeners have no encryption available, so passwords used on them cross the network in the clear." xml:space="preserve">
-    <value>{0} clientlisteners hebben geen versleuteling beschikbaar, dus de wachtwoorden die op deze listeners worden gebruikt, gaan in klare tekst over het netwerk.</value>
+  <data name="{0} client listeners have no encryption available ({1}), so passwords used on them cross the network in the clear." xml:space="preserve">
+    <value>{0} clientlisteners hebben geen versleuteling beschikbaar ({1}), dus de wachtwoorden die op deze listeners worden gebruikt, gaan in klare tekst over het netwerk.</value>
   </data>
-  <data name="{0} client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
-    <value>{0} clientlisteners bieden STARTTLS zonder het te vereisen, dus een client die niet om versleuteling vraagt, authenticeert zich onversleuteld, en niets meldt dat dat is gebeurd.</value>
+  <data name="{0} client listeners offer STARTTLS without requiring it ({1}), so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} clientlisteners bieden STARTTLS zonder het te vereisen ({1}), dus een client die niet om versleuteling vraagt, authenticeert zich onversleuteld, en niets meldt dat dat is gebeurd.</value>
   </data>
   <data name="{0} closed. It picks up where you left off." xml:space="preserve">
     <value>“{0}” gesloten. De rondleiding gaat verder waar u gebleven was.</value>
@@ -15589,6 +15595,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} has expired and is refused" xml:space="preserve">
     <value>{0} is verlopen en wordt geweigerd</value>
   </data>
+  <data name="{0} has no encryption available, so passwords used on it cross the network in the clear." xml:space="preserve">
+    <value>{0} heeft geen versleuteling beschikbaar, dus de wachtwoorden die erop worden gebruikt, gaan in klare tekst over het netwerk.</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Voor {0} is geen postmasteradres geconfigureerd, en deze pagina verzint geen postvak - voer het adres in dat de rapporten moet ontvangen. Zolang er geen is ingevoerd, is er geen record om te kopiëren.</value>
   </data>
@@ -15615,6 +15624,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} is available (published {1})" xml:space="preserve">
     <value>{0} is beschikbaar (gepubliceerd {1})</value>
+  </data>
+  <data name="{0} is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
+    <value>{0} is geconfigureerd voor TLS maar kan dat niet serveren, dus die poort luistert helemaal niet.</value>
   </data>
   <data name="{0} is covered by {1} but does not resolve back to {2}, so it is not spared: anybody who holds an address can write its reverse name." xml:space="preserve">
     <value>{0} is gedekt door {1} maar verwijst niet terug naar {2}, dus het adres wordt niet gespaard: wie een adres heeft, kan de reverse-naam ervan zelf schrijven.</value>
@@ -15682,8 +15694,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>{0} listener is geconfigureerd voor TLS maar kan dat niet serveren, dus die poort luistert helemaal niet.</value>
   </data>
-  <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all." xml:space="preserve">
-    <value>{0} listeners zijn geconfigureerd voor TLS maar kunnen dat niet serveren, dus die poorten luisteren helemaal niet.</value>
+  <data name="{0} listeners are configured for TLS but cannot serve it ({1}), so those ports are not listening at all." xml:space="preserve">
+    <value>{0} listeners zijn geconfigureerd voor TLS maar kunnen dat niet serveren ({1}), dus die poorten luisteren helemaal niet.</value>
   </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} bericht</value>
@@ -15760,6 +15772,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} van {1}: {2}</value>
   </data>
+  <data name="{0} offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened." xml:space="preserve">
+    <value>{0} biedt STARTTLS zonder het te vereisen, dus een client die niet om versleuteling vraagt, authenticeert zich onversleuteld, en niets meldt dat dat is gebeurd.</value>
+  </data>
   <data name="{0} on port {1} has no encryption available. Mail clients authenticate on this port, so every password used on it is readable by anything between the client and this server." xml:space="preserve">
     <value>{0} op poort {1} heeft geen versleuteling beschikbaar. Mailclients authenticeren zich op deze poort, dus elk wachtwoord dat erop wordt gebruikt, is leesbaar voor alles tussen de client en deze server.</value>
   </data>
@@ -15777,6 +15792,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} patronen worden op bestandsnaam uit elk bericht verwijderd, wat de scanners ook zeggen.</value>
+  </data>
+  <data name="{0} problems" xml:space="preserve">
+    <value>{0} problemen</value>
   </data>
   <data name="{0} public folder." xml:space="preserve">
     <value>{0} openbare map.</value>

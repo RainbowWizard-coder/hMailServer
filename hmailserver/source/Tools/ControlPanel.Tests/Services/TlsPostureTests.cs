@@ -486,31 +486,138 @@ namespace hMailServer.ControlPanel.Tests.Services
       // "kann es aber nicht". Each case is now one text in the catalogue, and these
       // pin the English of each so that no piece can come back.
 
+      /// <summary>
+      /// Each verdict is a whole sentence for one listener and one for several, and
+      /// names its listeners - "POP3 110 has no encryption available" - where it
+      /// said "1 client listener" and left the reader to find which.
+      /// </summary>
       [Fact]
-      public void TheVerdictIsOneWholeSentenceForOneListenerAndAnotherForSeveral()
+      public void TheVerdictIsOneWholeSentenceForOneListenerAndAnotherForSeveral_AndNamesThem()
       {
          TlsPostureConfig config = Healthy();
 
          config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.None) };
-         Assert.Equal("One client listener has no encryption available, so passwords used on it cross the network in the clear.",
+         Assert.Equal("IMAP 143 has no encryption available, so passwords used on it cross the network in the clear.",
             TlsPosture.Verdict(config));
          config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
-         Assert.Equal("2 client listeners have no encryption available, so passwords used on them cross the network in the clear.",
+         Assert.Equal("2 client listeners have no encryption available (IMAP 143, POP3 110), so passwords used on them cross the network in the clear.",
             TlsPosture.Verdict(config));
 
          config.Listeners = new List<TlsListener> { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional) };
-         Assert.Equal("One client listener offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
+         Assert.Equal("IMAP 143 offers STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
             TlsPosture.Verdict(config));
          config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.StartTlsOptional));
-         Assert.Equal("2 client listeners offer STARTTLS without requiring it, so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
+         Assert.Equal("2 client listeners offer STARTTLS without requiring it (IMAP 143, POP3 110), so a client that does not ask for encryption authenticates without it and nothing reports that it happened.",
             TlsPosture.Verdict(config));
 
          config.Listeners = new List<TlsListener> { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: "") };
-         Assert.Equal("One listener is configured for TLS but cannot serve it, so that port is not listening at all.",
+         Assert.Equal("IMAP 993 is configured for TLS but cannot serve it, so that port is not listening at all.",
             TlsPosture.Verdict(config));
          config.Listeners.Add(Listener("POP3", 995, TlsListenerSecurity.Implicit, certificate: ""));
-         Assert.Equal("2 listeners are configured for TLS but cannot serve it, so those ports are not listening at all.",
+         Assert.Equal("2 listeners are configured for TLS but cannot serve it (IMAP 993, POP3 995), so those ports are not listening at all.",
             TlsPosture.Verdict(config));
+      }
+
+      // ---- the verdict's level, and the problems' pages ----------------------------
+
+      /// <summary>
+      /// The verdict is shown at its own level - it was plain body text - with
+      /// TCP/IP ports as its action while it names listeners there.
+      /// </summary>
+      [Fact]
+      public void TheVerdict_HasALevel_AndOpensTcpIpPortsWhileItNamesListeners()
+      {
+         TlsPostureConfig config = Healthy();
+         Assert.Equal(StatusLevel.Good, TlsPosture.VerdictLevel(config));
+         Assert.Null(TlsPosture.VerdictPage(config));
+
+         config.Listeners.Add(Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional));
+         Assert.Equal(StatusLevel.Warning, TlsPosture.VerdictLevel(config));
+         Assert.Equal("ports", TlsPosture.VerdictPage(config));
+
+         config.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
+         Assert.Equal(StatusLevel.Critical, TlsPosture.VerdictLevel(config));
+         Assert.Equal("ports", TlsPosture.VerdictPage(config));
+
+         config.Listeners.Clear();
+         Assert.Equal(StatusLevel.Critical, TlsPosture.VerdictLevel(config));
+
+         config.Unread.Add(nameof(config.Listeners));
+         Assert.Equal(StatusLevel.Information, TlsPosture.VerdictLevel(config));
+         Assert.Null(TlsPosture.VerdictPage(config));
+      }
+
+      /// <summary>
+      /// Each note names the page that puts it right: a listener's on TCP/IP
+      /// ports, the require-TLS-for-authentication note on IP ranges, a
+      /// certificate's on SSL certificates, the rest on SSL/TLS.
+      /// </summary>
+      [Fact]
+      public void EachNote_NamesThePageThatPutsItRight()
+      {
+         TlsPostureConfig config = Healthy();
+         config.Listeners = new List<TlsListener>
+         {
+            Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: ""),
+            Listener("POP3", 110, TlsListenerSecurity.None),
+            Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional)
+         };
+         config.Tls10Enabled = true;
+         config.RangesTotal = 2;
+         config.RangesRequiringTlsForAuth = 0;
+         config.Certificates = new List<TlsCertificate> { new() { Name = "old", DaysRemaining = -3, InUse = true } };
+
+         IReadOnlyList<TlsPostureNote> notes = TlsPosture.Notes(config);
+         Assert.Equal("ports", notes.Single(n => n.Text.StartsWith("IMAP on port 993", StringComparison.Ordinal)).Page);
+         Assert.Equal("ports", notes.Single(n => n.Text.StartsWith("POP3 on port 110", StringComparison.Ordinal)).Page);
+         Assert.Equal("ports", notes.Single(n => n.Text.StartsWith("STARTTLS is optional", StringComparison.Ordinal)).Page);
+         Assert.Equal("ipranges", notes.Single(n => n.Text.StartsWith("No IP range requires TLS before authentication", StringComparison.Ordinal)).Page);
+         Assert.Equal("certs", notes.Single(n => n.Text.Contains("\"old\"", StringComparison.Ordinal)).Page);
+         Assert.Equal("tls", notes.Single(n => n.Text.StartsWith("TLS 1.0 is enabled", StringComparison.Ordinal)).Page);
+         Assert.All(notes, n => Assert.NotNull(NavigationMap.Find(n.Page)));
+      }
+
+      /// <summary>
+      /// The verdict and the notes count listeners by what they amount to, not
+      /// by the word that says it: they compared the word with "Will not start",
+      /// which matched only in English, so in every other language a listener
+      /// that cannot start was neither the verdict nor a note.
+      /// </summary>
+      [Fact]
+      public void AListenerThatWillNotStart_IsCounted_InATranslatedCatalogue()
+      {
+         try
+         {
+            Loc.Use((text, culture) => text == "Will not start" ? "Startet nicht" : null, System.Globalization.CultureInfo.GetCultureInfo("de"));
+            TlsPostureConfig config = Healthy();
+            config.Listeners = new List<TlsListener> { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: "") };
+
+            Assert.Equal("Startet nicht", VerdictFor(config, 993).Word);
+            Assert.Equal(TlsListenerState.WillNotStart, VerdictFor(config, 993).State);
+            Assert.Contains("cannot serve it", TlsPosture.Verdict(config));
+            Assert.Contains(TlsPosture.Notes(config), n => n.Level == StatusLevel.Critical && n.Text.StartsWith("IMAP on port 993", StringComparison.Ordinal));
+            Assert.Equal(StatusLevel.Critical, TlsPosture.VerdictLevel(config));
+         }
+         finally
+         {
+            Loc.Reset();
+         }
+      }
+
+      /// <summary>
+      /// Port 25 unencrypted says what is in the clear there, at the Warning
+      /// level; a client port says In the clear at the Critical level. The two
+      /// said the same words in two colours.
+      /// </summary>
+      [Fact]
+      public void Port25Unencrypted_SaysServerMail_AndAClientPortInTheClear()
+      {
+         TlsPostureConfig config = Healthy();
+         config.Listeners = new List<TlsListener> { Listener("SMTP", 25, TlsListenerSecurity.None), Listener("POP3", 110, TlsListenerSecurity.None) };
+         Assert.Equal("Unencrypted (server mail)", VerdictFor(config, 25).Word);
+         Assert.Equal(StatusLevel.Warning, VerdictFor(config, 25).Level);
+         Assert.Equal("In the clear", VerdictFor(config, 110).Word);
+         Assert.Equal(StatusLevel.Critical, VerdictFor(config, 110).Level);
       }
 
       [Fact]
