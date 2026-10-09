@@ -1284,6 +1284,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   1.3.2-r1 where it had r0; over `master`'s whole history the two images' gitleaks found the same.
   `build/check-release-chain.py` fails when the job names another image, or names it over two lines, which
   `scan-secrets.py` would not read, or by a tag that is not the digest's (ContinuousIntegration.md, "Change checks").
+  Neither scan reads a path under a directory named `build`, `bin`, `obj`, `target` or `packages`, which GitLab's rules
+  leave out, in the old image as in the new: not this tree's `build/` (ContinuousIntegration.md, "Before a push: the
+  secret scan").
 
 ### Documentation
 

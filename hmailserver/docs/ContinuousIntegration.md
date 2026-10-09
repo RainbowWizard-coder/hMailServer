@@ -77,7 +77,7 @@ same way.
 | `semgrep-sast` | test | GitLab's shared runners | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
 | `semgrep-sast-gate` | test | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
 | `mr-dependency-check` | check | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
-| `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule, in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
+| `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule - less what lies under a `build`, `bin`, `obj`, `target`, `packages`, `node_modules` or `bower_components` directory, which GitLab's rules leave out, so not the scripts under `build/` ([Before a push: the secret scan](#before-a-push-the-secret-scan)) - in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
 | `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the sixty files a release carries before the two installers' SBOMs, the PowerShell module's two unsigned among them (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The two installers, x64 and ARM64, and the PowerShell module's manifest and script, Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
@@ -3569,7 +3569,8 @@ above to download. `SECRET_DETECTION_DISABLED=true`, as a CI/CD variable, turns
 skips it when `SAST_DISABLED` is set, and the job's own rules, which replace the
 template's, do not read it. A third, `container_scanning`, and its twin
 `container_scanning_arm64`, scan the container image a `v*` tag's release
-pushes, each platform's by its digest, after the push, in the same way
+pushes, each platform's by its digest, after the push, in the same way, with
+GitLab's analyzer as GitLab's registry holds it, pinned by digest
 ([The container image](#the-container-image)); `CONTAINER_SCANNING_DISABLED=true`
 turns it off.
 
@@ -3763,7 +3764,8 @@ GitLab Ultimate. What the Free tier allows is built instead, before the push:
 `build/scan-secrets.py` runs gitleaks from the image `secret_detection` pins,
 the project's copy of GitLab's analyzer - it reads the digest from
 `.gitlab/ci/gitlab-security.yml`, so the two cannot differ - with GitLab's rules
-and the repository's `.gitleaksignore`: in Docker on the machine, or in Docker on another machine that sees the repository's git
+and the repository's `.gitleaksignore`: in Docker on the machine, or in Docker
+on another machine that sees the repository's git
 directory (`HM_SECRET_SCAN_SSH=user@host:/path/.git`, as linix sees the
 maintainer's clone at `/mnt/hmailserver`), or, without Docker, a `gitleaks` on
 `PATH` with gitleaks' own rules. With none of them it refuses (exit 3). The
@@ -3778,6 +3780,22 @@ The three now describe it instead, and the ten are in `.gitleaksignore`, with
 two more the same key at `HelpPagesData.cpp`'s lines 355 and 356 in two folds
 made after that run, which a scan of the batch rebased onto `master` found:
 twelve lines, naming the commits as they are after the rebase.
+
+**What neither scan reads.** GitLab's rules (0.25.1, `/gitleaks.toml` in the
+image) leave out every path under a directory named `build`, `bin`, `obj`,
+`target`, `packages`, `node_modules` or `bower_components`, among the other
+paths of their global allowlist, and `secret_detection` and `scan-secrets.py`
+both take those rules: neither scans `build/` - the CI scripts, the git hooks,
+the lab's scripts and the test fixtures there - or `snap/local/bin/`. The image
+pinned before 9 October 2026 had the same rules, byte for byte. On 9 October
+2026 a made-up GitLab token committed under `build/` passed both scans, where
+one at the root of the tree failed both. The same rules without those two
+directory patterns found five things under them in the whole history of
+`master` to that day, none a secret: the two OpenPGP test keys of
+`build/fixtures/openpgp`, whose README says what they are, and three lines that
+test a text for a key's armour header, in `build/deck-script-test.js`,
+`build/generate-package-repos.py` and `build/ci/installer-smoke.ps1`. Scanning
+`build/` as well is a change to the rules both scans take, and is not made.
 
 ### The old GitHub jobs and what replaced them
 
