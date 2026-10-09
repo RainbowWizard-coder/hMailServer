@@ -39,9 +39,28 @@ namespace hMailServer.ControlPanel.Tests.Services
          store.Read("RestApiBindAddress", "127.0.0.1");
          Assert.Same(lost, store.FallbackCause);
 
+         // A lost link is said at Critical, as the shell's pill and every other page say it.
+         Assert.Equal(StatusLevel.Critical, ComErrorText.LevelFor(store.FallbackCause));
+
          // A page that reads again starts a new count.
          store.ForgetFallback();
          Assert.Null(store.FallbackCause);
+      }
+
+      /// <summary>
+      /// A server older than GetIniSetting answered: it has no such member. The page
+      /// falls back as it does for a lost link, and says so as a Warning, the level of
+      /// a server that answered but could not give the values.
+      /// </summary>
+      [Fact]
+      public void AServerWithoutGetIniSetting_FallsBackAtWarning()
+      {
+         IniFeatureStore.ComReadSetting = _ => throw new COMException("Unknown name.", unchecked((int)0x80020006));
+
+         var store = new IniFeatureStore();
+         store.Read("RestApiPort", "0");
+         Assert.NotNull(store.FallbackCause);
+         Assert.Equal(StatusLevel.Warning, ComErrorText.LevelFor(store.FallbackCause));
       }
 
       [Fact]
@@ -56,8 +75,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The page reads afresh each build, says a fall-back as a Warning beside a pill
-      /// that says Not connected and holds Save, refuses a save it cannot make, and no
+      /// The page reads afresh each build, says a fall-back at the level its cause has
+      /// - Critical for a lost link, Warning for an older server - beside a pill that
+      /// says Not connected and holds Save, refuses a save it cannot make, and no
       /// longer claims to edit the file: its line says the settings database, and its
       /// subtitles do not name hMailServer.INI.
       /// </summary>
@@ -72,7 +92,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          int editors = build.IndexOf("setting.CreateEditor(store_)", StringComparison.Ordinal);
          Assert.True(forget >= 0 && forget < editors, "BuildUi does not forget the last build's fall-back before it reads again.");
 
-         Assert.Matches(new Regex(@"if \(store_\.FallbackCause != null\)\s*\{.*?SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageState\.NotConnected,.*?StatusLevel\.Warning\);\s*return;", RegexOptions.Singleline), build);
+         // The notice's level is the cause's: one lost link, one level, on every page.
+         Match fallBack = Regex.Match(build, @"if \(store_\.FallbackCause != null\)\s*\{.*?return;", RegexOptions.Singleline);
+         Assert.True(fallBack.Success, "BuildUi has no fall-back branch.");
+         Assert.Matches(new Regex(@"SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageState\.NotConnected,.*?,\s*ComErrorText\.LevelFor\(store_\.FallbackCause\)\);\s*return;", RegexOptions.Singleline), fallBack.Value);
+         Assert.DoesNotContain("StatusLevel.", fallBack.Value, StringComparison.Ordinal);
          Assert.Contains("ServerSession.DescribeComError(store_.FallbackCause)", build, StringComparison.Ordinal);
          Assert.Contains("L(\"Stored in the server's settings database.\")", build, StringComparison.Ordinal);
          Assert.DoesNotContain("Editing {0}", source, StringComparison.Ordinal);

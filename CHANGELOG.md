@@ -1186,12 +1186,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Certificates (ACME), Transport security and Authentication read hMailServer.ini on this computer instead and looked
   as they always did - "Editing C:\...\hMailServer.ini", Save enabled - though since schema 6042 the database is the
   settings store and the file only its cache, which may not be what the server runs. `IniFeatureStore` now remembers a
-  read that fell back, and why; such a page says, as a Warning beside a pill that says *Not connected*, that the
-  server could not be asked, with the reason, that the values are the file's on this computer and may differ from what
-  the server runs, and that nothing can be saved until the server answers, and its Save waits for the server. The line
-  under the header says "Stored in the server's settings database." - naming the file only on Server limits & expert
-  settings, whose sending limits a card says are kept in it - and the four subtitles that ended "(hMailServer.INI)" no
-  longer do. `IniFallbackTests` holds the store to remembering a fall-back and its cause and the pages to the rest.
+  read that fell back, and why; such a page says, beside a pill that says *Not connected*, that the server could not
+  be asked, with the reason, that the values are the file's on this computer and may differ from what the server runs,
+  and that nothing can be saved until the server answers, and its Save waits for the server. It says so at the level
+  of the cause, as the Dashboard and the setup checklist do: Critical when the link to the service went, and a Warning
+  when a server older than the call answered. The line under the header says "Stored in the server's settings
+  database." - naming the file only on Server limits & expert settings, whose sending limits a card says are kept in
+  it - and the four subtitles that ended "(hMailServer.INI)" no longer do. `IniFallbackTests` holds the store to
+  remembering a fall-back and its cause, the notice to its cause's level and the pages to the rest.
 - **Fixed: the domain and account dialogs' Levels tab showed its failures and its notes as plain bold text.** A read
   that failed was a bare line - on a lost link starting in lower case, and in the review's render "The input string
   'max_message_size_kb' was not in a correct format." - beside a greyed *Save levels now* and no way to read again,
