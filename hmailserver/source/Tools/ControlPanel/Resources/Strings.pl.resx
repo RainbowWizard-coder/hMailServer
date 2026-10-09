@@ -165,6 +165,9 @@
   <data name="1 list entry" xml:space="preserve">
     <value>Wpisy listy: 1</value>
   </data>
+  <data name="1 mail server receives mail for {0}." xml:space="preserve">
+    <value>Serwery pocztowe odbierające pocztę dla {0}: 1.</value>
+  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Dla 1 wiadomości nie można zapisać wpisu; pozostanie tam, gdzie jest: {0}</value>
   </data>
@@ -1289,6 +1292,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Wszystkie powiązane domeny</value>
+  </data>
+  <data name="All {0} checks passed." xml:space="preserve">
+    <value>Wszystkie testy zaliczone: {0}.</value>
   </data>
   <data name="Allo_w and release" xml:space="preserve">
     <value>Dopuść i z_wolnij</value>
@@ -3865,6 +3871,9 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostyka nie powiodła się: {0}</value>
+  </data>
+  <data name="Did not pass" xml:space="preserve">
+    <value>Niezaliczony</value>
   </data>
   <data name="Different" xml:space="preserve">
     <value>Inny</value>
@@ -7426,6 +7435,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="O_pen {0}" xml:space="preserve">
+    <value>O_twórz {0}</value>
+  </data>
   <data name="Object" xml:space="preserve">
     <value>Obiekt</value>
   </data>
@@ -8067,6 +8079,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
     <value>Hasło (pozostaw puste, _aby zachować zapisane)</value>
+  </data>
+  <data name="Passed" xml:space="preserve">
+    <value>Zaliczony</value>
   </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Klucze dostępu</value>
@@ -11291,6 +11306,12 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="That key's id is not in the form this store uses, so its section cannot be identified. Remove it by hand from {0}." xml:space="preserve">
     <value>Identyfikator tego klucza nie ma postaci używanej przez ten magazyn, więc nie da się rozpoznać jego sekcji. Należy usunąć go ręcznie z {0}.</value>
   </data>
+  <data name="That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed." xml:space="preserve">
+    <value>To skanowanie odbyło się {0}, choć kontrola działa co godzinę: serwer od tego czasu nie skanował, więc magazyn mógł się zmienić.</value>
+  </data>
+  <data name="That scan was {0}." xml:space="preserve">
+    <value>To skanowanie odbyło się {0}.</value>
+  </data>
   <data name="The ACME settings could not be read: {0}" xml:space="preserve">
     <value>Nie udało się odczytać ustawień ACME: {0}</value>
   </data>
@@ -11683,6 +11704,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   </data>
   <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
     <value>Samo sprawdzenie nie powiodło się: {0} Nie mówi to nic o rekordzie.</value>
+  </data>
+  <data name="The check passed." xml:space="preserve">
+    <value>Test zaliczony.</value>
   </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Nie udało się odczytać listy szyfrów.</value>
@@ -12350,10 +12374,8 @@ Dodać mimo to?</value>
   <data name="The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Serwer zawodzi w stronę bezpieczną, zamiast zgadywać (błąd 5921): żadne hasło nie jest wysyłane, a logowanie zostaje odrzucone. Naprawia się to, wybierając LDAPS lub StartTLS albo metodę bind Negotiate (która nigdy nie przesyła hasła) - albo, w sieci w pełni kontrolowanej, przez jawne zezwolenie na niezabezpieczone hasło.</value>
   </data>
-  <data name="The server found no mail servers for {0}.&#13;&#10;&#13;&#10;This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI - so mail sent to this domain from this server would not be deliverable right now." xml:space="preserve">
-    <value>Serwer nie znalazł żadnych serwerów pocztowych dla {0}.
-
-Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SMTP, wraz z ewentualnym własnym DNSServer skonfigurowanym w hMailServer.INI - więc poczta wysłana do tej domeny z tego serwera nie byłaby w tej chwili doręczalna.</value>
+  <data name="The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now." xml:space="preserve">
+    <value>Serwer nie znalazł serwerów pocztowych dla {0}, więc poczty wysłanej z tego serwera do tej domeny nie dałoby się teraz doręczyć.</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Serwer generuje następny klucz, pokazuje rekord TXT do opublikowania, sprawdza go własnym resolverem i przełącza podpisywanie na ten klucz dopiero wtedy, gdy rekord był rozwiązywany przez cały okres propagacji. Stary selektor jest zachowywany przez okres przechowywania, a potem wycofywany.</value>
@@ -12721,6 +12743,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>To jedyny raz, kiedy zostanie pokazany. Magazyn przechowuje skrót SHA-256, a nie klucz, więc nie da się go odzyskać ani wyświetlić ponownie - w razie utraty należy unieważnić go tutaj i utworzyć nowy.</value>
+  </data>
+  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
+    <value>Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SMTP, wraz z ewentualnym własnym DNSServer skonfigurowanym w hMailServer.INI.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Ten plik klucza jest zaszyfrowany (chroniony hasłem). Przed dodaniem należy wpisać jego hasło klucza w polu poniżej, w przeciwnym razie klucz się nie wczyta (błąd serwera 6170), a porty TLS używające tego certyfikatu nie uruchomią się.</value>
@@ -16029,6 +16054,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Nasłuchy skonfigurowane dla TLS, którego nie da się tam obsłużyć: {0}; te porty w ogóle nie nasłuchują.</value>
   </data>
+  <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
+    <value>Serwery pocztowe odbierające pocztę dla {1}: {0}.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} wiadomość</value>
   </data>
@@ -16130,6 +16158,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>Nie udało się wykonać {0} z {1} zmian; jest ona wymieniona na początku, z podaną przez serwer przyczyną. Pozostałe zostały zastosowane.</value>
+  </data>
+  <data name="{0} of {1} checks passed. Failed: {2}." xml:space="preserve">
+    <value>Zaliczone testy: {0} z {1}. Niezaliczone: {2}.</value>
+  </data>
+  <data name="{0} of {1} checks passed; the server gave no result for the others." xml:space="preserve">
+    <value>Zaliczone testy: {0} z {1}; dla pozostałych serwer nie podał wyniku.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} z {1}: {2}</value>

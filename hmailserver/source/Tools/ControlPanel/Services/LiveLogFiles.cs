@@ -157,7 +157,12 @@ namespace hMailServer.ControlPanel.Services
          return new Parts { Text = line };
       }
 
-      private static bool IsQuoted_(string field) => field.Length >= 2 && field[0] == '"' && field[^1] == '"';
+      // The quotation mark the server puts round a text field, by its code: written
+      // as a character literal it reads to build/check-localisation.py as the start
+      // of a caption.
+      private const char Quote = (char)34;
+
+      private static bool IsQuoted_(string field) => field.Length >= 2 && field[0] == Quote && field[^1] == Quote;
 
       private static string Unquote_(string field) => IsQuoted_(field) ? field.Substring(1, field.Length - 2) : field;
 

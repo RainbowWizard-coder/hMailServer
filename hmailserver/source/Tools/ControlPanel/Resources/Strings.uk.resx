@@ -165,6 +165,9 @@
   <data name="1 list entry" xml:space="preserve">
     <value>Записів списку: 1</value>
   </data>
+  <data name="1 mail server receives mail for {0}." xml:space="preserve">
+    <value>Поштових серверів, які приймають пошту для {0}: 1.</value>
+  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 повідомлення не можна створити запис; воно залишиться там, де є: {0}</value>
   </data>
@@ -1289,6 +1292,9 @@
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Усі пов’язані домени</value>
+  </data>
+  <data name="All {0} checks passed." xml:space="preserve">
+    <value>Усі перевірки пройдено: {0}.</value>
   </data>
   <data name="Allo_w and release" xml:space="preserve">
     <value>Дозволити й в_ипустити</value>
@@ -3865,6 +3871,9 @@
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Діагностика не вдалася: {0}</value>
+  </data>
+  <data name="Did not pass" xml:space="preserve">
+    <value>Не пройдено</value>
   </data>
   <data name="Different" xml:space="preserve">
     <value>Відрізняється</value>
@@ -7426,6 +7435,9 @@
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="O_pen {0}" xml:space="preserve">
+    <value>Відкр_ити «{0}»</value>
+  </data>
   <data name="Object" xml:space="preserve">
     <value>Об'єкт</value>
   </data>
@@ -8067,6 +8079,9 @@
   </data>
   <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
     <value>Па_роль (залиште порожнім, щоб зберегти збережений)</value>
+  </data>
+  <data name="Passed" xml:space="preserve">
+    <value>Пройдено</value>
   </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Ключі доступу</value>
@@ -11291,6 +11306,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="That key's id is not in the form this store uses, so its section cannot be identified. Remove it by hand from {0}." xml:space="preserve">
     <value>Ідентифікатор цього ключа не у формі, яку використовує це сховище, тому його розділ неможливо ідентифікувати. Видаліть його вручну з {0}.</value>
   </data>
+  <data name="That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed." xml:space="preserve">
+    <value>Це сканування було {0}, хоча перевірка виконується щогодини: відтоді сервер не сканував, тож сховище могло змінитися.</value>
+  </data>
+  <data name="That scan was {0}." xml:space="preserve">
+    <value>Це сканування було {0}.</value>
+  </data>
   <data name="The ACME settings could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати параметри ACME: {0}</value>
   </data>
@@ -11683,6 +11704,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
     <value>Сама перевірка не вдалася: {0} Це нічого не говорить про запис.</value>
+  </data>
+  <data name="The check passed." xml:space="preserve">
+    <value>Перевірку пройдено.</value>
   </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Список шифрів не вдалося прочитати.</value>
@@ -12350,10 +12374,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Сервер відмовляє, а не вгадує (помилка 5921): пароль не надсилається, і у вході відмовлено. Виправте це, вибравши LDAPS або StartTLS чи метод прив'язки Negotiate (який ніколи не передає пароль), - або, в мережі, яку ви контролюєте з кінця в кінець, явно дозволивши незахищений пароль.</value>
   </data>
-  <data name="The server found no mail servers for {0}.&#13;&#10;&#13;&#10;This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI - so mail sent to this domain from this server would not be deliverable right now." xml:space="preserve">
-    <value>Сервер не знайшов поштових серверів для {0}.
-
-Це відповідає власний розв'язувач сервера - той самий, що використовує доставка SMTP, зокрема будь-який користувацький DNSServer із hMailServer.INI, - тож пошта на цей домен із цього сервера зараз була б недоставною.</value>
+  <data name="The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now." xml:space="preserve">
+    <value>Сервер не знайшов поштових серверів для {0}, тож пошту, надіслану з цього сервера на цей домен, зараз доставити не можна.</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Сервер створює наступний ключ, показує запис TXT для публікації, перевіряє його через власний резолвер і переводить підпис на новий ключ, лише коли запис розв'язується протягом усього періоду поширення. Старий селектор зберігається на період зберігання, а потім виводиться з ужитку.</value>
@@ -12721,6 +12743,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>Це єдиний раз, коли його буде показано. Сховище тримає хеш SHA-256, а не ключ, тому відновити або показати його знову неможливо - якщо його втрачено, відкличте його тут і створіть інший.</value>
+  </data>
+  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
+    <value>Це відповідає власний розв'язувач сервера - той самий, що використовує доставка SMTP, зокрема будь-який користувацький DNSServer із hMailServer.INI.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Цей файл ключа зашифровано (захищено парольною фразою). Введіть його парольну фразу в поле нижче перед додаванням, інакше ключ не завантажиться (помилка сервера 6170), і порти TLS, що використовують цей сертифікат, не запустяться.</value>
@@ -16029,6 +16054,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Слухачів, налаштованих для TLS, які не можуть його надати: {0}; ці порти взагалі не прослуховуються.</value>
   </data>
+  <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
+    <value>Поштових серверів, які приймають пошту для {1}: {0}.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} повідомлення</value>
   </data>
@@ -16130,6 +16158,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} з {1} змін не вдалося виконати; їх перелічено першими, з причиною сервера для кожної. Решту застосовано.</value>
+  </data>
+  <data name="{0} of {1} checks passed. Failed: {2}." xml:space="preserve">
+    <value>Пройдено перевірок: {0} з {1}. Не пройдено: {2}.</value>
+  </data>
+  <data name="{0} of {1} checks passed; the server gave no result for the others." xml:space="preserve">
+    <value>Пройдено перевірок: {0} з {1}; для решти сервер не дав результату.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} з {1}: {2}</value>

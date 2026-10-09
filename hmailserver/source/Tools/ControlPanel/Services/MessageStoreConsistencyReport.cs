@@ -61,6 +61,38 @@ namespace hMailServer.ControlPanel.Services
       public string Generated { get; private set; }
 
       /// <summary>
+      /// The age under which the report of a check that runs at start-up and hourly
+      /// describes the store as it is: two hours, one missed run.
+      /// </summary>
+      public static readonly TimeSpan FreshFor = TimeSpan.FromHours(2);
+
+      /// <summary>
+      /// How long ago the scan a report describes ran: its Generated stamp, the
+      /// server's local time as Time::GetCurrentDateTime writes it (yyyy-MM-dd
+      /// HH:mm:ss), against <paramref name="now"/> on the same machine - the report
+      /// is read where the server writes it. Null when the stamp is absent or
+      /// unreadable. Review finding F252: a report thirteen days old read as a green
+      /// "No problems found".
+      /// </summary>
+      public static TimeSpan? AgeOf(string generated, DateTime now)
+      {
+         if (string.IsNullOrWhiteSpace(generated) ||
+             !DateTime.TryParseExact(generated.Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out DateTime stamp))
+            return null;
+
+         return now - stamp;
+      }
+
+      /// <summary>
+      /// Whether a scan this old says how the store is now: under
+      /// <see cref="FreshFor"/>, and not from the future beyond a few minutes of
+      /// clock drift. An unknown age is not fresh.
+      /// </summary>
+      public static bool IsFresh(TimeSpan? age)
+         => age is TimeSpan a && a < FreshFor && a > TimeSpan.FromMinutes(-5);
+
+      /// <summary>
       /// The count the server put in the header, or null when the header is
       /// missing or unreadable. This can legitimately differ from
       /// <see cref="Entries"/>.Count if the file was truncated mid-write, which

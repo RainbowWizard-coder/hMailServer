@@ -165,6 +165,9 @@
   <data name="1 list entry" xml:space="preserve">
     <value>Записей списка: 1</value>
   </data>
+  <data name="1 mail server receives mail for {0}." xml:space="preserve">
+    <value>Почтовых серверов, принимающих почту для {0}: 1.</value>
+  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 сообщения нельзя создать запись; оно останется там, где есть: {0}</value>
   </data>
@@ -1289,6 +1292,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Все связанные домены</value>
+  </data>
+  <data name="All {0} checks passed." xml:space="preserve">
+    <value>Все проверки пройдены: {0}.</value>
   </data>
   <data name="Allo_w and release" xml:space="preserve">
     <value>Разрешить и в_ыпустить</value>
@@ -3865,6 +3871,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Диагностика не удалась: {0}</value>
+  </data>
+  <data name="Did not pass" xml:space="preserve">
+    <value>Не пройдена</value>
   </data>
   <data name="Different" xml:space="preserve">
     <value>Отличается</value>
@@ -7426,6 +7435,9 @@ Control Panel может читать файлы сообщений только
   <data name="OK" xml:space="preserve">
     <value>ОК</value>
   </data>
+  <data name="O_pen {0}" xml:space="preserve">
+    <value>Отк_рыть «{0}»</value>
+  </data>
   <data name="Object" xml:space="preserve">
     <value>Объект</value>
   </data>
@@ -8067,6 +8079,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
     <value>Пароль (_оставьте пустым, чтобы сохранить прежний)</value>
+  </data>
+  <data name="Passed" xml:space="preserve">
+    <value>Пройдена</value>
   </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Ключи доступа</value>
@@ -11291,6 +11306,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="That key's id is not in the form this store uses, so its section cannot be identified. Remove it by hand from {0}." xml:space="preserve">
     <value>Идентификатор этого ключа записан не в той форме, которую использует это хранилище, поэтому определить его раздел невозможно. Удалите его вручную из {0}.</value>
   </data>
+  <data name="That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed." xml:space="preserve">
+    <value>Эта проверка была {0}, хотя проверка выполняется ежечасно: с тех пор сервер не проверял хранилище, так что оно могло измениться.</value>
+  </data>
+  <data name="That scan was {0}." xml:space="preserve">
+    <value>Эта проверка была {0}.</value>
+  </data>
   <data name="The ACME settings could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать параметры ACME: {0}</value>
   </data>
@@ -11683,6 +11704,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
     <value>Сама проверка не удалась: {0} Это ничего не говорит о записи.</value>
+  </data>
+  <data name="The check passed." xml:space="preserve">
+    <value>Проверка пройдена.</value>
   </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Список шифров не удалось прочитать.</value>
@@ -12350,10 +12374,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Сервер отказывает, а не гадает (ошибка 5921): пароль не отправляется, и во входе отказано. Исправьте это, выбрав LDAPS или StartTLS либо метод привязки Negotiate (который никогда не передаёт пароль), - или, в сети, которую вы контролируете из конца в конец, явно разрешив незащищённый пароль.</value>
   </data>
-  <data name="The server found no mail servers for {0}.&#13;&#10;&#13;&#10;This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI - so mail sent to this domain from this server would not be deliverable right now." xml:space="preserve">
-    <value>Сервер не нашёл почтовых серверов для {0}.
-
-Это отвечает собственный резолвер сервера - тот же, что использует доставка SMTP, включая любой пользовательский DNSServer из hMailServer.INI, - так что почта на этот домен с этого сервера сейчас была бы недоставима.</value>
+  <data name="The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now." xml:space="preserve">
+    <value>Сервер не нашёл почтовых серверов для {0}, поэтому почту, отправленную в этот домен с этого сервера, сейчас доставить нельзя.</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Сервер создаёт следующий ключ, показывает запись TXT для публикации, проверяет её через собственный резолвер и переводит подпись на новый ключ, только когда запись разрешается в течение всего периода распространения. Старый селектор сохраняется на период хранения, а затем выводится из употребления.</value>
@@ -12721,6 +12743,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>Это единственный раз, когда он будет показан. Хранилище держит хеш SHA-256, а не ключ, поэтому восстановить или показать его заново нельзя - если он потерян, отзовите его здесь и создайте другой.</value>
+  </data>
+  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
+    <value>Это отвечает собственный резолвер сервера - тот же, что использует доставка SMTP, включая любой пользовательский DNSServer из hMailServer.INI.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Этот файл ключа зашифрован (защищён парольной фразой). Введите его парольную фразу в поле ниже перед добавлением, иначе ключ не загрузится (ошибка сервера 6170), и порты TLS, использующие этот сертификат, не запустятся.</value>
@@ -16029,6 +16054,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} listeners are configured for TLS but cannot serve it, so those ports are not listening at all.|few" xml:space="preserve">
     <value>Прослушивателей, настроенных для TLS, но не способных его предоставить: {0}; эти порты вообще не прослушиваются.</value>
   </data>
+  <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
+    <value>Почтовых серверов, принимающих почту для {1}: {0}.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} сообщение</value>
   </data>
@@ -16130,6 +16158,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} из {1} изменений выполнить не удалось; они перечислены первыми, с указанием причины сервера для каждого. Остальные были применены.</value>
+  </data>
+  <data name="{0} of {1} checks passed. Failed: {2}." xml:space="preserve">
+    <value>Пройдено проверок: {0} из {1}. Не пройдены: {2}.</value>
+  </data>
+  <data name="{0} of {1} checks passed; the server gave no result for the others." xml:space="preserve">
+    <value>Пройдено проверок: {0} из {1}; для остальных сервер не дал результата.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} из {1}: {2}</value>

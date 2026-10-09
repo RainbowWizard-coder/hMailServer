@@ -1721,6 +1721,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Logging's page where switching logging on is the cure, where each replaced the subtitle above an empty card; a file
   not there yet is shown as soon as the server writes it.
 
+- **Fixed: the Diagnostics and MX query results were raw text in a box that looked like an input, and an old scan read
+  as a green OK.** Diagnostics showed "[ OK ]" and "[FAIL]" lines in a read-only text box with an input's underline,
+  which looked empty, with no summary, put "Diagnostics failed" in the same box, and kept Run enabled while running,
+  so a second click ran the checks twice; the MX query wrote "Query failed" and "no mail servers" into its box as
+  plain text, and both pages' Copy was enabled with nothing to copy. Each check is now a row - a Passed or Did not
+  pass pill, its name, and what the server found under it - below a summary at the level of the worst ("3 of 4 checks
+  passed. Failed: Outbound port 25."), Run and Query wait while a run is in progress, with the loading state in the
+  results' place, a failed run is a Critical notice, the MX answer is a summary at its level (the mail servers found,
+  none found, or the query failed) above the servers it names, and Copy waits for an answer. The message-store
+  consistency card says No problems found at Good only for a scan under two hours old of a check that is switched on;
+  a scan of a check that is off is Information, with how old it is and a button to the Server limits & expert settings
+  page, and one of a check that is on but has not scanned since is a Warning that says how old it is.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

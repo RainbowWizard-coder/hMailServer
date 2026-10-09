@@ -165,6 +165,9 @@
   <data name="1 list entry" xml:space="preserve">
     <value>1 listeoppføring</value>
   </data>
+  <data name="1 mail server receives mail for {0}." xml:space="preserve">
+    <value>1 e-postserver mottar e-post for {0}.</value>
+  </data>
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 melding kan ikke vises i listen og blir liggende der den er: {0}</value>
   </data>
@@ -1283,6 +1286,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Alle tilknyttede domener</value>
+  </data>
+  <data name="All {0} checks passed." xml:space="preserve">
+    <value>Alle {0} kontroller bestod.</value>
   </data>
   <data name="Allo_w and release" xml:space="preserve">
     <value>_Tillat og frigi</value>
@@ -3829,6 +3835,9 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   </data>
   <data name="Diagnostics failed: {0}" xml:space="preserve">
     <value>Diagnostikken mislyktes: {0}</value>
+  </data>
+  <data name="Did not pass" xml:space="preserve">
+    <value>Ikke bestått</value>
   </data>
   <data name="Different" xml:space="preserve">
     <value>Avvikende</value>
@@ -7348,6 +7357,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="O_pen {0}" xml:space="preserve">
+    <value>Å_pne {0}</value>
+  </data>
   <data name="Object" xml:space="preserve">
     <value>Objekt</value>
   </data>
@@ -7989,6 +8001,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Pass_word (leave blank to keep the stored one)" xml:space="preserve">
     <value>Pass_ord (la stå tomt for å beholde det lagrede)</value>
+  </data>
+  <data name="Passed" xml:space="preserve">
+    <value>Bestått</value>
   </data>
   <data name="Passkeys" xml:space="preserve">
     <value>Tilgangsnøkler</value>
@@ -11175,6 +11190,12 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="That key's id is not in the form this store uses, so its section cannot be identified. Remove it by hand from {0}." xml:space="preserve">
     <value>Den nøkkelens id er ikke i formen dette lageret bruker, så seksjonen dens kan ikke identifiseres. Fjern den for hånd fra {0}.</value>
   </data>
+  <data name="That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed." xml:space="preserve">
+    <value>Den skanningen var {0}, selv om kontrollen kjører hver time: serveren har ikke skannet siden, så lageret kan ha endret seg.</value>
+  </data>
+  <data name="That scan was {0}." xml:space="preserve">
+    <value>Den skanningen var {0}.</value>
+  </data>
   <data name="The ACME settings could not be read: {0}" xml:space="preserve">
     <value>ACME-innstillingene kunne ikke leses: {0}</value>
   </data>
@@ -11546,6 +11567,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The check itself failed: {0} This says nothing about the record." xml:space="preserve">
     <value>Selve sjekken mislyktes: {0} Dette sier ingenting om oppføringen.</value>
+  </data>
+  <data name="The check passed." xml:space="preserve">
+    <value>Kontrollen bestod.</value>
   </data>
   <data name="The cipher list could not be read." xml:space="preserve">
     <value>Chifferlisten kunne ikke leses.</value>
@@ -12204,10 +12228,8 @@ Legg til likevel?</value>
   <data name="The server fails closed rather than guessing (error 5921): no password is sent and the logon is refused. Fix it by choosing LDAPS or StartTLS, or the Negotiate bind method (which never transmits the password) - or, on a network you control end to end, by explicitly allowing the unprotected password." xml:space="preserve">
     <value>Serveren feiler lukket i stedet for å gjette (feil 5921): ingen passord sendes, og påloggingen avvises. Rett det ved å velge LDAPS eller StartTLS, eller bindingsmetoden Negotiate (som aldri sender passordet) - eller, på et nettverk du kontrollerer fra ende til ende, ved eksplisitt å tillate det ubeskyttede passordet.</value>
   </data>
-  <data name="The server found no mail servers for {0}.&#13;&#10;&#13;&#10;This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI - so mail sent to this domain from this server would not be deliverable right now." xml:space="preserve">
-    <value>Serveren fant ingen postservere for {0}.
-
-Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker, inkludert en eventuell egendefinert DNSServer konfigurert i hMailServer.INI - så post sendt til dette domenet fra denne serveren ville ikke kunne leveres akkurat nå.</value>
+  <data name="The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now." xml:space="preserve">
+    <value>Serveren fant ingen e-postservere for {0}, så e-post sendt til det domenet fra denne serveren kunne ikke leveres akkurat nå.</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Serveren genererer neste nøkkel, viser TXT-oppføringen som skal publiseres, kontrollerer den via sin egen resolver og bytter først signeringen til den når oppføringen har latt seg slå opp gjennom hele spredningsperioden. Den gamle selektoren beholdes i oppbevaringsperioden og fases deretter ut.</value>
@@ -12572,6 +12594,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>Dette er den eneste gangen den noen gang vises. Lageret beholder en SHA-256-digest, ikke nøkkelen, så den kan ikke gjenopprettes eller vises på nytt - går den tapt, tilbakekall den her og opprett en annen.</value>
+  </data>
+  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
+    <value>Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker, inkludert en eventuell egendefinert DNSServer konfigurert i hMailServer.INI.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Denne nøkkelfilen er kryptert (beskyttet med passfrase). Skriv inn passfrasen i feltet nedenfor før du legger til, ellers lastes ikke nøkkelen (serverfeil 6170), og TLS-portene som bruker dette sertifikatet, starter ikke.</value>
@@ -15769,6 +15794,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} listener is configured for TLS but cannot serve it, so that port is not listening at all." xml:space="preserve">
     <value>{0} lytter er konfigurert for TLS, men kan ikke levere det, så den porten lytter ikke i det hele tatt.</value>
   </data>
+  <data name="{0} mail servers receive mail for {1}." xml:space="preserve">
+    <value>{0} e-postservere mottar e-post for {1}.</value>
+  </data>
   <data name="{0} message" xml:space="preserve">
     <value>{0} melding</value>
   </data>
@@ -15840,6 +15868,12 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} of {1} changes could not be carried out and is listed first, with the server's reason on it. The rest were applied." xml:space="preserve">
     <value>{0} av {1} endringer kunne ikke utføres og er oppført først, med serverens begrunnelse. Resten ble tatt i bruk.</value>
+  </data>
+  <data name="{0} of {1} checks passed. Failed: {2}." xml:space="preserve">
+    <value>{0} av {1} kontroller bestod. Mislyktes: {2}.</value>
+  </data>
+  <data name="{0} of {1} checks passed; the server gave no result for the others." xml:space="preserve">
+    <value>{0} av {1} kontroller bestod; serveren ga ikke noe resultat for de øvrige.</value>
   </data>
   <data name="{0} of {1}: {2}" xml:space="preserve">
     <value>{0} av {1}: {2}</value>

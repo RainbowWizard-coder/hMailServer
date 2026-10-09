@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
@@ -231,16 +232,28 @@ namespace hMailServer.ControlPanel.Views
    public class MxQueryView : UserControl, IPageLifecycle
    {
       private readonly Wpf.Ui.Controls.TextBox domain_ = new();
-      private readonly TextBox output_ = new()
+
+      // The answer at its level, over the servers it names (review finding F252):
+      // a summary a notice says - found, none found, the query failed - and the
+      // details as text, which is selectable and copied whole by Copy. The answer
+      // was a read-only text box with an input's underline, which looked like a
+      // field waiting to be typed in, and "Query failed" was plain text in it.
+      private readonly InlineNotice summary_ = new() { Visibility = Visibility.Collapsed };
+      private readonly TextBlock details_ = new()
       {
-         IsReadOnly = true,
-         AcceptsReturn = true,
          FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
          FontSize = Typography.Label,
-         BorderThickness = new Thickness(0),
-         Background = System.Windows.Media.Brushes.Transparent,
-         VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+         TextWrapping = TextWrapping.Wrap
       };
+      private readonly LoadingState loading_ = new() { Visibility = Visibility.Collapsed };
+      private readonly TextBlock hint_ = new()
+      {
+         Text = L("Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them."),
+         TextWrapping = TextWrapping.Wrap,
+         Margin = new Thickness(4, 2, 4, 0)
+      };
+      private readonly Wpf.Ui.Controls.Button run_ = new() { Content = L("_Query"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
+      private readonly Wpf.Ui.Controls.Button copy_ = new() { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false };
 
       public MxQueryView()
       {
@@ -272,25 +285,28 @@ namespace hMailServer.ControlPanel.Views
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(0)
          };
-         var run = new Wpf.Ui.Controls.Button { Content = L("_Query"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
-         run.Click += async (s, e) => await RunQuery();
-         actions.Children.Add(run);
-         var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0) };
-         copy.Click += (s, e) => ClipboardWriter.TrySetText(output_.Text);   // best effort: the output stays on screen to select
-         actions.Children.Add(copy);
+         run_.Click += async (s, e) => await RunQuery();
+         actions.Children.Add(run_);
+         // Copy has something to copy once there is an answer.
+         copy_.Click += (s, e) => ClipboardWriter.TrySetText(CopyText_());   // best effort: the answer stays on screen to select
+         actions.Children.Add(copy_);
          Grid.SetColumn(actions, 1);
          inputRow.Children.Add(actions);
          Grid.SetRow(inputRow, 1);
          grid.Children.Add(inputRow);
          // Enter in the domain box queries; Escape empties it.
-         FormSubmit.Bind(inputRow, run, domain_);
+         FormSubmit.Bind(inputRow, run_, domain_);
 
-         System.Windows.Automation.AutomationProperties.SetName(output_, L("MX query"));
-         var card = new Card
-         {
-            Padding = new Thickness(12),
-            Content = ResultHint.Wrap(output_, L("Type a domain and press Query. The answer lists the servers that receive that domain's mail, most preferred first, as this server's own resolver sees them."))
-         };
+         hint_.SetResourceReference(FrameworkElement.StyleProperty, "TextSecondary");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(summary_, "mx-summary");
+         var answer = new StackPanel();
+         answer.Children.Add(summary_);
+         answer.Children.Add(details_);
+         var host = new Grid();
+         host.Children.Add(new ScrollViewer { Content = answer, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+         host.Children.Add(hint_);
+         host.Children.Add(loading_);
+         var card = new Card { Padding = new Thickness(12), Content = host };
          Grid.SetRow(card, 2);
          grid.Children.Add(card);
 
@@ -303,7 +319,15 @@ namespace hMailServer.ControlPanel.Views
          if (domain.Length == 0)
             return;
 
-         output_.Text = F("Querying MX records for {0}...", domain);
+         // One query at a time: Query waits while one runs, the loading state in
+         // the answer's place.
+         run_.IsEnabled = false;
+         copy_.IsEnabled = false;
+         hint_.Visibility = Visibility.Collapsed;
+         summary_.Visibility = Visibility.Collapsed;
+         details_.Text = "";
+         loading_.Text = F("Querying MX records for {0}...", domain);
+         loading_.Visibility = Visibility.Visible;
 
          try
          {
@@ -331,15 +355,17 @@ namespace hMailServer.ControlPanel.Views
 
             if (string.IsNullOrEmpty(result))
             {
-               output_.Text = F("The server found no mail servers for {0}.\r\n\r\nThis is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI - so mail sent to this domain from this server would not be deliverable right now.", domain);
+               Say_(StatusLevel.Warning, F("The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now.", domain));
+               details_.Text = L("This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI.");
                return;
             }
 
+            string[] servers = result.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             var report = new System.Text.StringBuilder();
             report.AppendLine(F("Mail servers for {0}, in the order this server would try them:", domain));
             report.AppendLine();
 
-            foreach (string line in result.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string line in servers)
             {
                int tab = line.IndexOf('\t');
                if (tab > 0)
@@ -351,13 +377,34 @@ namespace hMailServer.ControlPanel.Views
             report.AppendLine();
             report.Append(L("Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise."));
 
-            output_.Text = report.ToString();
+            Say_(StatusLevel.Good, servers.Length == 1
+               ? F("1 mail server receives mail for {0}.", domain)
+               : F("{0} mail servers receive mail for {1}.", servers.Length, domain));
+            details_.Text = report.ToString();
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            output_.Text = F("Query failed: {0}", ServerSession.DescribeComError(ex));
+            Say_(StatusLevel.Critical, F("Query failed: {0}", ServerSession.DescribeComError(ex)));
+         }
+         finally
+         {
+            loading_.Visibility = Visibility.Collapsed;
+            run_.IsEnabled = true;
+            copy_.IsEnabled = summary_.Visibility == Visibility.Visible;
          }
       }
+
+      /// <summary>The answer's summary at its level.</summary>
+      private void Say_(StatusLevel level, string text)
+      {
+         summary_.Level = level;
+         summary_.Text = text;
+         summary_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>What Copy takes: the summary, then the details.</summary>
+      private string CopyText_()
+         => string.IsNullOrEmpty(details_.Text) ? summary_.Text : summary_.Text + "\r\n\r\n" + details_.Text;
 
       public void OnEnter()
       {
@@ -573,16 +620,26 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly Wpf.Ui.Controls.TextBox localDomain_ = new() { PlaceholderText = L("A domain hosted on this server") };
       private readonly Wpf.Ui.Controls.TextBox testDomain_ = new() { Text = "gmail.com" };
-      private readonly TextBox output_ = new()
+
+      // The checks' results as rows, each its pill (Passed, Failed), its name and
+      // what it found, under a summary at the level of the worst (review finding
+      // F252). They were "[ OK ]" and "[FAIL]" lines in a read-only text box with
+      // an input's underline, which looked like an empty field, with no summary,
+      // and "Diagnostics failed" landed in the same box.
+      private readonly InlineNotice summary_ = new() { Visibility = Visibility.Collapsed };
+      private readonly StackPanel rows_ = new();
+      private readonly LoadingState loading_ = new() { Text = L("Running diagnostics..."), Visibility = Visibility.Collapsed };
+      private readonly TextBlock hint_ = new()
       {
-         IsReadOnly = true,
-         AcceptsReturn = true,
-         FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
-         FontSize = Typography.Label,
-         BorderThickness = new Thickness(0),
-         Background = System.Windows.Media.Brushes.Transparent,
-         VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+         Text = L("Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails."),
+         TextWrapping = TextWrapping.Wrap,
+         Margin = new Thickness(4, 2, 4, 0)
       };
+      private readonly Wpf.Ui.Controls.Button run_ = new() { Content = L("Run _diagnostics"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
+      private readonly Wpf.Ui.Controls.Button copy_ = new() { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = false };
+
+      // What Copy takes: the summary and each check as text, in the reader's language.
+      private string copyText_ = "";
 
       // Message-store consistency. The server has no COM surface for this scan -
       // it is a background task gated on hMailServer.INI MessageStoreConsistencyCheck
@@ -650,23 +707,32 @@ namespace hMailServer.ControlPanel.Views
          inputRow.Children.Add(Captioned(L("R_emote domain"), testDomain_));
          // Bottom-aligned, level with the two captioned inputs' boxes.
          var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Bottom };
-         var run = new Wpf.Ui.Controls.Button { Content = L("Run _diagnostics"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };
-         run.Click += async (s, e) => await Run();
-         actions.Children.Add(run);
-         var copy = new Wpf.Ui.Controls.Button { Content = L("_Copy"), Margin = new Thickness(8, 0, 0, 0) };
-         copy.Click += (s, e) => ClipboardWriter.TrySetText(output_.Text);   // best effort: the output stays on screen to select
-         actions.Children.Add(copy);
+         run_.Click += async (s, e) => await Run();
+         actions.Children.Add(run_);
+         // Copy has something to copy once a run has answered.
+         copy_.Click += (s, e) => ClipboardWriter.TrySetText(copyText_);   // best effort: the results stay on screen to select
+         actions.Children.Add(copy_);
          Grid.SetColumn(actions, 2);
          inputRow.Children.Add(actions);
          parts.Children.Add(inputRow);
          // Enter in either domain box runs the checks.
-         FormSubmit.Bind(inputRow, run);
+         FormSubmit.Bind(inputRow, run_);
 
-         System.Windows.Automation.AutomationProperties.SetName(output_, L("Diagnostics"));
+         hint_.SetResourceReference(FrameworkElement.StyleProperty, "TextSecondary");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(summary_, "diagnostics-summary");
+         System.Windows.Automation.AutomationProperties.SetName(rows_, L("Diagnostics"));
+         Grid.SetIsSharedSizeScope(rows_, true);
+         var results = new StackPanel();
+         results.Children.Add(summary_);
+         results.Children.Add(rows_);
+         var host = new Grid();
+         host.Children.Add(new ScrollViewer { Content = results, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+         host.Children.Add(hint_);
+         host.Children.Add(loading_);
          var card = new Card
          {
             Padding = new Thickness(12),
-            Content = ResultHint.Wrap(output_, L("Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails."))
+            Content = host
          };
          card.SetResourceReference(MarginProperty, "AppCardGap");
          parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
@@ -762,50 +828,172 @@ namespace hMailServer.ControlPanel.Views
       {
       }
 
+      /// <summary>One check's outcome as the server answered it.</summary>
+      private sealed class CheckResult
+      {
+         public string Name = "";
+         public bool? Passed;
+         public string Details = "";
+      }
+
       private async Task Run()
       {
-         output_.Text = L("Running diagnostics...");
+         // One run at a time: Run waits while one is in progress, the loading state
+         // in the results' place, where a second click ran the checks twice.
+         run_.IsEnabled = false;
+         copy_.IsEnabled = false;
+         hint_.Visibility = Visibility.Collapsed;
+         summary_.Visibility = Visibility.Collapsed;
+         rows_.Children.Clear();
+         copyText_ = "";
+         loading_.Visibility = Visibility.Visible;
 
-         string report = await Task.Run(() =>
+         string local = localDomain_.Text.Trim();
+         string remote = testDomain_.Text.Trim();
+         try
          {
-            try
+            List<CheckResult> checks = await Task.Run(() => PerformTests_(local, remote));
+            ShowResults_(checks);
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            Say_(StatusLevel.Critical, F("Diagnostics failed: {0}", ServerSession.DescribeComError(ex)));
+            copyText_ = summary_.Text;
+         }
+         finally
+         {
+            loading_.Visibility = Visibility.Collapsed;
+            run_.IsEnabled = true;
+            copy_.IsEnabled = copyText_.Length > 0;
+         }
+      }
+
+      /// <summary>The server's checks, run off the UI thread; throws what the server throws.</summary>
+      private static List<CheckResult> PerformTests_(string localDomain, string remoteDomain)
+      {
+         dynamic diagnostics = null;
+         dynamic results = null;
+         try
+         {
+            diagnostics = ServerSession.Current.Application.Diagnostics;
+            diagnostics.LocalDomainName = localDomain;
+            diagnostics.TestDomainName = remoteDomain;
+            results = diagnostics.PerformTests();
+
+            var checks = new List<CheckResult>();
+            int count = (int)results.Count;
+            for (int i = 0; i < count; i++)
             {
-               dynamic diagnostics = ServerSession.Current.Application.Diagnostics;
-               diagnostics.LocalDomainName = localDomain_.Dispatcher.Invoke(() => localDomain_.Text.Trim());
-               diagnostics.TestDomainName = testDomain_.Dispatcher.Invoke(() => testDomain_.Text.Trim());
-
-               dynamic results = diagnostics.PerformTests();
-
-               var text = new System.Text.StringBuilder();
-               int count = (int)results.Count;
-               for (int i = 0; i < count; i++)
-               {
-                  dynamic result = results.Item[i];
-                  string name = "", details = "";
-                  bool? success = null;
-                  try { name = (string)result.Name; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
-                  try { success = (bool)result.Result; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
-                  try { details = (string)result.ExecutionDetails; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
-
-                  string state = success == null ? "[ ?? ]   " : success.Value ? "[ OK ]   " : "[FAIL]   "; // no-loc
-                  text.AppendLine(state + name);
-                  if (!string.IsNullOrWhiteSpace(details))
-                     text.AppendLine("         " + details.Replace("\r\n", "\r\n         "));
-                  text.AppendLine();
-                  ServerSession.Release(result);
-               }
-
-               ServerSession.Release(results);
-               ServerSession.Release(diagnostics);
-               return text.Length > 0 ? text.ToString() : L("No diagnostic results returned.");
+               dynamic result = results.Item[i];
+               var check = new CheckResult();
+               try { check.Name = (string)result.Name; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+               try { check.Passed = (bool)result.Result; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+               try { check.Details = (string)result.ExecutionDetails ?? ""; } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+               checks.Add(check);
+               ServerSession.Release(result);
             }
-            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+
+            return checks;
+         }
+         finally
+         {
+            ServerSession.Release((object)results);
+            ServerSession.Release((object)diagnostics);
+         }
+      }
+
+      /// <summary>
+      /// The summary at the level of the worst check - Good when every one passed,
+      /// Warning when one failed, naming it - and a row per check; and the same as
+      /// text for Copy.
+      /// </summary>
+      private void ShowResults_(List<CheckResult> checks)
+      {
+         if (checks.Count == 0)
+         {
+            Say_(StatusLevel.Information, L("No diagnostic results returned."));
+            copyText_ = summary_.Text;
+            return;
+         }
+
+         int passed = checks.Count(c => c.Passed == true);
+         List<string> failed = checks.Where(c => c.Passed == false).Select(c => c.Name).ToList();
+         if (failed.Count > 0)
+            Say_(StatusLevel.Warning, F("{0} of {1} checks passed. Failed: {2}.", passed, checks.Count, string.Join(", ", failed)));
+         else if (passed < checks.Count)
+            Say_(StatusLevel.Information, F("{0} of {1} checks passed; the server gave no result for the others.", passed, checks.Count));
+         else
+            Say_(StatusLevel.Good, checks.Count == 1 ? L("The check passed.") : F("All {0} checks passed.", checks.Count));
+
+         var copy = new System.Text.StringBuilder(summary_.Text);
+         copy.AppendLine();
+         foreach (CheckResult check in checks)
+         {
+            rows_.Children.Add(CheckRow_(check));
+            copy.AppendLine();
+            copy.AppendLine(CheckWord_(check) + ": " + check.Name);
+            if (!string.IsNullOrWhiteSpace(check.Details))
+               copy.AppendLine("   " + check.Details.Trim().Replace("\r\n", "\r\n   "));
+         }
+
+         copyText_ = copy.ToString().TrimEnd();
+      }
+
+      /// <summary>The run's summary at its level.</summary>
+      private void Say_(StatusLevel level, string text)
+      {
+         summary_.Level = level;
+         summary_.Text = text;
+         summary_.Visibility = Visibility.Visible;
+      }
+
+      private static string CheckWord_(CheckResult check)
+         => check.Passed == true ? L("Passed") : check.Passed == false ? L("Did not pass") : L("Unknown");
+
+      /// <summary>One check: its pill and name, what the server found under them.</summary>
+      private static FrameworkElement CheckRow_(CheckResult check)
+      {
+         var pill = new StatusPill
+         {
+            Level = check.Passed == true ? StatusLevel.Good : check.Passed == false ? StatusLevel.Critical : StatusLevel.Normal,
+            Text = CheckWord_(check),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         var name = new TextBlock
+         {
+            Text = check.Name,
+            TextWrapping = TextWrapping.Wrap,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0)
+         };
+         name.SetResourceReference(FrameworkElement.StyleProperty, "TextBodyStrong");
+
+         // The pills share a column, so that every name starts at one edge.
+         var head = new Grid();
+         head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "DiagnosticsPill" });
+         head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         Grid.SetColumn(name, 1);
+         head.Children.Add(pill);
+         head.Children.Add(name);
+
+         var row = new StackPanel { Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0) };
+         row.Children.Add(head);
+         if (!string.IsNullOrWhiteSpace(check.Details))
+         {
+            var details = new TextBlock
             {
-               return F("Diagnostics failed: {0}", ServerSession.DescribeComError(ex));
-            }
-         });
+               Text = check.Details.Trim(),
+               TextWrapping = TextWrapping.Wrap,
+               FontFamily = new System.Windows.Media.FontFamily(Typography.MonoFontFamily),
+               FontSize = Typography.Label,
+               Margin = new Thickness(0, DesignTokens.Space.Xs, 0, 0)
+            };
+            details.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
+            row.Children.Add(details);
+         }
 
-         output_.Text = report;
+         return row;
       }
 
       /// <summary>
@@ -818,6 +1006,9 @@ namespace hMailServer.ControlPanel.Views
          public string Message;
          public Severity Level;
          public string ReportPath;
+
+         // While the periodic check is off, the page that turns it on.
+         public bool OfferSettings;
          public IReadOnlyList<Services.MessageStoreConsistencyEntry> Entries;
       }
 
@@ -825,7 +1016,11 @@ namespace hMailServer.ControlPanel.Views
       {
          Neutral,
          Good,
-         Bad
+         Bad,
+
+         // A clean report of a check that is on but has not scanned for longer
+         // than its hourly run explains.
+         Stale
       }
 
       private async Task LoadConsistencyReport()
@@ -855,8 +1050,10 @@ namespace hMailServer.ControlPanel.Views
             {
                Severity.Good => StatusLevel.Good,
                Severity.Bad => StatusLevel.Critical,
+               Severity.Stale => StatusLevel.Warning,
                _ => StatusLevel.Information
             };
+            consistencyStatus_.Content = result.OfferSettings ? OpenHardening_() : null;
 
             if (result.Entries != null && result.Entries.Count > 0)
             {
@@ -958,11 +1155,25 @@ namespace hMailServer.ControlPanel.Views
             ? F("The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh.", reportedMissing.Value, report.Entries.Count)
             : null;
 
+         // Good only for a scan that says how the store is now: the check on, and
+         // the scan under two hours old. A report thirteen days old, or one the
+         // switched-off check will never rewrite, read as a green "No problems
+         // found" (review finding F252); it says how old it is instead.
+         TimeSpan? age = Services.MessageStoreConsistencyReport.AgeOf(report.Generated, DateTime.Now);
+         bool fresh = enabled && Services.MessageStoreConsistencyReport.IsFresh(age);
+         if (!fresh && age is TimeSpan old)
+         {
+            when += " " + (enabled
+               ? F("That scan was {0}, although the check runs hourly: the server has not scanned since, so the store may have changed.", DescribeScanAge_(old))
+               : F("That scan was {0}.", DescribeScanAge_(old)));
+         }
+
          if (report.MissingCount == 0)
          {
             return new ConsistencyResult
             {
-               Level = Severity.Good,
+               Level = fresh ? Severity.Good : enabled ? Severity.Stale : Severity.Neutral,
+               OfferSettings = !enabled,
                ReportPath = path,
                Message = Sentences(L("No problems found - every message row has its file on disk."), when, truncated, enabledNote)
             };
@@ -971,12 +1182,50 @@ namespace hMailServer.ControlPanel.Views
          return new ConsistencyResult
          {
             Level = Severity.Bad,
+            OfferSettings = !enabled,
             ReportPath = path,
             Entries = report.Entries,
             Message = Sentences(Plural(report.MissingCount, "{0} message references a file that is missing on disk.", "{0} messages reference a file that is missing on disk."),
                when, truncated, enabledNote,
                L("The check is read-only: the server does not delete or repair anything."))
          };
+      }
+
+      /// <summary>The age of a scan in words, as the backup page says the age of its last run.</summary>
+      private static string DescribeScanAge_(TimeSpan age)
+      {
+         if (age < TimeSpan.Zero)
+            age = TimeSpan.Zero;
+
+         if (age.TotalMinutes < 1)
+            return L("less than a minute ago");
+
+         if (age.TotalHours < 1)
+         {
+            int minutes = (int)age.TotalMinutes;
+            return minutes == 1 ? L("1 minute ago") : F("{0} minutes ago", minutes);
+         }
+
+         if (age.TotalDays < 2)
+         {
+            int hours = (int)age.TotalHours;
+            return hours == 1 ? L("1 hour ago") : F("{0} hours ago", hours);
+         }
+
+         return F("{0} days ago", (int)age.TotalDays);
+      }
+
+      /// <summary>The page that turns the periodic check on, while it is off.</summary>
+      private static Wpf.Ui.Controls.Button OpenHardening_()
+      {
+         var button = new Wpf.Ui.Controls.Button
+         {
+            Content = F("O_pen {0}", L(Services.NavigationMap.TitleOf("hardening"))),
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "consistency-open-hardening");
+         button.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("hardening");
+         return button;
       }
 
       private void OpenReport()
@@ -1005,37 +1254,6 @@ namespace hMailServer.ControlPanel.Views
                MessageBox.Show(F("Could not open {0}: {1}", reportPath_, ex.Message), L("Control Panel"));
             }
          }
-      }
-   }
-
-   /// <summary>
-   /// A read-only result box that says what to do while it is empty. The MX
-   /// query and the diagnostics opened on a large blank card with nothing to say
-   /// that the button above fills it; the sentence goes as soon as a result
-   /// arrives, and it is the box's help text for a screen reader meanwhile.
-   /// </summary>
-   internal static class ResultHint
-   {
-      public static FrameworkElement Wrap(TextBox output, string hint)
-      {
-         var hintText = new TextBlock
-         {
-            Text = hint,
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(4, 2, 4, 0),
-            IsHitTestVisible = false
-         };
-         hintText.SetResourceReference(FrameworkElement.StyleProperty, "TextSecondary");
-         System.Windows.Automation.AutomationProperties.SetHelpText(output, hint);
-
-         void Apply() => hintText.Visibility = string.IsNullOrEmpty(output.Text) ? Visibility.Visible : Visibility.Collapsed;
-         output.TextChanged += (_, _) => Apply();
-         Apply();
-
-         var host = new Grid();
-         host.Children.Add(output);
-         host.Children.Add(hintText);
-         return host;
       }
    }
 }
