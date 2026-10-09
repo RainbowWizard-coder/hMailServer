@@ -689,9 +689,13 @@ namespace hMailServer.ControlPanel.Views
          /// server on the built-in database, which the server forces to one
          /// connection whatever is set. A live box there was an invitation to an
          /// edit that saves, reports success and does nothing. The card says why,
-         /// in a notice beside the row.
+         /// in a notice beside the row, and <see cref="IgnoredBecause"/> is the
+         /// box's help text, which a screen reader reads with its value.
          /// </summary>
          public bool Ignored;
+
+         /// <summary>Why the server ignores the value, where it does: the notice's sentence.</summary>
+         public string IgnoredBecause;
 
          private Wpf.Ui.Controls.NumberBox number_;
 
@@ -707,7 +711,19 @@ namespace hMailServer.ControlPanel.Views
             loaded_ = ((long)current).ToString();
             number_ = NumberEditor(current, MinimumValue, Default);
             if (Ignored)
-               number_.IsEnabled = false;
+            {
+               // Read-only rather than disabled, as ComInert's box: a disabled
+               // control is skipped by the keyboard and, in most screen readers,
+               // not reachable at all, which hid the value and why it is ignored
+               // from the reader who cannot see the greyed-out box either. The
+               // arrow keys step nothing in a read-only box; the spin buttons and
+               // the clear button, which would, are not drawn.
+               number_.IsReadOnly = true;
+               number_.SpinButtonPlacementMode = Wpf.Ui.Controls.NumberBoxSpinButtonPlacementMode.Hidden;
+               number_.ClearButtonEnabled = false;
+               if (!string.IsNullOrEmpty(IgnoredBecause))
+                  System.Windows.Automation.AutomationProperties.SetHelpText(number_, IgnoredBecause);
+            }
             return number_;
          }
 
@@ -722,7 +738,8 @@ namespace hMailServer.ControlPanel.Views
             if (WithheldEntry != null)
                return SaveWithheld(IniStore, Path);
 
-            if (IniStore == null || !IniStore.IsAvailable || number_ == null)
+            // A value the server ignores is shown, never written.
+            if (Ignored || IniStore == null || !IniStore.IsAvailable || number_ == null)
                return false;
 
             string value = ((long)(number_.Value ?? Default)).ToString();
@@ -4195,12 +4212,13 @@ namespace hMailServer.ControlPanel.Views
             Sentences(L("How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart."),
                databaseType.Length > 0 ? F("Configured database type: {0}.", databaseType) : null));
 
+         string poolIgnored = L("This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL.");
          if (builtInDatabase)
          {
             database.Settings.Add(new ComNoticeRow
             {
                Level = StatusLevel.Information,
-               Text = L("This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL.")
+               Text = poolIgnored
             });
          }
 
@@ -4212,6 +4230,7 @@ namespace hMailServer.ControlPanel.Views
             Default = 5,
             MinimumValue = 1,
             Ignored = builtInDatabase,
+            IgnoredBecause = builtInDatabase ? poolIgnored : null,
             Blurb = poolNote,
             IniStore = iniStore_
          });

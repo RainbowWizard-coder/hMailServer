@@ -985,14 +985,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Information box at the foot of the page. Held by `ScriptsPageTests`.
 - **Fixed: the Performance page offered a setting the server ignores, shouted why, and drew a figure it could not read
   as the figure.** On a server with the built-in database the pool size was a live box captioned "Connections in the
-  pool (ignored: this server uses the built-in database)" over a note that read "THIS SERVER USES THE BUILT-IN
-  DATABASE (MSSQLCE)"; the box now shows the value and does not offer to change it, under an Information notice:
-  "This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size
-  applies after a move to MySQL, SQL Server or PostgreSQL." The card no longer says "Where that database IS". A cache
-  or message-store figure that could not be read was drawn as the value - "This could not be read from the server:
-  ...", at the value's size, with a System.Text.Json parser message in it when the server answered nothing a figure
-  could be read from; it is a Warning notice in the value's place, and "The server did not report this figure." for
-  an answer with no figure in it. Held by `PerformancePageTests`.
+  pool (ignored: this server uses the built-in database)" over a note that read "THIS SERVER USES THE BUILT-IN DATABASE
+  (MSSQLCE)"; the box now shows the value and does not offer to change it - read-only rather than disabled, so that the
+  keyboard still reaches it and a screen reader reads it with the reason as its help text - under an Information notice:
+  "This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies
+  after a move to MySQL, SQL Server or PostgreSQL." The card no longer says "Where that database IS". A cache or
+  message-store figure that could not be read was drawn as the value - "This could not be read from the server: ...", at
+  the value's size, with a System.Text.Json parser message in it when the server answered nothing a figure could be read
+  from; it is a Warning notice in the value's place, and "The server did not report this figure." for an answer with no
+  figure in it. Held by `PerformancePageTests`.
 - **Fixed: the Directory synchronisation page reported an apply with failed changes as Information, and its rows
   differed only by bold text.** A run was Information whenever it completed, so "1 of 4 changes could not be carried
   out" was a grey caption under an Information notice. The run's summary is now at the level of its outcome - Good for

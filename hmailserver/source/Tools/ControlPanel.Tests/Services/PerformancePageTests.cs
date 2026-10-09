@@ -32,6 +32,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("THIS SERVER USES THE BUILT-IN DATABASE", source, StringComparison.Ordinal);
          Assert.DoesNotContain("Where that database IS", source, StringComparison.Ordinal);
          Assert.Contains("L(\"This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL.\")", source, StringComparison.Ordinal);
+         Assert.Contains("IgnoredBecause = builtInDatabase ? poolIgnored : null,", source, StringComparison.Ordinal);
 
          int number = source.IndexOf("private class IniNumber : ComSetting, IIniSetting", StringComparison.Ordinal);
          int section = source.IndexOf("private class SectionIniNumber : IniNumber", StringComparison.Ordinal);
@@ -39,7 +40,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(source.Substring(number, section - number), "protected override FrameworkElement BuildEditor(object value)");
          Assert.True(build != null, "IniNumber.BuildEditor is gone.");
          Assert.Contains("if (Ignored)", build, StringComparison.Ordinal);
-         Assert.Contains("number_.IsEnabled = false;", build, StringComparison.Ordinal);
+
+         // Read-only, not disabled, as ComInert's box: a disabled box is skipped
+         // by the keyboard and, in most screen readers, not reachable at all.
+         Assert.Contains("number_.IsReadOnly = true;", build, StringComparison.Ordinal);
+         Assert.DoesNotContain("IsEnabled = false", build, StringComparison.Ordinal);
+         Assert.Contains("number_.SpinButtonPlacementMode = Wpf.Ui.Controls.NumberBoxSpinButtonPlacementMode.Hidden;", build, StringComparison.Ordinal);
+         Assert.Contains("number_.ClearButtonEnabled = false;", build, StringComparison.Ordinal);
+         Assert.Contains("AutomationProperties.SetHelpText(number_, IgnoredBecause);", build, StringComparison.Ordinal);
+
+         // And a save writes nothing of it.
+         string save = WithheldRowTests.MemberText(source.Substring(number, section - number), "public bool SaveToIni()");
+         Assert.True(save != null, "IniNumber.SaveToIni is gone.");
+         Assert.Contains("if (Ignored ||", save, StringComparison.Ordinal);
       }
 
       [Fact]
