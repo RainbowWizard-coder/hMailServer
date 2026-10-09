@@ -14954,6 +14954,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="its work folder was already there" xml:space="preserve">
     <value>dess arbetsmapp fanns redan</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>nyss</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>behåll en kopia av varje meddelande</value>
   </data>
@@ -15710,6 +15713,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} kunde inte läsas från den här datorn: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>för {0} d sedan</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} d {1} tim</value>
   </data>
@@ -15772,6 +15778,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappar.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>för {0} tim sedan</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} tim {1} min</value>
@@ -15916,6 +15925,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>för {0} min sedan</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minut sedan</value>

@@ -37,5 +37,29 @@ namespace hMailServer.ControlPanel.Services
 
          return F("{0} days ago", (int)age.TotalDays);
       }
+
+      /// <summary>
+      /// The same age in a grid's cell, in each language's short units - just now,
+      /// minutes, hours up to two days, then days - where the whole phrase is the cell's
+      /// tool tip: "less than a minute ago" took the Quarantine page's Held column to
+      /// 140 pixels and "vor weniger als einer Minute" to 190, and the addresses and the
+      /// subject beside it were cut (review finding F261).
+      /// </summary>
+      public static string Short(TimeSpan age)
+      {
+         if (age < TimeSpan.Zero)
+            age = TimeSpan.Zero;
+
+         if (age.TotalMinutes < 1)
+            return L("just now");
+
+         if (age.TotalHours < 1)
+            return F("{0} min ago", (int)age.TotalMinutes);
+
+         if (age.TotalDays < 2)
+            return F("{0} h ago", (int)age.TotalHours);
+
+         return F("{0} d ago", (int)age.TotalDays);
+      }
    }
 }

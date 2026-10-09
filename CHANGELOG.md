@@ -1770,11 +1770,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   reason of the selected message is now shown under the list and is part of the row's accessible name, which a screen
   reader says once as the selection moves; a search above the list finds held messages by sender, recipients, subject
   or reason, says when it finds none, and, where the server listed only its most recent, that it looked at those. Held
-  is how long ago the message was held where the server's clock is this computer's, and the reader's date and time
-  where it is not, the whole time in the tool tip marked as the server's, where it was the database's raw string in
-  every language. Sender is twice and Recipients one and a half times as wide as the HELO name, which is left out
-  where the window is narrower than the sidebar's threshold, and Held and Score are as wide as their widest word, so
-  that the addresses are no longer cut while Subject has room to spare, and Subject is no longer cut to a few letters.
+  is how long ago the message was held, in short units ("5 h ago"), where the server's clock is this computer's, and
+  the reader's date and time where it is not, the age in words and the whole time in the tool tip marked as the
+  server's, where it was the database's raw string in every language. The text columns share the width the grid itself
+  has, not the window's: the HELO name has a column only where the grid is 1000 pixels wide or more, its headers icon
+  now beside the preview's in the subject; the sender and the subject are each as wide as their longest, up to a
+  limit, wherever there is room for both - at 1280 pixels with the sidebar open, the sample's addresses and subjects
+  are whole in English, German and Japanese - and share what there is where there is not; the recipients keep a column
+  where there is room for it as well, which in the narrowest window there is not; and Held and Score are as wide as
+  their widest word, with room for the sort arrow on the column sorted by. At 1280 pixels the addresses and the HELO
+  name were cut while Subject had room to spare.
 
 - **Fixed: the spam filtering overview's structure was flat, its scores unlabelled, and it left out the external
   filtering engine.** The card titles and the two phase headings were one size and weight, with no heading level on

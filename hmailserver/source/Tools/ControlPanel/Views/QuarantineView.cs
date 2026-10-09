@@ -120,9 +120,22 @@ namespace hMailServer.ControlPanel.Views
       private object emptyAction_;
       private int total_;
 
-      // The HELO column, left out where the window is narrower than the sidebar's
-      // threshold, so that Sender and Subject keep their room.
+      // The text columns, which share what the fixed ones leave of the grid's width
+      // (LayOutTextColumns_): the HELO name only where the grid is wide, and the
+      // recipients where the sender's, their own and the subject's floors fit.
       private DataGridColumn heloColumn_;
+      private DataGridColumn senderColumn_;
+      private DataGridColumn recipientsColumn_;
+      private DataGridColumn subjectColumn_;
+
+      // What the widest sender, recipients and subject of the rows bound need,
+      // measured as they are bound (MeasureTextColumns_).
+      private double senderNeed_;
+      private double recipientsNeed_;
+      private double subjectNeed_;
+
+      // An icon button in a cell: a 16-pixel glyph, its padding and its margin.
+      private const double CellIconWidth = 16 + 4 + 4 + 1 + 1;
 
       // Held and Score at the width of their widest word, set as the rows are bound
       // (SizeFixedColumns_). As Auto columns they grew after the star columns had
@@ -308,6 +321,7 @@ namespace hMailServer.ControlPanel.Views
       {
          whyCard_.Visibility = Visibility.Collapsed;
          SizeFixedColumns_();
+         MeasureTextColumns_();
          list_.ItemsSource = review_.Rows;
          selectAll_.IsChecked = review_.AllChecked;
 
@@ -403,16 +417,28 @@ namespace hMailServer.ControlPanel.Views
          return text;
       }
 
-      /// <summary>An icon before the text, for the headers and the preview; shown on message rows only.</summary>
-      private static FrameworkElementFactory WithIcon_(string action, SymbolRegular symbol, string tipPath, string textPath, string textTipPath, string keyTipPath = null, string key = null)
+      /// <summary>
+      /// The headers and the preview before the subject: the two looks at the message
+      /// itself. The headers' icon was the HELO column's, which the grid leaves out
+      /// where it is narrow (LayOutTextColumns_), so it would have gone with it.
+      /// </summary>
+      private static FrameworkElementFactory SubjectCell_()
       {
          var dock = new FrameworkElementFactory(typeof(DockPanel));
          dock.SetValue(DockPanel.LastChildFillProperty, true);
 
-         FrameworkElementFactory button = IconButton_(action, symbol, null, false, tipPath, keyTipPath, key);
-         button.SetValue(DockPanel.DockProperty, Dock.Left);
-         dock.AppendChild(button);
-         dock.AppendChild(Trimmed_(textPath, textTipPath));
+         foreach ((string action, SymbolRegular symbol, string tipPath, string keyTipPath, string key) in new[]
+         {
+            ("headers", SymbolRegular.DocumentHeader24, nameof(QuarantineRow.HeadersTip), nameof(QuarantineRow.HeadersKeyTip), QuarantineRow.HeadersKey),
+            ("preview", SymbolRegular.Glance24, nameof(QuarantineRow.PreviewTip), nameof(QuarantineRow.PreviewKeyTip), QuarantineRow.PreviewKey)
+         })
+         {
+            FrameworkElementFactory button = IconButton_(action, symbol, null, false, tipPath, keyTipPath, key);
+            button.SetValue(DockPanel.DockProperty, Dock.Left);
+            dock.AppendChild(button);
+         }
+
+         dock.AppendChild(Trimmed_(nameof(QuarantineRow.Subject), nameof(QuarantineRow.SubjectTip)));
          return dock;
       }
 
@@ -582,32 +608,33 @@ namespace hMailServer.ControlPanel.Views
             // never narrower than the word naming it.
             Width = DataGridLength.Auto
          };
-         // The reader's date and time and how long ago; the whole time, as the
-         // server's, in the tool tip.
+         // How long ago, or the reader's date and time; the age in words and the
+         // whole time, as the server's, in the tool tip.
          var heldText = new Style(typeof(TextBlock));
          heldText.Setters.Add(new Setter(ToolTipProperty, new Binding(nameof(QuarantineRow.HeldTip))));
          held.ElementStyle = heldText;
          heldColumn_ = held;
          list_.Columns.Add(held);
 
-         // Sender twice and Recipients one and a half times the HELO name, the
-         // sender never under 140 pixels: at 1280 the three shared alike and the
-         // addresses were cut ("sender0@mas...") while Subject had room to spare
+         // The text columns share what the fixed ones leave, Sender twice, Recipients
+         // one and a half times and Subject two and a half times the HELO name, each
+         // floored as LayOutTextColumns_ works out: at 1280 the four shared alike and
+         // the addresses were cut ("sender0@mas...") while Subject had room to spare
          // (review finding F261).
          heloColumn_ = TemplateColumn_(L("HELO"),
-            WithIcon_("headers", SymbolRegular.DocumentHeader24, nameof(QuarantineRow.HeadersTip), nameof(QuarantineRow.Helo), nameof(QuarantineRow.HeloTip), nameof(QuarantineRow.HeadersKeyTip), QuarantineRow.HeadersKey),
+            Trimmed_(nameof(QuarantineRow.Helo), nameof(QuarantineRow.HeloTip)),
             new DataGridLength(1, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Helo));
          list_.Columns.Add(heloColumn_);
 
-         DataGridTemplateColumn sender = TemplateColumn_(L("Sender"),
+         senderColumn_ = TemplateColumn_(L("Sender"),
             Trimmed_(nameof(QuarantineRow.Sender), nameof(QuarantineRow.SenderTip)),
             new DataGridLength(2, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Sender));
-         sender.MinWidth = 140;
-         list_.Columns.Add(sender);
+         list_.Columns.Add(senderColumn_);
 
-         list_.Columns.Add(TemplateColumn_(L("Recipients"),
+         recipientsColumn_ = TemplateColumn_(L("Recipients"),
             Trimmed_(nameof(QuarantineRow.Recipients), nameof(QuarantineRow.RecipientsTip)),
-            new DataGridLength(1.5, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Recipients)));
+            new DataGridLength(1.5, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Recipients));
+         list_.Columns.Add(recipientsColumn_);
 
          var score = new DataGridTextColumn
          {
@@ -620,9 +647,9 @@ namespace hMailServer.ControlPanel.Views
          scoreColumn_ = score;
          list_.Columns.Add(score);
 
-         list_.Columns.Add(TemplateColumn_(L("Subject"),
-            WithIcon_("preview", SymbolRegular.Glance24, nameof(QuarantineRow.PreviewTip), nameof(QuarantineRow.Subject), nameof(QuarantineRow.SubjectTip), nameof(QuarantineRow.PreviewKeyTip), QuarantineRow.PreviewKey),
-            new DataGridLength(2, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Subject)));
+         subjectColumn_ = TemplateColumn_(L("Subject"), SubjectCell_(),
+            new DataGridLength(2.5, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Subject));
+         list_.Columns.Add(subjectColumn_);
 
          // Why this message was held, which is the question the page exists to
          // answer and has no column of its own because the reasons are sentences.
@@ -1339,29 +1366,29 @@ namespace hMailServer.ControlPanel.Views
          parts.Children.Add(whyCard_);
          list_.SelectionChanged += (_, _) => ShowWhy_();
 
-         // The HELO column goes where the window is narrower than the sidebar's
-         // threshold, where the four address columns could not all be read.
-         SizeChanged += (_, _) =>
+         // The text columns as wide as the grid itself is - not the window, which at
+         // 1280 pixels with the sidebar open gives the grid some 920 - and again as
+         // its scroll bar comes and goes.
+         list_.SizeChanged += (_, _) => LayOutTextColumns_();
+         list_.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, e) =>
          {
-            double window = Window.GetWindow(this)?.ActualWidth ?? double.MaxValue;
-            if (heloColumn_ != null)
-               heloColumn_.Visibility = window < DesignTokens.Shell.CollapseSidebarBelow ? Visibility.Collapsed : Visibility.Visible;
-         };
+            if (e.ViewportWidthChange != 0)
+               LayOutTextColumns_();
+         }));
 
          Content = root;
       }
 
       /// <summary>
-      /// Held and Score as wide as their headers - with room for the sort arrow - and
-      /// their widest words, so that the star columns share what is left of the width
-      /// and Subject keeps its share.
+      /// Held and Score as wide as their headers - with room for the sort arrow on the
+      /// column sorted by - and their widest words, so that the text columns share what
+      /// is left of the width.
       /// </summary>
       private void SizeFixedColumns_()
       {
-         const double SortArrow = 16;
          if (heldColumn_ != null)
          {
-            double held = GridStyles.HeaderWidth(L("Held")) + SortArrow;
+            double held = GridStyles.HeaderWidth(L("Held")) + SortArrow_(QuarantineColumn.Held);
             foreach (QuarantineRow row in review_.Rows)
             {
                if (row.IsMessage)
@@ -1371,7 +1398,69 @@ namespace hMailServer.ControlPanel.Views
          }
 
          if (scoreColumn_ != null)
-            scoreColumn_.Width = new DataGridLength(Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("Score")) + SortArrow, GridStyles.CellWidth("1000")))); // no-loc: the widest score
+            scoreColumn_.Width = new DataGridLength(Math.Ceiling(Math.Max(GridStyles.HeaderWidth(L("Score")) + SortArrow_(QuarantineColumn.Score), GridStyles.CellWidth("1000")))); // no-loc: the widest score
+      }
+
+      /// <summary>The room a header keeps for the sort arrow: on the column sorted by, which alone shows one.</summary>
+      private double SortArrow_(QuarantineColumn column) => review_.SortColumn == column ? 16 : 0;
+
+      /// <summary>What the widest sender, recipients and subject of the rows bound need, the subject's two icons with it.</summary>
+      private void MeasureTextColumns_()
+      {
+         senderNeed_ = recipientsNeed_ = subjectNeed_ = 0;
+         foreach (QuarantineRow row in review_.Rows)
+         {
+            if (!row.IsMessage)
+               continue;
+
+            senderNeed_ = Math.Max(senderNeed_, GridStyles.CellWidth(row.Sender));
+            recipientsNeed_ = Math.Max(recipientsNeed_, GridStyles.CellWidth(row.Recipients));
+            subjectNeed_ = Math.Max(subjectNeed_, GridStyles.CellWidth(row.Subject, 2 * CellIconWidth));
+         }
+
+         LayOutTextColumns_();
+      }
+
+      /// <summary>
+      /// The text columns for the grid's width (QuarantineReview.Columns): the HELO name
+      /// only where the grid is 1000 pixels wide or more - its own width, where the
+      /// window's was asked, which at 1280 with the sidebar open kept the HELO column
+      /// beside cut addresses - the recipients where the floors fit, and the sender and
+      /// the subject floored at what they need, so that both are whole wherever there is
+      /// room for both. The room is the grid's viewport, its vertical scroll bar left
+      /// out, less the fixed columns.
+      /// </summary>
+      private void LayOutTextColumns_()
+      {
+         if (heloColumn_ == null || list_.ActualWidth <= 0)
+            return;
+
+         ScrollViewer scroller = GridScroller_(list_);
+         double viewport = scroller != null && scroller.ViewportWidth > 0 ? scroller.ViewportWidth : list_.ActualWidth;
+         double room = viewport - CheckWidth - ActionsWidth - heldColumn_.Width.Value - scoreColumn_.Width.Value;
+
+         QuarantineColumnLayout layout = QuarantineReview.Columns(list_.ActualWidth, room, senderNeed_, recipientsNeed_, subjectNeed_);
+         heloColumn_.Visibility = layout.ShowsHelo ? Visibility.Visible : Visibility.Collapsed;
+         recipientsColumn_.Visibility = layout.ShowsRecipients ? Visibility.Visible : Visibility.Collapsed;
+         senderColumn_.MinWidth = Math.Max(1, layout.SenderMin);
+         subjectColumn_.MinWidth = Math.Max(1, layout.SubjectMin);
+         if (layout.ShowsRecipients)
+            recipientsColumn_.MinWidth = Math.Max(1, layout.RecipientsMin);
+      }
+
+      private static ScrollViewer GridScroller_(DependencyObject node)
+      {
+         for (int i = 0; i < VisualTreeHelper.GetChildrenCount(node); i++)
+         {
+            DependencyObject child = VisualTreeHelper.GetChild(node, i);
+            if (child is ScrollViewer scroller)
+               return scroller;
+            ScrollViewer inner = GridScroller_(child);
+            if (inner != null)
+               return inner;
+         }
+
+         return null;
       }
 
       /// <summary>Why the selected message was held, or nothing for a group or no selection.</summary>

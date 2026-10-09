@@ -112,13 +112,14 @@ namespace hMailServer.ControlPanel.Services
       public string GroupCount => !IsGroup ? "" : Plural(Members.Count, "{0} message", "{0} messages");
 
       /// <summary>
-      /// When the message was held: how long ago, where the server's clock is this
-      /// computer's (review finding F247's rule), and the reader's short date and time
-      /// where it is not - the database's raw string, the same in every language, it
-      /// was. The tool tip is the whole time, marked as the server's.
+      /// When the message was held: how long ago, in short units, where the server's
+      /// clock is this computer's (review finding F247's rule), and the reader's short
+      /// date and time where it is not - the database's raw string, the same in every
+      /// language, it was. The tool tip is the age in words and the whole time, marked
+      /// as the server's.
       /// </summary>
       public string Held => Message == null ? "" : QuarantineReview.HeldText(Message.CreatedTime, agesFrom_);
-      public string HeldTip => Message == null ? null : QuarantineReview.HeldTip(Message.CreatedTime);
+      public string HeldTip => Message == null ? null : QuarantineReview.HeldTip(Message.CreatedTime, agesFrom_);
       public string Helo => Message?.Helo ?? "";
       public string HeloTip => Message == null ? null : Message.Helo.Length == 0 ? L("No HELO name was recorded") : Message.Helo;
 
@@ -177,6 +178,12 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The same, wherever the row is shown without the grid's row style.</summary>
       public override string ToString() => AccessibleName;
    }
+
+   /// <summary>
+   /// Which of the Quarantine grid's text columns are shown and the narrowest each may
+   /// be made (QuarantineReview.Columns).
+   /// </summary>
+   public readonly record struct QuarantineColumnLayout(bool ShowsHelo, bool ShowsRecipients, double SenderMin, double RecipientsMin, double SubjectMin);
 
    /// <summary>
    /// What the Quarantine page shows and what its selection is: the held messages,
@@ -243,11 +250,11 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// A held time as the Held column shows it: its age where
-      /// <paramref name="agesFrom"/> is the server's clock, which is short enough to
-      /// leave the addresses and the subject their room, and the reader's short date
-      /// and time where it is not; the text as it came where it is not a time. The
-      /// whole time is the tool tip (HeldTip).
+      /// A held time as the Held column shows it: its age in short units ("5 h ago")
+      /// where <paramref name="agesFrom"/> is the server's clock, which leaves the
+      /// addresses and the subject their room, and the reader's short date and time
+      /// where it is not; the text as it came where it is not a time. The age in words
+      /// and the whole time are the tool tip (HeldTip).
       /// </summary>
       public static string HeldText(string createdTime, DateTime? agesFrom)
       {
@@ -255,16 +262,75 @@ namespace hMailServer.ControlPanel.Services
          if (held == DateTime.MinValue)
             return createdTime ?? "";
 
-         return agesFrom is DateTime now ? AgeWords.Ago(now - held) : held.ToString("g", CultureInfo.CurrentCulture);
+         return agesFrom is DateTime now ? AgeWords.Short(now - held) : held.ToString("g", CultureInfo.CurrentCulture);
       }
 
-      /// <summary>The whole held time, marked as the server's.</summary>
-      public static string HeldTip(string createdTime)
+      /// <summary>
+      /// The whole held time, marked as the server's; after the age in words, on a line
+      /// of its own, where the cell shows the age.
+      /// </summary>
+      public static string HeldTip(string createdTime, DateTime? agesFrom = null)
       {
          DateTime held = HeldAt_(createdTime);
-         return held == DateTime.MinValue
-            ? createdTime ?? ""
-            : F("{0} (server time)", held.ToString("G", CultureInfo.CurrentCulture));
+         if (held == DateTime.MinValue)
+            return createdTime ?? "";
+
+         string time = F("{0} (server time)", held.ToString("G", CultureInfo.CurrentCulture));
+         return agesFrom is DateTime now ? AgeWords.Ago(now - held) + Environment.NewLine + time : time;
+      }
+
+      /// <summary>The grid's width from which the HELO name has a column (review finding F261).</summary>
+      public const double HeloFrom = 1000;
+
+      /// <summary>The floors of the text columns: the sender's (the finding's 140), the recipients', the subject's and the HELO name's.</summary>
+      public const double SenderFloor = 140;
+      public const double RecipientsFloor = 80;
+      public const double SubjectFloor = 200;
+      public const double HeloFloor = 100;
+
+      // A text column is not floored above these, so that one long subject or
+      // address does not take the others' room.
+      private const double SenderCap = 320;
+      private const double RecipientsCap = 320;
+      private const double SubjectCap = 420;
+
+      /// <summary>
+      /// How the Quarantine grid shares <paramref name="room"/>, the width its text
+      /// columns have beside the fixed ones (the box, the actions, Held and Score),
+      /// between the HELO name, the sender, the recipients and the subject, given what
+      /// the widest cell of each of the last three needs. At 1280 pixels the addresses
+      /// were cut while Subject had room, and then Subject and the HELO name were cut
+      /// to a few letters while the HELO column was kept (review finding F261).
+      ///
+      /// The HELO name has a column where the grid is <see cref="HeloFrom"/> wide or
+      /// more. The recipients have one where the sender's, their own and the subject's
+      /// floors fit. The sender and the subject are floored at what their widest cell
+      /// needs - from their floors up to a cap - so that both are whole wherever there
+      /// is room for both; where there is not, they share what there is in proportion
+      /// to their need, and nothing is wider than the room, so the grid never scrolls
+      /// sideways. The recipients are floored at what is left of their need.
+      /// </summary>
+      public static QuarantineColumnLayout Columns(double gridWidth, double room, double senderNeed, double recipientsNeed, double subjectNeed)
+      {
+         bool helo = gridWidth >= HeloFrom;
+         double text = Math.Max(0, room - (helo ? HeloFloor : 0));
+         bool recipients = text >= SenderFloor + RecipientsFloor + SubjectFloor;
+
+         double sender = Math.Clamp(senderNeed, SenderFloor, SenderCap);
+         double subject = Math.Clamp(subjectNeed, SubjectFloor, SubjectCap);
+         double forBoth = text - (recipients ? RecipientsFloor : 0);
+         if (sender + subject > forBoth)
+         {
+            double share = forBoth / (sender + subject);
+            sender *= share;
+            subject *= share;
+         }
+
+         double recipientsMin = recipients
+            ? Math.Max(RecipientsFloor, Math.Min(Math.Min(recipientsNeed, RecipientsCap), text - sender - subject))
+            : 0;
+
+         return new QuarantineColumnLayout(helo, recipients, Math.Floor(sender), Math.Floor(recipientsMin), Math.Floor(subject));
       }
 
       /// <summary>

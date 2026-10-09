@@ -14954,6 +14954,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="its work folder was already there" xml:space="preserve">
     <value>de werkmap bestond al</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>zojuist</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>een kopie van elk bericht bewaren</value>
   </data>
@@ -15710,6 +15713,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} kon niet vanaf deze machine worden gelezen: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>{0} d geleden</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} d {1} u</value>
   </data>
@@ -15772,6 +15778,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mappen.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>{0} u geleden</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} u {1} min</value>
@@ -15916,6 +15925,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>{0} min geleden</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} minuut geleden</value>

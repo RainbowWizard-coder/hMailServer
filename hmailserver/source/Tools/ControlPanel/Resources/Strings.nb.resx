@@ -14954,6 +14954,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="its work folder was already there" xml:space="preserve">
     <value>arbeidsmappen fantes allerede</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>akkurat nå</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>behold en kopi av hver melding</value>
   </data>
@@ -15710,6 +15713,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} kunne ikke leses fra denne maskinen: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>for {0} d siden</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} d {1} t</value>
   </data>
@@ -15772,6 +15778,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} mapper.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>for {0} t siden</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} t {1} min</value>
@@ -15916,6 +15925,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>for {0} min siden</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>for {0} minutt siden</value>

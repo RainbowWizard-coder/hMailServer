@@ -14954,6 +14954,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="its work folder was already there" xml:space="preserve">
     <value>作業フォルダーが既に存在しました</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>たった今</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>すべてのメッセージのコピーを保管する</value>
   </data>
@@ -15710,6 +15713,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} をこのコンピューターから読み取れませんでした: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>{0} 日前</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} 日 {1} 時間</value>
   </data>
@@ -15772,6 +15778,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>フォルダー {0} 件。</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>{0} 時間前</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} 時間 {1} 分</value>
@@ -15916,6 +15925,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>{0} 分前</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} 分前</value>

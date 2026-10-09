@@ -14954,6 +14954,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="its work folder was already there" xml:space="preserve">
     <value>çalışma klasörü zaten vardı</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>az önce</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>her iletinin bir kopyasını sakla</value>
   </data>
@@ -15710,6 +15713,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} bu makineden okunamadı: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>{0} gün önce</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} gün {1} sa</value>
   </data>
@@ -15772,6 +15778,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} klasör.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>{0} sa önce</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} sa {1} dk</value>
@@ -15916,6 +15925,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} dk</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>{0} dk önce</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} dakika önce</value>

@@ -14954,6 +14954,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="its work folder was already there" xml:space="preserve">
     <value>su carpeta de trabajo ya existía</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>ahora mismo</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>conservar una copia de cada mensaje</value>
   </data>
@@ -15710,6 +15713,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} no pudo leerse desde esta máquina: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>hace {0} d</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} d {1} h</value>
   </data>
@@ -15772,6 +15778,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} carpetas.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>hace {0} h</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} h {1} min</value>
@@ -15916,6 +15925,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>hace {0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>hace {0} minuto</value>

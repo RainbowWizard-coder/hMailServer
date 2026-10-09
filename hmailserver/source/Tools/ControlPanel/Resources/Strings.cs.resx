@@ -15118,6 +15118,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="its work folder was already there" xml:space="preserve">
     <value>jeho pracovní složka už existovala</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>právě teď</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>uchovávat kopii každé zprávy</value>
   </data>
@@ -15937,6 +15940,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>{0} se z tohoto počítače nepodařilo přečíst: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>před {0} dny</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} d {1} h</value>
   </data>
@@ -16020,6 +16026,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>{0} složky.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>před {0} h</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} h {1} min</value>
@@ -16194,6 +16203,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} min</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>před {0} min</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>před {0} minutou</value>

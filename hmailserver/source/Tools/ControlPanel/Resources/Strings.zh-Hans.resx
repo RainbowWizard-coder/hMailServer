@@ -14954,6 +14954,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="its work folder was already there" xml:space="preserve">
     <value>其工作文件夹已经存在</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>保留每封邮件的副本</value>
   </data>
@@ -15710,6 +15713,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>无法从本机读取 {0}：{1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>{0} 天前</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} 天 {1} 小时</value>
   </data>
@@ -15772,6 +15778,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} folders." xml:space="preserve">
     <value>{0} 个文件夹。</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>{0} 小时前</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} 小时 {1} 分钟</value>
@@ -15916,6 +15925,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} 分钟</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>{0} 分钟前</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} 分钟前</value>

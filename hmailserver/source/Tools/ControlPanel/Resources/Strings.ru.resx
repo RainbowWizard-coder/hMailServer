@@ -15118,6 +15118,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="its work folder was already there" xml:space="preserve">
     <value>его рабочая папка уже существовала</value>
   </data>
+  <data name="just now" xml:space="preserve">
+    <value>только что</value>
+  </data>
   <data name="keep a copy of every message" xml:space="preserve">
     <value>хранить копию каждого сообщения</value>
   </data>
@@ -15937,6 +15940,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
     <value>Не удалось прочитать {0} с этого компьютера: {1}</value>
   </data>
+  <data name="{0} d ago" xml:space="preserve">
+    <value>{0} дн. назад</value>
+  </data>
   <data name="{0} d {1} h" xml:space="preserve">
     <value>{0} д {1} ч</value>
   </data>
@@ -16020,6 +16026,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} folders.|few" xml:space="preserve">
     <value>Папок: {0}.</value>
+  </data>
+  <data name="{0} h ago" xml:space="preserve">
+    <value>{0} ч назад</value>
   </data>
   <data name="{0} h {1} min" xml:space="preserve">
     <value>{0} ч {1} мин</value>
@@ -16194,6 +16203,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} мин</value>
+  </data>
+  <data name="{0} min ago" xml:space="preserve">
+    <value>{0} мин назад</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} мин. назад</value>

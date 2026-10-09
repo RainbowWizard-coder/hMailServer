@@ -92,14 +92,98 @@ namespace hMailServer.ControlPanel.Tests.Services
          string when = new DateTime(2026, 10, 8, 3, 42, 0).ToString("g", System.Globalization.CultureInfo.CurrentCulture);
 
          Assert.Equal(when, QuarantineReview.HeldText("2026-10-08 03:42:00", null));
-         Assert.Equal("15 hours ago", QuarantineReview.HeldText("2026-10-08 03:42:00", new DateTime(2026, 10, 8, 18, 50, 0)));
+         Assert.Equal("15 h ago", QuarantineReview.HeldText("2026-10-08 03:42:00", new DateTime(2026, 10, 8, 18, 50, 0)));
          Assert.EndsWith(" (server time)", QuarantineReview.HeldTip("2026-10-08 03:42:00"), StringComparison.Ordinal);
          Assert.Equal("not a time", QuarantineReview.HeldText("not a time", DateTime.Now));
+
+         // The age in words and the whole time in the tool tip, where the cell is the age.
+         string tip = QuarantineReview.HeldTip("2026-10-08 03:42:00", new DateTime(2026, 10, 8, 18, 50, 0));
+         Assert.StartsWith("15 hours ago" + Environment.NewLine, tip, StringComparison.Ordinal);
+         Assert.EndsWith(" (server time)", tip, StringComparison.Ordinal);
 
          var review = new QuarantineReview { AgesFrom = new DateTime(2026, 10, 8, 4, 0, 0) };
          review.Load(Held);
          review.SetGrouping(QuarantineGrouping.None);
-         Assert.Equal("18 minutes ago", review.Rows[0].Held);
+         Assert.Equal("18 min ago", review.Rows[0].Held);
+         Assert.StartsWith("18 minutes ago", review.Rows[0].HeldTip, StringComparison.Ordinal);
+      }
+
+      [Theory]
+      [InlineData(0.5, "just now")]
+      [InlineData(60, "1 min ago")]
+      [InlineData(600, "10 min ago")]
+      [InlineData(3600 * 26, "26 h ago")]
+      [InlineData(3600 * 24 * 13, "13 d ago")]
+      [InlineData(-5, "just now")]
+      public void AnAgeInACell_IsInShortUnits(double seconds, string expected)
+         => Assert.Equal(expected, AgeWords.Short(TimeSpan.FromSeconds(seconds)));
+
+      // ---- the text columns' widths -----------------------------------------------------
+
+      // What the seed's widest sender, recipients and subject (its two icons with it)
+      // need at 100 %, near enough: sender0@mass-mail.example, user00@example.com,
+      // Account verification required.
+      private const double SenderNeed = 200, RecipientsNeed = 152, SubjectNeed = 244;
+
+      [Fact]
+      public void At1280_TheSenderAndTheSubjectAreWhole_AndTheHeloNameIsLeftOut()
+      {
+         // A 1280 window with the sidebar open gives the grid 921 pixels, of which the
+         // box, the actions, Held and Score take some 320 in English and 390 in German.
+         QuarantineColumnLayout english = QuarantineReview.Columns(921, 600, SenderNeed, RecipientsNeed, SubjectNeed);
+         Assert.False(english.ShowsHelo);
+         Assert.True(english.ShowsRecipients);
+         Assert.Equal(SenderNeed, english.SenderMin);
+         Assert.Equal(SubjectNeed, english.SubjectMin);
+         Assert.Equal(RecipientsNeed, english.RecipientsMin);
+
+         QuarantineColumnLayout german = QuarantineReview.Columns(921, 530, SenderNeed, RecipientsNeed, SubjectNeed);
+         Assert.True(german.ShowsRecipients);
+         Assert.Equal(SenderNeed, german.SenderMin);
+         Assert.Equal(SubjectNeed, german.SubjectMin);
+         Assert.Equal(86, german.RecipientsMin);   // what is left, over its floor
+         Assert.True(german.SenderMin + german.RecipientsMin + german.SubjectMin <= 530);
+      }
+
+      [Fact]
+      public void TheHeloName_IsShownByTheGridsOwnWidth_NotTheWindows()
+      {
+         Assert.False(QuarantineReview.Columns(999, 680, SenderNeed, RecipientsNeed, SubjectNeed).ShowsHelo);
+         QuarantineColumnLayout wide = QuarantineReview.Columns(1000, 680, SenderNeed, RecipientsNeed, SubjectNeed);
+         Assert.True(wide.ShowsHelo);
+         Assert.True(wide.SenderMin + wide.RecipientsMin + wide.SubjectMin + QuarantineReview.HeloFloor <= 680);
+      }
+
+      [Fact]
+      public void WhereTheyCannotBeWhole_TheSenderAndTheSubjectShare_AndNothingIsWiderThanTheRoom()
+      {
+         // The narrowest window, 760 by 520, gives the text columns some 316 pixels:
+         // the recipients' column goes, and the sender and the subject share the rest
+         // in proportion to their need.
+         QuarantineColumnLayout narrow = QuarantineReview.Columns(633, 316, SenderNeed, RecipientsNeed, SubjectNeed);
+         Assert.False(narrow.ShowsHelo);
+         Assert.False(narrow.ShowsRecipients);
+         Assert.True(narrow.SenderMin + narrow.SubjectMin <= 316);
+         Assert.True(narrow.SenderMin >= 140 && narrow.SubjectMin >= 170);
+
+         foreach (double room in new[] { 0.0, 40, 150, 300, 419, 420, 500, 800 })
+         {
+            QuarantineColumnLayout layout = QuarantineReview.Columns(700, room, SenderNeed, RecipientsNeed, SubjectNeed);
+            Assert.True(layout.SenderMin + layout.RecipientsMin + layout.SubjectMin <= Math.Max(room, 0) + 0.001, "wider than the room at " + room);
+            Assert.Equal(room >= QuarantineReview.SenderFloor + QuarantineReview.RecipientsFloor + QuarantineReview.SubjectFloor, layout.ShowsRecipients);
+         }
+      }
+
+      [Fact]
+      public void ShortTextIsFlooredAtTheFloors_AndLongTextAtTheCaps()
+      {
+         QuarantineColumnLayout shortText = QuarantineReview.Columns(921, 900, 40, 40, 60);
+         Assert.Equal(QuarantineReview.SenderFloor, shortText.SenderMin);
+         Assert.Equal(QuarantineReview.SubjectFloor, shortText.SubjectMin);
+         Assert.Equal(QuarantineReview.RecipientsFloor, shortText.RecipientsMin);
+
+         QuarantineColumnLayout longText = QuarantineReview.Columns(921, 2000, 2000, 2000, 2000);
+         Assert.True(longText.SenderMin < 400 && longText.RecipientsMin < 400 && longText.SubjectMin < 500);
       }
 
       [Theory]
@@ -134,12 +218,32 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(searchState.IndexOf("if (ReadFailure.IsShown(status_))", StringComparison.Ordinal) < searchState.IndexOf("StatusText.Show(", StringComparison.Ordinal),
             "A search after a failed read brings back the empty state's sentence, which says nothing is held.");
 
-         // Held's ages only where the clocks are one; Sender wider, HELO left out below the sidebar's threshold.
+         // Held's ages only where the clocks are one.
          Assert.Contains("review_.AgesFrom = ServerSession.IsLocalSession ? DateTime.Now : null;", view, StringComparison.Ordinal);
-         Assert.Contains("new DataGridLength(2, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Sender)", view, StringComparison.Ordinal);
-         Assert.Contains("sender.MinWidth = 140;", view, StringComparison.Ordinal);
-         Assert.Contains("new DataGridLength(1.5, DataGridLengthUnitType.Star), nameof(QuarantineColumn.Recipients)", view, StringComparison.Ordinal);
-         Assert.Contains("DesignTokens.Shell.CollapseSidebarBelow ? Visibility.Collapsed : Visibility.Visible", view, StringComparison.Ordinal);
+
+         // The text columns by the grid's own width, not the window's - which at 1280
+         // with the sidebar open kept the HELO column beside cut addresses - laid out
+         // as QuarantineReview.Columns says, again as the grid's size or its scroll
+         // bar changes and as the rows are bound.
+         Assert.DoesNotContain("Window.GetWindow(this)?.ActualWidth", view, StringComparison.Ordinal);
+         Assert.DoesNotContain("CollapseSidebarBelow", view, StringComparison.Ordinal);
+         Assert.Contains("list_.SizeChanged += (_, _) => LayOutTextColumns_();", view, StringComparison.Ordinal);
+         string layOut = WithheldRowTests.MemberText(view, "private void LayOutTextColumns_()");
+         Assert.True(layOut != null, "QuarantineView.LayOutTextColumns_ is gone.");
+         Assert.Contains("QuarantineReview.Columns(list_.ActualWidth, room, senderNeed_, recipientsNeed_, subjectNeed_)", layOut, StringComparison.Ordinal);
+         Assert.Contains("heloColumn_.Visibility = layout.ShowsHelo", layOut, StringComparison.Ordinal);
+         Assert.Contains("subjectColumn_.MinWidth", layOut, StringComparison.Ordinal);
+         string rebind = WithheldRowTests.MemberText(view, "private void Rebind_()");
+         Assert.Contains("MeasureTextColumns_();", rebind, StringComparison.Ordinal);
+
+         // The headers' icon is the subject's, beside the preview, so that it does not go
+         // with the HELO column; the HELO cell is its name alone.
+         string subject = WithheldRowTests.MemberText(view, "private static FrameworkElementFactory SubjectCell_()");
+         Assert.True(subject != null, "QuarantineView.SubjectCell_ is gone.");
+         Assert.Contains("(\"headers\", SymbolRegular.DocumentHeader24", subject, StringComparison.Ordinal);
+         Assert.Contains("(\"preview\", SymbolRegular.Glance24", subject, StringComparison.Ordinal);
+         Assert.Contains("Trimmed_(nameof(QuarantineRow.Helo), nameof(QuarantineRow.HeloTip))", view, StringComparison.Ordinal);
+         Assert.DoesNotContain("WithIcon_(", view, StringComparison.Ordinal);
       }
 
       private static string ReadControlPanelFile(string relative)
