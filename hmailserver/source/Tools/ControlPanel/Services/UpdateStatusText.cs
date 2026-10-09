@@ -31,9 +31,10 @@ namespace hMailServer.ControlPanel.Services
          {
             case 1: return string.IsNullOrEmpty(checkedAt) ? L("This is the latest release") : F("This is the latest release, checked {0}", checkedAt);
             case 2: return dated ? F("{0} is available (published {1})", version, published) : F("{0} is available", version);
-            case 3: return dated
-               ? F("{0} is downloaded and verified (published {1}); Install update applies it", version, published)
-               : F("{0} is downloaded and verified; Install update applies it", version);
+            case 3:
+               return dated
+                  ? F("{0} is downloaded and verified (published {1}); Install update applies it", version, published)
+                  : F("{0} is downloaded and verified; Install update applies it", version);
             case 4: return F("Installing {0}: the service will stop and start", version);
             case 5: return F("The last update step failed: {0}", error);
             case 6: return F("Preparing the install of {0}: {1}", version, PreparationStep(preparationStep));
