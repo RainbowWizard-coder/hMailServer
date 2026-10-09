@@ -11879,6 +11879,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>Oturum düz metinle başlar ve kullanılana kadar STARTTLS dışında hiçbir şeye izin verilmez; bu yüzden hiçbir kimlik bilgisi ve ileti gövdesi şifrelenmeden geçmez.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>Ayar düzeyleri kaydedildi.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Her aşamayı sınırlayan ayarlar</value>
   </data>

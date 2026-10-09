@@ -11879,6 +11879,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>La sessione inizia in chiaro e nulla al di fuori di STARTTLS è consentito finché non è stato usato, quindi nessuna credenziale e nessun corpo di messaggio attraversa la rete senza cifratura.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>I livelli di impostazioni sono stati salvati.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Le impostazioni che delimitano ciascuna fase</value>
   </data>

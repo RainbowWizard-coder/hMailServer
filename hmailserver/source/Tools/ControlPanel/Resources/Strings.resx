@@ -11879,6 +11879,9 @@ It will keep trying as you use the application.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>The setting levels were saved.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>The settings that bound each stage</value>
   </data>

@@ -12025,6 +12025,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>Relace začíná v otevřeném textu a dokud se nepoužije STARTTLS, není povoleno nic jiného, takže žádné přihlašovací údaje ani tělo zprávy neprojdou nešifrovaně.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>Úrovně nastavení byly uloženy.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Nastavení, která omezují každou fázi</value>
   </data>

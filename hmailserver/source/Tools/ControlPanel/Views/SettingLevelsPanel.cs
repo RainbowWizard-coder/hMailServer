@@ -262,10 +262,22 @@ namespace hMailServer.ControlPanel.Views
 
          Reload();
 
-         // A read that failed after the save says so, and is not written over: the
-         // levels on the tab are not the ones just saved.
+         // A read that failed after the save says so, with Try again, and is not
+         // written over: the levels on the tab are not the ones just saved. What the
+         // save did is said before it - what it could not write, "Could not save the
+         // setting levels:" and why when the domain or account could not be opened,
+         // or that it wrote everything - where the read's failure was all the tab
+         // said: under a lost link the save's own failure and the read's are one
+         // event, and the typed values went from the tab with nothing to say that the
+         // save had not happened.
          if (ReadFailure.IsShown(status_))
+         {
+            string saved = refused.Count == 0
+               ? L("The setting levels were saved.")
+               : string.Join(Environment.NewLine, refused);
+            status_.Show(StatusLevel.Critical, saved + Environment.NewLine + status_.Text);
             return;
+         }
 
          if (refused.Count == 0)
             status_.Show(StatusLevel.Good, L("Saved. What is in effect is shown beside each setting."));

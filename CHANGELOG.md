@@ -1218,7 +1218,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   levels:" and the reason, with Try again, which keeps its button and the keyboard when the read fails again and gives
   *Save levels now* back when it works; the older server and the save-it-first notes as Information; a save as Good,
   or the settings it could not write as Critical, and a save that could not open the domain or account at all as
-  "Could not save the setting levels:" and the reason. `FailureStateTests` holds the tab to each.
+  "Could not save the setting levels:" and the reason. When the levels cannot be read again after a save, the save's
+  outcome - what it could not write, or "The setting levels were saved." - stands before the read's failure and its Try
+  again, where the read's failure was all the tab said: under a lost link the typed values went from the tab and
+  nothing said that the save had not happened. `FailureStateTests` holds the tab to each.
 
 ### Administration
 

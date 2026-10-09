@@ -11879,6 +11879,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>セッションは平文で始まり、STARTTLS が使われるまでそれ以外は何も許可されないため、資格情報もメッセージ本文も暗号化されずに流れることはありません。</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>設定レベルを保存しました。</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>各ステージを制限する設定</value>
   </data>

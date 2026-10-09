@@ -11879,6 +11879,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>Die Sitzung beginnt im Klartext, und bis STARTTLS verwendet wurde, ist nichts anderes erlaubt, es überquert also keine Anmeldeinformation und kein Nachrichtentext unverschlüsselt das Netz.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>Die Einstellungsebenen wurden gespeichert.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Die Einstellungen, die jede Stufe begrenzen</value>
   </data>

@@ -11879,6 +11879,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>Istunto alkaa selväkielisenä, eikä ennen STARTTLS:n käyttöä sallita mitään muuta kuin se, joten tunnistetiedot ja viestin runko eivät koskaan kulje salaamattomina.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>Asetustasot tallennettiin.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Asetukset, jotka rajaavat kunkin vaiheen</value>
   </data>

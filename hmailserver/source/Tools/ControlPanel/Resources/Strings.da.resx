@@ -11879,6 +11879,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>Sessionen starter i klartekst, og intet andet end STARTTLS er tilladt, før det er brugt, så ingen legitimationsoplysninger og ingen brødtekst krydser ukrypteret.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>Indstillingsniveauerne blev gemt.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>De indstillinger, der begrænser hvert trin</value>
   </data>

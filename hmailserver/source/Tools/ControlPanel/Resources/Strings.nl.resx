@@ -11879,6 +11879,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>De sessie begint onversleuteld en er is niets anders dan STARTTLS toegestaan totdat die is gebruikt, dus geen enkele referentie en geen enkele berichtinhoud gaat onversleuteld over de lijn.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>De instellingsniveaus zijn opgeslagen.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>De instellingen die elke fase begrenzen</value>
   </data>

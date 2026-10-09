@@ -12025,6 +12025,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>Сессия начинается открытым текстом, и до применения STARTTLS не разрешено ничего, кроме него, поэтому ни учётные данные, ни тело сообщения не передаются незашифрованными.</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>Уровни параметров сохранены.</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>Параметры, ограничивающие каждый этап</value>
   </data>

@@ -11879,6 +11879,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The session starts in the clear and nothing but STARTTLS is permitted until it has been used, so no credential and no message body crosses unencrypted." xml:space="preserve">
     <value>会话以明文开始，在使用 STARTTLS 之前不允许任何其他命令，因此没有凭据和邮件正文会以未加密方式传输。</value>
   </data>
+  <data name="The setting levels were saved." xml:space="preserve">
+    <value>设置级别已保存。</value>
+  </data>
   <data name="The settings that bound each stage" xml:space="preserve">
     <value>限制各阶段的设置</value>
   </data>

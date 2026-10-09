@@ -490,7 +490,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          string save = WithheldRowTests.MemberText(source, "private void SaveLevels()");
          Assert.Contains("status_.Show(StatusLevel.Good, L(\"Saved. What is in effect is shown beside each setting.\"));", save, StringComparison.Ordinal);
          Assert.Contains("status_.Show(StatusLevel.Critical, string.Join(Environment.NewLine, refused));", save, StringComparison.Ordinal);
-         Assert.Contains("if (ReadFailure.IsShown(status_))", save, StringComparison.Ordinal);
+
+         // A read that fails after the save keeps its notice, its Try again and its
+         // sentence, and the save's outcome goes before it - the refusals, or that the
+         // levels were saved - where the read's failure dropped them: under a lost
+         // link nothing said that the save had not happened.
+         Match afterRead = Regex.Match(save, @"Reload\(\);(.*?)if \(ReadFailure\.IsShown\(status_\)\)\s*\{(.*?)\}", RegexOptions.Singleline);
+         Assert.True(afterRead.Success, "SaveLevels does not read the levels again after a save, or says nothing when that read fails.");
+         string kept = afterRead.Groups[2].Value;
+         Assert.Contains("refused.Count == 0", kept, StringComparison.Ordinal);
+         Assert.Contains("L(\"The setting levels were saved.\")", kept, StringComparison.Ordinal);
+         Assert.Contains("string.Join(Environment.NewLine, refused)", kept, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"status_\.Show\(StatusLevel\.Critical, \w+ \+ Environment\.NewLine \+ status_\.Text\);\s*return;\s*$"), kept);
+         Assert.DoesNotContain("ReadFailure.Clear", kept, StringComparison.Ordinal);
       }
 
       /// <summary>
