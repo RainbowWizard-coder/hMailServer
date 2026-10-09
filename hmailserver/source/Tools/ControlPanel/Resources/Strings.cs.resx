@@ -107,6 +107,9 @@ Přesto toto slabé heslo uložit?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> Adresář odpověděl: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Nejvyšší dosažitelný součet nelze říci: některou kontrolu se nepodařilo přečíst.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Soubor klíče nelze z tohoto počítače přečíst, takže zde nelze zobrazit hodnotu záznamu; karta DKIM u domény ji zobrazila při vytvoření klíče.</value>
   </data>

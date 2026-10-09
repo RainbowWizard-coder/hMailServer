@@ -107,6 +107,9 @@ Dieses schwache Passwort trotzdem speichern?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> Das Verzeichnis meldete: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Die höchste erreichbare Summe lässt sich nicht sagen: eine Prüfung konnte nicht gelesen werden.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Die Schlüsseldatei konnte auf diesem Rechner nicht gelesen werden, daher kann der Eintragswert hier nicht angezeigt werden; die DKIM-Registerkarte der Domäne hat ihn beim Erzeugen des Schlüssels angezeigt.</value>
   </data>

@@ -461,6 +461,30 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// What the verdict says of the highest total the enabled checks can reach,
+      /// after the stop score: the number; that the total is open-ended, which is a
+      /// statement about the configuration; or that it cannot be said, which is a
+      /// statement about the read. The two are not the same sentence: a check the
+      /// server did not answer leaves <see cref="HighestReachableScore"/> null as
+      /// a per-entry score does, and "open-ended" of it would describe a
+      /// configuration the page never saw.
+      /// </summary>
+      public static string CeilingSentence(SpamPipelineConfig config)
+      {
+         if (config == null)
+            return "";
+
+         if (Checks(config).Any(c => c.Unread))
+            return L(" The highest total reachable cannot be said: a check could not be read.");
+
+         int? ceiling = HighestReachableScore(config);
+
+         return ceiling != null
+            ? F(" With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
+            : L(" The total is open-ended, because a list entry or SpamAssassin's own score can be any size.");
+      }
+
+      /// <summary>
       /// Greylisting, described rather than scored. Deliberately says out loud that
       /// the two bypasses exist, because "greylisting is enabled and mail from that
       /// host is not being delayed" is nearly always one of them.

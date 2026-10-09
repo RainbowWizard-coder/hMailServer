@@ -107,6 +107,9 @@ Enregistrer quand même ce mot de passe faible ?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> L'annuaire a répondu : {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Le total le plus élevé atteignable ne peut pas être indiqué : une vérification n'a pas pu être lue.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Le fichier de clé n'a pas pu être lu depuis cette machine, la valeur de l'enregistrement ne peut donc pas être affichée ici ; l'onglet DKIM du domaine l'a affichée lors de la création de la clé.</value>
   </data>

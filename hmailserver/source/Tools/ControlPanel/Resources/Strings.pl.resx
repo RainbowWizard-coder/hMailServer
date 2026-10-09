@@ -107,6 +107,9 @@ Czy mimo to zapisać to słabe hasło?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> Katalog odpowiedział: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Nie można powiedzieć, jaka jest najwyższa osiągalna suma: nie udało się odczytać jednej z kontroli.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Nie udało się odczytać pliku klucza z tego komputera, więc wartość rekordu nie może być tu pokazana; karta DKIM domeny pokazała ją w chwili tworzenia klucza.</value>
   </data>

@@ -107,6 +107,9 @@ Spara det här svaga lösenordet ändå?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> Katalogen sade: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Det går inte att säga vilken den högsta nåbara summan är: en kontroll kunde inte läsas.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Nyckelfilen kunde inte läsas från den här datorn, så postens värde kan inte visas här; domänens DKIM-flik visade det när nyckeln skapades.</value>
   </data>

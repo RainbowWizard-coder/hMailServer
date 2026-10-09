@@ -494,7 +494,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   notice is above the sections it describes, where the virus and transport overviews pointed at "the rows above". The
   pipeline tests hold an unread check to neither on nor off, an unread threshold to no verdict and no threshold note,
   an unread scanner to no "cannot run" and no "nothing examines incoming mail", and unread listeners, versions and
-  ranges to none of the notes that follow from them.
+  ranges to none of the notes that follow from them. With a check unread, the spam overview's verdict card says that
+  the highest total reachable cannot be said, where it said the total was open-ended - a statement about a
+  configuration it never saw.
 - **Fixed: the quarantine page's empty state said quarantining was switched off whether it was or not.** With nothing
   held, the page always said "Nothing is held. Quarantining is switched off - turn it on under Anti-spam settings",
   under a warning glyph, and never read the switch: a server whose quarantine is on and merely empty was told it was

@@ -371,16 +371,15 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(SpamPipeline.Verdict(config), Typography.Body));
 
          // The stop score is the higher threshold: with a threshold unread it
-         // would be 0, and the sentence would say the server stops at once.
+         // would be 0, and the sentence would say the server stops at once. The
+         // ceiling sentence tells a check that could not be read from a total
+         // that is open-ended, which is the pipeline's to say.
          if (SpamPipeline.ThresholdsRead(config))
          {
             int stop = SpamPipeline.StopScore(config);
-            int? ceiling = SpamPipeline.HighestReachableScore(config);
 
             content.Children.Add(Paragraph(F("The score is added up across both phases. The server stops testing within a phase as soon as the running total reaches {0} - the higher of the two thresholds - so a check late in the order may never run.", stop)
-               + (ceiling != null
-                  ? F(" With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
-                  : L(" The total is open-ended, because a list entry or SpamAssassin's own score can be any size.")),
+               + SpamPipeline.CeilingSentence(config),
                Typography.Caption));
          }
 

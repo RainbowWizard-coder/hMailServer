@@ -107,6 +107,9 @@ Dit zwakke wachtwoord toch opslaan?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> De directory zei: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Het hoogst haalbare totaal valt niet te zeggen: een controle kon niet worden gelezen.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Het sleutelbestand kon niet vanaf deze machine worden gelezen, dus de recordwaarde kan hier niet worden getoond; het DKIM-tabblad van het domein toonde die toen de sleutel werd gemaakt.</value>
   </data>

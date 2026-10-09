@@ -107,6 +107,9 @@
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> ディレクトリからの応答: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> 到達し得る合計の最大値は判断できません: チェックを読み取れませんでした。</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> 鍵ファイルをこのコンピューターから読み取れなかったため、レコードの値をここに表示できません。この値は、鍵を作成したときにドメインの DKIM タブに表示されています。</value>
   </data>

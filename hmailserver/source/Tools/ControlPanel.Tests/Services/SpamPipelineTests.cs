@@ -600,6 +600,28 @@ namespace hMailServer.ControlPanel.Tests.Services
          // nothing is said of it in the notes.
          Assert.Null(SpamPipeline.HighestReachableScore(config));
          Assert.DoesNotContain(SpamPipeline.Notes(config), n => n.Text.Contains("SPF"));
+
+         // ... and the verdict says so. "Open-ended" is a statement about the
+         // configuration - a per-entry score, SpamAssassin's own - and the page
+         // printed it of a value the server did not answer.
+         string ceiling = SpamPipeline.CeilingSentence(config);
+         Assert.Contains("could not be read", ceiling);
+         Assert.DoesNotContain("open-ended", ceiling);
+      }
+
+      [Fact]
+      public void TheCeilingSentence_StatesTheNumber_OrThatTheTotalIsOpenEnded_WhenEveryCheckWasRead()
+      {
+         // The shipped defaults: DMARC alone, at 5.
+         SpamPipelineConfig config = Defaults();
+         Assert.Contains("is 5.", SpamPipeline.CeilingSentence(config));
+
+         // An active blacklist scores per entry, so the total has no ceiling.
+         config.ActiveDnsBlackLists = 1;
+         config.TotalDnsBlackLists = 1;
+         string openEnded = SpamPipeline.CeilingSentence(config);
+         Assert.Contains("open-ended", openEnded);
+         Assert.DoesNotContain("could not be read", openEnded);
       }
 
       [Fact]

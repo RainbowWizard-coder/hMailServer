@@ -107,6 +107,9 @@ Salvare comunque questa password debole?</value>
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> La directory ha risposto: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> Non si può dire il totale massimo raggiungibile: un controllo non è stato letto.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> Il file della chiave non è leggibile da questa macchina, quindi il valore del record non può essere mostrato qui; la scheda DKIM del dominio lo ha mostrato quando la chiave è stata creata.</value>
   </data>

@@ -107,6 +107,9 @@
   <data name=" The directory said: {0}" xml:space="preserve">
     <value> El directorio dijo: {0}</value>
   </data>
+  <data name=" The highest total reachable cannot be said: a check could not be read." xml:space="preserve">
+    <value> No se puede decir el total más alto alcanzable: no se pudo leer una comprobación.</value>
+  </data>
   <data name=" The key file could not be read from this machine, so the record value cannot be shown here; the domain's DKIM tab showed it when the key was made." xml:space="preserve">
     <value> El archivo de clave no pudo leerse desde esta máquina, así que el valor del registro no puede mostrarse aquí; la pestaña DKIM del dominio lo mostró al crear la clave.</value>
   </data>
