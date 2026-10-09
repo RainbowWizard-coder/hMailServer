@@ -1070,6 +1070,17 @@ namespace hMailServer.ControlPanel.Views
       private readonly IniFeatureStore store_ = new();
       private List<CardDef> cards_;
 
+      // Why this build of the page read hMailServer.ini on this computer in place
+      // of the server, and the notice that says so; null when every read the build
+      // made was answered. Taken when the page is built, and what Save_ refuses
+      // on: the store's own FallbackCause is live - a warning's read on an editor
+      // change sets it - and a save that refused on that after a build that had
+      // read cleanly did nothing and said nothing. The notice is kept in words,
+      // since putting a lost link into words has the session repair it, which
+      // must not happen again for an old failure.
+      private Exception readFromFile_;
+      private string readFromFileNotice_;
+
       /// <summary>One built warning: the definition and the notice it drives.</summary>
       private class WarningRow
       {
@@ -2954,6 +2965,8 @@ namespace hMailServer.ControlPanel.Views
          CardsPanel.Children.Clear();
          warningRows_.Clear();
          store_.ForgetFallback();
+         readFromFile_ = null;
+         readFromFileNotice_ = null;
 
          AssignAccessibleNames();
 
@@ -3023,11 +3036,10 @@ namespace hMailServer.ControlPanel.Views
          // connected, is Read from file at Warning.
          if (store_.FallbackCause != null)
          {
-            PathText.Text = F("Read from {0} on this computer.", store_.IniPath);
-            SaveButton.IsEnabled = false;
-            SetState_(SettingsPageStatus.ForFallback(store_.FallbackCause),
-               F("The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers.",
-                  ServerSession.DescribeComError(store_.FallbackCause)));
+            readFromFile_ = store_.FallbackCause;
+            readFromFileNotice_ = F("The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers.",
+               ServerSession.DescribeComError(readFromFile_));
+            SayReadFromFile_();
             return;
          }
 
@@ -3047,6 +3059,20 @@ namespace hMailServer.ControlPanel.Views
       {
          RefreshWarnings_();
          saveState_.Follow();
+      }
+
+      /// <summary>
+      /// What the page says while this build's values are the file's
+      /// (<see cref="readFromFile_"/>): the line under the header names the file,
+      /// Save is held, and the pill and the notice say why, in the state the cause
+      /// makes and at its level. Said when the page is built, and again when a save
+      /// is refused for it.
+      /// </summary>
+      private void SayReadFromFile_()
+      {
+         PathText.Text = F("Read from {0} on this computer.", store_.IniPath);
+         SaveButton.IsEnabled = false;
+         SetState_(SettingsPageStatus.ForFallback(readFromFile_), readFromFileNotice_);
       }
 
       /// <summary>
@@ -3164,11 +3190,17 @@ namespace hMailServer.ControlPanel.Views
          if (!store_.IsAvailable)
             return false;
 
-         // Values read from the file when the server could not be asked are not
-         // written back over what the server holds: the notice says why, and the
-         // question before leaving the page, whose Save comes here, stays on it.
-         if (store_.FallbackCause != null)
+         // Values this build read from the file when the server could not be asked
+         // are not written back over what the server holds, and the refusal is said:
+         // the question before leaving the page, whose Save comes here, stays on it
+         // under the notice that says why. A read that fell back after a build that
+         // read cleanly - a warning's, on an editor change - does not stop the save,
+         // whose write then says why it failed if the server is still not there.
+         if (readFromFile_ != null)
+         {
+            SayReadFromFile_();
             return false;
+         }
 
          // A secret given a new value and ticked for removal both: refused before
          // anything on the page is written, in the notice under the header.

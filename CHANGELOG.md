@@ -1198,7 +1198,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   settings store and the file only its cache, which may not be what the server runs. `IniFeatureStore` now remembers a
   read that fell back, and why; such a page says that the server could not be asked, with the reason, that the values
   are the file's on this computer and may differ from what the server runs, and that nothing can be saved until the
-  server answers, and its Save waits for the server. Its pill and its notice say so at the one level of the cause, as
+  server answers, and its Save waits for the server: a save of values the page was built from the file with is
+  refused and says why, the question before leaving the page included, and a read that falls back after a build that
+  read cleanly - a warning's, on an editor change - no longer stops a save without a word, since the write itself then
+  says why it failed. Its pill and its notice say so at the one level of the cause, as
   the Dashboard and the setup checklist do: *Connection lost* at Critical when the link to the service went, the
   shell's word and level for it, and *Read from file* at Warning when a server older than the call answered, which is
   connected. The pill's *Not connected*, at Warning, is gone from these pages: the service not coming back after a

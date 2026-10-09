@@ -78,10 +78,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// The page reads afresh each build, says a fall-back in its pill and its notice
       /// at the level its cause has - Connection lost at Critical for a lost link, Read
-      /// from file at Warning for an older server - and holds Save, refuses a save it
-      /// cannot make, and no
-      /// longer claims to edit the file: its line says the settings database, and its
-      /// subtitles do not name hMailServer.INI.
+      /// from file at Warning for an older server - holds Save, and no longer claims to
+      /// edit the file: its line says the settings database, and its subtitles do not
+      /// name hMailServer.INI.
       /// </summary>
       [Fact]
       public void TheIniPages_SayTheirValuesAreTheFilesAndHoldSave()
@@ -91,27 +90,53 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
          Assert.True(build != null, "FeatureSettingsView.xaml.cs no longer has BuildUi.");
          int forget = build.IndexOf("store_.ForgetFallback();", StringComparison.Ordinal);
+         int unset = build.IndexOf("readFromFile_ = null;", StringComparison.Ordinal);
          int editors = build.IndexOf("setting.CreateEditor(store_)", StringComparison.Ordinal);
          Assert.True(forget >= 0 && forget < editors, "BuildUi does not forget the last build's fall-back before it reads again.");
+         Assert.True(unset >= 0 && unset < editors, "BuildUi keeps the last build's fall-back over a build that may read cleanly.");
+
+         // The build takes the cause, puts it in words once and says it.
+         Match fallBack = Regex.Match(build, @"if \(store_\.FallbackCause != null\)\s*\{(.*?)return;", RegexOptions.Singleline);
+         Assert.True(fallBack.Success, "BuildUi has no fall-back branch.");
+         Assert.Matches(new Regex(@"^\s*readFromFile_ = store_\.FallbackCause;\s*readFromFileNotice_ = F\(.*ServerSession\.DescribeComError\(readFromFile_\)\);\s*SayReadFromFile_\(\);\s*$", RegexOptions.Singleline), fallBack.Groups[1].Value);
 
          // The pill and the notice are in the state the cause makes, at that state's
          // level, which is the cause's: one lost link, one level, on every page and in
          // both places on this one - no level of the notice's own beside the pill's.
-         Match fallBack = Regex.Match(build, @"if \(store_\.FallbackCause != null\)\s*\{.*?return;", RegexOptions.Singleline);
-         Assert.True(fallBack.Success, "BuildUi has no fall-back branch.");
-         Match state = Regex.Match(fallBack.Value, @"SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageStatus\.ForFallback\(store_\.FallbackCause\),(.*?)\);\s*return;", RegexOptions.Singleline);
-         Assert.True(state.Success, "The fall-back's pill is not in the state its cause makes.");
-         Assert.DoesNotContain("StatusLevel.", fallBack.Value, StringComparison.Ordinal);
-         Assert.DoesNotContain("LevelFor(", state.Groups[1].Value, StringComparison.Ordinal);
-         Assert.DoesNotContain("SettingsPageState.NotConnected", fallBack.Value, StringComparison.Ordinal);
-         Assert.Contains("ServerSession.DescribeComError(store_.FallbackCause)", build, StringComparison.Ordinal);
+         string say = WithheldRowTests.MemberText(source, "private void SayReadFromFile_()");
+         Assert.True(say != null, "FeatureSettingsView.xaml.cs no longer has SayReadFromFile_.");
+         Assert.Matches(new Regex(@"SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageStatus\.ForFallback\(readFromFile_\), readFromFileNotice_\);"), say);
+         Assert.DoesNotContain("StatusLevel.", say + fallBack.Value, StringComparison.Ordinal);
+         Assert.DoesNotContain("SettingsPageState.NotConnected", say + fallBack.Value, StringComparison.Ordinal);
          Assert.Contains("L(\"Stored in the server's settings database.\")", build, StringComparison.Ordinal);
          Assert.DoesNotContain("Editing {0}", source, StringComparison.Ordinal);
 
-         string save = WithheldRowTests.MemberText(source, "private bool Save_()");
-         Assert.Matches(new Regex(@"if \(store_\.FallbackCause != null\)\s*return false;"), save);
-
          Assert.Empty(Regex.Matches(source, @"Header\.Subtitle = L\(""[^""]*\(hMailServer\.INI\)").Select(m => m.Value));
+      }
+
+      /// <summary>
+      /// A save refuses the values a build read from the file, and says why: it puts
+      /// the fall-back's notice back and holds Save, so that the question before
+      /// leaving the page, whose Save comes here, does not stay on the page without a
+      /// word. It refuses on the build's fall-back, never on the store's live one: a
+      /// warning's read on an editor change after a build that read cleanly - the ACME
+      /// certificate folder's - could set that, and the save then did nothing and said
+      /// nothing, where its write would have said why it failed.
+      /// </summary>
+      [Fact]
+      public void ASave_RefusesTheFilesValuesOnlyForTheBuildThatReadThem_AndSaysWhy()
+      {
+         string source = File.ReadAllText(ViewPath("FeatureSettingsView.xaml.cs"));
+         string save = WithheldRowTests.MemberText(source, "private bool Save_()");
+         Assert.True(save != null, "FeatureSettingsView.xaml.cs no longer has Save_.");
+
+         Assert.Matches(new Regex(@"if \(readFromFile_ != null\)\s*\{\s*SayReadFromFile_\(\);\s*return false;\s*\}"), save);
+         Assert.DoesNotContain("FallbackCause", save, StringComparison.Ordinal);
+
+         // Nothing after the build reads the live cause as if it were the build's.
+         string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
+         int outsideBuild = Regex.Matches(source.Replace(build, ""), @"store_\.FallbackCause").Count;
+         Assert.Equal(0, outsideBuild);
       }
 
       private static string ViewPath(string file)
