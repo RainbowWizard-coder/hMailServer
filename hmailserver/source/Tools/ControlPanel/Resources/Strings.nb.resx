@@ -14054,9 +14054,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe kunne ikke kjøres: {0}</value>
   </data>
-  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>hMailServer.ini kunne ikke leses, så disse valgene vises ikke og kan ikke redigeres her. Forhåndsvisning og Bruk virker fortsatt: de kjører inne i serveren.</value>
-  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kunne ikke leses: {0} Fra 6.3.6 tilhører filen administratorene. Lukk kontrollpanelet og start det med Kjør som administrator for å se og endre disse innstillingene.</value>
   </data>

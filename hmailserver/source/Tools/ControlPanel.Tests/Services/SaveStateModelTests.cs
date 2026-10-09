@@ -141,6 +141,32 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("var page = new StackPanel();", built, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Directory synchronisation says why it cannot edit as Directory authentication
+      /// does (review findings F120 and F119): in the notice under the header, with the
+      /// line that names the file collapsed. Its Unavailable pill said nothing, and the
+      /// reason went into that line, styled TextCaptionTertiary, the design document's
+      /// quietest text. A file that is here and could not be read has its own Critical
+      /// notice, so the notice under the header adds nothing to it.
+      /// </summary>
+      [Fact]
+      public void DirectorySynchronisation_SaysWhyItCannotEdit_InTheNotice()
+      {
+         string load = WithheldRowTests.MemberText(ReadControlPanelFile("Views/DirectorySyncView.cs"), "private void Load_()");
+         Assert.True(load != null, "DirectorySyncView.Load_ is gone.");
+
+         Assert.Matches(new Regex(@"pathText_\.Text = editable \? F\(""Editing \{0\}"", store_\.IniPath\) : null;"), load);
+         Assert.Contains("pathText_.Visibility = editable ? Visibility.Visible : Visibility.Collapsed;", load, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"saveState_\.Settle\(SettingsPageState\.Unavailable,\s*L\(""hMailServer\.INI cannot be reached from this computer, so these selections cannot be edited here\."), load);
+         Assert.Matches(new Regex(@"else if \(denied_ != null\)\s*saveState_\.Settle\(SettingsPageState\.Unavailable, null\);"), load);
+         Assert.DoesNotContain("these selections are not shown", load, StringComparison.Ordinal);
+
+         // Directory authentication, which this page now matches.
+         string ldap = WithheldRowTests.MemberText(ReadControlPanelFile("Views/LdapSettingsView.cs"), "private void Load_()");
+         Assert.True(ldap != null && ldap.Contains("saveState_.Settle(SettingsPageState.Unavailable, L(\"hMailServer.INI was not found on this machine.", StringComparison.Ordinal),
+            "Directory authentication no longer says why it cannot edit in its notice.");
+      }
+
       [Fact]
       public void DirectorySynchronisation_SaysWhenItCouldNotWrite_AndWhenTheScheduleWaits()
       {

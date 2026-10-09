@@ -14218,9 +14218,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>Не вдалося запустити hMailServer.exe: {0}</value>
   </data>
-  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>Не вдалося прочитати hMailServer.ini, тому цей вибір не показано й не можна змінити тут. «Попередній перегляд» і «Застосувати» працюють і далі: вони виконуються всередині сервера.</value>
-  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Не вдалося прочитати hMailServer.ini: {0} Починаючи з 6.3.6 файл належить адміністраторам. Закрийте панель керування та запустіть її через «Запуск від імені адміністратора», щоб побачити й змінити ці параметри.</value>
   </data>

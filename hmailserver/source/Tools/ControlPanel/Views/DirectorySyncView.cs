@@ -495,13 +495,13 @@ namespace hMailServer.ControlPanel.Views
             LoadDomains_();
             RefreshState_();
 
-            // The file the editors show, under the header; with the file unread, the
-            // Critical notice above the cards says why, and this line what still works.
-            pathText_.Text = editable
-               ? F("Editing {0}", store_.IniPath)
-               : denied_ != null
-                  ? L("hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server.")
-                  : L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server.");
+            // The file the editors show, under the header, while they can be edited.
+            // When they cannot, the line goes, and where the page stands is said as
+            // the Directory authentication page says it, in the notice under the
+            // header: it was this caption line, in the quietest text the page has,
+            // under a red Unavailable pill that said nothing.
+            pathText_.Text = editable ? F("Editing {0}", store_.IniPath) : null;
+            pathText_.Visibility = editable ? Visibility.Visible : Visibility.Collapsed;
          }
          finally
          {
@@ -510,7 +510,18 @@ namespace hMailServer.ControlPanel.Views
 
          baseline_.Take(EditorValues_());
          savedSchedule_ = scheduleMinutes_.Text.Trim();
-         saveState_.Settle(store_.IsAvailable && denied_ == null ? SettingsPageState.Clean : SettingsPageState.Unavailable, null);
+
+         // Unavailable says why in a Critical notice when hMailServer.INI is not on
+         // this machine. A file that is here and could not be read is said already,
+         // in the Critical notice above the cards (deniedNotice_), and the state card
+         // says that Preview still runs, so a second box would only repeat it.
+         if (store_.IsAvailable && denied_ == null)
+            saveState_.Settle(SettingsPageState.Clean, null);
+         else if (denied_ != null)
+            saveState_.Settle(SettingsPageState.Unavailable, null);
+         else
+            saveState_.Settle(SettingsPageState.Unavailable,
+               L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server."));
          InvalidatePreview_();
       }
 

@@ -14054,9 +14054,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>无法运行 hMailServer.exe：{0}</value>
   </data>
-  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>无法读取 hMailServer.ini，因此这些选择不会显示，也无法在此处编辑。“预览”和“应用”仍然可用：它们在服务器内运行。</value>
-  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>无法读取 hMailServer.ini：{0} 从 6.3.6 起，该文件属于管理员。请关闭控制面板，并以“以管理员身份运行”启动它，以查看和更改这些设置。</value>
   </data>

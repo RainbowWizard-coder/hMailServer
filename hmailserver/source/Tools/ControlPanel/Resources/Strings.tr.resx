@@ -14054,9 +14054,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe çalıştırılamadı: {0}</value>
   </data>
-  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>hMailServer.ini okunamadığından bu seçimler gösterilmiyor ve burada düzenlenemiyor. Önizleme ve Uygula yine de çalışır: sunucunun içinde çalışırlar.</value>
-  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini okunamadı: {0} 6.3.6'dan itibaren dosya yöneticilere aittir. Bu ayarları görmek ve değiştirmek için Denetim Masası'nı kapatıp Yönetici olarak çalıştır ile başlatın.</value>
   </data>

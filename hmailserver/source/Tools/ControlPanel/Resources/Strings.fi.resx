@@ -14054,9 +14054,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe-tiedostoa ei voitu suorittaa: {0}</value>
   </data>
-  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>Tiedostoa hMailServer.ini ei voitu lukea, joten näitä valintoja ei näytetä eikä niitä voi muokata tässä. Esikatselu ja Käytä toimivat silti: ne suoritetaan palvelimen sisällä.</value>
-  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Tiedostoa hMailServer.ini ei voitu lukea: {0} Versiosta 6.3.6 alkaen tiedosto kuuluu järjestelmänvalvojille. Sulje hallintapaneeli ja käynnistä se valinnalla Suorita järjestelmänvalvojana nähdäksesi ja muuttaaksesi nämä asetukset.</value>
   </data>

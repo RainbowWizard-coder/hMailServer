@@ -1067,8 +1067,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the one save-state model of the settings pages: a pill beside the title that says *Unsaved changes* from the first
   edit, compared with what was read, and *Saved* after a save, its sentence in a notice under the header, and a save
   that could not be written in a Critical notice - Directory synchronisation's in the same grey caption as its
-  success, LDAP's in a message box. The page scrolls whole, as the feature settings pages do, so the smallest window
-  keeps the cards. Directory synchronisation says *Restart to apply* only when the save changed the schedule, which
+  success, LDAP's in a message box. When hMailServer.INI is not on this computer, both say so in that notice beside
+  an *Unavailable* pill, where Directory synchronisation said it in the footer's caption. The page scrolls whole, as
+  the feature settings pages do, so the smallest window keeps the cards. Directory synchronisation says *Restart to apply* only when the save changed the schedule, which
   the server registers as it starts, where it said that a change to the schedule needs a restart after every save;
   and it now notices when hMailServer.ini refused a write, which it reported as saved.
 

@@ -14054,9 +14054,6 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>No se pudo ejecutar hMailServer.exe: {0}</value>
   </data>
-  <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
-    <value>No se pudo leer hMailServer.ini, así que estas selecciones no se muestran y no se pueden editar aquí. Vista previa y Aplicar siguen funcionando: se ejecutan dentro del servidor.</value>
-  </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>No se pudo leer hMailServer.ini: {0} Desde 6.3.6 el archivo pertenece a los administradores. Cierre el Panel de control e inícielo con Ejecutar como administrador para ver y cambiar estos ajustes.</value>
   </data>
