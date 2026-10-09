@@ -89,8 +89,10 @@
              280 pixels, the other 400 - the domains card goes above the accounts
              card and the three share one column, two, three and two
              (DomainsView.ArrangeColumns). -->
+        <!-- The bar is drawn over the content, so the right padding (AppSpaceMd)
+             keeps the cards, the notices and the toolbar's last button clear of it. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
         <Grid x:Name="PageColumns" SizeChanged="PageColumns_SizeChanged">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />

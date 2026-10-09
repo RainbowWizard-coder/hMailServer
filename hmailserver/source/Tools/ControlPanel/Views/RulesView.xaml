@@ -32,8 +32,10 @@
              row, so a rule's actions could not be seen, and in German, where the
              toolbar wraps to three lines and the actions' buttons to four, Down
              ran past those 620 pixels, where scrolling could not reach it. -->
+        <!-- The bar is drawn over the content, so the right padding (AppSpaceMd)
+             keeps the cards, the notices and the toolbar's last button clear of it. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
         <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
 
         <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search rules'}"

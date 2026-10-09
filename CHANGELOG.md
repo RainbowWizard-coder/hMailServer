@@ -738,7 +738,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   between two device pixels is asked for a fraction of a pixel over, and at 150 % scaling the bounce counts card's
   floor of 193, which is 289.5 of them, left the Suppression list page a third of a pixel taller than a 1280 by 800
   window it fit, which layout rounding made a whole pixel and a scroll bar the height of the page, over the right
-  edge of the notice and both cards, in English and Japanese.
+  edge of the notice and both cards, in English and Japanese. The scrolling part of every page laid out by
+  `FillPanel` - the IP ranges, domains and rules pages' too - keeps 12 pixels clear of its scroll bar on the right,
+  which is drawn over the content: its thumb lay over the rounded corner of *Delete selected*, the right border of
+  the list card and the end of the notices wherever a page scrolled.
 - **Fixed: on the Control Panel's Domains & accounts page, the Add domain form and the alias and list forms were below
   the fold in a 1280 by 800 window.** The detail column's floors are taller than the page, so the page scrolls, the
   domains card stretched to the column's height, and its Domain box and Add domain sat at the foot of the card in the

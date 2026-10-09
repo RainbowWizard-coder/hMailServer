@@ -149,6 +149,38 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(starRows == 1, file + ": the page's grid has " + starRows + " star rows; the scroll viewer's is to be the one, so that no list is given a short window's leftovers.");
       }
 
+      // Every page whose scroll viewer is written in XAML, the domains and rules
+      // pages among them: their lists are several, but the one scroll viewer is the
+      // same.
+      public static TheoryData<string> ScrollingXamlPages => new()
+      {
+         "SslCertificatesView.xaml", "TcpIpPortsView.xaml", "RoutesView.xaml", "IPRangesView.xaml", "DomainsView.xaml", "RulesView.xaml",
+      };
+
+      /// <summary>
+      /// The page's scroll bar is drawn over the content, so the scroll viewer keeps
+      /// 12 pixels (AppSpaceMd) clear of it on the right: without them its thumb lay
+      /// over the right edge of the cards, the notices and the toolbar's last button
+      /// wherever a page scrolled - the SSL certificates page with a certificate
+      /// selected in a 1280 by 800 window, and every page in the smallest one.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(ScrollingXamlPages))]
+      public void ThePageScrollViewer_KeepsClearOfItsBar(string file)
+      {
+         XElement scroll = Named(Page(file), file, "PageScroll");
+         Assert.Equal("0,0,12,0", (string)scroll.Attribute("Padding"));
+      }
+
+      [Fact]
+      public void TheScrollingPageBuiltInCode_KeepsClearOfItsBar()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "Scaffold", "FillPanel.cs"));
+         string member = WithheldRowTests.MemberText(code, "public static ScrollViewer ScrollingPage(out FillPanel parts)");
+         Assert.True(member != null, "FillPanel.ScrollingPage is gone.");
+         Assert.Contains("Padding = new Thickness(0, 0, DesignTokens.Space.Md, 0)", member, StringComparison.Ordinal);
+      }
+
       /// <summary>The profiles table's own floor: the column headers, three rows and a pixel for layout rounding.</summary>
       [Fact]
       public void TheProfilesTable_IsFlooredAtThreeRows_AndItsCardAtWhatItHolds()

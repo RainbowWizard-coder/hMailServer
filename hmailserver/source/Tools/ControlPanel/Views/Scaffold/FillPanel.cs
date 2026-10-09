@@ -98,10 +98,11 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       /// <summary>
       /// The scrolling part of a page built in code, as the XAML pages write it:
       /// a ScrollViewer that scrolls up and down and never sideways, is not a tab
-      /// stop, and holds a FillPanel bound to its ViewportHeight, in which the
-      /// page's parts go, under the PageHeader that stays in the page's grid. The
-      /// nine list pages built in code had their list in a star row of the page's
-      /// grid, between rows sized to their content, which is the shape that gave
+      /// stop, keeps 12 pixels clear of its bar on the right, and holds a
+      /// FillPanel bound to its ViewportHeight, in which the page's parts go,
+      /// under the PageHeader that stays in the page's grid. The nine list pages
+      /// built in code had their list in a star row of the page's grid, between
+      /// rows sized to their content, which is the shape that gave
       /// the IP ranges page no list in a short window (work item 79): in the
       /// narrowest window the ports page had no grid at all between its toolbar
       /// and its warning, the profiles page lost its table and nothing scrolled,
@@ -115,7 +116,12 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Focusable = false
+            Focusable = false,
+            // The bar is drawn over the content, so the content keeps clear of
+            // it: without the padding its thumb lay over the right edge of the
+            // cards, the notices and the toolbar's last button wherever a page
+            // scrolled.
+            Padding = new Thickness(0, 0, DesignTokens.Space.Md, 0)
          };
          parts = new FillPanel();
          parts.SetBinding(ViewportHeightProperty, new Binding(nameof(ScrollViewer.ViewportHeight)) { Source = scroll });

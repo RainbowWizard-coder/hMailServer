@@ -28,8 +28,10 @@
              be seen or selected; in 6.3.5 a fixed 560-pixel floor kept the list
              but cut the add form off in a narrow window, where the permissions
              wrap. FillPanel sizes the page from the parts themselves. -->
+        <!-- The bar is drawn over the content, so the right padding (AppSpaceMd)
+             keeps the cards, the notices and the toolbar's last button clear of it. -->
         <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                      HorizontalScrollBarVisibility="Disabled" Focusable="False" Padding="0,0,12,0">
         <scaffold:FillPanel ViewportHeight="{Binding ViewportHeight, ElementName=PageScroll}">
 
         <scaffold:Toolbar x:Name="SearchBar" SearchPlaceholder="{loc:L 'Search IP ranges'}"
