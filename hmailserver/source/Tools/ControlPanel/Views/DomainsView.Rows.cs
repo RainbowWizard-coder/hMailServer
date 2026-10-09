@@ -36,8 +36,8 @@ namespace hMailServer.ControlPanel.Views
             L("Delete _account"), row => DeleteAccount_(((AccountRow)row).Address));
          WireList_(AliasList, null, null, null,
             L("Delete _alias"), row => DeleteAlias_(((AliasRow)row).Name));
-         WireList_(DistList, L("_Properties…"), row => EditDistList_((string)row), row => EditRecipients_((string)row),
-            L("Delete _list"), row => DeleteDistList_((string)row));
+         WireList_(DistList, L("_Properties…"), row => EditDistList_(((DistRow)row).Address), row => EditRecipients_(((DistRow)row).Address),
+            L("Delete _list"), row => DeleteDistList_(((DistRow)row).Address));
       }
 
       /// <summary>

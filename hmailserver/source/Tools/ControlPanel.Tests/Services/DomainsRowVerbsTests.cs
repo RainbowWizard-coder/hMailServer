@@ -84,6 +84,34 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// Each list's verbs read the selected row as the type the page fills the
+      /// list with. The distribution lists' rows became DistRow objects when their
+      /// Properties and Members buttons were named for the row, and a verb that
+      /// still read the row as a string threw on the first Enter, Delete or menu
+      /// on a list - the one road the row's own buttons, which carry the address
+      /// in their Tag, never take.
+      /// </summary>
+      [Theory]
+      [InlineData("DomainList", "DomainRow")]
+      [InlineData("AccountList", "AccountRow")]
+      [InlineData("AliasList", "AliasRow")]
+      [InlineData("DistList", "DistRow")]
+      public void EveryListsVerbs_ReadTheRow_AsTheTypeThePageFillsItWith(string list, string rowType)
+      {
+         string page = ReadControlPanelFile(Path.Join("Views", "DomainsView.xaml.cs"));
+         Assert.True(page.Contains("new List<" + rowType + ">()", StringComparison.Ordinal) && page.Contains(list + ".ItemsSource = rows;", StringComparison.Ordinal),
+            list + " is no longer filled with " + rowType + " rows; update this test with the page.");
+
+         string rows = ReadControlPanelFile(Path.Join("Views", "DomainsView.Rows.cs"));
+         string wire = WithheldRowTests.MemberText(rows, "private void WireRows_()");
+         Assert.True(wire != null, "DomainsView.WireRows_ is gone.");
+         Match call = Regex.Match(wire, @"WireList_\(" + list + @",(.*?)\);", RegexOptions.Singleline);
+         Assert.True(call.Success, list + " is not wired.");
+         Assert.DoesNotContain("(string)row", call.Groups[1].Value, StringComparison.Ordinal);
+         Assert.Contains("((" + rowType + ")row)", call.Groups[1].Value, StringComparison.Ordinal);
+      }
+
+      /// <summary>
       /// The row's button and the keyboard lead to one method per verb, so that a
       /// confirmation or a reload added to one road is on the other.
       /// </summary>
