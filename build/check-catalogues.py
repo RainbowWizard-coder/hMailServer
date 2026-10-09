@@ -32,6 +32,17 @@ catalogue, or against what the server does at run time:
             210,000 and 210 000 are the same number. A dropped digit is the
             kind of defect that reads perfectly well.
 
+  untranslated
+            In a catalogue written in another script - Japanese, Chinese,
+            Russian, Ukrainian - a value equal to its English key is almost
+            always a word nobody translated: every Japanese notice read
+            "Critical" before a Japanese sentence, and the rule card's heading
+            read "THEN", until 6.3.7 (review findings F006, F114, F177). A key
+            made of ordinary words is reported there when its value is the
+            English itself, unless it is a name every language keeps
+            (SAME_IN_EVERY_SCRIPT). An acronym in capitals is a name, but for
+            the few English words written in capitals (CAPITAL_WORDS).
+
 Exits 1 with the language, the catalogue key and what is wrong.
 """
 import os
@@ -86,6 +97,42 @@ SETTING_SKIP = {"ControlPanel", "OpenSSL", "OpenTelemetry", "SpamAssassin",
                 "MailServer", "ProgressiveRobot"}
 
 
+# The catalogues in a script other than Latin, where an English word left as it
+# is stands out as untranslated.
+OTHER_SCRIPTS = {"ja", "zh-Hans", "ru", "uk"}
+
+# Keys of ordinary words that are names in every language and script: products,
+# formats, the DKIM canonicalisation names, an IMAP right, the Control Panel's
+# own name. A new key belongs here only when it is a name.
+SAME_IN_EVERY_SCRIPT = {
+   "Azure Blob Storage", "NCSA Common Log Format", "Control Panel", "hMailServer Control Panel",
+   "Relaxed", "Simple", "Sieve", "Expunge", "Web  ", "OK",
+}
+
+# English words written in capitals, which are words and not acronyms: the rule
+# card's IF and THEN.
+CAPITAL_WORDS = {"IF", "THEN", "AND", "OR", "NOT", "ELSE"}
+
+WORDS = re.compile(r"[A-Za-z]+(?:[ -][A-Za-z]+)*")
+
+
+def untranslated(tag, source, target):
+   """True when a catalogue of another script gives an English key of ordinary words back as it is."""
+   if tag not in OTHER_SCRIPTS or target != source or source in SAME_IN_EVERY_SCRIPT:
+      return False
+   core = without_mnemonic(source).strip().strip(".:…")
+   if not WORDS.fullmatch(core):
+      return False
+   words = re.split(r"[ -]", core)
+   # An acronym or a name in capitals (SMTP, HELO, MTA-STS) is the same in every
+   # script; a CamelCase word (ClamAV, OpenPGP) is a product.
+   if all(w.isupper() and w not in CAPITAL_WORDS for w in words):
+      return False
+   if any(re.search(r"[a-z][A-Z]", w) for w in words):
+      return False
+   return True
+
+
 def read_resx(path):
    """{key: value} for one catalogue; a missing file is an empty one."""
    if not os.path.exists(path):
@@ -134,6 +181,10 @@ def check(tag, catalogue):
       plain = without_mnemonic(target)
       bare = PLACEHOLDER.sub(" ", source)
 
+      if untranslated(tag, source, target):
+         findings.append((source, "the value is the English itself; translate it, or add it to SAME_IN_EVERY_SCRIPT "
+                                  "if it is a name every language keeps"))
+
       wanted = {digits(m.group(0)) for m in NUMBER.finditer(bare)}
       have = {digits(m.group(0)) for m in NUMBER.finditer(PLACEHOLDER.sub(" ", target))}
       for number in sorted(w for w in wanted - have if len(w) >= 2):
@@ -163,7 +214,40 @@ def check(tag, catalogue):
    return findings
 
 
+def self_test():
+   """The untranslated rule against values made to pass and to fail it: each failing
+   case is a defect the Control Panel shipped."""
+   failures = 0
+   cases = {
+      # (language, English, value): reported as untranslated
+      ("ja", "Critical", "Critical"): True,
+      ("ja", "Normal", "Normal"): True,
+      ("ja", "THEN", "THEN"): True,
+      ("ru", "_Delete selected", "_Delete selected"): True,
+      ("ja", "Critical", "重大"): False,
+      ("ja", "THEN", "アクション"): False,
+      ("ja", "SMTP", "SMTP"): False,
+      ("ru", "MTA-STS", "MTA-STS"): False,
+      ("zh-Hans", "ClamAV", "ClamAV"): False,
+      ("uk", "Azure Blob Storage", "Azure Blob Storage"): False,
+      ("ja", "TLS 1.2", "TLS 1.2"): False,
+      ("de", "Normal", "Normal"): False,
+      ("fr", "Information", "Information"): False,
+   }
+   for (tag, source, target), expected in cases.items():
+      found = untranslated(tag, source, target)
+      if found != expected:
+         print("FAIL: [%s] %r -> %r is %s as untranslated" % (tag, source, target, "reported" if found else "not reported"))
+         failures += 1
+   print("self-test: %d failure(s)" % failures)
+   return 1 if failures else 0
+
+
 def main():
+   if hasattr(sys.stdout, "reconfigure"):
+      sys.stdout.reconfigure(encoding="utf-8")
+   if "--self-test" in sys.argv[1:]:
+      return self_test()
    if not os.path.isdir(RESOURCES):
       print("No Resources directory at %s" % RESOURCES)
       return 1

@@ -28,21 +28,33 @@ namespace hMailServer.ControlPanel.Services
          string fillBrushKey, string fillTextBrushKey)
       {
          Level = level;
-         SeverityWord = severityWord;
+         severityWord_ = severityWord;
          Shape = shape;
          BrushKey = brushKey;
          FillBrushKey = fillBrushKey;
          FillTextBrushKey = fillTextBrushKey;
       }
 
+      // The word in English, the catalogue's key: translated each time it is
+      // read (review finding F006). The presentations are made once, in a
+      // static initialiser, and a word translated there kept the language in
+      // force when the type was first touched - the render harness touched it
+      // before it put German in force and every notice read "Warning" before a
+      // German sentence; nothing in the product guaranteed the order either.
+      private readonly string severityWord_;
+
       public StatusLevel Level { get; }
 
       /// <summary>
-      /// "Warning", "Critical", ... - prefixed to the caller's own text in the
-      /// accessible name, so a screen reader hears the severity even though the
-      /// visible badge only shows the shape and the caller's wording.
+      /// "Warning", "Critical", ... in the language in force when it is read -
+      /// prefixed to the caller's own text in the accessible name, so a screen
+      /// reader hears the severity even though the visible badge only shows the
+      /// shape and the caller's wording.
       /// </summary>
-      public string SeverityWord { get; }
+      public string SeverityWord => L(severityWord_);
+
+      /// <summary>The severity word in English, whatever the language in force: the catalogue's key.</summary>
+      public string SeverityWordEnglish => severityWord_;
 
       /// <summary>
       /// The shape drawn beside the value. This is the channel that survives when
@@ -118,19 +130,19 @@ namespace hMailServer.ControlPanel.Services
       private static readonly Dictionary<StatusLevel, StatusPresentation> Map = new()
       {
          [StatusLevel.Normal] =
-            new StatusPresentation(StatusLevel.Normal, L("Normal"), ShapeMark.Circle, "TextFillColorPrimaryBrush",
+            new StatusPresentation(StatusLevel.Normal, N("Normal"), ShapeMark.Circle, "TextFillColorPrimaryBrush",
                "AppNeutralFillBrush", "AppNeutralFillTextBrush"),
          [StatusLevel.Good] =
-            new StatusPresentation(StatusLevel.Good, "OK", ShapeMark.Square, "AppSuccessBrush",
+            new StatusPresentation(StatusLevel.Good, N("OK"), ShapeMark.Square, "AppSuccessBrush",
                "AppSuccessFillBrush", "AppSuccessFillTextBrush"),
          [StatusLevel.Information] =
-            new StatusPresentation(StatusLevel.Information, L("Information"), ShapeMark.Diamond, "AppInfoBrush",
+            new StatusPresentation(StatusLevel.Information, N("Information"), ShapeMark.Diamond, "AppInfoBrush",
                "AppInfoFillBrush", "AppInfoFillTextBrush"),
          [StatusLevel.Warning] =
-            new StatusPresentation(StatusLevel.Warning, L("Warning"), ShapeMark.Triangle, "AppWarningBrush",
+            new StatusPresentation(StatusLevel.Warning, N("Warning"), ShapeMark.Triangle, "AppWarningBrush",
                "AppWarningFillBrush", "AppWarningFillTextBrush"),
          [StatusLevel.Critical] =
-            new StatusPresentation(StatusLevel.Critical, L("Critical"), ShapeMark.Cross, "AppDangerBrush",
+            new StatusPresentation(StatusLevel.Critical, N("Critical"), ShapeMark.Cross, "AppDangerBrush",
                "AppDangerFillBrush", "AppDangerFillTextBrush")
       };
 

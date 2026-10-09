@@ -927,6 +927,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   grid sideways rather than cutting a word, as the Suppression list's grids already do; a 1280-pixel window has room
   for every floor in every language.
 
+- **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
+  English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was
+  translated once, when the first page touched the status vocabulary, so whatever language was in force at that
+  moment was the language of every severity word until the Control Panel closed; the review's German renders read
+  "Warning 11 brauchen eine Maßnahme" and "Critical 8 Einstellungen…" for that reason, and nothing in the start-up
+  order guaranteed the product would not do the same. The word is now kept in English and translated each time a
+  notice or a pill draws it, the level Good's "OK" included, which was the one word never translated. The Japanese
+  catalogue says 重大 for Critical and 通常 for Normal where it said Critical and Normal, and アクション for the rule
+  card's THEN beside 条件 for its IF; Russian and Ukrainian say Критично for Critical, where Russian had a plural
+  adjective. `build/check-catalogues.py` reports a key of ordinary English words that a Japanese, Chinese, Russian or
+  Ukrainian catalogue gives back unchanged, unless it is a name every language keeps, and its `--self-test` holds the
+  rule to the three Japanese words; `SeverityWordTests` holds the word to the language in force when it is read.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

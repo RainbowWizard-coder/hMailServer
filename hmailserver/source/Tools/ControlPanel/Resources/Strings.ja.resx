@@ -3228,7 +3228,7 @@
     <value>管理者パスワードではない、REST 管理 API 用の資格情報。それぞれに有効期限があり、読み取り専用、特定のドメイン、特定の送信元アドレスに限定でき、個別に失効させられます。サーバーはリクエストごとにキー ストアを再読み込みするため、ここでの変更は直ちに反映されます。サービスの再起動は不要です。</value>
   </data>
   <data name="Critical" xml:space="preserve">
-    <value>Critical</value>
+    <value>重大</value>
   </data>
   <data name="Critical and High (default - a healthy server writes nothing)" xml:space="preserve">
     <value>Critical と High (既定。正常なサーバーは何も書きません)</value>
@@ -6826,7 +6826,7 @@
     <value>なし: {0}。{1} が起動しない場合は、手動で再インストールする必要があります。</value>
   </data>
   <data name="Normal" xml:space="preserve">
-    <value>Normal</value>
+    <value>通常</value>
   </data>
   <data name="Normal user" xml:space="preserve">
     <value>通常のユーザー</value>
@@ -10393,7 +10393,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>TCP/IP スレッド</value>
   </data>
   <data name="THEN" xml:space="preserve">
-    <value>THEN</value>
+    <value>アクション</value>
   </data>
   <data name="TLS 1.0" xml:space="preserve">
     <value>TLS 1.0</value>
