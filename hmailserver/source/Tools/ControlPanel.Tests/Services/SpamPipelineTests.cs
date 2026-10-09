@@ -702,6 +702,29 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// A verdict at Warning or above is always said by a note at its level, so
+      /// that the count of problems beside the title - the notes at Warning and
+      /// above - is never "No problems found" beside it.
+      /// </summary>
+      [Theory]
+      [InlineData(0, 20)]
+      [InlineData(0, 0)]
+      [InlineData(10, 5)]
+      [InlineData(10, 10)]
+      [InlineData(5, 0)]
+      [InlineData(5, 20)]
+      public void AVerdictAtWarningOrAbove_IsSaidByANoteAtItsLevel(int mark, int delete)
+      {
+         SpamPipelineConfig config = Defaults();
+         config.MarkThreshold = mark;
+         config.DeleteThreshold = delete;
+
+         StatusLevel verdict = SpamPipeline.VerdictLevel(config);
+         if (verdict >= StatusLevel.Warning)
+            Assert.Contains(SpamPipeline.Notes(config), n => n.Level >= verdict);
+      }
+
+      /// <summary>
       /// A check that is on but can never change the outcome is a Warning - On,
       /// scores 0, or On, no host for SpamAssassin - where it showed the same
       /// green On as one that works.

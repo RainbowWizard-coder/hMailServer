@@ -47,6 +47,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Paragraph(" + pipeline + ".Verdict(config), Typography.Body)", code, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The transport encryption verdict is not said again above the notes that
+      /// say it listener by listener: "POP3 110 has no encryption available..."
+      /// and "POP3 on port 110 has no encryption available..." were two Critical
+      /// notices, one more than the count beside the title.
+      /// </summary>
+      [Fact]
+      public void TheTransportEncryptionVerdict_IsNotSaidTwice()
+      {
+         string code = ReadView("TlsOverviewView.cs");
+         int guard = code.IndexOf("if (!TlsPosture.NotesSayTheVerdict(config))", StringComparison.Ordinal);
+         int verdict = code.IndexOf("OverviewNotices.Notice(TlsPosture.VerdictLevel(config), TlsPosture.Verdict(config),", StringComparison.Ordinal);
+         Assert.True(guard >= 0, "The verdict is shown whatever the notes say.");
+         Assert.True(verdict > guard && verdict - guard < 120, "The verdict's notice is not the one the guard keeps out.");
+      }
+
       [Fact]
       public void TheProblems_AreWarningAndAbove_WorstFirst()
       {

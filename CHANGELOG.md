@@ -990,15 +990,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   an answer with no figure in it. Held by `PerformancePageTests`.
 - **Fixed: the Directory synchronisation page reported an apply with failed changes as Information, and its rows
   differed only by bold text.** A run was Information whenever it completed, so "1 of 4 changes could not be carried
-  out" was a grey caption under an Information notice. The run's summary is now at the level of its outcome - Good
-  for an apply with nothing failed, Warning for one with changes that failed and for a preview with rows to read,
-  Critical for a run that did not happen - and the sentence about what needs a person is a notice at the same level,
-  or Information where a run that did not happen changed nothing.
-  Each row carries its outcome's mark and word before the address: *Change failed* (Critical), *Entry skipped* and
-  *To mark inactive* or *Marked inactive* (Warning), *To create*, *Mailbox created*, *To update* or *Mailbox updated*
-  (Good), *Unchanged* (Normal), *Not in the directory* (Information), and *Not reported* where an older server does
-  not say whether a change was carried out. `DirectorySyncReport` decides the levels and words, held by
-  `DirectorySyncReportTests`; `DirectorySyncPageTests` holds the page to drawing them.
+  out" was a grey caption under an Information notice. The run's summary is now at the level of its outcome - Good for
+  an apply with nothing failed, Warning for one with changes that failed and for a preview with rows to read, Critical
+  for a run that did not happen - and the sentence about what needs a person is a notice at the same level, or
+  Information where a run that did not happen changed nothing. Each row carries its outcome's mark and word before the
+  address: *Change failed* (Critical), *Entry skipped* and *To mark inactive* or *Marked inactive* (Warning), *To
+  create*, *Mailbox created*, *To update* or *Mailbox updated* (Good), *Unchanged* (Normal), *Not in the directory*
+  (Information), and *Not reported* where an older server does not say whether a change was carried out.
+  `DirectorySyncReport` decides the levels and words, held by `DirectorySyncReportTests`; `DirectorySyncPageTests` holds
+  the page to drawing them.
 - **Fixed: the Directory synchronisation page's readiness check was one run-on sentence in the INI file's syntax,
   naming the fixes on three pages and linking none.** "Not yet - directory access is switched off ([LDAP] Enabled=0 -
   the Directory authentication page turns it on); no search base is set...; no domain on this server has an Active
@@ -1008,19 +1008,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Finding the user's directory entry).* with *Open Directory authentication (LDAP)*, and *No domain has an Active
   Directory domain name, so none can take part.* with *Open Domains*. Held by `DirectorySyncPageTests`.
 - **Fixed: the transport encryption, spam filtering and virus scanning overviews gave their verdict no level, put their
-  problems in the last card, and said "In the clear" of port 25 and of a client port in two colours.** Each verdict
-  - "No message is scanned for viruses... Everything is delivered as it arrives." - was plain body text; it is now a
-  notice at the level of what it says, with the page that puts it right, and the transport encryption verdict names
-  its listeners ("POP3 110 has no encryption available...") with *Open TCP/IP ports*. The Critical and Warning notes,
-  which were the last card several screens down with no action, are under the verdict, worst first, each with a
-  button to the page that fixes it - TCP/IP ports, IP ranges, SSL certificates, SSL/TLS, Anti-spam or Anti-virus
-  settings, Blocked attachments, Domains - and the page's title carries their count, *3 problems* at the worst one's
-  level or *No problems found*; the notes below Warning stay at the foot. Port 25 unencrypted reads *Unencrypted
-  (server mail)*. An enabled spam check that scores 0 reads *On, scores 0* and SpamAssassin with no host *On, no host*,
-  both Warnings, where each showed the green *On* of a check that works. The verdict and the notes also count
-  listeners by what they amount to rather than by their word, which they compared with "Will not start" and so missed
-  in every language but English. `TlsPostureTests`, `SpamPipelineTests`, `VirusPipelineTests` and `OverviewPagesTests`
-  hold the levels, the pages, the words and the layout.
+  problems in the last card, and said "In the clear" of port 25 and of a client port in two colours.** Each verdict -
+  "No message is scanned for viruses... Everything is delivered as it arrives." - was plain body text; it is now a
+  notice at the level of what it says, with the page that puts it right. The Critical and Warning notes, which were the
+  last card several screens down with no action, are under the verdict, worst first, each with a button to the page that
+  fixes it - TCP/IP ports, IP ranges, SSL certificates, SSL/TLS, Anti-spam or Anti-virus settings, Blocked attachments,
+  Domains - and the page's title carries their count, *3 problems* at the worst one's level or *No problems found*; the
+  notes below Warning stay at the foot. Where the transport encryption verdict is about listeners - none at all, one
+  with no encryption, one whose STARTTLS a client may skip, one that cannot serve TLS - the notes under it are the
+  verdict, such as "POP3 on port 110 has no encryption available..." with *Open TCP/IP ports*, where "1 client listener
+  has no encryption available" named neither the port nor the fix, and the verdict is not said again above them as a
+  second notice. Port 25 unencrypted reads *Unencrypted (server mail)*. An enabled spam check that scores 0 reads *On,
+  scores 0* and SpamAssassin with no host *On, no host*, both Warnings, where each showed the green *On* of a check that
+  works. The verdict and the notes also count listeners by what they amount to rather than by their word, which they
+  compared with "Will not start" and so missed in every language but English. `TlsPostureTests`, `SpamPipelineTests`,
+  `VirusPipelineTests` and `OverviewPagesTests` hold the levels, the pages, the words and the layout.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

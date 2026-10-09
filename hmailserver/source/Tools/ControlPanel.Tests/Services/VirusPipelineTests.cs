@@ -587,6 +587,40 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// A verdict at Warning or above is always said by a note at its level, so
+      /// that the count of problems beside the title - the notes at Warning and
+      /// above - is never "No problems found" beside it.
+      /// </summary>
+      [Fact]
+      public void AVerdictAtWarningOrAbove_IsSaidByANoteAtItsLevel()
+      {
+         var configs = new List<VirusPipelineConfig> { Defaults(), Scanning() };
+
+         VirusPipelineConfig blockingOnly = Defaults();
+         blockingOnly.AttachmentBlockingEnabled = true;
+         configs.Add(blockingOnly);
+
+         VirusPipelineConfig limited = Scanning();
+         limited.MaxScanKilobytes = 10240;
+         configs.Add(limited);
+
+         VirusPipelineConfig stripping = Scanning();
+         stripping.Action = VirusAction.StripAttachments;
+         configs.Add(stripping);
+
+         VirusPipelineConfig noPatterns = Scanning();
+         noPatterns.BlockedAttachmentPatterns = 0;
+         configs.Add(noPatterns);
+
+         foreach (VirusPipelineConfig config in configs)
+         {
+            StatusLevel verdict = VirusPipeline.VerdictLevel(config);
+            if (verdict >= StatusLevel.Warning)
+               Assert.Contains(VirusPipeline.Notes(config), n => n.Level >= verdict);
+         }
+      }
+
+      /// <summary>
       /// Each note names the page that puts it right: attachment blocking with no
       /// patterns on Blocked attachments, fetch accounts on Domains, the rest on
       /// Anti-virus settings.

@@ -441,6 +441,28 @@ namespace hMailServer.ControlPanel.Services
             : null;
       }
 
+      /// <summary>
+      /// Whether the notes say what the verdict says: no listener at all, or,
+      /// listener by listener, one that cannot serve TLS, one that offers a client
+      /// no encryption, STARTTLS that a client may skip - each has a note at the
+      /// verdict's level that names it, says why, and opens the page that puts it
+      /// right. The overview then shows those notes and not the verdict as well:
+      /// under it, "POP3 110 has no encryption available, so passwords used on it
+      /// cross the network in the clear." and "POP3 on port 110 has no encryption
+      /// available. Mail clients authenticate on this port..." were two Critical
+      /// notices saying one thing, one more than the count beside the title. The
+      /// verdict of a server whose client ports all require encryption, and of
+      /// listeners not read, has no note to say it.
+      /// </summary>
+      public static bool NotesSayTheVerdict(TlsPostureConfig config)
+      {
+         if (config == null || !config.WasRead(nameof(config.Listeners)))
+            return false;
+
+         IReadOnlyList<TlsListenerVerdict> listeners = Listeners(config);
+         return listeners.Count == 0 || Broken(listeners).Count > 0 || Exposed(listeners).Count > 0 || Optional(listeners).Count > 0;
+      }
+
       /// <summary>The page a note is about unless it names another: SSL/TLS, which owns the versions and ciphers.</summary>
       public const string NotesPage = "tls";
 
@@ -470,6 +492,15 @@ namespace hMailServer.ControlPanel.Services
          bool ranges = config.WasRead(nameof(config.RangesTotal), nameof(config.RangesRequiringTlsForAuth));
 
          // ---- cannot work ------------------------------------------------------
+
+         // No listener at all is the verdict's Critical, and a note, so that the
+         // count beside the title has it: that read "No problems found" beside
+         // "No listeners are configured, so nothing can connect to this server."
+         if (config.WasRead(nameof(config.Listeners)) && listeners.Count == 0)
+         {
+            notes.Add(new TlsPostureNote(StatusLevel.Critical,
+               L("No listeners are configured, so nothing can connect to this server."), "ports"));
+         }
 
          if (versions && !AnyVersionEnabled(config) && listeners.Any(v => WantsTls(v.Listener.Security)))
          {

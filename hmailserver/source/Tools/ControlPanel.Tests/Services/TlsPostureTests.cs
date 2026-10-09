@@ -385,6 +385,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          config.Listeners = new List<TlsListener>();
 
          Assert.Contains("No listeners are configured", TlsPosture.Verdict(config));
+         Assert.Contains(TlsPosture.Notes(config), n => n.Level == StatusLevel.Critical && n.Text.StartsWith("No listeners are configured", StringComparison.Ordinal));
       }
 
       // ---- values that could not be read ---------------------------------------
@@ -402,6 +403,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          config.Unread.Add(nameof(config.Listeners));
 
          Assert.Contains("could not be read", TlsPosture.Verdict(config));
+         Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Text.StartsWith("No listeners are configured", StringComparison.Ordinal));
       }
 
       /// <summary>
@@ -545,6 +547,108 @@ namespace hMailServer.ControlPanel.Tests.Services
          config.Unread.Add(nameof(config.Listeners));
          Assert.Equal(StatusLevel.Information, TlsPosture.VerdictLevel(config));
          Assert.Null(TlsPosture.VerdictPage(config));
+      }
+
+      /// <summary>
+      /// Where the verdict is about listeners, the notes say it listener by
+      /// listener - each named, at the verdict's level - so the overview shows
+      /// them and not the verdict as well, which read as the same Critical notice
+      /// twice. A listener that cannot negotiate is said by the note that no TLS
+      /// version is enabled, which opens SSL/TLS, where the fix is, and no
+      /// listener at all by a note of its own. The verdict of a server whose
+      /// client ports all require encryption, and of listeners not read, has no
+      /// note to say it, and is shown.
+      /// </summary>
+      [Fact]
+      public void WhereTheVerdictIsAboutListeners_TheNotesSayIt_EachListenerAtTheVerdictsLevel()
+      {
+         var cases = new List<List<TlsListener>>
+         {
+            new() { Listener("POP3", 110, TlsListenerSecurity.None) },
+            new() { Listener("IMAP", 143, TlsListenerSecurity.None), Listener("POP3", 110, TlsListenerSecurity.None) },
+            new() { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional) },
+            new() { Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional), Listener("SMTP", 587, TlsListenerSecurity.StartTlsOptional) },
+            new() { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: "") },
+            new() { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: ""), Listener("POP3", 110, TlsListenerSecurity.None) }
+         };
+
+         foreach (List<TlsListener> listeners in cases)
+         {
+            TlsPostureConfig config = Healthy();
+            config.Listeners = listeners;
+            IReadOnlyList<TlsPostureNote> notes = TlsPosture.Notes(config);
+
+            Assert.True(TlsPosture.NotesSayTheVerdict(config));
+            Assert.True(TlsPosture.VerdictLevel(config) >= StatusLevel.Warning);
+            Assert.Contains(notes, n => n.Level == TlsPosture.VerdictLevel(config) && n.Page == "ports");
+            foreach (TlsListener listener in listeners.Where(l => VerdictFor(config, l.Port).Level >= StatusLevel.Warning))
+            {
+               Assert.Contains(notes, n => n.Level >= StatusLevel.Warning && n.Page == "ports"
+                  && (n.Text.Contains(listener.Protocol + " on port " + listener.Port, StringComparison.Ordinal)
+                     || n.Text.Contains(listener.Protocol + " " + listener.Port, StringComparison.Ordinal)));
+            }
+         }
+
+         TlsPostureConfig noVersion = Healthy();
+         noVersion.Tls12Enabled = false;
+         noVersion.Tls13Enabled = false;
+         Assert.Equal(TlsListenerState.CannotNegotiate, VerdictFor(noVersion, 993).State);
+         Assert.True(TlsPosture.NotesSayTheVerdict(noVersion));
+         Assert.Contains(TlsPosture.Notes(noVersion), n => n.Level == StatusLevel.Critical && n.Page == "tls"
+            && n.Text.StartsWith("No TLS version is enabled", StringComparison.Ordinal));
+
+         TlsPostureConfig healthy = Healthy();
+         Assert.False(TlsPosture.NotesSayTheVerdict(healthy));
+
+         healthy.Listeners.Clear();
+         Assert.True(TlsPosture.NotesSayTheVerdict(healthy));
+         Assert.Contains(TlsPosture.Notes(healthy), n => n.Level == StatusLevel.Critical && n.Page == "ports"
+            && n.Text == TlsPosture.Verdict(healthy));
+
+         healthy.Listeners.Add(Listener("POP3", 110, TlsListenerSecurity.None));
+         healthy.Unread.Add(nameof(healthy.Listeners));
+         Assert.False(TlsPosture.NotesSayTheVerdict(healthy));
+         Assert.False(TlsPosture.NotesSayTheVerdict(null));
+      }
+
+      /// <summary>
+      /// A verdict at Warning or above is always said by a note at its level, so
+      /// that the count of problems beside the title - the notes at Warning and
+      /// above - is never "No problems found" beside a Critical verdict, as it was
+      /// beside "No listeners are configured, so nothing can connect to this
+      /// server.", which no note said.
+      /// </summary>
+      [Fact]
+      public void AVerdictAtWarningOrAbove_IsSaidByANoteAtItsLevel()
+      {
+         var listenerSets = new List<List<TlsListener>>
+         {
+            new(),
+            new() { Listener("SMTP", 25, TlsListenerSecurity.None) },
+            new() { Listener("SMTP", 25, TlsListenerSecurity.StartTlsOptional) },
+            new() { Listener("SMTP", 587, TlsListenerSecurity.StartTlsOptional) },
+            new() { Listener("POP3", 110, TlsListenerSecurity.None), Listener("IMAP", 143, TlsListenerSecurity.StartTlsOptional) },
+            new() { Listener("IMAP", 993, TlsListenerSecurity.Implicit, certificate: ""), Listener("SMTP", 587, TlsListenerSecurity.StartTlsRequired) },
+            new() { Listener("IMAP", 993, TlsListenerSecurity.Implicit), Listener("SMTP", 465, TlsListenerSecurity.Implicit) }
+         };
+
+         foreach (List<TlsListener> listeners in listenerSets)
+         {
+            foreach (bool versions in new[] { true, false })
+            {
+               TlsPostureConfig config = Healthy();
+               config.Listeners = listeners;
+               config.Tls12Enabled = versions;
+               config.Tls13Enabled = versions;
+
+               StatusLevel verdict = TlsPosture.VerdictLevel(config);
+               if (verdict < StatusLevel.Warning)
+                  continue;
+
+               Assert.Contains(TlsPosture.Notes(config), n => n.Level >= verdict);
+               Assert.True(TlsPosture.NotesSayTheVerdict(config));
+            }
+         }
       }
 
       /// <summary>
