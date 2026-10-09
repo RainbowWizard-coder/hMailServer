@@ -13863,7 +13863,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>Dieses Passwort gegen Windows _prüfen (Active Directory oder ein lokales Windows-Konto)</value>
   </data>
   <data name="_Clear" xml:space="preserve">
-    <value>_Leeren</value>
+    <value>_Löschen</value>
   </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Wiederherstellungsadresse löschen</value>

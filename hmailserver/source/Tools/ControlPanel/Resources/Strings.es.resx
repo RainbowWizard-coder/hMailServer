@@ -13863,7 +13863,7 @@ Seguirá intentándolo mientras usa la aplicación.</value>
     <value>_Comprobar esta contraseña contra Windows (Active Directory, o una cuenta local de Windows)</value>
   </data>
   <data name="_Clear" xml:space="preserve">
-    <value>_Limpiar</value>
+    <value>_Borrar</value>
   </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Borrar la dirección de recuperación</value>
