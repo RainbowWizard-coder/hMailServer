@@ -2512,12 +2512,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin hittades inte på standardplatserna för installation.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Begränsas till 1-168 av servern: ett värde utanför det intervallet är inte ett fel, det dras tyst till närmaste gräns.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Begränsas till 5-3600 av exportören. Används bara när mätvärdesslutpunkten ovan är satt.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Klassificera studsar och för en spärrlista</value>
   </data>
@@ -4069,8 +4063,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Drop it without a report" xml:space="preserve">
     <value>Ta bort utan rapport</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>Släpp för stora inkommande meddelanden över N byte mitt i överföringen (0 = av)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>Släpp för stora inkommande meddelanden över N KB mitt i överföringen (0 = av)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-post</value>
@@ -4330,6 +4324,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Ange 0 för det inbyggda värdet, eller ett heltal från {0} till {1}.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Ange ett domännamn, till exempel example.com.</value>
   </data>
@@ -4381,11 +4378,17 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter a value." xml:space="preserve">
     <value>Ange ett värde.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>Ange ett heltal från {0} till {1}.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Ange ett helt antal timmar från 1 till 720.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Ange ett helt antal sekunder från 1 till 90.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>Ange ett heltal på {0} eller mer.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Ange ett heltal.</value>
@@ -4395,6 +4398,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Ange en timme från 0 till 23.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>Ange en IPv4-adress, till exempel 1.1.1.1, eller lämna rutan tom för de namnservrar Windows använder.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Ange en del av ett namn och tryck på Sök, eller sök med tom ruta för att lista alla användare.</value>
@@ -4996,6 +5002,15 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Från (a_dress)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>Från 1 timme till 168, en vecka.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>Från 5 till 3600. Används bara när mätvärdesslutpunkten ovan är satt.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>Från 86400, ett dygn, till 31557600, ett år - det längsta RFC 8461 tillåter.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>Från-_namn</value>
   </data>
@@ -5368,8 +5383,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Hur mycket detalj varje post bär. Att sänka nivån är den andra halvan av att styra loggvolymen.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Hur mycket sändhistorik en krasch kan glömma. Begränsas till 1-3600; ett värde under 1 faller tillbaka på standardvärdet 10.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Hur mycket sändhistorik en krasch kan glömma, från 1 sekund till 3600.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Hur ofta en klient får söka efter post</value>
@@ -6141,8 +6156,8 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>MTA-STS-policyhosting - HTTPS-lyssnare plus två DNS-poster per domän</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>MTA-STS-policyläge (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>MTA-STS-policyläge</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7443,6 +7458,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Inget lästes.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>Ingenting sparades: rätta det som är markerat nedan och spara igen.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Ingenting, men förblir medlem</value>
@@ -14870,6 +14888,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="dotted line" xml:space="preserve">
     <value>prickad linje</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - avsändare som följer MTA-STS levererar bara över giltig TLS till de angivna värdarna</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>är lika med</value>
   </data>
@@ -15243,6 +15264,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="no rights" xml:space="preserve">
     <value>inga rättigheter</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - ingen policy: avsändare som har cachat en slutar tillämpa den</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>inte påbörjat</value>
   </data>
@@ -15413,6 +15437,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>testa om port 25 är öppen</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - avsändare levererar som tidigare och rapporterar vad som skulle ha misslyckats</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Kontrollpanelen är ansluten till '{0}'; hMailServer.INI och filer på disk kan bara inspekteras på själva serverdatorn.</value>

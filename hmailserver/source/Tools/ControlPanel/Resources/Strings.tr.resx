@@ -2512,12 +2512,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin standart kurulum konumlarında bulunamadı.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Sunucu tarafından 1-168'e sıkıştırılır: bu aralığın dışındaki bir değer hata değildir, sessizce en yakın sınıra çekilir.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Dışa aktarıcı tarafından 5-3600'e sıkıştırılır. Yalnızca yukarıdaki ölçüm uç noktası ayarlıyken kullanılır.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Geri dönüşleri sınıflandır ve bir engelleme listesi tut</value>
   </data>
@@ -4069,8 +4063,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Drop it without a report" xml:space="preserve">
     <value>Rapor göndermeden çıkar</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>N bayttan büyük gelen iletileri aktarımın ortasında at (0 = kapalı)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>N KB'tan büyük gelen iletileri aktarımın ortasında at (0 = kapalı)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-posta</value>
@@ -4330,6 +4324,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Yerleşik değer için 0 ya da {0} ile {1} arasında bir tam sayı girin.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>example.com gibi bir etki alanı adı girin.</value>
   </data>
@@ -4381,11 +4378,17 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter a value." xml:space="preserve">
     <value>Bir değer girin.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>{0} ile {1} arasında bir tam sayı girin.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>1 ile 720 arasında tam sayı olarak saat girin.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>1 ile 90 arasında tam sayı olarak saniye girin.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>{0} veya daha büyük bir tam sayı girin.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Bir tam sayı girin.</value>
@@ -4395,6 +4398,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>0 ile 23 arasında bir saat girin.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>1.1.1.1 gibi tek bir IPv4 adresi girin ya da Windows'un kullandığı ad sunucuları için kutuyu boş bırakın.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Bir adın bir kısmını girip Ara'ya basın ya da tüm kullanıcıları listelemek için kutu boşken arayın.</value>
@@ -4996,6 +5002,15 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Kimden (a_dres)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>1 saatten 168 saate, yani bir haftaya kadar.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>5 ile 3600 arası. Yalnızca yukarıdaki ölçüm uç noktası ayarlıyken kullanılır.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>86400'den (bir gün) 31557600'e (bir yıl) kadar; RFC 8461'in izin verdiği en uzun süre budur.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>K_imden adı</value>
   </data>
@@ -5368,8 +5383,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Her girdinin ne kadar ayrıntı taşıdığı. Düzeyi düşürmek, günlük hacmini denetlemenin diğer yarısıdır.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Bir çökmenin ne kadar gönderim geçmişini unutabileceği. 1-3600 aralığına sıkıştırılır; 1'in altındaki bir değer 10 olan varsayılana geri döner.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Bir çökmenin ne kadar gönderim geçmişini unutabileceği; 1 saniyeden 3600'e kadar.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Bir istemcinin postayı ne sıklıkla denetleyebileceği</value>
@@ -6141,8 +6156,8 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>MTA-STS ilke barındırma - HTTPS dinleyicisi artı etki alanı başına iki DNS girdisi</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>MTA-STS ilke kipi (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>MTA-STS ilke kipi</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7443,6 +7458,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Hiçbir şey okunmadı.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>Hiçbir şey kaydedilmedi: aşağıda işaretlenenleri düzeltin, sonra yeniden kaydedin.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Hiçbir şey, üye kalarak</value>
@@ -14870,6 +14888,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="dotted line" xml:space="preserve">
     <value>noktalı çizgi</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - MTA-STS'ye uyan gönderenler yalnızca geçerli TLS üzerinden listelenen ana bilgisayarlara teslim eder</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>eşittir</value>
   </data>
@@ -15243,6 +15264,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="no rights" xml:space="preserve">
     <value>hak yok</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - ilke yok: bir ilkeyi önbelleğe almış gönderenler onu uygulamayı bırakır</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>başlamadı</value>
   </data>
@@ -15413,6 +15437,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>port 25'in açık olup olmadığını sına</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - gönderenler eskisi gibi teslim eder ve neyin başarısız olacağını bildirir</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Denetim Masası '{0}' sunucusuna bağlı; hMailServer.INI ve diskteki dosyalar yalnızca sunucu makinesinin kendisinde incelenebilir.</value>

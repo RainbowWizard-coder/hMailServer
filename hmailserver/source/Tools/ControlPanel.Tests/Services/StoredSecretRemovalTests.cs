@@ -116,8 +116,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(hint != null && hint.Contains("!hasStored_ || RemovesStored ? Blurb", StringComparison.Ordinal), "The row hint says a blank box keeps the secret while the removal is ticked: " + hint);
 
          // The emptied box keeps its width: WPF-UI's password box, aligned left, draws
-         // its border as wide as what it holds, and shrank to its reveal button.
-         Assert.Contains("box_.MinWidth = EditorWidth;", secret, StringComparison.Ordinal);
+         // its border as wide as what it holds, and shrank to its reveal button. It
+         // stretches to the form column's width, as every secret on these pages does
+         // (review finding F139), and is never aligned left.
+         string editor = WithheldRowTests.MemberText(secret, "public override FrameworkElement CreateEditor(IniFeatureStore store)");
+         Assert.True(editor != null, "SecretSetting.CreateEditor is gone.");
+         Assert.Matches(@"PlaceholderText = Placeholder_\(\),\s*HorizontalAlignment = HorizontalAlignment\.Stretch", editor);
+         Assert.DoesNotContain("box_.HorizontalAlignment = HorizontalAlignment.Left;", secret, StringComparison.Ordinal);
 
          string shows = WithheldRowTests.MemberText(secret, "private void ShowWhatABlankBoxDoes_()");
          Assert.True(shows != null, "SecretSetting.ShowWhatABlankBoxDoes_ is gone.");

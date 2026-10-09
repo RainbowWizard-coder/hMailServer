@@ -2536,12 +2536,6 @@ Control Panel может читать файлы сообщений только
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin не найден в стандартных местах установки.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Сервер ограничивает значение диапазоном 1–168: значение вне этого диапазона не является ошибкой, оно молча подтягивается к ближайшей границе.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Экспортёр ограничивает значение диапазоном 5–3600. Используется, только когда задана конечная точка метрик выше.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Классифицировать отказы и вести список подавления</value>
   </data>
@@ -4115,8 +4109,8 @@ Control Panel может читать файлы сообщений только
   <data name="Drop it without a report" xml:space="preserve">
     <value>Пропустить без отчёта</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>Обрывать приём входящих сообщений, превысивших N байт, прямо во время передачи (0 — выключено)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>Обрывать приём входящих сообщений, превысивших N КБ, прямо во время передачи (0 — выключено)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Электронная почта</value>
@@ -4376,6 +4370,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Введите 0 для встроенного значения или целое число от {0} до {1}.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Введите имя домена, например example.com.</value>
   </data>
@@ -4427,11 +4424,17 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a value." xml:space="preserve">
     <value>Введите значение.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>Введите целое число от {0} до {1}.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Введите целое число часов от 1 до 720.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Введите целое число секунд от 1 до 90.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>Введите целое число не меньше {0}.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введите целое число.</value>
@@ -4441,6 +4444,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Введите час от 0 до 23.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>Введите один адрес IPv4, например 1.1.1.1, или оставьте поле пустым, чтобы использовать серверы имён Windows.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Введите часть имени и нажмите «Найти» либо выполните поиск с пустым полем, чтобы получить список всех пользователей.</value>
@@ -5060,6 +5066,15 @@ Control Panel может читать файлы сообщений только
   <data name="From (a_ddress)" xml:space="preserve">
     <value>_От (адрес)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>От 1 часа до 168, то есть недели.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>От 5 до 3600. Используется, только когда задана конечная точка метрик выше.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>От 86400, то есть суток, до 31557600, то есть года - это максимум, который допускает RFC 8461.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>_Имя отправителя</value>
   </data>
@@ -5432,8 +5447,8 @@ Control Panel может читать файлы сообщений только
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Сколько подробностей несёт каждая запись. Понижение уровня — вторая половина управления объёмом журналов.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Сколько истории отправки может быть потеряно при аварийном завершении. Ограничено диапазоном 1-3600; значение меньше 1 приводит к значению по умолчанию, равному 10.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Сколько истории отправки может быть потеряно при аварийном завершении, от 1 секунды до 3600.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Как часто клиент может проверять почту</value>
@@ -6205,8 +6220,8 @@ Control Panel может читать файлы сообщений только
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>Размещение политики MTA-STS — прослушиватель HTTPS плюс две записи DNS на домен</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>Режим политики MTA-STS (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>Режим политики MTA-STS</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7531,6 +7546,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Ничего не прочитано.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>Ничего не сохранено: исправьте отмеченное ниже и сохраните снова.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Ничего, оставаясь участником</value>
@@ -15042,6 +15060,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="dotted line" xml:space="preserve">
     <value>точечная линия</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - отправители, соблюдающие MTA-STS, доставляют только по действительному TLS на перечисленные узлы</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>равно</value>
   </data>
@@ -15430,6 +15451,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="no rights" xml:space="preserve">
     <value>нет прав</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - без политики: отправители, сохранившие её, перестают её применять</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>не начато</value>
   </data>
@@ -15600,6 +15624,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>проверить, открыт ли порт 25</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - отправители доставляют как прежде и сообщают, что не прошло бы</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Control Panel подключён к «{0}»; hMailServer.INI и файлы на диске можно просмотреть только на самом компьютере сервера.</value>

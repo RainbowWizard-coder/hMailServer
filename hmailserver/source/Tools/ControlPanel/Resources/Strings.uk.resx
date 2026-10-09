@@ -2536,12 +2536,6 @@
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin не знайдено в стандартних місцях встановлення.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Сервер обмежує це значення діапазоном 1-168: значення поза ним не є помилкою, його тихо підтягують до найближчої межі.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Експортер обмежує це значення діапазоном 5-3600. Використовується лише тоді, коли задано кінцеву точку метрик вище.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Класифікувати відмови й вести список придушення</value>
   </data>
@@ -4115,8 +4109,8 @@
   <data name="Drop it without a report" xml:space="preserve">
     <value>Пропустити без звіту</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>Обривати завеликі вхідні повідомлення понад N байтів посеред передавання (0 = вимкнено)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>Обривати завеликі вхідні повідомлення понад N КБ посеред передавання (0 = вимкнено)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Електронна пошта</value>
@@ -4376,6 +4370,9 @@
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Введіть 0 для вбудованого значення або ціле число від {0} до {1}.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Введіть ім'я домену, наприклад example.com.</value>
   </data>
@@ -4427,11 +4424,17 @@
   <data name="Enter a value." xml:space="preserve">
     <value>Введіть значення.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>Введіть ціле число від {0} до {1}.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Введіть ціле число годин від 1 до 720.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Введіть ціле число секунд від 1 до 90.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>Введіть ціле число не менше {0}.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введіть ціле число.</value>
@@ -4441,6 +4444,9 @@
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Введіть годину від 0 до 23.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>Введіть одну адресу IPv4, наприклад 1.1.1.1, або залиште поле порожнім, щоб використовувати сервери імен Windows.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Введіть частину імені й натисніть «Пошук», або шукайте з порожнім полем, щоб перелічити всіх користувачів.</value>
@@ -5060,6 +5066,15 @@
   <data name="From (a_ddress)" xml:space="preserve">
     <value>_Від (адреса)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>Від 1 години до 168, тобто тижня.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>Від 5 до 3600. Використовується лише тоді, коли задано кінцеву точку метрик вище.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>Від 86400, тобто доби, до 31557600, тобто року - це найбільше, що дозволяє RFC 8461.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>_Ім'я відправника</value>
   </data>
@@ -5432,8 +5447,8 @@
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Скільки деталей несе кожен запис. Зниження рівня - друга половина контролю обсягу журналу.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Скільки історії надсилання може забути збій. Обмежено 1-3600; значення менше 1 відкочується до типових 10.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Скільки історії надсилання може забути збій, від 1 секунди до 3600.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Як часто клієнт може перевіряти пошту</value>
@@ -6205,8 +6220,8 @@
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>Надання політики MTA-STS — слухач HTTPS плюс два DNS-записи на домен</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>Режим політики MTA-STS (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>Режим політики MTA-STS</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7531,6 +7546,9 @@
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Нічого не прочитано.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>Нічого не збережено: виправте позначене нижче й збережіть знову.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Нічого, лишаючись учасником</value>
@@ -15042,6 +15060,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="dotted line" xml:space="preserve">
     <value>точкова лінія</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - відправники, які дотримуються MTA-STS, доставляють лише через дійсний TLS на перелічені вузли</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>дорівнює</value>
   </data>
@@ -15430,6 +15451,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="no rights" xml:space="preserve">
     <value>без прав</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - без політики: відправники, які зберегли її, припиняють її застосовувати</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>не розпочато</value>
   </data>
@@ -15600,6 +15624,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>перевірити, чи відкрито порт 25</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - відправники доставляють як раніше й повідомляють, що не пройшло б</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Панель керування підключено до «{0}»; hMailServer.INI і файли на диску можна оглянути лише на самому комп’ютері сервера.</value>

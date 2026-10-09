@@ -2512,12 +2512,6 @@ Los detalles completos se escribieron en:
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin no se encontró en las ubicaciones de instalación estándar.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Acotado a 1-168 por el servidor: un valor fuera de ese rango no es un error, se lleva en silencio al límite más cercano.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Acotado a 5-3600 por el exportador. Solo se usa cuando el punto de métricas de arriba está definido.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Clasificar los rebotes y mantener una lista de supresión</value>
   </data>
@@ -4069,8 +4063,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Drop it without a report" xml:space="preserve">
     <value>Descartarlo sin informe</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>Cortar a mitad de transferencia los mensajes entrantes de más de N bytes (0 = desactivado)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>Cortar a mitad de transferencia los mensajes entrantes de más de N KB (0 = desactivado)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Correo</value>
@@ -4330,6 +4324,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter" xml:space="preserve">
     <value>Intro</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Introduzca 0 para el valor integrado, o un número entero de {0} a {1}.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Introduzca un nombre de dominio, como example.com.</value>
   </data>
@@ -4381,11 +4378,17 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter a value." xml:space="preserve">
     <value>Introduzca un valor.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>Introduzca un número entero de {0} a {1}.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Introduzca un número entero de horas de 1 a 720.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Introduzca un número entero de segundos de 1 a 90.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>Introduzca un número entero de {0} o más.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Introduzca un número entero.</value>
@@ -4395,6 +4398,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Introduzca una hora de 0 a 23.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>Introduzca una dirección IPv4, por ejemplo 1.1.1.1, o deje el cuadro vacío para los servidores de nombres que usa Windows.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Introduzca parte de un nombre y pulse Buscar, o busque con el cuadro vacío para listar todos los usuarios.</value>
@@ -4996,6 +5002,15 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="From (a_ddress)" xml:space="preserve">
     <value>De (_dirección)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>De 1 hora a 168, una semana.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>De 5 a 3600. Solo se usa cuando el punto de métricas de arriba está definido.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>De 86400, un día, a 31557600, un año - lo máximo que permite RFC 8461.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>_Nombre de remitente</value>
   </data>
@@ -5368,8 +5383,8 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Cuánto detalle lleva cada entrada. Bajar el nivel es la otra mitad del control del volumen de registros.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Cuánto historial de envío puede olvidar un fallo. Acotado a 1-3600; un valor menor que 1 recurre al valor por defecto de 10.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Cuánto historial de envío puede olvidar un fallo, de 1 segundo a 3600.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Con qué frecuencia puede un cliente comprobar el correo</value>
@@ -6141,8 +6156,8 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>Alojamiento de la política MTA-STS - un oyente HTTPS más dos entradas DNS por dominio</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>Modo de la política MTA-STS (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>Modo de la política MTA-STS</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7443,6 +7458,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>No se leyó nada.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>No se guardó nada: corrija lo marcado más abajo y vuelva a guardar.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Nada, sin dejar de ser miembro</value>
@@ -14870,6 +14888,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="dotted line" xml:space="preserve">
     <value>línea de puntos</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - los remitentes que respetan MTA-STS solo entregan por TLS válido a los hosts indicados</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>es igual a</value>
   </data>
@@ -15243,6 +15264,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="no rights" xml:space="preserve">
     <value>sin derechos</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - sin política: los remitentes que guardaron una dejan de aplicarla</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>sin empezar</value>
   </data>
@@ -15413,6 +15437,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>comprobar si el puerto 25 está abierto</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - los remitentes entregan como antes e informan de lo que habría fallado</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>el Control Panel está conectado a '{0}'; hMailServer.INI y los archivos en disco solo pueden inspeccionarse en la propia máquina del servidor.</value>

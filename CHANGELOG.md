@@ -1974,6 +1974,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   top, with Save and preview, which saves the selection and then previews it - and previews nothing when the save is
   refused. The schedule, which a run does not read, does not count.
 
+- **Fixed: the hMailServer.ini settings pages wrote whatever was typed into a number, the MTA-STS policy mode was free
+  text and the DNS override took anything.** The ports, timeouts, cache lifetimes, sizes and work factors on Transport
+  security, Certificates (ACME), API & monitoring, Server limits & expert settings, Authentication and Web services &
+  autoconfiguration were 520-pixel text boxes, and Save wrote a port of 70000 or a PBKDF2 work factor the server then
+  reports and replaces with its own. Each is a 180-pixel number box, as on the other settings pages, and Save holds it
+  to the range the server reads it in - a port from 0 to 65,535, the OpenTelemetry interval from 5 to 3600, the
+  MTA-STS max age from a day to a year, a work factor 0 or its range - saying "Enter a whole number from 0 to 65,535."
+  on the field and writing nothing on the page. The MTA-STS policy mode is a list of enforce, testing and none, each
+  saying what it does; the DNS override is held to one IPv4 address as the server reads it; addresses are 260 pixels
+  wide and other text the width of the form. The drop size for oversized inbound messages is captioned in KB, the unit
+  the server compares it in, where it said bytes.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

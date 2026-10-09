@@ -2512,12 +2512,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWiniä ei löytynyt tavallisista asennussijainneista.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Palvelin rajaa arvoon 1-168: alueen ulkopuolinen arvo ei ole virhe, vaan se vedetään hiljaa lähimpään rajaan.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Viejä rajaa arvoon 5-3600. Käytetään vain, kun yllä oleva mittaripäätepiste on asetettu.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Luokittele palautukset ja pidä estolistaa</value>
   </data>
@@ -4069,8 +4063,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Drop it without a report" xml:space="preserve">
     <value>Jätä pois ilman raporttia</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>Katkaise ylisuuret saapuvat viestit yli N tavua kesken siirron (0 = pois)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>Katkaise ylisuuret saapuvat viestit yli N kt kesken siirron (0 = pois)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>Sähköposti</value>
@@ -4330,6 +4324,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Anna 0 sisäänrakennetulle arvolle tai kokonaisluku väliltä {0}–{1}.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Anna verkkotunnus, esimerkiksi example.com.</value>
   </data>
@@ -4381,11 +4378,17 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a value." xml:space="preserve">
     <value>Anna arvo.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>Anna kokonaisluku väliltä {0}–{1}.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Anna kokonainen tuntimäärä väliltä 1–720.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Anna kokonainen sekuntimäärä väliltä 1–90.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>Anna kokonaisluku, joka on vähintään {0}.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Anna kokonaisluku.</value>
@@ -4395,6 +4398,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Anna tunti väliltä 0–23.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>Anna yksi IPv4-osoite, esimerkiksi 1.1.1.1, tai jätä kenttä tyhjäksi, jolloin käytetään Windowsin nimipalvelimia.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Anna osa nimestä ja paina Hae, tai hae tyhjällä kentällä luetellaksesi kaikki käyttäjät.</value>
@@ -4996,6 +5002,15 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Lähettäjä (o_soite)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>1 tunnista 168:aan eli viikkoon.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>5–3600. Käytetään vain, kun yllä oleva mittaripäätepiste on asetettu.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>86400:sta eli päivästä 31557600:aan eli vuoteen - pisin, minkä RFC 8461 sallii.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>Lähettäjän _nimi</value>
   </data>
@@ -5368,8 +5383,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Kuinka paljon yksityiskohtia kukin merkintä sisältää. Tason laskeminen on lokimäärän hallinnan toinen puoli.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Kuinka paljon lähetyshistoriaa kaatuminen voi unohtaa. Rajattu välille 1-3600; alle 1:n arvo palautuu oletukseen 10.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Kuinka paljon lähetyshistoriaa kaatuminen voi unohtaa, 1 sekunnista 3600:aan.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Kuinka usein asiakas saa tarkistaa postin</value>
@@ -6141,8 +6156,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>MTA-STS-käytännön isännöinti - HTTPS-kuuntelija sekä kaksi DNS-merkintää verkkotunnusta kohden</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>MTA-STS-käytännön tila (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>MTA-STS-käytännön tila</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7443,6 +7458,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Mitään ei luettu.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>Mitään ei tallennettu: korjaa alla merkityt kohdat ja tallenna uudelleen.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Ei mitään, mutta pysyy jäsenenä</value>
@@ -14870,6 +14888,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="dotted line" xml:space="preserve">
     <value>pisteviiva</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - MTA-STS:ää noudattavat lähettäjät toimittavat vain kelvollisen TLS:n kautta luetelluille koneille</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>on yhtä suuri kuin</value>
   </data>
@@ -15243,6 +15264,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="no rights" xml:space="preserve">
     <value>ei oikeuksia</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - ei käytäntöä: lähettäjät, jotka ovat tallentaneet sellaisen, lakkaavat noudattamasta sitä</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>ei aloitettu</value>
   </data>
@@ -15413,6 +15437,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>testaa, onko portti 25 auki</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - lähettäjät toimittavat kuten ennenkin ja raportoivat, mikä olisi epäonnistunut</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>Control Panel on yhteydessä kohteeseen '{0}'; hMailServer.INI-tiedostoa ja levyn tiedostoja voi tarkastella vain palvelinkoneella itsellään.</value>

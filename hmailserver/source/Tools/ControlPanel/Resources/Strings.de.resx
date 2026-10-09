@@ -2512,12 +2512,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin wurde an den üblichen Installationsorten nicht gefunden.</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>Vom Server auf 1-168 begrenzt: ein Wert außerhalb dieses Bereichs ist kein Fehler, er wird stillschweigend auf die nächste Grenze gezogen.</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>Vom Exporter auf 5-3600 begrenzt. Nur verwendet, wenn der Metrikendpunkt oben gesetzt ist.</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Unzustellbarkeiten auswerten und eine Unterdrückungsliste führen</value>
   </data>
@@ -4069,8 +4063,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Drop it without a report" xml:space="preserve">
     <value>Ohne Bericht verwerfen</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>Zu große eingehende Nachrichten über N Bytes mitten in der Übertragung abbrechen (0 = aus)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>Zu große eingehende Nachrichten über N KB mitten in der Übertragung abbrechen (0 = aus)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>E-Mail</value>
@@ -4330,6 +4324,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>Geben Sie 0 für den eingebauten Wert ein oder eine ganze Zahl von {0} bis {1}.</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Geben Sie einen Domainnamen wie example.com ein.</value>
   </data>
@@ -4381,11 +4378,17 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a value." xml:space="preserve">
     <value>Geben Sie einen Wert ein.</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>Geben Sie eine ganze Zahl von {0} bis {1} ein.</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl von Stunden zwischen 1 und 720 ein.</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl von Sekunden zwischen 1 und 90 ein.</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>Geben Sie eine ganze Zahl von {0} oder mehr ein.</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl ein.</value>
@@ -4395,6 +4398,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>Geben Sie eine Stunde von 0 bis 23 ein.</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>Geben Sie eine IPv4-Adresse ein, zum Beispiel 1.1.1.1, oder lassen Sie das Feld leer für die Nameserver, die Windows verwendet.</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Geben Sie einen Teil eines Namens ein und klicken Sie auf Suchen, oder suchen Sie mit leerem Feld, um alle Benutzer aufzulisten.</value>
@@ -4996,6 +5002,15 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Von (A_dresse)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>Von 1 Stunde bis 168, einer Woche.</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>Von 5 bis 3600. Nur verwendet, wenn der Metrikendpunkt oben gesetzt ist.</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>Von 86400, einem Tag, bis 31557600, einem Jahr - das Längste, was RFC 8461 erlaubt.</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>Absen_dername</value>
   </data>
@@ -5368,8 +5383,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>Wie viel Detail jeder Eintrag trägt. Die Stufe zu senken ist die andere Hälfte der Kontrolle des Protokollvolumens.</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>Wie viel Sendehistorie ein Absturz vergessen darf. Begrenzt auf 1-3600; ein Wert unter 1 fällt auf die Vorgabe 10 zurück.</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>Wie viel Sendehistorie ein Absturz vergessen darf, von 1 Sekunde bis 3600.</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>Wie oft ein Client nach Mail sehen darf</value>
@@ -6141,8 +6156,8 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>MTA-STS-Richtlinien-Hosting - HTTPS-Listener und zwei DNS-Einträge pro Domain</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>MTA-STS-Richtlinienmodus (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>MTA-STS-Richtlinienmodus</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7443,6 +7458,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Es wurde nichts gelesen.</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>Es wurde nichts gespeichert: Korrigieren Sie, was unten markiert ist, und speichern Sie erneut.</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>Nichts, bleibt aber Mitglied</value>
@@ -14870,6 +14888,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="dotted line" xml:space="preserve">
     <value>gepunktete Linie</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - Absender, die MTA-STS beachten, stellen nur über gültiges TLS an die aufgeführten Hosts zu</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>ist gleich</value>
   </data>
@@ -15243,6 +15264,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="no rights" xml:space="preserve">
     <value>keine Rechte</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - keine Richtlinie: Absender, die eine zwischengespeichert haben, wenden sie nicht mehr an</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>nicht begonnen</value>
   </data>
@@ -15413,6 +15437,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>testen, ob Port 25 offen ist</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - Absender stellen wie bisher zu und melden, was fehlgeschlagen wäre</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>das Control Panel ist mit '{0}' verbunden; hMailServer.INI und Dateien auf der Festplatte können nur auf dem Serverrechner selbst eingesehen werden.</value>

@@ -2512,12 +2512,6 @@
   <data name="ClamWin was not found in the standard install locations." xml:space="preserve">
     <value>ClamWin は標準のインストール場所に見つかりませんでした。</value>
   </data>
-  <data name="Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound." xml:space="preserve">
-    <value>サーバーによって 1～168 に丸められます。この範囲外の値はエラーにならず、黙って最も近い境界に引き寄せられます。</value>
-  </data>
-  <data name="Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set." xml:space="preserve">
-    <value>エクスポーターによって 5～3600 に丸められます。上のメトリクス エンドポイントが設定されている場合にのみ使われます。</value>
-  </data>
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>バウンスを分類して抑止リストを管理する</value>
   </data>
@@ -4069,8 +4063,8 @@
   <data name="Drop it without a report" xml:space="preserve">
     <value>レポートなしで削除する</value>
   </data>
-  <data name="Drop oversized inbound messages above N bytes mid-transfer (0 = off)" xml:space="preserve">
-    <value>N バイトを超える大きすぎる受信メッセージを転送の途中で破棄する (0 = 無効)</value>
+  <data name="Drop oversized inbound messages above N KB mid-transfer (0 = off)" xml:space="preserve">
+    <value>N KB を超える大きすぎる受信メッセージを転送の途中で破棄する (0 = 無効)</value>
   </data>
   <data name="E-mail" xml:space="preserve">
     <value>メール</value>
@@ -4330,6 +4324,9 @@
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter 0 for the built-in value, or a whole number from {0} to {1}." xml:space="preserve">
+    <value>組み込みの値には 0 を、それ以外は {0} から {1} までの整数を入力してください。</value>
+  </data>
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>example.com のようなドメイン名を入力してください。</value>
   </data>
@@ -4381,11 +4378,17 @@
   <data name="Enter a value." xml:space="preserve">
     <value>値を入力してください。</value>
   </data>
+  <data name="Enter a whole number from {0} to {1}." xml:space="preserve">
+    <value>{0} から {1} までの整数を入力してください。</value>
+  </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>1 から 720 までの整数の時間数を入力してください。</value>
   </data>
   <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
     <value>1 から 90 までの整数の秒数を入力してください。</value>
+  </data>
+  <data name="Enter a whole number of {0} or more." xml:space="preserve">
+    <value>{0} 以上の整数を入力してください。</value>
   </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>整数を入力してください。</value>
@@ -4395,6 +4398,9 @@
   </data>
   <data name="Enter an hour from 0 to 23." xml:space="preserve">
     <value>0 から 23 までの時刻を入力してください。</value>
+  </data>
+  <data name="Enter one IPv4 address, such as 1.1.1.1, or leave the box empty for the name servers Windows uses." xml:space="preserve">
+    <value>IPv4 アドレスを 1 つ (例: 1.1.1.1) 入力するか、Windows が使用するネーム サーバーを使うにはボックスを空のままにしてください。</value>
   </data>
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>名前の一部を入力して「検索」を押すか、空のまま検索してすべてのユーザーを一覧表示してください。</value>
@@ -4996,6 +5002,15 @@
   <data name="From (a_ddress)" xml:space="preserve">
     <value>差出人 (アドレス)(_D)</value>
   </data>
+  <data name="From 1 hour to 168, a week." xml:space="preserve">
+    <value>1 時間から 168 時間 (1 週間) まで。</value>
+  </data>
+  <data name="From 5 to 3600. Only used when the metrics endpoint above is set." xml:space="preserve">
+    <value>5 から 3600 まで。上のメトリクス エンドポイントが設定されている場合にのみ使われます。</value>
+  </data>
+  <data name="From 86400, a day, to 31557600, a year - the longest RFC 8461 allows." xml:space="preserve">
+    <value>86400 (1 日) から 31557600 (1 年) まで。1 年は RFC 8461 が認める最長です。</value>
+  </data>
   <data name="From _name" xml:space="preserve">
     <value>差出人名(_N)</value>
   </data>
@@ -5368,8 +5383,8 @@
   <data name="How much detail each entry carries. Lowering the level is the other half of controlling log volume." xml:space="preserve">
     <value>各エントリが持つ詳細の量。レベルを下げることが、ログ量を制御するもう半分です。</value>
   </data>
-  <data name="How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10." xml:space="preserve">
-    <value>クラッシュで失われてよい送信履歴の量。1～3600 に丸められます。1 未満の値は既定値の 10 にフォールバックします。</value>
+  <data name="How much sending history a crash can forget, from 1 second to 3600." xml:space="preserve">
+    <value>クラッシュで失われてよい送信履歴の量。1 秒から 3600 秒まで。</value>
   </data>
   <data name="How often a client may check for mail" xml:space="preserve">
     <value>クライアントがメールを確認できる頻度</value>
@@ -6141,8 +6156,8 @@
   <data name="MTA-STS policy hosting - HTTPS listener plus two DNS entries per domain" xml:space="preserve">
     <value>MTA-STS ポリシーのホスティング - HTTPS リスナーと、ドメインごとに 2 つの DNS エントリ</value>
   </data>
-  <data name="MTA-STS policy mode (enforce / testing / none)" xml:space="preserve">
-    <value>MTA-STS ポリシー モード (enforce / testing / none)</value>
+  <data name="MTA-STS policy mode" xml:space="preserve">
+    <value>MTA-STS ポリシー モード</value>
   </data>
   <data name="MX" xml:space="preserve">
     <value>MX</value>
@@ -7443,6 +7458,9 @@
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>何も読み取られませんでした。</value>
+  </data>
+  <data name="Nothing was saved: correct what is marked below, then save again." xml:space="preserve">
+    <value>何も保存されていません。下で示されている箇所を修正してから、もう一度保存してください。</value>
   </data>
   <data name="Nothing, while staying a member" xml:space="preserve">
     <value>受け取らない (メンバーのまま)</value>
@@ -14870,6 +14888,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="dotted line" xml:space="preserve">
     <value>点線</value>
   </data>
+  <data name="enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed" xml:space="preserve">
+    <value>enforce - MTA-STS に従う送信者は、記載されたホストへ有効な TLS でのみ配信します</value>
+  </data>
   <data name="equals" xml:space="preserve">
     <value>次と等しい</value>
   </data>
@@ -15243,6 +15264,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="no rights" xml:space="preserve">
     <value>権限なし</value>
   </data>
+  <data name="none - no policy: senders that cached one stop applying it" xml:space="preserve">
+    <value>none - ポリシーなし: ポリシーをキャッシュした送信者はその適用をやめます</value>
+  </data>
   <data name="not started" xml:space="preserve">
     <value>未開始</value>
   </data>
@@ -15413,6 +15437,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="test whether port 25 is open" xml:space="preserve">
     <value>ポート 25 が開いているかテストする</value>
+  </data>
+  <data name="testing - senders deliver as before and report what would have failed" xml:space="preserve">
+    <value>testing - 送信者はこれまでどおり配信し、失敗していたはずの内容を報告します</value>
   </data>
   <data name="the Control Panel is connected to '{0}'; hMailServer.INI and files on disk can only be inspected on the server machine itself." xml:space="preserve">
     <value>コントロールパネルは '{0}' に接続しています。hMailServer.INI とディスク上のファイルは、サーバーのコンピューター自身でしか調べられません。</value>

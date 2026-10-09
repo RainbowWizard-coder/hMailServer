@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
@@ -177,7 +178,31 @@ namespace hMailServer.ControlPanel.Views
                applies = L("Set in hMailServer.ini only");
             }
 
-            return new FieldRow { Label = caption, Hint = hint, Content = content, Applies = applies };
+            return Field = new FieldRow { Label = caption, Hint = hint, Content = content, Applies = applies };
+         }
+
+         /// <summary>The row <see cref="Row"/> built, where a value a save refuses is said.</summary>
+         public FieldRow Field { get; private set; }
+
+         /// <summary>
+         /// Why the value in the editor is not one the server takes, or null: a number
+         /// outside the range the server reads it in, an address that is not one. Asked
+         /// only of a value that was edited - one read from the file is shown as it is
+         /// and, unchanged, not written.
+         /// </summary>
+         protected virtual string Check() => null;
+
+         /// <summary>
+         /// Puts <see cref="Check"/>'s answer on the row, or takes an old one off it;
+         /// true when the value may be saved. A save asks every row before it writes
+         /// any (review finding F220).
+         /// </summary>
+         public bool Validate()
+         {
+            string error = IsChanged ? Check() : null;
+            if (Field != null)
+               Field.Error = error;
+            return error == null;
          }
 
          /// <summary>
@@ -200,8 +225,16 @@ namespace hMailServer.ControlPanel.Views
             "UpdateLogPublicKeyFile" // no-loc
          };
 
-         /// <summary>The width of a text editor on these pages: one column, whatever the value.</summary>
-         protected const double EditorWidth = 520;
+         /// <summary>
+         /// The width of a number on these pages, as ServerSettingsView gives its own
+         /// (review finding F139): a count of seconds or a port is a few digits, and a
+         /// box the width of the column says it expects a sentence. Free text, a path,
+         /// a secret and a list take the width of the form column, as there.
+         /// </summary>
+         protected const double NumberWidth = 180;
+
+         /// <summary>The width of an address - a bind address, the DNS override: an IPv6 address with room to spare (F220).</summary>
+         protected const double AddressWidth = 260;
 
          /// <summary>
          /// The value the editor was filled with, as the INI spells it - what a save
@@ -269,6 +302,13 @@ namespace hMailServer.ControlPanel.Views
       {
          public string Default = "";
          public string Placeholder = "";
+
+         /// <summary>An address, 260 pixels wide; free text otherwise, the width of the form column.</summary>
+         public bool Address;
+
+         /// <summary>What a save asks of the value - why it is not one the server takes, or null - where it asks anything.</summary>
+         public Func<string, string> Rule;
+
          private Wpf.Ui.Controls.TextBox box_;
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
@@ -279,12 +319,16 @@ namespace hMailServer.ControlPanel.Views
             {
                Text = current,
                PlaceholderText = Placeholder,
-               Width = EditorWidth,
-               HorizontalAlignment = HorizontalAlignment.Left
+               HorizontalAlignment = Address ? HorizontalAlignment.Left : HorizontalAlignment.Stretch
             };
+            if (Address)
+               box_.Width = AddressWidth;
             Describe(box_, Key);
+            box_.TextChanged += (s, e) => { if (Field != null) Field.Error = null; };
             return Row(box_, Label);
          }
+
+         protected override string Check() => Rule?.Invoke(box_?.Text?.Trim() ?? "");
 
          public override void Save(IniFeatureStore store)
             => WriteIfChanged(store, box_.Text.Trim());
@@ -295,6 +339,171 @@ namespace hMailServer.ControlPanel.Views
          {
             if (box_ != null && handler != null)
                box_.TextChanged += (s, e) => handler();
+         }
+      }
+
+      /// <summary>
+      /// A whole number: an up/down box 180 pixels wide, as ServerSettingsView's
+      /// numbers are, and the range the server reads the value in, which a save holds
+      /// it to with a message on the field (review findings F220 and F139). These
+      /// were 520-pixel boxes of free text whose save wrote whatever was typed - a
+      /// port of 70000, a PBKDF2 work factor the server then reports and replaces
+      /// with its own. The box sets no bounds of its own, which would pull a typed
+      /// value to the nearest one without a word; the range is the save's to say
+      /// (Services/SettingNumberRange). A value the file holds that is not a number
+      /// is shown as it is and, unchanged, not written. A key of another section
+      /// - [SendingLimits] - is read and written there.
+      /// </summary>
+      private class NumberSetting : Setting
+      {
+         public string Default = "0";
+         public string Placeholder = "";
+
+         /// <summary>The lowest and the highest value the server reads the key in.</summary>
+         public long Minimum;
+         public long Maximum = int.MaxValue;
+
+         /// <summary>0 is taken as well, outside the range: the server's built-in value (the password hash work factors).</summary>
+         public bool ZeroIsBuiltIn;
+
+         /// <summary>The section of hMailServer.INI the key is in, where it is not [Settings].</summary>
+         public string Section;
+
+         protected override bool InSettingsSection => Section == null;
+
+         private Wpf.Ui.Controls.NumberBox box_;
+
+         public override FrameworkElement CreateEditor(IniFeatureStore store)
+         {
+            string raw = (Section == null
+               ? store.Read(Key, Default)
+               : IniDirect.ReadValue(store.IniPath, Section, Key, Default)) ?? "";
+            raw = raw.Trim();
+
+            box_ = new Wpf.Ui.Controls.NumberBox
+            {
+               MaxDecimalPlaces = 0,
+               SmallChange = 1,
+               LargeChange = 10,
+               FontSize = Typography.Body,
+               Width = NumberWidth,
+               HorizontalAlignment = HorizontalAlignment.Left,
+               PlaceholderText = Placeholder
+            };
+
+            if (SettingNumberRange.TryParse(raw, out long current))
+            {
+               box_.Value = current;
+               Loaded = current.ToString(CultureInfo.InvariantCulture);
+            }
+            else
+            {
+               box_.Text = raw;
+               Loaded = raw;
+            }
+
+            Describe(box_, Key);
+            box_.TextChanged += (s, e) => { if (Field != null) Field.Error = null; };
+            return Row(box_, Label);
+         }
+
+         public override void Save(IniFeatureStore store)
+         {
+            string value = LiveValue;
+            if (Section == null)
+            {
+               WriteIfChanged(store, value);
+               return;
+            }
+
+            if (Loaded != null && string.Equals(value, Loaded, StringComparison.Ordinal))
+               return;
+
+            IniDirect.WriteValue(store.IniPath, Section, Key, value);
+            Loaded = value;
+         }
+
+         /// <summary>
+         /// The number as hMailServer.INI spells it, read from what the box shows - a
+         /// value typed and not yet committed by the box is the one saved - or the text
+         /// itself when it is not a number.
+         /// </summary>
+         public override string LiveValue
+         {
+            get
+            {
+               if (box_ == null)
+                  return null;
+
+               string text = (box_.Text ?? "").Trim();
+               return SettingNumberRange.TryParse(text, out long value)
+                  ? value.ToString(CultureInfo.InvariantCulture)
+                  : text;
+            }
+         }
+
+         protected override string Check() => SettingNumberRange.Error(LiveValue, Minimum, Maximum, ZeroIsBuiltIn);
+
+         public override void OnEditorChanged(Action handler)
+         {
+            if (box_ != null && handler != null)
+               box_.TextChanged += (s, e) => handler();
+         }
+      }
+
+      /// <summary>
+      /// One of a few words, as a list: a setting the server reads as a word, such as
+      /// the MTA-STS policy mode, which was a free-text box captioned "(enforce /
+      /// testing / none)" beside a list that existed in the same file for numbers
+      /// (review finding F220). Matched without regard to case, as the server reads
+      /// it; a word the list does not have is offered as itself, after the choices,
+      /// and written back unchanged (Services/ChoiceOptions).
+      /// </summary>
+      private class WordSetting : Setting
+      {
+         public string Default = "";
+         public (string Value, string Label)[] Options;
+         private ComboBox combo_;
+
+         public override FrameworkElement CreateEditor(IniFeatureStore store)
+         {
+            string current = (store.Read(Key, Default) ?? "").Trim();
+            combo_ = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+
+            ComboBoxItem chosen = null;
+            foreach ((string value, string label) in Options)
+            {
+               var item = new ComboBoxItem { Content = label, Tag = value };
+               combo_.Items.Add(item);
+               if (chosen == null && string.Equals(value, current, StringComparison.OrdinalIgnoreCase))
+                  chosen = item;
+            }
+
+            if (chosen == null && current.Length > 0)
+            {
+               chosen = new ComboBoxItem { Content = ChoiceOptions.UnknownLabel(current), Tag = current };
+               combo_.Items.Add(chosen);
+            }
+
+            combo_.SelectedItem = chosen ?? (combo_.Items.Count > 0 ? combo_.Items[0] : null);
+            Loaded = LiveValue;
+
+            Describe(combo_, Key);
+            return Row(combo_, Label);
+         }
+
+         public override void Save(IniFeatureStore store)
+         {
+            if (LiveValue is string value)
+               WriteIfChanged(store, value);
+         }
+
+         public override string LiveValue => combo_?.SelectedItem is ComboBoxItem item ? (string)item.Tag : null;
+
+         public override void OnEditorChanged(Action handler)
+         {
+            if (combo_ != null && handler != null)
+               combo_.SelectionChanged += (s, e) => handler();
          }
       }
 
@@ -312,7 +521,7 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
-            var row = new Grid { Width = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
+            var row = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
@@ -378,7 +587,7 @@ namespace hMailServer.ControlPanel.Views
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
-            combo_ = new ComboBox { Width = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
+            combo_ = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
             if (!int.TryParse(store.Read(Key, Default.ToString()), out int current))
                current = Default;
             Loaded = current.ToString();
@@ -516,18 +725,9 @@ namespace hMailServer.ControlPanel.Views
             string hint = Hint_();
 
             if (!OfferGenerate)
-            {
-               // MinWidth as well: WPF-UI's password box, aligned left, draws its
-               // border as wide as what it holds within the width it is given, so it
-               // was as wide as its placeholder - and, with the placeholder emptied
-               // while the removal is ticked, no wider than its reveal button.
-               box_.Width = EditorWidth;
-               box_.MinWidth = EditorWidth;
-               box_.HorizontalAlignment = HorizontalAlignment.Left;
                return Arrange_(Row(box_, Label, hint: hint));
-            }
 
-            var row = new Grid { Width = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
+            var row = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
@@ -586,7 +786,7 @@ namespace hMailServer.ControlPanel.Views
 
             if (!string.IsNullOrEmpty(Warning))
             {
-               warning_ = new InlineNotice { Level = StatusLevel.Warning, Text = Warning, MaxWidth = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0) };
+               warning_ = new InlineNotice { Level = StatusLevel.Warning, Text = Warning, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0) };
                AutomationProperties.SetAutomationId(warning_, Key + "Warning"); // no-loc
                panel.Children.Add(warning_);
             }
@@ -720,44 +920,6 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// A text setting stored in an hMailServer.INI section other than [Settings].
-      /// Same editor as <see cref="TextSetting"/>; only the section differs.
-      /// </summary>
-      private class SectionTextSetting : Setting
-      {
-         public string Section;
-
-         protected override bool InSettingsSection => false;
-         public string Default = "";
-         public string Placeholder = "";
-         private Wpf.Ui.Controls.TextBox box_;
-
-         public override FrameworkElement CreateEditor(IniFeatureStore store)
-         {
-            box_ = new Wpf.Ui.Controls.TextBox
-            {
-               Text = IniDirect.ReadValue(store.IniPath, Section, Key, Default),
-               PlaceholderText = Placeholder,
-               Width = EditorWidth,
-               HorizontalAlignment = HorizontalAlignment.Left
-            };
-            Describe(box_, Key);
-            return Row(box_, Label);
-         }
-
-         public override void Save(IniFeatureStore store)
-            => IniDirect.WriteValue(store.IniPath, Section, Key, box_.Text.Trim());
-
-         public override string LiveValue => box_?.Text;
-
-         public override void OnEditorChanged(Action handler)
-         {
-            if (box_ != null && handler != null)
-               box_.TextChanged += (s, e) => handler();
-         }
-      }
-
-      /// <summary>
       /// Edits a whole INI section as lines, one entry per line. Built for
       /// [SendingLimitsOverrides], whose entries are per-address values rather than
       /// fixed keys. Reads the section back on every build (so it never misreports
@@ -784,12 +946,11 @@ namespace hMailServer.ControlPanel.Views
             {
                Text = loaded_,
                PlaceholderText = Placeholder,
-               Width = EditorWidth,
                MinHeight = 88,
                AcceptsReturn = true,
                TextWrapping = TextWrapping.NoWrap,
                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-               HorizontalAlignment = HorizontalAlignment.Left
+               HorizontalAlignment = HorizontalAlignment.Stretch
             };
             Describe(box_, Key);
             return Row(box_, Label);
@@ -1828,9 +1989,9 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("When a DKIM signature was made, and when it stops being one a verifier should honour (RFC 6376 3.5)."),
                   Settings =
                   {
-                     new TextSetting
+                     new NumberSetting
                      {
-                        Key = "DKIMSignatureValiditySeconds",
+                        Key = "DKIMSignatureValiditySeconds", Minimum = 0,
                         Default = "0",
                         Placeholder = "604800",
                         Label = L("Validity window in seconds for signatures we produce (0 = no expiry)"),
@@ -1843,9 +2004,9 @@ namespace hMailServer.ControlPanel.Views
                         Label = L("Refuse signatures on incoming mail whose expiry has passed"),
                         Blurb = L("The expiry sits inside the bytes the signature covers, so it is the sending domain's own instruction rather than something a third party can add. Turning this off means a captured signed message can be replayed indefinitely.")
                      },
-                     new TextSetting
+                     new NumberSetting
                      {
-                        Key = "DKIMExpiryClockSkewSeconds",
+                        Key = "DKIMExpiryClockSkewSeconds", Minimum = 0,
                         Default = "300",
                         Placeholder = "300",
                         Label = L("Clock-drift tolerance in seconds when checking an expiry"),
@@ -2007,7 +2168,7 @@ namespace hMailServer.ControlPanel.Views
                      new TextSetting { Key = "AcmeContactEmail", Label = L("Contact e-mail (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
                      new TextSetting { Key = "AcmeDomains", Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.yourdomain.com, mta-sts.yourdomain.com" }, // no-loc
                      new TextSetting { Key = "AcmeDirectoryUrl", Default = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") },
-                     new TextSetting { Key = "AcmeHttpPort", Default = "80", Label = L("Port for http-01 challenges") },
+                     new NumberSetting { Key = "AcmeHttpPort", Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
                      new PathSetting { Key = "AcmeCertificateDirectory", PickFolder = true, Label = L("Certificate output folder (empty = Data\\ACME)"), Placeholder = L("Falls back to Data\\ACME") },
                      new BoolSetting { Key = "AcmeReuseKey", Default = true, Label = L("Reuse the private key across renewals (keeps DANE TLSA records valid)") }
                   },
@@ -2037,8 +2198,8 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new ElsewhereSetting("apikeys", L("Creating and revoking API keys")),
-                     new TextSetting { Key = "RestApiPort", Default = "0", Label = L("Port (0 = disabled)"), Placeholder = "8045" },
-                     new TextSetting { Key = "RestApiBindAddress", Default = "127.0.0.1", Label = L("Bind address") },
+                     new NumberSetting { Key = "RestApiPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Port (0 = disabled)"), Placeholder = "8045" },
+                     new TextSetting { Key = "RestApiBindAddress", Address = true, Default = "127.0.0.1", Label = L("Bind address") },
                      new PathSetting { Key = "RestApiCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
                      new PathSetting { Key = "RestApiPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
                   }
@@ -2058,10 +2219,10 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Prometheus metrics (/metrics), OpenTelemetry export of traces, metrics and logs (one endpoint per signal, each off until set), a slow-query log, and JSON-structured log output for log aggregators (on the Logging page)."),
                   Settings =
                   {
-                     new TextSetting { Key = "MetricsServerPort", Default = "0", Label = L("Metrics port (0 = disabled)"), Placeholder = "9090" },
-                     new TextSetting
+                     new NumberSetting { Key = "MetricsServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("Metrics port (0 = disabled)"), Placeholder = "9090" },
+                     new NumberSetting
                      {
-                        Key = "MetricsHistoryDays",
+                        Key = "MetricsHistoryDays", Minimum = 0, Maximum = 36500,
                         Default = "7",
                         Label = L("Keep metric history for (days; 0 = do not record)"),
                         Placeholder = "7",
@@ -2069,7 +2230,7 @@ namespace hMailServer.ControlPanel.Views
                      },
                      new TextSetting
                      {
-                        Key = "MetricsServerBindAddress",
+                        Key = "MetricsServerBindAddress", Address = true,
                         Default = "127.0.0.1",
                         Label = L("Metrics bind address"),
                         Blurb = L("An IPv4 address, and the credential gate: anywhere in 127.0.0.0/8 the endpoints are open to this machine without authentication, exactly as before. On any other address /metrics answers 503 until a credential below is set - the exposition includes queue depth, session counts and version numbers, so it must not be network-readable unauthenticated.")
@@ -2136,16 +2297,16 @@ namespace hMailServer.ControlPanel.Views
                         Placeholder = "http://localhost:4318",
                         Blurb = L(SettingClaims.NoteFor("OtelLogsEndpoint"))
                      },
-                     new TextSetting
+                     new NumberSetting
                      {
-                        Key = "OtelMetricsInterval",
+                        Key = "OtelMetricsInterval", Minimum = 5, Maximum = 3600,
                         Default = "60",
                         Label = L("Seconds between metric pushes"),
                         Placeholder = "60",
-                        Blurb = L("Clamped to 5-3600 by the exporter. Only used when the metrics endpoint above is set.")
+                        Blurb = L("From 5 to 3600. Only used when the metrics endpoint above is set.")
                      },
                      new TextSetting { Key = "OtelServiceName", Default = "hmailserver", Label = L("OpenTelemetry service name") },
-                     new TextSetting { Key = "SlowQueryLogMilliseconds", Default = "0", Label = L("Log database queries slower than N ms (0 = off)"), Placeholder = "250" }
+                     new NumberSetting { Key = "SlowQueryLogMilliseconds", Minimum = 0, Default = "0", Label = L("Log database queries slower than N ms (0 = off)"), Placeholder = "250" }
                   },
                   Warnings =
                   {
@@ -2283,7 +2444,7 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day (UpdateCheckEnabled)") },
-                     new TextSetting { Key = "UpdateCheckHours", Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
+                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
                      new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
                      new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.progressiverobot.com/releases.json" },
                      new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)"), Placeholder = "proxy.example.net:3128" },
@@ -2303,7 +2464,7 @@ namespace hMailServer.ControlPanel.Views
                         Label = L("Also require a valid Authenticode signature on the installer"),
                         Blurb = L("This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way.")
                      },
-                     new TextSetting { Key = "UpdateServiceWaitSeconds", Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back"), Placeholder = "180" },
+                     new NumberSetting { Key = "UpdateServiceWaitSeconds", Minimum = 5, Maximum = 86400, Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back"), Placeholder = "180" },
                      new TextSetting
                      {
                         Key = "UpdateSourceRepository",
@@ -2369,8 +2530,8 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Lets mail clients upload and manage per-account Sieve filter scripts over TCP. Authentication is SASL PLAIN against the account database, so the mailbox password crosses this connection. STARTTLS is offered only when a TLS-capable mailbox port has a certificate to borrow - the status below says whether it will be."),
                   Settings =
                   {
-                     new TextSetting { Key = "ManageSieveServerPort", Default = "0", Label = L("ManageSieve port (0 = disabled)"), Placeholder = "4190" },
-                     new TextSetting { Key = "ManageSieveServerBindAddress", Default = "127.0.0.1", Label = L("ManageSieve bind address") }
+                     new NumberSetting { Key = "ManageSieveServerPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("ManageSieve port (0 = disabled)"), Placeholder = "4190" },
+                     new TextSetting { Key = "ManageSieveServerBindAddress", Address = true, Default = "127.0.0.1", Label = L("ManageSieve bind address") }
                   },
                   Warnings =
                   {
@@ -2394,7 +2555,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Graceful shutdown behaviour for unattended / clustered operation. (Log retention is on the Logging page.)"),
                   Settings =
                   {
-                     new TextSetting { Key = "ShutdownDrainSeconds", Default = "0", Label = L("On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)"), Placeholder = "30" }
+                     new NumberSetting { Key = "ShutdownDrainSeconds", Minimum = 0, Maximum = 86400, Default = "0", Label = L("On stop, wait up to N seconds for active sessions to finish (0 = stop immediately)"), Placeholder = "30" }
                   }
                });
                // Monitoring and integration that the server keeps in its database
@@ -2426,20 +2587,20 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Server-wide ceilings that keep one slow operation from holding a resource forever. The defaults are deliberate; each one is here because there is a diagnosable situation in which it is the right thing to change. Note that 0 does not mean the same thing for all of them - each label says."),
                   Settings =
                   {
-                     new TextSetting
+                     new NumberSetting
                      {
-                        Key = "FinalizationTimeout",
+                        Key = "FinalizationTimeout", Minimum = 0,
                         Default = "240",
                         Label = L("Message finalization deadline (seconds; 0 = no deadline)"),
                         Blurb = L("How long the server will go on finalizing an accepted message before answering 451 and asking the sender to retry, rather than holding the connection open indefinitely.")
                      },
-                     new TextSetting { Key = "DNSQueryTimeout", Default = "10", Label = L("DNS query timeout (seconds; 0 = no bound)") },
-                     new TextSetting { Key = "ClientSessionCeiling", Default = "1800", Label = L("Absolute lifetime of one client session (seconds)") },
-                     new TextSetting { Key = "DBConnectionAcquireTimeout", Default = "60", Label = L("Wait for a free database connection (seconds)") },
-                     new TextSetting { Key = "ScriptTimeout", Default = "60", Label = L("Event script execution timeout (seconds)") },
-                     new TextSetting { Key = "ExternalProcessTimeout", Default = "300", Label = L("External process timeout, e.g. a command-line virus scanner (seconds)") },
-                     new TextSetting { Key = "AsyncQueueStallThreshold", Default = "120", Label = L("Report the async work queue as stalled after (seconds)") },
-                     new TextSetting { Key = "AsyncQueueReservedThreads", Default = "2", Label = L("Threads reserved so the async queue cannot be starved") }
+                     new NumberSetting { Key = "DNSQueryTimeout", Minimum = 0, Maximum = 86400, Default = "10", Label = L("DNS query timeout (seconds; 0 = no bound)") },
+                     new NumberSetting { Key = "ClientSessionCeiling", Minimum = 0, Default = "1800", Label = L("Absolute lifetime of one client session (seconds)") },
+                     new NumberSetting { Key = "DBConnectionAcquireTimeout", Minimum = 0, Default = "60", Label = L("Wait for a free database connection (seconds)") },
+                     new NumberSetting { Key = "ScriptTimeout", Minimum = 0, Default = "60", Label = L("Event script execution timeout (seconds)") },
+                     new NumberSetting { Key = "ExternalProcessTimeout", Minimum = 0, Default = "300", Label = L("External process timeout, e.g. a command-line virus scanner (seconds)") },
+                     new NumberSetting { Key = "AsyncQueueStallThreshold", Minimum = 0, Default = "120", Label = L("Report the async work queue as stalled after (seconds)") },
+                     new NumberSetting { Key = "AsyncQueueReservedThreads", Minimum = 0, Default = "2", Label = L("Threads reserved so the async queue cannot be starved") }
                   }
                });
                // Scanner timeouts moved to the scanner they configure: SpamAssassin
@@ -2482,7 +2643,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Submission identity handling and the diagnostic headers added to received mail. (Where SMTP AUTH is offered is on the Authentication page.)"),
                   Settings =
                   {
-                     new TextSetting { Key = "AuthUserReplacementIP", Label = L("Replace the client IP for authenticated users (empty = keep the real IP)"), Placeholder = "e.g. 127.0.0.1" },
+                     new TextSetting { Key = "AuthUserReplacementIP", Address = true, Label = L("Replace the client IP for authenticated users (empty = keep the real IP)"), Placeholder = "e.g. 127.0.0.1" },
                      new BoolSetting { Key = "AddXAuthUserHeader", Default = false, Label = L("Add an X-AuthUser header with the authenticated account") },
                      new BoolSetting { Key = "AddXAuthUserIP", Default = true, Label = L("Include the client IP in the X-AuthUser header") },
                      new BoolSetting { Key = "AddXOriginalRcptTo", Default = false, Label = L("Add an X-OriginalRcptTo header") }
@@ -2499,9 +2660,9 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("What happens to a TCP connection this server refuses before any protocol conversation starts: one from an address no IP range allows, or one over that range's connection limit. Both of those are configured on the IP ranges page. Locking out an address that keeps failing to log on is a different mechanism entirely and is on the Auto-ban page."),
                   Settings =
                   {
-                     new TextSetting
+                     new NumberSetting
                      {
-                        Key = "BlockedIPHoldSeconds",
+                        Key = "BlockedIPHoldSeconds", Minimum = 0,
                         Default = "0",
                         Label = L("Hold a refused connection open before dropping it (seconds, 0 = drop immediately)"),
                         Blurb = L("Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits.")
@@ -2529,38 +2690,38 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory."),
                   Settings =
                   {
-                     new SectionTextSetting
+                     new NumberSetting
                      {
-                        Key = "MaxMessagesPerAccountPerPeriod",
+                        Key = "MaxMessagesPerAccountPerPeriod", Minimum = 0,
                         Section = "SendingLimits",
                         Default = "0",
                         Label = L("Max messages per account per period (0 = no limit)"),
                         Placeholder = "500"
                      },
-                     new SectionTextSetting
+                     new NumberSetting
                      {
-                        Key = "MaxRecipientsPerAccountPerPeriod",
+                        Key = "MaxRecipientsPerAccountPerPeriod", Minimum = 0,
                         Section = "SendingLimits",
                         Default = "0",
                         Label = L("Max recipients per account per period (0 = no limit)"),
                         Placeholder = "2000",
                         Blurb = L("Recipients are the stricter measure: one message to two thousand addresses is two thousand recipients.")
                      },
-                     new SectionTextSetting
+                     new NumberSetting
                      {
-                        Key = "PeriodHours",
+                        Key = "PeriodHours", Minimum = 1, Maximum = 168,
                         Section = "SendingLimits",
                         Default = "24",
                         Label = L("Period length in hours (default 24)"),
-                        Blurb = L("Clamped to 1-168 by the server: a value outside that range is not an error, it is quietly pulled to the nearest bound.")
+                        Blurb = L("From 1 hour to 168, a week.")
                      },
-                     new SectionTextSetting
+                     new NumberSetting
                      {
-                        Key = "StateSaveIntervalSeconds",
+                        Key = "StateSaveIntervalSeconds", Minimum = 1, Maximum = 3600,
                         Section = "SendingLimits",
                         Default = "10",
                         Label = L("Save the counters to disk every N seconds (default 10)"),
-                        Blurb = L("How much sending history a crash can forget. Clamped to 1-3600; a value below 1 falls back to the default of 10.")
+                        Blurb = L("How much sending history a crash can forget, from 1 second to 3600.")
                      },
                      new SectionLinesSetting
                      {
@@ -2578,7 +2739,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Throttle abusive senders submitting to this server. Limits are per minute; 0 disables the limit. (Throttling your own outbound rate to a destination is on the Delivery of e-mail page.)"),
                   Settings =
                   {
-                     new TextSetting { Key = "MaxSubmissionsPerIPPerMinute", Default = "0", Label = L("Max authenticated submissions per client IP per minute (0 = unlimited)"), Placeholder = "60" }
+                     new NumberSetting { Key = "MaxSubmissionsPerIPPerMinute", Minimum = 0, Default = "0", Label = L("Max authenticated submissions per client IP per minute (0 = unlimited)"), Placeholder = "60" }
                   }
                });
                // Logging detail moved to the Logging page, indexer cadence to
@@ -2603,12 +2764,12 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Specialist knobs — leave at the defaults unless you have a specific reason."),
                   Settings =
                   {
-                     new TextSetting { Key = "SMTPDMaxSizeDrop", Default = "0", Label = L("Drop oversized inbound messages above N bytes mid-transfer (0 = off)") },
+                     new NumberSetting { Key = "SMTPDMaxSizeDrop", Minimum = 0, Default = "0", Label = L("Drop oversized inbound messages above N KB mid-transfer (0 = off)") },
                      // SAMoveVsCopy went to Anti-spam > SpamAssassin: it configures
                      // how a message reaches that scanner, and belongs with the host,
                      // port and timeouts that configure the rest of the same handoff.
-                     new TextSetting { Key = "LoadHeaderReadSize", Default = "4000", Label = L("Header read chunk size (bytes)") },
-                     new TextSetting { Key = "LoadBodyReadSize", Default = "4000", Label = L("Body read chunk size (bytes)") }
+                     new NumberSetting { Key = "LoadHeaderReadSize", Minimum = 64, Maximum = 50000, Default = "4000", Label = L("Header read chunk size (bytes)") },
+                     new NumberSetting { Key = "LoadBodyReadSize", Minimum = 64, Maximum = 50000, Default = "4000", Label = L("Body read chunk size (bytes)") }
                   }
                });
                cards_.Add(new CardDef
@@ -2767,11 +2928,11 @@ namespace hMailServer.ControlPanel.Views
                      // published keys instead of a hand-copied PEM file, and a live
                      // revocation check after a token verifies.
                      new TextSetting { Key = "OAuth2JwksUrl", Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = "https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys" },
-                     new TextSetting { Key = "OAuth2JwksCacheSeconds", Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)") },
+                     new NumberSetting { Key = "OAuth2JwksCacheSeconds", Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)") },
                      new TextSetting { Key = "OAuth2IntrospectionUrl", Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = "https://idp.example.com/oauth2/introspect" },
                      new TextSetting { Key = "OAuth2IntrospectionClientId", Label = L("Client id this server introspects as") },
                      new SecretSetting { Key = "OAuth2IntrospectionClientSecret", Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client id") },
-                     new TextSetting { Key = "OAuth2IntrospectionCacheSeconds", Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
+                     new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
                      new BoolSetting { Key = "OAuth2IntrospectionFailOpen", Default = false, Label = L("Accept a token when the introspection endpoint cannot answer (availability over the revocation check)") }
                   },
                   Warnings =
@@ -2827,9 +2988,9 @@ namespace hMailServer.ControlPanel.Views
                      // change does, and a question at Save (PepperChange): the caption
                      // that shouted about it was the only safeguard (review finding F169).
                      new SecretSetting { Key = "PasswordPepper", Label = L("Password pepper"), Hint = L("Server-wide secret mixed into password hashes"), Warning = PepperChange.Warning },
-                     new TextSetting { Key = "PasswordHashIterations", Default = "0", Placeholder = "0 = 210,000", Label = L("PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)") },
-                     new TextSetting { Key = "PasswordHashMemoryKB", Default = "0", Placeholder = "0 = 19,456", Label = L("Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)") },
-                     new TextSetting { Key = "PasswordHashTimeCost", Default = "0", Placeholder = "0 = 2", Label = L("Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)") }
+                     new NumberSetting { Key = "PasswordHashIterations", Minimum = 10000, Maximum = 10000000, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 210,000", Label = L("PBKDF2 iterations for new hashes (0 = the built-in 210,000; 10,000 to 10,000,000)") },
+                     new NumberSetting { Key = "PasswordHashMemoryKB", Minimum = 4096, Maximum = 1048576, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 19,456", Label = L("Argon2id memory for new hashes, in KiB (0 = the built-in 19,456; 4,096 to 1,048,576)") },
+                     new NumberSetting { Key = "PasswordHashTimeCost", Minimum = 1, Maximum = 20, ZeroIsBuiltIn = true, Default = "0", Placeholder = "0 = 2", Label = L("Argon2id passes for new hashes (0 = the built-in 2; 1 to 20)") }
                   }
                });
                cards_.Add(new CardDef
@@ -2862,7 +3023,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Which resolver hMailServer queries. Leave empty to use the name servers Windows is configured with. The override takes a single IPv4 address and is used on port 53; DNSSEC validation and its trust anchors are on the Transport security page."),
                   Settings =
                   {
-                     new TextSetting { Key = "DNSServer", Label = L("Override DNS server (empty = the name servers Windows uses)"), Placeholder = "1.1.1.1" }
+                     new TextSetting { Key = "DNSServer", Address = true, Rule = SettingAddressRule.DnsOverride, Label = L("Override DNS server (empty = the name servers Windows uses)"), Placeholder = "1.1.1.1" }
                   }
                });
                cards_.Add(new CardDef
@@ -2900,9 +3061,9 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("Nothing below is served until a port is set here. The server answers on either port, but an MTA-STS policy is only valid over HTTPS and Outlook only accepts autodiscover over HTTPS — so in practice set the HTTPS port and a certificate covering the host names clients use."),
                   Settings =
                   {
-                     new TextSetting { Key = "WebServicesHttpPort", Default = "0", Label = L("HTTP port (80 to enable, 0 = disabled)") },
-                     new TextSetting { Key = "WebServicesHttpsPort", Default = "0", Label = L("HTTPS port (443 to enable, 0 = disabled)") },
-                     new TextSetting { Key = "WebServicesBindAddress", Default = "0.0.0.0", Label = L("Bind address") },
+                     new NumberSetting { Key = "WebServicesHttpPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTP port (80 to enable, 0 = disabled)") },
+                     new NumberSetting { Key = "WebServicesHttpsPort", Minimum = 0, Maximum = 65535, Default = "0", Label = L("HTTPS port (443 to enable, 0 = disabled)") },
+                     new TextSetting { Key = "WebServicesBindAddress", Address = true, Default = "0.0.0.0", Label = L("Bind address") },
                      new TextSetting { Key = "WebServicesTrustedProxies", Label = L("Trusted proxies whose X-Forwarded-Proto: https is believed (addresses, comma-separated; loopback always is)") },
                      new PathSetting { Key = "WebServicesCertificateFile", FileFilter = L("PEM/certificate files (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*"), Label = L("TLS certificate file (PEM, optional)"), Placeholder = L("Falls back to the ACME certificate") },
                      new PathSetting { Key = "WebServicesPrivateKeyFile", FileFilter = L("PEM/key files (*.pem;*.key)|*.pem;*.key|All files (*.*)|*.*"), Label = L("TLS private key file (PEM, optional)") }
@@ -2925,8 +3086,19 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "MtaStsHostingEnabled", Default = true, Label = L("Serve MTA-STS policies for local domains") },
-                     new TextSetting { Key = "MtaStsPolicyMode", Default = "enforce", Label = L("MTA-STS policy mode (enforce / testing / none)") },
-                     new TextSetting { Key = "MtaStsPolicyMaxAge", Default = "604800", Label = L("Policy max age (seconds; default 604800 = 7 days)") },
+                     new WordSetting
+                     {
+                        Key = "MtaStsPolicyMode",
+                        Default = "enforce",
+                        Label = L("MTA-STS policy mode"),
+                        Options = new (string, string)[]
+                        {
+                           ("enforce", L("enforce - senders that honour MTA-STS deliver only over valid TLS to the hosts listed")),
+                           ("testing", L("testing - senders deliver as before and report what would have failed")),
+                           ("none", L("none - no policy: senders that cached one stop applying it"))
+                        }
+                     },
+                     new NumberSetting { Key = "MtaStsPolicyMaxAge", Minimum = 86400, Maximum = 31557600, Default = "604800", Label = L("Policy max age (seconds; default 604800 = 7 days)"), Blurb = L("From 86400, a day, to 31557600, a year - the longest RFC 8461 allows.") },
                      new TextSetting { Key = "MtaStsPolicyMx", Label = L("Policy MX host patterns (empty = derive from each domain's MX)"), Placeholder = "mail.yourdomain.com, *.yourdomain.com" } // no-loc
                   }
                });
@@ -3077,7 +3249,7 @@ namespace hMailServer.ControlPanel.Views
          // cache: the page edits the store. A card that keeps its settings in a
          // section of the file of their own - the per-account sending limits - says
          // so in its own words, and the line names the file for it.
-         PathText.Text = cards_.SelectMany(card => card.Settings).Any(setting => setting is SectionTextSetting or SectionLinesSetting)
+         PathText.Text = cards_.SelectMany(card => card.Settings).Any(setting => setting is NumberSetting { Section: not null } or SectionLinesSetting)
             ? F("Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}.", store_.IniPath)
             : L("Stored in the server's settings database.");
          SaveButton.IsEnabled = true;
@@ -3241,6 +3413,18 @@ namespace hMailServer.ControlPanel.Views
          if (conflict != null)
          {
             saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label), () => conflict.Conflicts);
+            return false;
+         }
+
+         // A number outside the range the server reads it in, an address that is not
+         // one: said on every field at fault, the keyboard put in the first, and
+         // nothing on the page written (review finding F220) - where the save wrote
+         // whatever was typed.
+         List<Setting> refused = cards_.SelectMany(card => card.Settings).Where(setting => !setting.Validate()).ToList();
+         if (refused.Count > 0)
+         {
+            saveState_.Refuse(L("Nothing was saved: correct what is marked below, then save again."));
+            DialogFields.ShowError(refused[0].Field, refused[0].Field.Error);
             return false;
          }
 
