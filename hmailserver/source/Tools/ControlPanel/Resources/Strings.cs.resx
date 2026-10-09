@@ -1951,6 +1951,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Blokovat na (hodin, 1 až 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Zablokováno nyní</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Základní adresa odkazu ve zprávě, která vyprší</value>
   </data>

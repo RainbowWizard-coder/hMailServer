@@ -1951,6 +1951,9 @@
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Блокувати на (годин, від 1 до 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Заблоковано зараз</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Базова адреса для посилання в повідомленні, строк якого спливає</value>
   </data>

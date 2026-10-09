@@ -1930,6 +1930,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Yasak süresi (saat, 1 ile 8760 arası)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Şu anda yasaklı</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Süresi dolan bir iletideki bağlantının taban adresi</value>
   </data>

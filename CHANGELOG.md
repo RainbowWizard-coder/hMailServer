@@ -941,13 +941,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   failed read showed as Information at the foot of the page.** The card, now *Configuration checks*, is under the
   header, above the readouts, and each check carries a button to the page that puts it right: *Open Protocols* for no
   public host name and for empty senders refused, *Open IP ranges* for an open relay and for localhost banned. The
-  auto-ban count, which was the one "Information" among the warnings on most servers, is a statistic beside the
-  session counts, with *Show in IP ranges*. With the link down every readout said "-" and the only explanation was an
-  Information line in the warnings card; now a Critical notice under the header says "Could not read the server: ..."
-  with *Try again*, every readout that could not be read says *Not read* (a dash is what an empty value shows), the
-  checks say they were not run, and *Pause* and the three update buttons are disabled until a read works. The button
-  to another page is `Services/NoticeActions`, captioned from the navigation map's title; `NoticeActionsTests` holds
-  every page a notice opens to a page of the map, and `StatusWarningLevelTests` each check to its level and its page.
+  auto-ban count, which was the one "Information" among the warnings on most servers, is a statistic of its own,
+  under *Banned now* after the session counts - not a fourth cell of their grid, where it read as a kind of session -
+  with *Show in IP ranges*. With the link down every readout said "-" and the only explanation was an Information
+  line in the warnings card; now a Critical notice under the header says "Could not read the server: ..." with *Try
+  again*, every readout that could not be read says *Not read* (a dash is what an empty value shows), the checks say
+  they were not run, and *Pause* and the three update buttons are disabled until a read works. The button to another
+  page is `Services/NoticeActions`, captioned from the navigation map's title; `NoticeActionsTests` holds every page
+  a notice opens to a page of the map, and `StatusWarningLevelTests` each check to its level and its page and the
+  count to a group of its own.
 - **Fixed: the TCP/IP ports page's listening warning led with the wrong cause, offered nothing to do about it, and
   printed an IPv6 listener as "IMAP :::993".** The warning under the list named a port conflict, a missing address and a
   certificate first and sent the reader to an error-log entry that a port never bound does not have, while the commonest

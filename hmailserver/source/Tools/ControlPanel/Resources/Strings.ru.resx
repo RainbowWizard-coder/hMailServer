@@ -1951,6 +1951,9 @@ Control Panel может читать файлы сообщений только
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Блокировать на (часов, от 1 до 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Заблокировано сейчас</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Базовый адрес для ссылки в сообщении, срок которого истекает</value>
   </data>

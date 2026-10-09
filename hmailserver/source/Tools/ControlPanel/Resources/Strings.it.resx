@@ -1930,6 +1930,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Bandisci per (ore, da 1 a 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Bannati ora</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Indirizzo di base per il collegamento in un messaggio che scade</value>
   </data>

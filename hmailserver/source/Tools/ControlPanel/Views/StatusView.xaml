@@ -152,25 +152,29 @@
                         <TextBlock Text="{loc:L 'POP3 sessions'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="Pop3Value" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
-                    <!-- A count, not a warning: it was the one "Information" among
-                         the configuration warnings on most servers. With the page
-                         that lists the ranges. -->
-                    <StackPanel Margin="0,8,0,0">
-                        <TextBlock Text="{loc:L 'Auto-ban IP ranges'}" Style="{StaticResource TextCaption}" />
-                        <!-- The link beside the number, not under it: under it, the
-                             cell was a button taller than its neighbours, and the
-                             grid's equal rows took that height for every row. -->
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock x:Name="AutobanValue" Style="{StaticResource TextSubtitle}" VerticalAlignment="Center" />
-                            <ui:Button x:Name="AutobanLink" Content="{loc:L '_Show in IP ranges'}" Click="OpenIpRanges_Click"
-                                       FontSize="{StaticResource AppFontSizeCaption}" Padding="8,2,8,2"
-                                       Margin="12,0,0,0" VerticalAlignment="Center"
-                                       AutomationProperties.AutomationId="status-open-ipranges"
-                                       AutomationProperties.HelpText="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}"
-                                       ToolTip="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}" />
-                        </StackPanel>
-                    </StackPanel>
                 </UniformGrid>
+                <!-- A count, not a warning: it was the one "Information" among
+                     the configuration warnings on most servers (review finding
+                     F245). Under a line of its own, after the grid of the
+                     sessions: it counts neither since the start nor connections,
+                     and as a fourth cell of that grid it wrapped to a row under
+                     the session counts, under "Connected now". With the page that
+                     lists the ranges. -->
+                <TextBlock Text="{loc:L 'Banned now'}" Style="{StaticResource TextCaption}" FontWeight="SemiBold" Margin="0,12,0,4" />
+                <StackPanel>
+                    <TextBlock Text="{loc:L 'Auto-ban IP ranges'}" Style="{StaticResource TextCaption}" />
+                    <!-- The link beside the number, not under it, so that the
+                         figure reads on one line as the session counts do. -->
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="AutobanValue" Style="{StaticResource TextSubtitle}" VerticalAlignment="Center" />
+                        <ui:Button x:Name="AutobanLink" Content="{loc:L '_Show in IP ranges'}" Click="OpenIpRanges_Click"
+                                   FontSize="{StaticResource AppFontSizeCaption}" Padding="8,2,8,2"
+                                   Margin="12,0,0,0" VerticalAlignment="Center"
+                                   AutomationProperties.AutomationId="status-open-ipranges"
+                                   AutomationProperties.HelpText="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}"
+                                   ToolTip="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}" />
+                    </StackPanel>
+                </StackPanel>
                 </StackPanel>
             </scaffold:Card>
         </StackPanel>

@@ -1930,6 +1930,9 @@
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>遮断時間 (時間、1～8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>現在のブロック</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>期限付きメッセージ内のリンクのベース アドレス</value>
   </data>

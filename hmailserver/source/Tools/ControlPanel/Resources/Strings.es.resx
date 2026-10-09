@@ -1930,6 +1930,9 @@ Los detalles completos se escribieron en:
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Bloquear durante (horas, de 1 a 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Bloqueados ahora</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Dirección base del enlace de un mensaje que caduca</value>
   </data>

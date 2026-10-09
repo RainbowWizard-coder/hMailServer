@@ -1930,6 +1930,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Bannir pendant (heures, 1 à 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Bannis maintenant</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Adresse de base du lien dans un message qui expire</value>
   </data>

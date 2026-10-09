@@ -115,6 +115,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("{loc:L 'Warnings'}", xaml, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The auto-ban count is a group of the statistics of its own, under a line
+      /// that says what it counts, after the grid of the sessions: it is neither
+      /// counted since the start nor a connection, and as a fourth cell of the
+      /// three-column grid under "Connected now" it wrapped to a row of its own
+      /// there, read as a fourth kind of session.
+      /// </summary>
+      [Fact]
+      public void TheAutoBanCount_IsAGroupOfItsOwn_NotACellOfTheSessions()
+      {
+         string xaml = ReadStatusViewXaml();
+         int connected = xaml.IndexOf("{loc:L 'Connected now'}", StringComparison.Ordinal);
+         int pop3 = xaml.IndexOf("x:Name=\"Pop3Value\"", StringComparison.Ordinal);
+         int banned = xaml.IndexOf("{loc:L 'Banned now'}", StringComparison.Ordinal);
+         int value = xaml.IndexOf("x:Name=\"AutobanValue\"", StringComparison.Ordinal);
+         Assert.True(connected > 0 && pop3 > connected && banned > pop3 && value > banned,
+            "The auto-ban count is not under a line of its own after the session counts.");
+
+         // The sessions' grid is closed before the count's line, and no grid holds the count.
+         int sessionsGrid = xaml.LastIndexOf("<UniformGrid", pop3, StringComparison.Ordinal);
+         int sessionsGridEnd = xaml.IndexOf("</UniformGrid>", pop3, StringComparison.Ordinal);
+         Assert.True(sessionsGrid > connected && sessionsGridEnd > pop3 && sessionsGridEnd < banned,
+            "The auto-ban count's line is inside the grid of the session counts.");
+         Assert.True(xaml.LastIndexOf("<UniformGrid", value, StringComparison.Ordinal) < xaml.LastIndexOf("</UniformGrid>", value, StringComparison.Ordinal),
+            "The auto-ban count is a cell of a grid of other figures.");
+      }
+
       private static string ReadStatusViewXaml() => ReadStatusView("StatusView.xaml");
 
       private static string ReadStatusView(string file = "StatusView.xaml.cs")

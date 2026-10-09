@@ -1930,6 +1930,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Ban for (hours, 1 to 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Banned now</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Base address for the link in a message that expires</value>
   </data>

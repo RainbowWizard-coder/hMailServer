@@ -1930,6 +1930,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Estä (tuntia, 1–8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Estettynä nyt</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Perusosoite vanhenevan viestin linkille</value>
   </data>

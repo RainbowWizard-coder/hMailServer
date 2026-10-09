@@ -1930,6 +1930,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Utesteng i (timer, 1 til 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Blokkert nå</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Basisadresse for lenken i en melding som utløper</value>
   </data>

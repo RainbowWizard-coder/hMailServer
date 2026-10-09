@@ -1930,6 +1930,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Bannlys i (timmar, 1 till 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Spärrade nu</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Basadress för länken i ett meddelande som löper ut</value>
   </data>

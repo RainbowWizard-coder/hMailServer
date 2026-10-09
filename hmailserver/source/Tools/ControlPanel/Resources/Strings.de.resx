@@ -1930,6 +1930,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Bannen für (Stunden, 1 bis 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Jetzt gebannt</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Basisadresse für den Link in einer Nachricht, die abläuft</value>
   </data>

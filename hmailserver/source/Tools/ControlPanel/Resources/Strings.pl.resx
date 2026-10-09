@@ -1951,6 +1951,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Blokuj na (godzin, od 1 do 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Zablokowane teraz</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Adres bazowy odnośnika w wiadomości, która wygasa</value>
   </data>

@@ -1930,6 +1930,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>Verbannen voor (uren, 1 tot 8760)</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>Nu verbannen</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>Basisadres voor de koppeling in een bericht dat verloopt</value>
   </data>

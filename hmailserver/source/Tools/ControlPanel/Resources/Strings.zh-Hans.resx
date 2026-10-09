@@ -1930,6 +1930,9 @@
   <data name="Ban for (hours, 1 to 8760)" xml:space="preserve">
     <value>封禁时长（小时，1 到 8760）</value>
   </data>
+  <data name="Banned now" xml:space="preserve">
+    <value>当前封禁</value>
+  </data>
   <data name="Base address for the link in a message that expires" xml:space="preserve">
     <value>过期邮件中链接的基础地址</value>
   </data>
