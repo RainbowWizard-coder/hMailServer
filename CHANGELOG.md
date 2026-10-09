@@ -1417,8 +1417,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   window of 0 and says why in its tool tip; and the sendout's subject, the wildcard and how many active accounts of
   active domains it reaches, counted as the server counts them, saying so and sending nothing where that is none. An
   empty message is refused on its field, a refusal each press of *Send* takes away before it checks the form again. A
-  *Clear greylisting triplets* answered Cancel says *Nothing was changed.*, as the settings pages' other actions that
-  ask first do.
+  *Clear greylisting triplets*, a *Remove expired* on either page, and a quarantine release, delete, allow or block
+  answered Cancel say *Nothing was changed.*, as the settings pages' other actions that ask first do, where the page
+  kept its last outcome: a second *Remove expired* cancelled under *12 messages past the retention window were
+  removed.* read as a second removal.
 - **Fixed: the Control Panel drew destructive buttons too loud on lists and too quiet where they delete in bulk.** The
   group members' *Remove*, the folder permissions' *Delete*, the account dialog's *Delete folder*, *Empty mailbox* and
   *Erase traces...*, its two-factor *Remove* and recovery *Clear* buttons, the SSL certificates' *Delete selected* and

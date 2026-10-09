@@ -930,8 +930,14 @@ namespace hMailServer.ControlPanel.Views
             switch (action)
             {
                case "delete":
+                  // A Cancel answers the press, as every act of the page that asks
+                  // first does: the line kept the last outcome, so that a cancelled
+                  // delete read as one done.
                   if (!ConfirmDelete_(ids, groupTitle))
+                  {
+                     Status_(StatusLevel.Information, L("Nothing was changed."));
                      return;
+                  }
 
                   answer = Bulk_(QuarantineReview.BulkRequest(ids, "delete")) ?? OneAtATime_(ids, false);
                   break;
@@ -941,7 +947,10 @@ namespace hMailServer.ControlPanel.Views
                   // many it holds: each is delivered at once, and a release cannot
                   // be taken back. One message's own icon releases that message.
                   if ((checkedSet || groupTitle != null || ids.Count > 1) && !ConfirmRelease_(ids.Count, groupTitle))
+                  {
+                     Status_(StatusLevel.Information, L("Nothing was changed."));
                      return;
+                  }
 
                   answer = Bulk_(QuarantineReview.BulkRequest(ids, "release")) ?? OneAtATime_(ids, true);
                   break;
@@ -953,7 +962,10 @@ namespace hMailServer.ControlPanel.Views
                      var dialog = new QuarantineListDialog(Window.GetWindow(this), action == "block", ids, heloGrouping, Bulk_);
 
                      if (dialog.ShowDialog() != true)
+                     {
+                        Status_(StatusLevel.Information, L("Nothing was changed."));
                         return;
+                     }
 
                      answer = Bulk_(QuarantineReview.BulkRequest(ids, action, dialog.ListWord,
                         dialog.ListWord == "domain" ? (heloGrouping ? "helo" : "sender") : null, false, dialog.ConfirmPublicSuffix));
@@ -1203,7 +1215,10 @@ namespace hMailServer.ControlPanel.Views
          // title, and the name a screen reader gives the question, said "Delete
          // quarantined message" of a delete of every expired one.
          if (!MessageBox.Confirm(Confirmations.DeleteExpiredQuarantine(days), L("Quarantine"), L("_Delete"), destructive: true))
+         {
+            Status_(StatusLevel.Information, L("Nothing was changed."));
             return;
+         }
 
          try
          {

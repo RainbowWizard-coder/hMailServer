@@ -453,6 +453,31 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Single(ConfirmationPatternTests.Calls(ask, "Confirm("));
       }
 
+      /// <summary>
+      /// An act of the quarantine or the message trace answered Cancel says "Nothing
+      /// was changed.", as Clear greylisting triplets and the settings pages' acts that
+      /// ask first do, where each returned and the page's line kept the last outcome:
+      /// a second Remove expired cancelled under "12 messages past the retention
+      /// window were removed." read as a second removal, and announced nothing.
+      /// </summary>
+      [Theory]
+      [InlineData("QuarantineView.cs", "private void SweepExpired()", "Confirmations.DeleteExpiredQuarantine(days)")]
+      [InlineData("MessageTraceView.cs", "private void SweepExpired()", "Confirmations.DeleteExpiredTrace(days)")]
+      [InlineData("QuarantineView.cs", "private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null, bool checkedSet = false)", "!ConfirmDelete_(ids, groupTitle)")]
+      [InlineData("QuarantineView.cs", "private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null, bool checkedSet = false)", "!ConfirmRelease_(ids.Count, groupTitle)")]
+      [InlineData("QuarantineView.cs", "private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null, bool checkedSet = false)", "dialog.ShowDialog() != true")]
+      public void EachQuestionAnsweredCancel_SaysNothingWasChanged(string file, string member, string question)
+      {
+         string text = WithheldRowTests.MemberText(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", file)), member);
+         Assert.True(text != null, file + ": " + member + " is gone.");
+         int asks = text.IndexOf(question, StringComparison.Ordinal);
+         Assert.True(asks >= 0, file + ": " + member + " no longer asks with " + question + ".");
+         Assert.Single(System.Text.RegularExpressions.Regex.Matches(text, System.Text.RegularExpressions.Regex.Escape(question)));
+
+         // The rest of the if's line, then its block: the outcome, then the return.
+         Assert.Matches(@"^[^\n]*\)\s*\{\s*Status_\(StatusLevel\.Information, L\(""Nothing was changed\.""\)\);\s*return;\s*\}", text.Substring(asks));
+      }
+
       [Fact]
       public void AGroupsOrTheCheckedMessagesRelease_AsksFirst_WithCancelOnEnter()
       {

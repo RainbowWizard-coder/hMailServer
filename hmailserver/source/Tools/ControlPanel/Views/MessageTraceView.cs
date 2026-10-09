@@ -274,8 +274,13 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         // A Cancel answers the press: the line kept the last sweep's outcome, so that a
+         // cancelled second press read as a second removal.
          if (!Dialogs.Confirm(Confirmations.DeleteExpiredTrace(days), L("Message trace"), L("_Delete"), destructive: true))
+         {
+            Status_(StatusLevel.Information, L("Nothing was changed."));
             return;
+         }
 
          try
          {
