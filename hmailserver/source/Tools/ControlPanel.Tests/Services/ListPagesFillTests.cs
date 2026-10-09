@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -39,11 +38,11 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       // The floor of a list card: the card's padding (16) and border (2), the
       // column headers (33) and three rows of AppNavRowHeight (34); and the empty
-      // state that takes the rows' place when there are none, 139 inside the
-      // same padding and border. The certificates keep four rows.
+      // state that takes the rows' place when there are none
+      // (EmptyStateActionTests.ListCardFloorProblem). The certificates keep four
+      // rows.
       private const double ThreeRows = 16 + 2 + 33 + 3 * 34;
       private const double FourRows = 16 + 2 + 33 + 4 * 34;
-      private const double EmptyState = 16 + 2 + 139;
 
       public static TheoryData<string, string, double> XamlPages => new()
       {
@@ -70,9 +69,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(filling.Count == 1, file + ": the FillPanel has " + filling.Count + " filling parts; the list's card is to be the one.");
          Assert.Contains(filling[0].Descendants(Wpf + "DataGrid"), g => (string)g.Attribute(X + "Name") == grid);
 
-         double floor = double.Parse((string)filling[0].Attribute("MinHeight") ?? "0", CultureInfo.InvariantCulture);
-         Assert.True(floor >= rows, file + ": the list's floor is " + floor + " pixels, less than " + rows + ".");
-         Assert.True(floor >= EmptyState, file + ": the list's floor is " + floor + " pixels, which cuts off the empty state's sentence.");
+         // The card's floor is its own, or - where the empty state carries an
+         // action (EmptyStateActionTests) - what it holds: the grid's rows on a
+         // FillPanel of its own and the empty state laid over them.
+         string unheld = EmptyStateActionTests.ListCardFloorProblem(filling[0], grid, rows == FourRows ? 4 : 3);
+         Assert.True(unheld == null, file + ": " + unheld);
       }
 
       [Theory]
@@ -120,9 +121,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          { "ProfilesView.cs", "private void Build()", "FillPanel.Filling(rows_, 0)" },
          { "UtilityViews.cs", "public DiagnosticsView()", "FillPanel.Filling(card, FillPanel.ListCardFloor)" },
-         { "CollectionEditorView.cs", "private void Build()", "FillPanel.Filling(card, FillPanel.ListCardFloor)" },
-         { "QuarantineView.cs", "private void Build()", "FillPanel.Filling(card, FillPanel.ListCardFloor)" },
-         { "DomainPolicyListView.cs", "private void Build()", "FillPanel.Filling(listCard, FillPanel.ListCardFloor)" },
+         { "CollectionEditorView.cs", "private void Build()", "FillPanel.Filling(grid_, FillPanel.ListRowsFloor)" },
+         { "QuarantineView.cs", "private void Build()", "FillPanel.Filling(list_, FillPanel.ListRowsFloor)" },
+         { "DomainPolicyListView.cs", "private void Build()", "FillPanel.Filling(entries_, FillPanel.ListRowsFloor)" },
          { "DiscoveryView.cs", "private void Build_()", "FillPanel.Filling(casesCard, FillPanel.ListCardFloor)" },
          { "SuppressionListView.cs", "private void Build()", "FillPanel.Filling(listCard, FillPanel.ListCardFloor, 2)" },
       };

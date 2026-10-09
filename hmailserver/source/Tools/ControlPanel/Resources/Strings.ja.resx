@@ -960,6 +960,9 @@
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>読み手が帯として表示するヘッダーを付ける(_H)</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>ルートを追加(_R)</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>ブロックする添付ファイルのルールを追加</value>
   </data>
@@ -1089,6 +1092,9 @@
   <data name="Add signature to _replies" xml:space="preserve">
     <value>返信に署名を追加する(_R)</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>最初の項目を追加(_F)…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>アドレスまたは IP 範囲をスパム対策の除外に追加します。</value>
   </data>
@@ -1100,6 +1106,9 @@
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>ドメイン ページでドメインを追加します。ドメイン名は、そのドメインが持つすべてのアドレスの @ より後の部分です。</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>最初のドメインを追加(_D)…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>下のキーを認証アプリに追加し、コードで確認してください。登録が済むと、管理者パスワードだけではサインインできなくなり、COM API と REST API でもコードが必要になります。キーは安全な場所に保管してください。認証アプリを失った場合は、ローカルの管理者が hMailServer.ini から AdministratorTotpSecret を削除して復旧する必要があります。</value>
@@ -3125,6 +3134,9 @@
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>サブフォルダーを作成</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>最初のキーを作成(_F)…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>公開フォルダーを作成してから、アカウントまたはグループにその権限を付与します。</value>
@@ -6625,8 +6637,8 @@
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>IP 範囲が設定されていません。</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>IP 範囲はまだ定義されていません。</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>IP 範囲がないため、範囲が作成されるまで、このサーバーはすべての SMTP、POP3、IMAP 接続を拒否します。</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>LDAP 認証は試みられません。ディレクトリ連携アカウントは引き続き Windows ログオンで検証され、サーバーは黙って失敗しないよう、これを 1 分に 1 回報告します (エラー 5922)。</value>
@@ -6642,6 +6654,9 @@
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>SSL 証明書が設定されていないため、確認する鍵ファイルがありません。</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>SURBL サーバーがないため、メッセージ本文のリンクはどのリストでも照会されません。</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>このサーバーのどこにも TLS バージョンが有効になっていないため、このポートでのハンドシェイクは成功しません。</value>
@@ -6679,8 +6694,14 @@
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>このドメインの抑止リストにはアドレスがありません。アドレスへのメールが恒久的にバウンスしたとき、またはあなたが追加したときに、ここに登録されます。</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>アドレスがないため、グレイリスティングが有効な間は、接続するすべてのサーバーがグレイリスティングの対象になります。</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>このドメインにエイリアスはありません。</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>エイリアスがないため、このドメインは自身の名前宛てのメールだけを受信します。</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>アプリ パスワードはありません。メール クライアントごとに 1 つ作成すると、デバイスを紛失してもそのデバイスだけを失効させられます。</value>
@@ -6703,8 +6724,14 @@
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>{0} に完了したバックアップは 1 つもありません。そこに HMBackup アーカイブがありません。</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>ブラックリストがないため、接続元のアドレスはどのリストでも照会されません。</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>ブロックされた送信者が定義されていないため、何も一致しません。このリストにはオン/オフのスイッチがなく、空のリストがオフの状態です。</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>ブロックされた送信者がないため、エンベロープ送信者がアドレスだけを理由に拒否されたりスコアを付けられたりすることはありません。</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>開かれたケースはありません。ケースは Control Deck で開きます。</value>
@@ -6721,8 +6748,8 @@
   <data name="No certificates are configured." xml:space="preserve">
     <value>証明書が設定されていません。</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>使用できる証明書はまだありません。</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>証明書がまだないため、TLS を提供できるポートはありません。下の PEM ファイルから追加するか、ACME に発行させてください。</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>設定の警告はありません。</value>
@@ -6766,6 +6793,15 @@
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>このポートでは暗号化が利用できません。ほかのサーバーからの受信メールはもともと暗号化されていないのが普通ですが、このポートは AUTH も受け付けるため、それを使うクライアントはパスワードを平文で送信します。</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>エントリがないため、メールに付いた認証結果を理由にグレイリスティングを免除されるドメインはありません。</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>エントリがないため、このドメインの一覧は誰も許可もブロックもしません。各アカウント自身の一覧とサーバーの一覧は引き続き適用されます。</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>エントリがないため、この一覧は誰も許可もブロックもしません。アカウント自身の一覧とそのドメインの一覧は引き続き適用されます。</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>そのアドレスのイベントはありません。何も起きていないか、当時トレースがオフだったかのどちらかです。メッセージ トレースがオンの間だけ記録されます (ログ ページ)。</value>
   </data>
@@ -6778,6 +6814,9 @@
   <data name="No executable set" xml:space="preserve">
     <value>実行ファイルが未設定</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>外部アカウントがないため、このアカウントのために他所からメールが収集されることはありません。</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>このメッセージにはファイルが関連付けられていません。</value>
   </data>
@@ -6786,6 +6825,9 @@
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>'{0}' という名前のグループは見つかりません。</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>グループはまだありません。グループは複数のアカウントに同じフォルダー権限を一度に与えます。どのアカウントかは [メンバー] で選びます。</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>ホスト名が設定されていないため、このサーバーは Windows コンピューター名を名乗っています。この名前は、インターネット上のどの DNS も知りません。</value>
@@ -6807,9 +6849,6 @@
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>どのスコープのキーもキーの作成や失効はできません。それには管理者パスワードか、このページが必要です。特定のドメインに限定されたキーは、配信キューのエンドポイントも無条件に拒否されます。キューはサーバー全体のものであり、ドメインで絞り込めないためです。</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>キーはまだありません。</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>リスナーが設定されていないため、このサーバーには何も接続できません。</value>
@@ -6844,6 +6883,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き {0} 件のファイル名パターンを取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>名前がないため、逆引き名を理由に BAN を免れるアドレスはありません。</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>ワンタイム コードが入力されなかったため、現在のパスワードを確認できませんでした。</value>
   </data>
@@ -6868,14 +6910,17 @@
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>{0} を対象に含むパターンはありません。{1} に正引きで戻るため、これを対象に含むパターンがあればアドレスは免除されます。</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>ポリシーがないため、サーバーはすべてのリモートドメインと全般設定に従ってやり取りします。</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>クライアント証明書ポリシーを持つポートがないため、CA バンドルもクライアント証明書も不要です。</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>メッセージのサブミッションを受け付けるポートがないため、メールクライアントはこのサーバー経由で送信できません。</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>ポートが設定されていません。</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>ポートがないため、次回の起動または再初期化以降、サーバーは SMTP、POP3、IMAP の接続を一切受け付けません。</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>秘密鍵ファイルが設定されていないため、この証明書はどの TLS ポートでも使えません。</value>
@@ -6892,14 +6937,17 @@
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP 設定に公開ホスト名が設定されていません。</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>受信者がまだいないため、このリスト宛てのメールは誰にも届きません。下でアドレスを追加してください。</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>回復用アドレスは設定されていません。アカウント所有者がウェブメールで設定するまで、パスワードを忘れた場合はここでしかリセットできません。</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>ローテーションは予定されていません。「今すぐローテーション」で開始します。</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>ルートはまだ定義されていません。</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>ルートがないため、各ドメインのメールは通常どおり配信されます。MX ホストへ直接、または [メール配信] ページで設定したリレー経由です。</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>{0} に postmaster アドレスが設定されておらず、このページはメールボックスをでっち上げないため、rua= は含まれていません。rua= がなくてもポリシーは適用されますが、誰もレポートを送ってきません。用意できたら "; rua=mailto:&lt;読んでいるメールボックス&gt;" を追加してください。</value>
@@ -6942,6 +6990,12 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>実行できるウイルス スキャナーがありません。添付ファイルのブロックは、そのページのファイル名パターンを引き続き取り除きますが、メッセージの中やアーカイブの中を見るものは何もありません。</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>ホワイト リストのエントリがないため、すべての送信者がスパム対策を通ります。</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>ワイルドカードがないため、ファイル名を理由に削除される添付ファイルはありません。</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>なし - メンバーはここで追加されます</value>
@@ -9037,6 +9091,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>復元を開始しました。サーバー上でバックグラウンドで実行されます。</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>既定のポートに戻す(_O)</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>既定の範囲に戻す(_G)</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>メールボックスを復元する(_X)</value>
@@ -12234,6 +12294,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This account has no photo." xml:space="preserve">
     <value>このアカウントには写真がありません。</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>このアカウントには独自のルールがありません。サーバーのルールは引き続き適用されます。</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>このアクションに追加のパラメーターはありません。</value>
   </data>
@@ -14033,6 +14096,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Server" xml:space="preserve">
     <value>サーバー(_S)</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>ACME を設定(_S)…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>使用を許可する送信元アドレス (省略可)(_S)</value>

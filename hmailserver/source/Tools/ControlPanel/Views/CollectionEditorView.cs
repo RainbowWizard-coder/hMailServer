@@ -152,6 +152,13 @@ namespace hMailServer.ControlPanel.Views
          // for, or, without them, the first text the grid shows.
          public string DeletePrompt = N("Delete the entry {0}?");
          public string[] DeleteNameProps;
+
+         // What an empty list means, in one sentence: what the server does while
+         // it is empty, so that "nothing here" reads as a state with a
+         // consequence (review finding F207) - "No blacklists, so connecting
+         // addresses are not looked up in any." Translated where the spec is
+         // written. Null keeps the generic sentence.
+         public string EmptyText;
       }
 
       internal sealed class Row
@@ -347,7 +354,13 @@ namespace hMailServer.ControlPanel.Views
          // The notice's own style gives it the card gap below, as on the
          // quarantine page, so it carries no margin of its own here.
          parts.Children.Add(status_);
-         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
+
+         // The card is floored at what it holds: the grid's three rows, on a
+         // FillPanel of its own, and the empty state laid over them, which
+         // with its sentence and its action needs more than the rows - at the
+         // list card's fixed floor of 157 pixels the action was cut off in a
+         // short window (ControlPanelDesign.md, FillPanel).
+         parts.Children.Add(FillPanel.Filling(card, 0));
 
          grid_.AutoGenerateColumns = false;
          grid_.IsReadOnly = true;
@@ -437,8 +450,25 @@ namespace hMailServer.ControlPanel.Views
             grid_.Columns.Add(col);
          }
 
+         // The grid's floor is its own three rows, on a FillPanel of its own, so
+         // that the empty state laid over it raises the card's floor where its
+         // sentence and its action need more than the rows.
+         var rows = new FillPanel();
+         rows.Children.Add(FillPanel.Filling(grid_, FillPanel.ListRowsFloor));
+
+         // An empty list says what that means and offers the first entry
+         // (review finding F207): the action does what the header's Add does,
+         // with a key of its own, as the domains page's empty state does.
+         if (spec_.CanAdd)
+         {
+            var first = new Button { Content = L("Add the _first entry…") };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(first, "collection-add-first");
+            first.Click += (_, _) => OpenDialog(null);
+            empty_.Action = first;
+         }
+
          var host = new Grid();
-         host.Children.Add(grid_);
+         host.Children.Add(rows);
          host.Children.Add(empty_);
          card.Content = host;
 
@@ -489,7 +519,7 @@ namespace hMailServer.ControlPanel.Views
             // inventing a sentence for it would be a new text for a state that
             // does not occur.
             if (spec_.CanAdd)
-               StatusText.Show(empty_, null, rows_.Count, null, L("Nothing here yet - Add creates the first entry."));
+               StatusText.Show(empty_, null, rows_.Count, null, spec_.EmptyText ?? L("Nothing here yet - Add creates the first entry."));
 
             // A load that worked says nothing: the count beside the title and
             // the empty state in the grid's place already say what there is, and

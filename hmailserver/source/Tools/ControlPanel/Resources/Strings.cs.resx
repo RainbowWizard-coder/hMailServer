@@ -966,6 +966,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Přidat _hlavičku, kterou čtenář zobrazí jako pruh</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>Přidat _trasu</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Přidat pravidlo pro blokované přílohy</value>
   </data>
@@ -1095,6 +1098,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Přidávat podpis k _odpovědím</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>Přidat _první položku…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Přidejte adresu nebo rozsah IP do výjimek z antispamu.</value>
   </data>
@@ -1106,6 +1112,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Přidejte doménu na stránce Domény. Její název je část za @ v každé adrese, kterou bude obsahovat.</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>Přidat první _doménu…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Přidejte klíč níže do ověřovací aplikace a potvrďte jej kódem. Po registraci samotné heslo správce nepřihlásí – kód budou vyžadovat i COM API a REST API. Klíč uschovejte na bezpečném místě: pokud o ověřovací aplikaci přijdete, musí obnovu provést místní správce vymazáním AdministratorTotpSecret z hMailServer.ini.</value>
@@ -3143,6 +3152,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>Vytvářet podsložky</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>Vytvořit _první klíč…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Vytvořte veřejnou složku a poté k ní udělte oprávnění účtům nebo skupinám.</value>
@@ -6688,8 +6700,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>Nejsou nastaveny žádné IP rozsahy.</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>Zatím nejsou definovány žádné IP rozsahy.</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>Žádné rozsahy IP, takže tento server odmítá každé spojení SMTP, POP3 a IMAP, dokud nějaký nevznikne.</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>O žádné ověření přes LDAP se server nepokouší. Účty propojené s adresářem se dál ověřují přes přihlášení Windows a server to jednou za minutu hlásí (chyba 5922), takže to nemůže selhat potichu.</value>
@@ -6705,6 +6717,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Nejsou nastaveny žádné SSL certifikáty, takže neexistují žádné soubory klíčů ke kontrole.</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>Žádné servery SURBL, takže odkazy v těle zprávy se v žádném seznamu nevyhledávají.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Na tomto serveru není nikde zapnuta žádná verze TLS, takže na tomto portu nemůže uspět žádný handshake.</value>
@@ -6742,8 +6757,14 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Na seznamu blokovaných této domény není žádná adresa. Adresa se sem dostane, když se pošta na ni trvale vrátí jako nedoručitelná, nebo když nějakou přidáte.</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>Žádné adresy, takže každý připojující se server prochází greylistingem, dokud je greylisting zapnutý.</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Pro tuto doménu nejsou žádné aliasy.</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>Žádné aliasy, takže tato doména přijímá poštu jen pod svým vlastním názvem.</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Žádná hesla aplikací. Vytvořte jedno pro každého poštovního klienta, aby ztráta zařízení odvolala jen dané zařízení.</value>
@@ -6766,8 +6787,14 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Do {0} nikdy žádná záloha nedoběhla – není tam žádný archiv HMBackup.</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Žádné blacklisty, takže připojující se adresy se nevyhledávají v žádném.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Nejsou definováni žádní blokovaní odesílatelé, takže se nic neshoduje. Seznam nemá přepínač zapnuto/vypnuto – prázdný seznam je vypnutý stav.</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>Žádní blokovaní odesílatelé, takže žádný obálkový odesílatel není odmítnut ani bodován jen kvůli své adrese.</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>Žádný případ nebyl otevřen. Případy se otevírají v Control Deck.</value>
@@ -6784,8 +6811,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No certificates are configured." xml:space="preserve">
     <value>Nejsou nastaveny žádné certifikáty.</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>Zatím nejsou k dispozici žádné certifikáty.</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>Zatím žádné certifikáty, takže žádný port nemůže nabídnout TLS. Přidejte certifikát ze souborů PEM níže, nebo jej nechte vystavit přes ACME.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Žádná varování ke konfiguraci.</value>
@@ -6829,6 +6856,15 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Na tomto portu není k dispozici žádné šifrování. Příchozí pošta z jiných serverů beztak obvykle šifrovaná není, ale tento port přijímá i AUTH a klient, který jej použije, posílá své heslo v otevřeném textu.</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>Žádné položky, takže žádná doména není propuštěna přes greylisting kvůli výsledkům ověření, které její pošta nese.</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>Žádné položky, takže seznam této domény nikoho nepovoluje ani neblokuje; vlastní seznam každého účtu a seznam serveru stále platí.</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>Žádné položky, takže tento seznam nikoho nepovoluje ani neblokuje; vlastní seznam účtu a seznam jeho domény stále platí.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Pro tuto adresu nejsou žádné události. Buď se s ní nic nestalo, nebo bylo trasování v té době vypnuté – zaznamenává pouze tehdy, když je trasování zpráv zapnuté (stránka Logování).</value>
   </data>
@@ -6841,6 +6877,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Není nastaven žádný spustitelný soubor</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>Žádné externí účty, takže se pro tento účet odjinud žádná pošta nestahuje.</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>S touto zprávou není spojen žádný soubor.</value>
   </data>
@@ -6849,6 +6888,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Nebyla nalezena žádná skupina s názvem '{0}'.</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>Zatím žádné skupiny. Skupina dává několika účtům najednou stejná oprávnění ke složkám a tlačítko Členové určuje kterým.</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Není nastaven žádný název hostitele, takže tento server oznamuje název svého počítače Windows, který žádný DNS na internetu nezná.</value>
@@ -6870,9 +6912,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Klíč nemůže vytvářet ani odvolávat klíče, ať má jakýkoli rozsah – k tomu je potřeba heslo správce nebo tato stránka. Klíči omezenému na určité domény jsou navíc rovnou odepřeny koncové body doručovací fronty, protože fronta platí pro celý server a nelze ji filtrovat podle domény.</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>Zatím žádné klíče.</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Nejsou nastaveny žádné listenery, takže se k tomuto serveru nemůže nic připojit.</value>
@@ -6910,6 +6949,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.|few" xml:space="preserve">
     <value>Žádná zpráva se nekontroluje na viry. Blokování příloh sice stále odstraňuje přílohy podle {0} vzorů názvů souborů, ale obsah zpráv nikdo nezkoumá.</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>Žádné názvy, takže žádná adresa není ušetřena zákazu kvůli svému reverznímu názvu.</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Nebyl zadán jednorázový kód, takže současné heslo nebylo možné ověřit.</value>
   </data>
@@ -6934,14 +6976,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Žádný vzor nepokrývá {0}. Název se překládá zpět na {1}, takže vzor, který by jej pokrýval, by adresu ušetřil.</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>Žádné zásady, takže server komunikuje s každou vzdálenou doménou podle svých obecných nastavení.</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Žádný port nemá politiku klientských certifikátů, takže není potřeba ani balík CA, ani klientské certifikáty.</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>Žádný port nepřijímá odesílání zpráv, takže poštovní klienti nemohou přes tento server odesílat.</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>Nejsou nastaveny žádné porty.</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>Žádné porty, takže od příštího spuštění nebo reinicializace server nepřijme žádné spojení SMTP, POP3 ani IMAP.</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Není nastaven žádný soubor soukromého klíče, takže tento certifikát nemůže použít žádný TLS port.</value>
@@ -6958,14 +7003,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>V nastavení SMTP není nastaven žádný veřejný název hostitele.</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Zatím žádní příjemci, takže pošta odeslaná na tento seznam nedojde nikomu. Přidejte adresu níže.</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Adresa pro obnovu není nastavena. Dokud si ji držitel účtu nenastaví ve webové poště, zapomenuté heslo lze obnovit jen zde.</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Žádná rotace není naplánována. Spusťte ji tlačítkem „Rotovat nyní“.</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>Zatím nejsou definovány žádné trasy.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Žádné trasy, takže pošta každé domény se doručuje obvyklým způsobem: na její hostitele MX, nebo přes předávací server nastavený na stránce Doručování e-mailů.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Není zahrnuto rua=, protože {0} nemá nastavenou adresu postmastera, a tato stránka si poštovní schránku nevymyslí. Bez rua= politika stále platí, ale nikdo vám neposílá hlášení – až nějakou budete mít, přidejte „; rua=mailto:&lt;a mailbox you read&gt;“.</value>
@@ -7011,6 +7059,12 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nemůže běžet žádný antivirový skener. Blokování příloh stále odstraňuje vzory názvů souborů na své vlastní stránce, ale dovnitř zprávy ani dovnitř archivu se nikdo nedívá.</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>Žádné položky seznamu povolených, takže každý odesílatel prochází ochranou proti spamu.</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>Žádné zástupné znaky, takže žádná příloha není odstraněna kvůli názvu souboru.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Nikdo - členové se přidávají zde</value>
@@ -9121,6 +9175,12 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Obnovení spuštěno – běží na pozadí na serveru.</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>Obnovit výchozí _porty</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>Obnovit výchozí _rozsahy</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Obnovit sc_hránku</value>
@@ -12383,6 +12443,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This account has no photo." xml:space="preserve">
     <value>Tento účet nemá fotografii.</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>Tento účet nemá žádná vlastní pravidla; pravidla serveru stále platí.</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Tato akce nemá žádné další parametry.</value>
   </data>
@@ -14191,6 +14254,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>_Nastavit ACME…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Zdrojové adresy, ze kterých jej lze používat (nepovinné)</value>

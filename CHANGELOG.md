@@ -1516,6 +1516,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   button, selected, 1 of 4", and the chosen range pressed again does nothing. The note on a history range is under the
   choice, where it ran past the window's edge. `ChartRangeGroupTests` holds the group.
 
+- **Fixed: the Control Panel's empty lists said only that they were empty, never what that meant or how to fill
+  them.** Eleven list pages shared "Nothing here yet - Add creates the first entry."; the SSL certificates, IP ranges,
+  routes and TCP/IP ports pages said "No ... yet." with no button, though with no IP range the server refuses every
+  connection; the REST API keys page said it twice, a card apart; and the recipient, group member and never-ban lists
+  were blank boxes. Each list now says what its emptiness means, in a sentence of its own - "No blacklists, so
+  connecting addresses are not looked up in any.", "No IP ranges, so this server refuses every SMTP, POP3 and IMAP
+  connection until one exists." - and its empty state carries the action that ends it: *Add the first entry…* on
+  every list the generic editor draws, *Restore the default ranges* and *Restore the default ports*, *Add a route*
+  (which puts the keyboard in the add form), *Set up ACME…* beside the certificates' form, *Create the first key…*,
+  and *Add the first domain…* on the domain white and black list. The REST API keys page says it has no keys once, by
+  the list. A list card whose empty state carries an action is floored at what it holds - its grid's three rows on a
+  FillPanel of its own and the empty state laid over them - so that the action is never cut off in a short window,
+  where the card's fixed 157 pixels held a glyph and a sentence and nothing more; the dialogs' lists and the
+  never-ban list show their empty state in the list's place, and only after a read that worked.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

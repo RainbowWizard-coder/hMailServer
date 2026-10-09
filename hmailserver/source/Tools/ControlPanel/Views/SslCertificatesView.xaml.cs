@@ -111,6 +111,10 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>F5: the certificates again, the selected one kept.</summary>
       void IRefreshablePage.Refresh() => Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
 
+      /// <summary>The empty list's way to a certificate other than the form below: ACME issues and renews one.</summary>
+      private void SetUpAcme_Click(object sender, RoutedEventArgs e)
+         => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("acme");
+
       public void OnLeave()
       {
       }
@@ -165,7 +169,7 @@ namespace hMailServer.ControlPanel.Views
 
          CertGrid.ItemsSource = rows;
          ListSearch.Apply(CertGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, LoadNotice, rows.Count, error, L("No certificates available yet."));
+         StatusText.Show(EmptyStatus, LoadNotice, rows.Count, error, L("No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one."));
 
          if (reselectId != 0)
          {

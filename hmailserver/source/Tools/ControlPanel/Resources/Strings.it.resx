@@ -960,6 +960,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Aggiungi un'_intestazione che il lettore mostra come fascia</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>Aggiungi una _rotta</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Aggiungi una regola per gli allegati bloccati</value>
   </data>
@@ -1089,6 +1092,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Aggiungi la firma alle _risposte</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>Aggiungi la _prima voce…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Aggiungi l'indirizzo o l'intervallo IP alle esenzioni antispam.</value>
   </data>
@@ -1100,6 +1106,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Aggiungi il dominio nella pagina Domini. Il suo nome è la parte dopo la @ in ogni indirizzo che conterrà.</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>Aggiungi il primo _dominio…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Aggiungi la chiave qui sotto a un'app di autenticazione, poi conferma con un codice. Una volta registrato, la sola password di amministratore non consentirà più l'accesso - anche l'API COM e l'API REST richiederanno un codice. Conserva la chiave in un posto sicuro: se perdi l'autenticatore, un amministratore locale deve cancellare AdministratorTotpSecret da hMailServer.ini per recuperare l'accesso.</value>
@@ -3125,6 +3134,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>Crea sottocartelle</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>Crea la _prima chiave…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Crea la cartella pubblica, poi concedi i permessi su di essa ad account o gruppi.</value>
@@ -6625,8 +6637,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>Non è configurato alcun intervallo IP.</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>Nessun intervallo IP ancora definito.</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>Nessun intervallo IP, quindi questo server rifiuta ogni connessione SMTP, POP3 e IMAP finché non ne esiste uno.</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Non viene tentata alcuna autenticazione LDAP. Gli account collegati alla directory continuano a essere convalidati tramite l'accesso Windows, e il server lo segnala (errore 5922) una volta al minuto, così non può fallire silenziosamente.</value>
@@ -6642,6 +6654,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Non è configurato alcun certificato SSL, quindi non ci sono file di chiave da controllare.</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>Nessun server SURBL, quindi i link nel corpo di un messaggio non vengono cercati in alcun elenco.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Nessuna versione di TLS è attiva in alcun punto di questo server, quindi nessun handshake su questa porta può riuscire.</value>
@@ -6679,8 +6694,14 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Nessun indirizzo è nella lista di soppressione di questo dominio. Un indirizzo finisce qui quando la posta diretta a esso torna indietro in modo permanente, o quando ne aggiungi uno.</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>Nessun indirizzo, quindi ogni server che si connette passa per il greylisting finché il greylisting è attivo.</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Nessun alias per questo dominio.</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>Nessun alias, quindi questo dominio riceve posta solo con il proprio nome.</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Nessuna password per app. Crearne una per ogni client di posta, così che la perdita di un dispositivo revochi soltanto quel dispositivo.</value>
@@ -6703,8 +6724,14 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Nessun backup è mai stato completato in {0} - lì non c'è alcun archivio HMBackup.</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Nessuna blacklist, quindi gli indirizzi che si connettono non vengono cercati in alcuna.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Non è definito alcun mittente bloccato, quindi non viene rilevata alcuna corrispondenza. La lista non ha un interruttore di attivazione - una lista vuota è lo stato disattivato.</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>Nessun mittente bloccato, quindi nessun mittente della busta viene rifiutato o valutato per il solo indirizzo.</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>Nessun caso è stato aperto. I casi si aprono nel Control Deck.</value>
@@ -6721,8 +6748,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No certificates are configured." xml:space="preserve">
     <value>Non è configurato alcun certificato.</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>Nessun certificato ancora disponibile.</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>Ancora nessun certificato, quindi nessuna porta può offrire TLS. Aggiungine uno da file PEM qui sotto, oppure lascia che ACME ne emetta uno.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Nessun avviso di configurazione.</value>
@@ -6766,6 +6793,15 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Su questa porta non è disponibile alcuna cifratura. La posta in ingresso da altri server è comunque normalmente non cifrata, ma questa porta accetta anche AUTH, e un client che la usa invia la propria password in chiaro.</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>Nessuna voce, quindi nessun dominio viene esentato dal greylisting per i risultati di autenticazione della sua posta.</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>Nessuna voce, quindi l'elenco di questo dominio non consente né blocca nessuno; l'elenco di ciascun account e quello del server restano validi.</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>Nessuna voce, quindi questo elenco non consente né blocca nessuno; l'elenco di un account e quello del suo dominio restano validi.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Nessun evento per quell'indirizzo. O non gli è successo nulla, o la traccia era disattivata in quel momento – registra solo mentre il tracciamento dei messaggi è attivo (pagina Registrazione).</value>
   </data>
@@ -6778,6 +6814,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Nessun eseguibile impostato</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>Nessun account esterno, quindi per questo account non viene raccolta posta da altrove.</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>Nessun file è associato a questo messaggio.</value>
   </data>
@@ -6786,6 +6825,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Nessun gruppo trovato con il nome '{0}'.</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>Ancora nessun gruppo. Un gruppo dà a più account gli stessi permessi sulle cartelle in una volta, e Membri sceglie quali.</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Non è impostato alcun nome host, quindi questo server annuncia il suo nome computer Windows, che nessun DNS su Internet conosce.</value>
@@ -6807,9 +6849,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Nessuna chiave, qualunque sia il suo ambito, può creare o revocare chiavi - per questo serve la password di amministratore, oppure questa pagina. A una chiave limitata a determinati domini vengono inoltre negati del tutto gli endpoint della coda di consegna, perché la coda è dell'intero server e non può essere filtrata per dominio.</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>Ancora nessuna chiave.</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Non è configurato alcun listener, quindi nulla può connettersi a questo server.</value>
@@ -6844,6 +6883,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Nessun messaggio viene sottoposto a scansione antivirus. Il blocco degli allegati continua a rimuovere {0} schemi di nomi di file, ma nulla esamina il contenuto di un messaggio.</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>Nessun nome, quindi nessun indirizzo viene risparmiato da un blocco per il suo nome inverso.</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Non è stato fornito alcun codice monouso, quindi non è stato possibile verificare la password attuale.</value>
   </data>
@@ -6868,14 +6910,17 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Nessun modello copre {0}. Il nome si risolve di nuovo in {1}, quindi un modello che lo copra risparmierebbe l'indirizzo.</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>Nessun criterio, quindi il server comunica con ogni dominio remoto secondo le sue impostazioni generali.</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Nessuna porta ha un criterio sui certificati client, quindi non sono richiesti né un bundle CA né certificati client.</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>Nessuna porta accetta l'invio di messaggi, quindi i client di posta non possono inviare attraverso questo server.</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>Nessuna porta configurata.</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>Nessuna porta, quindi dal prossimo avvio o dalla prossima reinizializzazione il server non accetta alcuna connessione SMTP, POP3 o IMAP.</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Non è configurato alcun file di chiave privata, quindi questo certificato non può essere usato da alcuna porta TLS.</value>
@@ -6892,14 +6937,17 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Nelle impostazioni SMTP non è configurato alcun nome host pubblico.</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Ancora nessun destinatario, quindi la posta inviata a questo elenco non raggiunge nessuno. Aggiungi un indirizzo qui sotto.</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Nessun indirizzo di recupero impostato. Finché il titolare non ne imposta uno nella webmail, una password dimenticata si reimposta solo qui.</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Nessuna rotazione è pianificata. Usi "Ruota ora" per avviarne una.</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>Nessuna rotta ancora definita.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Nessuna rotta, quindi la posta di ogni dominio viene consegnata nel modo consueto: ai suoi host MX, o tramite il relay impostato nella pagina Consegna della posta.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Non è incluso alcun rua= perché {0} non ha un indirizzo postmaster configurato, e questa pagina non inventa una casella. Senza rua= il criterio si applica comunque, ma nessuno invia rapporti - aggiungere "; rua=mailto:&lt;a mailbox you read&gt;" quando se ne ha una.</value>
@@ -6942,6 +6990,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Nessuno scanner antivirus può essere eseguito. Il blocco degli allegati continua a rimuovere gli schemi di nomi di file indicati nella sua pagina, ma nulla guarda dentro un messaggio o dentro un archivio.</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>Nessuna voce nella whitelist, quindi ogni mittente passa per la protezione antispam.</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>Nessun carattere jolly, quindi nessun allegato viene rimosso per il nome del file.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Nessuno - i membri vengono aggiunti qui</value>
@@ -9037,6 +9091,12 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Ripristino avviato - viene eseguito in background sul server.</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>Ripristina le p_orte predefinite</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>Ripristina gli intervalli pre_definiti</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Ripristina la casella (_x)</value>
@@ -12234,6 +12294,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="This account has no photo." xml:space="preserve">
     <value>Questo account non ha una foto.</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>Questo account non ha regole proprie; le regole del server restano valide.</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Questa azione non ha parametri aggiuntivi.</value>
   </data>
@@ -14033,6 +14096,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>_Configura ACME…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Indirizzi di origine da cui può essere usata (facoltativo)</value>

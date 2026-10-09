@@ -214,7 +214,7 @@ namespace hMailServer.ControlPanel.Views
          ReadFailure.Clear(Notice, AddPortButton, RestoreDefaultsButton);
          PortGrid.ItemsSource = rows;
          ListSearch.Apply(PortGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No ports configured."));
+         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection."));
 
          ShowListenerSummary(rows, local);
       }

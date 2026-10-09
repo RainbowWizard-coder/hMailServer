@@ -47,19 +47,23 @@
         <!-- A load that failed, above the grid rather than in its place. -->
         <scaffold:InlineNotice x:Name="LoadNotice" Visibility="Collapsed" />
 
-        <!-- The floor: four rows need 187 pixels (the card's padding and border,
-             the column headers and four 34-pixel rows) - one more than the IP
-             ranges page's three, so that the selected certificate is seen among
-             its neighbours - and the empty state that takes the rows' place
-             when there are none needs 157. -->
-        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="187" Padding="8">
+        <!-- The floor: four rows, one more than the IP ranges page's three, so
+             that the selected certificate is seen among its neighbours - the
+             column headers and four 34-pixel rows and a pixel for layout
+             rounding, 170, held by the FillPanel around the grid - and the card
+             is floored at what it holds, so that the empty state laid over the
+             grid, its sentence and the action that leads to ACME, raises the
+             card's floor where it needs more than the rows (review finding
+             F207; at a fixed 187 the action was cut off in a short window). -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
                 <!-- Row virtualization is off: the status cells are built in code at
                      Loaded time (the badge needs theme-following brushes a XAML
                      binding cannot express), and container recycling would re-fire
                      Loaded against a different row's data. Certificate lists are a
                      handful of rows, so nothing is lost. -->
-                <DataGrid x:Name="CertGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                <scaffold:FillPanel>
+                <DataGrid x:Name="CertGrid" scaffold:FillPanel.Fill="True" MinHeight="170" AutoGenerateColumns="False" IsReadOnly="True"
                           AutomationProperties.AutomationId="certs-grid"
                           EnableRowVirtualization="False"
                           SelectionMode="Single" SelectionChanged="CertGrid_SelectionChanged"
@@ -84,8 +88,16 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
+                </scaffold:FillPanel>
+                <!-- With no certificate, the two ways to get one: the form below,
+                     which the sentence names, and ACME, which the action opens. -->
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="Certificate24" Visibility="Collapsed"
-                                     AutomationProperties.LiveSetting="Polite" />
+                                     AutomationProperties.LiveSetting="Polite">
+                    <scaffold:EmptyState.Action>
+                        <ui:Button Content="{loc:L '_Set up ACME…'}" Click="SetUpAcme_Click"
+                                   AutomationProperties.AutomationId="certs-set-up-acme" />
+                    </scaffold:EmptyState.Action>
+                </scaffold:EmptyState>
                 <!-- Shown while the first inspection runs off the UI thread. -->
                 <scaffold:LoadingState x:Name="Loading" Visibility="Collapsed" />
             </Grid>

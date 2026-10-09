@@ -960,6 +960,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Een _kopregel toevoegen die de lezer als balk toont</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>Een _route toevoegen</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Een regel voor geblokkeerde bijlagen toevoegen</value>
   </data>
@@ -1089,6 +1092,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Handtekening toevoegen aan antwoo_rden</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>Eerste _item toevoegen…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Het adres of IP-bereik toevoegen aan de spamuitzonderingen.</value>
   </data>
@@ -1100,6 +1106,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Voeg het domein toe op de pagina Domeinen. De naam is het deel na de @ in elk adres dat het zal bevatten.</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>Eerste _domein toevoegen…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Voeg de sleutel hieronder toe aan een authenticator-app en bevestig dan met een code. Na inschrijving meldt het beheerderswachtwoord alleen niet meer aan - de COM-API en REST-API hebben dan ook een code nodig. Bewaar de sleutel ergens veilig: als u de authenticator verliest, moet een lokale beheerder AdministratorTotpSecret uit hMailServer.ini wissen om weer binnen te komen.</value>
@@ -3125,6 +3134,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>Submappen maken</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>Eerste _sleutel maken…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Maak de openbare map en geef accounts of groepen er daarna machtigingen op.</value>
@@ -6625,8 +6637,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>Er zijn geen IP-bereiken geconfigureerd.</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>Er zijn nog geen IP-bereiken gedefinieerd.</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>Geen IP-bereiken, dus deze server weigert elke SMTP-, POP3- en IMAP-verbinding tot er een bestaat.</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Er wordt geen LDAP-authenticatie geprobeerd. Directorygekoppelde accounts blijven valideren via Windows-aanmelding, en de server meldt dit (fout 5922) eenmaal per minuut, zodat het niet stilzwijgend kan mislukken.</value>
@@ -6642,6 +6654,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Er zijn geen SSL-certificaten geconfigureerd, dus er zijn geen sleutelbestanden om te controleren.</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>Geen SURBL-servers, dus de links in de tekst van een bericht worden in geen enkele lijst opgezocht.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Er is nergens op deze server een TLS-versie ingeschakeld, dus geen enkele handshake op deze poort kan slagen.</value>
@@ -6679,8 +6694,14 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Er staat geen adres op de onderdrukkingslijst van dit domein. Een adres komt hier als mail eraan definitief bouncet, of als u er een toevoegt.</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>Geen adressen, dus elke server die verbinding maakt wordt gegreylist zolang greylisting aan staat.</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Geen aliassen voor dit domein.</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>Geen aliassen, dus dit domein ontvangt alleen mail onder zijn eigen naam.</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Geen app-wachtwoorden. Maak er een per e-mailclient, zodat het verliezen van een apparaat alleen dat apparaat intrekt.</value>
@@ -6703,8 +6724,14 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Er is nog nooit een back-up voltooid naar {0} - daar staat geen HMBackup-archief.</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Geen zwarte lijsten, dus verbindende adressen worden in geen enkele opgezocht.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Er zijn geen geblokkeerde afzenders gedefinieerd, dus er wordt niets vergeleken. De lijst heeft geen aan/uit-schakelaar - een lege lijst is de uit-stand.</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>Geen geblokkeerde afzenders, dus geen enkele enveloppe-afzender wordt alleen om zijn adres geweigerd of gescoord.</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>Er is nog geen zaak geopend. Zaken worden geopend in het Control Deck.</value>
@@ -6721,8 +6748,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No certificates are configured." xml:space="preserve">
     <value>Er zijn geen certificaten geconfigureerd.</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>Er zijn nog geen certificaten beschikbaar.</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>Nog geen certificaten, dus geen enkele poort kan TLS aanbieden. Voeg er hieronder een toe uit PEM-bestanden, of laat ACME er een uitgeven.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Geen configuratiewaarschuwingen.</value>
@@ -6766,6 +6793,15 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Op deze poort is geen versleuteling beschikbaar. Inkomende mail van andere servers is toch al meestal onversleuteld, maar deze poort accepteert ook AUTH, en een client die dat gebruikt, stuurt zijn wachtwoord in klare tekst.</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>Geen vermeldingen, dus geen enkel domein wordt langs greylisting gelaten op grond van de authenticatieresultaten van zijn mail.</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>Geen vermeldingen, dus de lijst van dit domein staat niemand toe en blokkeert niemand; de eigen lijst van elk account en die van de server gelden nog steeds.</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>Geen vermeldingen, dus deze lijst staat niemand toe en blokkeert niemand; de eigen lijst van een account en die van zijn domein gelden nog steeds.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Geen gebeurtenissen voor dat adres. Of er is niets mee gebeurd, of de tracering stond op dat moment uit – ze legt alleen vast zolang berichttracering aan staat (pagina Logboekregistratie).</value>
   </data>
@@ -6778,6 +6814,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Geen uitvoerbaar bestand ingesteld</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>Geen externe accounts, dus voor dit account wordt nergens anders mail opgehaald.</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>Er is geen bestand aan dit bericht gekoppeld.</value>
   </data>
@@ -6786,6 +6825,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Geen groep gevonden met de naam '{0}'.</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>Nog geen groepen. Een groep geeft meerdere accounts tegelijk dezelfde maprechten, en Leden kiest welke.</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Er is geen hostnaam ingesteld, dus deze server kondigt zijn Windows-computernaam aan, die geen enkele DNS op internet kent.</value>
@@ -6807,9 +6849,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Geen enkele sleutel, met welk bereik dan ook, kan sleutels aanmaken of intrekken - daarvoor is het beheerderswachtwoord nodig, of deze pagina. Een sleutel die tot bepaalde domeinen beperkt is, krijgt bovendien ronduit geen toegang tot de eindpunten van de bezorgwachtrij, omdat de wachtrij serverbreed is en niet op domein kan worden gefilterd.</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>Nog geen sleutels.</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Er zijn geen listeners geconfigureerd, dus niets kan verbinding maken met deze server.</value>
@@ -6844,6 +6883,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Geen enkel bericht wordt op virussen gescand. Bijlageblokkering verwijdert nog steeds {0} bestandsnaampatronen, maar niets onderzoekt de inhoud van een bericht.</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>Geen namen, dus geen enkel adres wordt op grond van zijn omgekeerde naam voor een ban gespaard.</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Er is geen eenmalige code opgegeven, dus het huidige wachtwoord kon niet worden gecontroleerd.</value>
   </data>
@@ -6868,14 +6910,17 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Geen patroon dekt {0}. De naam verwijst terug naar {1}, dus een patroon dat hem dekt, zou het adres sparen.</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>Geen beleidsregels, dus de server communiceert met elk extern domein volgens zijn algemene instellingen.</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Geen enkele poort heeft een beleid voor clientcertificaten, dus er zijn geen CA-bundel en geen clientcertificaten vereist.</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>Geen enkele poort neemt berichten aan voor verzending, dus mailprogramma's kunnen niet via deze server verzenden.</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>Geen poorten geconfigureerd.</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>Geen poorten, dus vanaf de volgende start of herinitialisatie neemt de server geen SMTP-, POP3- of IMAP-verbinding aan.</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Er is geen privésleutelbestand geconfigureerd, dus dit certificaat kan door geen enkele TLS-poort worden gebruikt.</value>
@@ -6892,14 +6937,17 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Er is geen openbare hostnaam geconfigureerd in de SMTP-instellingen.</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Nog geen ontvangers, dus mail naar deze lijst bereikt niemand. Voeg hieronder een adres toe.</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Er is geen hersteladres ingesteld. Zolang de accounthouder er geen instelt in de webmail, kan een vergeten wachtwoord alleen hier worden hersteld.</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Er is geen rotatie gepland. Start er een met ‘Nu roteren’.</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>Er zijn nog geen routes gedefinieerd.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Geen routes, dus de mail van elk domein wordt op de gewone manier bezorgd: aan zijn MX-hosts, of via de relay die op de pagina E-mailbezorging is ingesteld.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Er is geen rua= opgenomen omdat voor {0} geen postmasteradres is geconfigureerd, en deze pagina verzint geen postvak. Zonder rua= geldt het beleid nog steeds, maar niemand stuurt u rapporten - voeg "; rua=mailto:&lt;a mailbox you read&gt;" toe zodra u er een hebt.</value>
@@ -6942,6 +6990,12 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Geen enkele virusscanner kan draaien. Bijlageblokkering verwijdert nog steeds de bestandsnaampatronen op zijn eigen pagina, maar niets kijkt in een bericht of in een archief.</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>Geen vermeldingen op de witte lijst, dus elke afzender gaat door de spambescherming.</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>Geen jokertekens, dus geen enkele bijlage wordt om zijn bestandsnaam verwijderd.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Niemand - de leden worden hier toegevoegd</value>
@@ -9037,6 +9091,12 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Herstel gestart - het draait op de achtergrond op de server.</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>Standaard_poorten herstellen</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>Standaardbereiken _herstellen</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>De mailbo_x herstellen</value>
@@ -12234,6 +12294,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This account has no photo." xml:space="preserve">
     <value>Dit account heeft geen foto.</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>Dit account heeft geen eigen regels; de regels van de server gelden nog steeds.</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Deze actie heeft geen aanvullende parameters.</value>
   </data>
@@ -14033,6 +14096,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>ACME _instellen…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Bronadressen waarvandaan hij mag worden gebruikt (optioneel)</value>

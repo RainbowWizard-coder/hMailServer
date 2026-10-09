@@ -91,6 +91,21 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       /// </summary>
       public const double TitledListCardFloor = ListCardFloor + 24;
 
+      /// <summary>
+      /// The floor of a grid of three rows on a FillPanel of its own inside its
+      /// card: the column headers (33), three rows of AppNavRowHeight (34), and the
+      /// eight pixels of the horizontal scroll bar a narrow window draws over the
+      /// last row - the height the grid had inside a card at
+      /// <see cref="ListCardFloor"/>, so that the third row is as clear of the bar
+      /// as it was. The card around it is floored at what it holds
+      /// (<c>Filling(card, 0)</c>), so that an empty state laid over the grid - a
+      /// sentence and the action that fills the list (review finding F207) - raises
+      /// the card's floor where it needs more than the rows, as the domains page's
+      /// lists do; at <see cref="ListCardFloor"/> the action was cut off in a short
+      /// window.
+      /// </summary>
+      public const double ListRowsFloor = 33 + 3 * 34 + 8;
+
       private double[] floors_ = Array.Empty<double>();
       private double[] measuredAt_ = Array.Empty<double>();
       private bool arranging_;

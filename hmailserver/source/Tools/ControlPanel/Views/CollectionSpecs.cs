@@ -55,6 +55,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} SURBL servers"),
          DeletePrompt = N("Delete the SURBL server {0}?"),
          DeleteNameProps = new[] { "DNSHost" }, // no-loc: the properties that name an entry
+         EmptyText = L("No SURBL servers, so the links in a message body are not looked up in any list."),
          GetCollection = () => AntiSpam.SURBLServers,
          TickBoxesLast = true,
          ActiveProp = "Active", // no-loc: the property that switches an entry on
@@ -87,6 +88,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} block lists"),
          DeletePrompt = N("Delete the DNS block list {0}?"),
          DeleteNameProps = new[] { "DNSHost" }, // no-loc: the properties that name an entry
+         EmptyText = L("No blacklists, so connecting addresses are not looked up in any."),
          GetCollection = () => AntiSpam.DNSBlackLists,
          TickBoxesLast = true,
          ActiveProp = "Active", // no-loc: the property that switches an entry on
@@ -115,6 +117,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} spam exemptions"),
          DeletePrompt = N("Delete the spam exemption {0}? Mail it covers goes through the spam checks again."),
          DeleteNameProps = new[] { "Description", "EmailAddress", "LowerIPAddress" }, // no-loc: the properties that name an entry
+         EmptyText = L("No white-list entries, so every sender goes through spam protection."),
          GetCollection = () => AntiSpam.WhiteListAddresses,
          Fields =
          {
@@ -136,6 +139,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} blocked senders"),
          DeletePrompt = N("Delete the blocked sender {0}?"),
          DeleteNameProps = new[] { "Address" }, // no-loc: the properties that name an entry
+         EmptyText = L("No blocked senders, so no envelope sender is refused or scored for its address alone."),
          GetCollection = () => AntiSpam.BlockedSenders,
          Fields =
          {
@@ -163,6 +167,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} list entries"),
          DeletePrompt = N("Delete the list entry {0}?"),
          DeleteNameProps = new[] { "Value" }, // no-loc: the properties that name an entry
+         EmptyText = L("No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply."),
          GetCollection = () => AntiSpam.SenderList,
          Fields = SenderListFields(260)
       });
@@ -195,6 +200,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} IP addresses"),
          DeletePrompt = N("Delete the greylisting white-list entry {0}? Mail from it is greylisted again."),
          DeleteNameProps = new[] { "IPAddress" }, // no-loc: the properties that name an entry
+         EmptyText = L("No addresses, so every server that connects is greylisted while greylisting is on."),
          GetCollection = () => AntiSpam.GreyListingWhiteAddresses,
          Fields =
          {
@@ -232,6 +238,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} bypass entries"),
          DeletePrompt = N("Delete the greylisting bypass entry {0}? Mail it matched is greylisted again."),
          DeleteNameProps = new[] { "Pattern" }, // no-loc: the properties that name an entry
+         EmptyText = L("No entries, so no domain is let past greylisting for the authentication results its mail carries."),
          GetCollection = () => AntiSpam.GreyListingBypassEntries,
          Fields =
          {
@@ -258,6 +265,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} rules"),
          DeletePrompt = N("Delete the blocked attachment rule {0}? Attachments it matched are no longer removed."),
          DeleteNameProps = new[] { "Wildcard" }, // no-loc: the properties that name an entry
+         EmptyText = L("No wildcards, so no attachment is stripped for its file name."),
          GetCollection = () => Settings.AntiVirus.BlockedAttachments,
          Fields =
          {
@@ -284,6 +292,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} security groups"),
          DeletePrompt = N("Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them."),
          DeleteNameProps = new[] { "Name" }, // no-loc: the properties that name an entry
+         EmptyText = L("No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which."),
          GetCollection = () => Settings.Groups,
          Fields =
          {
@@ -355,6 +364,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} remote domain policies"),
          DeletePrompt = N("Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again."),
          DeleteNameProps = new[] { "DomainName" }, // no-loc: the properties that name an entry
+         EmptyText = L("No policies, so the server talks to every remote domain on its general settings."),
          GetCollection = () => Settings.RemoteDomainPolicies,
          Fields =
          {
@@ -444,6 +454,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} list entries"),
          DeletePrompt = N("Delete the list entry {0}?"),
          DeleteNameProps = new[] { "Value" }, // no-loc: the properties that name an entry
+         EmptyText = L("No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply."),
          GetCollection = () =>
          {
             dynamic domain = OpenDomain(domainName);
@@ -473,6 +484,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} aliases"),
          DeletePrompt = N("Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain."),
          DeleteNameProps = new[] { "AliasName" }, // no-loc: the properties that name an entry
+         EmptyText = L("No aliases, so this domain receives mail under its own name only."),
          GetCollection = () =>
          {
             dynamic domain = OpenDomain(domainName);
@@ -500,6 +512,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} external accounts"),
          DeletePrompt = N("Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays."),
          DeleteNameProps = new[] { "Name", "ServerAddress" }, // no-loc: the properties that name an entry
+         EmptyText = L("No external accounts, so no mail is collected from elsewhere for this account."),
          GetCollection = () =>
          {
             dynamic account = OpenAccount(domainName, address);
@@ -580,6 +593,7 @@ namespace hMailServer.ControlPanel.Views
          CountMany = N("{0} rules"),
          DeletePrompt = N("Delete the rule {0}?"),
          DeleteNameProps = new[] { "Name" }, // no-loc: the properties that name an entry
+         EmptyText = L("This account has no rules of its own; the server's rules still apply."),
          GetCollection = () =>
          {
             dynamic account = OpenAccount(domainName, address);

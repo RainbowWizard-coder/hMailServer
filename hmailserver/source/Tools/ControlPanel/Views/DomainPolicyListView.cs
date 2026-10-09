@@ -332,11 +332,21 @@ namespace hMailServer.ControlPanel.Views
          BuildColumns_();
          AutomationProperties.SetName(entries_, L("Allowed and blocked domains"));
 
+         // The grid's three rows on a FillPanel of its own and the card floored
+         // at what it holds, so that the empty state laid over the grid, its
+         // sentence and the action that adds the first domain (review finding
+         // F207), raises the card's floor where it needs more than the rows.
+         var rows = new FillPanel();
+         rows.Children.Add(FillPanel.Filling(entries_, FillPanel.ListRowsFloor));
+         var first = new Wpf.Ui.Controls.Button { Content = L("Add the first _domain…") };
+         AutomationProperties.SetAutomationId(first, "domainpolicy-add-first");
+         first.Click += (_, _) => AddEntry();
+         empty_.Action = first;
          var host = new Grid();
-         host.Children.Add(entries_);
+         host.Children.Add(rows);
          host.Children.Add(empty_);
          var listCard = new Card { Padding = new Thickness(8), Content = host };
-         parts.Children.Add(FillPanel.Filling(listCard, FillPanel.ListCardFloor));
+         parts.Children.Add(FillPanel.Filling(listCard, 0));
 
          Content = root;
       }

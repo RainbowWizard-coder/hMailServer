@@ -960,6 +960,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Tilføj en _header, som læseren viser som et banner</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>Tilføj en _rute</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Tilføj en regel for blokerede vedhæftede filer</value>
   </data>
@@ -1089,6 +1092,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Tilføj signatur til _svar</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>Tilføj den _første post…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Føj adressen eller IP-området til spamundtagelserne.</value>
   </data>
@@ -1100,6 +1106,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Tilføj domænet på siden Domæner. Navnet er delen efter @ i hver adresse, det kommer til at rumme.</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>Tilføj det første _domæne…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Føj nøglen nedenfor til en godkendelsesapp, og bekræft derefter med en kode. Når den først er tilmeldt, kan administratoradgangskoden alene ikke logge på – COM-API'et og REST-API'et kræver også en kode. Opbevar nøglen et sikkert sted: hvis du mister godkendelsesappen, skal en lokal administrator fjerne AdministratorTotpSecret fra hMailServer.ini for at komme ind igen.</value>
@@ -3125,6 +3134,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>Opret undermapper</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>Opret den _første nøgle…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Opret den offentlige mappe, og giv derefter konti eller grupper tilladelse til den.</value>
@@ -6625,8 +6637,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>Der er ikke konfigureret nogen IP-intervaller.</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>Der er endnu ikke defineret nogen IP-intervaller.</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>Ingen IP-intervaller, så denne server afviser enhver SMTP-, POP3- og IMAP-forbindelse, indtil der findes et.</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Der forsøges ingen LDAP-godkendelse. Katalogtilknyttede konti bliver ved med at blive valideret gennem Windows-pålogning, og serveren rapporterer dette (fejl 5922) én gang i minuttet, så det ikke kan fejle i stilhed.</value>
@@ -6642,6 +6654,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Der er ikke konfigureret nogen SSL-certifikater, så der er ingen nøglefiler at kontrollere.</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>Ingen SURBL-servere, så linkene i en meddelelses brødtekst slås ikke op i nogen liste.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>Ingen TLS-version er aktiveret nogen steder på denne server, så intet handshake på denne port kan lykkes.</value>
@@ -6679,8 +6694,14 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>Der er ingen adresse på dette domænes spærreliste. En adresse kommer her, når post til den kommer retur for altid, eller når du tilføjer en.</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>Ingen adresser, så hver server, der forbinder, greylistes, mens greylisting er slået til.</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Ingen aliasser for dette domæne.</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>Ingen aliasser, så dette domæne modtager kun post under sit eget navn.</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Ingen app-adgangskoder. Opret én pr. mailklient, så det kun er den enhed, der tilbagekaldes, hvis en enhed mistes.</value>
@@ -6703,8 +6724,14 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>Der er aldrig fuldført en sikkerhedskopiering til {0} - der er intet HMBackup-arkiv dér.</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Ingen sortlister, så forbindende adresser slås ikke op i nogen.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Der er ikke defineret nogen blokerede afsendere, så intet matches. Listen har ingen tænd/sluk-kontakt - en tom liste er fra-tilstanden.</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>Ingen blokerede afsendere, så ingen konvolutafsender afvises eller scores alene på grund af sin adresse.</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>Der er ikke åbnet nogen sag. Sager åbnes i Control Deck.</value>
@@ -6721,8 +6748,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No certificates are configured." xml:space="preserve">
     <value>Der er ikke konfigureret nogen certifikater.</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>Der er endnu ingen certifikater tilgængelige.</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>Ingen certifikater endnu, så ingen port kan tilbyde TLS. Tilføj et fra PEM-filer nedenfor, eller lad ACME udstede et.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Ingen konfigurationsadvarsler.</value>
@@ -6766,6 +6793,15 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Der er ingen kryptering tilgængelig på denne port. Indgående post fra andre servere er normalt ukrypteret alligevel, men denne port accepterer også AUTH, og en klient, der bruger den, sender sin adgangskode i klartekst.</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>Ingen poster, så intet domæne slippes forbi greylisting på grund af de godkendelsesresultater, dets post bærer.</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>Ingen poster, så dette domænes liste tillader og blokerer ingen; hver kontos egen liste og serverens gælder stadig.</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>Ingen poster, så denne liste tillader og blokerer ingen; en kontos egen liste og dens domænes gælder stadig.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Ingen hændelser for den adresse. Enten er der ikke sket noget med den, eller sporingen var slået fra på det tidspunkt – den registrerer kun, mens meddelelsessporing er slået til (siden Logføring).</value>
   </data>
@@ -6778,6 +6814,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No executable set" xml:space="preserve">
     <value>Ingen eksekverbar fil angivet</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>Ingen eksterne konti, så der hentes ingen post andre steder fra til denne konto.</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>Der er ingen fil knyttet til denne meddelelse.</value>
   </data>
@@ -6786,6 +6825,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Der blev ikke fundet nogen gruppe ved navn '{0}'.</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>Ingen grupper endnu. En gruppe giver flere konti de samme mappetilladelser på én gang, og Medlemmer vælger hvilke.</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Der er ikke angivet noget værtsnavn, så denne server annoncerer sit Windows-computernavn, som ingen DNS på internettet kender.</value>
@@ -6807,9 +6849,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Ingen nøgle af noget omfang kan oprette eller tilbagekalde nøgler - det kræver administratoradgangskoden eller denne side. En nøgle, der er begrænset til bestemte domæner, nægtes også adgang til endepunkterne for leveringskøen uden videre, fordi køen gælder hele serveren og ikke kan filtreres pr. domæne.</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>Ingen nøgler endnu.</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Der er ikke konfigureret nogen lyttere, så intet kan forbinde til denne server.</value>
@@ -6844,6 +6883,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ingen meddelelse scannes for virus. Blokering af vedhæftede filer fjerner stadig {0} filnavnsmønstre, men intet undersøger indholdet af en meddelelse.</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>Ingen navne, så ingen adresse skånes for en blokering på grund af sit omvendte navn.</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Der blev ikke givet nogen engangskode, så den adgangskode, der bruges nu, kunne ikke kontrolleres.</value>
   </data>
@@ -6868,14 +6910,17 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Intet mønster dækker {0}. Navnet peger tilbage på {1}, så et mønster, der dækker det, ville skåne adressen.</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>Ingen politikker, så serveren taler med hvert eksternt domæne efter sine generelle indstillinger.</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Ingen port har en politik for klientcertifikater, så der kræves hverken CA-bundt eller klientcertifikater.</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>Ingen port tager imod indlevering af meddelelser, så e-mailklienter kan ikke sende gennem denne server.</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>Ingen porte konfigureret.</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>Ingen porte, så fra næste start eller reinitialisering tager serveren ikke imod nogen SMTP-, POP3- eller IMAP-forbindelse.</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Der er ikke konfigureret nogen privat nøglefil, så dette certifikat kan ikke bruges af nogen TLS-port.</value>
@@ -6892,14 +6937,17 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>Der er ikke konfigureret noget offentligt værtsnavn i SMTP-indstillingerne.</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Ingen modtagere endnu, så post sendt til denne liste når ingen. Tilføj en adresse nedenfor.</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Der er ingen gendannelsesadresse sat. Indtil kontohaveren sætter en i webmailen, kan en glemt adgangskode kun nulstilles her.</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ingen rotation er planlagt. Start en med »Rotér nu«.</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>Der er endnu ikke defineret nogen ruter.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Ingen ruter, så hvert domænes post leveres på den sædvanlige måde: til dets MX-værter eller gennem det relæ, der er sat på siden Levering af e-mail.</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Der medtages intet rua=, fordi {0} ikke har nogen postmaster-adresse konfigureret, og denne side opfinder ikke en postkasse. Uden rua= gælder politikken stadig, men ingen sender dig rapporter - tilføj "; rua=mailto:&lt;a mailbox you read&gt;", når du har en.</value>
@@ -6942,6 +6990,12 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ingen virusscanner kan køre. Blokering af vedhæftede filer fjerner stadig filnavnsmønstrene på sin egen side, men intet kigger ind i en meddelelse eller ind i et arkiv.</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>Ingen poster på hvidlisten, så hver afsender går gennem spambeskyttelsen.</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>Ingen jokertegn, så ingen vedhæftet fil fjernes på grund af sit filnavn.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Ingen - medlemmerne tilføjes her</value>
@@ -9037,6 +9091,12 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Gendannelse startet - kører i baggrunden på serveren.</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>Gendan standard_portene</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>Gendan standardinte_rvallerne</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Gendan postk_assen</value>
@@ -12234,6 +12294,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This account has no photo." xml:space="preserve">
     <value>Denne konto har intet billede.</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>Denne konto har ingen egne regler; serverens regler gælder stadig.</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>Denne handling har ingen yderligere parametre.</value>
   </data>
@@ -14033,6 +14096,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>Ser_ver</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>_Konfigurer ACME…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Kildeadresser, den må bruges fra (valgfrit)</value>

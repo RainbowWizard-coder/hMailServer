@@ -960,6 +960,9 @@
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>添加读者显示为横幅的邮件头(_H)</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>添加路由(_R)</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>添加附件拦截规则</value>
   </data>
@@ -1089,6 +1092,9 @@
   <data name="Add signature to _replies" xml:space="preserve">
     <value>为回复添加签名(_R)</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>添加第一个条目(_F)…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>把该地址或 IP 范围添加到反垃圾邮件豁免。</value>
   </data>
@@ -1100,6 +1106,9 @@
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>在域页面添加域。域名是它将容纳的每个地址中 @ 之后的部分。</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>添加第一个域(_D)…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>把下面的密钥添加到身份验证器应用，然后用一个验证码确认。注册完成之后，仅凭管理员密码将无法登录 - COM API 和 REST API 同样需要验证码。请把该密钥保存在安全的地方：如果您丢失了身份验证器，必须由本地管理员从 hMailServer.ini 中清除 AdministratorTotpSecret 才能恢复。</value>
@@ -3125,6 +3134,9 @@
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>创建子文件夹</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>创建第一个密钥(_F)…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>创建公用文件夹，然后授予账户或组对它的权限。</value>
@@ -6625,8 +6637,8 @@
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>未配置任何 IP 范围。</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>尚未定义任何 IP 范围。</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>没有 IP 范围，因此在创建一个范围之前，此服务器会拒绝所有 SMTP、POP3 和 IMAP 连接。</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>不会尝试任何 LDAP 身份验证。关联目录的账户继续通过 Windows 登录验证，服务器每分钟报告一次这种情况（错误 5922），这样它就不会悄无声息地失败。</value>
@@ -6642,6 +6654,9 @@
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>未配置任何 SSL 证书，因此没有可检查的密钥文件。</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>没有 SURBL 服务器，因此不会在任何列表中查询邮件正文中的链接。</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>本服务器上没有启用任何 TLS 版本，因此此端口上的握手都不可能成功。</value>
@@ -6679,8 +6694,14 @@
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>此域的抑制列表中没有地址。当发往某地址的邮件被永久退回，或您手动添加时，地址会出现在这里。</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>没有地址，因此在灰名单开启期间，每个连接的服务器都会被灰名单处理。</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>此域没有别名。</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>没有别名，因此此域只以自己的名称接收邮件。</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>没有应用密码。请为每个邮件客户端各创建一个，这样丢失一台设备只需吊销该设备的密码。</value>
@@ -6703,8 +6724,14 @@
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>从未有备份完成写入 {0} - 那里没有 HMBackup 存档。</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>没有黑名单，因此不会在任何黑名单中查询连接方的地址。</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>未定义任何被拦截的发件人，因此不会匹配任何内容。该列表没有开关 - 空列表就是关闭状态。</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>没有已拦截的发件人，因此不会仅凭地址拒绝任何信封发件人或为其计分。</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>尚未新建任何案件。案件在 Control Deck 中新建。</value>
@@ -6721,8 +6748,8 @@
   <data name="No certificates are configured." xml:space="preserve">
     <value>未配置任何证书。</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>尚无可用的证书。</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>还没有证书，因此没有端口能提供 TLS。请在下方从 PEM 文件添加一个，或让 ACME 签发一个。</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>没有配置警告。</value>
@@ -6766,6 +6793,15 @@
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>此端口上没有可用的加密。来自其他服务器的入站邮件本来通常就不加密，但此端口也接受 AUTH，使用它的客户端会以明文发送密码。</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>没有条目，因此不会因为邮件所带的身份验证结果而让任何域绕过灰名单。</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>没有条目，因此此域的名单不允许也不拦截任何人；每个账户自己的名单和服务器的名单仍然适用。</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>没有条目，因此此名单不允许也不拦截任何人；账户自己的名单和其所在域的名单仍然适用。</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>该地址没有事件。要么它没有发生任何事情，要么当时跟踪已关闭 - 它只在邮件跟踪开启时记录（“日志记录”页面）。</value>
   </data>
@@ -6778,6 +6814,9 @@
   <data name="No executable set" xml:space="preserve">
     <value>未设置可执行文件</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>没有外部账户，因此不会为此账户从其他地方收取邮件。</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>此邮件没有关联的文件。</value>
   </data>
@@ -6786,6 +6825,9 @@
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>找不到名为 '{0}' 的组。</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>还没有组。组可一次为多个账户授予相同的文件夹权限，由“成员”选择哪些账户。</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>未设置主机名，因此本服务器通告的是其 Windows 计算机名，互联网上没有任何 DNS 知道这个名称。</value>
@@ -6807,9 +6849,6 @@
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>任何作用域的密钥都不能创建或吊销密钥 - 这需要管理员密码，或者本页。限制到特定域的密钥还会被直接拒绝访问投递队列端点，因为队列是服务器范围的，无法按域过滤。</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>尚无密钥。</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>未配置任何监听器，因此没有任何东西能连接到本服务器。</value>
@@ -6844,6 +6883,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>没有任何邮件被扫描病毒。附件拦截仍在按 {0} 条文件名模式剥除附件，但没有任何东西检查邮件的内容。</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>没有名称，因此不会有地址因其反向名称而免于封禁。</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>未提供一次性验证码，因此无法检查当前使用的密码。</value>
   </data>
@@ -6868,14 +6910,17 @@
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>没有模式覆盖 {0}。它会正向解析回 {1}，因此覆盖它的模式会豁免此地址。</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>没有策略，因此服务器按其常规设置与每个远程域通信。</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>没有任何端口设置客户端证书策略，因此不需要 CA 证书包或客户端证书。</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>没有端口接受邮件提交，因此邮件客户端无法通过此服务器发送。</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>未配置任何端口。</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>没有端口，因此从下次启动或重新初始化起，服务器不接受任何 SMTP、POP3 或 IMAP 连接。</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>未配置私钥文件，因此任何 TLS 端口都无法使用此证书。</value>
@@ -6892,14 +6937,17 @@
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>SMTP 设置中未配置公共主机名。</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>还没有收件人，因此发往此列表的邮件不会送达任何人。请在下方添加地址。</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>未设置恢复地址。在账户所有者于网页邮箱中设置之前，忘记的密码只能在这里重置。</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>没有计划中的轮换。点击“立即轮换”开始一次。</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>尚未定义任何路由。</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>没有路由，因此每个域的邮件按常规方式投递：投递到其 MX 主机，或经由“电子邮件投递”页面上设置的中继。</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>未包含 rua=，因为 {0} 没有配置 postmaster 地址，而本页不会凭空捏造一个邮箱。没有 rua= 策略仍然生效，只是没有人向您发送报告 - 等您有了邮箱，请加上 "; rua=mailto:&lt;a mailbox you read&gt;"。</value>
@@ -6942,6 +6990,12 @@
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>没有任何病毒扫描器可以运行。附件拦截仍会剥除其自身页面上的文件名模式，但没有任何东西查看邮件内部或存档内部。</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>没有白名单条目，因此每个发件人都要经过垃圾邮件防护。</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>没有通配符，因此不会因文件名而剥离任何附件。</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>无人 - 成员在此处添加</value>
@@ -9037,6 +9091,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>还原已开始 - 在服务器上后台运行。</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>恢复默认端口(_O)</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>恢复默认范围(_G)</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>恢复该邮箱(_X)</value>
@@ -12234,6 +12294,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This account has no photo." xml:space="preserve">
     <value>此帐户没有照片。</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>此账户没有自己的规则；服务器的规则仍然适用。</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>此操作没有额外参数。</value>
   </data>
@@ -14033,6 +14096,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Server" xml:space="preserve">
     <value>服务器(_S)</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>设置 ACME(_S)…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>可以从中使用它的来源地址 (可选)(_S)</value>

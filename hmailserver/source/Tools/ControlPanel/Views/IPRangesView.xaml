@@ -55,14 +55,18 @@
              state, which would say there are no ranges (Services/ReadFailure). -->
         <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
-        <!-- The floor: three rows need 153 pixels (the card's padding and border,
-             the column headers and three 34-pixel rows), and the empty state
-             that takes the rows' place when there are none needs 157 (its
-             glyph, its sentence and their padding, 139, inside the card's
-             padding and border); at 154 its sentence was cut off. -->
-        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="8">
+        <!-- The floor: the grid's three rows - the column headers, three
+             34-pixel rows and the eight pixels a horizontal scroll bar draws over
+             the last in a narrow window, 143 - held by the
+             FillPanel around the grid, and the card floored at what it holds,
+             so that the empty state laid over the grid, its sentence and its
+             action, raises the card's floor where it needs more than the rows
+             (review finding F207; at a fixed 157 the action was cut off in a
+             short window). -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
-                <DataGrid x:Name="RangeGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                <scaffold:FillPanel>
+                <DataGrid x:Name="RangeGrid" scaffold:FillPanel.Fill="True" MinHeight="143" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single" SelectionChanged="RangeGrid_SelectionChanged"
                           AutomationProperties.Name="{loc:L 'IP ranges'}">
                     <DataGrid.Columns>
@@ -80,8 +84,16 @@
                         <DataGridTextColumn Header="POP3" Binding="{Binding Pop3}" Width="70" MinWidth="56" />
                     </DataGrid.Columns>
                 </DataGrid>
+                </scaffold:FillPanel>
+                <!-- With no range, every connection is refused: the action puts
+                     back the standard two, as Restore defaults above does. -->
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="ShieldLock24" Visibility="Collapsed"
-                                     AutomationProperties.LiveSetting="Polite" />
+                                     AutomationProperties.LiveSetting="Polite">
+                    <scaffold:EmptyState.Action>
+                        <ui:Button x:Name="RestoreDefaultsAction" Content="{loc:L 'Restore the default ran_ges'}" Click="RestoreDefaults_Click"
+                                   AutomationProperties.AutomationId="ipranges-restore-defaults-empty" />
+                    </scaffold:EmptyState.Action>
+                </scaffold:EmptyState>
             </Grid>
         </scaffold:Card>
 

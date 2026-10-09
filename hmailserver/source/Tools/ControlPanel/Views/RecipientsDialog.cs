@@ -34,6 +34,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBox addBox_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
+      // What an empty list means, in the list's place rather than a blank box
+      // (review finding F207). The add row under the list is its action.
+      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Person24, Padding = new Thickness(12), Visibility = Visibility.Collapsed };
+
       // How the selected member of a managed list is sent its mail
       // (DistributionListRecipient.Delivery, docs/MailingLists.md): written at once,
       // as the adds and removes on this dialog are. Disabled until a member is
@@ -53,7 +57,10 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(notice_);
 
          AutomationProperties.SetName(listBox_, F("Recipients of {0}", listAddress));
-         body.Children.Add(new Card { Padding = new Thickness(DesignTokens.Space.Sm), Content = listBox_ });
+         var listHost = new Grid();
+         listHost.Children.Add(listBox_);
+         listHost.Children.Add(empty_);
+         body.Children.Add(new Card { Padding = new Thickness(DesignTokens.Space.Sm), Content = listHost });
 
          // The two buttons that act on the list, under it, where they act: in
          // the add row beside the box and Add, the three buttons left the box
@@ -165,6 +172,7 @@ namespace hMailServer.ControlPanel.Views
       private void Reload()
       {
          var rows = new List<string>();
+         bool read = false;
          dynamic domains = ServerSession.Current.Application.Domains;
          try
          {
@@ -182,10 +190,15 @@ namespace hMailServer.ControlPanel.Views
                ServerSession.Release(recipients);
                ServerSession.Release(list);
             }
+
+            read = true;
          }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            // Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding.
+            // An empty list is a claim this dialog cannot make about a list it
+            // could not read: the empty state stays hidden and the notice says
+            // what happened.
+            notice_.Show(StatusLevel.Critical, L("Could not read the list: ") + ServerSession.DescribeComError(ex));
          }
          finally
          {
@@ -193,6 +206,10 @@ namespace hMailServer.ControlPanel.Views
          }
 
          listBox_.ItemsSource = rows;
+         if (read)
+            StatusText.Show(empty_, null, rows.Count, null, L("No recipients yet, so mail sent to this list reaches nobody. Add an address below."));
+         else
+            empty_.Visibility = Visibility.Collapsed;
       }
 
       private void AddRecipient()

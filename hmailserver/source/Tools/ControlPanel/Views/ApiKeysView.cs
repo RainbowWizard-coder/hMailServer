@@ -215,6 +215,14 @@ namespace hMailServer.ControlPanel.Views
 
          System.Windows.Automation.AutomationProperties.SetAutomationId(list_, "apikeys-list");
          content.Children.Add(list_);
+
+         // With no key, one message, by the list, and the way to the first key
+         // (review finding F207): the store's notice above said the same as
+         // the list's "No keys yet." below it, at Information, a card apart.
+         var first = new Wpf.Ui.Controls.Button { Content = L("Create the _first key…") };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(first, "apikeys-create-first");
+         first.Click += (s, e) => CreateKey_();
+         empty_.Action = first;
          content.Children.Add(empty_);
          return card;
       }
@@ -281,6 +289,7 @@ namespace hMailServer.ControlPanel.Views
             SetSummary_(StatusLevel.Information,
                L("The key store's location is not known from here. It sits beside hMailServer.INI, which is found through this machine's registry and service table - so keys can only be managed from the server itself, not from a Control Panel connected to another host."));
             storePath_.Text = "";
+            empty_.Visibility = Visibility.Collapsed;
             return;
          }
 
@@ -288,14 +297,11 @@ namespace hMailServer.ControlPanel.Views
 
          List<ApiKeyRecord> keys = ApiKeyStore.Read();
 
-         if (keys.Count == 0)
-         {
-            // Information and never Normal: an InlineNotice draws its level's
-            // severity word, and "Normal" is not a statement about a key store.
-            SetSummary_(StatusLevel.Information,
-               L("No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own."));
-         }
-         else
+         // With no key the store's notice says nothing the list's empty state
+         // does not: the one message is by the list, with its action.
+         summary_.Visibility = keys.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+         if (keys.Count > 0)
          {
             int expired = keys.FindAll(k => k.IsExpired).Count;
             int full = keys.FindAll(k => !k.ReadOnly && !k.IsExpired).Count;
@@ -315,7 +321,8 @@ namespace hMailServer.ControlPanel.Views
          foreach (ApiKeyRecord key in keys)
             list_.Children.Add(BuildKeyRow_(key));
 
-         StatusText.Show(empty_, null, keys.Count, null, L("No keys yet."));
+         StatusText.Show(empty_, null, keys.Count, null,
+            L("No API keys exist. Every REST request therefore has to carry the administrator password, which carries full authority over every domain and cannot be scoped, expired or revoked on its own."));
       }
 
       private FrameworkElement BuildKeyRow_(ApiKeyRecord key)
@@ -446,6 +453,7 @@ namespace hMailServer.ControlPanel.Views
       {
          summary_.Level = level;
          summary_.Text = text;
+         summary_.Visibility = Visibility.Visible;
       }
 
       // =========================================================================

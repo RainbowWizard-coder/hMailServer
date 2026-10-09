@@ -52,6 +52,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBlock status_ = DialogFields.Note("");
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
+      // What an empty group means, in the list's place rather than a blank box
+      // under a line of text (review finding F207). Add account… under the list
+      // is its action.
+      private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.Person24, Padding = new Thickness(12), Visibility = Visibility.Collapsed };
+
       public GroupMembersDialog(Window owner, int groupId, string groupName)
       {
          groupId_ = groupId;
@@ -65,11 +70,14 @@ namespace hMailServer.ControlPanel.Views
 
          AutomationProperties.SetName(list_, F("Accounts in the group {0}", groupName_));
          AutomationProperties.SetAutomationId(list_, "group-members-list");
+         var listHost = new Grid();
+         listHost.Children.Add(list_);
+         listHost.Children.Add(empty_);
          body.Children.Add(new Card
          {
             Padding = new Thickness(DesignTokens.Space.Sm),
             Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm),
-            Content = list_
+            Content = listHost
          });
          body.Children.Add(status_);
 
@@ -127,6 +135,7 @@ namespace hMailServer.ControlPanel.Views
          list_.Items.Clear();
          memberIds_.Clear();
          status_.Text = "";
+         empty_.Visibility = Visibility.Collapsed;
 
          try
          {
@@ -163,8 +172,12 @@ namespace hMailServer.ControlPanel.Views
                list_.Items.Add(label);
             }
 
+            // The empty group's sentence in the list's place; the count under a
+            // list that has rows.
+            StatusText.Show(empty_, null, count, null,
+               L("This group has no accounts in it, so any permission granted to it currently applies to nobody."));
             status_.Text = count == 0
-               ? L("This group has no accounts in it, so any permission granted to it currently applies to nobody.")
+               ? ""
                : Plural(count, "{0} account is a member.", "{0} accounts are members.");
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))

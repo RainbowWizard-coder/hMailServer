@@ -54,9 +54,12 @@ namespace hMailServer.ControlPanel.Tests.Services
          // empty state that takes the rows' place when there are none - its glyph,
          // its sentence and their padding, 139 - inside the same padding and
          // border: at 154 its sentence was cut off.
-         double floor = double.Parse((string)filling[0].Attribute("MinHeight") ?? "0", CultureInfo.InvariantCulture);
-         Assert.True(floor >= 16 + 2 + 33 + 3 * 34, "The list's floor is " + floor + " pixels, less than three rows.");
-         Assert.True(floor >= 16 + 2 + 139, "The list's floor is " + floor + " pixels, which cuts off the empty state's sentence.");
+         // Since the empty state carries an action (review finding F207), the
+         // card is floored at what it holds: the grid's three rows on a FillPanel
+         // of its own, and the empty state laid over them, which raises the floor
+         // where its sentence and its action need more (EmptyStateActionTests).
+         string unheld = EmptyStateActionTests.ListCardFloorProblem(filling[0], "RangeGrid", 3);
+         Assert.True(unheld == null, unheld);
       }
 
       /// <summary>

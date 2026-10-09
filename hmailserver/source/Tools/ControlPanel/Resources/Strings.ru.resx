@@ -966,6 +966,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add a _header the reader shows as a banner" xml:space="preserve">
     <value>Добавлять _заголовок, который читатель показывает полосой</value>
   </data>
+  <data name="Add a _route" xml:space="preserve">
+    <value>Добавить _маршрут</value>
+  </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Добавить правило для заблокированных вложений</value>
   </data>
@@ -1095,6 +1098,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Добавлять _подпись к ответам</value>
   </data>
+  <data name="Add the _first entry…" xml:space="preserve">
+    <value>Добавить _первую запись…</value>
+  </data>
   <data name="Add the address or IP range to the spam exemptions." xml:space="preserve">
     <value>Добавьте адрес или диапазон IP в исключения антиспама.</value>
   </data>
@@ -1106,6 +1112,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Добавьте домен на странице Домены. Его имя - часть после @ в каждом адресе, который он будет содержать.</value>
+  </data>
+  <data name="Add the first _domain…" xml:space="preserve">
+    <value>Добавить _первый домен…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
     <value>Добавьте приведённый ниже ключ в приложение-аутентификатор, затем подтвердите его кодом. После регистрации пароль администратора сам по себе не даст войти — код понадобится и COM API, и REST API. Храните ключ в надёжном месте: если аутентификатор потерян, локальный администратор должен удалить AdministratorTotpSecret из hMailServer.ini, чтобы восстановить доступ.</value>
@@ -3143,6 +3152,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Create sub-folders" xml:space="preserve">
     <value>Создавать вложенные папки</value>
+  </data>
+  <data name="Create the _first key…" xml:space="preserve">
+    <value>Создать _первый ключ…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Создайте общую папку, затем выдайте на неё разрешения учётным записям или группам.</value>
@@ -6688,8 +6700,8 @@ Control Panel может читать файлы сообщений только
   <data name="No IP ranges are configured." xml:space="preserve">
     <value>Диапазоны IP не настроены.</value>
   </data>
-  <data name="No IP ranges defined yet." xml:space="preserve">
-    <value>Диапазоны IP ещё не заданы.</value>
+  <data name="No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists." xml:space="preserve">
+    <value>Нет диапазонов IP, поэтому этот сервер отклоняет любое подключение SMTP, POP3 и IMAP, пока не появится хотя бы один.</value>
   </data>
   <data name="No LDAP authentication is attempted. Directory-linked accounts keep validating through Windows logon, and the server reports this (error 5922) once per minute so it cannot fail silently." xml:space="preserve">
     <value>Аутентификация по LDAP не выполняется. Учётные записи, связанные с каталогом, продолжают проверяться через вход Windows, и сервер сообщает об этом (ошибка 5922) раз в минуту, чтобы это не могло сбоить незаметно.</value>
@@ -6705,6 +6717,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No SSL certificates are configured, so there are no key files to check." xml:space="preserve">
     <value>Сертификаты SSL не настроены, поэтому файлов ключей для проверки нет.</value>
+  </data>
+  <data name="No SURBL servers, so the links in a message body are not looked up in any list." xml:space="preserve">
+    <value>Нет серверов SURBL, поэтому ссылки в тексте сообщения не проверяются ни по одному списку.</value>
   </data>
   <data name="No TLS version is enabled anywhere on this server, so no handshake on this port can succeed." xml:space="preserve">
     <value>На этом сервере нигде не включена ни одна версия TLS, поэтому ни одно рукопожатие на этом порту не может завершиться успешно.</value>
@@ -6742,8 +6757,14 @@ Control Panel может читать файлы сообщений только
   <data name="No address is on this domain's suppression list. An address is put here when mail to it bounces for good, or when you add one." xml:space="preserve">
     <value>В списке подавления этого домена нет адресов. Адрес попадает сюда, когда почта на него окончательно возвращается с отказом или когда вы его добавляете.</value>
   </data>
+  <data name="No addresses, so every server that connects is greylisted while greylisting is on." xml:space="preserve">
+    <value>Нет адресов, поэтому каждый подключающийся сервер проходит greylisting, пока greylisting включён.</value>
+  </data>
   <data name="No aliases for this domain." xml:space="preserve">
     <value>Псевдонимов для этого домена нет.</value>
+  </data>
+  <data name="No aliases, so this domain receives mail under its own name only." xml:space="preserve">
+    <value>Нет псевдонимов, поэтому этот домен получает почту только под своим именем.</value>
   </data>
   <data name="No app passwords. Create one per mail client, so that losing a device revokes only that device." xml:space="preserve">
     <value>Паролей приложений нет. Создавайте по одному на каждый почтовый клиент, чтобы потеря устройства отзывала доступ только у него.</value>
@@ -6766,8 +6787,14 @@ Control Panel может читать файлы сообщений только
   <data name="No backup has ever completed into {0} - there is no HMBackup archive there." xml:space="preserve">
     <value>В {0} ни одно резервное копирование ни разу не завершилось — архива HMBackup там нет.</value>
   </data>
+  <data name="No blacklists, so connecting addresses are not looked up in any." xml:space="preserve">
+    <value>Нет чёрных списков, поэтому подключающиеся адреса не проверяются ни по одному.</value>
+  </data>
   <data name="No blocked senders are defined, so nothing is matched. The list has no on/off switch - an empty list is the off state." xml:space="preserve">
     <value>Заблокированные отправители не заданы, поэтому ничего не сопоставляется. У списка нет переключателя вкл/выкл — пустой список и есть выключенное состояние.</value>
+  </data>
+  <data name="No blocked senders, so no envelope sender is refused or scored for its address alone." xml:space="preserve">
+    <value>Нет заблокированных отправителей, поэтому ни один отправитель конверта не отклоняется и не оценивается только из-за своего адреса.</value>
   </data>
   <data name="No case has been opened. Cases are opened in the Control Deck." xml:space="preserve">
     <value>Ни одно дело не открыто. Дела открываются в Control Deck.</value>
@@ -6784,8 +6811,8 @@ Control Panel может читать файлы сообщений только
   <data name="No certificates are configured." xml:space="preserve">
     <value>Сертификаты не настроены.</value>
   </data>
-  <data name="No certificates available yet." xml:space="preserve">
-    <value>Доступных сертификатов пока нет.</value>
+  <data name="No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one." xml:space="preserve">
+    <value>Сертификатов пока нет, поэтому ни один порт не может предложить TLS. Добавьте сертификат из PEM-файлов ниже или позвольте ACME выпустить его.</value>
   </data>
   <data name="No configuration warnings." xml:space="preserve">
     <value>Предупреждений о конфигурации нет.</value>
@@ -6829,6 +6856,15 @@ Control Panel может читать файлы сообщений только
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>На этом порту шифрование недоступно. Входящая почта с других серверов и так обычно не шифруется, но этот порт принимает ещё и AUTH, и использующий его клиент отправляет свой пароль открытым текстом.</value>
   </data>
+  <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
+    <value>Нет записей, поэтому ни один домен не пропускается в обход greylisting из-за результатов проверки подлинности его почты.</value>
+  </data>
+  <data name="No entries, so this domain's list allows and blocks nobody; each account's own list and the server's still apply." xml:space="preserve">
+    <value>Нет записей, поэтому список этого домена никого не разрешает и не блокирует; собственный список каждой учётной записи и список сервера по-прежнему действуют.</value>
+  </data>
+  <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
+    <value>Нет записей, поэтому этот список никого не разрешает и не блокирует; собственный список учётной записи и список её домена по-прежнему действуют.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Событий для этого адреса нет. Либо с ним ничего не происходило, либо трассировка в то время была выключена – она записывает только пока трассировка сообщений включена (страница «Журналирование»).</value>
   </data>
@@ -6841,6 +6877,9 @@ Control Panel может читать файлы сообщений только
   <data name="No executable set" xml:space="preserve">
     <value>Исполняемый файл не задан</value>
   </data>
+  <data name="No external accounts, so no mail is collected from elsewhere for this account." xml:space="preserve">
+    <value>Нет внешних учётных записей, поэтому для этой учётной записи почта извне не собирается.</value>
+  </data>
   <data name="No file is associated with this message." xml:space="preserve">
     <value>С этим сообщением не связан ни один файл.</value>
   </data>
@@ -6849,6 +6888,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No group found named '{0}'." xml:space="preserve">
     <value>Группа с именем «{0}» не найдена.</value>
+  </data>
+  <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
+    <value>Групп пока нет. Группа даёт нескольким учётным записям одинаковые права на папки сразу, а кнопка «Участники» выбирает, каким.</value>
   </data>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Имя узла не задано, поэтому этот сервер сообщает имя своего компьютера Windows, которое не знает ни один DNS в интернете.</value>
@@ -6870,9 +6912,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No key of any scope can create or revoke keys - that needs the administrator password, or this page. A key restricted to particular domains is also refused the delivery-queue endpoints outright, because the queue is server-wide and cannot be filtered by domain." xml:space="preserve">
     <value>Ни один ключ, с какой бы областью действия он ни был, не может создавать или отзывать ключи — для этого нужен пароль администратора или эта страница. Ключу, ограниченному определёнными доменами, вдобавок наотрез отказано в конечных точках очереди доставки, поскольку очередь общая для всего сервера и не может быть отфильтрована по домену.</value>
-  </data>
-  <data name="No keys yet." xml:space="preserve">
-    <value>Ключей пока нет.</value>
   </data>
   <data name="No listeners are configured, so nothing can connect to this server." xml:space="preserve">
     <value>Прослушиватели не настроены, поэтому подключиться к этому серверу невозможно.</value>
@@ -6910,6 +6949,9 @@ Control Panel может читать файлы сообщений только
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.|few" xml:space="preserve">
     <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет вложения по {0} шаблонам имён файлов, но содержимое сообщений не исследует ничто.</value>
   </data>
+  <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
+    <value>Нет имён, поэтому ни один адрес не избавлен от бана по своему обратному имени.</value>
+  </data>
   <data name="No one-time code was given, so the password in use now could not be checked." xml:space="preserve">
     <value>Одноразовый код не был введён, поэтому текущий пароль проверить не удалось.</value>
   </data>
@@ -6934,14 +6976,17 @@ Control Panel может читать файлы сообщений только
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Ни один шаблон не покрывает {0}. Имя разрешается обратно в {1}, поэтому шаблон, покрывающий его, освободил бы адрес.</value>
   </data>
+  <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
+    <value>Нет политик, поэтому сервер общается с каждым внешним доменом по своим общим настройкам.</value>
+  </data>
   <data name="No port has a client certificate policy, so no CA bundle or client certificates are required." xml:space="preserve">
     <value>Ни у одного порта нет политики клиентских сертификатов, поэтому ни файл набора сертификатов ЦС, ни клиентские сертификаты не требуются.</value>
   </data>
   <data name="No port takes message submission, so mail clients cannot send through this server." xml:space="preserve">
     <value>Ни один порт не принимает отправку сообщений, поэтому почтовые клиенты не могут отправлять через этот сервер.</value>
   </data>
-  <data name="No ports configured." xml:space="preserve">
-    <value>Порты не настроены.</value>
+  <data name="No ports, so from its next start or reinitialise the server takes no SMTP, POP3 or IMAP connection." xml:space="preserve">
+    <value>Нет портов, поэтому после следующего запуска или повторной инициализации сервер не будет принимать подключения SMTP, POP3 и IMAP.</value>
   </data>
   <data name="No private key file is configured, so this certificate cannot be used by any TLS port." xml:space="preserve">
     <value>Файл закрытого ключа не задан, поэтому этот сертификат не сможет использовать ни один порт TLS.</value>
@@ -6958,14 +7003,17 @@ Control Panel может читать файлы сообщений только
   <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
     <value>В параметрах SMTP не задано публичное имя узла.</value>
   </data>
+  <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
+    <value>Получателей пока нет, поэтому почта, отправленная на этот список, никому не доходит. Добавьте адрес ниже.</value>
+  </data>
   <data name="No recovery address is set. Until the account holder sets one in the webmail, a forgotten password can only be reset here." xml:space="preserve">
     <value>Адрес восстановления не задан. Пока владелец учётной записи не задаст его в веб-почте, забытый пароль можно сбросить только здесь.</value>
   </data>
   <data name="No rotation is scheduled. Rotate now to start one." xml:space="preserve">
     <value>Ротация не запланирована. Запустите её кнопкой «Выполнить ротацию сейчас».</value>
   </data>
-  <data name="No routes defined yet." xml:space="preserve">
-    <value>Маршруты ещё не заданы.</value>
+  <data name="No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page." xml:space="preserve">
+    <value>Нет маршрутов, поэтому почта каждого домена доставляется обычным путём: на его MX-узлы или через ретранслятор, заданный на странице «Доставка почты».</value>
   </data>
   <data name="No rua= is included because {0} has no postmaster address configured, and this page will not invent a mailbox. Without rua= the policy still applies, but nobody sends you reports - add &quot;; rua=mailto:&lt;a mailbox you read&gt;&quot; when you have one." xml:space="preserve">
     <value>Тег rua= не включён, потому что для {0} не настроен адрес postmaster, а придумывать почтовый ящик эта страница не станет. Без rua= политика всё равно действует, но отчёты вам никто не присылает — добавьте «; rua=mailto:&lt;a mailbox you read&gt;», когда ящик появится.</value>
@@ -7011,6 +7059,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ни один антивирусный сканер работать не может. Блокировка вложений всё ещё удаляет файлы по шаблонам имён на своей странице, но внутрь сообщения и внутрь архива не заглядывает ничто.</value>
+  </data>
+  <data name="No white-list entries, so every sender goes through spam protection." xml:space="preserve">
+    <value>В белом списке нет записей, поэтому каждый отправитель проходит защиту от спама.</value>
+  </data>
+  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
+    <value>Нет шаблонов, поэтому ни одно вложение не удаляется из-за имени файла.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Никто - участники добавляются здесь</value>
@@ -9121,6 +9175,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Restore started - runs in the background on the server." xml:space="preserve">
     <value>Восстановление запущено — выполняется в фоне на сервере.</value>
+  </data>
+  <data name="Restore the default p_orts" xml:space="preserve">
+    <value>Восстановить _порты по умолчанию</value>
+  </data>
+  <data name="Restore the default ran_ges" xml:space="preserve">
+    <value>Восстановить диапазо_ны по умолчанию</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Восстановить почтовый ящик (_x)</value>
@@ -12383,6 +12443,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This account has no photo." xml:space="preserve">
     <value>У этой учётной записи нет фотографии.</value>
   </data>
+  <data name="This account has no rules of its own; the server's rules still apply." xml:space="preserve">
+    <value>У этой учётной записи нет собственных правил; правила сервера по-прежнему действуют.</value>
+  </data>
   <data name="This action has no additional parameters." xml:space="preserve">
     <value>У этого действия нет дополнительных параметров.</value>
   </data>
@@ -14191,6 +14254,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Сервер</value>
+  </data>
+  <data name="_Set up ACME…" xml:space="preserve">
+    <value>_Настроить ACME…</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Исходные адреса, с которых его разрешено использовать (необязательно)</value>

@@ -44,6 +44,11 @@ namespace hMailServer.ControlPanel.Views
          private DataGrid grid_;
          private TextBlock status_;
 
+         // What an empty list means, in the grid's place rather than a blank box
+         // (review finding F207), below the column headers. Add name… under the
+         // grid is its action. Made with the grid, for the same reason.
+         private Scaffold.EmptyState empty_;
+
          public override bool WantsInitialValue => false;
 
          protected override FrameworkElement BuildEditor(object value)
@@ -93,8 +98,15 @@ namespace hMailServer.ControlPanel.Views
             buttons.Children.Add(remove);
             buttons.Children.Add(check);
 
+            // No glyph: the grid is 120 pixels at its floor, and the sentence
+            // under its headers is what has to fit.
+            empty_ = new Scaffold.EmptyState { Padding = new Thickness(12), Margin = new Thickness(0, 33, 0, 0), Visibility = Visibility.Collapsed };
+            var gridHost = new Grid();
+            gridHost.Children.Add(grid_);
+            gridHost.Children.Add(empty_);
+
             var panel = new StackPanel();
-            panel.Children.Add(grid_);
+            panel.Children.Add(gridHost);
             panel.Children.Add(buttons);
             panel.Children.Add(status_);
 
@@ -148,6 +160,10 @@ namespace hMailServer.ControlPanel.Views
 
                IReadOnlyList<NeverBanNameRow> rows = NeverBanNames.ParseList(json, out string error);
                grid_.ItemsSource = rows;
+               if (error == null)
+                  StatusText.Show(empty_, null, rows.Count, null, L("No names, so no address is spared from a ban by its reverse name."));
+               else
+                  empty_.Visibility = Visibility.Collapsed;
 
                if (error != null)
                   Say_(error, false);
@@ -155,6 +171,7 @@ namespace hMailServer.ControlPanel.Views
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
                grid_.ItemsSource = Array.Empty<NeverBanNameRow>();
+               empty_.Visibility = Visibility.Collapsed;
                Say_(ServerSession.DescribeComError(ex), false);
             }
          }

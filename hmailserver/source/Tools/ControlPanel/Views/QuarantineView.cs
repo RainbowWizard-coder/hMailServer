@@ -1243,11 +1243,19 @@ namespace hMailServer.ControlPanel.Views
          BuildFlyout();
          AutomationProperties.SetName(list_, L("Quarantine"));
 
+         // The grid's three rows on a FillPanel of its own and the card floored
+         // at what it holds, so that the empty state laid over the grid - with
+         // quarantining off, three lines and the way to Anti-spam settings -
+         // raises the card's floor: at the list card's fixed 157 pixels a 760 by
+         // 520 window cut it after two lines and hid the button (review finding
+         // F207).
+         var rows = new FillPanel();
+         rows.Children.Add(FillPanel.Filling(list_, FillPanel.ListRowsFloor));
          var host = new Grid();
-         host.Children.Add(list_);
+         host.Children.Add(rows);
          host.Children.Add(empty_);
          var card = new Card { Padding = new Thickness(8), Content = host };
-         parts.Children.Add(FillPanel.Filling(card, FillPanel.ListCardFloor));
+         parts.Children.Add(FillPanel.Filling(card, 0));
 
          // Why the selected message was held, which was the row's tool tip alone
          // (Views/RowDetailStrip).

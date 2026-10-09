@@ -45,10 +45,12 @@
              state, which would say there are no routes (Services/ReadFailure). -->
         <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
-        <!-- The floor: three rows and the empty state, as the IP ranges page's list card. -->
-        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="8">
+        <!-- The floor: three rows on the grid's own FillPanel and the empty
+             state laid over them, as the IP ranges page's list card. -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
-                <DataGrid x:Name="RouteGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                <scaffold:FillPanel>
+                <DataGrid x:Name="RouteGrid" scaffold:FillPanel.Fill="True" MinHeight="143" AutoGenerateColumns="False" IsReadOnly="True"
                           SelectionMode="Single"
                           AutomationProperties.Name="{loc:L 'Routes'}">
                     <DataGrid.Columns>
@@ -61,11 +63,19 @@
                         <DataGridTextColumn Header="{loc:L 'Auth'}" Binding="{Binding Auth}" Width="80" />
                     </DataGrid.Columns>
                 </DataGrid>
+                </scaffold:FillPanel>
                 <!-- Not ArrowRouting24: its code point is past U+FFFF, and
                      Wpf.Ui's SymbolIcon draws it as one 16-bit character, so it
                      rendered as a g with a caron (U+01E7). -->
+                <!-- The action puts the keyboard in the add form's Domain box
+                     below, as the domains page's empty state does. -->
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="ArrowSplit24" Visibility="Collapsed"
-                                     AutomationProperties.LiveSetting="Polite" />
+                                     AutomationProperties.LiveSetting="Polite">
+                    <scaffold:EmptyState.Action>
+                        <ui:Button Content="{loc:L 'Add a _route'}" Click="AddRouteAction_Click"
+                                   AutomationProperties.AutomationId="routes-add-first" />
+                    </scaffold:EmptyState.Action>
+                </scaffold:EmptyState>
             </Grid>
         </scaffold:Card>
 

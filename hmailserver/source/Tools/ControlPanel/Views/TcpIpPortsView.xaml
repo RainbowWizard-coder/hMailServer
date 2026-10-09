@@ -51,10 +51,12 @@
              state, which would say there are no ports (Services/ReadFailure). -->
         <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
-        <!-- The floor: three rows and the empty state, as the IP ranges page's list card. -->
-        <scaffold:Card scaffold:FillPanel.Fill="True" MinHeight="157" Padding="8">
+        <!-- The floor: three rows on the grid's own FillPanel and the empty
+             state laid over them, as the IP ranges page's list card. -->
+        <scaffold:Card scaffold:FillPanel.Fill="True" Padding="8">
             <Grid>
-                <DataGrid x:Name="PortGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                <scaffold:FillPanel>
+                <DataGrid x:Name="PortGrid" scaffold:FillPanel.Fill="True" MinHeight="143" AutoGenerateColumns="False" IsReadOnly="True"
                           AutomationProperties.AutomationId="ports-grid"
                           SelectionMode="Single"
                           AutomationProperties.Name="{loc:L 'TCP/IP ports'}">
@@ -94,8 +96,16 @@
                         <DataGridTextColumn Header="{loc:L 'Certificate'}" Binding="{Binding Certificate}" Width="*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
                     </DataGrid.Columns>
                 </DataGrid>
+                </scaffold:FillPanel>
+                <!-- With no port the server listens for nothing: the action puts
+                     back the standard set, as Restore defaults above does. -->
                 <scaffold:EmptyState x:Name="EmptyStatus" Icon="PlugConnected24" Visibility="Collapsed"
-                                     AutomationProperties.LiveSetting="Polite" />
+                                     AutomationProperties.LiveSetting="Polite">
+                    <scaffold:EmptyState.Action>
+                        <ui:Button x:Name="RestoreDefaultsAction" Content="{loc:L 'Restore the default p_orts'}" Click="RestoreDefaults_Click"
+                                   AutomationProperties.AutomationId="ports-restore-defaults-empty" />
+                    </scaffold:EmptyState.Action>
+                </scaffold:EmptyState>
             </Grid>
         </scaffold:Card>
 

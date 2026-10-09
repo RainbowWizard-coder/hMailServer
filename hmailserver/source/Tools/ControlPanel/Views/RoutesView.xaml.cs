@@ -87,11 +87,18 @@ namespace hMailServer.ControlPanel.Views
          ReadFailure.Clear(Notice, AddRouteButton);
          RouteGrid.ItemsSource = rows;
          ListSearch.Apply(RouteGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No routes defined yet."));
+         StatusText.Show(EmptyStatus, null, rows.Count, null, L("No routes, so every domain's mail is delivered the usual way: to its MX hosts, or through the relay set on the Delivery of e-mail page."));
       }
 
       private void Search_TextChanged(object sender, EventArgs e)
          => ListSearch.Apply(RouteGrid, SearchBar.SearchText);
+
+      /// <summary>The empty list's action: the keyboard in the add form's Domain box, the next thing to fill in.</summary>
+      private void AddRouteAction_Click(object sender, RoutedEventArgs e)
+      {
+         NewDomain.Focus();
+         NewDomain.SelectAll();
+      }
 
       private void Add_Click(object sender, RoutedEventArgs e)
       {

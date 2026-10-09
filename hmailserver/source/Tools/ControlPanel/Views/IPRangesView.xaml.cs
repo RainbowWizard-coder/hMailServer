@@ -195,7 +195,7 @@ namespace hMailServer.ControlPanel.Views
             ReadFailure.Clear(Notice, AddRangeButton, RestoreDefaultsButton);
             RangeGrid.ItemsSource = rows;
             ListSearch.Apply(RangeGrid, SearchBar.SearchText);
-            StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges defined yet."));
+            StatusText.Show(EmptyStatus, null, rows.Count, null, L("No IP ranges, so this server refuses every SMTP, POP3 and IMAP connection until one exists."));
 
             // Selected, not scrolled into view: the list keeps its own offset when its
             // rows are replaced, and ScrollIntoView would bring the row into the
