@@ -576,19 +576,7 @@ namespace hMailServer.ControlPanel.Views
       /// that counts every entry and for an empty list, whose count stays the
       /// spec's own beside the empty state.
       /// </summary>
-      private int ActiveCount_()
-      {
-         if (spec_.ActiveProp == null || rows_.Count == 0)
-            return -1;
-
-         int active = 0;
-         foreach (Row row in rows_)
-         {
-            if (row.Values.TryGetValue(spec_.ActiveProp, out object on) && on is true)
-               active++;
-         }
-         return active;
-      }
+      private int ActiveCount_() => ActiveEntries.Count(rows_.Select(row => row.Values), spec_.ActiveProp);
 
       // ---- COM reflection helpers -------------------------------------------
 

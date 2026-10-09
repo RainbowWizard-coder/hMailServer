@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Collections.Generic;
 using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
@@ -16,6 +17,27 @@ namespace hMailServer.ControlPanel.Services
    /// </summary>
    public static class ActiveEntries
    {
+      /// <summary>
+      /// How many of the rows have the list's switch on - its value the Boolean
+      /// true - or -1 where there is no switch to count or no row, whose pill
+      /// stays the list's own count beside the empty state. A value that is
+      /// false, null, missing or not a Boolean counts as off.
+      /// </summary>
+      public static int Count(IEnumerable<IReadOnlyDictionary<string, object>> rowValues, string activeProp)
+      {
+         if (activeProp == null || rowValues == null)
+            return -1;
+
+         int rows = 0, active = 0;
+         foreach (IReadOnlyDictionary<string, object> values in rowValues)
+         {
+            rows++;
+            if (values != null && values.TryGetValue(activeProp, out object on) && on is true)
+               active++;
+         }
+         return rows == 0 ? -1 : active;
+      }
+
       /// <summary>"Active: 2 of 3".</summary>
       public static string PillText(int active, int total) => F("Active: {0} of {1}", active, total);
 

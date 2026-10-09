@@ -1002,8 +1002,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Warning when none is on. The column and field holding what the sender is told were "Reject message", which German
   translated "Nachricht ablehnen" and Japanese as an instruction to refuse; they are "Refusal text" now, with the hint
   "What the sender is told when this list refuses the message", in all seventeen languages. Both pages show their
-  columns in one order: Active, DNS host, Expected result, Score, Refusal text. `ActiveEntriesTests` holds the count,
-  its level, the order and the German and Japanese names.
+  columns in one order: Active, DNS host, Expected result, Score, Refusal text. `ActiveEntriesTests` holds the count
+  the page takes from its rows (only a switch that reads true is on; an empty list, or one without a switch, takes
+  none), its level, the order and the German and Japanese names.
 
 - **Changed: the allow and block lists are named in one vocabulary in every language.** The lists had about five
   names each - white list, whitelist, white-list and allow list; blacklist, black list, block list, blocklist and

@@ -45,6 +45,68 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(StatusLevel.Normal, ActiveEntries.PillLevel(-1, 4));
       }
 
+      /// <summary>
+      /// The count the list page takes from its rows: only a switch that reads
+      /// true is on - false, a value the server did not give and a row without
+      /// the property are off - so of these four one is active, and the pill says
+      /// so at Normal.
+      /// </summary>
+      [Fact]
+      public void OnlyARowWhoseSwitchIsTrueCountsAsActive()
+      {
+         var rows = new List<Dictionary<string, object>>
+         {
+            new() { ["Active"] = true, ["DNSHost"] = "zen.spamhaus.org" },
+            new() { ["Active"] = false, ["DNSHost"] = "b.barracudacentral.org" },
+            new() { ["Active"] = null, ["DNSHost"] = "bl.spamcop.net" },
+            new() { ["DNSHost"] = "dnsbl.example" },
+         };
+
+         int active = ActiveEntries.Count(rows, "Active");
+
+         Assert.Equal(1, active);
+         Assert.Equal("Active: 1 of 4", ActiveEntries.PillText(active, rows.Count));
+         Assert.Equal(StatusLevel.Normal, ActiveEntries.PillLevel(active, rows.Count));
+      }
+
+      /// <summary>
+      /// A list with entries none of which is on counts 0 and warns: it checks
+      /// nothing, and must not read as a list that checks.
+      /// </summary>
+      [Fact]
+      public void AListWhoseSwitchesAreAllOffCountsNoneAndWarns()
+      {
+         var rows = new List<Dictionary<string, object>>
+         {
+            new() { ["Active"] = false },
+            new() { ["Active"] = false },
+            new() { ["Active"] = false },
+         };
+
+         int active = ActiveEntries.Count(rows, "Active");
+
+         Assert.Equal(0, active);
+         Assert.Equal("Active: 0 of 3", ActiveEntries.PillText(active, rows.Count));
+         Assert.Equal(StatusLevel.Warning, ActiveEntries.PillLevel(active, rows.Count));
+      }
+
+      /// <summary>
+      /// No count is taken for an empty list or for a list without a switch
+      /// (every other list page, which counts its entries in its own words), and
+      /// either leaves the pill at Normal.
+      /// </summary>
+      [Fact]
+      public void AnEmptyListOrAListWithoutASwitchTakesNoCount()
+      {
+         var rows = new List<Dictionary<string, object>> { new() { ["Active"] = true } };
+
+         Assert.Equal(-1, ActiveEntries.Count(new List<Dictionary<string, object>>(), "Active"));
+         Assert.Equal(-1, ActiveEntries.Count(rows, null));
+         Assert.Equal(-1, ActiveEntries.Count(null, "Active"));
+         Assert.Equal(StatusLevel.Normal, ActiveEntries.PillLevel(ActiveEntries.Count(rows, null), rows.Count));
+         Assert.Equal(StatusLevel.Normal, ActiveEntries.PillLevel(ActiveEntries.Count(new List<Dictionary<string, object>>(), "Active"), 0));
+      }
+
       [Theory]
       [InlineData("public static CollectionEditorView SurblServers()")]
       [InlineData("public static CollectionEditorView DnsBlackLists()")]
@@ -66,6 +128,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string editor = ReadSource("CollectionEditorView.cs");
          Assert.Contains("public string ActiveProp;", editor, StringComparison.Ordinal);
+         Assert.Contains("ActiveEntries.Count(rows_.Select(row => row.Values), spec_.ActiveProp)", editor, StringComparison.Ordinal);
          Assert.Contains("countBadge_.Level = ActiveEntries.PillLevel(activeCount, rows_.Count);", editor, StringComparison.Ordinal);
          Assert.Contains("activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count)", editor, StringComparison.Ordinal);
       }
