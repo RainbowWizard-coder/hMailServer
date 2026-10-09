@@ -124,10 +124,83 @@ if ($null -ne $app) {
     }
 }
 
+# The TCP ports something listens on, read once for the port checks below (6
+# and 8), with the source they were read from named in the output.
+#
+# Get-NetTCPConnection is asked first. When it returns no TCP endpoint at all,
+# in any state - which no running Windows has, its RPC endpoint mapper listening
+# on 135 if nothing else - the CIM provider behind it (MSFT_NetTCPConnection)
+# is not answering, and every port would read as closed. That is server1 since
+# 9 October 2026: Get-NetUDPEndpoint, netstat and .NET see every listener,
+# Get-NetTCPConnection nothing, and a restart of WMI did not bring it back, so
+# the pre-flight failed clamd and the three protocol listeners on a bench that
+# was listening on all of them. The listeners are then read from .NET's table
+# (IPGlobalProperties, which asks the IP Helper API, as netstat does), and from
+# netstat -ano itself when that has nothing either.
+function Read-TcpListenersFromCim {
+    $all = @()
+    try { $all = @(Get-NetTCPConnection -ErrorAction SilentlyContinue) } catch { $all = @() }
+    if ($all.Count -eq 0) { return $null }
+    $ports = [System.Collections.Generic.HashSet[int]]::new()
+    foreach ($connection in $all) {
+        if ("$($connection.State)" -eq 'Listen') { [void]$ports.Add([int]$connection.LocalPort) }
+    }
+    return ,$ports
+}
+
+function Read-TcpListenersFromDotNet {
+    try {
+        $listeners = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners()
+    } catch {
+        return $null
+    }
+    if ($null -eq $listeners -or $listeners.Count -eq 0) { return $null }
+    $ports = [System.Collections.Generic.HashSet[int]]::new()
+    foreach ($endpoint in $listeners) { [void]$ports.Add([int]$endpoint.Port) }
+    return ,$ports
+}
+
+function Read-TcpListenersFromNetstat {
+    $lines = @()
+    try { $lines = @(& netstat.exe -ano -p TCP 2>$null) + @(& netstat.exe -ano -p TCPv6 2>$null) } catch { return $null }
+    # A listening row is read by its foreign address, all zeros with port 0,
+    # rather than by its state, which netstat writes in the system's language.
+    $ports = [System.Collections.Generic.HashSet[int]]::new()
+    foreach ($line in $lines) {
+        if ("$line" -match '^\s*TCP\s+\S+:(\d+)\s+(?:0\.0\.0\.0:0|\[::\]:0)\s') { [void]$ports.Add([int]$Matches[1]) }
+    }
+    if ($ports.Count -eq 0) { return $null }
+    return ,$ports
+}
+
+$tcpListening = Read-TcpListenersFromCim
+$tcpListenSource = 'Get-NetTCPConnection'
+$tcpListenWhy = ''
+if ($null -eq $tcpListening) {
+    $tcpListenWhy = 'Get-NetTCPConnection returned no TCP endpoint at all - its CIM provider, MSFT_NetTCPConnection, is not answering'
+    $tcpListening = Read-TcpListenersFromDotNet
+    $tcpListenSource = '.NET (IPGlobalProperties.GetActiveTcpListeners)'
+}
+if ($null -eq $tcpListening) {
+    $tcpListenWhy += ', and .NET listed no TCP listener'
+    $tcpListening = Read-TcpListenersFromNetstat
+    $tcpListenSource = 'netstat -ano'
+}
+if ($null -eq $tcpListening) {
+    $tcpListenWhy += ', and netstat -ano listed none'
+    $tcpListening = [System.Collections.Generic.HashSet[int]]::new()
+    $tcpListenSource = 'nowhere: no source listed a TCP listener, so every port reads as closed'
+}
+if ($tcpListenWhy) {
+    Write-Host ("  INFO  Listening TCP ports read from {0}: {1}." -f $tcpListenSource, $tcpListenWhy) -ForegroundColor Yellow
+} else {
+    Write-Host ("  INFO  Listening TCP ports read from {0}" -f $tcpListenSource)
+}
+
 # 6. clamd must be listening. It runs as a bare process from C:\clamav, not a
 #    Windows service, so Get-Service finds nothing.
-$clamd = [bool](Get-NetTCPConnection -LocalPort 3310 -State Listen -ErrorAction SilentlyContinue)
-Report $clamd 'clamd listening on 3310' 'Start C:\clamav\clamd.exe - the live-scanner tests need it.'
+$clamd = $tcpListening.Contains(3310)
+Report $clamd 'clamd listening on 3310' ("Start C:\clamav\clamd.exe - the live-scanner tests need it. (Listening ports read from {0}.)" -f $tcpListenSource)
 
 # 7. SpamAssassin service must exist (TestSANotRunning stops/starts it, which
 #    needs the sc sdset AU grant that a service re-registration silently drops).
@@ -136,8 +209,8 @@ Report ($null -ne $sa) 'SpamAssassinJAM service exists' 'The suite stops and sta
 
 # 8. Protocol listeners.
 foreach ($port in 25, 110, 143) {
-    Report ([bool](Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue)) "Listening on $port" `
-        'Service is running but not listening - usually the stray-registry fault above.'
+    Report ($tcpListening.Contains($port)) "Listening on $port" `
+        ("Service is running but not listening - usually the stray-registry fault above. (Listening ports read from {0}.)" -f $tcpListenSource)
 }
 
 # 8b. The twelve ports the SSL fixtures insist on. SslSetup does not look for a
