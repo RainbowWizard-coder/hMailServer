@@ -1768,6 +1768,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Auto-ban" xml:space="preserve">
     <value>Automatisch verbannen</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>IP-bereiken voor automatisch verbannen</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Automatisch verbannen op adres, de vergrendeling per naam en de aanmeldtarpit die elke gok seconden laat kosten.</value>
   </data>
@@ -2587,6 +2590,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Gelijktijdige SMTP-, IMAP- en POP3-sessies, elke 2 seconden gemeten.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Configuratiecontroles</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Configuratie gelezen van de server. Records worden opnieuw afgeleid telkens wanneer deze pagina wordt geopend; druk op Controleren om DNS te bevragen.</value>
   </data>
@@ -2848,9 +2854,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Kon niet wissen: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Kon niet alle waarschuwingen evalueren: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Kon niet exporteren: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Kon de statistieken van de server niet lezen: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Kon de server niet lezen: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Kon de instellingsniveaus niet lezen: </value>
@@ -7096,6 +7102,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Nog niet gecontroleerd (Controleren op updates, of zet de dagelijkse controle aan onder Updates op de pagina API en monitoring)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Niet gecontroleerd: de instellingen van de server konden niet worden gelezen.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Niet verbonden</value>
   </data>
@@ -10402,6 +10411,9 @@ Nu opnieuw starten?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Het Control Panel in het {0} tonen? Het herstart om van taal te wisselen.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>De IP-bereiken voor automatisch verbannen weergeven op de pagina IP-bereiken</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>De groep {0} in de navigatie tonen</value>
   </data>
@@ -12990,9 +13002,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Waarschuwing: {0} is een publieke suffix. Een vermelding ervoor dekt elk domein dat eronder is geregistreerd, wat bijna nooit is bedoeld.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Waarschuwingen</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Letten op waarschuwingsomstandigheden</value>
   </data>
@@ -14189,6 +14198,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>ACME _instellen…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>_Weergeven in IP-bereiken</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Bronadressen waarvandaan hij mag worden gebruikt (optioneel)</value>

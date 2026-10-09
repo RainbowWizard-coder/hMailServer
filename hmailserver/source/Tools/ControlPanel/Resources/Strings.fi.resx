@@ -1768,6 +1768,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Auto-ban" xml:space="preserve">
     <value>Automaattinen esto</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Automaattisen eston IP-alueet</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Osoitekohtainen automaattinen esto, nimikohtainen lukitus ja kirjautumisen tarpit, joka tekee jokaisesta arvauksesta sekuntien hintaisen.</value>
   </data>
@@ -2587,6 +2590,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Samanaikaiset SMTP-, IMAP- ja POP3-istunnot, näytteistetty 2 sekunnin välein.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Määritysten tarkistukset</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Määritys luettu palvelimelta. Tietueet johdetaan uudelleen aina, kun tämä sivu avataan; paina Tarkista kysyäksesi DNS:ltä.</value>
   </data>
@@ -2848,9 +2854,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Poisto epäonnistui: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Kaikkia varoituksia ei voitu arvioida: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Vienti epäonnistui: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Palvelimen tilastoja ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Palvelinta ei voitu lukea: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Asetustasoja ei voitu lukea: </value>
@@ -7096,6 +7102,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ei vielä tarkistettu (Tarkista päivitykset tai ota päivittäinen tarkistus käyttöön kohdassa Päivitykset sivulla API ja valvonta)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Ei tarkistettu: palvelimen asetuksia ei voitu lukea.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Ei yhdistetty</value>
   </data>
@@ -10402,6 +10411,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Näytetäänkö Control Panel kielellä {0}? Se käynnistyy uudelleen kielen vaihtamiseksi.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Näytä automaattisen eston IP-alueet IP-alueet-sivulla</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Näytä ryhmä {0} navigoinnissa</value>
   </data>
@@ -12990,9 +13002,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Varoitus: {0} on julkinen pääte. Sitä koskeva merkintä kattaa jokaisen sen alle rekisteröidyn verkkotunnuksen, mikä ei lähes koskaan ole tarkoitus.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Varoitukset</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Valvo hälytysehtoja</value>
   </data>
@@ -14189,6 +14198,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Määritä ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>_Näytä IP-alueissa</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Lähdeosoitteet, joista _sitä saa käyttää (valinnainen)</value>

@@ -1768,6 +1768,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Auto-ban" xml:space="preserve">
     <value>Banimento automático</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Faixas de IP de banimento automático</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Banimento automático por endereço, o bloqueio por nome e o tarpit de login que faz cada tentativa custar segundos.</value>
   </data>
@@ -2587,6 +2590,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Sessões SMTP, IMAP e POP3 simultâneas, amostradas a cada 2 segundos.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Verificações da configuração</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Configuração lida do servidor. Os registros são rederivados toda vez que esta página é aberta; pressione Verificar para consultar o DNS.</value>
   </data>
@@ -2848,9 +2854,6 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Não foi possível apagar: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Não foi possível avaliar todos os avisos: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Não foi possível exportar: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Não foi possível ler as estatísticas do servidor: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Não foi possível ler o servidor: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Não foi possível ler os níveis de configuração: </value>
@@ -7096,6 +7102,9 @@ Nada do que já está lá é removido.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ainda não verificado (Verificar atualizações, ou ative a verificação diária em Atualizações na página API e monitoramento)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Não verificado: não foi possível ler as configurações do servidor.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Não conectado</value>
   </data>
@@ -10402,6 +10411,9 @@ Reiniciá-lo agora?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Mostrar o Control Panel em {0}? Ele reinicia para mudar de idioma.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Mostrar as faixas de IP de banimento automático na página Faixas de IP</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Mostrar o grupo {0} na navegação</value>
   </data>
@@ -12990,9 +13002,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Aviso: {0} é um sufixo público. Uma entrada para ele cobre todo domínio registrado abaixo dele, o que quase nunca é o que se pretende.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Avisos</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Vigiar as condições de alerta</value>
   </data>
@@ -14189,6 +14198,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Configurar o ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>_Mostrar nas faixas de IP</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>Endereços de _origem a partir dos quais ela pode ser usada (opcional)</value>

@@ -66,6 +66,9 @@ namespace hMailServer.ControlPanel.Views
 
       private void Refresh_Click(object sender, RoutedEventArgs e) => Reload();
 
+      private void OpenIpRanges_Click(object sender, RoutedEventArgs e)
+         => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("ipranges"); // no-loc: a page key
+
       private void CheckUpdate_Click(object sender, RoutedEventArgs e) => RunUpdateAction_("check");
       private void DownloadUpdate_Click(object sender, RoutedEventArgs e) => RunUpdateAction_("download");
       private void InstallUpdate_Click(object sender, RoutedEventArgs e)
@@ -415,19 +418,34 @@ namespace hMailServer.ControlPanel.Views
          _ => L("Unknown")
       };
 
+      // The first read of this Reload that failed, said under the header, or
+      // null while every read has worked.
+      private string readError_;
+
+      /// <summary>Notes a read that failed; the first one is the one the notice names.</summary>
+      private string NotRead_(Exception why)
+      {
+         readError_ ??= ServerSession.DescribeComError(why);
+         return L("Not read");
+      }
+
       private void Reload()
       {
          dynamic app = ServerSession.Current?.Application;
          if (app == null)
             return;
 
-         // Server + database
+         readError_ = null;
+
+         // Server + database. A readout that could not be read says "Not read",
+         // not "-": the dash is also what an empty value - a database with no
+         // host - shows, and the two are different facts.
          try
          {
             SetValue_(VersionValue, L("Version"),
                (string)app.Version + " (" + (string)app.VersionArchitecture + ")");
          }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { SetValue_(VersionValue, L("Version"), "-"); }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { SetValue_(VersionValue, L("Version"), NotRead_(fatalCheck)); }
 
          // The update check's verdict, kept by the server; the row says what the
          // scheduled check (UpdateCheckEnabled) or an on-demand one last found.
@@ -460,7 +478,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            SetValue_(UpdateValue, L("Update"), "-");
+            SetValue_(UpdateValue, L("Update"), NotRead_(fatalCheck));
             DownloadUpdateButton.IsEnabled = false;
             InstallUpdateButton.IsEnabled = false;
          }
@@ -473,7 +491,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            SetValue_(StateValue, L("State"), "-");
+            SetValue_(StateValue, L("State"), NotRead_(fatalCheck));
             PauseButton.IsEnabled = false;
          }
 
@@ -490,10 +508,11 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            SetValue_(DbTypeValue, L("Database type"), "-");
-            SetValue_(DbHostValue, L("Database host"), "-");
-            SetValue_(DbNameValue, L("Database name"), "-");
-            SetValue_(DbVersionValue, L("Database schema version"), "-");
+            string notRead = NotRead_(fatalCheck);
+            SetValue_(DbTypeValue, L("Database type"), notRead);
+            SetValue_(DbHostValue, L("Database host"), notRead);
+            SetValue_(DbNameValue, L("Database name"), notRead);
+            SetValue_(DbVersionValue, L("Database schema version"), notRead);
          }
 
          // Statistics + uptime
@@ -511,15 +530,40 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
-            SetValue_(ProcessedValue, L("Processed messages"), "-");
-            SetValue_(SpamValue, L("Spam removed"), "-");
-            SetValue_(VirusValue, L("Viruses removed"), "-");
-            SetValue_(SmtpValue, L("SMTP sessions"), "-");
-            SetValue_(ImapValue, L("IMAP sessions"), "-");
-            SetValue_(Pop3Value, L("POP3 sessions"), "-");
+            string notRead = NotRead_(fatalCheck);
+            SetValue_(ProcessedValue, L("Processed messages"), notRead);
+            SetValue_(SpamValue, L("Spam removed"), notRead);
+            SetValue_(VirusValue, L("Viruses removed"), notRead);
+            SetValue_(SmtpValue, L("SMTP sessions"), notRead);
+            SetValue_(ImapValue, L("IMAP sessions"), notRead);
+            SetValue_(Pop3Value, L("POP3 sessions"), notRead);
+            SetValue_(StartedValue, L("Started"), notRead);
+            SetValue_(UptimeValue, L("Uptime"), notRead);
          }
 
          LoadWarnings(app);
+         ShowReadFailure_();
+      }
+
+      /// <summary>
+      /// A read that failed, said once under the header at the Critical level with
+      /// Try again, and Pause and the three update buttons disabled while it shows:
+      /// with the link down every readout said "-", and the only explanation was an
+      /// Information line at the foot of the warnings card. A read that worked
+      /// hides it; the buttons' own reads have set them already, except Check for
+      /// updates, which needs nothing read.
+      /// </summary>
+      private void ShowReadFailure_()
+      {
+         if (readError_ == null)
+         {
+            ReadFailure.Clear(ReadNotice);
+            CheckUpdateButton.IsEnabled = true;
+            return;
+         }
+
+         ReadFailure.Show(ReadNotice, null, null, L("Could not read the server: "), readError_, Reload,
+            PauseButton, CheckUpdateButton, DownloadUpdateButton, InstallUpdateButton);
       }
 
       /// <summary>
@@ -554,11 +598,12 @@ namespace hMailServer.ControlPanel.Views
             dynamic settings = app.Settings;
             try
             {
+               // Each check names the page that puts it right, and opens it.
                if (((string)settings.HostName).Length == 0)
-                  count += AddWarning(StatusLevel.Warning, L("No public host name is configured in the SMTP settings."));
+                  count += AddWarning(StatusLevel.Warning, L("No public host name is configured in the SMTP settings."), "protocols");
 
                if ((bool)settings.DenyMailFromNull)
-                  count += AddWarning(StatusLevel.Warning, L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."));
+                  count += AddWarning(StatusLevel.Warning, L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."), "protocols");
 
                dynamic ranges = settings.SecurityRanges;
                int autoban = 0;
@@ -569,10 +614,10 @@ namespace hMailServer.ControlPanel.Views
                   try
                   {
                      if ((bool)range.AllowDeliveryFromRemoteToRemote && !(bool)range.RequireSMTPAuthExternalToExternal)
-                        count += AddWarning(StatusLevel.Critical, F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name));
+                        count += AddWarning(StatusLevel.Critical, F("IP range '{0}' allows external-to-external delivery without authentication (open relay risk).", (string)range.Name), "ipranges");
 
                      if ((string)range.LowerIP == "127.0.0.1" && (string)range.UpperIP == "127.0.0.1" && (bool)range.Expires)
-                        count += AddWarning(StatusLevel.Warning, L("Localhost is currently banned in the IP ranges."));
+                        count += AddWarning(StatusLevel.Warning, L("Localhost is currently banned in the IP ranges."), "ipranges");
 
                      if ((bool)range.Expires)
                         autoban++;
@@ -584,8 +629,11 @@ namespace hMailServer.ControlPanel.Views
                }
                ServerSession.Release(ranges);
 
-               if (autoban > 0)
-                  count += AddWarning(StatusLevel.Information, Plural(autoban, "There is {0} auto-ban IP range in all.", "There are {0} auto-ban IP ranges in all."));
+               // A count, which is a statistic and not a finding: it was filed as
+               // an Information "warning", the one item in that card on most
+               // servers.
+               SetValue_(AutobanValue, L("Auto-ban IP ranges"), autoban.ToString("N0"));
+               AutobanLink.Visibility = autoban > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             finally
             {
@@ -594,7 +642,13 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            AddWarning(StatusLevel.Information, F("Could not evaluate all warnings: {0}", ServerSession.DescribeComError(ex)));
+            // The failure is said once, under the header (ShowReadFailure_); the
+            // card says only that its checks did not run, which is neither "no
+            // warnings" nor a finding.
+            WarningsPanel.Children.Clear();
+            WarningsPanel.Children.Add(new InlineNotice { Level = StatusLevel.Normal, Text = L("Not checked: the server's settings could not be read."), Margin = new Thickness(0) });
+            SetValue_(AutobanValue, L("Auto-ban IP ranges"), NotRead_(ex));
+            AutobanLink.Visibility = Visibility.Collapsed;
             return;
          }
 
@@ -641,13 +695,19 @@ namespace hMailServer.ControlPanel.Views
       /// because its catalogue left the words in English. A level cannot be
       /// translated.
       /// </summary>
-      private int AddWarning(StatusLevel level, string text)
+      /// <remarks>
+      /// With the page that puts it right, the notice carries a button that opens
+      /// it (Services/NoticeActions): each warning named another page and offered
+      /// no way to it.
+      /// </remarks>
+      private int AddWarning(StatusLevel level, string text, string page = null)
       {
          WarningsPanel.Children.Add(new InlineNotice
          {
             Level = level,
             Text = text,
-            Margin = new Thickness(0, 0, 0, 8)
+            Margin = new Thickness(0, 0, 0, 8),
+            Content = page == null ? null : NoticeActions.OpenPage(page, "status-check-open-" + page)
          });
          return 1;
       }

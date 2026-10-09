@@ -1768,6 +1768,9 @@
   <data name="Auto-ban" xml:space="preserve">
     <value>自动封禁</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>自动封禁 IP 范围</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>按地址自动封禁、按用户名的锁定，以及让每一次猜测都要耗费数秒的登录延迟陷阱。</value>
   </data>
@@ -2587,6 +2590,9 @@
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>并发的 SMTP、IMAP 和 POP3 会话，每 2 秒采样一次。</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>配置检查</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>配置已从服务器读取。每次打开本页时都会重新推导记录；按“检查”可查询 DNS。</value>
   </data>
@@ -2848,9 +2854,6 @@
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>无法清除：{0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>无法评估全部警告：{0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>无法导出：{0}</value>
   </data>
@@ -2990,6 +2993,9 @@
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>无法读取服务器的统计信息： </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>无法读取服务器： </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>无法读取设置级别： </value>
@@ -7096,6 +7102,9 @@
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>尚未检查（请检查更新，或在“API 与监控”页面的“更新”下开启每日检查）</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>未检查：无法读取服务器的设置。</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>未连接</value>
   </data>
@@ -10402,6 +10411,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>以 {0} 显示控制面板? 它会重启以更改语言。</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>在“IP 范围”页显示自动封禁 IP 范围</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>在导航中显示组 {0}</value>
   </data>
@@ -12990,9 +13002,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>警告：{0} 是一个公共后缀。为它写入的条目会覆盖在它之下注册的每一个域，这几乎从来都不是本意。</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>警告</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>监视警报情况</value>
   </data>
@@ -14189,6 +14198,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>设置 ACME(_S)…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>在 IP 范围中显示(_S)</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>可以从中使用它的来源地址 (可选)(_S)</value>

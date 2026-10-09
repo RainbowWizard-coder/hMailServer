@@ -1768,6 +1768,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Auto-ban" xml:space="preserve">
     <value>Automatisk blokering</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>IP-intervaller fra automatisk blokering</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Automatisk blokering efter adresse, udelukkelsen pr. navn og pålognings-tarpitten, der får hvert gæt til at koste sekunder.</value>
   </data>
@@ -2587,6 +2590,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Samtidige SMTP-, IMAP- og POP3-sessioner, målt hvert 2. sekund.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Konfigurationskontroller</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Konfiguration læst fra serveren. Poster genudledes, hver gang denne side åbnes; tryk på Kontrollér for at forespørge DNS.</value>
   </data>
@@ -2848,9 +2854,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Kunne ikke slette: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Kunne ikke evaluere alle advarsler: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Kunne ikke eksportere: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Kunne ikke læse serverens statistik: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Kunne ikke læse serveren: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Kunne ikke læse indstillingsniveauerne: </value>
@@ -7096,6 +7102,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ikke kontrolleret endnu (Søg efter opdateringer, eller slå den daglige kontrol til under Opdateringer på siden API og overvågning)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Ikke kontrolleret: serverens indstillinger kunne ikke læses.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Ikke forbundet</value>
   </data>
@@ -10402,6 +10411,9 @@ Genstart den nu?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Vis Control Panel på {0}? Det genstarter for at skifte sprog.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Vis IP-intervallerne fra automatisk blokering på siden IP-intervaller</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Vis gruppen {0} i navigationen</value>
   </data>
@@ -12990,9 +13002,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Advarsel: {0} er et offentligt suffiks. En post for det dækker hvert domæne, der er registreret derunder, hvilket næsten aldrig er meningen.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Advarsler</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Hold øje med advarselsforhold</value>
   </data>
@@ -14189,6 +14198,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Konfigurer ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>_Vis i IP-intervaller</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Kildeadresser, den må bruges fra (valgfrit)</value>

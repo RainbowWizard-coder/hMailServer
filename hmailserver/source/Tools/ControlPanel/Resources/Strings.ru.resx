@@ -1783,6 +1783,9 @@ Control Panel может читать файлы сообщений только
   <data name="Auto-ban" xml:space="preserve">
     <value>Автоблокировка</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Диапазоны IP автоблокировки</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Автоблокировка по адресу, блокировка по имени пользователя и задержка входа, из-за которой каждая попытка подбора стоит секунд.</value>
   </data>
@@ -2605,6 +2608,9 @@ Control Panel может читать файлы сообщений только
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Одновременные сеансы SMTP, IMAP и POP3; замер каждые 2 секунды.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Проверки конфигурации</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Конфигурация прочитана с сервера. Записи выводятся заново при каждом открытии этой страницы; нажмите «Проверить», чтобы обратиться к DNS.</value>
   </data>
@@ -2866,9 +2872,6 @@ Control Panel может читать файлы сообщений только
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Не удалось стереть: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Не удалось проверить все предупреждения: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Не удалось экспортировать: {0}</value>
   </data>
@@ -3008,6 +3011,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Не удалось прочитать статистику сервера: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Не удалось прочитать данные сервера: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Не удалось прочитать уровни параметров: </value>
@@ -7168,6 +7174,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ещё не проверялось (нажмите «Проверить обновления» или включите ежедневную проверку в разделе «Обновления» на странице «API и мониторинг»)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Не проверено: не удалось прочитать настройки сервера.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Не подключено</value>
   </data>
@@ -10515,6 +10524,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Показывать Control Panel на языке {0}? Для смены языка он перезапустится.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Показать диапазоны IP автоблокировки на странице «Диапазоны IP»</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Показывать группу {0} в навигации</value>
   </data>
@@ -13145,9 +13157,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Предупреждение: {0} — публичный суффикс. Запись для него охватывает каждый домен, зарегистрированный под ним, что почти никогда не является тем, что имеется в виду.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Предупреждения</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Отслеживать условия оповещений</value>
   </data>
@@ -14347,6 +14356,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Настроить ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>Показать в _диапазонах IP</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Исходные адреса, с которых его разрешено использовать (необязательно)</value>

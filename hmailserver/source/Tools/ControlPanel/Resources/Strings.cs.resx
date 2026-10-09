@@ -1783,6 +1783,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Auto-ban" xml:space="preserve">
     <value>Auto-ban</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Rozsahy IP automatického blokování</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Auto-ban podle adresy, uzamčení podle jména a přihlašovací tarpit, díky kterému každý pokus stojí sekundy.</value>
   </data>
@@ -2605,6 +2608,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Souběžné relace SMTP, IMAP a POP3, vzorkované každé 2 sekundy.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Kontroly konfigurace</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Konfigurace načtena ze serveru. Záznamy se znovu odvozují při každém otevření této stránky; stisknutím Zkontrolovat se položí dotaz do DNS.</value>
   </data>
@@ -2866,9 +2872,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Nelze smazat: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Nepodařilo se vyhodnotit všechna varování: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Nelze exportovat: {0}</value>
   </data>
@@ -3008,6 +3011,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Nepodařilo se přečíst statistiky serveru: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Nepodařilo se přečíst server: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Nepodařilo se přečíst úrovně nastavení: </value>
@@ -7168,6 +7174,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Zatím nezkontrolováno (klikněte na Zkontrolovat aktualizace nebo zapněte denní kontrolu v části Aktualizace na stránce API a monitorování)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Nezkontrolováno: nastavení serveru se nepodařilo přečíst.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Nepřipojeno</value>
   </data>
@@ -10515,6 +10524,9 @@ Restartovat ji nyní?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Zobrazit Control Panel v jazyce {0}? Kvůli změně jazyka se restartuje.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Zobrazit rozsahy IP automatického blokování na stránce Rozsahy IP</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Zobrazit skupinu {0} v navigaci</value>
   </data>
@@ -13145,9 +13157,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Upozornění: {0} je veřejná přípona. Záznam pro ni pokrývá každou doménu registrovanou pod ní, což téměř nikdy není záměr.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Varování</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Sledovat podmínky upozornění</value>
   </data>
@@ -14347,6 +14356,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Nastavit ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>Zobrazit v _rozsazích IP</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Zdrojové adresy, ze kterých jej lze používat (nepovinné)</value>

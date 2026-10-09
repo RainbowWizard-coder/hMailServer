@@ -1768,6 +1768,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Auto-ban" xml:space="preserve">
     <value>Auto-ban</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Auto-ban IP ranges</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds.</value>
   </data>
@@ -2587,6 +2590,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Configuration checks</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS.</value>
   </data>
@@ -2848,9 +2854,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Could not erase: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Could not evaluate all warnings: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Could not export: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Could not read the server's statistics: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Could not read the server: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Could not read the setting levels: </value>
@@ -7096,6 +7102,9 @@ Nothing already there is removed.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Not checked: the server's settings could not be read.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Not connected</value>
   </data>
@@ -10402,6 +10411,9 @@ Restart it now?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Show the Control Panel in {0}? It restarts to change language.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Show the auto-ban IP ranges on the IP ranges page</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Show the group {0} in the navigation</value>
   </data>
@@ -12990,9 +13002,6 @@ It will keep trying as you use the application.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Warnings</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Watch for alert conditions</value>
   </data>
@@ -14189,6 +14198,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Set up ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>_Show in IP ranges</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Source addresses it may be used from (optional)</value>

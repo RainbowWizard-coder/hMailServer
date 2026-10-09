@@ -1768,6 +1768,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Auto-ban" xml:space="preserve">
     <value>Automatisk spärr</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Automatiskt spärrade IP-intervall</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Automatisk avstängning per adress, utestängningen per namn, och inloggningsfördröjningen som gör att varje gissning kostar sekunder.</value>
   </data>
@@ -2587,6 +2590,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Samtidiga SMTP-, IMAP- och POP3-sessioner, mätta varannan sekund.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Konfigurationskontroller</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Konfigurationen läst från servern. Posterna härleds på nytt varje gång den här sidan öppnas; tryck på Kontrollera för att fråga DNS.</value>
   </data>
@@ -2848,9 +2854,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Kunde inte radera: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Kunde inte utvärdera alla varningar: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Kunde inte exportera: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Kunde inte läsa serverns statistik: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Kunde inte läsa servern: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Kunde inte läsa inställningsnivåerna: </value>
@@ -7096,6 +7102,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Inte kontrollerat ännu (Sök efter uppdateringar, eller slå på den dagliga kontrollen under Uppdateringar på sidan API &amp; övervakning)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Inte kontrollerat: serverns inställningar kunde inte läsas.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Inte ansluten</value>
   </data>
@@ -10402,6 +10411,9 @@ Starta om den nu?</value>
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Visa Kontrollpanelen på {0}? Den startar om för att byta språk.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Visa de automatiskt spärrade IP-intervallen på sidan IP-intervall</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Visa gruppen {0} i navigeringen</value>
   </data>
@@ -12990,9 +13002,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Varning: {0} är ett publikt suffix. En post för det omfattar varje domän som registrerats därunder, vilket nästan aldrig är avsikten.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Varningar</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Bevaka larmvillkor</value>
   </data>
@@ -14189,6 +14198,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Konfigurera ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>_Visa i IP-intervall</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Källadresser den får användas från (valfritt)</value>

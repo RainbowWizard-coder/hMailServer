@@ -29,6 +29,19 @@
                 </scaffold:PageHeader.Actions>
             </scaffold:PageHeader>
 
+            <!-- A read that failed, under the header: Critical, with Try again,
+                 and every readout says "Not read" rather than a dash that could
+                 be a value (Services/ReadFailure). -->
+            <scaffold:InlineNotice x:Name="ReadNotice" Visibility="Collapsed"
+                                   AutomationProperties.AutomationId="status-read-failure" />
+
+            <!-- The configuration checks first, under the header: one notice per
+                 finding, at its level, with the page that puts it right. They were
+                 the last card, below the fold, under the title Warnings. -->
+            <scaffold:Card Title="{loc:L 'Configuration checks'}" Margin="{StaticResource AppCardGap}">
+                <StackPanel x:Name="WarningsPanel" />
+            </scaffold:Card>
+
             <Grid Margin="{StaticResource AppCardGap}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -131,12 +144,24 @@
                         <TextBlock Text="{loc:L 'POP3 sessions'}" Style="{StaticResource TextCaption}" />
                         <TextBlock x:Name="Pop3Value" Style="{StaticResource TextSubtitle}" />
                     </StackPanel>
+                    <!-- A count, not a warning: it was the one "Information" among
+                         the configuration warnings on most servers. With the page
+                         that lists the ranges. -->
+                    <StackPanel Margin="0,8,0,0">
+                        <TextBlock Text="{loc:L 'Auto-ban IP ranges'}" Style="{StaticResource TextCaption}" />
+                        <!-- The link beside the number, not under it: under it, the
+                             cell was a button taller than its neighbours, and the
+                             grid's equal rows took that height for every row. -->
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="AutobanValue" Style="{StaticResource TextSubtitle}" VerticalAlignment="Center" />
+                            <ui:Button x:Name="AutobanLink" Content="{loc:L '_Show in IP ranges'}" Click="OpenIpRanges_Click"
+                                       FontSize="{StaticResource AppFontSizeCaption}" Padding="8,2,8,2"
+                                       Margin="12,0,0,0" VerticalAlignment="Center"
+                                       AutomationProperties.AutomationId="status-open-ipranges"
+                                       AutomationProperties.Name="{loc:L 'Show the auto-ban IP ranges on the IP ranges page'}" />
+                        </StackPanel>
+                    </StackPanel>
                 </UniformGrid>
-            </scaffold:Card>
-
-            <!-- Warnings: one notice per finding, at its level. -->
-            <scaffold:Card Title="{loc:L 'Warnings'}">
-                <StackPanel x:Name="WarningsPanel" />
             </scaffold:Card>
         </StackPanel>
     </ScrollViewer>

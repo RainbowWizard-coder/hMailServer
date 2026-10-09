@@ -1768,6 +1768,9 @@
   <data name="Auto-ban" xml:space="preserve">
     <value>自動ブロック</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>自動ブロックの IP 範囲</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>アドレス単位の自動ブロック、名前単位のロックアウト、そして 1 回の推測ごとに数秒のコストを課すログオン タールピット。</value>
   </data>
@@ -2587,6 +2590,9 @@
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>同時 SMTP、IMAP、POP3 セッション数。2 秒ごとにサンプリングされます。</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>設定のチェック</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>設定はサーバーから読み取りました。レコードはこのページを開くたびに導き直されます。DNS に問い合わせるには「確認」を押してください。</value>
   </data>
@@ -2848,9 +2854,6 @@
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>消去できませんでした: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>すべての警告を評価できませんでした: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>エクスポートできませんでした: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>サーバーの統計を読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>サーバーを読み取れませんでした: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>設定レベルを読み取れませんでした: </value>
@@ -7096,6 +7102,9 @@
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>未確認です (更新プログラムを確認するか、API と監視ページの更新プログラムで毎日の確認をオンにしてください)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>未チェック: サーバーの設定を読み取れませんでした。</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>未接続</value>
   </data>
@@ -10402,6 +10411,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>コントロールパネルを {0} で表示しますか? 言語を変更するために再起動します。</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>自動ブロックの IP 範囲を IP 範囲ページに表示</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>ナビゲーションにグループ {0} を表示する</value>
   </data>
@@ -12990,9 +13002,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>警告: {0} はパブリック接尾辞です。これに対するエントリは、その配下に登録されたすべてのドメインに適用されますが、意図した動作であることはまずありません。</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>警告</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>アラートの状態を監視する</value>
   </data>
@@ -14189,6 +14198,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>ACME を設定(_S)…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>IP 範囲に表示(_S)</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>使用を許可する送信元アドレス (省略可)(_S)</value>

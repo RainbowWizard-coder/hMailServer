@@ -1783,6 +1783,9 @@
   <data name="Auto-ban" xml:space="preserve">
     <value>Автоблокування</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Діапазони IP автоблокування</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Автоблокування за адресою, блокування за іменем користувача та затримка входу, через яку кожна спроба добору коштує секунд.</value>
   </data>
@@ -2605,6 +2608,9 @@
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Одночасні сеанси SMTP, IMAP і POP3, вибірка кожні 2 секунди.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Перевірки конфігурації</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Конфігурацію прочитано з сервера. Записи обчислюються заново щоразу, коли відкривається ця сторінка; натисніть «Перевірити», щоб надіслати запит до DNS.</value>
   </data>
@@ -2866,9 +2872,6 @@
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Не вдалося стерти: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Не вдалося обчислити всі попередження: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Не вдалося експортувати: {0}</value>
   </data>
@@ -3008,6 +3011,9 @@
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Не вдалося прочитати статистику сервера: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Не вдалося прочитати дані сервера: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Не вдалося прочитати рівні параметрів: </value>
@@ -7168,6 +7174,9 @@
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Ще не перевірялося (натисніть «Перевірити оновлення» або ввімкніть щоденну перевірку в розділі «Оновлення» на сторінці «API та моніторинг»)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Не перевірено: не вдалося прочитати налаштування сервера.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Не підключено</value>
   </data>
@@ -10515,6 +10524,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Показати Панель керування мовою {0}? Для зміни мови вона перезапуститься.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Показати діапазони IP автоблокування на сторінці «Діапазони IP»</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>Показувати групу {0} у навігації</value>
   </data>
@@ -13145,9 +13157,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Попередження: {0} — публічний суфікс. Запис для нього охоплює кожен домен, зареєстрований під ним, що майже ніколи не є задуманим.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Попередження</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Відстежувати умови оповіщень</value>
   </data>
@@ -14347,6 +14356,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>_Налаштувати ACME…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>Показати в _діапазонах IP</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Адреси джерела, з яких його можна використовувати (необов'язково)</value>

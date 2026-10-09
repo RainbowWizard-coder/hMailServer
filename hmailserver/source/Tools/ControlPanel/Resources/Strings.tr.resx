@@ -1768,6 +1768,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Auto-ban" xml:space="preserve">
     <value>Otomatik yasaklama</value>
   </data>
+  <data name="Auto-ban IP ranges" xml:space="preserve">
+    <value>Otomatik yasaklama IP aralıkları</value>
+  </data>
   <data name="Auto-ban by address, the per-name lockout, and the logon tarpit that makes each guess cost seconds." xml:space="preserve">
     <value>Adrese göre otomatik yasaklama, ad başına kilitleme ve her tahmini saniyelere mal eden oturum açma tarpit'i.</value>
   </data>
@@ -2587,6 +2590,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Concurrent SMTP, IMAP and POP3 sessions, sampled every 2 seconds." xml:space="preserve">
     <value>Her 2 saniyede bir örneklenen eşzamanlı SMTP, IMAP ve POP3 oturumları.</value>
   </data>
+  <data name="Configuration checks" xml:space="preserve">
+    <value>Yapılandırma denetimleri</value>
+  </data>
   <data name="Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS." xml:space="preserve">
     <value>Yapılandırma sunucudan okundu. Kayıtlar bu sayfa her açıldığında yeniden türetilir; DNS'i sorgulamak için Denetle'ye basın.</value>
   </data>
@@ -2848,9 +2854,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not erase: {0}" xml:space="preserve">
     <value>Silinemedi: {0}</value>
   </data>
-  <data name="Could not evaluate all warnings: {0}" xml:space="preserve">
-    <value>Tüm uyarılar değerlendirilemedi: {0}</value>
-  </data>
   <data name="Could not export: {0}" xml:space="preserve">
     <value>Dışa aktarılamadı: {0}</value>
   </data>
@@ -2990,6 +2993,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Sunucunun istatistikleri okunamadı: </value>
+  </data>
+  <data name="Could not read the server: " xml:space="preserve">
+    <value>Sunucu okunamadı: </value>
   </data>
   <data name="Could not read the setting levels: " xml:space="preserve">
     <value>Ayar düzeyleri okunamadı: </value>
@@ -7096,6 +7102,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
     <value>Henüz denetlenmedi (Güncelleştirmeleri denetleyin veya API ve izleme sayfasındaki Güncelleştirmeler altından günlük denetimi açın)</value>
   </data>
+  <data name="Not checked: the server's settings could not be read." xml:space="preserve">
+    <value>Denetlenmedi: sunucunun ayarları okunamadı.</value>
+  </data>
   <data name="Not connected" xml:space="preserve">
     <value>Bağlı değil</value>
   </data>
@@ -10402,6 +10411,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Show the Control Panel in {0}? It restarts to change language." xml:space="preserve">
     <value>Denetim Masası {0} dilinde gösterilsin mi? Dili değiştirmek için yeniden başlar.</value>
   </data>
+  <data name="Show the auto-ban IP ranges on the IP ranges page" xml:space="preserve">
+    <value>Otomatik yasaklama IP aralıklarını IP aralıkları sayfasında göster</value>
+  </data>
   <data name="Show the group {0} in the navigation" xml:space="preserve">
     <value>{0} grubunu gezintide göster</value>
   </data>
@@ -12990,9 +13002,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Uyarı: {0} genel bir sonek. Onun için bir kayıt, altında kayıtlı her alan adını kapsar; bu ise neredeyse hiçbir zaman kastedilen şey değildir.</value>
   </data>
-  <data name="Warnings" xml:space="preserve">
-    <value>Uyarılar</value>
-  </data>
   <data name="Watch for alert conditions" xml:space="preserve">
     <value>Uyarı koşullarını izle</value>
   </data>
@@ -14189,6 +14198,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
     <value>ACME'yi _ayarla…</value>
+  </data>
+  <data name="_Show in IP ranges" xml:space="preserve">
+    <value>IP aralıklarında _göster</value>
   </data>
   <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
     <value>_Kullanılabileceği kaynak adresler (isteğe bağlı)</value>

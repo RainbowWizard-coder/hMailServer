@@ -937,6 +937,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   spare, a scanner command with no program in it, a log folder that is not there), and Critical for a failure. An
   action names its level through `ComAction.Outcome`; one that answers only good or bad is Good or Critical.
   `ActionOutcomeLevelTests` holds the two result lines to notices and each hint to Information.
+- **Fixed: the Server status page's warnings offered no fix, filed a count as a warning, sat below the fold, and a
+  failed read showed as Information at the foot of the page.** The card, now *Configuration checks*, is under the
+  header, above the readouts, and each check carries a button to the page that puts it right: *Open Protocols* for no
+  public host name and for empty senders refused, *Open IP ranges* for an open relay and for localhost banned. The
+  auto-ban count, which was the one "Information" among the warnings on most servers, is a statistic beside the
+  session counts, with *Show in IP ranges*. With the link down every readout said "-" and the only explanation was an
+  Information line in the warnings card; now a Critical notice under the header says "Could not read the server: ..."
+  with *Try again*, every readout that could not be read says *Not read* (a dash is what an empty value shows), the
+  checks say they were not run, and *Pause* and the three update buttons are disabled until a read works. The button
+  to another page is `Services/NoticeActions`, captioned from the navigation map's title; `NoticeActionsTests` holds
+  every page a notice opens to a page of the map, and `StatusWarningLevelTests` each check to its level and its page.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was
