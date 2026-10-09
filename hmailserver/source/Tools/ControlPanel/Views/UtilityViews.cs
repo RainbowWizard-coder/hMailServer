@@ -382,6 +382,10 @@ namespace hMailServer.ControlPanel.Views
       };
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
 
+      // The message's row, which says on the field that an empty message is not
+      // sent.
+      private readonly FieldRow bodyRow_ = new() { Label = L("Message") };
+
       public SendoutView()
       {
          var panel = new StackPanel { MaxWidth = 680, HorizontalAlignment = HorizontalAlignment.Left };
@@ -400,7 +404,8 @@ namespace hMailServer.ControlPanel.Views
          form.Children.Add(new FieldRow { Label = L("Subject"), Content = subject_ });
          body_.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");
          body_.Background = System.Windows.Media.Brushes.Transparent;
-         form.Children.Add(new FieldRow { Label = L("Message"), Content = body_ });
+         bodyRow_.Content = body_;
+         form.Children.Add(bodyRow_);
 
          var send = new Wpf.Ui.Controls.Button
          {
@@ -428,13 +433,35 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (!MessageBox.Confirm(F("Send this message to all accounts matching '{0}'?", wildcard_.Text), L("Control Panel"), L("_Send"), cancelByDefault: true))
+         // An empty message is refused on its field: it would reach every matching
+         // account with nothing in it (review finding F184).
+         bodyRow_.Error = null;
+         if (!SendoutAudience.HasBody(body_.Text))
+         {
+            bodyRow_.Error = L("Write the message first: an empty one is not sent.");
+            body_.Focus();
+            return;
+         }
+
+         // The question says how many accounts the message reaches, counted as the
+         // server counts them, and asks nothing where it would reach none.
+         string wildcard = wildcard_.Text;
+         int? recipients = CountRecipients_(wildcard);
+         if (recipients == 0)
+         {
+            status_.Level = StatusLevel.Warning;
+            status_.Text = Confirmations.SendoutToNobody(wildcard);
+            status_.Visibility = Visibility.Visible;
+            return;
+         }
+
+         if (!MessageBox.Confirm(Confirmations.Sendout(subject_.Text.Trim(), recipients, wildcard), L("Server sendout"), L("_Send"), cancelByDefault: true))
             return;
 
          try
          {
             dynamic utilities = ServerSession.Current.Application.Utilities;
-            bool queued = (bool)utilities.EmailAllAccounts(wildcard_.Text, fromAddress_.Text.Trim(), fromName_.Text.Trim(),
+            bool queued = (bool)utilities.EmailAllAccounts(wildcard, fromAddress_.Text.Trim(), fromName_.Text.Trim(),
                subject_.Text, body_.Text);
             ServerSession.Release(utilities);
             // The server reports failure through the return value rather than an
@@ -448,6 +475,63 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             MessageBox.Show(F("Sendout failed: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
+         }
+      }
+
+      /// <summary>
+      /// How many active accounts of active domains the wildcard matches - the
+      /// accounts EmailAllUsers::Start sends to (Services/SendoutAudience) - or null
+      /// when they could not be counted, which the question then says nothing of.
+      /// </summary>
+      private static int? CountRecipients_(string wildcard)
+      {
+         dynamic domains = null;
+         try
+         {
+            domains = ServerSession.Current.Application.Domains;
+            int total = 0;
+            int domainCount = (int)domains.Count;
+            for (int i = 0; i < domainCount; i++)
+            {
+               dynamic domain = domains.Item[i];
+               dynamic accounts = null;
+               try
+               {
+                  if (!(bool)domain.Active)
+                     continue;
+
+                  accounts = domain.Accounts;
+                  int accountCount = (int)accounts.Count;
+                  for (int j = 0; j < accountCount; j++)
+                  {
+                     dynamic account = accounts.Item[j];
+                     try
+                     {
+                        if (SendoutAudience.Reaches(wildcard, (string)account.Address, (bool)account.Active, true))
+                           total++;
+                     }
+                     finally
+                     {
+                        ServerSession.Release((object)account);
+                     }
+                  }
+               }
+               finally
+               {
+                  ServerSession.Release((object)accounts);
+                  ServerSession.Release((object)domain);
+               }
+            }
+
+            return total;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return null;
+         }
+         finally
+         {
+            ServerSession.Release((object)domains);
          }
       }
 

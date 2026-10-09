@@ -8,13 +8,13 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// The questions the Control Panel asks before it deletes, removes, replaces or
-   /// releases something, where the question has more to say than its page's one
-   /// line: each is one whole sentence of the catalogue per case, which names the
-   /// thing acted on and says what follows, and Views/Dialogs.Confirm asks it with a
-   /// button named for the act (review findings F185, F065, F128 and F069). A count that
-   /// changes the sentence is one sentence per number, never a noun inflected by the
-   /// code, so that each language counts its own way.
+   /// The questions the Control Panel asks before it deletes, removes, replaces,
+   /// releases or sends something, where the question has more to say than its
+   /// page's one line: each is one whole sentence of the catalogue per case, which
+   /// names the thing acted on and says what follows, and Views/Dialogs.Confirm asks
+   /// it with a button named for the act (review findings F185, F065, F128, F069 and
+   /// F184). A count that changes the sentence is one sentence per number, never a
+   /// noun inflected by the code, so that each language counts its own way.
    /// </summary>
    public static class Confirmations
    {
@@ -103,6 +103,74 @@ namespace hMailServer.ControlPanel.Services
 
       public static string TakeRoleAway(string role, string address)
          => F("Take the role {0} away from {1}? The account keeps only what its admin level gives it.", role, address);
+
+      // ---- Folder permissions, quarantine, greylisting, trace, sendout (F184) ---------
+
+      /// <summary>
+      /// A public folder's access-control entry, by whom it is for: an account (0), a
+      /// group (1) or anyone (2), as eACLPermissionType numbers them.
+      /// </summary>
+      public static string RemoveFolderPermission(int type, string subject, string folder)
+         => type switch
+         {
+            0 => F("Remove the entry for {0} from the folder {1}? The rights it gives end at once.", subject, folder),
+            1 => F("Remove the entry for the group {0} from the folder {1}? The rights it gives end at once.", subject, folder),
+            _ => F("Remove the entry for anyone from the folder {0}? The rights it gives end at once.", folder)
+         };
+
+      /// <summary>
+      /// A release of more than one message, or of a group: a group's title (a
+      /// sender's or HELO domain) or null for the messages checked in the list.
+      /// </summary>
+      public static string ReleaseQuarantined(int count, string group)
+      {
+         if (group != null)
+         {
+            return count == 1
+               ? F("Release the message from {0} to its recipients? It is delivered at once.", group)
+               : F("Release the {0} messages from {1} to their recipients? They are delivered at once.", count, group);
+         }
+
+         return count == 1
+            ? L("Release the checked message to its recipients? It is delivered at once.")
+            : F("Release the {0} checked messages to their recipients? They are delivered at once.", count);
+      }
+
+      /// <summary>Remove expired on the quarantine, with its retention in days (above 0).</summary>
+      public static string DeleteExpiredQuarantine(int days)
+         => days == 1
+            ? L("Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy.")
+            : F("Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy.", days);
+
+      /// <summary>Remove expired on the message trace, with its retention in days (above 0).</summary>
+      public static string DeleteExpiredTrace(int days)
+         => days == 1
+            ? L("Delete every message trace event older than a day? The messages they describe can then no longer be followed here.")
+            : F("Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here.", days);
+
+      /// <summary>Why Remove expired cannot be pressed while the retention is 0.</summary>
+      public static string NothingExpires
+         => L("The retention is 0, which keeps everything: nothing is ever old enough to remove.");
+
+      public static string ClearGreylisting
+         => L("Clear every greylisting record? Every sender not on a white list is delayed again on its next message.");
+
+      /// <summary>
+      /// The server sendout, with how many active accounts in active domains match the
+      /// wildcard (Services/SendoutAudience; null when they could not be counted).
+      /// </summary>
+      public static string Sendout(string subject, int? recipients, string wildcard)
+      {
+         if (recipients == null)
+            return F("Send “{0}” to every active account matching {1}?", subject, wildcard);
+
+         return recipients.Value == 1
+            ? F("Send “{0}” to the one active account matching {1}?", subject, wildcard)
+            : F("Send “{0}” to the {1} active accounts matching {2}?", subject, recipients.Value, wildcard);
+      }
+
+      public static string SendoutToNobody(string wildcard)
+         => F("No active account in an active domain matches {0}, so nobody would receive the message.", wildcard);
 
       // ---- Delivery queue, REST API keys, restarts (F185) -----------------------------
 

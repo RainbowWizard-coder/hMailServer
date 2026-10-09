@@ -2446,6 +2446,9 @@ Los detalles completos se escribieron en:
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Clasificar los rebotes y mantener una lista de supresión</value>
   </data>
+  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
+    <value>¿Borrar todos los registros de greylisting? Cada remitente que no esté en una lista blanca vuelve a retrasarse con su próximo mensaje.</value>
+  </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Borrar las tripletas de greylisting</value>
   </data>
@@ -3458,6 +3461,18 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
     <value>¿Borrar todas las carpetas y mensajes del buzón de {0}? No se puede deshacer.</value>
+  </data>
+  <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>¿Borrar todos los eventos de la traza de mensajes de más de un día? Los mensajes que describen ya no podrán seguirse aquí.</value>
+  </data>
+  <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>¿Borrar todos los eventos de la traza de mensajes de más de {0} días? Los mensajes que describen ya no podrán seguirse aquí.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>¿Eliminar todos los mensajes retenidos en cuarentena durante más de un día? Se informó a los remitentes de que se habían aceptado, así que nada se reintentará y no hay ninguna otra copia.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>¿Eliminar todos los mensajes retenidos en cuarentena durante más de {0} días? Se informó a los remitentes de que se habían aceptado, así que nada se reintentará y no hay ninguna otra copia.</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Borrar carpeta</value>
@@ -6646,6 +6661,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Todavía no hay cuentas en este dominio.</value>
   </data>
+  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
+    <value>Ninguna cuenta activa de un dominio activo coincide con {0}, así que nadie recibiría el mensaje.</value>
+  </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>No hay ningún dominio activo, así que aún no hay nada que publicar.</value>
   </data>
@@ -8647,8 +8665,20 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Release" xml:space="preserve">
     <value>Liberar</value>
   </data>
+  <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>¿Liberar el mensaje seleccionado a sus destinatarios? Se entrega de inmediato.</value>
+  </data>
   <data name="Release the checked messages" xml:space="preserve">
     <value>Liberar los mensajes seleccionados</value>
+  </data>
+  <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>¿Liberar el mensaje de {0} a sus destinatarios? Se entrega de inmediato.</value>
+  </data>
+  <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
+    <value>¿Liberar los {0} mensajes seleccionados a sus destinatarios? Se entregan de inmediato.</value>
+  </data>
+  <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
+    <value>¿Liberar los {0} mensajes de {1} a sus destinatarios? Se entregan de inmediato.</value>
   </data>
   <data name="Release this group" xml:space="preserve">
     <value>Liberar este grupo</value>
@@ -8694,6 +8724,15 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
     <value>¿Quitar el mensaje {0} ({1} a {2}) de la cola? Se borra sin rebote, así que no se avisa al remitente.</value>
+  </data>
+  <data name="Remove the entry for anyone from the folder {0}? The rights it gives end at once." xml:space="preserve">
+    <value>¿Quitar la entrada «Cualquiera» de la carpeta {0}? Los permisos que concede terminan de inmediato.</value>
+  </data>
+  <data name="Remove the entry for the group {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>¿Quitar la entrada del grupo {0} de la carpeta {1}? Los permisos que concede terminan de inmediato.</value>
+  </data>
+  <data name="Remove the entry for {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>¿Quitar la entrada de {0} de la carpeta {1}? Los permisos que concede terminan de inmediato.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>¿Eliminar la regla de registro para {0}? Lo que ya ha enviado se queda donde se envió.</value>
@@ -9824,14 +9863,20 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Send the conditions marked for the digest in one daily message" xml:space="preserve">
     <value>Enviar las condiciones marcadas para el resumen en un mensaje diario</value>
   </data>
-  <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
-    <value>¿Enviar este mensaje a todas las cuentas que coincidan con '{0}'?</value>
-  </data>
   <data name="Send using route" xml:space="preserve">
     <value>Enviar usando la ruta</value>
   </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Enviar eventos de webhook</value>
+  </data>
+  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
+    <value>¿Enviar «{0}» a todas las cuentas activas que coincidan con {1}?</value>
+  </data>
+  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
+    <value>¿Enviar «{0}» a la única cuenta activa que coincide con {1}?</value>
+  </data>
+  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
+    <value>¿Enviar «{0}» a las {1} cuentas activas que coinciden con {2}?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Remitente</value>
@@ -11742,6 +11787,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
     <value>El resto sigue esperando; ejecute esto de nuevo o deje que la programación se ponga al día.</value>
   </data>
+  <data name="The retention is 0, which keeps everything: nothing is ever old enough to remove." xml:space="preserve">
+    <value>La retención es 0, que lo conserva todo: nada llega a ser lo bastante antiguo para eliminarlo.</value>
+  </data>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Los recuentos e intervalos de reintento están aquí, junto con lo que ocurre cuando se agotan.</value>
   </data>
@@ -13230,6 +13278,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Write operational events to the Windows Application log" xml:space="preserve">
     <value>Escribir los eventos operativos en el registro de aplicación de Windows</value>
   </data>
+  <data name="Write the message first: an empty one is not sent." xml:space="preserve">
+    <value>Escriba primero el mensaje: uno vacío no se envía.</value>
+  </data>
   <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
     <value>Solo escritura: una contraseña guardada no vuelve a mostrarse aquí - deje la casilla vacía para conservarla. Se guarda como texto plano en hMailServer.INI en el servidor, porque el servidor tiene que presentarla al directorio literalmente y por tanto no puede aplicarle un hash; restrinja en consecuencia el acceso al archivo INI. Solo sale del servidor por el transporte configurado arriba.</value>
   </data>
@@ -13790,6 +13841,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>Host de _relé (vacío = usar el relé de todo el servidor)</value>
+  </data>
+  <data name="_Release" xml:space="preserve">
+    <value>_Liberar</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Recargar</value>

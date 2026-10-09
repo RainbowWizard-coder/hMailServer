@@ -2446,6 +2446,9 @@
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>对退信分类并维护抑制列表</value>
   </data>
+  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
+    <value>是否清除所有灰名单记录？不在白名单上的每个发件人在发送下一封邮件时都会再次被延迟。</value>
+  </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>清除灰名单三元组</value>
   </data>
@@ -3458,6 +3461,18 @@
   </data>
   <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
     <value>是否删除 {0} 邮箱中的所有文件夹和邮件？此操作无法撤消。</value>
+  </data>
+  <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>是否删除超过一天的所有邮件跟踪事件？它们所描述的邮件将无法再在此处跟踪。</value>
+  </data>
+  <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>是否删除超过 {0} 天的所有邮件跟踪事件？它们所描述的邮件将无法再在此处跟踪。</value>
+  </data>
+  <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>是否删除在隔离区中保留超过一天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>是否删除在隔离区中保留超过 {0} 天的所有邮件？发件人已被告知邮件已被接受，因此不会重试，也没有其他副本。</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
     <value>删除文件夹</value>
@@ -6646,6 +6661,9 @@
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>此域中还没有账户。</value>
   </data>
+  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
+    <value>没有任何活动域中的活动账户与 {0} 匹配，因此没有人会收到该邮件。</value>
+  </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>没有活动的域，因此暂时没有什么可发布。</value>
   </data>
@@ -8647,8 +8665,20 @@
   <data name="Release" xml:space="preserve">
     <value>放行</value>
   </data>
+  <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>是否将已勾选的邮件放行给其收件人？它将立即投递。</value>
+  </data>
   <data name="Release the checked messages" xml:space="preserve">
     <value>放行已勾选的邮件</value>
+  </data>
+  <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>是否将来自 {0} 的邮件放行给其收件人？它将立即投递。</value>
+  </data>
+  <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
+    <value>是否将已勾选的 {0} 封邮件放行给其收件人？它们将立即投递。</value>
+  </data>
+  <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
+    <value>是否将来自 {1} 的 {0} 封邮件放行给其收件人？它们将立即投递。</value>
   </data>
   <data name="Release this group" xml:space="preserve">
     <value>放行此组</value>
@@ -8694,6 +8724,15 @@
   </data>
   <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
     <value>是否从队列中移除邮件 {0}（{1} 发往 {2}）？它将被删除且不发送退信，因此发件人不会收到通知。</value>
+  </data>
+  <data name="Remove the entry for anyone from the folder {0}? The rights it gives end at once." xml:space="preserve">
+    <value>是否从文件夹 {0} 中移除“任何人”的条目？它授予的权限将立即终止。</value>
+  </data>
+  <data name="Remove the entry for the group {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>是否从文件夹 {1} 中移除组 {0} 的条目？它授予的权限将立即终止。</value>
+  </data>
+  <data name="Remove the entry for {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>是否从文件夹 {1} 中移除 {0} 的条目？它授予的权限将立即终止。</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>移除 {0} 的日志归档规则？已经发出的内容仍留在发往之处。</value>
@@ -9824,14 +9863,20 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Send the conditions marked for the digest in one daily message" xml:space="preserve">
     <value>将标记为摘要的情况合并在每天一封邮件中发送</value>
   </data>
-  <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
-    <value>将此邮件发送给所有匹配 '{0}' 的账户?</value>
-  </data>
   <data name="Send using route" xml:space="preserve">
     <value>使用路由发送</value>
   </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>发送 Webhook 事件</value>
+  </data>
+  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
+    <value>是否将“{0}”发送给与 {1} 匹配的所有活动账户？</value>
+  </data>
+  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
+    <value>是否将“{0}”发送给与 {1} 匹配的唯一一个活动账户？</value>
+  </data>
+  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
+    <value>是否将“{0}”发送给与 {2} 匹配的 {1} 个活动账户？</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>发件人</value>
@@ -11742,6 +11787,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
     <value>其余的仍在等待；请再次运行，或者交由计划逐步处理完。</value>
   </data>
+  <data name="The retention is 0, which keeps everything: nothing is ever old enough to remove." xml:space="preserve">
+    <value>保留期为 0，即保留所有内容：没有任何内容会旧到可以移除。</value>
+  </data>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>重试次数和间隔在这里，以及用尽之后会发生什么。</value>
   </data>
@@ -13230,6 +13278,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Write operational events to the Windows Application log" xml:space="preserve">
     <value>把运行事件写入 Windows 应用程序日志</value>
   </data>
+  <data name="Write the message first: an empty one is not sent." xml:space="preserve">
+    <value>请先填写邮件内容：空邮件不会发送。</value>
+  </data>
   <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
     <value>只写：已存储的密码绝不会再在此处显示 - 把框留空即可保留它。它以纯文本形式存储在服务器上的 hMailServer.INI 中，因为服务器必须原样把它出示给目录，所以无法对它做哈希；请相应地限制对该 INI 文件的访问权限。它只会通过上面配置的传输方式离开服务器。</value>
   </data>
@@ -13790,6 +13841,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>中继主机(_R)（留空 = 使用服务器范围的中继服务器）</value>
+  </data>
+  <data name="_Release" xml:space="preserve">
+    <value>放行(_R)</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>重新加载(_R)</value>

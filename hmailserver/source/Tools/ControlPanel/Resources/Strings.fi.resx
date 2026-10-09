@@ -2446,6 +2446,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Luokittele palautukset ja pidä estolistaa</value>
   </data>
+  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
+    <value>Tyhjennetäänkö kaikki harmaalistauksen tietueet? Jokainen lähettäjä, joka ei ole sallittujen listalla, viivästyy taas seuraavan viestinsä kohdalla.</value>
+  </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Tyhjennä harmaalistauksen kolmikot</value>
   </data>
@@ -3458,6 +3461,18 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
     <value>Poistetaanko kaikki kansiot ja viestit käyttäjän {0} postilaatikosta? Tätä ei voi kumota.</value>
+  </data>
+  <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Poistetaanko kaikki yli päivän vanhat viestin jäljityksen tapahtumat? Niiden kuvaamia viestejä ei sen jälkeen voi enää seurata täällä.</value>
+  </data>
+  <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Poistetaanko kaikki yli {0} päivää vanhat viestin jäljityksen tapahtumat? Niiden kuvaamia viestejä ei sen jälkeen voi enää seurata täällä.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Poistetaanko kaikki yli päivän karanteenissa olleet viestit? Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yritä uudelleen eikä muuta kopiota ole.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Poistetaanko kaikki yli {0} päivää karanteenissa olleet viestit? Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yritä uudelleen eikä muuta kopiota ole.</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Poista kansio</value>
@@ -6646,6 +6661,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Tässä verkkotunnuksessa ei ole vielä tilejä.</value>
   </data>
+  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
+    <value>Mikään aktiivisen verkkotunnuksen aktiivinen tili ei vastaa lauseketta {0}, joten kukaan ei saisi viestiä.</value>
+  </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Ei aktiivista verkkotunnusta, joten julkaistavaa ei vielä ole.</value>
   </data>
@@ -8647,8 +8665,20 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Release" xml:space="preserve">
     <value>Vapauta</value>
   </data>
+  <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Vapautetaanko valittu viesti vastaanottajilleen? Se toimitetaan heti.</value>
+  </data>
   <data name="Release the checked messages" xml:space="preserve">
     <value>Vapauta valitut viestit</value>
+  </data>
+  <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Vapautetaanko viesti lähettäjältä {0} vastaanottajilleen? Se toimitetaan heti.</value>
+  </data>
+  <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
+    <value>Vapautetaanko {0} valittua viestiä vastaanottajilleen? Ne toimitetaan heti.</value>
+  </data>
+  <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
+    <value>Vapautetaanko {0} viestiä lähettäjältä {1} vastaanottajilleen? Ne toimitetaan heti.</value>
   </data>
   <data name="Release this group" xml:space="preserve">
     <value>Vapauta tämä ryhmä</value>
@@ -8694,6 +8724,15 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
     <value>Poistetaanko viesti {0} (lähettäjä {1}, vastaanottaja {2}) jonosta? Se poistetaan ilman palautusviestiä, joten lähettäjälle ei kerrota.</value>
+  </data>
+  <data name="Remove the entry for anyone from the folder {0}? The rights it gives end at once." xml:space="preserve">
+    <value>Poistetaanko kansiosta {0} merkintä Kuka tahansa? Sen antamat oikeudet päättyvät heti.</value>
+  </data>
+  <data name="Remove the entry for the group {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>Poistetaanko ryhmän {0} merkintä kansiosta {1}? Sen antamat oikeudet päättyvät heti.</value>
+  </data>
+  <data name="Remove the entry for {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>Poistetaanko käyttäjän {0} merkintä kansiosta {1}? Sen antamat oikeudet päättyvät heti.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Poistetaanko journalointisääntö kohteelta {0}? Se, mitä se on jo lähettänyt, jää sinne minne se lähetettiin.</value>
@@ -9824,14 +9863,20 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Send the conditions marked for the digest in one daily message" xml:space="preserve">
     <value>Lähetä yhteenvetoon merkityt ehdot yhdessä päivittäisessä viestissä</value>
   </data>
-  <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
-    <value>Lähetetäänkö tämä viesti kaikille tileille, jotka täsmäävät kohteeseen '{0}'?</value>
-  </data>
   <data name="Send using route" xml:space="preserve">
     <value>Lähetä reitin kautta</value>
   </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Lähetä webhook-tapahtumia</value>
+  </data>
+  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” kaikille aktiivisille tileille, jotka vastaavat lauseketta {1}?</value>
+  </data>
+  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” ainoalle aktiiviselle tilille, joka vastaa lauseketta {1}?</value>
+  </data>
+  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” niille {1} aktiiviselle tilille, jotka vastaavat lauseketta {2}?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Lähettäjä</value>
@@ -11742,6 +11787,9 @@ Lisätäänkö silti?</value>
   <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
     <value>Loput odottavat yhä; suorita tämä uudelleen tai anna ajastuksen hoitaa loput.</value>
   </data>
+  <data name="The retention is 0, which keeps everything: nothing is ever old enough to remove." xml:space="preserve">
+    <value>Säilytysaika on 0, joka säilyttää kaiken: mikään ei koskaan ole tarpeeksi vanhaa poistettavaksi.</value>
+  </data>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>Uudelleenyritysten määrät ja välit ovat täällä, samoin se, mitä tapahtuu, kun ne loppuvat.</value>
   </data>
@@ -13230,6 +13278,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Write operational events to the Windows Application log" xml:space="preserve">
     <value>Kirjoita käyttötapahtumat Windowsin sovelluslokiin</value>
   </data>
+  <data name="Write the message first: an empty one is not sent." xml:space="preserve">
+    <value>Kirjoita viesti ensin: tyhjää viestiä ei lähetetä.</value>
+  </data>
   <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
     <value>Vain kirjoitus: tallennettua salasanaa ei koskaan näytetä täällä uudelleen - jätä kenttä tyhjäksi säilyttääksesi sen. Se tallennetaan selväkielisenä palvelimen hMailServer.INI-tiedostoon, koska palvelimen on esitettävä se hakemistolle sellaisenaan eikä se siksi voi tiivistää sitä; rajoita INI-tiedoston käyttöoikeudet sen mukaisesti. Se lähtee palvelimelta vain yllä määritetyn siirron yli.</value>
   </data>
@@ -13790,6 +13841,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Välityskone (tyhjä = käytä palvelimenlaajuista välittäjää)</value>
+  </data>
+  <data name="_Release" xml:space="preserve">
+    <value>_Vapauta</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>Lataa _uudelleen</value>

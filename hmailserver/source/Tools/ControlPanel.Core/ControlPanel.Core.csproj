@@ -106,6 +106,8 @@
     <!-- The questions asked before something is deleted, removed, replaced,
          released or sent, and which answer Enter gives. -->
     <Compile Include="..\ControlPanel\Services\Confirmations.cs" />
+    <!-- Which accounts a server sendout reaches, matched as the server matches them. -->
+    <Compile Include="..\ControlPanel\Services\SendoutAudience.cs" />
     <!-- The order the generated Add and Edit dialog lays its fields out in, and the
          words for a required field left empty. -->
     <Compile Include="..\ControlPanel\Services\FieldDialogRules.cs" />

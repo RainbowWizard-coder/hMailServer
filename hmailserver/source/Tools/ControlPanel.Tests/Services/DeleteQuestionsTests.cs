@@ -155,6 +155,159 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("ReadFailure.Clear(readNotice_, give_, take_)", page, StringComparison.Ordinal);
       }
 
+      // ---- Acts that ran without a question (F184) ------------------------------------------
+
+      [Fact]
+      public void TheFolderPermissionsQuestion_NamesWhomTheEntryIsFor_AndTheFolder()
+      {
+         string account = Confirmations.RemoveFolderPermission(0, "jane@example.com", "Sales");
+         string group = Confirmations.RemoveFolderPermission(1, "Sales team", "Sales");
+         string anyone = Confirmations.RemoveFolderPermission(2, "", "Sales");
+
+         Assert.Equal(3, new[] { account, group, anyone }.Distinct().Count());
+         Assert.Contains("jane@example.com", account, StringComparison.Ordinal);
+         Assert.Contains("the group Sales team", group, StringComparison.Ordinal);
+         Assert.Contains("anyone", anyone, StringComparison.Ordinal);
+         Assert.All(new[] { account, group, anyone }, text => Assert.Contains("the folder Sales", text, StringComparison.Ordinal));
+      }
+
+      [Fact]
+      public void TheReleaseQuestion_NamesTheGroupAndCounts()
+      {
+         string[] questions =
+         {
+            Confirmations.ReleaseQuarantined(1, "mass-mail.example"),
+            Confirmations.ReleaseQuarantined(5, "mass-mail.example"),
+            Confirmations.ReleaseQuarantined(1, null),
+            Confirmations.ReleaseQuarantined(7, null)
+         };
+
+         Assert.Equal(4, questions.Distinct().Count());
+         Assert.Contains("the 5 messages from mass-mail.example", questions[1], StringComparison.Ordinal);
+         Assert.Contains("the 7 checked messages", questions[3], StringComparison.Ordinal);
+         Assert.All(questions, text => Assert.Contains("delivered at once", text, StringComparison.Ordinal));
+      }
+
+      [Fact]
+      public void TheSweepQuestions_NameTheRetentionWindow()
+      {
+         Assert.NotEqual(Confirmations.DeleteExpiredQuarantine(1), Confirmations.DeleteExpiredQuarantine(30));
+         Assert.Contains("longer than 30 days", Confirmations.DeleteExpiredQuarantine(30), StringComparison.Ordinal);
+         Assert.Contains("longer than a day", Confirmations.DeleteExpiredQuarantine(1), StringComparison.Ordinal);
+         Assert.Contains("older than 90 days", Confirmations.DeleteExpiredTrace(90), StringComparison.Ordinal);
+         Assert.Contains("older than a day", Confirmations.DeleteExpiredTrace(1), StringComparison.Ordinal);
+         Assert.Contains("delayed again", Confirmations.ClearGreylisting, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheSendoutQuestion_NamesTheSubject_TheCountAndTheWildcard()
+      {
+         string uncounted = Confirmations.Sendout("Maintenance tonight", null, "*@example.com");
+         string one = Confirmations.Sendout("Maintenance tonight", 1, "*@example.com");
+         string many = Confirmations.Sendout("Maintenance tonight", 12, "*@example.com");
+
+         Assert.Equal(3, new[] { uncounted, one, many }.Distinct().Count());
+         Assert.All(new[] { uncounted, one, many }, text =>
+         {
+            Assert.Contains("Maintenance tonight", text, StringComparison.Ordinal);
+            Assert.Contains("*@example.com", text, StringComparison.Ordinal);
+         });
+         Assert.Contains("the 12 active accounts", many, StringComparison.Ordinal);
+         Assert.Contains("*@example.com", Confirmations.SendoutToNobody("*@example.com"), StringComparison.Ordinal);
+      }
+
+      // The server's own cases for StringParser::WildcardMatch, which the sendout's
+      // count has to agree with, and its case-insensitive form.
+      [Theory]
+      [InlineData("Test", "Test", true)]
+      [InlineData("", "", true)]
+      [InlineData("Test*", "Testar", true)]
+      [InlineData("Test*", "Test", true)]
+      [InlineData("Test*", "Te", false)]
+      [InlineData("*two*", "one-two-three", true)]
+      [InlineData("*two*", "one-three", false)]
+      [InlineData("?two?", "one-two-three", false)]
+      [InlineData("?two?", "-two-", true)]
+      [InlineData("?", "A", true)]
+      [InlineData("?", "AA", false)]
+      [InlineData("*", "A", true)]
+      [InlineData("*", "", true)]
+      [InlineData("?", "", false)]
+      [InlineData("??語", "標準語", true)]
+      [InlineData("?語", "標準語", false)]
+      [InlineData("test@*", "test@example.test", true)]
+      [InlineData("test@test.co.*", "test@test.co.uk", true)]
+      [InlineData("test@test.co.*", "test@example.test", false)]
+      [InlineData("test@test.co.*", "test@test.co", false)]
+      [InlineData("TEST@*", "test@Example.test", true)]   // WildcardMatchNoCase
+      [InlineData("a.b@example.com", "axb@example.com", false)] // a dot is a dot
+      [InlineData("a+b@example.com", "a+b@example.com", true)]
+      public void TheSendoutsWildcard_MatchesAsTheServerMatches(string wildcard, string address, bool matches)
+         => Assert.Equal(matches, SendoutAudience.Matches(wildcard, address));
+
+      [Theory]
+      [InlineData(true, true, true)]
+      [InlineData(false, true, false)]   // an inactive account is not sent to
+      [InlineData(true, false, false)]   // nor one of an inactive domain
+      public void TheSendout_ReachesActiveAccountsOfActiveDomains(bool accountActive, bool domainActive, bool reaches)
+         => Assert.Equal(reaches, SendoutAudience.Reaches("*", "a@example.com", accountActive, domainActive));
+
+      [Theory]
+      [InlineData(null, false)]
+      [InlineData("", false)]
+      [InlineData(" \r\n\t", false)]
+      [InlineData("The server restarts at ten.", true)]
+      public void AnEmptyMessage_IsNotSent(string body, bool sent)
+         => Assert.Equal(sent, SendoutAudience.HasBody(body));
+
+      [Theory]
+      [InlineData("FolderPermissionsDialog.cs", "private void DeleteSelected()", "Confirmations.RemoveFolderPermission(", "perms.DeleteByDBID(id)")]
+      [InlineData("QuarantineView.cs", "private void SweepExpired()", "Confirmations.DeleteExpiredQuarantine(days)", "quarantine.DeleteExpired()")]
+      [InlineData("MessageTraceView.cs", "private void SweepExpired()", "Confirmations.DeleteExpiredTrace(days)", "trace.DeleteExpired()")]
+      [InlineData("UtilityViews.cs", "private void Send()", "Confirmations.Sendout(", "utilities.EmailAllAccounts(")]
+      public void EachIrreversibleAct_AsksBeforeItActs(string file, string member, string question, string act)
+      {
+         string text = WithheldRowTests.MemberText(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", file)), member);
+         Assert.True(text != null, file + ": " + member + " is gone.");
+         int asks = text.IndexOf(question, StringComparison.Ordinal);
+         int acts = text.IndexOf(act, StringComparison.Ordinal);
+         Assert.True(asks >= 0 && acts > asks, file + ": " + member + " acts without asking first.");
+      }
+
+      [Fact]
+      public void TheSweeps_AskNothingAtARetentionOfNought_AndCannotBePressedThere()
+      {
+         foreach (string file in new[] { "QuarantineView.cs", "MessageTraceView.cs" })
+         {
+            string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", file));
+            string sweep = WithheldRowTests.MemberText(page, "private void SweepExpired()");
+            Assert.Contains("if (days <= 0)", sweep, StringComparison.Ordinal);
+            string state = WithheldRowTests.MemberText(page, "private void ShowSweepState_(int days)");
+            Assert.True(state != null, file + ": ShowSweepState_ is gone.");
+            Assert.Contains("removeExpired_.IsEnabled = days > 0;", state, StringComparison.Ordinal);
+         }
+      }
+
+      [Fact]
+      public void AGroupsOrTheCheckedMessagesRelease_AsksFirst_WithCancelOnEnter()
+      {
+         string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
+         string act = WithheldRowTests.MemberText(page, "private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null)");
+         Assert.True(act != null, "QuarantineView.Act_ is gone.");
+         Assert.Contains("(ids.Count > 1 || groupTitle != null) && !ConfirmRelease_(ids.Count, groupTitle)", act, StringComparison.Ordinal);
+         string ask = WithheldRowTests.MemberText(page, "private static bool ConfirmRelease_(int count, string groupTitle)");
+         Assert.Contains("cancelByDefault: true", ask, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void ClearingTheGreylistingRecords_AsksFirst()
+      {
+         string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "ServerSettingsView.xaml.cs"));
+         int clear = page.IndexOf("a.ClearGreyListingTriplets()", StringComparison.Ordinal);
+         int ask = page.IndexOf("Confirmations.ClearGreylisting", StringComparison.Ordinal);
+         Assert.True(ask >= 0 && clear > ask && clear - ask < 600, "Clear greylisting triplets clears without asking first.");
+      }
+
       [Theory]
       [InlineData("DomainsView.xaml.cs", "private void DeleteAccount_(string address)", "Confirmations.DeleteAccount(address)", "L(\"_Delete account\")")]
       [InlineData("DomainsView.xaml.cs", "private void DeleteAlias_(string name)", "Confirmations.DeleteAlias(name)", "L(\"_Delete alias\")")]

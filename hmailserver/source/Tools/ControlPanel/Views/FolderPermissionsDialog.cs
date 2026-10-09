@@ -59,6 +59,11 @@ namespace hMailServer.ControlPanel.Views
       // list's frame.
       private readonly ListBox list_ = new() { Height = 260, BorderThickness = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent };
       private readonly List<int> ids_ = new();
+
+      // Whom each entry is for, beside its id: its type (account, group, anyone)
+      // and the account's address or the group's name, for the question asked
+      // before it is removed.
+      private readonly List<(int Type, string Subject)> subjects_ = new();
       private readonly InlineNotice notice_ = DialogFields.Notice();
 
       public FolderPermissionsDialog(Window owner, string folderName)
@@ -107,6 +112,7 @@ namespace hMailServer.ControlPanel.Views
       {
          list_.Items.Clear();
          ids_.Clear();
+         subjects_.Clear();
          dynamic folders = ServerSession.Current.Application.Settings.PublicFolders;
          try
          {
@@ -117,6 +123,8 @@ namespace hMailServer.ControlPanel.Views
             {
                dynamic p = perms.Item[i];
                ids_.Add((int)p.ID);
+               int type = (int)p.PermissionType;
+               subjects_.Add((type, type switch { 0 => SafeAccount(p), 1 => SafeGroupName(p), _ => "" }));
                list_.Items.Add(Describe(p));
                ServerSession.Release(p);
             }
@@ -156,6 +164,12 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return F("(account #{0})", (int)p.PermissionAccountID); }
       }
 
+      private static string SafeGroupName(dynamic p)
+      {
+         try { dynamic g = p.Group; string n = (string)g.Name; ServerSession.Release(g); return n; }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return F("(group #{0})", (int)p.PermissionGroupID); }
+      }
+
       private static string SafeGroup(dynamic p)
       {
          string name = SafeGroupName(p);
@@ -171,11 +185,21 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return null; }
       }
 
+      /// <summary>
+      /// Removes the chosen entry after asking, naming whom it is for and the folder,
+      /// with Cancel the answer Enter gives: the rights it gives end at once, and it
+      /// was removed at the press (review finding F184).
+      /// </summary>
       private void DeleteSelected()
       {
-         if (list_.SelectedIndex < 0)
+         int index = list_.SelectedIndex;
+         if (index < 0 || index >= ids_.Count)
             return;
-         int id = ids_[list_.SelectedIndex];
+         int id = ids_[index];
+         (int type, string subject) = subjects_[index];
+
+         if (!Dialogs.Confirm(Confirmations.RemoveFolderPermission(type, subject, folderName_), L("Control Panel"), L("_Remove"), destructive: true))
+            return;
 
          notice_.Hide();
          dynamic folders = ServerSession.Current.Application.Settings.PublicFolders;

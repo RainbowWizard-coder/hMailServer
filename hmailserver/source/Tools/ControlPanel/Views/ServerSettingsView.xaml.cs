@@ -2554,6 +2554,11 @@ namespace hMailServer.ControlPanel.Views
             ButtonText = L("Clear greylisting triplets"),
             Action = () =>
             {
+               // Asked first, with Cancel on Enter: every known sender is delayed
+               // again, and the records cannot be put back (review finding F184).
+               if (!MessageBox.Confirm(Confirmations.ClearGreylisting, L("Greylisting"), L("_Clear"), destructive: true))
+                  return (true, null);
+
                dynamic a = ServerSession.Current.Application.Settings.AntiSpam;
                try { a.ClearGreyListingTriplets(); return (true, L("Greylisting triplets cleared.")); }
                finally { ServerSession.Release((object)a); }

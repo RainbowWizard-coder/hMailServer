@@ -60,11 +60,17 @@ namespace hMailServer.ControlPanel.Views
       };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
+
+      // MessageTraceRetentionDays, read over COM when there is a session and from
+      // hMailServer.ini otherwise, for Remove expired: 0 keeps every event.
+      private readonly IniFeatureStore iniStore_ = new();
+      private Button removeExpired_;
       private readonly EmptyState empty_ = new() { Icon = Wpf.Ui.Controls.SymbolRegular.DocumentSearch24, Visibility = Visibility.Collapsed };
 
       public MessageTraceView()
       {
          Build();
+         Loaded += (_, _) => ShowSweepState_(RetentionDays_());
          Status_(StatusLevel.Information, L("Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom."));
       }
 
@@ -207,8 +213,49 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>MessageTraceRetentionDays; 30, the server's default, when it cannot be read or parsed.</summary>
+      private int RetentionDays_()
+      {
+         try
+         {
+            return int.TryParse(iniStore_.Read("MessageTraceRetentionDays", "30").Trim(), out int days) ? days : 30;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return 30;
+         }
+      }
+
+      /// <summary>Remove expired can be pressed while there is a retention window, and says why not otherwise.</summary>
+      private void ShowSweepState_(int days)
+      {
+         if (removeExpired_ == null)
+            return;
+
+         removeExpired_.IsEnabled = days > 0;
+         removeExpired_.ToolTip = days > 0 ? null : Confirmations.NothingExpires;
+         ToolTipService.SetShowOnDisabled(removeExpired_, true);
+      }
+
+      /// <summary>
+      /// Deletes every event older than the retention window, after asking, with the
+      /// window named and Cancel the answer Enter gives, where it ran at the press
+      /// (review finding F184); with a window of 0, which keeps everything, it asks
+      /// nothing and says so.
+      /// </summary>
       private void SweepExpired()
       {
+         int days = RetentionDays_();
+         ShowSweepState_(days);
+         if (days <= 0)
+         {
+            Status_(StatusLevel.Information, Confirmations.NothingExpires);
+            return;
+         }
+
+         if (!Dialogs.Confirm(Confirmations.DeleteExpiredTrace(days), L("Message trace"), L("_Delete"), destructive: true))
+            return;
+
          try
          {
             dynamic trace = OpenTrace();
@@ -258,7 +305,8 @@ namespace hMailServer.ControlPanel.Views
          var follow = MakeButton(L("_Follow this message"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => FollowSelected());
          actions.Children.Add(follow);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, follow);
-         actions.Children.Add(MakeButton(L("_Remove expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired()));
+         removeExpired_ = MakeButton(L("_Remove expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired());
+         actions.Children.Add(removeExpired_);
          toolbar_.Actions = actions;
          Grid.SetRow(toolbar_, 1);
          root.Children.Add(toolbar_);

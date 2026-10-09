@@ -91,6 +91,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly ComboBox grouping_ = new() { MinWidth = 150, VerticalAlignment = VerticalAlignment.Center };
 
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
+
+      // Remove expired, which deletes everything held longer than the retention
+      // window and so can be pressed only while there is one: 0 keeps everything.
+      private Button removeExpired_;
       // A neutral glyph: an empty quarantine is not a warning, and the warning
       // glyph it had read as one.
       private readonly EmptyState empty_ = new() { Icon = SymbolRegular.MailInbox24, Visibility = Visibility.Collapsed };
@@ -218,6 +222,7 @@ namespace hMailServer.ControlPanel.Views
                // whose quarantine is on is not a server whose quarantine is off.
                // The page said "switched off" of both, and never read the switch.
                bool quarantining = iniStore_.ReadBool("QuarantineEnabled", false);
+               ShowSweepState_(RetentionDays_());
                empty_.Action = quarantining ? null : OpenAntiSpamSettings_();
                StatusText.Show(empty_, null, total, null, quarantining
                   ? L("Nothing is held right now. A message over the delete threshold after its body has arrived appears here; its sender is told it was accepted.")
@@ -673,6 +678,12 @@ namespace hMailServer.ControlPanel.Views
                   break;
 
                case "release":
+                  // A group's or the checked messages' release asks first: each is
+                  // delivered at once, and a release cannot be taken back. One
+                  // message's own icon releases that message.
+                  if ((ids.Count > 1 || groupTitle != null) && !ConfirmRelease_(ids.Count, groupTitle))
+                     return;
+
                   answer = Bulk_(QuarantineReview.BulkRequest(ids, "release")) ?? OneAtATime_(ids, true);
                   break;
 
@@ -730,6 +741,9 @@ namespace hMailServer.ControlPanel.Views
 
          return MessageBox.Confirm(question, L("Delete quarantined message"), L("_Delete"), destructive: true);
       }
+
+      private static bool ConfirmRelease_(int count, string groupTitle)
+         => MessageBox.Confirm(Confirmations.ReleaseQuarantined(count, groupTitle), L("Control Panel"), L("_Release"), cancelByDefault: true);
 
       /// <summary>What happened, in one line, with the first reason a message was left where it was.</summary>
       private void Report_(string action, BulkAnswer answer)
@@ -882,8 +896,43 @@ namespace hMailServer.ControlPanel.Views
 
       // ------------------------------------------------------------ the toolbar
 
+      /// <summary>
+      /// QuarantineRetentionDays, read as the Anti-spam settings page reads it; 30, the
+      /// server's default, when it cannot be read or parsed.
+      /// </summary>
+      private int RetentionDays_()
+         => int.TryParse(iniStore_.Read("QuarantineRetentionDays", "30").Trim(), out int days) ? days : 30;
+
+      /// <summary>Remove expired can be pressed while there is a retention window, and says why not otherwise.</summary>
+      private void ShowSweepState_(int days)
+      {
+         if (removeExpired_ == null)
+            return;
+
+         removeExpired_.IsEnabled = days > 0;
+         removeExpired_.ToolTip = days > 0 ? null : Confirmations.NothingExpires;
+         ToolTipService.SetShowOnDisabled(removeExpired_, true);
+      }
+
+      /// <summary>
+      /// Deletes every message held longer than the retention window, after asking,
+      /// with the window named and Cancel the answer Enter gives, where it ran at the
+      /// press (review finding F184); with a window of 0, which keeps everything, it
+      /// asks nothing and says so.
+      /// </summary>
       private void SweepExpired()
       {
+         int days = RetentionDays_();
+         ShowSweepState_(days);
+         if (days <= 0)
+         {
+            Status_(StatusLevel.Information, Confirmations.NothingExpires);
+            return;
+         }
+
+         if (!MessageBox.Confirm(Confirmations.DeleteExpiredQuarantine(days), L("Delete quarantined message"), L("_Delete"), destructive: true))
+            return;
+
          try
          {
             dynamic quarantine = OpenQuarantine();
@@ -993,7 +1042,8 @@ namespace hMailServer.ControlPanel.Views
          var actions = new StackPanel { Orientation = Orientation.Horizontal };
          actions.Children.Add(groupLabel);
          actions.Children.Add(grouping_);
-         actions.Children.Add(MakeButton(L("Remove _expired"), ControlAppearance.Secondary, (_, _) => SweepExpired()));
+         removeExpired_ = MakeButton(L("Remove _expired"), ControlAppearance.Secondary, (_, _) => SweepExpired());
+         actions.Children.Add(removeExpired_);
          actions.Children.Add(MakeButton(L("Re_fresh"), ControlAppearance.Secondary, (_, _) => Reload()));
          actions.Children.Add(MakeButton(L("Di_gest settings"), ControlAppearance.Secondary, (_, _) => EditDigestSettings()));
 

@@ -2446,6 +2446,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Classify bounces and keep a suppression list</value>
   </data>
+  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
+    <value>Clear every greylisting record? Every sender not on a white list is delayed again on its next message.</value>
+  </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Clear greylisting triplets</value>
   </data>
@@ -3458,6 +3461,18 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
     <value>Delete every folder and message in the mailbox of {0}? There is no undo.</value>
+  </data>
+  <data name="Delete every message trace event older than a day? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Delete every message trace event older than a day? The messages they describe can then no longer be followed here.</value>
+  </data>
+  <data name="Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here." xml:space="preserve">
+    <value>Delete every message trace event older than {0} days? The messages they describe can then no longer be followed here.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Delete every quarantined message held longer than a day? The senders were told they were accepted, so nothing will retry and there is no other copy.</value>
+  </data>
+  <data name="Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Delete every quarantined message held longer than {0} days? The senders were told they were accepted, so nothing will retry and there is no other copy.</value>
   </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Delete folder</value>
@@ -6646,6 +6661,9 @@ Nothing already there is removed.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>No accounts in this domain yet.</value>
   </data>
+  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
+    <value>No active account in an active domain matches {0}, so nobody would receive the message.</value>
+  </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>No active domain, so there is nothing to publish yet.</value>
   </data>
@@ -8647,8 +8665,20 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Release" xml:space="preserve">
     <value>Release</value>
   </data>
+  <data name="Release the checked message to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Release the checked message to its recipients? It is delivered at once.</value>
+  </data>
   <data name="Release the checked messages" xml:space="preserve">
     <value>Release the checked messages</value>
+  </data>
+  <data name="Release the message from {0} to its recipients? It is delivered at once." xml:space="preserve">
+    <value>Release the message from {0} to its recipients? It is delivered at once.</value>
+  </data>
+  <data name="Release the {0} checked messages to their recipients? They are delivered at once." xml:space="preserve">
+    <value>Release the {0} checked messages to their recipients? They are delivered at once.</value>
+  </data>
+  <data name="Release the {0} messages from {1} to their recipients? They are delivered at once." xml:space="preserve">
+    <value>Release the {0} messages from {1} to their recipients? They are delivered at once.</value>
   </data>
   <data name="Release this group" xml:space="preserve">
     <value>Release this group</value>
@@ -8694,6 +8724,15 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
     <value>Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told.</value>
+  </data>
+  <data name="Remove the entry for anyone from the folder {0}? The rights it gives end at once." xml:space="preserve">
+    <value>Remove the entry for anyone from the folder {0}? The rights it gives end at once.</value>
+  </data>
+  <data name="Remove the entry for the group {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>Remove the entry for the group {0} from the folder {1}? The rights it gives end at once.</value>
+  </data>
+  <data name="Remove the entry for {0} from the folder {1}? The rights it gives end at once." xml:space="preserve">
+    <value>Remove the entry for {0} from the folder {1}? The rights it gives end at once.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Remove the journaling rule for {0}? What it has already sent stays where it was sent.</value>
@@ -9824,14 +9863,20 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Send the conditions marked for the digest in one daily message" xml:space="preserve">
     <value>Send the conditions marked for the digest in one daily message</value>
   </data>
-  <data name="Send this message to all accounts matching '{0}'?" xml:space="preserve">
-    <value>Send this message to all accounts matching '{0}'?</value>
-  </data>
   <data name="Send using route" xml:space="preserve">
     <value>Send using route</value>
   </data>
   <data name="Send webhook events" xml:space="preserve">
     <value>Send webhook events</value>
+  </data>
+  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
+    <value>Send “{0}” to every active account matching {1}?</value>
+  </data>
+  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
+    <value>Send “{0}” to the one active account matching {1}?</value>
+  </data>
+  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
+    <value>Send “{0}” to the {1} active accounts matching {2}?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Sender</value>
@@ -11742,6 +11787,9 @@ Add it anyway?</value>
   <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
     <value>The rest are still waiting; run this again or leave the schedule to catch up.</value>
   </data>
+  <data name="The retention is 0, which keeps everything: nothing is ever old enough to remove." xml:space="preserve">
+    <value>The retention is 0, which keeps everything: nothing is ever old enough to remove.</value>
+  </data>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>The retry counts and intervals are here, along with what happens when they run out.</value>
   </data>
@@ -13230,6 +13278,9 @@ It will keep trying as you use the application.</value>
   <data name="Write operational events to the Windows Application log" xml:space="preserve">
     <value>Write operational events to the Windows Application log</value>
   </data>
+  <data name="Write the message first: an empty one is not sent." xml:space="preserve">
+    <value>Write the message first: an empty one is not sent.</value>
+  </data>
   <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
     <value>Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above.</value>
   </data>
@@ -13790,6 +13841,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay host (empty = use the server-wide relayer)</value>
+  </data>
+  <data name="_Release" xml:space="preserve">
+    <value>_Release</value>
   </data>
   <data name="_Reload" xml:space="preserve">
     <value>_Reload</value>

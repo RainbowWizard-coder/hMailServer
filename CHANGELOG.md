@@ -1269,6 +1269,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   drawn as the list pages' destructive action, red words on a secondary button, and asks first - *Take the role
   helpdesk away from helen@example.test? The account keeps only what its admin level gives it.* - with Cancel the
   answer Enter gives.
+- **Fixed: several acts that cannot be undone ran at the first press.** A public folder's permission entry was removed
+  at once (and a press with nothing chosen did nothing, silently); the quarantine released a whole group, or every
+  checked message, at once, and its *Remove expired* deleted everything past the retention window, even at a window of
+  0; *Clear greylisting triplets* dropped every record, so every known sender is delayed again; the message trace's
+  *Remove expired* deleted its events; and the server sendout asked to send to *all accounts matching '*'* without
+  saying how many, and sent an empty message. Each now asks first, naming what it acts on, with Cancel the answer
+  Enter gives: the entry's account, group or *anyone* and the folder; the group's sender or HELO domain, or the
+  checked messages, and how many; the retention window in days, where *Remove expired* - on the quarantine and on the
+  trace alike - cannot be pressed at a window of 0 and says why in its tool tip; and the sendout's subject, the
+  wildcard and how many active accounts of active domains it reaches, counted as the server counts them, saying so and
+  sending nothing where that is none. An empty message is refused on its field.
 
 ### Administration
 
