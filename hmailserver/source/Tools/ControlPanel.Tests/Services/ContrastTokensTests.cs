@@ -313,6 +313,77 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      // ---- A text field at rest (F189) --------------------------------------------
+
+      /// <summary>
+      /// A text field's bottom edge clears 3:1 (WCAG 2.2, SC 1.4.11) against
+      /// every surface a field sits on and against the field's own fill, at rest
+      /// and under the pointer - the line is drawn over what is behind the
+      /// field, and the fill is inside it. Fluent's own measured 1.5 to 1.7:1,
+      /// and its outline 1.1:1. The outline round the top and sides stays the
+      /// theme's subtle stroke.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(LightAndDark))]
+      public void ATextFieldsBottomEdgeClearsThreeToOneOnEverySurfaceAndOnItsFill(ChartTheme theme)
+      {
+         DesignTokens.TextFieldStrokeArgb? stroke = DesignTokens.TextFieldStroke(theme);
+         Assert.True(stroke.HasValue, theme + " has no text field border of its own.");
+
+         bool light = theme == ChartTheme.Light;
+         // WPF-UI's TextControlBackground and TextControlBackgroundPointerOver.
+         (uint rest, uint pointer) = light ? (0xB3FFFFFFu, 0x80F9F9F9u) : (0x0FFFFFFFu, 0x15FFFFFFu);
+
+         foreach ((string name, uint surface) in Surfaces(theme).Where(s => s.Name is "the page" or "a card" or "a dialog" or "a dialog's darkest"))
+         {
+            uint edge = Over(stroke.Value.Edge, surface);
+
+            double onSurface = ChartPalette.ContrastRatio(edge, surface);
+            Assert.True(onSurface >= 3.0, $"{theme}: a field's bottom edge is {onSurface:F2}:1 on {name} ({surface:X8}), under 3:1.");
+
+            foreach ((string state, uint fill) in new[] { ("at rest", rest), ("under the pointer", pointer) })
+            {
+               double onFill = ChartPalette.ContrastRatio(edge, Over(fill, surface));
+               Assert.True(onFill >= 3.0, $"{theme}: on {name} a field's bottom edge is {onFill:F2}:1 against its fill {state}, under 3:1.");
+            }
+         }
+
+         // The outline stays the theme's subtle stroke: translucent and faint.
+         Assert.InRange(stroke.Value.Outline >> 24, 1u, 0x20u);
+      }
+
+      /// <summary>Under High Contrast the theme's own border stands: there is no value to publish.</summary>
+      [Fact]
+      public void UnderHighContrastATextFieldKeepsTheThemesBorder()
+      {
+         Assert.Null(DesignTokens.TextFieldStroke(ChartTheme.HighContrast));
+      }
+
+      /// <summary>
+      /// ThemeTokens republishes the theme's own key the text box, password box
+      /// and number box draw their border in, and takes it away under High
+      /// Contrast; App.xaml gives the date picker the same border on all four
+      /// sides, where WPF-UI drew it with the buttons' border and no bottom edge.
+      /// </summary>
+      [Fact]
+      public void TheTextFieldsAndTheDatePickerTakeTheBorderWithTheStrongBottomEdge()
+      {
+         string themeTokens = ReadControlPanelFile(Path.Join("Services", "ThemeTokens.cs"));
+         string app = ReadControlPanelFile("App.xaml");
+         if (themeTokens == null || app == null)
+            return;
+
+         Assert.Contains("PublishValue(\"TextControlElevationBorderBrush\", TextFieldBorder_(fieldStroke))", themeTokens, StringComparison.Ordinal);
+         Assert.Contains("Resources.Remove(\"TextControlElevationBorderBrush\")", themeTokens, StringComparison.Ordinal);
+
+         XElement style = XDocument.Parse(app).Root.Descendants(Wpf + "Style")
+            .Single(s => (string)s.Attribute("TargetType") == "DatePicker" && s.Attribute(X + "Key") == null);
+         Assert.Equal("{StaticResource DefaultDatePickerStyle}", (string)style.Attribute("BasedOn"));
+         var setters = style.Elements(Wpf + "Setter").ToDictionary(s => (string)s.Attribute("Property"), s => (string)s.Attribute("Value"));
+         Assert.Equal("{DynamicResource TextControlElevationBorderBrush}", setters["BorderBrush"]);
+         Assert.Equal("1", setters["BorderThickness"]);
+      }
+
       // ---- helpers ---------------------------------------------------------------
 
       private static readonly XNamespace Wpf = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";

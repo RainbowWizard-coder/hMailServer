@@ -322,6 +322,19 @@ namespace hMailServer.ControlPanel.Services
          Publish("AppDangerSolidPressedBrush", FromArgb(dangerSolid.Pressed));
          Publish("AppOnDangerSolidBrush", FromArgb(dangerSolid.Text));
 
+         // A text field's border at rest (DesignTokens.TextFieldStroke): the
+         // theme's own key, which the text box, password box and number box draw
+         // their border in (and the date picker, through App.xaml's style), set
+         // on the application's own dictionary so that it shadows the theme's.
+         // Fluent's drew the outline at 1.1:1 and the bottom edge at 1.5 to 1.7:1
+         // on the card; the bottom edge is the theme's strong stroke now, 3:1 or
+         // more. Under High Contrast the key is taken away again, handing the
+         // theme its own.
+         if (DesignTokens.TextFieldStroke(CurrentChartTheme) is DesignTokens.TextFieldStrokeArgb fieldStroke)
+            PublishValue("TextControlElevationBorderBrush", TextFieldBorder_(fieldStroke));
+         else
+            Application.Current?.Resources.Remove("TextControlElevationBorderBrush");
+
          Publish("LogDefaultBrush", logDefault);
          Publish("LogSmtpBrush", logSmtp);
          Publish("LogImapBrush", logImap);
@@ -412,6 +425,29 @@ namespace hMailServer.ControlPanel.Services
          if (Application.Current == null)
             return;
          Application.Current.Resources[key] = new SolidColorBrush(color);
+      }
+
+      /// <summary>
+      /// A text field's border: the shape of Fluent's own elevation border - a
+      /// gradient three pixels tall, in absolute units, flipped to run from the
+      /// bottom edge up - with the bottom pixel row in the edge colour and
+      /// everything above it in the outline colour, the two meeting at a hard
+      /// stop, so that the sides keep the subtle outline and the bottom edge is
+      /// the line a reader finds the field by.
+      /// </summary>
+      private static Brush TextFieldBorder_(DesignTokens.TextFieldStrokeArgb stroke)
+      {
+         var brush = new LinearGradientBrush
+         {
+            MappingMode = BrushMappingMode.Absolute,
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(0, 3),
+            RelativeTransform = new ScaleTransform(1, -1, 0, 0.5)
+         };
+         brush.GradientStops.Add(new GradientStop(FromArgb(stroke.Edge), 1.0 / 3));
+         brush.GradientStops.Add(new GradientStop(FromArgb(stroke.Outline), 1.0 / 3));
+         brush.Freeze();
+         return brush;
       }
 
       private static void PublishValue(string key, object value)

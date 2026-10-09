@@ -506,6 +506,19 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- The date picker drawn with the text field's border: WPF-UI gives
+                 it the buttons' elevation border with no bottom edge (1,1,1,0),
+                 and its bottom is then only the faint line under the box, 1.1:1
+                 on its card. The text fields' border, which ThemeTokens
+                 republishes with the theme's strong stroke as its bottom edge
+                 (DesignTokens.TextFieldStroke), on all four sides gives it the
+                 edge a text box has, 3:1 or more; under High Contrast the key is
+                 the theme's own. -->
+            <Style TargetType="DatePicker" BasedOn="{StaticResource DefaultDatePickerStyle}">
+                <Setter Property="BorderBrush" Value="{DynamicResource TextControlElevationBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Style>
+
             <!-- A secondary button whose action destroys something - Delete,
                  Delete selected - with its words in the danger colour while it
                  can be pressed. A style setter, not a local Foreground: the

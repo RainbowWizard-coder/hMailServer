@@ -1327,6 +1327,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   every one 4.5:1 or more; under High Contrast it is the window text with the window colour on it. One style gives it
   to every such button, so a button needs only its appearance, and the Control Panel's tests measure every state.
 
+- **Fixed: the Control Panel's text fields had no edge a reader could see at rest.** Fluent's own border drew a
+  field's outline at 1.1:1 against its card and its bottom edge at 1.5 to 1.7:1, so that an empty field - the Note
+  box of the suppression dialog, a route's host name - read as a faint band on the card, while the tick boxes beside
+  it measured 5.8:1. Every text box, password box, number box and the date picker now has the theme's strong stroke
+  along its bottom edge, the line Fluent itself finds a field by, which clears 3:1 against the card, the page, a
+  dialog and the field's own fill in both themes; the outline round the top and sides stays as faint as it was, a
+  focused field keeps its accent line and focus ring, and under High Contrast the theme's own border stands. The date
+  picker, which had the buttons' border and no bottom edge at all, takes the text fields' border.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

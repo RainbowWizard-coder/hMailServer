@@ -532,5 +532,47 @@ namespace hMailServer.ControlPanel.Services
                return new DangerSolidArgb(StatusPalette.DarkDanger, 0xFFFA6B64, 0xFFE5534B, 0xFF1B1B1B);
          }
       }
+
+      /// <summary>
+      /// A text field's border at rest, as 0xAARRGGBB: its bottom edge, and the
+      /// rest of its outline. Fluent's own drew a field's outline at 1.1:1 and
+      /// its bottom edge at 1.5 to 1.7:1, so that an empty field was a faint band
+      /// on its card; the bottom edge is now the theme's strong stroke
+      /// (ControlStrongStrokeColorDefault), 3:1 or more against the card, the
+      /// page, a dialog and the field's own fill, which is what a reader finds a
+      /// field by, and the outline stays the theme's subtle one
+      /// (ControlStrokeColorDefault). The focused field keeps its accent line and
+      /// FocusGlow's ring. Null under High Contrast, whose own border stands.
+      /// </summary>
+      public readonly struct TextFieldStrokeArgb
+      {
+         public TextFieldStrokeArgb(uint edge, uint outline)
+         {
+            Edge = edge;
+            Outline = outline;
+         }
+
+         /// <summary>The bottom edge, one pixel, translucent over what the field sits on.</summary>
+         public uint Edge { get; }
+
+         /// <summary>The top and sides.</summary>
+         public uint Outline { get; }
+      }
+
+      /// <summary>The text field's border at rest for a theme, or null to keep the theme's own (<see cref="TextFieldStrokeArgb"/>).</summary>
+      public static TextFieldStrokeArgb? TextFieldStroke(ChartTheme theme)
+      {
+         switch (theme)
+         {
+            case ChartTheme.HighContrast:
+               return null;
+
+            case ChartTheme.Light:
+               return new TextFieldStrokeArgb(0x72000000, 0x0F000000);
+
+            default:
+               return new TextFieldStrokeArgb(0x8BFFFFFF, 0x12FFFFFF);
+         }
+      }
    }
 }
