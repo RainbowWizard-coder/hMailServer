@@ -8373,6 +8373,9 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Odczytane z [Directories] LogFolder w hMailServer.INI; ten folder nie jest czytelny z tego komputera - Control Panel działa gdzie indziej niż serwer.</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>Odczytano z pliku</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Odczytane z serwera. Wartości są odczytywane ponownie przy każdym otwarciu tej strony.</value>
   </data>

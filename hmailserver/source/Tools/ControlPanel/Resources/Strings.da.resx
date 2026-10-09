@@ -8295,6 +8295,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Læst fra [Directories] LogFolder i hMailServer.INI, som ikke kan læses fra denne maskine - Control Panel kører et andet sted end serveren.</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>Læst fra fil</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Læst fra serveren. Værdierne læses igen, hver gang denne side åbnes.</value>
   </data>

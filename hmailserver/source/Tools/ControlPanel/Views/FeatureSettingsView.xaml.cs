@@ -3013,20 +3013,21 @@ namespace hMailServer.ControlPanel.Views
 
          // The server could not be asked, and the values on screen are the ones in
          // hMailServer.ini on this computer: the server's cache of its settings
-         // store, which may not be what it runs. Said beside a pill that says Not
-         // connected, and Save waits for the server, which every write needs -
-         // where the page looked as it always did, Save and all. Said at the level
-         // its cause has (ComErrorText.LevelFor): a lost link is Critical, as the
-         // shell's pill, the Dashboard and the setup checklist say it, and an older
-         // server without GetIniSetting, which answered, is a Warning.
+         // store, which may not be what it runs. Save waits for the server, which
+         // every write needs - where the page looked as it always did, Save and
+         // all. The pill and the notice say it in the state its cause makes
+         // (SettingsPageStatus.ForFallback), at that state's level, which is the
+         // cause's (ComErrorText.LevelFor): a lost link is Connection lost at
+         // Critical, as the shell's pill, the Dashboard and the setup checklist say
+         // it, and an older server without GetIniSetting, which answered and is
+         // connected, is Read from file at Warning.
          if (store_.FallbackCause != null)
          {
             PathText.Text = F("Read from {0} on this computer.", store_.IniPath);
             SaveButton.IsEnabled = false;
-            SetState_(SettingsPageState.NotConnected,
+            SetState_(SettingsPageStatus.ForFallback(store_.FallbackCause),
                F("The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers.",
-                  ServerSession.DescribeComError(store_.FallbackCause)),
-               ComErrorText.LevelFor(store_.FallbackCause));
+                  ServerSession.DescribeComError(store_.FallbackCause)));
             return;
          }
 

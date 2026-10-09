@@ -18,7 +18,8 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// telling the page, which then looked as it always did - "Editing ...", Save
    /// enabled - with the file's values, which are the server's cache and may not be
    /// what it runs. IniFeatureStore now remembers the fall-back and its cause, and
-   /// FeatureSettingsView says so, sets its pill to Not connected and holds Save.
+   /// FeatureSettingsView says so, in a pill and a notice at the cause's level, and
+   /// holds Save.
    /// </summary>
    public class IniFallbackTests : IDisposable
    {
@@ -75,9 +76,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The page reads afresh each build, says a fall-back at the level its cause has
-      /// - Critical for a lost link, Warning for an older server - beside a pill that
-      /// says Not connected and holds Save, refuses a save it cannot make, and no
+      /// The page reads afresh each build, says a fall-back in its pill and its notice
+      /// at the level its cause has - Connection lost at Critical for a lost link, Read
+      /// from file at Warning for an older server - and holds Save, refuses a save it
+      /// cannot make, and no
       /// longer claims to edit the file: its line says the settings database, and its
       /// subtitles do not name hMailServer.INI.
       /// </summary>
@@ -92,11 +94,16 @@ namespace hMailServer.ControlPanel.Tests.Services
          int editors = build.IndexOf("setting.CreateEditor(store_)", StringComparison.Ordinal);
          Assert.True(forget >= 0 && forget < editors, "BuildUi does not forget the last build's fall-back before it reads again.");
 
-         // The notice's level is the cause's: one lost link, one level, on every page.
+         // The pill and the notice are in the state the cause makes, at that state's
+         // level, which is the cause's: one lost link, one level, on every page and in
+         // both places on this one - no level of the notice's own beside the pill's.
          Match fallBack = Regex.Match(build, @"if \(store_\.FallbackCause != null\)\s*\{.*?return;", RegexOptions.Singleline);
          Assert.True(fallBack.Success, "BuildUi has no fall-back branch.");
-         Assert.Matches(new Regex(@"SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageState\.NotConnected,.*?,\s*ComErrorText\.LevelFor\(store_\.FallbackCause\)\);\s*return;", RegexOptions.Singleline), fallBack.Value);
+         Match state = Regex.Match(fallBack.Value, @"SaveButton\.IsEnabled = false;\s*SetState_\(SettingsPageStatus\.ForFallback\(store_\.FallbackCause\),(.*?)\);\s*return;", RegexOptions.Singleline);
+         Assert.True(state.Success, "The fall-back's pill is not in the state its cause makes.");
          Assert.DoesNotContain("StatusLevel.", fallBack.Value, StringComparison.Ordinal);
+         Assert.DoesNotContain("LevelFor(", state.Groups[1].Value, StringComparison.Ordinal);
+         Assert.DoesNotContain("SettingsPageState.NotConnected", fallBack.Value, StringComparison.Ordinal);
          Assert.Contains("ServerSession.DescribeComError(store_.FallbackCause)", build, StringComparison.Ordinal);
          Assert.Contains("L(\"Stored in the server's settings database.\")", build, StringComparison.Ordinal);
          Assert.DoesNotContain("Editing {0}", source, StringComparison.Ordinal);

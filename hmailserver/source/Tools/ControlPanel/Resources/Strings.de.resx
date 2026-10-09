@@ -8295,6 +8295,9 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Gelesen aus [Directories] LogFolder in hMailServer.INI, was von diesem Rechner aus nicht lesbar ist - das Control Panel läuft nicht auf dem Server.</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>Aus Datei gelesen</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Vom Server gelesen. Die Werte werden jedes Mal neu gelesen, wenn diese Seite geöffnet wird.</value>
   </data>

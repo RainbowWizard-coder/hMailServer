@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -41,11 +42,22 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The restart failed; the file holds the new values, the running service the old.</summary>
       RestartFailed,
 
-      /// <summary>The service came back but the Control Panel could not reattach to it.</summary>
+      /// <summary>
+      /// The link to the service has gone - it did not come back to the Control Panel
+      /// after a restart, or a read found it gone and the editors show hMailServer.ini
+      /// on this computer. The shell's "Connection lost", at its level.
+      /// </summary>
       NotConnected,
 
       /// <summary>The service restarted with the saved values.</summary>
-      Applied
+      Applied,
+
+      /// <summary>
+      /// The server answered but could not give these settings - one older than
+      /// GetIniSetting - and the editors show hMailServer.ini on this computer, which
+      /// may not be what it runs; nothing can be saved.
+      /// </summary>
+      ReadFromFile
    }
 
    /// <summary>
@@ -73,7 +85,8 @@ namespace hMailServer.ControlPanel.Services
          SettingsPageState.Restarting,
          SettingsPageState.RestartFailed,
          SettingsPageState.NotConnected,
-         SettingsPageState.Applied
+         SettingsPageState.Applied,
+         SettingsPageState.ReadFromFile
       };
 
       /// <summary>
@@ -82,8 +95,11 @@ namespace hMailServer.ControlPanel.Services
       /// restart is information: it is written, and what is left is a step the reader
       /// takes when it suits, never a fault. Restarting is a warning because the values
       /// on screen are not yet the server's; a failed restart is critical because the
-      /// file and the service now disagree; a lost reattach is a warning because the
-      /// settings are live but the page cannot see the server.
+      /// file and the service now disagree. A lost link is critical, the level the
+      /// shell's pill and every other page give it (ComErrorText.LevelFor) - it was a
+      /// warning here, beside a Critical notice about the same link - and values read
+      /// from the file because a server that answered could not give them are a
+      /// warning, as a server that answered is on every page.
       /// </summary>
       public static StatusLevel LevelFor(SettingsPageState state)
       {
@@ -97,15 +113,28 @@ namespace hMailServer.ControlPanel.Services
                return StatusLevel.Information;
             case SettingsPageState.Unsaved:
             case SettingsPageState.Restarting:
-            case SettingsPageState.NotConnected:
+            case SettingsPageState.ReadFromFile:
                return StatusLevel.Warning;
             case SettingsPageState.Unavailable:
             case SettingsPageState.RestartFailed:
+            case SettingsPageState.NotConnected:
                return StatusLevel.Critical;
             default:
                return StatusLevel.Normal;
          }
       }
+
+      /// <summary>
+      /// The state of a page whose read fell back to hMailServer.ini on this
+      /// computer, from the read's cause: a lost link is the link's state, and a
+      /// server that answered without the values is the file's. Its level is the
+      /// cause's (ComErrorText.LevelFor), so that the pill and the notice beside it
+      /// say the one event at one level, and its word is true of the cause - a
+      /// server that answered is connected, and was said to be Not connected while
+      /// the shell's pill said Connected.
+      /// </summary>
+      public static SettingsPageState ForFallback(Exception cause)
+         => ComErrorText.IsTransportFailure(cause) ? SettingsPageState.NotConnected : SettingsPageState.ReadFromFile;
 
       /// <summary>The word on the pill; empty for the state that shows none.</summary>
       public static string WordFor(SettingsPageState state)
@@ -127,9 +156,11 @@ namespace hMailServer.ControlPanel.Services
             case SettingsPageState.RestartFailed:
                return L("Not restarted");
             case SettingsPageState.NotConnected:
-               return L("Not connected");
+               return L("Connection lost");
             case SettingsPageState.Applied:
                return L("Applied");
+            case SettingsPageState.ReadFromFile:
+               return L("Read from file");
             default:
                return "";
          }

@@ -8295,6 +8295,9 @@
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>hMailServer.INI の [Directories] LogFolder から読み取りますが、このコンピューターからは読み取れません。コントロールパネルがサーバー以外の場所で動作しています。</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>ファイルから読み取り</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>サーバーから読み取りました。値はこのページを開くたびに読み取り直されます。</value>
   </data>

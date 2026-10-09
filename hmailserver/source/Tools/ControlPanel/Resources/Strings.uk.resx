@@ -8373,6 +8373,9 @@
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Читається з LogFolder у розділі [Directories] файлу hMailServer.INI, який неможливо прочитати з цього комп’ютера — Панель керування працює не там, де сервер.</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>Прочитано з файлу</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Прочитано з сервера. Значення перечитуються щоразу, коли відкривається ця сторінка.</value>
   </data>

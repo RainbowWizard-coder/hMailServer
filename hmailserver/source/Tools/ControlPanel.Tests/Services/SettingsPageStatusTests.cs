@@ -61,8 +61,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(StatusLevel.Information, SettingsPageStatus.LevelFor(SettingsPageState.WaitsForRestart));
          // The values on screen are not yet the server's.
          Assert.Equal(StatusLevel.Warning, SettingsPageStatus.LevelFor(SettingsPageState.Restarting));
-         // The settings are live but the page cannot see the server.
-         Assert.Equal(StatusLevel.Warning, SettingsPageStatus.LevelFor(SettingsPageState.NotConnected));
+         // A server that answered could not give the values, and the file's are shown.
+         Assert.Equal(StatusLevel.Warning, SettingsPageStatus.LevelFor(SettingsPageState.ReadFromFile));
+         // The link to the service has gone: Critical, as the shell's pill says it.
+         Assert.Equal(StatusLevel.Critical, SettingsPageStatus.LevelFor(SettingsPageState.NotConnected));
          // The file and the running service disagree, or there is no file at all.
          Assert.Equal(StatusLevel.Critical, SettingsPageStatus.LevelFor(SettingsPageState.RestartFailed));
          Assert.Equal(StatusLevel.Critical, SettingsPageStatus.LevelFor(SettingsPageState.Unavailable));
@@ -127,6 +129,35 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(ServerSettingsPageStatus.WordFor(server), SettingsPageStatus.WordFor(ini));
          Assert.Equal(ServerSettingsPageStatus.LevelFor(server), SettingsPageStatus.LevelFor(ini));
          Assert.Equal(ServerSettingsPageStatus.ShowsPill(server), SettingsPageStatus.ShowsPill(ini));
+      }
+
+      /// <summary>
+      /// A page whose read fell back to hMailServer.ini says so in its pill at the
+      /// level of the read's cause, the level of the notice beside it: a lost link is
+      /// the shell's Connection lost at Critical, and a server that answered - one
+      /// without GetIniSetting - is Read from file at Warning, and is never said to be
+      /// not connected. Before, the pill was Not connected at Warning whatever the
+      /// cause, beside a Critical notice about the same lost link, and said Not
+      /// connected of a server the shell said was Connected.
+      /// </summary>
+      [Fact]
+      public void AFallBack_IsSaidAtTheLevelOfItsCause_InAWordTrueOfIt()
+      {
+         var lost = new System.Runtime.InteropServices.COMException("The RPC server is unavailable.", unchecked((int)0x800706BA));
+         var older = new System.Runtime.InteropServices.COMException("Unknown name.", unchecked((int)0x80020006));
+
+         foreach (Exception cause in new Exception[] { lost, older })
+            Assert.Equal(ComErrorText.LevelFor(cause), SettingsPageStatus.LevelFor(SettingsPageStatus.ForFallback(cause)));
+
+         Assert.Equal(SettingsPageState.NotConnected, SettingsPageStatus.ForFallback(lost));
+         Assert.Equal(StatusLevel.Critical, SettingsPageStatus.LevelFor(SettingsPageStatus.ForFallback(lost)));
+         Assert.Equal(ConnectionStatus.WordFor(LinkState.Lost), SettingsPageStatus.WordFor(SettingsPageStatus.ForFallback(lost)));
+
+         Assert.Equal(SettingsPageState.ReadFromFile, SettingsPageStatus.ForFallback(older));
+         Assert.Equal(StatusLevel.Warning, SettingsPageStatus.LevelFor(SettingsPageStatus.ForFallback(older)));
+         string word = SettingsPageStatus.WordFor(SettingsPageStatus.ForFallback(older));
+         Assert.NotEqual(ConnectionStatus.WordFor(LinkState.Lost), word);
+         Assert.NotEqual(ConnectionStatus.WordFor(LinkState.NotConnected), word);
       }
    }
 }

@@ -8295,6 +8295,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>hMailServer.INI'deki [Directories] LogFolder'dan okunur; bu makineden okunamıyor - Denetim Masası sunucudan başka bir yerde çalışıyor.</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>Dosyadan okundu</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Sunucudan okundu. Değerler bu sayfa her açıldığında yeniden okunur.</value>
   </data>

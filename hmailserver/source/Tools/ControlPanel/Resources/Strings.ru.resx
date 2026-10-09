@@ -8373,6 +8373,9 @@ Control Panel может читать файлы сообщений только
   <data name="Read from [Directories] LogFolder in hMailServer.INI, which is not readable from this machine - the Control Panel is running somewhere other than the server." xml:space="preserve">
     <value>Прочитано из параметра LogFolder в разделе [Directories] файла hMailServer.INI, который недоступен для чтения с этого компьютера — Control Panel работает не на сервере.</value>
   </data>
+  <data name="Read from file" xml:space="preserve">
+    <value>Прочитано из файла</value>
+  </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Прочитано с сервера. Значения перечитываются при каждом открытии этой страницы.</value>
   </data>
