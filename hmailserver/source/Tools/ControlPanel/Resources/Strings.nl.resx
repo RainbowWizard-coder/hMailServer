@@ -870,8 +870,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Accounts in de groep {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Accounts die als directorygekoppeld zijn gemarkeerd, melden zich aan met hun domeinwachtwoord via een LDAP-bind - anders dan Windows-aanmelding werkt dit vanaf een host die geen lid is van het domein, wat de gebruikelijke situatie is voor een mailserver in een DMZ. Bewerkt de sectie [LDAP] van hMailServer.INI; de server leest die sectie binnen twee seconden na opslaan opnieuw, dus een herstart van de service is niet nodig.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Accounts die als directorygekoppeld zijn gemarkeerd, melden zich aan met hun domeinwachtwoord via een LDAP-bind - anders dan Windows-aanmelding werkt dit vanaf een host die geen lid is van het domein, wat de gebruikelijke situatie is voor een mailserver in een DMZ. Bewerkt de sectie [LDAP] van hMailServer.INI; de server leest die sectie binnen twee seconden na opslaan opnieuw, dus deze instellingen hebben geen herstart van de service nodig.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Accounts die als directorygekoppeld zijn gemarkeerd. Die helft zit al in deze GUI: open Domeinen, bewerk het account, en vink op het tabblad Directory de optie Active Directory aan en vul de AD-gebruikersnaam in - de sAMAccountName, wat %u draagt. Accounts zonder die markering houden hun gewone hMailServer-wachtwoord en raken de directory nooit aan.</value>
@@ -4162,8 +4162,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Editing {0}" xml:space="preserve">
     <value>{0} wordt bewerkt</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>{0} wordt bewerkt - opgeslagen wijzigingen zijn binnen twee seconden actief; geen herstart van de service.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>{0} wordt bewerkt - opgeslagen wijzigingen zijn binnen twee seconden actief.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Beide</value>

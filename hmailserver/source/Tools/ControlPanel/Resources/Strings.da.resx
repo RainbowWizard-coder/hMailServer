@@ -870,8 +870,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Konti i gruppen {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Konti, der er markeret som katalogtilknyttede, logger på med deres domæneadgangskode via en LDAP-binding – i modsætning til Windows-logon virker dette fra en vært, der ikke er meldt ind i domænet, hvilket er den normale situation for en mailserver i en DMZ. Redigerer sektionen [LDAP] i hMailServer.INI; serveren genlæser den sektion inden for to sekunder efter en lagring, så en genstart af tjenesten er ikke nødvendig.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Konti, der er markeret som katalogtilknyttede, logger på med deres domæneadgangskode via en LDAP-binding – i modsætning til Windows-logon virker dette fra en vært, der ikke er meldt ind i domænet, hvilket er den normale situation for en mailserver i en DMZ. Redigerer sektionen [LDAP] i hMailServer.INI; serveren genlæser den sektion inden for to sekunder efter en lagring, så disse indstillinger kræver ingen genstart af tjenesten.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Konti, der er markeret som katalogtilknyttede. Den halvdel findes allerede i denne grafiske brugerflade: åbn Domæner, redigér kontoen, sæt på dens fane Katalog hak ved Active Directory-indstillingen, og udfyld AD-brugernavnet – sAMAccountName, som er det, %u indeholder. Konti uden den markering beholder deres almindelige hMailServer-adgangskode og rører aldrig kataloget.</value>
@@ -4162,8 +4162,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Editing {0}" xml:space="preserve">
     <value>Redigerer {0}</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>Redigerer {0} - gemte ændringer er aktive inden for to sekunder; ingen genstart af tjenesten.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>Redigerer {0} - gemte ændringer er aktive inden for to sekunder.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Begge</value>

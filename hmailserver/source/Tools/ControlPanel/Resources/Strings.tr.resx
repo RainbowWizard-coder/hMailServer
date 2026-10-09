@@ -870,8 +870,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>{0} grubundaki hesaplar</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Dizine bağlı olarak işaretlenen hesaplar, etki alanı parolalarıyla bir LDAP bind üzerinden oturum açar - Windows oturum açmasından farklı olarak bu, etki alanına katılmamış bir ana bilgisayardan da çalışır; DMZ'deki bir posta sunucusunun olağan durumu da budur. hMailServer.INI dosyasının [LDAP] bölümünü düzenler; sunucu bu bölümü kaydetmenizden sonraki iki saniye içinde yeniden okur, dolayısıyla hizmetin yeniden başlatılması gerekmez.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Dizine bağlı olarak işaretlenen hesaplar, etki alanı parolalarıyla bir LDAP bind üzerinden oturum açar - Windows oturum açmasından farklı olarak bu, etki alanına katılmamış bir ana bilgisayardan da çalışır; DMZ'deki bir posta sunucusunun olağan durumu da budur. hMailServer.INI dosyasının [LDAP] bölümünü düzenler; sunucu bu bölümü kaydetmenizden sonraki iki saniye içinde yeniden okur, dolayısıyla bu ayarlar hizmetin yeniden başlatılmasını gerektirmez.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Dizine bağlı olarak işaretlenen hesaplar. Bu tarafı zaten bu arayüzde mevcut: Etki alanları'nı açın, hesabı düzenleyin ve Dizin sekmesinde Active Directory seçeneğini işaretleyip AD kullanıcı adını girin - yani %u ile taşınan sAMAccountName. Bu işareti taşımayan hesaplar olağan hMailServer parolalarını korur ve dizine hiç dokunmaz.</value>
@@ -4162,8 +4162,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Editing {0}" xml:space="preserve">
     <value>{0} düzenleniyor</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>{0} düzenleniyor - kaydedilen değişiklikler iki saniye içinde geçerli olur; hizmetin yeniden başlatılması gerekmez.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>{0} düzenleniyor - kaydedilen değişiklikler iki saniye içinde geçerli olur.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Her ikisi</value>

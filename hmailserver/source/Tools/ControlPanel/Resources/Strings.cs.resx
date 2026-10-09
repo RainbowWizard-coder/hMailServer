@@ -876,8 +876,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Účty ve skupině {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Účty označené jako propojené s adresářem se přihlašují svým doménovým heslem přes LDAP bind – na rozdíl od přihlášení přes Windows to funguje i z hostitele, který není připojen k doméně, což je obvyklá situace poštovního serveru v DMZ. Upravuje sekci [LDAP] v hMailServer.INI; server tuto sekci znovu načte do dvou sekund od uložení, takže restart služby není potřeba.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Účty označené jako propojené s adresářem se přihlašují svým doménovým heslem přes LDAP bind – na rozdíl od přihlášení přes Windows to funguje i z hostitele, který není připojen k doméně, což je obvyklá situace poštovního serveru v DMZ. Upravuje sekci [LDAP] v hMailServer.INI; server tuto sekci znovu načte do dvou sekund od uložení, takže tato nastavení nevyžadují restart služby.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Účty označené jako propojené s adresářem. Tato polovina už v tomto GUI je: otevřete Domény, upravte účet a na jeho kartě Adresář zaškrtněte volbu Active Directory a vyplňte uživatelské jméno v AD – sAMAccountName, což je to, co nese %u. Účty bez tohoto označení si ponechají své běžné heslo hMailServeru a adresáře se nikdy nedotknou.</value>
@@ -4208,8 +4208,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Editing {0}" xml:space="preserve">
     <value>Úprava {0}</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>Úprava {0} - uložené změny jsou živé do dvou sekund; bez restartu služby.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>Úprava {0} - uložené změny jsou živé do dvou sekund.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Obojí</value>

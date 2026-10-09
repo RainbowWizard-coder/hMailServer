@@ -870,8 +870,8 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>グループ {0} のアカウント</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでログオンします。Windows のログオンとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.INI の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、サービスの再起動は不要です。</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでログオンします。Windows のログオンとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.INI の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、これらの設定にはサービスの再起動は不要です。</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その「ディレクトリ」タブで Active Directory のオプションをオンにして、AD のユーザー名 (sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
@@ -4162,8 +4162,8 @@
   <data name="Editing {0}" xml:space="preserve">
     <value>{0} を編集中</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>{0} を編集中 - 保存した変更は 2 秒以内に反映されます。サービスの再起動は不要です。</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>{0} を編集中 - 保存した変更は 2 秒以内に反映されます。</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>どちらでも</value>

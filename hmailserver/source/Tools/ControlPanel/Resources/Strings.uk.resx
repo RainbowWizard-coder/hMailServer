@@ -876,8 +876,8 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Облікові записи в групі {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Облікові записи, позначені як пов’язані з каталогом, входять зі своїм доменним паролем через прив’язку LDAP — на відміну від входу Windows, це працює з вузла, не приєднаного до домену, а саме така ситуація звичайна для поштового сервера в DMZ. Редагує розділ [LDAP] у hMailServer.INI; сервер перечитує цей розділ протягом двох секунд після збереження, тому перезапуск служби не потрібен.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Облікові записи, позначені як пов’язані з каталогом, входять зі своїм доменним паролем через прив’язку LDAP — на відміну від входу Windows, це працює з вузла, не приєднаного до домену, а саме така ситуація звичайна для поштового сервера в DMZ. Редагує розділ [LDAP] у hMailServer.INI; сервер перечитує цей розділ протягом двох секунд після збереження, тому ці параметри не потребують перезапуску служби.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Облікові записи, позначені як пов’язані з каталогом. Ця половина вже є в цьому графічному інтерфейсі: відкрийте «Домени», відредагуйте обліковий запис і на його вкладці «Каталог» установіть параметр Active Directory та заповніть ім’я користувача AD — sAMAccountName, саме його несе %u. Облікові записи без цієї позначки зберігають свій звичайний пароль hMailServer і ніколи не звертаються до каталогу.</value>
@@ -4208,8 +4208,8 @@
   <data name="Editing {0}" xml:space="preserve">
     <value>Редагування {0}</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>Редагування {0} - збережені зміни діють протягом двох секунд; перезапуск служби не потрібен.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>Редагування {0} - збережені зміни діють протягом двох секунд.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Будь-який</value>

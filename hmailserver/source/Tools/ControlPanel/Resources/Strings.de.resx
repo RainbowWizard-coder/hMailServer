@@ -870,8 +870,8 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Konten in der Gruppe {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Als verzeichnisgebunden markierte Konten melden sich mit ihrem Domänenpasswort über einen LDAP-Bind an - anders als bei der Windows-Anmeldung funktioniert das von einem Host aus, der der Domäne nicht beigetreten ist, was für einen Mailserver in einer DMZ die übliche Lage ist. Bearbeitet den Abschnitt [LDAP] von hMailServer.INI; der Server liest diesen Abschnitt innerhalb von zwei Sekunden nach dem Speichern neu ein, ein Neustart des Dienstes ist also nicht nötig.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Als verzeichnisgebunden markierte Konten melden sich mit ihrem Domänenpasswort über einen LDAP-Bind an - anders als bei der Windows-Anmeldung funktioniert das von einem Host aus, der der Domäne nicht beigetreten ist, was für einen Mailserver in einer DMZ die übliche Lage ist. Bearbeitet den Abschnitt [LDAP] von hMailServer.INI; der Server liest diesen Abschnitt innerhalb von zwei Sekunden nach dem Speichern neu ein, diese Einstellungen brauchen also keinen Neustart des Dienstes.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Als verzeichnisgebunden markierte Konten. Diese Hälfte lebt bereits in dieser Oberfläche: öffnen Sie Domains, bearbeiten Sie das Konto, und kreuzen Sie auf seiner Registerkarte Verzeichnis die Option Active Directory an und tragen Sie den AD-Benutzernamen ein - den sAMAccountName, den %u trägt. Konten ohne diese Markierung behalten ihr gewöhnliches hMailServer-Passwort und berühren das Verzeichnis nie.</value>
@@ -4162,8 +4162,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Editing {0}" xml:space="preserve">
     <value>{0} wird bearbeitet</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>{0} wird bearbeitet - gespeicherte Änderungen sind innerhalb von zwei Sekunden aktiv; kein Neustart des Dienstes.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>{0} wird bearbeitet - gespeicherte Änderungen sind innerhalb von zwei Sekunden aktiv.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Beides</value>

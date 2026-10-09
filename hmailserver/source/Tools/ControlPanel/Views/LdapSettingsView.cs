@@ -56,7 +56,10 @@ namespace hMailServer.ControlPanel.Views
    ///    two seconds of the file's timestamp changing - deliberately, because the
    ///    thing being corrected is often the reason nobody can log in - so this page
    ///    says "live within two seconds" where the other pages say "restart the
-   ///    service".
+   ///    service". The one exception, the directory synchronisation schedule that
+   ///    switching directory access on can leave waiting for a restart, is the
+   ///    pill's and the notice's to say, so the caption and the subtitle claim no
+   ///    more than this page's own settings.
    /// </summary>
    public partial class LdapSettingsView : UserControl, IPageLifecycle
    {
@@ -161,7 +164,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(new PageHeader
          {
             Title = L("Directory authentication (LDAP)"),
-            Subtitle = L("Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed."),
+            Subtitle = L("Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart."),
             Status = statePill_,
             Actions = BuildActions_()
          });
@@ -712,7 +715,7 @@ namespace hMailServer.ControlPanel.Views
          else
          {
             saveButton_.IsEnabled = true;
-            pathText_.Text = F("Editing {0} - saved changes are live within two seconds; no service restart.", store_.IniPath);
+            pathText_.Text = F("Editing {0} - saved changes are live within two seconds.", store_.IniPath);
             pathText_.Visibility = Visibility.Visible;
          }
 

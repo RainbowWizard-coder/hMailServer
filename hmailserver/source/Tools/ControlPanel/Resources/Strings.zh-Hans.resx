@@ -870,8 +870,8 @@
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>组 {0} 中的账户</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>标记为目录关联的账户，通过 LDAP 绑定使用其域密码登录 - 与 Windows 登录不同，这在未加入域的主机上同样有效，而这正是 DMZ 中的邮件服务器的常见情形。它会修改 hMailServer.INI 的 [LDAP] 节；服务器会在保存后两秒内重新读取该节，因此无需重启服务。</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>标记为目录关联的账户，通过 LDAP 绑定使用其域密码登录 - 与 Windows 登录不同，这在未加入域的主机上同样有效，而这正是 DMZ 中的邮件服务器的常见情形。它会修改 hMailServer.INI 的 [LDAP] 节；服务器会在保存后两秒内重新读取该节，因此这些设置无需重启服务。</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>标记为目录关联的账户。这一半功能已经存在于本界面中：打开“域”，编辑该账户，在其“目录”选项卡上勾选 Active Directory 选项并填写 AD 用户名 - 也就是 sAMAccountName，%u 携带的正是它。没有该标记的账户继续使用普通的 hMailServer 密码，永远不会访问目录。</value>
@@ -4162,8 +4162,8 @@
   <data name="Editing {0}" xml:space="preserve">
     <value>正在编辑 {0}</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>正在编辑 {0} - 保存的更改会在两秒钟内生效；无需重启服务。</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>正在编辑 {0} - 保存的更改会在两秒钟内生效。</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>任一</value>

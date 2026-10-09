@@ -487,6 +487,35 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// Only the pill and the notice say when Directory authentication's save needs a
+      /// service restart: the caption that names the file says that saved changes are
+      /// live within two seconds and no more, and the subtitle that this page's own
+      /// settings need no restart. Under a Restart to apply pill and a notice offering
+      /// Restart the service…, the caption said "...; no service restart." and the
+      /// subtitle "so no service restart is needed", after a save that switched
+      /// directory access on over a schedule the running server had not registered.
+      /// </summary>
+      [Fact]
+      public void DirectoryAuthentication_LeavesTheRestartToThePillAndTheNotice()
+      {
+         string code = ReadControlPanelFile("Views/LdapSettingsView.cs");
+
+         string load = WithheldRowTests.MemberText(code, "private void Load_()");
+         Assert.True(load != null, "LdapSettingsView.Load_ is gone.");
+         Assert.Contains("pathText_.Text = F(\"Editing {0} - saved changes are live within two seconds.\", store_.IniPath);", load, StringComparison.Ordinal);
+
+         string built = WithheldRowTests.MemberText(code, "public LdapSettingsView()");
+         Assert.True(built != null, "The LdapSettingsView constructor is gone.");
+         Assert.Contains("the server re-reads that section within two seconds of a save, so these settings need no service restart.\")", built, StringComparison.Ordinal);
+
+         // The notice of a save that waits for nothing says that no restart is needed;
+         // the caption and the subtitle no longer say it of the page.
+         Assert.DoesNotContain("; no service restart.", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("so no service restart is needed", code, StringComparison.Ordinal);
+         Assert.Contains("F(\"Saved {0} - the server picks this up within two seconds. No service restart is needed.\", time)", code, StringComparison.Ordinal);
+      }
+
+      /// <summary>
       /// The IP ranges page's permissions card said a save by putting "(saved)" after
       /// the range's name in its title, and said nothing of a change (review finding
       /// F218). Its pill keeps the settings pages' model now.

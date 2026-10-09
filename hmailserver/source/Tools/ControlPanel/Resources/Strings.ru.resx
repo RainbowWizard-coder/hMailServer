@@ -876,8 +876,8 @@ Control Panel может читать файлы сообщений только
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Учётные записи в группе {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Учётные записи, помеченные как связанные с каталогом, входят по своему доменному паролю через привязку LDAP — в отличие от входа средствами Windows, это работает и с узла, не присоединённого к домену, что обычно и бывает у почтового сервера в DMZ. Изменяет раздел [LDAP] файла hMailServer.INI; сервер перечитывает этот раздел в течение двух секунд после сохранения, поэтому перезапуск службы не нужен.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Учётные записи, помеченные как связанные с каталогом, входят по своему доменному паролю через привязку LDAP — в отличие от входа средствами Windows, это работает и с узла, не присоединённого к домену, что обычно и бывает у почтового сервера в DMZ. Изменяет раздел [LDAP] файла hMailServer.INI; сервер перечитывает этот раздел в течение двух секунд после сохранения, поэтому эти параметры не требуют перезапуска службы.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Учётные записи, помеченные как связанные с каталогом. Эта половина уже есть в данном интерфейсе: откройте «Домены», отредактируйте учётную запись и на её вкладке «Каталог» установите параметр Active Directory и укажите имя пользователя AD — sAMAccountName, именно его несёт %u. Учётные записи без такой пометки сохраняют обычный пароль hMailServer и к каталогу не обращаются никогда.</value>
@@ -4208,8 +4208,8 @@ Control Panel может читать файлы сообщений только
   <data name="Editing {0}" xml:space="preserve">
     <value>Изменение {0}</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд; перезапуск службы не нужен.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Любой</value>

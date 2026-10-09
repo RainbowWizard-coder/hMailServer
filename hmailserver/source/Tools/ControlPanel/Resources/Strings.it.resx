@@ -870,8 +870,8 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Accounts in the group {0}" xml:space="preserve">
     <value>Account nel gruppo {0}</value>
   </data>
-  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed." xml:space="preserve">
-    <value>Gli account contrassegnati come collegati alla directory accedono con la password di dominio tramite un bind LDAP - a differenza dell'accesso Windows, funziona da un host non unito al dominio, che è la situazione abituale di un server di posta in una DMZ. Modifica la sezione [LDAP] di hMailServer.INI; il server rilegge quella sezione entro due secondi dal salvataggio, quindi non serve alcun riavvio del servizio.</value>
+  <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
+    <value>Gli account contrassegnati come collegati alla directory accedono con la password di dominio tramite un bind LDAP - a differenza dell'accesso Windows, funziona da un host non unito al dominio, che è la situazione abituale di un server di posta in una DMZ. Modifica la sezione [LDAP] di hMailServer.INI; il server rilegge quella sezione entro due secondi dal salvataggio, quindi queste impostazioni non richiedono alcun riavvio del servizio.</value>
   </data>
   <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
     <value>Gli account contrassegnati come collegati alla directory. Quella metà vive già in questa interfaccia: apri Domini, modifica l'account, e nella sua scheda Directory spunta l'opzione Active Directory e compila il nome utente AD - il sAMAccountName, che è ciò che %u contiene. Gli account senza quel contrassegno mantengono la loro normale password hMailServer e non toccano mai la directory.</value>
@@ -4162,8 +4162,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Editing {0}" xml:space="preserve">
     <value>Modifica di {0}</value>
   </data>
-  <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
-    <value>Modifica di {0} - le modifiche salvate sono attive entro due secondi; nessun riavvio del servizio.</value>
+  <data name="Editing {0} - saved changes are live within two seconds." xml:space="preserve">
+    <value>Modifica di {0} - le modifiche salvate sono attive entro due secondi.</value>
   </data>
   <data name="Either" xml:space="preserve">
     <value>Entrambi</value>
