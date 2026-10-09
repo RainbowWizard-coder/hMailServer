@@ -2106,6 +2106,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   step asks about unsaved changes as every way to another page does, and Stay leaves the page and the history as
   they were.
 
+- **Fixed: a jump to a page left its sidebar row on the sidebar's bottom edge and the rest of its group hidden.** The
+  palette, the Welcome tiles, the Related links, the pages' own buttons and the tours ended with the row's
+  BringIntoView, which scrolls as little as it can: at 1280 by 800, Discovery stopped at the foot of the sidebar with
+  API & monitoring and REST API keys under the fold, Spam exemptions with eight rows of its group hidden, and Anti-spam
+  settings reached by search with eleven. Once the jump is laid out the sidebar now shows the page's whole group -
+  moving as little as shows it all, its heading kept on screen, and not at all when the group is already on screen -
+  and, in a window too short for the group, puts the page's row a third of the way down; Welcome, the Dashboard and
+  About, which have no group, are brought into view as before.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -178,11 +178,15 @@
 
                 <!-- Navigation tree. Built from Services/NavigationMap, which is
                      grouped by what an administrator is trying to achieve; the
-                     structure is data so that it can be tested. -->
+                     structure is data so that it can be tested. It scrolls by
+                     pixels, not by rows, so that a jump to a page can bring its
+                     whole group on screen by the rows' measured places
+                     (MainWindow.GroupScroll.cs). -->
                 <TreeView x:Name="NavTree" Grid.Row="0" Background="Transparent" BorderThickness="0"
                           Margin="8,0" SelectedItemChanged="NavTree_SelectedItemChanged"
                           AutomationProperties.Name="{loc:L 'Main navigation'}"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.CanContentScroll="False">
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
                             <Setter Property="Padding" Value="6,0" />

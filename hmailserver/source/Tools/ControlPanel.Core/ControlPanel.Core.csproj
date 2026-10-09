@@ -124,6 +124,9 @@
     <!-- Back and Forward: the pages since sign-in, each with its scroll offset and
          its tab (review finding F013). Held by NavigationHistoryTests. -->
     <Compile Include="..\ControlPanel\Services\NavigationHistory.cs" />
+    <!-- Where the sidebar scrolls after a jump, so the page's whole group is on
+         screen (review finding F151). Held by SidebarScrollTests. -->
+    <Compile Include="..\ControlPanel\Services\SidebarScroll.cs" />
     <!-- What a screen reader says for a list's row: its cells, a bare value with
          its column's name. Held by RowSpeechTests. -->
     <Compile Include="..\ControlPanel\Services\RowSpeech.cs" />

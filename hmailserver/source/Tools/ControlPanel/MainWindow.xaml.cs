@@ -748,7 +748,9 @@ namespace hMailServer.ControlPanel
             else
                leaf.IsSelected = true;
 
-            leaf.BringIntoView();
+            // The page's whole group on screen, not only its row at the sidebar's
+            // edge (MainWindow.GroupScroll.cs, review finding F151).
+            ShowGroupOf_(leaf);
             return;
          }
       }
