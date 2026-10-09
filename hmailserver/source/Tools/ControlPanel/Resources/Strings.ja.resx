@@ -4572,6 +4572,9 @@
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>有効期限 {0} (あと {1} 日)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>有効期限 {0}。</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>有効期限 (YYYY-MM-DD HH:MM:SS)(_T)</value>
   </data>
@@ -4874,9 +4877,6 @@
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>完全な権限</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>完全な権限 - このキーは変更と削除ができます。有効期限 {0}。</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>完全な再インデックスの間隔 (分)</value>
@@ -8641,9 +8641,6 @@
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>読み取り専用</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>読み取り専用。{0} に期限切れになります。</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>読み取り可能なテキスト</value>
@@ -12627,6 +12624,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>これはサーバー自身のリゾルバーの応答です。SMTP 配信が使うものと同じで、hMailServer.INI で設定されたカスタムの DNSServer があればそれも含みます。</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>このキーは変更と削除ができます。有効期限 {0}。</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>この鍵ファイルは暗号化されています (パスフレーズで保護)。追加する前に下のボックスにパスフレーズを入力してください。そうしないと鍵は読み込まれず (サーバー エラー 6170)、この証明書を使う TLS ポートは起動しません。</value>

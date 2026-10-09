@@ -4633,6 +4633,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expires on {0} (in {1} days)|few" xml:space="preserve">
     <value>Vyprší {0} (za {1} dny)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Platnost vyprší {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>_Čas vypršení (RRRR-MM-DD HH:MM:SS)</value>
   </data>
@@ -4938,9 +4941,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Plná pravomoc</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Plná pravomoc - tento klíč může měnit a mazat. Vyprší {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Interval úplné reindexace (minuty)</value>
@@ -8729,9 +8729,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Pouze pro čtení</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Pouze pro čtení. Platnost vyprší {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Čitelný text</value>
@@ -12790,6 +12787,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Odpovídá vlastní resolver serveru - tentýž, který používá doručování SMTP, včetně případného vlastního DNSServer nakonfigurovaného v hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Tento klíč může měnit a mazat. Platnost vyprší {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Tento soubor klíče je šifrovaný (chráněný přístupovým heslem). Před přidáním zadejte jeho přístupové heslo do pole níže, jinak se klíč nenačte (chyba serveru 6170) a porty TLS používající tento certifikát se nespustí.</value>

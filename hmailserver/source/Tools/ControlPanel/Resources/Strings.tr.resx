@@ -4572,6 +4572,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Süre sonu {0} ({1} gün içinde)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Süre sonu {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Süre sonu _zamanı (YYYY-MM-DD HH:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Tam yetki</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Tam yetki - bu anahtar bir şeyleri değiştirebilir ve silebilir. Süre sonu {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Tam yeniden indeksleme aralığı (dakika)</value>
@@ -8641,9 +8641,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Salt okunur</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Salt okunur. Süre sonu {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Okunabilir metin</value>
@@ -12627,6 +12624,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Yanıt veren, sunucunun kendi çözümleyicisidir - SMTP teslimatının kullandığıyla aynı, hMailServer.INI'de yapılandırılmış özel bir DNSServer dâhil.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Bu anahtar bir şeyleri değiştirebilir ve silebilir. Süre sonu {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Bu anahtar dosyası şifreli (parola ifadesiyle korunuyor). Eklemeden önce parola ifadesini aşağıdaki kutuya girin; yoksa anahtar yüklenmez (sunucu hatası 6170) ve bu sertifikayı kullanan TLS portları başlamaz.</value>

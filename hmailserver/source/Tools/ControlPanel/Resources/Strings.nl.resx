@@ -4572,6 +4572,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Verloopt op {0} (over {1} dagen)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Verloopt {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Verval_tijd (YYYY-MM-DD HH:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Volledige bevoegdheid</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Volledige bevoegdheid - deze sleutel kan dingen wijzigen en verwijderen. Verloopt {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Interval voor volledige herindexering (minuten)</value>
@@ -8641,9 +8641,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Alleen-lezen</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Alleen-lezen. Verloopt {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Leesbare tekst</value>
@@ -12627,6 +12624,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezorging gebruikt, inclusief een eventuele aangepaste DNSServer die in hMailServer.INI is ingesteld.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Deze sleutel kan dingen wijzigen en verwijderen. Verloopt {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Dit sleutelbestand is versleuteld (beveiligd met een wachtwoordzin). Voer de wachtwoordzin hieronder in voordat u het toevoegt, anders laadt de sleutel niet (serverfout 6170) en starten de TLS-poorten die dit certificaat gebruiken niet.</value>

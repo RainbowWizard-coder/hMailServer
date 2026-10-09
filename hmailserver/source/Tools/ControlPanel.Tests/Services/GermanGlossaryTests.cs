@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void AnExpiryRunsOutOnItsDate()
       {
-         Assert.Equal("Läuft am {0} ab.", German["Read-only. Expires {0}."].Substring("Schreibgeschützt. ".Length));
+         Assert.Equal("Läuft am {0} ab.", German["Expires {0}."]);
          Assert.Equal("Ablauf", German["Expires"]);
          Assert.DoesNotContain(German.Values, value => value.Contains("Läuft ab {", StringComparison.Ordinal));
       }

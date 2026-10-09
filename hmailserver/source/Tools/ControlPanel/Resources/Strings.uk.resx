@@ -4633,6 +4633,9 @@
   <data name="Expires on {0} (in {1} days)|few" xml:space="preserve">
     <value>Спливає {0} (через {1} дн.)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Термін дії спливає {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>_Час закінчення (РРРР-ММ-ДД ГГ:ХХ:СС)</value>
   </data>
@@ -4938,9 +4941,6 @@
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Повні права</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Повні права - цей ключ може змінювати і видаляти. Спливає {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Інтервал повного переіндексування (хвилин)</value>
@@ -8729,9 +8729,6 @@
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Лише читання</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Лише читання. Термін дії спливає {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Читабельний текст</value>
@@ -12790,6 +12787,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Це відповідає власний розв'язувач сервера - той самий, що використовує доставка SMTP, зокрема будь-який користувацький DNSServer із hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Цей ключ може змінювати і видаляти. Термін дії спливає {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Цей файл ключа зашифровано (захищено парольною фразою). Введіть його парольну фразу в поле нижче перед додаванням, інакше ключ не завантажиться (помилка сервера 6170), і порти TLS, що використовують цей сертифікат, не запустяться.</value>

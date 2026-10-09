@@ -391,13 +391,13 @@ namespace hMailServer.ControlPanel.Views
          {
             level = StatusLevel.Warning;
             pill = L("Full authority");
-            state = F("Full authority - this key can change and delete things. Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
+            state = F("This key can change and delete things. Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
          }
          else
          {
             level = StatusLevel.Good;
             pill = L("Read-only");
-            state = F("Read-only. Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
+            state = F("Expires {0}.", key.ExpiresAt.Value.ToString("d MMMM yyyy HH:mm", CultureInfo.CurrentCulture)); // no-loc
          }
 
          var stateRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 6, 0, 0) };
@@ -405,6 +405,8 @@ namespace hMailServer.ControlPanel.Views
          // The pill carries the colour, the shape and the state's name together,
          // and is named "Warning: Full authority" by the component; the sentence
          // beside it says what that means for this key, and is named by itself.
+         // It does not name the state again: "Read-only" in the pill beside
+         // "Read-only. Expires ..." was said twice, to the eye and to a reader.
          stateRow.Children.Add(new StatusPill
          {
             Level = level,

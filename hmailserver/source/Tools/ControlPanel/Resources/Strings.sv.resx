@@ -4572,6 +4572,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Går ut {0} (om {1} dagar)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Går ut {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Utgångs_tid (YYYY-MM-DD HH:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Full behörighet</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Full behörighet - den här nyckeln kan ändra och ta bort saker. Går ut {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Intervall för fullständig omindexering (minuter)</value>
@@ -8641,9 +8641,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Skrivskyddad</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Skrivskyddad. Går ut {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Läsbar text</value>
@@ -12627,6 +12624,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Det är serverns egen resolver som svarar - samma som SMTP-leveransen använder, inklusive en eventuell egen DNSServer konfigurerad i hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Den här nyckeln kan ändra och ta bort saker. Går ut {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Den här nyckelfilen är krypterad (skyddad med lösenfras). Ange dess lösenfras i rutan nedan innan du lägger till, annars läses nyckeln inte in (serverfel 6170) och TLS-portarna som använder det här certifikatet startar inte.</value>

@@ -4633,6 +4633,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expires on {0} (in {1} days)|few" xml:space="preserve">
     <value>Wygasa {0} (za {1} dni)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Wygasa {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>_Czas wygaśnięcia (YYYY-MM-DD HH:MM:SS)</value>
   </data>
@@ -4938,9 +4941,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Pełne uprawnienia</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Pełne uprawnienia - ten klucz może zmieniać i usuwać rzeczy. Wygasa {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Interwał pełnego przeindeksowania (w minutach)</value>
@@ -8729,9 +8729,6 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Tylko do odczytu</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Tylko do odczytu. Wygasa {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Czytelny tekst</value>
@@ -12790,6 +12787,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SMTP, wraz z ewentualnym własnym DNSServer skonfigurowanym w hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Ten klucz może zmieniać i usuwać rzeczy. Wygasa {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Ten plik klucza jest zaszyfrowany (chroniony hasłem). Przed dodaniem należy wpisać jego hasło klucza w polu poniżej, w przeciwnym razie klucz się nie wczyta (błąd serwera 6170), a porty TLS używające tego certyfikatu nie uruchomią się.</value>

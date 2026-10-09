@@ -4572,6 +4572,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Caduca el {0} (dentro de {1} días)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Caduca el {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>_Hora de caducidad (AAAA-MM-DD HH:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Autoridad completa</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Autoridad completa - esta clave puede cambiar y borrar cosas. Caduca {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Intervalo de reindexación completa (minutos)</value>
@@ -8641,9 +8641,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Solo lectura</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Solo lectura. Caduca el {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Texto legible</value>
@@ -12627,6 +12624,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Quien responde es el propio resolutor del servidor - el mismo que usa la entrega SMTP, incluido cualquier DNSServer personalizado configurado en hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Esta clave puede cambiar y borrar cosas. Caduca el {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Este archivo de clave está cifrado (protegido por frase de contraseña). Escriba su frase de contraseña en la casilla de abajo antes de añadirlo, o la clave no se cargará (error del servidor 6170) y los puertos TLS que usen este certificado no arrancarán.</value>

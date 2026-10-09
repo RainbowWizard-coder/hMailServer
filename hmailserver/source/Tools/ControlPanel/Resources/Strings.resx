@@ -4572,6 +4572,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Expires on {0} (in {1} days)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Expires {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Expiry _time (YYYY-MM-DD HH:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Full authority</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Full authority - this key can change and delete things. Expires {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Full re-index interval (minutes)</value>
@@ -8641,9 +8641,6 @@ No new connections will be accepted and no mail will be delivered until it is re
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Read-only</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Read-only. Expires {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Readable text</value>
@@ -12627,6 +12624,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>This key can change and delete things. Expires {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start.</value>

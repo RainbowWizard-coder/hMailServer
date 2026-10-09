@@ -4633,6 +4633,9 @@ Control Panel может читать файлы сообщений только
   <data name="Expires on {0} (in {1} days)|few" xml:space="preserve">
     <value>Срок действия истекает {0} (через {1} дн.)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Срок действия истекает {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>В_ремя истечения срока (ГГГГ-ММ-ДД ЧЧ:ММ:СС)</value>
   </data>
@@ -4938,9 +4941,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Полные полномочия</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Полные полномочия — этот ключ может изменять и удалять. Срок действия истекает {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Интервал полного переиндексирования (минуты)</value>
@@ -8729,9 +8729,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Только чтение</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Только чтение. Истекает {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Читаемый текст</value>
@@ -12790,6 +12787,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Это отвечает собственный резолвер сервера - тот же, что использует доставка SMTP, включая любой пользовательский DNSServer из hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Этот ключ может изменять и удалять. Срок действия истекает {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Этот файл ключа зашифрован (защищён парольной фразой). Введите его парольную фразу в поле ниже перед добавлением, иначе ключ не загрузится (ошибка сервера 6170), и порты TLS, использующие этот сертификат, не запустятся.</value>

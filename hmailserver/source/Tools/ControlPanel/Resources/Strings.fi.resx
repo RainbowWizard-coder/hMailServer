@@ -4572,6 +4572,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Vanhenee {0} ({1} päivän kuluttua)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Vanhenee {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Vanhenemis_aika (VVVV-KK-PP TT:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Täydet oikeudet</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Täydet oikeudet - tämä avain voi muuttaa ja poistaa asioita. Vanhenee {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Täyden uudelleenindeksoinnin väli (minuuttia)</value>
@@ -8641,9 +8641,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Vain luku</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Vain luku. Vanhenee {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Luettava teksti</value>
@@ -12627,6 +12624,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää, mukaan lukien mahdollinen hMailServer.INI-tiedostoon määritetty mukautettu DNSServer.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Tämä avain voi muuttaa ja poistaa asioita. Vanhenee {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Tämä avaintiedosto on salattu (tunnuslauseella suojattu). Anna sen tunnuslause alla olevaan kenttään ennen lisäämistä, tai avain ei lataudu (palvelinvirhe 6170) eivätkä tätä varmennetta käyttävät TLS-portit käynnisty.</value>

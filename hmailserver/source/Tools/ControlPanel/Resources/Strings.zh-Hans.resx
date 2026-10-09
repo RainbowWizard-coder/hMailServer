@@ -4572,6 +4572,9 @@
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>{0} 到期（{1} 天后）</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>{0} 到期。</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>到期时间(_T)（YYYY-MM-DD HH:MM:SS）</value>
   </data>
@@ -4874,9 +4877,6 @@
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>完全权限</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>完全权限 - 此密钥可以更改和删除内容。{0} 到期。</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>完整重新索引间隔（分钟）</value>
@@ -8641,9 +8641,6 @@
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>只读</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>只读。{0} 过期。</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>可读文本</value>
@@ -12627,6 +12624,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>这是服务器自己的解析器在应答 - 与 SMTP 投递使用的是同一个，包括 hMailServer.INI 中配置的任何自定义 DNSServer。</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>此密钥可以更改和删除内容。{0} 到期。</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>此密钥文件已加密 (受密码短语保护)。添加之前请在下面的框中输入其密码短语，否则密钥不会加载 (服务器错误 6170)，使用此证书的 TLS 端口也不会启动。</value>

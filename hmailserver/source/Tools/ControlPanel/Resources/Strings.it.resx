@@ -4572,6 +4572,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Scade il {0} (tra {1} giorni)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Scade il {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Data e _ora di scadenza (YYYY-MM-DD HH:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Autorità completa</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Autorità completa - questa chiave può modificare ed eliminare cose. Scade il {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Intervallo di reindicizzazione completa (minuti)</value>
@@ -8641,9 +8641,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Sola lettura</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Sola lettura. Scade il {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Testo leggibile</value>
@@ -12627,6 +12624,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>È il resolver del server stesso a rispondere - lo stesso usato dalla consegna SMTP, incluso qualsiasi DNSServer personalizzato configurato in hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Questa chiave può modificare ed eliminare cose. Scade il {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Questo file della chiave è cifrato (protetto da passphrase). Inserire la sua passphrase nella casella qui sotto prima di aggiungerlo, altrimenti la chiave non verrà caricata (errore del server 6170) e le porte TLS che usano questo certificato non si avvieranno.</value>

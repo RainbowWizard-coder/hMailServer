@@ -34,6 +34,25 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(level, pill.Groups[1].Value);
       }
 
+      /// <summary>
+      /// The sentence beside a pill says what the state means for the key and
+      /// does not name the state again: with the state in the pill, "Read-only"
+      /// stood beside "Read-only. Expires ..." and "Full authority" beside "Full
+      /// authority - this key can change...", each said twice to the eye and to
+      /// a screen reader, which reads the pill and then the sentence.
+      /// </summary>
+      [Theory]
+      [InlineData("Full authority")]
+      [InlineData("Read-only")]
+      public void TheSentenceBesideAPill_DoesNotNameItsStateAgain(string word)
+      {
+         string row = KeyRow();
+         Match state = Regex.Match(row, @"pill = L\(""" + Regex.Escape(word) + @"""\);\s*state = F\(""([^""]*)""");
+         Assert.True(state.Success, "The key whose pill reads \"" + word + "\" has no sentence beside it.");
+         Assert.DoesNotContain(word, state.Groups[1].Value, StringComparison.OrdinalIgnoreCase);
+         Assert.EndsWith("Expires {0}.", state.Groups[1].Value, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AnExpiredKey_IsNormal_AndOneWhoseExpiryCannotBeRead_IsAWarning()
       {

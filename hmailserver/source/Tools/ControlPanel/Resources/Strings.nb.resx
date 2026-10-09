@@ -4572,6 +4572,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expires on {0} (in {1} days)" xml:space="preserve">
     <value>Utløper {0} (om {1} dager)</value>
   </data>
+  <data name="Expires {0}." xml:space="preserve">
+    <value>Utløper {0}.</value>
+  </data>
   <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
     <value>Utløps_tidspunkt (ÅÅÅÅ-MM-DD TT:MM:SS)</value>
   </data>
@@ -4874,9 +4877,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Full authority" xml:space="preserve">
     <value>Full myndighet</value>
-  </data>
-  <data name="Full authority - this key can change and delete things. Expires {0}." xml:space="preserve">
-    <value>Full myndighet - denne nøkkelen kan endre og slette ting. Utløper {0}.</value>
   </data>
   <data name="Full re-index interval (minutes)" xml:space="preserve">
     <value>Intervall for full reindeksering (minutter)</value>
@@ -8641,9 +8641,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   </data>
   <data name="Read-only" xml:space="preserve">
     <value>Skrivebeskyttet</value>
-  </data>
-  <data name="Read-only. Expires {0}." xml:space="preserve">
-    <value>Skrivebeskyttet. Utløper {0}.</value>
   </data>
   <data name="Readable text" xml:space="preserve">
     <value>Lesbar tekst</value>
@@ -12627,6 +12624,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
     <value>Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker, inkludert en eventuell egendefinert DNSServer konfigurert i hMailServer.INI.</value>
+  </data>
+  <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
+    <value>Denne nøkkelen kan endre og slette ting. Utløper {0}.</value>
   </data>
   <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
     <value>Denne nøkkelfilen er kryptert (beskyttet med passfrase). Skriv inn passfrasen i feltet nedenfor før du legger til, ellers lastes ikke nøkkelen (serverfeil 6170), og TLS-portene som bruker dette sertifikatet, starter ikke.</value>
