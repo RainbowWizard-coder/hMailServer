@@ -14870,9 +14870,6 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} olay, en yenisi önce.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} süresi dolmuş ve artık reddediliyor</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} dış POP3 toplama hesabında virüsten koruma kapalı; bu yüzden onun topladığı posta, burada ne ayarlanırsa ayarlansın taranmadan teslim ediliyor. Anahtar bu sayfada değil, toplama hesabının üzerindedir.</value>
   </data>
@@ -14891,11 +14888,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} posta kutusu {1} adresine taşındı.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} anahtarın süresi doldu ve reddediliyor</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} için yapılandırılmış bir postmaster adresi yok ve bu sayfa bir posta kutusu uydurmaz - raporları alması gereken adresi girin. Biri girilene kadar kopyalanacak kayıt yoktur.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} adresinin ters adı yok, bu yüzden hiçbir desen onu koruyamaz. Bunun yerine adresi AutoBanNeverBan içine yazın.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} anahtarın süresi doldu ve reddediliyor</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} bekletiliyor, en son {1} tanesi gösteriliyor. Geri kalanlar hâlâ orada - bunları elden geçirin ya da saklama taramasının onları eskitip kaldırmasına bırakın.</value>
@@ -15308,8 +15311,11 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Hiç girdi yapılandırılmamış; bu yüzden denetim çalışmıyor.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} yapılandırılmış, hiçbiri etkin değil; bu yüzden denetim çalışmıyor.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} girdi yapılandırılmış, hiçbiri etkin değil; bu yüzden denetim çalışmıyor.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} girdi yapılandırılmış ama etkin değil; bu yüzden denetim çalışmıyor.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {2} içinden {1} etkin.</value>

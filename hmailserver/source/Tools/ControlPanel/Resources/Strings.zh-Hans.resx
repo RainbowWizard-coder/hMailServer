@@ -14870,9 +14870,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} 个事件，最新的在前。</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} 已过期，现在会被拒绝</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>有 {0} 个外部 POP3 收取账户关闭了反病毒，因此由它们收取的邮件会以未扫描的状态投递，无论此处如何设置。该开关在收取账户上，而不在本页上。</value>
   </data>
@@ -14891,11 +14888,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} 已迁移到 {1}。</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} 个已过期，会被拒绝</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} 没有配置 postmaster 地址，而本页不会凭空编造一个邮箱 - 请输入应当接收这些报告的地址。在输入之前，没有可复制的记录。</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} 没有反向名称，因此任何模式都无法豁免它。请改为将该地址列入 AutoBanNeverBan。</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} 个已过期，会被拒绝</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>已暂挂 {0} 封，显示其中最近的 {1} 封。其余的仍然在那里 - 请把这些处理完，或者让保留清理按时间把它们清出去。</value>
@@ -15308,8 +15311,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}。没有配置任何条目，因此该检查不会运行。</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}。已配置 {1} 个，但没有一个处于活动状态，因此该检查不会运行。</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}。已配置 {1} 个条目，但没有一个处于活动状态，因此该检查不会运行。</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}。已配置 {1} 个条目，但它未处于活动状态，因此该检查不会运行。</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}。{2} 个中有 {1} 个处于活动状态。</value>

@@ -305,7 +305,7 @@ namespace hMailServer.ControlPanel.Views
             if (full > 0)
                parts.Add(F("{0} with full authority", full));
             if (expired > 0)
-               parts.Add(F("{0} expired and now refused", expired));
+               parts.Add(Plural(expired, "{0} has expired and is refused", "{0} have expired and are refused"));
             if (unusable > 0)
                parts.Add(F("{0} with no usable digest, which the server ignores", unusable));
 

@@ -15112,9 +15112,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} events, newest first.|few" xml:space="preserve">
     <value>Событий: {0}, новые сверху.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} с истёкшим сроком действия, теперь отклоняются</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>У {0} внешней учётной записи сбора POP3 антивирус выключен, поэтому собираемая ею почта доставляется без проверки, что бы здесь ни было задано. Переключатель находится на учётной записи сбора почты, а не на этой странице.</value>
   </data>
@@ -15139,11 +15136,20 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} перенесён на {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} истёк и отклоняется</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Для {0} не настроен адрес postmaster, а эта страница не станет придумывать почтовый ящик — укажите адрес, который должен получать отчёты. Пока он не указан, копировать нечего.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>У {0} нет обратного имени, поэтому ни один шаблон не может его освободить. Внесите адрес в AutoBanNeverBan.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} истекли и отклоняются</value>
+  </data>
+  <data name="{0} have expired and are refused|few" xml:space="preserve">
+    <value>{0} истекли и отклоняются</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>Задержано: {0}, показаны {1} самых новых. Остальные никуда не делись — разберите эти или дайте очистке по сроку хранения вытеснить их со временем.</value>
@@ -15670,8 +15676,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Записи не настроены, поэтому проверка не выполняется.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. Настроено: {1}, активных нет, поэтому проверка не выполняется.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. Настроено {1} записей, ни одна не активна, поэтому проверка не выполняется.</value>
+  </data>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run.|few" xml:space="preserve">
+    <value>{0}. Настроены {1} записи, ни одна не активна, поэтому проверка не выполняется.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. Настроена {1} запись, но она не активна, поэтому проверка не выполняется.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. Активно {1} из {2}.</value>

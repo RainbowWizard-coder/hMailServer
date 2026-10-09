@@ -954,7 +954,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   reinitialise the British way in each of the fifteen captions that named it (the COM method keeps its name,
   Reinitialize). Every new and changed sentence is translated in all seventeen languages. `build/check-localisation.py`
   reads each Plural call, refuses two forms with different placeholders, requires the "|few" form in the four
-  languages that need it and keeps it on `--write`, and refuses "(s)" in a translated string and an
+  languages that need it and keeps it on `--write`, and refuses "(s)" in a marked text, a plural ending in brackets
+  in any translation - French "{0} expiré(s) et désormais refusé(s)" and Spanish "caducada(s)" in the API keys
+  summary, and French "configuré(s)" in the spam overview, were the last, each now a Plural of its own - and an
   `== 1 ? L(...) : F(...)` choice; `build/check-catalogues.py` holds each "|few" form to the English of its plural;
   `PluralTests` holds the forms to the counts that tell them apart in each language.
 

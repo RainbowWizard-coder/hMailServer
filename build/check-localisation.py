@@ -51,7 +51,9 @@ What is checked
     way); the catalogues of Czech, Polish, Russian and Ukrainian hold a third
     form for each pair, the second key followed by "|few", for two to four of
     a thing, and no catalogue holds one the source does not ask for; no marked
-    text puts an English plural ending in brackets ("message(s)"); and no C#
+    text puts an English plural ending in brackets ("message(s)"), and no
+    translation puts one of its own language's there ("{0} expiré(s)") where
+    the English has a bare count to inflect around; and no C#
     source writes a count's forms as n == 1 ? L(...) : F(...), which gives
     those four languages one plural for 2 and for 5.
   * Whole texts: no marked text begins with white space, or ends with it
@@ -455,6 +457,26 @@ def plural_pairs():
 # and Polish has three forms for it. Loc.Plural writes each form whole. A unit after a
 # space, "timeout (s)", is not this.
 PAREN_PLURAL = re.compile(r"[A-Za-z]\((?:s|es)\)")
+
+# The same in a translation: French "{0} expiré(s) et désormais refusé(s)", Spanish
+# "{0} caducada(s)", Polish "kont(a)" - the English key has a bare count, "{0} expired and
+# now refused", that the language has to inflect around, and its translator wrote both
+# forms at once. The key is to be written as Plural(n, one, other), each form whole. The
+# endings are the plural endings of the seventeen languages; a gender ending on a past
+# tense - Czech "Otevřel(a)", Polish "Otworzył(a)" for "Opened by" - says who did it,
+# not how many, and is allowed by name.
+CATALOGUE_PAREN_PLURAL = re.compile(r"[^\W\d_]\((?:s|e|es|en|n|er|r|x|i|a|y|t|ów|ů|lar|ler|а|я|ы|и|і|ов|ів|ей)\)")
+GENDER_ENDINGS = {"Otevřel(a)", "Otworzył(a)"}
+
+
+def catalogue_paren_plurals(value, key=""):
+   """The words of a translation that put a plural ending in brackets, other than a gender ending or a word its key has."""
+   found = []
+   for m in CATALOGUE_PAREN_PLURAL.finditer(value):
+      word = re.search(r"[^\W\d_]*$", value[:m.start() + 1]).group(0) + value[m.start() + 1:m.end()]
+      if word not in GENDER_ENDINGS and word not in key:
+         found.append(word)
+   return found
 
 # A count's two forms written as a choice, n == 1 ? L("1 item") : F("{0} items", n): one
 # plural for 2 and for 5, which Polish, Czech, Russian and Ukrainian do not have.
@@ -980,6 +1002,15 @@ def self_test():
       if bool(PAREN_PLURAL.search(text)) != expected:
          print(f"FAIL: {text!r} is {'not ' if expected else ''}an English plural in brackets")
          failures += 1
+   for text, expected in {"{0} expiré(s) et désormais refusé(s)": ["expiré(s)", "refusé(s)"],
+                          "{0} caducada(s) y ahora rechazada(s)": ["caducada(s)", "rechazada(s)"],
+                          "{0}. {1} configuré(s), aucun actif, la vérification ne s'exécute donc pas.": ["configuré(s)"],
+                          "jej {0} kont(a)": ["kont(a)"], "{0} Regel(n) und {1} Einstellung(en)": ["Regel(n)", "Einstellung(en)"],
+                          "{0} правил(а)": ["правил(а)"], "{0} записей": [], "{0} expirées et désormais refusées": [],
+                          "Otevřel(a)": [], "Otworzył(a)": [], "出荷時の設定を保持(_S)": [], "Délai minimal (s)": []}.items():
+      if catalogue_paren_plurals(text) != expected:
+         print(f"FAIL: {text!r} reads as the plural endings in brackets {catalogue_paren_plurals(text)}, expected {expected}")
+         failures += 1
 
    for text, expected in {"MX - which server takes the mail for ": True, " (inactive)": True,
                           " and the policy verifies nothing.": True, "Before you copy - ": True,
@@ -1090,6 +1121,9 @@ def main():
          translated += 1
          if set(PLACEHOLDER.findall(forms.get(name, name))) != set(PLACEHOLDER.findall(value)):
             problems.append(f"Strings.{tag}.resx: the placeholders of {name!r} differ in {value!r}")
+         for word in catalogue_paren_plurals(value, name):
+            problems.append(f"Strings.{tag}.resx: {name!r} is translated {value!r}, whose {word!r} puts a plural ending in "
+                            f"brackets; write each form whole, the English as Plural(n, one, other) where it has a bare count")
          if mnemonic_key(name) is not None and mnemonic_key(value) is None:
             problems.append(f"Strings.{tag}.resx: {name!r} carries an Alt key and its translation {value!r} does not")
          for edge in lost_edge_space(name, value, tag):

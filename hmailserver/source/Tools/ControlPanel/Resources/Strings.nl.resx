@@ -14870,9 +14870,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} gebeurtenissen, nieuwste eerst.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} verlopen en nu geweigerd</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} extern POP3-ophaalaccount heeft antivirus uitgeschakeld, dus mail die door dit account wordt opgehaald, wordt ongescand bezorgd, wat hier ook is ingesteld. De schakelaar staat op het ophaalaccount, niet op deze pagina.</value>
   </data>
@@ -14891,11 +14888,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} is verplaatst naar {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} is verlopen en wordt geweigerd</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Voor {0} is geen postmasteradres geconfigureerd, en deze pagina verzint geen postvak - voer het adres in dat de rapporten moet ontvangen. Zolang er geen is ingevoerd, is er geen record om te kopiëren.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} heeft geen reverse-naam, dus geen patroon kan het adres sparen. Zet het adres in plaats daarvan in AutoBanNeverBan.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} zijn verlopen en worden geweigerd</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} vastgehouden, de {1} meest recente worden getoond. De rest staat er nog - werk deze weg, of laat de bewaaropruiming ze na verloop van tijd verwijderen.</value>
@@ -15308,8 +15311,11 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Er zijn geen vermeldingen geconfigureerd, dus de controle draait niet.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} geconfigureerd, geen actief, dus de controle draait niet.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} vermeldingen zijn geconfigureerd, geen actief, dus de controle draait niet.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} vermelding is geconfigureerd maar niet actief, dus de controle draait niet.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} van {2} actief.</value>

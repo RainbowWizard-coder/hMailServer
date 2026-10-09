@@ -15112,9 +15112,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} events, newest first.|few" xml:space="preserve">
     <value>{0} zdarzenia, od najnowszych.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} wygasłych i teraz odrzucanych</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>Na {0} zewnętrznym koncie pobierania POP3 antywirus jest wyłączony, więc poczta pobierana przez to konto jest dostarczana bez skanowania, niezależnie od tego, co ustawiono tutaj. Przełącznik jest na koncie pobierania, a nie na tej stronie.</value>
   </data>
@@ -15139,11 +15136,20 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} została przeniesiona do {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} wygasł i jest odrzucany</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} nie ma skonfigurowanego adresu postmaster, a ta strona nie wymyśli skrzynki pocztowej - należy podać adres, który ma otrzymywać raporty. Dopóki nie zostanie podany, nie ma rekordu do skopiowania.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} nie ma nazwy odwrotnej, więc żaden wzorzec nie może go oszczędzić. Zamiast tego wpisz adres w AutoBanNeverBan.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} wygasło i jest odrzucanych</value>
+  </data>
+  <data name="{0} have expired and are refused|few" xml:space="preserve">
+    <value>{0} wygasły i są odrzucane</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>Wstrzymano {0}, pokazano {1} najnowszych. Reszta nadal tam jest - należy je przejrzeć albo pozwolić, aby przegląd przechowywania usunął je ze względu na wiek.</value>
@@ -15670,8 +15676,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Nie skonfigurowano żadnych wpisów, więc kontrola nie jest wykonywana.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. Skonfigurowano {1}, żaden nie jest aktywny, więc kontrola nie jest wykonywana.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. Skonfigurowano {1} wpisów, żaden nie jest aktywny, więc kontrola nie jest wykonywana.</value>
+  </data>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run.|few" xml:space="preserve">
+    <value>{0}. Skonfigurowano {1} wpisy, żaden nie jest aktywny, więc kontrola nie jest wykonywana.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. Skonfigurowano {1} wpis, ale nie jest aktywny, więc kontrola nie jest wykonywana.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. Aktywnych: {1} z {2}.</value>

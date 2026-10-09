@@ -14870,9 +14870,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} hendelser, nyeste først.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} utløpt og avvises nå</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} ekstern POP3-hentekonto har antivirus slått av, så post hentet av den leveres uskannet uansett hva som er satt her. Bryteren ligger på hentekontoen, ikke på denne siden.</value>
   </data>
@@ -14891,11 +14888,17 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} er flyttet til {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} er utløpt og avvises</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} har ingen postmasteradresse konfigurert, og denne siden finner ikke på en postboks - skriv inn adressen som skal motta rapportene. Før én er skrevet inn, finnes det ingen oppføring å kopiere.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} har ikke noe omvendt navn, så ingen mønstre kan spare adressen. Sett adressen i AutoBanNeverBan i stedet.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} er utløpt og avvises</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} holdt tilbake, viser de {1} nyeste. Resten er der fortsatt - gå gjennom disse, eller la oppbevaringsfeiingen la dem eldes ut.</value>
@@ -15308,8 +15311,11 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Ingen oppføringer er konfigurert, så kontrollen kjører ikke.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} konfigurert, ingen aktive, så kontrollen kjører ikke.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} oppføringer er konfigurert, ingen aktive, så kontrollen kjører ikke.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} oppføring er konfigurert, men ikke aktiv, så kontrollen kjører ikke.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} av {2} aktive.</value>

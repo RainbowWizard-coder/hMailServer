@@ -14870,9 +14870,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} händelser, nyaste först.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} utgångna och nu nekade</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} externt POP3-hämtningskonto har antivirus avstängt, så post som hämtas av det levereras oskannad oavsett vad som är satt här. Brytaren finns på hämtningskontot, inte på den här sidan.</value>
   </data>
@@ -14891,11 +14888,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} har flyttats till {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} har gått ut och nekas</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} har ingen postmaster-adress konfigurerad, och den här sidan hittar inte på en brevlåda - ange adressen som ska ta emot rapporterna. Tills en anges finns ingen post att kopiera.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} har inget omvänt namn, så inget mönster kan skona adressen. Lägg adressen i AutoBanNeverBan i stället.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} har gått ut och nekas</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} kvarhållna, visar de {1} senaste. Resten finns kvar - gå igenom de här, eller låt lagringssvepet åldra ut dem.</value>
@@ -15308,8 +15311,11 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Inga poster är konfigurerade, så kontrollen körs inte.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} konfigurerade, ingen aktiv, så kontrollen körs inte.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} poster är konfigurerade, ingen aktiv, så kontrollen körs inte.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} post är konfigurerad men inte aktiv, så kontrollen körs inte.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} av {2} aktiva.</value>

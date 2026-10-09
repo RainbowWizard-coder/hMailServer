@@ -14870,9 +14870,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} 件のイベント、新しい順です。</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} 件は期限切れで、現在は拒否されます</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} 件の外部 POP3 取り込みアカウントでウイルス対策が無効になっているため、それらのアカウントが収集したメールは、ここでの設定にかかわらずスキャンされずに配信されます。このスイッチはこのページではなく、取り込みアカウント側にあります。</value>
   </data>
@@ -14891,11 +14888,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} を {1} に移動しました。</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} 件は期限切れで、拒否されます</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} には postmaster アドレスが設定されておらず、このページが勝手にメールボックスを作り出すことはありません。レポートを受け取るべきアドレスを入力してください。入力されるまで、コピーできるレコードはありません。</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} には逆引き名がないため、どのパターンでも免除できません。代わりにアドレスを AutoBanNeverBan に記載してください。</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} 件は期限切れで、拒否されます</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} 件が保留されており、そのうち新しい {1} 件を表示しています。残りもそのまま残っています。これらを処理するか、保持期間のスイープで古くなったものが削除されるのに任せてください。</value>
@@ -15308,8 +15311,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}。エントリが 1 つも設定されていないため、このチェックは実行されません。</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
     <value>{0}。{1} 件が設定されていますが、有効なものが 1 つもないため、このチェックは実行されません。</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}。{1} 件が設定されていますが有効ではないため、このチェックは実行されません。</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}。{2} 件中 {1} 件が有効です。</value>

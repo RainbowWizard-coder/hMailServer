@@ -15112,9 +15112,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} events, newest first.|few" xml:space="preserve">
     <value>{0} události, nejnovější první.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} vypršelo a nyní se odmítá</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>U {0} externího účtu pro stahování POP3 je antivirus vypnutý, takže pošta, kterou vyzvedává, se doručuje neskenovaná bez ohledu na to, co je nastaveno zde. Přepínač je na účtu pro stahování, ne na této stránce.</value>
   </data>
@@ -15139,11 +15136,20 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} byla přesunuta na {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} vypršel a je odmítán</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} nemá nastavenou adresu postmastera a tato stránka si poštovní schránku nevymyslí – zadejte adresu, která má hlášení přijímat. Dokud není zadána, není žádný záznam ke zkopírování.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} nemá reverzní název, takže ji žádný vzor nemůže ušetřit. Adresu místo toho uveďte v AutoBanNeverBan.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} vypršelo a je odmítáno</value>
+  </data>
+  <data name="{0} have expired and are refused|few" xml:space="preserve">
+    <value>{0} vypršely a jsou odmítány</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} pozdrženo, zobrazeno {1} nejnovějších. Ostatní tam stále jsou – projděte tyto, nebo je nechte zestárnout v úklidu uchovávání.</value>
@@ -15670,8 +15676,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Nejsou nakonfigurovány žádné položky, takže kontrola neběží.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} nakonfigurováno, žádná aktivní, takže kontrola neběží.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} položek je nakonfigurováno, žádná není aktivní, takže kontrola neběží.</value>
+  </data>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run.|few" xml:space="preserve">
+    <value>{0}. {1} položky jsou nakonfigurovány, žádná není aktivní, takže kontrola neběží.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} položka je nakonfigurována, ale není aktivní, takže kontrola neběží.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} z {2} aktivních.</value>

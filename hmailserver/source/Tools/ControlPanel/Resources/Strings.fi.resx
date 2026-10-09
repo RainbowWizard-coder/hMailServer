@@ -14870,9 +14870,6 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} tapahtumaa, uusin ensin.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} vanhentunut ja nyt hylätään</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} ulkoisella POP3-noutotilillä on virustorjunta pois päältä, joten sen noutama posti toimitetaan skannaamatta riippumatta siitä, mitä tässä on asetettu. Kytkin on noutotilillä, ei tällä sivulla.</value>
   </data>
@@ -14891,11 +14888,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} on siirretty osoitteeseen {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} on vanhentunut ja hylätään</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0}:lle ei ole määritetty postmaster-osoitetta, eikä tämä sivu keksi postilaatikkoa - syötä osoite, jonka pitäisi vastaanottaa raportit. Kunnes sellainen on syötetty, ei ole tietuetta kopioitavaksi.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>Osoitteella {0} ei ole käänteistä nimeä, joten mikään malli ei voi säästää sitä. Lisää osoite sen sijaan kohtaan AutoBanNeverBan.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} on vanhentunut ja hylätään</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} pidätetty, näytetään {1} uusinta. Loput ovat yhä tallessa - käy nämä läpi tai anna säilytyssiivouksen vanhentaa ne.</value>
@@ -15308,8 +15311,11 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Merkintöjä ei ole määritetty, joten tarkistusta ei ajeta.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} määritetty, yksikään ei aktiivinen, joten tarkistusta ei ajeta.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} merkintää on määritetty, eikä yksikään ole aktiivinen, joten tarkistusta ei ajeta.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} merkintä on määritetty mutta ei ole aktiivinen, joten tarkistusta ei ajeta.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1}/{2} aktiivista.</value>

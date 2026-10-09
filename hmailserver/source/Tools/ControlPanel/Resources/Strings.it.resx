@@ -14870,9 +14870,6 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} events, newest first." xml:space="preserve">
     <value>{0} eventi, dal più recente.</value>
   </data>
-  <data name="{0} expired and now refused" xml:space="preserve">
-    <value>{0} scadute e ora rifiutate</value>
-  </data>
   <data name="{0} external POP3 fetch account has anti-virus turned off, so mail collected by it is delivered unscanned no matter what is set here. The switch is on the fetch account, not on this page." xml:space="preserve">
     <value>{0} account di raccolta POP3 esterno ha l'antivirus disattivato, quindi la posta raccolta da esso viene consegnata senza scansione qualunque cosa sia impostata qui. L'interruttore è sull'account di raccolta, non su questa pagina.</value>
   </data>
@@ -14891,11 +14888,17 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} has been moved to {1}." xml:space="preserve">
     <value>{0} è stata spostata a {1}.</value>
   </data>
+  <data name="{0} has expired and is refused" xml:space="preserve">
+    <value>{0} è scaduta e viene rifiutata</value>
+  </data>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} non ha alcun indirizzo postmaster configurato, e questa pagina non inventerà una casella: inserisci l'indirizzo che deve ricevere i rapporti. Finché non ne viene inserito uno non c'è alcun record da copiare.</value>
   </data>
   <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
     <value>{0} non ha un nome inverso, quindi nessun modello può risparmiarlo. Inserisci invece l'indirizzo in AutoBanNeverBan.</value>
+  </data>
+  <data name="{0} have expired and are refused" xml:space="preserve">
+    <value>{0} sono scadute e vengono rifiutate</value>
   </data>
   <data name="{0} held, showing the {1} most recent. The rest are still there - work through these, or let the retention sweep age them out." xml:space="preserve">
     <value>{0} trattenuti, ne sono mostrati i {1} più recenti. Il resto è ancora lì: smaltisci questi, oppure lascia che la pulizia di conservazione li faccia decadere.</value>
@@ -15308,8 +15311,11 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0}. No entries are configured, so the check does not run." xml:space="preserve">
     <value>{0}. Non è configurata alcuna voce, quindi il controllo non viene eseguito.</value>
   </data>
-  <data name="{0}. {1} configured, none active, so the check does not run." xml:space="preserve">
-    <value>{0}. {1} configurati, nessuno attivo, quindi il controllo non viene eseguito.</value>
+  <data name="{0}. {1} entries are configured, none active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} voci sono configurate, nessuna attiva, quindi il controllo non viene eseguito.</value>
+  </data>
+  <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
+    <value>{0}. {1} voce è configurata ma non attiva, quindi il controllo non viene eseguito.</value>
   </data>
   <data name="{0}. {1} of {2} active." xml:space="preserve">
     <value>{0}. {1} attivi su {2}.</value>

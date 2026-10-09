@@ -418,6 +418,26 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("none active", dnsbl.Detail, StringComparison.OrdinalIgnoreCase);
       }
 
+      /// <summary>
+      /// The count of entries that do not run is a sentence in each of its forms, so
+      /// that a language can inflect around it: "{1} configured, none active" left
+      /// French to write "3 configuré(s)".
+      /// </summary>
+      [Fact]
+      public void TheInactiveEntriesAreCountedInTheirOwnForm()
+      {
+         SpamPipelineConfig config = Defaults();
+         config.TotalSurblServers = 1;
+         config.ActiveSurblServers = 0;
+         config.TotalDnsBlackLists = 3;
+         config.ActiveDnsBlackLists = 0;
+
+         IReadOnlyList<SpamCheck> checks = SpamPipeline.Checks(config);
+
+         Assert.EndsWith("1 entry is configured but not active, so the check does not run.", checks.Single(c => c.Key == "surbl").Detail, StringComparison.Ordinal);
+         Assert.EndsWith("3 entries are configured, none active, so the check does not run.", checks.Single(c => c.Key == "dnsbl").Detail, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AnActiveList_ReadsAsRunningWithAPerEntryScore()
       {

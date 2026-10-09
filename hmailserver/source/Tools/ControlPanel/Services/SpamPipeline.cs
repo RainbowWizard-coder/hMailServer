@@ -671,7 +671,8 @@ namespace hMailServer.ControlPanel.Services
             return F("{0}. No entries are configured, so the check does not run.", what);
 
          if (active == 0)
-            return F("{0}. {1} configured, none active, so the check does not run.", what, total);
+            return PluralF(total, "{0}. {1} entry is configured but not active, so the check does not run.",
+               "{0}. {1} entries are configured, none active, so the check does not run.", what, total);
 
          return F("{0}. {1} of {2} active.", what, active, total);
       }
