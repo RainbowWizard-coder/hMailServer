@@ -179,12 +179,41 @@ namespace hMailServer.ControlPanel.Tests.Services
          int rows = read.IndexOf("rows.Add(new PortRow", StringComparison.Ordinal);
          Assert.True(state >= 0 && rows > state, "The server's state is not read before the rows are built.");
          Assert.Contains("StatusSemantics.For(ListenerProbe.LevelFor(state, serverState))", read, StringComparison.Ordinal);
-         Assert.Contains("ListenerProbe.ExplainFor(state, protocol, serverState)", read, StringComparison.Ordinal);
+         Assert.Contains("ListeningWord = ListenerProbe.WordFor(state, serverState),", read, StringComparison.Ordinal);
+         Assert.Contains("ListeningTip = ListenerProbe.TipFor(state, protocol, serverState),", read, StringComparison.Ordinal);
          Assert.DoesNotContain("ListenerProbe.LevelFor(state))", read, StringComparison.Ordinal);
+         Assert.DoesNotContain("ListenerProbe.WordFor(state)", read, StringComparison.Ordinal);
          // Once, for the rows and the line alike: the line reads no state of its own.
          string summary = WithheldRowTests.MemberText(Source(), "private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)");
          Assert.True(summary != null, "ShowListenerSummary is gone.");
          Assert.DoesNotContain("ReadServerState_()", summary, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The line under the list finds the ports not listened on by each row's
+      /// state, not by its word: while the server is starting or stopping such a
+      /// port reads Unknown, as the line says that whether its ports are being
+      /// listened on cannot be said yet, and a line that compared the word with
+      /// "Not listening" would find none of them and say nothing. The word was
+      /// kept as "Not listening" beside that sentence for this reason alone.
+      /// </summary>
+      [Fact]
+      public void TheLineFindsThePortsNotListenedOn_ByTheirState_NotByTheirWord()
+      {
+         string code = Source();
+         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local, int? state)");
+         Assert.True(summary != null, "ShowListenerSummary is gone.");
+         Assert.Contains("var down = rows.FindAll(r => r.State == ListenerState.NotListening);", summary, StringComparison.Ordinal);
+         Assert.DoesNotContain("ListeningWord", summary, StringComparison.Ordinal);
+         Assert.DoesNotContain("WordFor(", summary, StringComparison.Ordinal);
+
+         Assert.Contains("public ListenerState State { get; set; }", code, StringComparison.Ordinal);
+         string read = WithheldRowTests.MemberText(code, "private void Read_()");
+         Assert.True(read != null, "Read_ is gone.");
+         Assert.Contains("State = state,", read, StringComparison.Ordinal);
+
+         // Nothing else on the page tells a row's state by its word.
+         Assert.DoesNotMatch(new Regex(@"ListeningWord\s*[!=]="), code);
       }
 
       /// <summary>

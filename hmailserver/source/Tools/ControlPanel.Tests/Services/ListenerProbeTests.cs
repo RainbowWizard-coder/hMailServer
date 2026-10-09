@@ -319,32 +319,74 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// A port not listened on while the server is not running is no fault of its
-      /// own: each row says it at the Information level of the line under the list,
-      /// in that line's sentence, where each was a Warning whose tool tip blamed a
-      /// port just added or another program. A running server, or one whose state
-      /// could not be read, leaves each row as it was, and every other state keeps
-      /// its level and its sentence whatever the server's state.
+      /// own: each row says it in the sentence of the line under the list, where
+      /// each was a Warning whose tool tip blamed a port just added or another
+      /// program - paused or in maintenance mode as Not listening at the line's
+      /// Information level, and starting or stopping as Unknown (see
+      /// <see cref="APortNotListenedOn_WhileTheServerIsStartingOrStopping_IsUnknown_AndItsTipSaysNothingElse"/>).
+      /// A running server, or one whose state could not be read, leaves each row
+      /// as it was, and every other state keeps its word, level and sentence
+      /// whatever the server's state.
       /// </summary>
       [Fact]
       public void APortNotListenedOn_WhileTheServerIsNotRunning_IsInformation_InTheLinesSentence()
       {
          foreach (int notRunning in new[] { ListenerProbe.ServerStopped, ListenerProbe.ServerStarting, ListenerProbe.ServerStopping, ListenerProbe.ServerDraining })
          {
-            Assert.Equal(StatusLevel.Information, ListenerProbe.LevelFor(ListenerState.NotListening, notRunning));
             Assert.Equal(ListenerProbe.WhyNoPortIsListenedOn(notRunning), ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP", notRunning));
             Assert.DoesNotContain("just added", ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP", notRunning));
+            Assert.DoesNotContain("just added", ListenerProbe.TipFor(ListenerState.NotListening, "SMTP", notRunning));
+         }
+
+         foreach (int notRunning in new[] { ListenerProbe.ServerStopped, ListenerProbe.ServerDraining })
+         {
+            Assert.Equal(StatusLevel.Information, ListenerProbe.LevelFor(ListenerState.NotListening, notRunning));
+            Assert.Equal("Not listening", ListenerProbe.WordFor(ListenerState.NotListening, notRunning));
+            Assert.Equal("Not listening. " + ListenerProbe.WhyNoPortIsListenedOn(notRunning), ListenerProbe.TipFor(ListenerState.NotListening, "SMTP", notRunning));
          }
 
          foreach (int? running in new int?[] { ListenerProbe.ServerRunning, null })
          {
             Assert.Equal(StatusLevel.Warning, ListenerProbe.LevelFor(ListenerState.NotListening, running));
+            Assert.Equal("Not listening", ListenerProbe.WordFor(ListenerState.NotListening, running));
             Assert.Equal(ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP"), ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP", running));
+            Assert.Equal("Not listening. " + ListenerProbe.ExplainFor(ListenerState.NotListening, "SMTP"), ListenerProbe.TipFor(ListenerState.NotListening, "SMTP", running));
          }
 
-         foreach (ListenerState other in new[] { ListenerState.Listening, ListenerState.ProtocolDisabled, ListenerState.Unknown })
+         foreach (int? serverState in new int?[] { ListenerProbe.ServerStopped, ListenerProbe.ServerStarting, ListenerProbe.ServerRunning, ListenerProbe.ServerStopping, ListenerProbe.ServerDraining, null })
          {
-            Assert.Equal(ListenerProbe.LevelFor(other), ListenerProbe.LevelFor(other, ListenerProbe.ServerStopped));
-            Assert.Equal(ListenerProbe.ExplainFor(other, "IMAP"), ListenerProbe.ExplainFor(other, "IMAP", ListenerProbe.ServerDraining));
+            foreach (ListenerState other in new[] { ListenerState.Listening, ListenerState.ProtocolDisabled, ListenerState.Unknown })
+            {
+               Assert.Equal(ListenerProbe.LevelFor(other), ListenerProbe.LevelFor(other, serverState));
+               Assert.Equal(ListenerProbe.WordFor(other), ListenerProbe.WordFor(other, serverState));
+               Assert.Equal(ListenerProbe.ExplainFor(other, "IMAP"), ListenerProbe.ExplainFor(other, "IMAP", serverState));
+               Assert.Equal(ListenerProbe.WordFor(other) + ". " + ListenerProbe.ExplainFor(other, "IMAP"), ListenerProbe.TipFor(other, "IMAP", serverState));
+            }
+         }
+      }
+
+      /// <summary>
+      /// While the server is starting or stopping, a port not listened on is
+      /// Unknown, at Unknown's level: the line under the list says that whether
+      /// its ports are being listened on cannot be said yet, and each row's tool
+      /// tip and accessible name said "Not listening. The server is starting or
+      /// stopping, so whether its ports are being listened on cannot be said
+      /// yet...", the word and the sentence against each other.
+      /// </summary>
+      [Fact]
+      public void APortNotListenedOn_WhileTheServerIsStartingOrStopping_IsUnknown_AndItsTipSaysNothingElse()
+      {
+         foreach (int unsettled in new[] { ListenerProbe.ServerStarting, ListenerProbe.ServerStopping })
+         {
+            Assert.Equal("Unknown", ListenerProbe.WordFor(ListenerState.NotListening, unsettled));
+            Assert.Equal(ListenerProbe.WordFor(ListenerState.Unknown), ListenerProbe.WordFor(ListenerState.NotListening, unsettled));
+            Assert.Equal(ListenerProbe.LevelFor(ListenerState.Unknown), ListenerProbe.LevelFor(ListenerState.NotListening, unsettled));
+            Assert.Equal(StatusLevel.Normal, ListenerProbe.LevelFor(ListenerState.NotListening, unsettled));
+
+            string tip = ListenerProbe.TipFor(ListenerState.NotListening, "SMTP", unsettled);
+            Assert.Equal("Unknown. " + ListenerProbe.WhyNoPortIsListenedOn(unsettled), tip);
+            Assert.DoesNotContain("Not listening", tip, System.StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(ListenerProbe.WordFor(ListenerState.NotListening), tip, System.StringComparison.OrdinalIgnoreCase);
          }
       }
 

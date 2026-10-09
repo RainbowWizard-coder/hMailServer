@@ -267,17 +267,50 @@ namespace hMailServer.ControlPanel.Services
       };
 
       /// <summary>
+      /// <see cref="WordFor(ListenerState)"/> with the server's state, as
+      /// Application.ServerState numbers it: while the server is starting or
+      /// stopping, a port not listened on is Unknown, since the line under the
+      /// list says that whether its ports are being listened on cannot be said yet
+      /// (<see cref="WhyNoPortIsListenedOn"/>), and each row's tool tip and
+      /// accessible name read "Not listening" before that very sentence. Paused or
+      /// in maintenance mode it is Not listening, which the line's sentence
+      /// explains; every other state keeps its word.
+      /// </summary>
+      public static string WordFor(ListenerState state, int? serverState)
+         => WordFor(NotYetKnown_(state, serverState) ? ListenerState.Unknown : state);
+
+      /// <summary>
+      /// What a row's tool tip and accessible name say: its word, then what that
+      /// means for the port (<see cref="ExplainFor(ListenerState, string, int?)"/>),
+      /// both with the server's state.
+      /// </summary>
+      public static string TipFor(ListenerState state, string protocol, int? serverState)
+         => WordFor(state, serverState) + ". " + ExplainFor(state, protocol, serverState);
+
+      /// <summary>
       /// <see cref="LevelFor(ListenerState)"/> with the server's state, as
-      /// Application.ServerState numbers it: while the server is not running -
-      /// paused, in maintenance mode, starting or stopping - a port not listened
-      /// on is Information, not a fault of its own, at the level of the line under
-      /// the list that says why (<see cref="WhyNoPortIsListenedOn"/>). Each row was
-      /// a Warning beside that Information line. Every other state keeps its level.
+      /// Application.ServerState numbers it: while the server is paused or in
+      /// maintenance mode a port not listened on is Information, not a fault of
+      /// its own, at the level of the line under the list that says why
+      /// (<see cref="WhyNoPortIsListenedOn"/>); each row was a Warning beside that
+      /// Information line. While it is starting or stopping the port's state
+      /// cannot be said yet, and it is at the level of Unknown, the word it reads
+      /// (<see cref="WordFor(ListenerState, int?)"/>). Every other state keeps its
+      /// level.
       /// </summary>
       public static StatusLevel LevelFor(ListenerState state, int? serverState)
-         => state == ListenerState.NotListening && WhyNoPortIsListenedOn(serverState) != null
-            ? StatusLevel.Information
-            : LevelFor(state);
+         => NotYetKnown_(state, serverState)
+            ? LevelFor(ListenerState.Unknown)
+            : state == ListenerState.NotListening && WhyNoPortIsListenedOn(serverState) != null
+               ? StatusLevel.Information
+               : LevelFor(state);
+
+      /// <summary>
+      /// A port not listened on while the server is starting or stopping: whether
+      /// it will be, or still is, listened on cannot be said yet.
+      /// </summary>
+      private static bool NotYetKnown_(ListenerState state, int? serverState)
+         => state == ListenerState.NotListening && serverState is ServerStarting or ServerStopping;
 
       /// <summary>
       /// <see cref="ExplainFor(ListenerState, string)"/> with the server's state:

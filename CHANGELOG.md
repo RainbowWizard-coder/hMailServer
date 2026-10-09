@@ -961,12 +961,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   says that instead, at the Information level - "The server is paused, so none of its ports is being listened on.
   Resuming it opens them again." with *Open Server status* - with no *Reinitialise now*, which stops the servers and
   starts them again and so would have ended maintenance mode or resumed the paused server under a question that said
-  only that clients are disconnected for a moment. Each row says the same at the same level, in its mark, its tool tip
-  and its accessible name, where each was a Warning that blamed a port just added or another program. A reinitialise of
-  a server in maintenance mode or paused, from the line or after a save, now asks again first, saying which it ends. An
-  IPv6 address is written in brackets, *IMAP [::]:993*, in the warning and in each row's accessible name
-  (`ListenerProbe.Endpoint`). `ListenerProbeTests` and `TcpIpPortsPageTests` hold the sentences, the brackets, the
-  action and the server's state.
+  only that clients are disconnected for a moment. Each row says the same, in its mark, its tool tip and its
+  accessible name, where each was a Warning that blamed a port just added or another program: paused or in maintenance
+  mode *Not listening*, at the line's Information level, and starting or stopping *Unknown*, since whether the port is
+  listened on cannot be said yet, where it read "Not listening" before the sentence that says so; the line finds those
+  rows by their state, not their word. A reinitialise of a server in maintenance mode or paused, from the line or
+  after a save, now asks again first, saying which it ends. An IPv6 address is written in brackets, *IMAP [::]:993*,
+  in the warning and in each row's accessible name (`ListenerProbe.Endpoint`). `ListenerProbeTests` and
+  `TcpIpPortsPageTests` hold the sentences, the brackets, the action and the server's state.
 - **Fixed: the REST API keys page's pills said how much attention a key wanted and not what it was, two of its texts
   were never translated, and an empty store was said twice.** Each key's pill read a severity word - *Warning* for a
   key with full authority, *OK* for a read-only one, *Information* for an expired one; it now names the key's state

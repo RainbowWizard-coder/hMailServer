@@ -32,6 +32,13 @@ namespace hMailServer.ControlPanel.Views
          public override string ToString()
             => string.Join(", ", new[] { Protocol + " " + ListenerProbe.Endpoint(Address, Port), Security, string.IsNullOrEmpty(Auth) ? "" : F("AUTH {0}", Auth), ListeningWord, Certificate }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
+         /// <summary>
+         /// What the machine says about the port, whatever the word: the line under
+         /// the list finds the ports not listened on by it, since the word of one
+         /// is Unknown while the server is starting or stopping.
+         /// </summary>
+         public ListenerState State { get; set; }
+
          /// <summary>"Listening", "Not listening", "Server off" or "Unknown".</summary>
          public string ListeningWord { get; set; }
 
@@ -208,8 +215,9 @@ namespace hMailServer.ControlPanel.Views
                   Security = security >= 0 && security < SecurityNames.Length ? SecurityNames[security] : "#" + security,
                   Certificate = certId > 0 && certNames.TryGetValue(certId, out string n) ? n : "",
                   Auth = auth,
-                  ListeningWord = ListenerProbe.WordFor(state),
-                  ListeningTip = ListenerProbe.WordFor(state) + ". " + ListenerProbe.ExplainFor(state, protocol, serverState),
+                  State = state,
+                  ListeningWord = ListenerProbe.WordFor(state, serverState),
+                  ListeningTip = ListenerProbe.TipFor(state, protocol, serverState),
                   ListeningMark = MakeListeningMark(presentation)
                });
                ServerSession.Release(port);
@@ -271,7 +279,9 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         var down = rows.FindAll(r => r.ListeningWord == ListenerProbe.WordFor(ListenerState.NotListening));
+         // By the state, not the word, which reads Unknown for such a port while
+         // the server is starting or stopping.
+         var down = rows.FindAll(r => r.State == ListenerState.NotListening);
 
          if (down.Count == 0)
          {
