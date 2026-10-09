@@ -9159,7 +9159,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Rétablir les p_orts par défaut</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Rétablir les pla_ges par défaut</value>
+    <value>Restaurer les pla_ges par défaut</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Restaurer la boîte au_x lettres</value>

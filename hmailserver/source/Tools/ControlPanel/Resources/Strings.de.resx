@@ -3163,7 +3163,7 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Unterordner anlegen</value>
   </data>
   <data name="Create the _first key…" xml:space="preserve">
-    <value>Ersten _Schlüssel erstellen…</value>
+    <value>Ersten _Schlüssel anlegen…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Legen Sie den öffentlichen Ordner an und gewähren Sie dann Konten oder Gruppen Berechtigungen darauf.</value>

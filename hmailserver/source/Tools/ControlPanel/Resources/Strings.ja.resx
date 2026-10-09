@@ -13648,13 +13648,13 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>サインイン時の国ポリシー (空 = オフ。allow:GB,IE または block:CN,RU)(_C)</value>
   </data>
   <data name="_Create a key…" xml:space="preserve">
-    <value>鍵を作成(_C)…</value>
+    <value>キーを作成(_C)…</value>
   </data>
   <data name="_Create account" xml:space="preserve">
     <value>アカウントを作成(_C)</value>
   </data>
   <data name="_Create key" xml:space="preserve">
-    <value>鍵を作成(_C)</value>
+    <value>キーを作成(_C)</value>
   </data>
   <data name="_Current administrator password" xml:space="preserve">
     <value>現在の管理者パスワード(_C)</value>

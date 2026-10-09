@@ -3145,10 +3145,10 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
     <value>Drafts, Sent, Trash en Junk aanmaken voor nieuwe accounts</value>
   </data>
   <data name="Create a REST API key" xml:space="preserve">
-    <value>Een REST-API-sleutel maken</value>
+    <value>Een REST-API-sleutel aanmaken</value>
   </data>
   <data name="Create a new REST API key" xml:space="preserve">
-    <value>Een nieuwe REST-API-sleutel maken</value>
+    <value>Een nieuwe REST-API-sleutel aanmaken</value>
   </data>
   <data name="Create and update mailboxes to match an LDAP directory - preview first, then apply." xml:space="preserve">
     <value>Postvakken maken en bijwerken zodat ze overeenkomen met een LDAP-directory - eerst een voorbeeld, dan toepassen.</value>
@@ -3163,7 +3163,7 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
     <value>Submappen maken</value>
   </data>
   <data name="Create the _first key…" xml:space="preserve">
-    <value>Eerste _sleutel maken…</value>
+    <value>Eerste _sleutel aanmaken…</value>
   </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Maak de openbare map en geef accounts of groepen er daarna machtigingen op.</value>
