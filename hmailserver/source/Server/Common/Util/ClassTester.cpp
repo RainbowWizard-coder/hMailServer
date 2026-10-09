@@ -10,6 +10,7 @@
 #include "../BO/Message.h"
 #include "../BO/Account.h"
 #include "../BO/FetchAccount.h"
+#include "../BO/ScheduledTask.h"
 #include "../Rules/RuleGuard.h"
 #include "../Sieve/SieveVacationResponder.h"
 #include "../Sieve/ManageSieveServer.h"
@@ -228,6 +229,14 @@ namespace HM
       OutputDebugString(_T("hMailServer: Testing the fetch account's retention\n"));
       FetchAccountTester fetchAccountTester;
       fetchAccountTester.Test();
+
+      // A scheduled task due at a second is due at a turn within it, in whole
+      // seconds: until 9 October 2026 a local DATE moved on by a minute's span
+      // came out above the second it meant, and the task waited a turn more
+      // (ScheduledTask.h).
+      OutputDebugString(_T("hMailServer: Testing the scheduled tasks' run times\n"));
+      ScheduledTaskTester scheduledTaskTester;
+      scheduledTaskTester.Test();
 
       // X-hMailServer-LoopCount, which comes with mail from anyone, read as a
       // count only when it is digits, and never above the limit: before 6 October

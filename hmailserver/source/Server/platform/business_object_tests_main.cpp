@@ -33,6 +33,11 @@
 //     IMAP fetcher read 0 and -1 the other way round. What a value stored before
 //     schema 6106 means in it, and an archive written before 6.3.6 read through
 //     that rule while one written since is read as it is.
+//   - A scheduled task due at a second is due at a turn of the Scheduler within it
+//     (ScheduledTaskTester, Common/BO/ScheduledTask.cpp): until 9 October 2026 its
+//     next run was a local DATE moved on by a minute's span, which came out a
+//     rounding error above the second it meant, and the task - the minute's
+//     RemoveExpiredRecords among them - waited a whole turn more.
 //   - A message's X-hMailServer-LoopCount, which comes with mail from anyone, is a
 //     count only when it is digits, and never above the limit (LoopCountTester,
 //     Common/Rules/RuleGuard.cpp): MessageData and the Sieve evaluator read it with
@@ -89,6 +94,7 @@
 
 #include "../Common/BO/Account.h"
 #include "../Common/BO/FetchAccount.h"
+#include "../Common/BO/ScheduledTask.h"
 #include "../Common/BO/Message.h"
 #include "../Common/AntiSpam/DKIM/DKIMSigner.h"
 #include "../Common/AntiSpam/DKIM/Arc.h"
@@ -365,6 +371,13 @@ namespace
    }
 
    void
+   TestScheduledTaskTimes()
+   {
+      HM::ScheduledTaskTester tester;
+      tester.Test();
+   }
+
+   void
    TestLoopCount()
    {
       HM::LoopCountTester tester;
@@ -419,6 +432,7 @@ main(int /*argc*/, char * /*argv*/[])
 {
    int failed = 0;
    failed += Run(&TestAccountCopy, "an account's copy: every member, the retention and the mailbox key wrap among them");
+   failed += Run(&TestScheduledTaskTimes, "a scheduled task due at a second is due at a turn within it, run after run, in whole seconds, and one late by more than its period resumes from now");
    failed += Run(&TestFetchAccountRetention, "an external account's DaysToKeepMessages: one meaning for POP3 and IMAP, and what a value stored before schema 6106 or archived before 6.3.6 means in it");
    failed += Run(&TestMessageCopy, "a message's copy: every member it carries, and the one it leaves out");
    failed += Run(&TestDiagnosticResult, "a DiagnosticResult made empty is not a success");

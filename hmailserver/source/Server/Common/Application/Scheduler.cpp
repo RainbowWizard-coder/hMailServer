@@ -79,13 +79,15 @@ namespace HM
       {
          boost::lock_guard<boost::recursive_mutex> guard(mutex_);
 
-         DateTime dtNow = DateTime::GetCurrentTime();
+         // Whole seconds, as the tasks keep their next runs (ScheduledTask.h): a
+         // task due at this second is due now.
+         const __int64 now = ScheduledTask::Now();
 
          for (auto iterTask = scheduled_tasks_.begin(); iterTask != scheduled_tasks_.end(); iterTask++)
          {
             std::shared_ptr<ScheduledTask> pTask = (*iterTask);
 
-            if (pTask->GetNextRunTime() <= dtNow)
+            if (pTask->IsDue(now))
                due.push_back(std::make_pair(pTask, pTask->GetPeriodRestarts()));
          }
       }

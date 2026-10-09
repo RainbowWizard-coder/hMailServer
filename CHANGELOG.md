@@ -403,6 +403,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   still skipped it. A move now writes the place alone, and the rules of the owner the rule's row names are read again
   in their new order. `Rules/Rules.cs` moves an account's action, and its rule, with an action turned to `From` or
   `Sender` and not saved, and reads both back from the database. Found by the re-check of the batch's fixes.
+- **Fixed: a scheduled task due at a second was often found not due by a turn of the Scheduler within that second,
+  and waited a whole turn, a minute, more; and when the clocks went back every scheduled task waited an hour.** A
+  task's next run was a local date and time held as a count of days in a double, moved on after each run by a minute's
+  span - or its own period's - added to it, and compared with the clock composed from the current second's fields. The
+  sum came out a rounding error above the second it meant more often than not, from the second run after a start,
+  and the Scheduler's turns, which come a minute and some 0.4 seconds apart, fall within the due second for a turn or
+  two after a start early in a second, and again as they drift on: such a turn found the task not due, and the
+  minute's tasks - the expiry of auto-bans and IP ranges, scheduled mail, alerts, webhook retries, the mailbox keys'
+  idle sweep, which is now on a thread of its own (*Security*, above) - ran a minute late (in every version). And a
+  local time came round again an hour after the clocks went back, so every task's next run was an hour away. The next
+  run is now a count of seconds since 1970, as `time()` gives it, moved on and compared exactly. `ScheduledTaskTester`
+  (`business-object-tests` on Linux) holds a task every minute, run at a turn within its due second for a week of
+  minutes, to being due at each and never a second early, and one late by more than its period to resuming from the
+  turn. Found by the batch's regression gate, where `EncryptionAtRest.AWebmailSessionWhoseKeyClosedIsEnded` waited
+  out its 150 seconds for a key whose sweep had been put off a turn.
 
 ### Downloads and the release
 
