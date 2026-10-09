@@ -10014,7 +10014,7 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
     <value>Regeln durchsuchen</value>
   </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
-    <value>Absender, Empfänger, Betreff oder Grund durchsuchen</value>
+    <value>Absender, Empfänger, Betreff, Grund suchen</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Die Zustellwarteschlange durchsuchen</value>

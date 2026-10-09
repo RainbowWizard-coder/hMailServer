@@ -10122,7 +10122,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Поиск по правилам</value>
   </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
-    <value>Поиск по отправителю, получателю, теме или причине</value>
+    <value>Отправитель, получатель, тема или причина</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Поиск по очереди доставки</value>

@@ -10014,7 +10014,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Rechercher des règles</value>
   </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
-    <value>Rechercher l'expéditeur, le destinataire, l'objet ou le motif</value>
+    <value>Chercher expéditeur, destinataire, objet, motif</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Rechercher dans la file de livraison</value>

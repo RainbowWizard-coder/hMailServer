@@ -10122,7 +10122,7 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
     <value>Hledat v pravidlech</value>
   </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
-    <value>Hledat odesílatele, příjemce, předmět nebo důvod</value>
+    <value>Hledat odesílatele, příjemce, předmět, důvod</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Hledat v doručovací frontě</value>

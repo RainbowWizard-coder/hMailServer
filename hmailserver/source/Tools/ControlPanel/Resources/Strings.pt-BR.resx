@@ -10014,7 +10014,7 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
     <value>Buscar regras</value>
   </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
-    <value>Buscar remetente, destinatário, assunto ou motivo</value>
+    <value>Buscar remetente, destinatário, assunto, motivo</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>Buscar na fila de entrega</value>

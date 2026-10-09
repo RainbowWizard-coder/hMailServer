@@ -10014,7 +10014,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>Regels doorzoeken</value>
   </data>
   <data name="Search sender, recipient, subject or reason" xml:space="preserve">
-    <value>Zoeken op afzender, ontvanger, onderwerp of reden</value>
+    <value>Zoek op afzender, ontvanger, onderwerp, reden</value>
   </data>
   <data name="Search the delivery queue" xml:space="preserve">
     <value>De bezorgwachtrij doorzoeken</value>
