@@ -2251,6 +2251,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Certificates…" xml:space="preserve">
     <value>Sertifikater…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Endring mislyktes</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Endringshistorikk for synkroniserende klienter</value>
   </data>
@@ -4303,6 +4306,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Oppføringer som passer til søket: {0} av {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Oppføring hoppet over</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Konvoluttdomener og HELO-suffikser som slipper forbi grålisting når meldingen bærer autentiseringsresultatene oppføringen krever - SPF, DKIM, DMARC, i enhver kombinasjon. Et domene matchet nøyaktig, eller et suffiks med innledende punktum som .mail.example.com som dekker det navnet og alle navn under det. SPF er kjent ved RCPT TO, så en oppføring som bare krever SPF avgjøres der; DKIM og DMARC finnes først når meldingen er mottatt, så en oppføring som krever en av dem slipper mottakeren gjennom inntil videre, og meldingen grålistes etter DATA hvis resultatet ikke er bestått - og bare mens DKIM-verifisering eller DMARC er slått på, ellers kan oppføringen aldri oppfylles. I motsetning til Hopp over ved SPF-godkjenning er dette et privilegium du gir et navngitt domene, ikke en egenskap ved enhver SPF-godkjenning i verden.</value>
   </data>
@@ -6030,6 +6036,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Post til en administrator når noe trenger oppmerksomhet, for eksempel en disk som fylles, en arbeidskø som stopper opp, et sertifikat som snart utløper, eller en sikkerhetskopi som mislyktes. Hvilke forhold som overvåkes, bestemmes av alarmreglene i Control Deck; ingenting sendes før begge adressene nedenfor er angitt.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Postkasse opprettet</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Postboksen er tømt.</value>
   </data>
@@ -6050,6 +6059,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Postboksen er låst opp.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Postkasse oppdatert</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Opprettede postbokser: {0}. Oppdaterte postbokser: {1}. Kontoer merket som inaktive: {2}. Katalogoppføringer som hoppes over: {3}.</value>
@@ -6109,6 +6121,9 @@ Hvert Web Push-abonnement under det nåværende paret slutter å virke med en ga
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Administratorer som kan spørre (adresser eller CIDR-områder, kommaseparert)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Merket inaktiv</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Maskerte adresser en person kan lage (0 = ingen; opptil 200)</value>
@@ -7126,6 +7141,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Not found" xml:space="preserve">
     <value>Ikke funnet</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Ikke i katalogen</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Lytter ikke</value>
   </data>
@@ -7137,6 +7155,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Ikke lest</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Ikke oppgitt</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Ikke startet på nytt</value>
@@ -12627,6 +12648,15 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="To" xml:space="preserve">
     <value>Til</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Opprettes</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Merkes inaktiv</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Oppdateres</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Token-endepunkt (https)</value>
   </data>
@@ -12806,6 +12836,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Utilgjengelig</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Uendret</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Fold ut denne gruppen</value>

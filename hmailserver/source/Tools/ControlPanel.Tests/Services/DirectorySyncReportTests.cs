@@ -272,5 +272,71 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(a.Rows[0].Kind, b.Rows[0].Kind);
          Assert.Equal(a.Rows[0].Outcome, b.Rows[0].Outcome);
       }
+
+      // ---- the levels the page draws them at -----------------------------------
+
+      /// <summary>
+      /// Each row carries its outcome's mark and word: a failed row is Critical, a
+      /// skipped or disabled one a Warning, one created or updated Good, one
+      /// unchanged Normal. The rows differed only by bold text, so a failed account
+      /// looked like a created one in bold.
+      /// </summary>
+      [Theory]
+      [InlineData("create", "failed", StatusLevel.Critical, "Change failed")]
+      [InlineData("create", "done", StatusLevel.Good, "Mailbox created")]
+      [InlineData("create", "planned", StatusLevel.Good, "To create")]
+      [InlineData("update", "done", StatusLevel.Good, "Mailbox updated")]
+      [InlineData("skip", "noop", StatusLevel.Warning, "Entry skipped")]
+      [InlineData("skip", "planned", StatusLevel.Warning, "Entry skipped")]
+      [InlineData("disable", "planned", StatusLevel.Warning, "To mark inactive")]
+      [InlineData("disable", "done", StatusLevel.Warning, "Marked inactive")]
+      [InlineData("unchanged", "noop", StatusLevel.Normal, "Unchanged")]
+      [InlineData("no longer in the directory", "noop", StatusLevel.Information, "Not in the directory")]
+      public void EachRow_CarriesItsOutcomesLevelAndWord(string action, string outcome, StatusLevel level, string word)
+      {
+         DirectorySyncReport report = DirectorySyncReport.Parse(true, Report("a@b.test\t" + action + "\tWhy.\t" + outcome));
+         Assert.Equal(level, report.Rows[0].Level);
+         Assert.Equal(word, report.Rows[0].Word);
+      }
+
+      /// <summary>
+      /// A server that does not write the outcome column does not say whether a
+      /// change was carried out, and the row does not claim it was.
+      /// </summary>
+      [Fact]
+      public void AChangeWithNoOutcome_IsNotReportedAsDone()
+      {
+         DirectorySyncReport report = DirectorySyncReport.Parse(true, Report("a@b.test\tcreate\tWill be created."));
+         Assert.Equal(StatusLevel.Normal, report.Rows[0].Level);
+         Assert.Equal("Not reported", report.Rows[0].Word);
+      }
+
+      /// <summary>
+      /// The summary's level comes from the outcome: an apply with a change that
+      /// failed is a Warning, where it was Information whenever the run itself
+      /// completed; one with none failed is Good; a run that did not happen is
+      /// Critical; a preview is a Warning while rows need reading.
+      /// </summary>
+      [Fact]
+      public void TheSummaryLevel_ComesFromTheOutcome()
+      {
+         DirectorySyncReport someFailed = DirectorySyncReport.Parse(true, Report(
+            "a@b.test\tcreate\tCreated.\tdone",
+            "c@b.test\tcreate\tThe database refused it.\tfailed"));
+         Assert.Equal(StatusLevel.Warning, someFailed.SummaryLevel(applied: true));
+
+         DirectorySyncReport noneFailed = DirectorySyncReport.Parse(true, Report("a@b.test\tcreate\tCreated.\tdone"));
+         Assert.Equal(StatusLevel.Good, noneFailed.SummaryLevel(applied: true));
+
+         DirectorySyncReport refused = DirectorySyncReport.Parse(false, "Directory access is switched off.");
+         Assert.Equal(StatusLevel.Critical, refused.SummaryLevel(applied: true));
+         Assert.Equal(StatusLevel.Critical, refused.SummaryLevel(applied: false));
+
+         DirectorySyncReport skips = DirectorySyncReport.Parse(true, Report("\tskip\tNo mail attribute.\tplanned"));
+         Assert.Equal(StatusLevel.Warning, skips.SummaryLevel(applied: false));
+
+         DirectorySyncReport clean = DirectorySyncReport.Parse(true, Report("a@b.test\tcreate\tWill be created.\tplanned"));
+         Assert.Equal(StatusLevel.Information, clean.SummaryLevel(applied: false));
+      }
    }
 }

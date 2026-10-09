@@ -2269,6 +2269,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Certificates…" xml:space="preserve">
     <value>Certifikáty…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Změna selhala</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Historie změn pro synchronizující se klienty</value>
   </data>
@@ -4339,6 +4342,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Položky odpovídající hledání: {0} z {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Položka přeskočena</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Domény obálky a přípony HELO propuštěné přes greylisting, když zpráva nese výsledky ověření, které položka vyžaduje - SPF, DKIM, DMARC, v libovolné kombinaci. Doména porovnávaná přesně, nebo přípona s úvodní tečkou jako .mail.example.com pokrývající toto jméno a každé jméno pod ním. SPF je známo při RCPT TO, takže položka vyžadující jen SPF rozhoduje tam; DKIM a DMARC existují až po přijetí zprávy, takže položka vyžadující kterékoli z nich zatím příjemce propustí a zpráva je greylistována po DATA, pokud výsledek není úspěch - a jen dokud je zapnuto ověřování DKIM nebo DMARC, jinak položku nelze nikdy splnit. Na rozdíl od volby Přeskočit při úspěšném SPF je to výsada, kterou udělíte jmenované doméně, nikoli vlastnost každého úspěšného SPF na světě.</value>
   </data>
@@ -6087,6 +6093,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Pošta správci, když něco potřebuje pozornost, například zaplňující se disk, zaseknutá pracovní fronta, brzy vyprší certifikát nebo selhala záloha. Které podmínky se sledují, určují pravidla upozornění v Control Deck; nic se neodesílá, dokud nejsou obě adresy níže nastavené.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Schránka vytvořena</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Poštovní schránka byla vyprázdněna.</value>
   </data>
@@ -6107,6 +6116,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Poštovní schránka byla odemčena.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Schránka aktualizována</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Vytvořené schránky: {0}. Aktualizované schránky: {1}. Účty označené jako neaktivní: {2}. Přeskočené položky adresáře: {3}.</value>
@@ -6166,6 +6178,9 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Správcovské stanice, které se smí ptát (adresy nebo rozsahy CIDR, oddělené čárkami)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Označen jako neaktivní</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Maskované adresy, které smí člověk vytvořit (0 = žádné; nejvýše 200)</value>
@@ -7198,6 +7213,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not found" xml:space="preserve">
     <value>Nenalezeno</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Není v adresáři</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Nenaslouchá</value>
   </data>
@@ -7209,6 +7227,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Nepřečteno</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Neuvedeno</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Nerestartováno</value>
@@ -12779,6 +12800,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="To" xml:space="preserve">
     <value>Komu</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>K vytvoření</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>K označení jako neaktivní</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>K aktualizaci</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Endpoint tokenu (https)</value>
   </data>
@@ -12958,6 +12988,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Nedostupné</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Beze změny</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Rozbalit tuto skupinu</value>

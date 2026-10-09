@@ -2251,6 +2251,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Certificates…" xml:space="preserve">
     <value>Zertifikate…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Änderung fehlgeschlagen</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Änderungshistorie für synchronisierende Clients</value>
   </data>
@@ -4303,6 +4306,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Einträge, die der Suche entsprechen: {0} von {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Eintrag übersprungen</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Umschlag-Domains und HELO-Suffixe, die am Greylisting vorbeikommen, wenn die Nachricht die Authentifizierungsergebnisse trägt, die der Eintrag verlangt - SPF, DKIM, DMARC, in beliebiger Kombination. Eine exakt verglichene Domain, oder ein Suffix mit führendem Punkt wie .mail.example.com, das diesen Namen und jeden Namen darunter abdeckt. SPF ist bei RCPT TO bekannt, ein Eintrag, der nur SPF verlangt, entscheidet also dort; DKIM und DMARC gibt es erst, wenn die Nachricht angekommen ist, ein Eintrag, der eines davon verlangt, lässt den Empfänger also vorerst durch, und die Nachricht wird nach DATA gegreylistet, wenn das Ergebnis kein Bestehen ist - und nur solange DKIM-Prüfung oder DMARC eingeschaltet ist, da der Eintrag sonst nie erfüllt werden kann. Anders als Bei SPF-Erfolg umgehen ist dies ein Privileg, das Sie einer benannten Domain gewähren, und keine Eigenschaft jedes SPF-Erfolgs auf der Welt.</value>
   </data>
@@ -6030,6 +6036,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Post an einen Administrator, wenn etwas Aufmerksamkeit braucht, etwa eine volllaufende Festplatte, eine stockende Arbeitswarteschlange, ein bald ablaufendes Zertifikat oder eine fehlgeschlagene Sicherung. Welche Bedingungen überwacht werden, legen die Warnregeln im Control Deck fest; nichts wird versendet, bis beide Adressen unten gesetzt sind.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Postfach angelegt</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Postfach geleert.</value>
   </data>
@@ -6050,6 +6059,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Postfach entsperrt.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Postfach aktualisiert</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Angelegte Postfächer: {0}. Aktualisierte Postfächer: {1}. Als inaktiv markierte Konten: {2}. Übersprungene Verzeichniseinträge: {3}.</value>
@@ -6109,6 +6121,9 @@ Jedes Web-Push-Abonnement unter dem jetzigen Paar funktioniert sofort nicht mehr
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Manager, die fragen dürfen (Adressen oder CIDR-Bereiche, durch Kommas getrennt)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Als inaktiv markiert</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Maskierte Adressen, die jemand anlegen darf (0 = keine; bis 200)</value>
@@ -7126,6 +7141,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="Not found" xml:space="preserve">
     <value>Nicht gefunden</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Nicht im Verzeichnis</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Lauscht nicht</value>
   </data>
@@ -7137,6 +7155,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Nicht gelesen</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Nicht gemeldet</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Nicht neu gestartet</value>
@@ -12627,6 +12648,15 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="To" xml:space="preserve">
     <value>An</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Wird angelegt</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Wird als inaktiv markiert</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Wird aktualisiert</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Token-Endpunkt (https)</value>
   </data>
@@ -12806,6 +12836,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Nicht verfügbar</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Unverändert</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Diese Gruppe ausklappen</value>

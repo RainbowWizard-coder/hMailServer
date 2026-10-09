@@ -2251,6 +2251,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Certificates…" xml:space="preserve">
     <value>Sertifikalar…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Değişiklik başarısız</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Eşitleme yapan istemciler için değişiklik geçmişi</value>
   </data>
@@ -4303,6 +4306,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Aramayla eşleşen girdiler: {0} / {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Girdi atlandı</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>İleti, kaydın gerektirdiği kimlik doğrulama sonuçlarını - SPF, DKIM, DMARC, herhangi bir birleşim - taşıdığında gri listelemeyi atlayan zarf alan adları ve HELO sonekleri. Tam eşleşen bir alan adı ya da .mail.example.com gibi başında nokta olan ve o adı ve altındaki her adı kapsayan bir sonek. SPF, RCPT TO anında bilinir, bu yüzden yalnızca SPF isteyen bir kayıt orada karar verir; DKIM ve DMARC yalnızca ileti alındıktan sonra var olur, bu yüzden ikisinden birini isteyen bir kayıt alıcıyı şimdilik geçirir ve sonuç geçer değilse ileti DATA sonrasında gri listelenir - ve yalnızca DKIM doğrulaması veya DMARC açıkken, aksi halde kayıt hiçbir zaman karşılanamaz. SPF başarılıysa atla seçeneğinden farklı olarak bu, dünyadaki her SPF geçişinin bir özelliği değil, adı geçen bir alan adına sizin verdiğiniz bir ayrıcalıktır.</value>
   </data>
@@ -6030,6 +6036,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Bir şey dikkat gerektirdiğinde yöneticiye posta: dolan bir disk, duran bir iş kuyruğu, süresi dolmak üzere olan bir sertifika veya başarısız bir yedekleme gibi. Hangi koşulların izlendiğini Control Deck'teki uyarı kuralları belirler; aşağıdaki iki adres de ayarlanana kadar hiçbir şey gönderilmez.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Posta kutusu oluşturuldu</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Posta kutusu boşaltıldı.</value>
   </data>
@@ -6050,6 +6059,9 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Posta kutusunun kilidi açıldı.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Posta kutusu güncellendi</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Oluşturulan posta kutuları: {0}. Güncelleştirilen posta kutuları: {1}. Etkin değil olarak işaretlenen hesaplar: {2}. Atlanan dizin girdileri: {3}.</value>
@@ -6109,6 +6121,9 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Sormasına izin verilen yönetim istasyonları (adresler veya CIDR aralıkları, virgülle ayrılmış)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Etkin değil olarak işaretlendi</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Bir kişinin oluşturabileceği maskeli adresler (0 = yok; en fazla 200)</value>
@@ -7126,6 +7141,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Not found" xml:space="preserve">
     <value>Bulunamadı</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Dizinde yok</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Dinlemiyor</value>
   </data>
@@ -7137,6 +7155,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Okunmadı</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Bildirilmedi</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Yeniden başlatılmadı</value>
@@ -12627,6 +12648,15 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="To" xml:space="preserve">
     <value>Kime</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Oluşturulacak</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Etkin değil olarak işaretlenecek</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Güncellenecek</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Belirteç uç noktası (https)</value>
   </data>
@@ -12806,6 +12836,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Kullanılamıyor</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Değişmedi</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Bu grubu genişlet</value>

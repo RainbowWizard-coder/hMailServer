@@ -2251,6 +2251,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Certificates…" xml:space="preserve">
     <value>Certificates…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Change failed</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Change history for synchronising clients</value>
   </data>
@@ -4303,6 +4306,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Entries that match the search: {0} of {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Entry skipped</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world.</value>
   </data>
@@ -6030,6 +6036,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Mailbox created</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Mailbox emptied.</value>
   </data>
@@ -6050,6 +6059,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Mailbox unlocked.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Mailbox updated</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}.</value>
@@ -6109,6 +6121,9 @@ Every Web Push subscription made under the present pair stops working at once, a
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Managers allowed to ask (addresses or CIDR ranges, comma separated)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Marked inactive</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Masked addresses a person may make (0 = none; up to 200)</value>
@@ -7126,6 +7141,9 @@ Nothing already there is removed.</value>
   <data name="Not found" xml:space="preserve">
     <value>Not found</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Not in the directory</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Not listening</value>
   </data>
@@ -7137,6 +7155,9 @@ Nothing already there is removed.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Not read</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Not reported</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Not restarted</value>
@@ -12627,6 +12648,15 @@ It will keep trying as you use the application.</value>
   <data name="To" xml:space="preserve">
     <value>To</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>To create</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>To mark inactive</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>To update</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Token endpoint (https)</value>
   </data>
@@ -12806,6 +12836,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Unavailable</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Unchanged</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Unfold this group</value>

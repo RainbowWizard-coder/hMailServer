@@ -2269,6 +2269,9 @@
   <data name="Certificates…" xml:space="preserve">
     <value>Сертифікати…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Зміну не виконано</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Історія змін для клієнтів, які синхронізуються</value>
   </data>
@@ -4339,6 +4342,9 @@
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Записів, що відповідають пошуку: {0} з {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Запис пропущено</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Домени конверта та суфікси HELO, які пропускають повз сірий список, коли повідомлення несе результати автентифікації, яких вимагає запис - SPF, DKIM, DMARC, у будь-якому поєднанні. Домен, що порівнюється точно, або суфікс із крапкою на початку, як .mail.example.com, що покриває це ім'я та всі імена під ним. SPF відомий на RCPT TO, тому запис, що вимагає лише SPF, вирішує там; DKIM і DMARC існують лише після отримання повідомлення, тому запис, що вимагає будь-якого з них, поки пропускає одержувача, а повідомлення потрапляє до сірого списку після DATA, якщо результат не є успішним - і лише доки ввімкнено перевірку DKIM або DMARC, інакше запис ніколи не може бути виконаний. На відміну від параметра Пропускати за успішної перевірки SPF це привілей, який ви надаєте названому домену, а не властивість кожної успішної перевірки SPF у світі.</value>
   </data>
@@ -6087,6 +6093,9 @@
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Пошта адміністраторові, коли щось потребує уваги, наприклад заповнюється диск, зупиняється робоча черга, скоро спливає сертифікат або не вдалося резервне копіювання. Які умови відстежуються, задають правила оповіщень у Control Deck; нічого не надсилається, доки не задано обидві адреси нижче.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Скриньку створено</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Поштову скриньку очищено.</value>
   </data>
@@ -6107,6 +6116,9 @@
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Поштову скриньку розблоковано.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Скриньку оновлено</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Створювані скриньки: {0}. Оновлювані скриньки: {1}. Облікові записи, що позначаються неактивними: {2}. Пропущені записи каталогу: {3}.</value>
@@ -6166,6 +6178,9 @@
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Станції керування, яким дозволено питати (адреси або діапазони CIDR, через кому)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Позначено неактивним</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Масковані адреси, які може створити людина (0 = немає; до 200)</value>
@@ -7198,6 +7213,9 @@
   <data name="Not found" xml:space="preserve">
     <value>Не знайдено</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Немає в каталозі</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Не слухає</value>
   </data>
@@ -7209,6 +7227,9 @@
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Не прочитано</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Не повідомлено</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Не перезапущено</value>
@@ -12779,6 +12800,15 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="To" xml:space="preserve">
     <value>Кому</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Буде створено</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Буде позначено неактивним</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Буде оновлено</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Кінцева точка токена (https)</value>
   </data>
@@ -12958,6 +12988,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Недоступно</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Без змін</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Розгорнути цю групу</value>

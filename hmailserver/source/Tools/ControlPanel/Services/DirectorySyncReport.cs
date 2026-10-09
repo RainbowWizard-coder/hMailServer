@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Services
 {
@@ -99,6 +100,60 @@ namespace hMailServer.ControlPanel.Services
          Outcome == DirectorySyncOutcome.Failed ||
          Kind == DirectorySyncRowKind.Skip ||
          Kind == DirectorySyncRowKind.Disable;
+
+      /// <summary>
+      /// What became of the row, or will, as a level and a word for its mark:
+      /// a failed row is Critical; a skipped one and one disabled are Warnings,
+      /// since each is a mailbox somebody expected or had; one created or updated
+      /// is Good; one unchanged says nothing, Normal; one gone from the directory
+      /// and left alone is Information. A preview's words say what is to happen,
+      /// an apply's what did. The rows differed only by bold text, so a failed
+      /// account looked like a created one in bold.
+      /// </summary>
+      public StatusLevel Level => Outcome == DirectorySyncOutcome.Failed ? StatusLevel.Critical
+         : (Outcome == DirectorySyncOutcome.Unknown || Outcome == DirectorySyncOutcome.NoAction) && (Kind == DirectorySyncRowKind.Create || Kind == DirectorySyncRowKind.Update || Kind == DirectorySyncRowKind.Disable) ? StatusLevel.Normal
+         : Kind switch
+         {
+            DirectorySyncRowKind.Skip => StatusLevel.Warning,
+            DirectorySyncRowKind.Disable => StatusLevel.Warning,
+            DirectorySyncRowKind.Create => StatusLevel.Good,
+            DirectorySyncRowKind.Update => StatusLevel.Good,
+            DirectorySyncRowKind.ReportMissing => StatusLevel.Information,
+            _ => StatusLevel.Normal
+         };
+
+      /// <summary>The word beside the row's mark. See <see cref="Level"/>.</summary>
+      public string Word
+      {
+         get
+         {
+            if (Outcome == DirectorySyncOutcome.Failed)
+               return L("Change failed");
+
+            bool done = Outcome == DirectorySyncOutcome.Done;
+            bool planned = Outcome == DirectorySyncOutcome.Planned;
+
+            // An older server does not say whether a change was carried out, and
+            // assuming it was is the bug the outcome column was added to fix.
+            if (Outcome == DirectorySyncOutcome.Unknown &&
+                (Kind == DirectorySyncRowKind.Create || Kind == DirectorySyncRowKind.Update || Kind == DirectorySyncRowKind.Disable))
+               return L("Not reported");
+
+            // "Mailbox created" and not "Created", which the catalogues hold as a
+            // column's heading - the time a thing was created - in Japanese and
+            // Chinese. An apply with nothing to do for a change is "Unchanged".
+            return Kind switch
+            {
+               DirectorySyncRowKind.Create => planned ? L("To create") : done ? L("Mailbox created") : L("Unchanged"),
+               DirectorySyncRowKind.Update => planned ? L("To update") : done ? L("Mailbox updated") : L("Unchanged"),
+               DirectorySyncRowKind.Disable => planned ? L("To mark inactive") : done ? L("Marked inactive") : L("Unchanged"),
+               DirectorySyncRowKind.Skip => L("Entry skipped"),
+               DirectorySyncRowKind.Unchanged => L("Unchanged"),
+               DirectorySyncRowKind.ReportMissing => L("Not in the directory"),
+               _ => L("Other")
+            };
+         }
+      }
    }
 
    /// <summary>
@@ -153,6 +208,25 @@ namespace hMailServer.ControlPanel.Services
       /// that in one number.
       /// </summary>
       public int AttentionCount => Rows.Count(row => row.NeedsAttention);
+
+      /// <summary>
+      /// The level the run's summary is shown at. A run that did not happen is
+      /// Critical. An apply with changes that failed is a Warning - the run
+      /// completed, so it was shown as Information over "N of M changes could not
+      /// be carried out" - and one with none failed is Good. A preview is a
+      /// Warning while rows need reading before an apply, and Information when
+      /// nothing does.
+      /// </summary>
+      public StatusLevel SummaryLevel(bool applied)
+      {
+         if (!Succeeded)
+            return StatusLevel.Critical;
+
+         if (applied)
+            return Rows.Any(row => row.Outcome == DirectorySyncOutcome.Failed) ? StatusLevel.Warning : StatusLevel.Good;
+
+         return AttentionCount > 0 ? StatusLevel.Warning : StatusLevel.Information;
+      }
 
       /// <summary>
       /// Parses what Settings.PreviewDirectorySync or ApplyDirectorySync returned.

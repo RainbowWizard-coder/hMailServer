@@ -2251,6 +2251,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Certificates…" xml:space="preserve">
     <value>Certificados…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Alteração falhou</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Histórico de alterações para os clientes que sincronizam</value>
   </data>
@@ -4303,6 +4306,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Entradas que correspondem à busca: {0} de {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Entrada ignorada</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Domínios do envelope e sufixos HELO liberados do greylisting quando a mensagem traz os resultados de autenticação que a entrada exige - SPF, DKIM, DMARC, em qualquer combinação. Um domínio comparado exatamente, ou um sufixo com ponto inicial como .mail.example.com cobrindo esse nome e todo nome abaixo dele. O SPF é conhecido no RCPT TO, então uma entrada que exige apenas SPF decide ali; DKIM e DMARC só existem depois que a mensagem chegou, então uma entrada que exige qualquer um deles deixa o destinatário passar por enquanto e a mensagem é submetida ao greylisting depois do DATA se o resultado não for aprovação - e somente enquanto a verificação DKIM ou o DMARC estiver ligado, pois de outro modo a entrada nunca pode ser satisfeita. Ao contrário de Dispensar quando o SPF passar, isto é um privilégio que você concede a um domínio nomeado, não uma propriedade de todo SPF aprovado no mundo.</value>
   </data>
@@ -6030,6 +6036,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>E-mail para um administrador quando algo precisa de atenção, como o disco enchendo, uma fila de trabalho travando, um certificado prestes a expirar ou um backup que falhou. Quais condições são vigiadas é definido pelas regras de alerta no Control Deck; nada é enviado até os dois endereços abaixo estarem definidos.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Caixa criada</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Caixa esvaziada.</value>
   </data>
@@ -6050,6 +6059,9 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Caixa desbloqueada.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Caixa atualizada</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Caixas criadas: {0}. Caixas atualizadas: {1}. Contas marcadas como inativas: {2}. Entradas do diretório ignoradas: {3}.</value>
@@ -6109,6 +6121,9 @@ Cada inscrição Web Push feita com o par atual para de funcionar na hora, e cad
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Gerentes que podem consultar (endereços ou faixas CIDR, separados por vírgulas)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Marcada como inativa</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Endereços mascarados que uma pessoa pode criar (0 = nenhum; até 200)</value>
@@ -7126,6 +7141,9 @@ Nada do que já está lá é removido.</value>
   <data name="Not found" xml:space="preserve">
     <value>Não encontrado</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Fora do diretório</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Não está escutando</value>
   </data>
@@ -7137,6 +7155,9 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Não lido</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Não informado</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Não reiniciado</value>
@@ -12627,6 +12648,15 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="To" xml:space="preserve">
     <value>Para</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Será criada</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Será marcada como inativa</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Será atualizada</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Endpoint de token (https)</value>
   </data>
@@ -12806,6 +12836,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Indisponível</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Sem alteração</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Expandir este grupo</value>

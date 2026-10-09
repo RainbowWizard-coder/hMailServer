@@ -2251,6 +2251,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Certificates…" xml:space="preserve">
     <value>Certificaten…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Wijziging mislukt</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>Wijzigingsgeschiedenis voor synchroniserende clients</value>
   </data>
@@ -4303,6 +4306,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Vermeldingen die overeenkomen met de zoekopdracht: {0} van {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Vermelding overgeslagen</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Envelopdomeinen en HELO-achtervoegsels die greylisting passeren wanneer het bericht de authenticatieresultaten draagt die de vermelding vereist - SPF, DKIM, DMARC, in elke combinatie. Een exact vergeleken domein, of een achtervoegsel met een punt vooraan zoals .mail.example.com dat die naam en elke naam eronder dekt. SPF is bekend bij RCPT TO, dus een vermelding die alleen SPF vereist beslist daar; DKIM en DMARC bestaan pas als het bericht binnen is, dus een vermelding die een van beide vereist laat de ontvanger voorlopig door en het bericht wordt na DATA gegreylist als het resultaat geen pass is - en alleen zolang DKIM-verificatie of DMARC is ingeschakeld, want anders kan de vermelding nooit worden voldaan. Anders dan Overslaan bij geslaagde SPF is dit een voorrecht dat u een genoemd domein verleent, geen eigenschap van elke geslaagde SPF ter wereld.</value>
   </data>
@@ -6030,6 +6036,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Mail aan een beheerder wanneer iets aandacht nodig heeft, zoals een schijf die volloopt, een werkwachtrij die vastloopt, een certificaat dat bijna verloopt of een mislukte back-up. Welke omstandigheden worden bewaakt, bepalen de waarschuwingsregels in het Control Deck; er wordt niets verstuurd totdat beide adressen hieronder zijn ingesteld.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Postvak aangemaakt</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Postvak geleegd.</value>
   </data>
@@ -6050,6 +6059,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Postvak ontgrendeld.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Postvak bijgewerkt</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Aangemaakte postvakken: {0}. Bijgewerkte postvakken: {1}. Als inactief gemarkeerde accounts: {2}. Overgeslagen directoryvermeldingen: {3}.</value>
@@ -6109,6 +6121,9 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Managers die mogen vragen (adressen of CIDR-bereiken, door komma's gescheiden)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Als inactief gemarkeerd</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Gemaskeerde adressen die iemand mag maken (0 = geen; tot 200)</value>
@@ -7126,6 +7141,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not found" xml:space="preserve">
     <value>Niet gevonden</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Niet in de directory</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Luistert niet</value>
   </data>
@@ -7137,6 +7155,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Niet gelezen</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Niet gemeld</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Niet herstart</value>
@@ -12627,6 +12648,15 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="To" xml:space="preserve">
     <value>Aan</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Wordt aangemaakt</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Wordt als inactief gemarkeerd</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Wordt bijgewerkt</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Token-eindpunt (https)</value>
   </data>
@@ -12806,6 +12836,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Niet beschikbaar</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Ongewijzigd</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Deze groep uitvouwen</value>

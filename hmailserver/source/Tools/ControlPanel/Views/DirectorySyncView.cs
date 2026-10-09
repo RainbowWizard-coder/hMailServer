@@ -81,10 +81,12 @@ namespace hMailServer.ControlPanel.Views
       // cannot be reached from this machine is information.
       private readonly InlineNotice stateText_ = new();
 
-      // What the last run said, and what in it needs a person - a notice and a
-      // caption, because the second is a qualification of the first.
+      // What the last run said, and what in it needs a person - two notices at
+      // the run's level (DirectorySyncReport.SummaryLevel). The second was a
+      // caption under an Information notice, so "1 of 4 changes could not be
+      // carried out" was grey text under a run reported as information.
       private readonly InlineNotice summaryText_ = new() { Visibility = Visibility.Collapsed };
-      private readonly TextBlock attentionText_ = new();
+      private readonly InlineNotice attentionText_ = new() { Visibility = Visibility.Collapsed };
       private readonly StackPanel rows_ = new();
 
       // Where the page stands, by the one save-state model of the settings pages
@@ -380,13 +382,12 @@ namespace hMailServer.ControlPanel.Views
             System.Windows.Automation.AutomationLiveSetting.Polite);
          content.Children.Add(summaryText_);
 
-         attentionText_.TextWrapping = TextWrapping.Wrap;
-         attentionText_.SetResourceReference(StyleProperty, "TextCaption");
          attentionText_.Margin = new Thickness(0, 0, 0, 10);
          System.Windows.Automation.AutomationProperties.SetAutomationId(attentionText_, "dirsync-attention");
          content.Children.Add(attentionText_);
 
          rows_.Margin = new Thickness(0, 4, 0, 0);
+         Grid.SetIsSharedSizeScope(rows_, true);
          content.Children.Add(rows_);
 
          return card;
@@ -802,7 +803,7 @@ namespace hMailServer.ControlPanel.Views
          previewButton_.IsEnabled = false;
          applyButton_.IsEnabled = false;
          Summary_(StatusLevel.Information, apply ? L("Applying...") : L("Reading the directory..."));
-         attentionText_.Text = "";
+         attentionText_.Visibility = Visibility.Collapsed;
          rows_.Children.Clear();
 
          try
@@ -923,7 +924,7 @@ namespace hMailServer.ControlPanel.Views
       {
          rows_.Children.Clear();
 
-         Summary_(report.Succeeded ? StatusLevel.Information : StatusLevel.Critical, report.Summary);
+         Summary_(report.SummaryLevel(applied), report.Summary);
 
          if (!report.Succeeded)
          {
@@ -983,6 +984,11 @@ namespace hMailServer.ControlPanel.Views
 
       private void RenderRows_(DirectorySyncReport report)
       {
+         // The sentence about what needs a person, written by Render_ just before,
+         // at the summary's level.
+         attentionText_.Level = summaryText_.Level;
+         attentionText_.Visibility = string.IsNullOrEmpty(attentionText_.Text) ? Visibility.Collapsed : Visibility.Visible;
+
          // The rows that cost something first. Four hundred lines of equal weight is a
          // log; the six that matter have to be at the top or they are not read at all.
          foreach (DirectorySyncRow row in report.Rows.Where(r => r.NeedsAttention))
@@ -1026,8 +1032,27 @@ namespace hMailServer.ControlPanel.Views
 
       private static FrameworkElement Row_(DirectorySyncRow row, bool emphasise)
       {
-         var panel = new StackPanel { Margin = new Thickness(0, 0, 0, 8) };
+         // The outcome's mark and word before the row (DirectorySyncRow.Level and
+         // Word): failed, skipped, to disable, created, unchanged. The rows
+         // differed only by bold text, so a failed account looked like a created
+         // one in bold.
+         var grid = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+         // The pills share one width across the rows (rows_ is the size scope), so
+         // that every address starts at the same place.
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "DirSyncOutcome" });
+         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
+         var pill = new StatusPill
+         {
+            Level = row.Level,
+            Text = row.Word,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 1, 10, 0),
+            VerticalAlignment = VerticalAlignment.Top
+         };
+         grid.Children.Add(pill);
+
+         var panel = new StackPanel();
          var head = new TextBlock
          {
             Text = (row.Address.Length == 0 ? L("(no address)") : row.Address) + "  -  " + row.Action,
@@ -1040,7 +1065,9 @@ namespace hMailServer.ControlPanel.Views
          detail.SetResourceReference(StyleProperty, "TextCaption");
          panel.Children.Add(detail);
 
-         return panel;
+         Grid.SetColumn(panel, 1);
+         grid.Children.Add(panel);
+         return grid;
       }
    }
 }

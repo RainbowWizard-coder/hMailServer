@@ -2269,6 +2269,9 @@ Control Panel может читать файлы сообщений только
   <data name="Certificates…" xml:space="preserve">
     <value>Сертификаты…</value>
   </data>
+  <data name="Change failed" xml:space="preserve">
+    <value>Изменение не выполнено</value>
+  </data>
   <data name="Change history for synchronising clients" xml:space="preserve">
     <value>История изменений для синхронизирующихся клиентов</value>
   </data>
@@ -4339,6 +4342,9 @@ Control Panel может читать файлы сообщений только
   <data name="Entries that match the search: {0} of {1}." xml:space="preserve">
     <value>Записей, соответствующих поиску: {0} из {1}.</value>
   </data>
+  <data name="Entry skipped" xml:space="preserve">
+    <value>Запись пропущена</value>
+  </data>
   <data name="Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world." xml:space="preserve">
     <value>Домены конверта и суффиксы HELO, пропускаемые мимо серых списков, когда сообщение несёт результаты аутентификации, которых требует запись - SPF, DKIM, DMARC, в любом сочетании. Домен, сравниваемый точно, или суффикс с точкой в начале, как .mail.example.com, покрывающий это имя и все имена под ним. SPF известен на RCPT TO, поэтому запись, требующая только SPF, решает там; DKIM и DMARC существуют лишь после получения сообщения, поэтому запись, требующая любого из них, пока пропускает получателя, а сообщение попадает в серый список после DATA, если результат не является успешным - и только пока включена проверка DKIM или DMARC, иначе запись никогда не может быть выполнена. В отличие от параметра Пропускать при успешной проверке SPF это привилегия, которую вы даёте названному домену, а не свойство каждой успешной проверки SPF в мире.</value>
   </data>
@@ -6087,6 +6093,9 @@ Control Panel может читать файлы сообщений только
   <data name="Mail to an administrator when something needs attention, such as the disk filling, a work queue stalling, a certificate about to expire or a backup that failed. Which conditions are watched is set by the alert rules in the Control Deck; nothing is mailed until both addresses below are set." xml:space="preserve">
     <value>Почта администратору, когда что-то требует внимания, например заполняется диск, останавливается рабочая очередь, скоро истекает сертификат или не удалось резервное копирование. Какие условия отслеживаются, задают правила оповещений в Control Deck; ничего не отправляется, пока не заданы оба адреса ниже.</value>
   </data>
+  <data name="Mailbox created" xml:space="preserve">
+    <value>Ящик создан</value>
+  </data>
   <data name="Mailbox emptied." xml:space="preserve">
     <value>Почтовый ящик очищен.</value>
   </data>
@@ -6107,6 +6116,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Почтовый ящик разблокирован.</value>
+  </data>
+  <data name="Mailbox updated" xml:space="preserve">
+    <value>Ящик обновлён</value>
   </data>
   <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
     <value>Создаваемые ящики: {0}. Обновляемые ящики: {1}. Учётные записи, отмечаемые как неактивные: {2}. Пропускаемые записи каталога: {3}.</value>
@@ -6166,6 +6178,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Managers allowed to ask (addresses or CIDR ranges, comma separated)" xml:space="preserve">
     <value>Станции управления, которым разрешено спрашивать (адреса или диапазоны CIDR, через запятую)</value>
+  </data>
+  <data name="Marked inactive" xml:space="preserve">
+    <value>Помечен неактивным</value>
   </data>
   <data name="Masked addresses a person may make (0 = none; up to 200)" xml:space="preserve">
     <value>Маскированные адреса, которые может создать человек (0 = нет; до 200)</value>
@@ -7198,6 +7213,9 @@ Control Panel может читать файлы сообщений только
   <data name="Not found" xml:space="preserve">
     <value>Не найдено</value>
   </data>
+  <data name="Not in the directory" xml:space="preserve">
+    <value>Нет в каталоге</value>
+  </data>
   <data name="Not listening" xml:space="preserve">
     <value>Не прослушивает</value>
   </data>
@@ -7209,6 +7227,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Not read" xml:space="preserve">
     <value>Не прочитано</value>
+  </data>
+  <data name="Not reported" xml:space="preserve">
+    <value>Не сообщено</value>
   </data>
   <data name="Not restarted" xml:space="preserve">
     <value>Не перезапущено</value>
@@ -12779,6 +12800,15 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="To" xml:space="preserve">
     <value>Кому</value>
   </data>
+  <data name="To create" xml:space="preserve">
+    <value>Будет создан</value>
+  </data>
+  <data name="To mark inactive" xml:space="preserve">
+    <value>Будет помечен неактивным</value>
+  </data>
+  <data name="To update" xml:space="preserve">
+    <value>Будет обновлён</value>
+  </data>
   <data name="Token endpoint (https)" xml:space="preserve">
     <value>Конечная точка токена (https)</value>
   </data>
@@ -12958,6 +12988,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Unavailable" xml:space="preserve">
     <value>Недоступно</value>
+  </data>
+  <data name="Unchanged" xml:space="preserve">
+    <value>Без изменений</value>
   </data>
   <data name="Unfold this group" xml:space="preserve">
     <value>Развернуть эту группу</value>
