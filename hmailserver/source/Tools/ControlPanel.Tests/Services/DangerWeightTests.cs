@@ -20,8 +20,10 @@ namespace hMailServer.ControlPanel.Tests.Services
    /// members' Remove, the folder permissions' Delete, the account's Folders tab, two
    /// factor and recovery buttons, the certificates' Delete selected and every API
    /// key's Revoke were filled red, several live with nothing chosen, while the
-   /// journaling and domain-list removals, both Restore defaults, both Remove expired
-   /// and Clear greylisting triplets were plain buttons.
+   /// journaling removal, both Restore defaults, both Remove expired and Clear
+   /// greylisting triplets were plain buttons. The domain white and black list's and
+   /// the suppression list's Remove were DangerTextButtons already; they are held
+   /// here with the rest.
    /// </summary>
    public class DangerWeightTests
    {
