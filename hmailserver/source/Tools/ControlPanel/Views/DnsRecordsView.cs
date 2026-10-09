@@ -10,10 +10,14 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Threading;
 using hMailServer.ControlPanel.Services;
 
 // The Control Panel has its own Typography (the type scale, in Services) and
@@ -104,6 +108,22 @@ namespace hMailServer.ControlPanel.Views
       private readonly StackPanel body_ = new();
       private readonly TextBlock status_ = new();
 
+      // How the domain stands after Check all records: one notice at the worst
+      // level any check reached, a line per verdict (review finding F277).
+      private readonly InlineNotice checkSummary_ = new() { Visibility = Visibility.Collapsed };
+      private readonly Wpf.Ui.Controls.Button checkAll_ = new()
+      {
+         Content = L("Check _all records"),
+         Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
+         Margin = new Thickness(0, 0, 8, 0)
+      };
+
+      /// <summary>One record's check as Check all records runs it, and the pill it leaves its verdict on.</summary>
+      private sealed record RecordCheck(string Record, StatusPill Mark, Func<Task> Run);
+
+      // The checks of the cards on the page, made with them.
+      private readonly List<RecordCheck> checks_ = new();
+
       private List<DomainInfo> domains_ = new();
       private string serverHostName_ = "";
       private bool serverHostNameKnown_;
@@ -131,11 +151,21 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(refresh, "dns-records-refresh");
          refresh.Click += (s, e) => Reload();
 
+         // Every record of the domain checked at once, where it took a Check on
+         // each of seven cards and a scroll past all of them to read the seven
+         // lines (review finding F277).
+         System.Windows.Automation.AutomationProperties.SetName(checkAll_, L("Check every record of the domain and sum up what is published"));
+         System.Windows.Automation.AutomationProperties.SetAutomationId(checkAll_, "dns-records-check-all");
+         checkAll_.Click += async (s, e) => await CheckAll_();
+         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+         actions.Children.Add(checkAll_);
+         actions.Children.Add(refresh);
+
          page.Children.Add(new PageHeader
          {
             Title = L("DNS records"),
             Subtitle = L("The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses."),
-            Actions = refresh
+            Actions = actions
          });
 
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainCombo_, "dns-records-domain");
@@ -143,6 +173,8 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(new FieldRow { Label = L("_Domain:"), Content = domainCombo_ });
 
          page.Children.Add(readFailure_);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(checkSummary_, "dns-records-check-summary");
+         page.Children.Add(checkSummary_);
          page.Children.Add(body_);
 
          status_.Margin = new Thickness(0, 12, 0, 0);
@@ -364,7 +396,12 @@ namespace hMailServer.ControlPanel.Views
       {
          body_.Children.Clear();
 
+         // A summary is of the cards it was made from.
+         checks_.Clear();
+         checkSummary_.Visibility = Visibility.Collapsed;
+
          DomainInfo domain = SelectedDomain();
+         checkAll_.IsEnabled = domain != null;
 
          if (domain == null)
          {
@@ -424,6 +461,7 @@ namespace hMailServer.ControlPanel.Views
             mx: true);
 
          block.Check.Click += async (s, e) => await CheckMx(block, domain.Name);
+         checks_.Add(new RecordCheck(L("MX"), block.Mark, () => CheckMx(block, domain.Name)));
 
          return card;
       }
@@ -501,6 +539,7 @@ namespace hMailServer.ControlPanel.Views
             copyWarning: F("This suggestion cannot know your other senders. If anything else sends mail as {0} - a newsletter service, a website contact form, a hosted mailbox provider - copying this record as-is makes that mail fail SPF at every receiver that checks it. Add those senders to the record first.", domain.Name));
 
          block.Check.Click += async (s, e) => await CheckSpf(block, domain.Name, suggested);
+         checks_.Add(new RecordCheck(L("SPF"), block.Mark, () => CheckSpf(block, domain.Name, suggested)));
 
          return card;
       }
@@ -705,6 +744,7 @@ namespace hMailServer.ControlPanel.Views
 
          Wpf.Ui.Controls.Button enableButton = enable;
          block.Check.Click += async (s, e) => await CheckDkim(block, host, expected, enableButton);
+         checks_.Add(new RecordCheck(L("DKIM"), block.Mark, () => CheckDkim(block, host, expected, enableButton)));
 
          return card;
       }
@@ -902,6 +942,7 @@ namespace hMailServer.ControlPanel.Views
             copyWarning: L("Keep p=none until you know your own mail passes. Editing this to p=quarantine or p=reject before then tells every receiver to junk or bounce your own legitimate mail."));
 
          block.Check.Click += async (s, e) => await CheckDmarc(block, domain.Name);
+         checks_.Add(new RecordCheck(L("DMARC"), block.Mark, () => CheckDmarc(block, domain.Name)));
 
          return card;
       }
@@ -1009,6 +1050,7 @@ namespace hMailServer.ControlPanel.Views
             Typography.Caption));
 
          block.Check.Click += async (s, e) => await CheckMtaStsTxt(block, domain.Name);
+         checks_.Add(new RecordCheck(L("MTA-STS"), block.Mark, () => CheckMtaStsTxt(block, domain.Name)));
 
          // ---- the policy the server will serve ----
          content.Children.Add(Label(L("Policy file the server will serve (read-only; served by the server itself):")));
@@ -1045,6 +1087,7 @@ namespace hMailServer.ControlPanel.Views
             F("Press \"Check policy (HTTPS)\" to fetch https://mta-sts.{0}/.well-known/mta-sts.txt from this machine.", domain.Name));
 
          fetchButton.Click += async (s, e) => await FetchMtaStsPolicy(domain.Name, fetchButton, fetchMark, fetchText);
+         checks_.Add(new RecordCheck(L("MTA-STS policy"), fetchMark, () => FetchMtaStsPolicy(domain.Name, fetchButton, fetchMark, fetchText)));
 
          return card;
       }
@@ -1352,6 +1395,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Paragraph(sendingNote, Typography.Caption));
 
          block.Check.Click += async (s, e) => await CheckTlsRpt(block, domain.Name, addressBox);
+         checks_.Add(new RecordCheck(L("TLS-RPT"), block.Mark, () => CheckTlsRpt(block, domain.Name, addressBox)));
 
          return card;
       }
@@ -1476,7 +1520,7 @@ namespace hMailServer.ControlPanel.Views
             copy.ToolTip = L("There is no configured host name to copy yet.");
             ToolTipService.SetShowOnDisabled(copy, true);
          }
-         copy.Click += (s, e) => CopyToClipboard(serverHostName_);
+         copy.Click += (s, e) => CopyAndConfirm_(copy, serverHostName_);
          content.Children.Add(copy);
 
          content.Children.Add(Paragraph(heloNote, Typography.Caption));
@@ -1559,7 +1603,7 @@ namespace hMailServer.ControlPanel.Views
          var copyHost = new Wpf.Ui.Controls.Button { Content = L("Copy host") };   // per record: no access key, the rows are reached with the arrow keys
          System.Windows.Automation.AutomationProperties.SetName(copyHost, F("Copy host of the {0} record", recordName));
          System.Windows.Automation.AutomationProperties.SetAutomationId(copyHost, idPrefix + "-copy-host");
-         copyHost.Click += (s, e) => CopyToClipboard(block.HostBox.Text);
+         copyHost.Click += (s, e) => CopyAndConfirm_(copyHost, block.HostBox.Text);
          copyRow.Children.Add(copyHost);
 
          block.CopyValue = new Wpf.Ui.Controls.Button { Content = L("Copy value"), Margin = new Thickness(8, 0, 0, 0), IsEnabled = valueCopyable };   // per record: no access key, the rows are reached with the arrow keys
@@ -1570,7 +1614,7 @@ namespace hMailServer.ControlPanel.Views
             block.CopyValue.ToolTip = L("The value cannot be produced from this machine, so there is nothing correct to copy.");
             ToolTipService.SetShowOnDisabled(block.CopyValue, true);
          }
-         block.CopyValue.Click += (s, e) => { if (block.CopyValue.IsEnabled) CopyToClipboard(block.ValueBox.Text); };
+         block.CopyValue.Click += (s, e) => { if (block.CopyValue.IsEnabled) CopyAndConfirm_(block.CopyValue, block.ValueBox.Text); };
          copyRow.Children.Add(block.CopyValue);
 
          block.Check = new Wpf.Ui.Controls.Button { Content = L("Check"), Margin = new Thickness(8, 0, 0, 0) };   // per record: no access key, the rows are reached with the arrow keys
@@ -1809,9 +1853,113 @@ namespace hMailServer.ControlPanel.Views
          Background = System.Windows.Media.Brushes.Transparent
       };
 
-      private static void CopyToClipboard(string text)
+      /// <summary>
+      /// Puts the text on the clipboard and says so on the button that did it: for
+      /// two seconds its words are "Copied" beside a tick, and a screen reader is
+      /// told. A copy that failed - another program holding the clipboard - is said
+      /// in a toast with the reason. The copy was best effort and said nothing
+      /// either way, so nobody could tell whether it had worked (review finding
+      /// F277).
+      /// </summary>
+      private static void CopyAndConfirm_(Wpf.Ui.Controls.Button button, string text)
       {
-         ClipboardWriter.TrySetText(text);   // best effort, as it always was: the record stays on screen to copy
+         if (!ClipboardWriter.TrySetText(text, out string error))
+         {
+            Toast.Failure(L("Could not copy: ") + error);
+            return;
+         }
+
+         CopiedState.Show(button);
+      }
+
+      /// <summary>A copy button's moment of saying "Copied", and what it goes back to.</summary>
+      private sealed class CopiedState
+      {
+         private static readonly ConditionalWeakTable<Wpf.Ui.Controls.Button, CopiedState> states_ = new();
+
+         private object content_;
+         private Wpf.Ui.Controls.IconElement icon_;
+         private double minWidth_;
+         private DispatcherTimer timer_;
+
+         public static void Show(Wpf.Ui.Controls.Button button)
+         {
+            if (button == null)
+               return;
+
+            CopiedState state = states_.GetValue(button, b => new CopiedState { content_ = b.Content, icon_ = b.Icon, minWidth_ = b.MinWidth });
+            state.timer_?.Stop();
+
+            // Never narrower than it was, so that nothing beside it moves.
+            button.MinWidth = Math.Max(state.minWidth_, button.ActualWidth);
+            string copied = L("Copied");   // per record: a moment's state of a button without an access key
+            button.Content = copied;
+            button.Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.CheckmarkCircle24 };
+            Speak_(button, copied);
+
+            state.timer_ = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            state.timer_.Tick += (s, e) =>
+            {
+               state.timer_.Stop();
+               button.Content = state.content_;
+               button.Icon = state.icon_;
+               button.MinWidth = state.minWidth_;
+            };
+            state.timer_.Start();
+         }
+
+         /// <summary>Tells a screen reader, which hears nothing when a button's words change.</summary>
+         private static void Speak_(UIElement element, string sentence)
+         {
+            try
+            {
+               AutomationPeer peer = UIElementAutomationPeer.FromElement(element) ?? UIElementAutomationPeer.CreatePeerForElement(element);
+               peer?.RaiseNotificationEvent(AutomationNotificationKind.ActionCompleted,
+                  AutomationNotificationProcessing.MostRecent, sentence, "hMailServerCopied");
+            }
+            catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+            {
+               // No automation client listening, or a peer that cannot be made:
+               // the button says it on screen.
+            }
+         }
+      }
+
+      /// <summary>
+      /// Runs every record's check of the domain on the page at once, then says how
+      /// the domain stands in one notice at the worst level any check reached, a line
+      /// per verdict naming its records (Services/DnsCheckSummary). Each card shows
+      /// its own verdict as its Check does.
+      /// </summary>
+      private async Task CheckAll_()
+      {
+         DomainInfo domain = SelectedDomain();
+         if (domain == null || checks_.Count == 0)
+            return;
+
+         List<RecordCheck> checks = checks_.ToList();
+         checkAll_.IsEnabled = false;
+         checkSummary_.Level = StatusLevel.Information;
+         checkSummary_.Text = F("Checking every record of {0}…", domain.Name);
+         checkSummary_.Visibility = Visibility.Visible;
+
+         try
+         {
+            await Task.WhenAll(checks.Select(check => check.Run()));
+         }
+         finally
+         {
+            checkAll_.IsEnabled = SelectedDomain() != null;
+         }
+
+         // The cards were built again while the checks ran (Refresh, another
+         // domain): what they found is of cards no longer on the page.
+         if (!ReferenceEquals(checks[0], checks_.FirstOrDefault()))
+            return;
+
+         var results = checks.Select(check => new DnsCheckSummary.Result(check.Record, check.Mark.Level, check.Mark.Text)).ToList();
+         checkSummary_.Level = DnsCheckSummary.Worst(results);
+         checkSummary_.Text = DnsCheckSummary.Text(domain.Name, results);
       }
 
       /// <summary>A button that opens the page owning a related setting - the same

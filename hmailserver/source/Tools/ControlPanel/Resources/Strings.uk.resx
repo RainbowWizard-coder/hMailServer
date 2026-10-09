@@ -2311,6 +2311,9 @@
   <data name="Check SPF" xml:space="preserve">
     <value>Перевірити SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Перевірити _всі записи</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Перевірити політику (HTTPS)</value>
   </data>
@@ -2322,6 +2325,9 @@
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Позначити кожне повідомлення від {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Перевірити всі записи домену й підсумувати, що опубліковано</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>_Перевірити наявність оновлень</value>
@@ -2361,6 +2367,9 @@
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Перевіряється невдовзі після запуску служби й далі кожні шість годин. Видаляються лише власні датовані файли журналів hMailServer (hmailserver_*.log і ERROR_hmailserver_*.log); нічого іншого в папці журналів це не торкається.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Перевірка всіх записів домену {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Перевірка інсталятора</value>
@@ -2691,6 +2700,9 @@
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Двофакторну автентифікацію лише для Панелі керування ввімкнено.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Скопійовано</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Скопійовано.</value>
@@ -5972,6 +5984,9 @@
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>Надання MTA-STS вимкнено (MtaStsHostingEnabled=0), тому нічого надавати не потрібно й жоден запис публікувати не слід.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>Політика MTA-STS</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Вміст файлу політики MTA-STS, який надаватиме сервер</value>
@@ -12061,6 +12076,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Запис називає цей сервер за його ім'ям вузла, а ім'я вузла ще не є іменем, яке можна знайти в інтернеті, тому публікувати поки нічого. Задайте його на вкладці SMTP сторінки «Протоколи», потім поверніться сюди.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Записи домену {0}, перевірені з цього комп'ютера:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Записи, які цьому серверу потрібно опублікувати в зоні DNS кожного домену: тип, вузол і значення, готові до копіювання в консоль вашого DNS-провайдера, з перевіркою, чи справді кожен опубліковано. Перевірки використовують розв'язувач Windows цього комп'ютера - той самий, що й перевірка ротації DKIM.</value>

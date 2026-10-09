@@ -2293,6 +2293,9 @@ Los detalles completos se escribieron en:
   <data name="Check SPF" xml:space="preserve">
     <value>Comprobar SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Comprobar todos los _registros</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Comprobar la _política (HTTPS)</value>
   </data>
@@ -2304,6 +2307,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Seleccionar todos los mensajes de {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Comprobar todos los registros del dominio y resumir lo que está publicado</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Buscar act_ualizaciones</value>
@@ -2343,6 +2349,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Comprobado poco después de arrancar el servicio y cada seis horas después. Solo se eliminan los archivos de registro fechados del propio hMailServer (hmailserver_*.log y ERROR_hmailserver_*.log); nada más en la carpeta de registros se toca.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Comprobando todos los registros de {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Comprobación del instalador</value>
@@ -2673,6 +2682,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>La autenticación en dos pasos solo del Control Panel está activada.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Copiado</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Copiado.</value>
@@ -5918,6 +5930,9 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>El alojamiento de MTA-STS está desactivado (MtaStsHostingEnabled=0), así que no hay nada que servir y no debe publicarse ningún registro.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>Política MTA-STS</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Contenido del archivo de política MTA-STS que servirá el servidor</value>
@@ -11915,6 +11930,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>El registro nombra a este servidor por su nombre de host, y el nombre de host aún no es un nombre que Internet pueda buscar, así que todavía no hay ningún valor que publicar. Defínalo en la pestaña SMTP de la página Protocolos y vuelva después.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Los registros de {0}, comprobados desde esta máquina:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Los registros que este servidor necesita que estén publicados en la zona DNS de cada dominio: tipo, host y valor, listos para copiarlos en la consola de su proveedor de DNS, con una comprobación de si cada uno está realmente activo. Las comprobaciones usan el resolutor de Windows de esta máquina - el mismo que usa la comprobación de rotación DKIM.</value>

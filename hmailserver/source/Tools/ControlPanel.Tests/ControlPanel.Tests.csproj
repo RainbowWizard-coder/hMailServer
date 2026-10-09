@@ -191,6 +191,9 @@
          F257). Linked here rather than through Core, as the overviews' judgements
          are, because it speaks in StatusLevel. -->
     <Compile Include="..\ControlPanel\Services\BackupRestoreReport.cs" />
+    <!-- What the DNS records page says after checking every record of a domain:
+         the worst level reached and a line per verdict (review finding F277). -->
+    <Compile Include="..\ControlPanel\Services\DnsCheckSummary.cs" />
   </ItemGroup>
 
   <ItemGroup>

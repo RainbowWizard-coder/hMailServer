@@ -2293,6 +2293,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Check SPF" xml:space="preserve">
     <value>Kontrollera SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Kontrollera a_lla poster</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Kontrollera _policy (HTTPS)</value>
   </data>
@@ -2304,6 +2307,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Markera alla meddelanden från {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Kontrollera alla domänens poster och sammanfatta vad som är publicerat</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>_Sök efter uppdateringar</value>
@@ -2343,6 +2349,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Kontrolleras kort efter att tjänsten startar och var sjätte timme därefter. Bara hMailServers egna daterade loggfiler (hmailserver_*.log och ERROR_hmailserver_*.log) tas bort; inget annat i loggmappen rörs.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Kontrollerar alla poster för {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontroll av installationsprogrammet</value>
@@ -2673,6 +2682,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Tvåfaktorsautentisering bara för Kontrollpanelen är på.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Kopierat</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Kopierat.</value>
@@ -5918,6 +5930,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>MTA-STS-hosting är av (MtaStsHostingEnabled=0), så inget behöver serveras och ingen post bör publiceras.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>MTA-STS-policy</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Innehållet i MTA-STS-policyfilen som servern serverar</value>
@@ -11915,6 +11930,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Posten namnger den här servern med dess värdnamn, och värdnamnet är ännu inte ett namn som internet kan slå upp, så det finns inget värde att publicera än. Sätt det på fliken SMTP på sidan Protokoll och kom sedan tillbaka.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Posterna för {0}, kontrollerade från den här datorn:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>De poster den här servern behöver publicerade i varje domäns DNS-zon: typ, värd och värde, klara att kopiera in i din DNS-leverantörs konsol, med en kontroll av om var och en verkligen är i drift. Kontrollerna använder den här datorns Windows-resolver - samma som DKIM-rotationskontrollen använder.</value>

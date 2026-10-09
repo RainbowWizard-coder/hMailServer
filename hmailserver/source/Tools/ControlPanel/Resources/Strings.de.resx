@@ -2293,6 +2293,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Check SPF" xml:space="preserve">
     <value>SPF prüfen</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>_Alle Einträge prüfen</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Richtlinie prüfen (HTTPS)</value>
   </data>
@@ -2304,6 +2307,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Alle Nachrichten von {0} auswählen</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Alle Einträge der Domain prüfen und zusammenfassen, was veröffentlicht ist</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Nach _Updates suchen</value>
@@ -2343,6 +2349,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Kurz nach dem Start des Dienstes und danach alle sechs Stunden geprüft. Nur die eigenen datierten Protokolldateien von hMailServer (hmailserver_*.log und ERROR_hmailserver_*.log) werden entfernt; nichts anderes im Protokollordner wird angerührt.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Alle Einträge von {0} werden geprüft…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Prüfung des Installers</value>
@@ -2673,6 +2682,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Die nur für das Control Panel geltende Zwei-Faktor-Authentifizierung ist ein.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Kopiert</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Kopiert.</value>
@@ -5918,6 +5930,9 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>Das MTA-STS-Hosting ist aus (MtaStsHostingEnabled=0), es muss also nichts ausgeliefert und kein Eintrag veröffentlicht werden.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>MTA-STS-Richtlinie</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Inhalt der MTA-STS-Richtliniendatei, die der Server ausliefern wird</value>
@@ -11915,6 +11930,9 @@ Trotzdem hinzufügen?</value>
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Der Eintrag nennt diesen Server bei seinem Hostnamen, und der Hostname ist noch kein Name, den das Internet nachschlagen kann; es gibt also noch keinen Wert zu veröffentlichen. Setzen Sie ihn auf der Seite Protokolle im Reiter SMTP und kommen Sie dann zurück.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Die Einträge von {0}, von diesem Rechner aus geprüft:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Die Einträge, die dieser Server in der DNS-Zone jeder Domain veröffentlicht braucht: Typ, Host und Wert, fertig zum Kopieren in die Konsole Ihres DNS-Anbieters, mit einer Prüfung, ob jeder davon wirklich live ist. Die Prüfungen verwenden den Windows-Resolver dieses Rechners - denselben, den auch die DKIM-Rotationsprüfung verwendet.</value>

@@ -2311,6 +2311,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Check SPF" xml:space="preserve">
     <value>Zkontrolovat SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Zkontrolovat _všechny záznamy</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Zkontrolovat politiku (HTTPS)</value>
   </data>
@@ -2322,6 +2325,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Zaškrtnout každou zprávu od {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Zkontrolovat všechny záznamy domény a shrnout, co je zveřejněno</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Zkontrolovat akt_ualizace</value>
@@ -2361,6 +2367,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Kontroluje se krátce po startu služby a poté každých šest hodin. Odstraňují se pouze vlastní datované soubory logů hMailServeru (hmailserver_*.log a ERROR_hmailserver_*.log); ničeho jiného ve složce s logy se to nedotkne.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Kontroluji všechny záznamy domény {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontrola instalátoru</value>
@@ -2691,6 +2700,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Dvoufaktorové ověřování jen pro Control Panel je zapnuté.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Zkopírováno</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Zkopírováno.</value>
@@ -5972,6 +5984,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>Poskytování politiky MTA-STS je vypnuto (MtaStsHostingEnabled=0), takže není co poskytovat a neměl by být publikován žádný záznam.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>Politika MTA-STS</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Obsah souboru s politikou MTA-STS, který bude server poskytovat</value>
@@ -12061,6 +12076,9 @@ Přesto přidat?</value>
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Záznam uvádí tento server jeho názvem hostitele a název hostitele zatím není název, který lze na internetu vyhledat, takže zatím není co zveřejnit. Nastavte ho na kartě SMTP stránky Protokoly a pak se vraťte.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Záznamy domény {0}, zkontrolované z tohoto počítače:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Záznamy, které tento server potřebuje mít publikované v zóně DNS každé domény: typ, hostitel a hodnota, připravené ke zkopírování do konzole vašeho poskytovatele DNS, s kontrolou, zda je každý z nich opravdu živý. Kontroly používají resolver Windows tohoto počítače - tentýž, který používá kontrola rotace DKIM.</value>

@@ -2293,6 +2293,9 @@
   <data name="Check SPF" xml:space="preserve">
     <value>检查 SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>检查所有记录(_A)</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>检查策略(_P)（HTTPS）</value>
   </data>
@@ -2304,6 +2307,9 @@
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>勾选来自 {0} 的所有邮件</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>检查该域的所有记录并汇总已发布的内容</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>检查更新(_U)</value>
@@ -2343,6 +2349,9 @@
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>在服务启动后不久检查，此后每六小时检查一次。只会删除 hMailServer 自己带日期的日志文件（hmailserver_*.log 和 ERROR_hmailserver_*.log）；日志文件夹中的其他内容一概不动。</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>正在检查 {0} 的所有记录…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>检查安装程序</value>
@@ -2673,6 +2682,9 @@
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>仅控制面板的双因素身份验证已打开。</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>已复制</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>已复制。</value>
@@ -5918,6 +5930,9 @@
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>MTA-STS 托管已关闭（MtaStsHostingEnabled=0），因此不需要提供任何内容，也不应发布任何记录。</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>MTA-STS 策略</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>服务器将提供的 MTA-STS 策略文件内容</value>
@@ -11915,6 +11930,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>该记录以主机名指代本服务器，而该主机名还不是互联网能够查询的名称，因此暂时没有可发布的值。请在“协议”页面的 SMTP 选项卡上设置它，然后再回来。</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>从本机检查的 {0} 的记录：</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>本服务器需要在每个域的 DNS 区域中发布的记录: 类型、主机和值，可直接复制到您 DNS 提供商的控制台中，并检查每一条是否真的已生效。检查使用本机的 Windows 解析器 - 与 DKIM 轮换检查使用的是同一个。</value>

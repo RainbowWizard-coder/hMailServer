@@ -2311,6 +2311,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Check SPF" xml:space="preserve">
     <value>Sprawdź SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Sprawdź wszystkie _rekordy</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Sprawdź politykę (HTTPS)</value>
   </data>
@@ -2322,6 +2325,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Zaznacz każdą wiadomość od {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Sprawdź wszystkie rekordy domeny i podsumuj, co jest opublikowane</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Sprawdź _aktualizacje</value>
@@ -2361,6 +2367,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Sprawdzane wkrótce po uruchomieniu usługi i co sześć godzin później. Usuwane są wyłącznie własne datowane pliki dzienników hMailServer (hmailserver_*.log i ERROR_hmailserver_*.log); nic innego w folderze dzienników nie jest ruszane.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Sprawdzanie wszystkich rekordów domeny {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Sprawdzanie instalatora</value>
@@ -2691,6 +2700,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Uwierzytelnianie dwuskładnikowe działające wyłącznie w Control Panel jest włączone.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Skopiowano</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Skopiowano.</value>
@@ -5972,6 +5984,9 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>Udostępnianie polityki MTA-STS jest wyłączone (MtaStsHostingEnabled=0), więc nie ma czego udostępniać i nie należy publikować żadnego rekordu.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>Polityka MTA-STS</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Treść pliku polityki MTA-STS, którą serwer będzie udostępniał</value>
@@ -12061,6 +12076,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Rekord wskazuje ten serwer przez jego nazwę hosta, a nazwa hosta nie jest jeszcze nazwą, którą można wyszukać w internecie, więc nie ma jeszcze wartości do opublikowania. Ustaw ją na karcie SMTP strony Protokoły, a potem wróć tutaj.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Rekordy domeny {0} sprawdzone z tego komputera:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Rekordy, których opublikowania w strefie DNS każdej domeny wymaga ten serwer: typ, host i wartość, gotowe do skopiowania do konsoli operatora DNS, wraz z kontrolą, czy każdy z nich naprawdę działa. Kontrole korzystają z resolwera systemu Windows na tym komputerze - tego samego, którego używa kontrola rotacji DKIM.</value>

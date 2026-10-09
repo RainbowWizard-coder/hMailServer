@@ -2293,6 +2293,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Check SPF" xml:space="preserve">
     <value>Check SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Check _all records</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Check _policy (HTTPS)</value>
   </data>
@@ -2304,6 +2307,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Check every message from {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Check every record of the domain and sum up what is published</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Check for _updates</value>
@@ -2343,6 +2349,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Checking every record of {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Checking the installer</value>
@@ -2673,6 +2682,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Control-Panel-only two-factor authentication is on.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Copied</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Copied.</value>
@@ -5918,6 +5930,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>MTA-STS policy</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>MTA-STS policy file content the server will serve</value>
@@ -11915,6 +11930,9 @@ Add it anyway?</value>
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>The records of {0}, checked from this machine:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses.</value>

@@ -2311,6 +2311,9 @@ Control Panel может читать файлы сообщений только
   <data name="Check SPF" xml:space="preserve">
     <value>Проверить SPF</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>Проверить _все записи</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>Проверить _политику (HTTPS)</value>
   </data>
@@ -2322,6 +2325,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Отметить каждое сообщение от {0}</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Проверить все записи домена и подвести итог опубликованного</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Проверить _обновления</value>
@@ -2361,6 +2367,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Проверяется вскоре после запуска службы и далее каждые шесть часов. Удаляются только собственные датированные файлы журналов hMailServer (hmailserver_*.log и ERROR_hmailserver_*.log); ничто другое в папке журналов не затрагивается.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Проверка всех записей домена {0}…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Проверка установщика</value>
@@ -2691,6 +2700,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Двухфакторная аутентификация только для Control Panel включена.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Скопировано</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Скопировано.</value>
@@ -5972,6 +5984,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>Размещение политики MTA-STS выключено (MtaStsHostingEnabled=0), поэтому отдавать нечего и никакую запись публиковать не нужно.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>Политика MTA-STS</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Содержимое файла политики MTA-STS, которое будет отдавать сервер</value>
@@ -12061,6 +12076,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Запись называет этот сервер по его имени узла, а имя узла пока не является именем, которое можно найти в интернете, поэтому публиковать пока нечего. Задайте его на вкладке SMTP страницы «Протоколы», затем вернитесь сюда.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>Записи домена {0}, проверенные с этого компьютера:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>Записи, которые этому серверу нужно опубликовать в зоне DNS каждого домена: тип, хост и значение, готовые к копированию в консоль вашего DNS-провайдера, с проверкой, действительно ли каждая опубликована. Проверки используют резолвер Windows этой машины - тот же, что и проверка ротации DKIM.</value>

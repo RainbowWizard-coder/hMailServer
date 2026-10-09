@@ -2293,6 +2293,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Check SPF" xml:space="preserve">
     <value>SPF controleren</value>
   </data>
+  <data name="Check _all records" xml:space="preserve">
+    <value>_Alle records controleren</value>
+  </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Beleid controleren (HTTPS)</value>
   </data>
@@ -2304,6 +2307,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Check every message from {0}" xml:space="preserve">
     <value>Alle berichten van {0} aanvinken</value>
+  </data>
+  <data name="Check every record of the domain and sum up what is published" xml:space="preserve">
+    <value>Alle records van het domein controleren en samenvatten wat gepubliceerd is</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
     <value>Op _updates controleren</value>
@@ -2343,6 +2349,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Checked shortly after the service starts and every six hours after that. Only hMailServer's own dated log files (hmailserver_*.log and ERROR_hmailserver_*.log) are removed; nothing else in the log folder is touched." xml:space="preserve">
     <value>Gecontroleerd kort nadat de service is gestart, en daarna elke zes uur. Alleen de eigen gedateerde logbestanden van hMailServer (hmailserver_*.log en ERROR_hmailserver_*.log) worden verwijderd; niets anders in de logmap wordt aangeraakt.</value>
+  </data>
+  <data name="Checking every record of {0}…" xml:space="preserve">
+    <value>Alle records van {0} worden gecontroleerd…</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Controle van het installatieprogramma</value>
@@ -2673,6 +2682,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Tweefactorauthenticatie alleen voor het Control Panel staat aan.</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Gekopieerd</value>
   </data>
   <data name="Copied." xml:space="preserve">
     <value>Gekopieerd.</value>
@@ -5918,6 +5930,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
     <value>Het hosten van MTA-STS staat uit (MtaStsHostingEnabled=0), dus er hoeft niets te worden geserveerd en er hoort geen record te worden gepubliceerd.</value>
+  </data>
+  <data name="MTA-STS policy" xml:space="preserve">
+    <value>MTA-STS-beleid</value>
   </data>
   <data name="MTA-STS policy file content the server will serve" xml:space="preserve">
     <value>Inhoud van het MTA-STS-beleidsbestand dat de server zal serveren</value>
@@ -11915,6 +11930,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The record names this server by its host name, and the host name is not yet a name the Internet can look up, so there is no value to publish yet. Set it on the Protocols page's SMTP tab, then come back." xml:space="preserve">
     <value>Het record noemt deze server bij zijn hostnaam, en de hostnaam is nog geen naam die internet kan opzoeken, dus er is nog geen waarde om te publiceren. Stel hem in op het tabblad SMTP van de pagina Protocollen en kom dan terug.</value>
+  </data>
+  <data name="The records of {0}, checked from this machine:" xml:space="preserve">
+    <value>De records van {0}, gecontroleerd vanaf deze machine:</value>
   </data>
   <data name="The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses." xml:space="preserve">
     <value>De records die deze server gepubliceerd wil zien in de DNS-zone van elk domein: type, host en waarde, klaar om in de console van uw DNS-provider te kopiëren, met een controle of elk record echt live is. De controles gebruiken de Windows-resolver van deze machine - dezelfde die de DKIM-rotatiecontrole gebruikt.</value>

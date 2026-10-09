@@ -1559,6 +1559,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the archive card says it cannot list that machine's folder and the browse buttons are off, with a tool tip saying
   to type the path as the server sees it; the no-passphrase notice is a Warning.
 
+- **Fixed: verifying a domain on the Control Panel's DNS records page took seven Check clicks, and Copy said nothing.**
+  Each card - MX, SPF, DKIM, DMARC, the MTA-STS record and its policy, TLS-RPT - had its own Check and its own
+  "Not checked" line, with nothing that said how the domain stood, and Copy host and Copy value put the text on the
+  clipboard best effort, so nobody could tell whether a copy had worked. *Check all records*, in the page header, runs
+  every check of the domain at once and sums them up in one notice above the cards, at the worst level any check
+  reached, a line per verdict naming its records, worst first - "Not published: DKIM, TLS-RPT", "Published and
+  correct: MX, SPF, DMARC" - while each card shows its own verdict as its Check does. Every copy button says
+  *Copied* beside a tick for two seconds, and a screen reader is told; a copy that failed, another program holding the
+  clipboard, is said in a toast with the reason.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
