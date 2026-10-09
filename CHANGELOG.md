@@ -733,7 +733,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a notice, an add form, the diagnostics inputs and the consistency card - always keeps its own height. The ports,
   routes and domain white and black list pages' toolbar actions wrap in a narrow window, as the IP ranges page's do,
   rather than running off the right edge, and the bounce counts are a titled card, as the discovery page's lines are.
-  `ControlPanel.Tests` holds every one of the eleven pages to the shape.
+  `ControlPanel.Tests` holds every one of the eleven pages to the shape. A filling part's floor is on the device-pixel
+  grid, so that a page whose parts fit the window shows no scroll bar: handed out as the part's share, a floor
+  between two device pixels is asked for a fraction of a pixel over, and at 150 % scaling the bounce counts card's
+  floor of 193, which is 289.5 of them, left the Suppression list page a third of a pixel taller than a 1280 by 800
+  window it fit, which layout rounding made a whole pixel and a scroll bar the height of the page, over the right
+  edge of the notice and both cards, in English and Japanese.
 - **Fixed: on the Control Panel's Domains & accounts page, the Add domain form and the alias and list forms were below
   the fold in a 1280 by 800 window.** The detail column's floors are taller than the page, so the page scrolls, the
   domains card stretched to the column's height, and its Domain box and Add domain sat at the foot of the card in the

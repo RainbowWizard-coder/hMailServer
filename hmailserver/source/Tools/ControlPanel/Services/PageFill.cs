@@ -58,6 +58,30 @@ namespace hMailServer.ControlPanel.Services
          => Positive(asked) > Positive(share) ? Math.Max(Positive(floor), Positive(asked)) : Positive(floor);
 
       /// <summary>
+      /// A floor on the device-pixel grid: <paramref name="value"/> raised to the
+      /// next whole device pixel, <paramref name="pixel"/> being one in
+      /// device-independent units (two thirds at 150 % scaling, four fifths at
+      /// 125). A filling part's floor is handed out as its share, and WPF rounds
+      /// what a part asks for to whole device pixels, so a floor between two of
+      /// them is asked for a fraction of a pixel over, and the parts together
+      /// pass a viewport they fit by that fraction, which layout rounding makes
+      /// a whole pixel and the page's scroll viewer a bar. The Suppression list's
+      /// bounce counts card, always at its floor in a 1280 by 800 window, has a
+      /// MinHeight of 181 and a 12-pixel margin, 193, which at 150 % is 289.5
+      /// device pixels: measured at 193 it asked for 290, 193.33, and the page
+      /// had a scroll bar the height of the window in English and Japanese, and
+      /// none in German, whose taller subtitle left a viewport whose fraction
+      /// rounded the other way. A floor on the grid is asked for exactly, and the
+      /// parts sum to the viewport. A value on the grid already stays there, the
+      /// arithmetic's own error allowed for; no pixel size, or a nonsense one,
+      /// leaves the value alone.
+      /// </summary>
+      public static double SnapUp(double value, double pixel)
+         => pixel > 0 && !double.IsInfinity(pixel) && !double.IsNaN(value) && !double.IsInfinity(value)
+            ? Math.Ceiling(value / pixel - 1e-9) * pixel
+            : value;
+
+      /// <summary>
       /// The heights of several filling parts - the domains page's accounts card
       /// and the row of alias and list cards under it, say - which share what the
       /// viewport leaves after the other parts in proportion to their weights, as a

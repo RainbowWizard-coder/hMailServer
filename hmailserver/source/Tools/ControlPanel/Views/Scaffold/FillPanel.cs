@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using hMailServer.ControlPanel.Services;
 
 namespace hMailServer.ControlPanel.Views.Scaffold
@@ -172,7 +173,13 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // A part without a MinHeight is measured as tall as it asks to be, and
          // that is its floor; it stays measured so, so that whatever changes
          // inside it - a form that wraps, an empty state that appears - reaches
-         // this panel as a change of its size.
+         // this panel as a change of its size. A part with a MinHeight has its
+         // floor on the device-pixel grid: handed out as the part's share, a
+         // floor between two device pixels is asked for a fraction of a pixel
+         // over, since WPF rounds what a part asks for to whole pixels, and the
+         // parts then pass a viewport they fit by that fraction and the page
+         // shows a scroll bar (PageFill.SnapUp).
+         double pixel = DevicePixel();
          double[] floors = new double[fills.Count];
          double[] weights = new double[fills.Count];
          for (int i = 0; i < fills.Count; i++)
@@ -181,7 +188,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             bool shown = fill.Visibility != Visibility.Collapsed;
             weights[i] = shown ? GetWeight(fill) : 0;
             if (shown && HasFloor(fill))
-               floors[i] = Floor(fill);
+               floors[i] = PageFill.SnapUp(Floor(fill), pixel);
             else
             {
                fill.Measure(unlimited);
@@ -206,8 +213,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             {
                fill.Measure(new Size(availableSize.Width, heights[i]));
 
-               // Layout rounding can leave the part asking for a device pixel
-               // more than its share; it is given that, and arranged no shorter.
+               // A floor on the device-pixel grid is asked for exactly; where
+               // layout rounding still leaves the part asking for a device pixel
+               // more than its share, it is given that, and arranged no shorter.
                floors[i] = PageFill.MeasuredFloor(floors[i], heights[i], fill.DesiredSize.Height);
                heights[i] = Math.Max(heights[i], floors[i]);
                measuredAt[i] = heights[i];
@@ -236,12 +244,13 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          // the viewport, or more where a parent stretched the panel - each never
          // less than its floor.
          bool measured = floors_.Length == fills.Count;
+         double pixel = DevicePixel();
          double[] floors = new double[fills.Count];
          double[] weights = new double[fills.Count];
          for (int i = 0; i < fills.Count; i++)
          {
             bool shown = fills[i].Visibility != Visibility.Collapsed;
-            floors[i] = !shown ? 0 : measured ? floors_[i] : fills[i].DesiredSize.Height;
+            floors[i] = !shown ? 0 : PageFill.SnapUp(measured ? floors_[i] : fills[i].DesiredSize.Height, pixel);
             weights[i] = shown ? GetWeight(fills[i]) : 0;
          }
 
@@ -301,6 +310,14 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          }
 
          return fills;
+      }
+
+      // A device pixel in device-independent units: two thirds at 150 % scaling,
+      // one at 100. The panel's own DPI, which is the window's.
+      private double DevicePixel()
+      {
+         double scale = VisualTreeHelper.GetDpi(this).DpiScaleY;
+         return scale > 0 && !double.IsInfinity(scale) ? 1 / scale : 1;
       }
 
       private static bool HasFloor(UIElement element)

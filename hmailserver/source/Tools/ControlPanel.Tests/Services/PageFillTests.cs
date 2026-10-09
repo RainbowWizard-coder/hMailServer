@@ -243,6 +243,90 @@ namespace hMailServer.ControlPanel.Tests.Services
             "FillPanel keeps the floors it arranges by before a measured part's floor is raised.");
       }
 
+      // ---- the device-pixel grid ------------------------------------------------------------
+      //
+      // The Suppression list in a 1280 by 800 window at 150 %, read off a layout dump
+      // of the page: 521.33 pixels of viewport (782 device pixels) under the page's
+      // title, a toolbar and a notice of 49.33 each, and two filling cards sharing
+      // the rest two to one - the list, floored at 157, and the bounce counts, at 193
+      // (a MinHeight of 181 and a 12-pixel margin). The counts' third of the room is
+      // less than its floor, so it has its floor, and 193 is 289.5 device pixels:
+      // measured at 193 the card asked for 290, 193.33, the parts came to 521.67,
+      // layout rounding made that 522, and the page had a scroll bar the height of
+      // the window in English and Japanese; in German the subtitle's third line left
+      // a viewport whose fraction rounded the other way. A floor on the grid is asked
+      // for exactly, and the parts sum to the viewport.
+
+      private const double Pixel = 1 / 1.5;
+
+      [Fact]
+      public void AFloorBetweenTwoDevicePixels_IsRaisedToTheNext()
+      {
+         Assert.Equal(290 * Pixel, PageFill.SnapUp(193, Pixel), 6);
+         Assert.Equal(236 * Pixel, PageFill.SnapUp(157, Pixel), 6);
+         Assert.Equal(242 * 0.8, PageFill.SnapUp(193, 0.8), 6);
+         Assert.Equal(194, PageFill.SnapUp(193.5, 1));
+      }
+
+      [Fact]
+      public void AFloorOnTheGrid_Stays()
+      {
+         Assert.Equal(193, PageFill.SnapUp(193, 1));
+         Assert.Equal(290 * Pixel, PageFill.SnapUp(290 * Pixel, Pixel), 6);
+
+         // The arithmetic's own error does not take a value on the grid up a pixel:
+         // 74 device pixels, 49.333..., divided by two thirds is 74.00000000000001.
+         Assert.Equal(74 * Pixel, PageFill.SnapUp(49.333333333333336, Pixel), 6);
+         for (int px = 0; px < 3000; px++)
+         {
+            Assert.Equal(px * Pixel, PageFill.SnapUp(px * Pixel, Pixel), 6);
+            Assert.Equal(px * 0.8, PageFill.SnapUp(px * 0.8, 0.8), 6);
+         }
+      }
+
+      [Fact]
+      public void NoPixelSize_LeavesTheValue()
+      {
+         Assert.Equal(193, PageFill.SnapUp(193, 0));
+         Assert.Equal(193, PageFill.SnapUp(193, -1));
+         Assert.Equal(193, PageFill.SnapUp(193, double.NaN));
+         Assert.Equal(193, PageFill.SnapUp(193, double.PositiveInfinity));
+         Assert.True(double.IsNaN(PageFill.SnapUp(double.NaN, Pixel)));
+         Assert.True(double.IsPositiveInfinity(PageFill.SnapUp(double.PositiveInfinity, Pixel)));
+      }
+
+      [Fact]
+      public void TheSuppressionList_SumsToItsViewport_WhenItsFloorsAreOnTheGrid()
+      {
+         const double viewport = 782 * Pixel, others = 148 * Pixel;
+         double[] floors = { PageFill.SnapUp(157, Pixel), PageFill.SnapUp(193, Pixel) };
+         double[] weights = { 2, 1 };
+
+         double[] heights = PageFill.Share(viewport, others, floors, weights);
+         Assert.Equal(floors[1], heights[1]);
+         Assert.Equal(344 * Pixel, heights[0], 6);
+         Assert.Equal(viewport, others + heights.Sum(), 6);
+
+         // Off the grid, the counts card is given 193, asks for 290 device pixels, has
+         // its floor raised to that (MeasuredFloor), and the page is a third of a pixel
+         // over the viewport, which layout rounding makes a whole one and a scroll bar.
+         double[] offGrid = PageFill.Share(viewport, others, new[] { 157.0, 193 }, weights);
+         double raised = PageFill.MeasuredFloor(193, offGrid[1], 290 * Pixel);
+         Assert.True(others + offGrid[0] + raised > viewport + 1e-6, "The floors off the grid were the defect: the page no longer passes the viewport by a fraction of a pixel.");
+      }
+
+      [Fact]
+      public void FillPanel_PutsAPartsFloor_OnTheDevicePixelGrid()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "Scaffold", "FillPanel.cs"));
+         string measure = WithheldRowTests.MemberText(code, "protected override Size MeasureOverride(Size availableSize)");
+         string arrange = WithheldRowTests.MemberText(code, "protected override Size ArrangeOverride(Size finalSize)");
+         Assert.True(measure != null && arrange != null, "FillPanel's MeasureOverride or ArrangeOverride is gone.");
+         Assert.Contains("floors[i] = PageFill.SnapUp(Floor(fill), pixel);", measure, StringComparison.Ordinal);
+         Assert.Contains("PageFill.SnapUp(measured ? floors_[i] : fills[i].DesiredSize.Height, pixel)", arrange, StringComparison.Ordinal);
+         Assert.Contains("VisualTreeHelper.GetDpi(this).DpiScaleY", code, StringComparison.Ordinal);
+      }
+
       private static string ReadControlPanelFile(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
