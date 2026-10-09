@@ -218,6 +218,54 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"RefreshScheduleStatus\(\)\s*\{[\s\S]*ShowArchives_\(destination\);"), code);
       }
 
+      /// <summary>
+      /// The messages listed are of the archive and the account they were listed from:
+      /// Put the message back puts the one chosen back from those, and another archive
+      /// chosen in the list above - which writes its name in the archive box - or
+      /// either box typed in clears the listing, its note and the message card's
+      /// outcome. The id of a row listed from one archive was sent with whatever
+      /// archive the box named by then, and a message's id is the one it has in its
+      /// archive.
+      /// </summary>
+      [Fact]
+      public void TheMessagesListed_AreOfTheArchiveTheyWereListedFrom_AndGoWhenAnotherIsNamed()
+      {
+         XElement page = XDocument.Parse(Read("BackupView.xaml")).Root;
+         foreach (string box in new[] { "MailboxArchiveBox", "MailboxAddressBox" })
+         {
+            XElement element = page.Descendants().SingleOrDefault(e => (string)e.Attribute(X + "Name") == box);
+            Assert.True(element != null, "BackupView.xaml has no " + box + ".");
+            Assert.Equal("MailboxNames_TextChanged", (string)element.Attribute("TextChanged"));
+         }
+
+         string code = Read("BackupView.xaml.cs");
+         string chosen = WithheldRowTests.MemberText(code, "private void ArchiveGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)");
+         Assert.True(chosen != null, "BackupView.ArchiveGrid_SelectionChanged is gone.");
+         Assert.Contains("MailboxArchiveBox.Text = archive.Name;", chosen, StringComparison.Ordinal);
+
+         string changed = WithheldRowTests.MemberText(code, "private void MailboxNames_TextChanged(object sender, TextChangedEventArgs e)");
+         Assert.True(changed != null, "BackupView.MailboxNames_TextChanged is gone.");
+         Assert.Contains("MailboxArchiveBox.Text.Trim(), listedArchive_", changed, StringComparison.Ordinal);
+         Assert.Contains("MailboxAddressBox.Text.Trim(), listedAddress_", changed, StringComparison.Ordinal);
+         Assert.Contains("ForgetArchivedMessages_();", changed, StringComparison.Ordinal);
+
+         string forget = WithheldRowTests.MemberText(code, "private void ForgetArchivedMessages_()");
+         Assert.True(forget != null, "BackupView.ForgetArchivedMessages_ is gone.");
+         foreach (string line in new[] { "listedArchive_ = null;", "listedAddress_ = null;", "ArchivedMessageGrid.ItemsSource = null;", "ArchivedMessagesEmpty.Visibility = Visibility.Collapsed;", "ArchivedMessagesNote.Visibility = Visibility.Collapsed;", "MessageOutcome.Visibility = Visibility.Collapsed;" })
+            Assert.Contains(line, forget, StringComparison.Ordinal);
+
+         string list = WithheldRowTests.MemberText(code, "private void ListArchivedMessages_Click(object sender, RoutedEventArgs e)");
+         Assert.True(list != null, "BackupView.ListArchivedMessages_Click is gone.");
+         Assert.Matches(new Regex(@"ArchivedMessageGrid\.ItemsSource = messages;\s*listedArchive_ = archive;\s*listedAddress_ = address;"), list);
+
+         string put = WithheldRowTests.MemberText(code, "private void RestoreArchivedMessage_Click(object sender, RoutedEventArgs e)");
+         Assert.True(put != null, "BackupView.RestoreArchivedMessage_Click is gone.");
+         Assert.Contains("manager.RestoreMessage(listedArchive_, listedAddress_, messageId, ", put, StringComparison.Ordinal);
+         Assert.DoesNotContain("ReadMailboxRestoreInputs_(", put, StringComparison.Ordinal);
+         Assert.DoesNotContain("MailboxArchiveBox", put, StringComparison.Ordinal);
+         Assert.DoesNotContain("MailboxAddressBox", put, StringComparison.Ordinal);
+      }
+
       private static string Read(string file)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);

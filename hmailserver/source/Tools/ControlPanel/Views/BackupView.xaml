@@ -197,10 +197,10 @@
                            Description="{loc:L 'The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination.'}">
                 <StackPanel>
                     <scaffold:FieldRow Label="{loc:L '_Archive in the backup destination (name or path)'}">
-                        <ui:TextBox x:Name="MailboxArchiveBox" />
+                        <ui:TextBox x:Name="MailboxArchiveBox" TextChanged="MailboxNames_TextChanged" />
                     </scaffold:FieldRow>
                     <scaffold:FieldRow Label="{loc:L 'Account address (_whose mailbox)'}" Margin="0,12,0,0">
-                        <ui:TextBox x:Name="MailboxAddressBox" />
+                        <ui:TextBox x:Name="MailboxAddressBox" TextChanged="MailboxNames_TextChanged" />
                     </scaffold:FieldRow>
                     <RadioButton x:Name="MailboxModeMerge" GroupName="MailboxMode" IsChecked="True" Margin="0,12,0,8"
                                  Content="{loc:L 'Merge: add the folders and messages of the archive that the mailbox lacks; _nothing already there is removed'}" />

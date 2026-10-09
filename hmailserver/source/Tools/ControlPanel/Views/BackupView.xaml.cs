@@ -410,6 +410,16 @@ namespace hMailServer.ControlPanel.Views
       // so that Re-read the outcome says it where it was asked for.
       private InlineNotice lastJobOutcome_;
 
+      // The archive and the account the messages in the grid were listed from, or
+      // null before a listing. A message's id is the one it has in its archive, so
+      // Put the message back puts the one chosen back from these, whatever the boxes
+      // say by then, and the listing goes once the boxes name another archive or
+      // account (review finding F257): the id of a row listed from one archive,
+      // sent with another chosen in the archive list, put back that archive's
+      // message of the same id, or none.
+      private string listedArchive_;
+      private string listedAddress_;
+
       private bool ReadMailboxRestoreInputs_(out string archive, out string address)
       {
          archive = MailboxArchiveBox.Text.Trim();
@@ -515,6 +525,8 @@ namespace hMailServer.ControlPanel.Views
             // listing (review finding F257).
             List<BackupRestoreReport.ArchivedMessage> messages = BackupRestoreReport.ArchivedMessages(json, out string note, out string error);
             ArchivedMessageGrid.ItemsSource = messages;
+            listedArchive_ = archive;
+            listedAddress_ = address;
             MessageOutcome.Visibility = Visibility.Collapsed;
             if (messages == null)
             {
@@ -535,24 +547,48 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private void RestoreArchivedMessage_Click(object sender, RoutedEventArgs e)
+      /// <summary>
+      /// The messages listed go, with what was said about them and about the last
+      /// message put back, once the archive or the account named above is no longer
+      /// the one they were listed from - another archive chosen in the list above, or
+      /// either box typed in (review finding F257).
+      /// </summary>
+      private void MailboxNames_TextChanged(object sender, TextChangedEventArgs e)
       {
-         if (!ReadMailboxRestoreInputs_(out string archive, out string address))
+         if (listedArchive_ == null)
             return;
 
-         // Enabled only while a message is selected (SelectionGate).
-         if (ArchivedMessageGrid.SelectedItem is not BackupRestoreReport.ArchivedMessage selected || selected.Id <= 0)
+         if (!string.Equals(MailboxArchiveBox.Text.Trim(), listedArchive_, StringComparison.Ordinal)
+             || !string.Equals(MailboxAddressBox.Text.Trim(), listedAddress_, StringComparison.Ordinal))
+            ForgetArchivedMessages_();
+      }
+
+      private void ForgetArchivedMessages_()
+      {
+         listedArchive_ = null;
+         listedAddress_ = null;
+         ArchivedMessageGrid.ItemsSource = null;
+         ArchivedMessagesEmpty.Visibility = Visibility.Collapsed;
+         ArchivedMessagesNote.Visibility = Visibility.Collapsed;
+         MessageOutcome.Visibility = Visibility.Collapsed;
+      }
+
+      private void RestoreArchivedMessage_Click(object sender, RoutedEventArgs e)
+      {
+         // Enabled only while a message is selected (SelectionGate), and a message
+         // is listed only with the archive and the account it was listed from.
+         if (listedArchive_ == null || ArchivedMessageGrid.SelectedItem is not BackupRestoreReport.ArchivedMessage selected || selected.Id <= 0)
             return;
 
          long messageId = selected.Id;
 
-         if (!MessageBox.Confirm(F("Put message {0} back into the mailbox of {1}?", messageId, address), L("Control Panel"), L("_Put the message back")))
+         if (!MessageBox.Confirm(F("Put message {0} back into the mailbox of {1}?", messageId, listedAddress_), L("Control Panel"), L("_Put the message back")))
             return;
 
          try
          {
             dynamic manager = ServerSession.Current.Application.BackupManager;
-            int job = (int)manager.RestoreMessage(archive, address, messageId, ArchivedMessageFolderBox.Text.Trim(), MailboxPassphraseBox.Password ?? "");
+            int job = (int)manager.RestoreMessage(listedArchive_, listedAddress_, messageId, ArchivedMessageFolderBox.Text.Trim(), MailboxPassphraseBox.Password ?? "");
             lastMailboxRestoreJob_ = job;
             string status = (string)manager.MailboxRestoreStatus(job);
             ServerSession.Release(manager);
@@ -846,7 +882,8 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          // The whole restore opens the archive by its path; the mailbox and the
-         // one-message restores name it as the destination lists it.
+         // one-message restores name it as the destination lists it, and the
+         // messages listed from another archive go (MailboxNames_TextChanged).
          BackupFileBox.Text = archive.Path;
          MailboxArchiveBox.Text = archive.Name;
       }
