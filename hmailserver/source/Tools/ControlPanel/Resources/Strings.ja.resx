@@ -3121,13 +3121,13 @@
     <value>重大</value>
   </data>
   <data name="Critical and High (default - a healthy server writes nothing)" xml:space="preserve">
-    <value>Critical と High (既定。正常なサーバーは何も書きません)</value>
+    <value>重大と高 (既定。正常なサーバーは何も書きません)</value>
   </data>
   <data name="Critical only" xml:space="preserve">
     <value>Critical のみ</value>
   </data>
   <data name="Critical, High and Medium" xml:space="preserve">
-    <value>Critical、High、Medium</value>
+    <value>重大、高、中</value>
   </data>
   <data name="Current key" xml:space="preserve">
     <value>現在の鍵</value>
