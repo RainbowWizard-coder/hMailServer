@@ -1453,7 +1453,7 @@ namespace hMailServer.ControlPanel
 
          if (pending == null || pending.Count == 0)
          {
-            PendingBar.Visibility = Visibility.Collapsed;
+            HidePendingBar_();
             return;
          }
 
@@ -1470,7 +1470,7 @@ namespace hMailServer.ControlPanel
          string banner = SettingApplies.Banner(waitingForReinitialize, waitingForRestart);
          if (banner == null)
          {
-            PendingBar.Visibility = Visibility.Collapsed;
+            HidePendingBar_();
             return;
          }
 
@@ -1491,6 +1491,75 @@ namespace hMailServer.ControlPanel
          RestartServiceButton.Visibility = waitingForRestart > 0 && ServiceRestart.Available ? Visibility.Visible : Visibility.Collapsed;
          RestartServiceButton.IsEnabled = true;
          PendingBar.Visibility = Visibility.Visible;
+         KeyboardBackToPage_();
+      }
+
+      /// <summary>The bar collapsed, nothing waiting - and the keyboard, if it was on it, on the page.</summary>
+      private void HidePendingBar_()
+      {
+         KeyboardOffPendingBar_();
+         PendingBar.Visibility = Visibility.Collapsed;
+         KeyboardBackToPage_();
+      }
+
+      // Set from the moment a button of the bar sent the keyboard to the page until the
+      // work it started is done: Apply now and a restart enter the page again, which
+      // builds a feature settings page's cards anew under the keyboard.
+      private bool keyboardSentFromBar_;
+
+      /// <summary>
+      /// The keyboard, while it is on the pending bar, goes to the page - to the control
+      /// of the page that last had it, as F6 takes it there - before the bar's buttons
+      /// are disabled for the work they start, or the bar is collapsed: a disabled or
+      /// collapsed button gives the keyboard to the window, so that Tab started again
+      /// from the window's first control and a screen reader said nothing of where the
+      /// keyboard was, through the restart and after it. The bar's notice, a live
+      /// region, says the restart or the reinitialise as it runs. The bar counts as
+      /// having the keyboard while the window, not yet active again after the question
+      /// a button asks first, will give it back to one of the bar's buttons.
+      /// </summary>
+      private void KeyboardOffPendingBar_()
+      {
+         bool onBar = PendingBar.IsKeyboardFocusWithin
+            || (FocusManager.GetFocusedElement(this) is DependencyObject remembered && IsWithin_(remembered, PendingBar));
+         if (!onBar)
+            return;
+
+         keyboardSentFromBar_ = true;
+         KeyboardToPage_();
+      }
+
+      /// <summary>
+      /// After the work a button of the bar started, once the page has been entered
+      /// again and laid out: the keyboard, if the element it went to was built away,
+      /// back on the page, where it went to the window.
+      /// </summary>
+      private void KeyboardBackToPage_()
+      {
+         if (!keyboardSentFromBar_)
+            return;
+
+         keyboardSentFromBar_ = false;
+         Dispatcher.BeginInvoke(new Action(() =>
+         {
+            IInputElement focused = Keyboard.FocusedElement;
+            bool lost = focused == null || ReferenceEquals(focused, this) || (focused is UIElement element && !element.IsVisible);
+            if (lost)
+               KeyboardToPage_();
+         }), System.Windows.Threading.DispatcherPriority.Loaded);
+      }
+
+      /// <summary>
+      /// The control of the page that last had the keyboard, or the page's first. The
+      /// page's host is no control of its own: it takes the keyboard when the control
+      /// that had it is built away, and a screen reader then says only "Page content".
+      /// </summary>
+      private void KeyboardToPage_()
+      {
+         IInputElement remembered = RememberedPageFocus_();
+         if (ReferenceEquals(remembered, ContentHost))
+            remembered = null;
+         (remembered ?? FirstFocusable_(ContentHost))?.Focus();
       }
 
       // How many settings the bar last counted as waiting for a restart: what its
@@ -1510,6 +1579,7 @@ namespace hMailServer.ControlPanel
          if (!MessageBox.Confirm(SettingApplies.RestartQuestion(pendingRestartCount_), L("Control Panel"), L("_Restart the service"), cancelByDefault: true))
             return;
 
+         KeyboardOffPendingBar_();
          ApplyPendingButton.IsEnabled = false;
          RestartServiceButton.IsEnabled = false;
          PendingNotice.Level = StatusLevel.Information;
@@ -1556,6 +1626,7 @@ namespace hMailServer.ControlPanel
                 cancelByDefault: true, decline: L("_Later")))
             return;
 
+         KeyboardOffPendingBar_();
          ApplyPendingButton.IsEnabled = false;
          RestartServiceButton.IsEnabled = false;
          PendingNotice.Level = StatusLevel.Information;

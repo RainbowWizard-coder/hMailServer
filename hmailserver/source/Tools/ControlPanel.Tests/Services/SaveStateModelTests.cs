@@ -217,7 +217,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("BuildFooter_", code, StringComparison.Ordinal);
          Assert.Contains("Status = statePill_", code, StringComparison.Ordinal);
          Assert.Contains("Actions = BuildActions_()", code, StringComparison.Ordinal);
-         Assert.Contains("new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges)", code, StringComparison.Ordinal);
+         Assert.Contains("new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges, keyboardHome: () => saveButton_)", code, StringComparison.Ordinal);
 
          string load = WithheldRowTests.MemberText(code, "private void Load_()");
          Assert.True(load != null && load.Contains("saveState_.Settle(", StringComparison.Ordinal), file + ".Load_ does not settle the pill.");

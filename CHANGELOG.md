@@ -1208,8 +1208,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   change to the schedule needs a restart. A schedule changed while directory access is off, or to minutes the server
   runs alike - 5 and 15, an empty value and 0 - waits for nothing. Directory authentication says the same, with the
   restart, when its save switches directory access on over a schedule the running server did not register, where it
-  said that no service restart was needed. And Directory synchronisation now notices when hMailServer.ini refused a
-  write, which it reported as saved.
+  said that no service restart was needed. The *Restart the service…* in the notice of either page hands the keyboard
+  to *Save changes*, the header's control above the notice, as the restart begins and the notice drops the button,
+  where it went to the window, so that Tab started again from the window's first control and a screen reader said
+  nothing of where it was. And Directory synchronisation now notices when hMailServer.ini refused a write, which it
+  reported as saved.
 
 - **Fixed: the lists on the domain and account dialogs' tabs saved as they were edited, under a dialog whose Cancel
   suggested nothing had been.** Adding, editing or deleting a domain alias or an entry of the domain's allow and
@@ -1234,7 +1237,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the same access-key scope, until what it counts is applied, and no letter of either caption is free on all of
   them - Apply now's Alt+A was taken on eighteen pages, by Add among others, and on such a page the key only moved
   the focus between the two buttons - so both are reached by Tab, Restart the service… first, in the order they are
-  drawn.
+  drawn. Pressing either sends the keyboard to the page, to the control of the page that last had it, before the
+  buttons are disabled for the work they start, and again once the page is entered afresh if that control was built
+  away, where a disabled button, and then the bar collapsing, gave it to the window: Tab started again from the
+  window's first control, and a screen reader said nothing of where the keyboard was through the restart or after
+  it. The bar's notice says the restart or the reinitialise as it runs.
 
 - **Fixed: a secret stored on the Control Panel's feature settings pages could not be removed.** The shared HMAC
   secret and the introspection client secret on the Authentication page, the SRS and BATV signing secrets on

@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using hMailServer.ControlPanel.Services;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
@@ -40,17 +42,25 @@ namespace hMailServer.ControlPanel.Views
       private readonly StatusPill pill_;
       private readonly InlineNotice notice_;
       private readonly Func<bool> hasUnsavedChanges_;
+      private readonly Func<IInputElement> keyboardHome_;
       private readonly SaveStateNotice sentence_ = new();
       private SettingsPageState settled_ = SettingsPageState.Clean;
 
       /// <param name="pill">The pill in the page header's Status slot.</param>
       /// <param name="notice">The notice under the header, collapsed while there is nothing to say.</param>
       /// <param name="hasUnsavedChanges">The page's own answer: whether an editor differs from what was read or saved.</param>
-      public IniPageSaveState(StatusPill pill, InlineNotice notice, Func<bool> hasUnsavedChanges)
+      /// <param name="keyboardHome">
+      /// Where the keyboard goes when the notice's action had it and goes away - its
+      /// Restart the service…, pressed, as the restart begins: the page's Save changes,
+      /// the header's control above the notice. Null for a page whose notice carries no
+      /// action.
+      /// </param>
+      public IniPageSaveState(StatusPill pill, InlineNotice notice, Func<bool> hasUnsavedChanges, Func<IInputElement> keyboardHome = null)
       {
          pill_ = pill;
          notice_ = notice;
          hasUnsavedChanges_ = hasUnsavedChanges;
+         keyboardHome_ = keyboardHome;
          Show_(SettingsPageState.Clean);
       }
 
@@ -196,22 +206,75 @@ namespace hMailServer.ControlPanel.Views
          pill_.Visibility = SettingsPageStatus.ShowsPill(state) ? Visibility.Visible : Visibility.Collapsed;
       }
 
-      /// <summary>Draws what the notice says now (<see cref="sentence_"/>).</summary>
+      /// <summary>
+      /// Draws what the notice says now (<see cref="sentence_"/>). The keyboard, when it
+      /// was on an action the notice drops - its Restart the service…, pressed, as the
+      /// restart begins - goes to the action that replaces it where there is one, and
+      /// otherwise to the page's keyboard home: it went to the window, so that Tab
+      /// started again from the window's first control and a screen reader said
+      /// nothing of where the keyboard was.
+      /// </summary>
       private void Say_()
       {
          if (notice_ == null)
             return;
 
-         notice_.Content = sentence_.Action;
+         bool keyboardOnAction = notice_.Content is UIElement before && HoldsKeyboard_(before);
+         object action = sentence_.Action;
+         bool actionGoes = !ReferenceEquals(notice_.Content, action);
+
+         notice_.Content = action;
          if (sentence_.Sentence == null)
-         {
             notice_.Visibility = Visibility.Collapsed;
+         else
+         {
+            notice_.Level = sentence_.Level;
+            notice_.Text = sentence_.Sentence;
+            notice_.Visibility = Visibility.Visible;
+         }
+
+         if (keyboardOnAction && (actionGoes || notice_.Visibility != Visibility.Visible))
+            KeepKeyboard_(notice_.Visibility == Visibility.Visible ? action as UIElement : null);
+      }
+
+      /// <summary>
+      /// Whether <paramref name="element"/> has the keyboard, or is what its window gives
+      /// the keyboard back to as it is activated again: the question Restart the
+      /// service… asks first is a window of its own, and the page's window takes the
+      /// keyboard back after it closes, to the element its focus scope remembers.
+      /// </summary>
+      private static bool HoldsKeyboard_(UIElement element)
+      {
+         if (element.IsKeyboardFocusWithin)
+            return true;
+
+         DependencyObject scope = FocusManager.GetFocusScope(element);
+         return scope != null && ReferenceEquals(FocusManager.GetFocusedElement(scope), element);
+      }
+
+      /// <summary>
+      /// Puts the keyboard on <paramref name="next"/> once it is laid out, or on the
+      /// page's keyboard home where there is no next action or it cannot take it -
+      /// through Focus, which a window that is not active yet keeps as the element it
+      /// gives the keyboard to when it is.
+      /// </summary>
+      private void KeepKeyboard_(UIElement next)
+      {
+         IInputElement home = keyboardHome_?.Invoke();
+         if (next == null)
+         {
+            home?.Focus();
             return;
          }
 
-         notice_.Level = sentence_.Level;
-         notice_.Text = sentence_.Sentence;
-         notice_.Visibility = Visibility.Visible;
+         // The action became the notice's content a moment ago, and is not in the
+         // visual tree until the layout that follows.
+         notice_.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+         {
+            if (next.IsVisible && next.IsEnabled && next.Focusable && next.Focus())
+               return;
+            home?.Focus();
+         }));
       }
    }
 }

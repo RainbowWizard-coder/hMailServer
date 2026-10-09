@@ -183,6 +183,87 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("cancelByDefault: true", restart, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The keyboard on a directory page's Restart the service…, pressed, went to the
+      /// window as the restart began, when the notice dropped the button for the
+      /// Restarting sentence: Tab started again from the window's first control, and a
+      /// screen reader said nothing of where the keyboard was. It goes to the page's
+      /// Save changes, the header's control above the notice - or to the action that
+      /// replaces the one dropped - and counts as on the button while the window, not
+      /// yet active again after the question, will give it back to it.
+      /// </summary>
+      [Fact]
+      public void TheNoticesRestart_LeavesTheKeyboardOnThePage()
+      {
+         string shared = SaveStateModelTests.ReadControlPanelFile("Views/IniPageSaveState.cs");
+         string say = WithheldRowTests.MemberText(shared, "private void Say_()");
+         Assert.True(say != null, "IniPageSaveState.Say_ is gone.");
+         int holds = say.IndexOf("HoldsKeyboard_(before)", StringComparison.Ordinal);
+         int replaced = say.IndexOf("notice_.Content = action;", StringComparison.Ordinal);
+         int keeps = say.IndexOf("KeepKeyboard_(", StringComparison.Ordinal);
+         Assert.True(holds >= 0 && replaced > holds && keeps > replaced,
+            "The notice does not look for the keyboard on its action before it drops it, and keep it after.");
+
+         string remembered = WithheldRowTests.MemberText(shared, "private static bool HoldsKeyboard_(UIElement element)");
+         Assert.True(remembered != null && remembered.Contains("FocusManager.GetFocusedElement(scope)", StringComparison.Ordinal),
+            "The keyboard the window gives back after the question is not counted.");
+         string keep = WithheldRowTests.MemberText(shared, "private void KeepKeyboard_(UIElement next)");
+         Assert.True(keep != null && keep.Contains("home?.Focus();", StringComparison.Ordinal) && keep.Contains("next.Focus()", StringComparison.Ordinal),
+            "The keyboard is not put on the next action or the page's home.");
+
+         foreach (string file in new[] { "Views/LdapSettingsView.cs", "Views/DirectorySyncView.cs" })
+            Assert.Contains("keyboardHome: () => saveButton_", SaveStateModelTests.ReadControlPanelFile(file), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The pending bar's two buttons are disabled while the work they start runs, and
+      /// the bar is collapsed when nothing is left: either gave the keyboard on them to
+      /// the window. The keyboard goes to the page first - where it last was, as F6
+      /// takes it there - and comes back to the page once the page is entered again, if
+      /// the element it went to was built away.
+      /// </summary>
+      [Theory]
+      [InlineData("private async void RestartPending_Click(object sender, RoutedEventArgs e)")]
+      [InlineData("private void ApplyPending_Click(object sender, RoutedEventArgs e)")]
+      public void TheBarsButtons_SendTheKeyboardToThePage_BeforeTheyAreDisabled(string member)
+      {
+         string shell = SaveStateModelTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         string click = WithheldRowTests.MemberText(shell, member);
+         Assert.True(click != null, member + " is gone.");
+
+         int asks = click.IndexOf("MessageBox.Confirm(", StringComparison.Ordinal);
+         int off = click.IndexOf("KeyboardOffPendingBar_();", StringComparison.Ordinal);
+         int disabled = click.IndexOf("ApplyPendingButton.IsEnabled = false;", StringComparison.Ordinal);
+         Assert.True(asks >= 0 && off > asks && disabled > off, member + " disables the bar's buttons with the keyboard still on them.");
+      }
+
+      [Fact]
+      public void TheBar_IsCollapsedWithTheKeyboardOffIt()
+      {
+         string shell = SaveStateModelTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         string refresh = WithheldRowTests.MemberText(shell, "private void RefreshPendingBar_(bool fresh)");
+         Assert.True(refresh != null, "RefreshPendingBar_ is gone.");
+         Assert.DoesNotContain("PendingBar.Visibility = Visibility.Collapsed;", refresh, StringComparison.Ordinal);
+         Assert.Equal(2, Regex.Matches(refresh, @"HidePendingBar_\(\);").Count);
+         Assert.Contains("KeyboardBackToPage_();", refresh, StringComparison.Ordinal);
+
+         string hide = WithheldRowTests.MemberText(shell, "private void HidePendingBar_()");
+         Assert.True(hide != null, "HidePendingBar_ is gone.");
+         int off = hide.IndexOf("KeyboardOffPendingBar_();", StringComparison.Ordinal);
+         int collapsed = hide.IndexOf("PendingBar.Visibility = Visibility.Collapsed;", StringComparison.Ordinal);
+         int back = hide.IndexOf("KeyboardBackToPage_();", StringComparison.Ordinal);
+         Assert.True(off >= 0 && collapsed > off && back > collapsed, "The bar is collapsed with the keyboard still on it.");
+
+         string send = WithheldRowTests.MemberText(shell, "private void KeyboardOffPendingBar_()");
+         Assert.True(send != null && send.Contains("FocusManager.GetFocusedElement(this)", StringComparison.Ordinal) && send.Contains("KeyboardToPage_();", StringComparison.Ordinal),
+            "The keyboard the window gives back to the bar after a question is not sent to the page.");
+         string toPage = WithheldRowTests.MemberText(shell, "private void KeyboardToPage_()");
+         Assert.True(toPage != null && toPage.Contains("RememberedPageFocus_()", StringComparison.Ordinal)
+               && toPage.Contains("(remembered ?? FirstFocusable_(ContentHost))?.Focus();", StringComparison.Ordinal)
+               && toPage.Contains("if (ReferenceEquals(remembered, ContentHost))", StringComparison.Ordinal),
+            "The keyboard does not go to the page's control that last had it, or to its first.");
+      }
+
       /// <summary>A file under the repository root, found from the test binaries.</summary>
       private static string ReadRepositoryFile_(string relative)
       {

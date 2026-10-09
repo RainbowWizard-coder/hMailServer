@@ -143,7 +143,9 @@ namespace hMailServer.ControlPanel.Views
 
       public LdapSettingsView()
       {
-         saveState_ = new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges);
+         // The keyboard's home is Save changes, the header's control above the notice:
+         // where it goes when the notice's Restart the service… is pressed and goes.
+         saveState_ = new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges, keyboardHome: () => saveButton_);
 
          // The page scrolls whole, header and all, as the feature settings pages do:
          // Reload and Save changes in the header's actions, the pill beside the title,
