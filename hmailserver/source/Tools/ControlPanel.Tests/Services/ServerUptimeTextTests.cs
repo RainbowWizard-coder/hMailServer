@@ -52,6 +52,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("-", ServerUptimeText.Started(""));
       }
 
+      /// <summary>
+      /// The statistics heading carries the start as the Started row does, marked as the
+      /// server's time (the owner's decision 13), where it showed the server's local
+      /// time with no marker under a row that had one.
+      /// </summary>
+      [Fact]
+      public void TheStatisticsHeading_MarksTheStartAsTheServersTime_AndIsItsWordsAloneWithoutOne()
+      {
+         string when = new DateTime(2026, 10, 3, 11, 18, 0).ToString("g", System.Globalization.CultureInfo.CurrentCulture);
+         Assert.Equal("Since the service started at " + when + " (server time)", ServerUptimeText.SinceStart("2026-10-03 11:18:00"));
+         Assert.Equal("Since the service started", ServerUptimeText.SinceStart(""));
+         Assert.Equal("Since the service started", ServerUptimeText.SinceStart("not a time"));
+
+         string code = ReadControlPanelFile(Path.Join("Views", "StatusView.xaml.cs"));
+         Assert.Contains("SinceStartHeading.Text = ServerUptimeText.SinceStart(snap.StartTime);", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("Since the service started ({0})", code, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void ThePages_NameEachCounterOnce_AndSayWhichStatisticsAreSinceTheStart()
       {

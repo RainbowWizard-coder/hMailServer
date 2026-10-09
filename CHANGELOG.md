@@ -1745,11 +1745,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   out only where the two clocks are one, a session on the server's own computer, and says it is not known here
   otherwise, in each language's own units ("5 T. 3 Std. 12 Min.", "5 日 3 時間 12 分"), the Dashboard's tile as well; the
   start is shown in the reader's date format and marked as the server's time. The statistics are under two lines,
-  Since the service started, with the time, and Connected now, where six figures sat side by side as one kind; the
-  counters are named the same on both pages, Messages processed and Spam detected - the counter is every message the
-  spam checks detected, deleted or only marked, where Server status said Spam removed and the Dashboard Spam blocked;
-  and the row of the update's state is captioned Update status, where its caption was the verb, "Aktualisieren" in
-  German.
+  Since the service started, with the time marked as the server's, and Connected now, where six figures sat side by
+  side as one kind; the counters are named the same on both pages, Messages processed and Spam detected - the counter
+  is every message the spam checks detected, deleted or only marked, where Server status said Spam removed and the
+  Dashboard Spam blocked; and the row of the update's state is captioned Update status, where its caption was the
+  verb, "Aktualisieren" in German.
 
 - **Fixed: the folder permissions list named an entry's rights by the first word of each right's caption.** A row read
   "user00@example.com - Lookup, Read, Keep, Set, Delete, Delete", Delete folder and Delete messages both being
@@ -1771,15 +1771,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   reader says once as the selection moves; a search above the list finds held messages by sender, recipients, subject
   or reason, says when it finds none, and, where the server listed only its most recent, that it looked at those. Held
   is how long ago the message was held, in short units ("5 h ago"), where the server's clock is this computer's, and
-  the reader's date and time where it is not, the age in words and the whole time in the tool tip marked as the
-  server's, where it was the database's raw string in every language. The text columns share the width the grid itself
-  has, not the window's: the HELO name has a column only where the grid is 1000 pixels wide or more, its headers icon
-  now beside the preview's in the subject; the sender and the subject are each as wide as their longest, up to a
-  limit, wherever there is room for both - at 1280 pixels with the sidebar open, the sample's addresses and subjects
-  are whole in English, German and Japanese - and share what there is where there is not; the recipients keep a column
-  where there is room for it as well, which in the narrowest window there is not; and Held and Score are as wide as
-  their widest word, with room for the sort arrow on the column sorted by. At 1280 pixels the addresses and the HELO
-  name were cut while Subject had room to spare.
+  the reader's date and time where it is not, under the caption Held (server time), the age in words and the whole
+  time in the tool tip marked as the server's, where it was the database's raw string in every language. The text
+  columns share the width the grid itself has, not the window's: the HELO name has a column only where the grid is
+  1000 pixels wide or more, its headers icon now beside the preview's in the subject; the sender and the subject are
+  each as wide as their longest, up to a limit, wherever there is room for both - at 1280 pixels with the sidebar
+  open, a session on the server's computer shows the sample's addresses and subjects whole in English, German and
+  Japanese - and share what there is where there is not; the recipients keep a column where there is room for it as
+  well, which in the narrowest window there is not; and Held and Score are as wide as their widest word, with room for
+  the sort arrow on the column sorted by. At 1280 pixels the addresses and the HELO name were cut while Subject had
+  room to spare.
 
 - **Fixed: the spam filtering overview's structure was flat, its scores unlabelled, and it left out the external
   filtering engine.** The card titles and the two phase headings were one size and weight, with no heading level on

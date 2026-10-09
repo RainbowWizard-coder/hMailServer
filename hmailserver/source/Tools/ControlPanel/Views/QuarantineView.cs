@@ -263,6 +263,8 @@ namespace hMailServer.ControlPanel.Views
                // A held time's age is counted only where the server's clock is this
                // computer's: CreatedTime is the server's local time.
                review_.AgesFrom = ServerSession.IsLocalSession ? DateTime.Now : null;
+               if (heldColumn_ != null)
+                  heldColumn_.Header = review_.HeldCaption;
                review_.Load(messages);
                Rebind_();
 
@@ -1388,7 +1390,7 @@ namespace hMailServer.ControlPanel.Views
       {
          if (heldColumn_ != null)
          {
-            double held = GridStyles.HeaderWidth(L("Held")) + SortArrow_(QuarantineColumn.Held);
+            double held = GridStyles.HeaderWidth(review_.HeldCaption) + SortArrow_(QuarantineColumn.Held);
             foreach (QuarantineRow row in review_.Rows)
             {
                if (row.IsMessage)

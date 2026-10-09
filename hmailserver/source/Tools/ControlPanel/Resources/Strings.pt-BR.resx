@@ -5092,6 +5092,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Held" xml:space="preserve">
     <value>Retida</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Retida (horário do servidor)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Retida porque: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Reiniciá-lo agora?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Desde que o serviço foi iniciado</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Desde que o serviço foi iniciado ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Desde que o serviço foi iniciado, em {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Desde {0}</value>

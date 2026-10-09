@@ -529,9 +529,7 @@ namespace hMailServer.ControlPanel.Views
             // server's clock is this computer's (review finding F247).
             SetValue_(StartedValue, L("Started"), ServerUptimeText.Started(snap.StartTime));
             SetValue_(UptimeValue, L("Uptime"), ServerUptimeText.Uptime(snap.StartTime, DateTime.Now, ServerSession.IsLocalSession));
-            SinceStartHeading.Text = ServerUptimeText.ParseStart(snap.StartTime) is DateTime started
-               ? F("Since the service started ({0})", started.ToString("g", System.Globalization.CultureInfo.CurrentCulture))
-               : L("Since the service started");
+            SinceStartHeading.Text = ServerUptimeText.SinceStart(snap.StartTime);
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {

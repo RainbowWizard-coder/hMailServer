@@ -5092,6 +5092,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Held" xml:space="preserve">
     <value>Kvarhållet</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Kvarhållet (servertid)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Kvarhållet eftersom: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Starta om den nu?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Sedan tjänsten startade</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Sedan tjänsten startade ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Sedan tjänsten startade den {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Sedan {0}</value>

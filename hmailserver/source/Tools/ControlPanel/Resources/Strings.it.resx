@@ -5092,6 +5092,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Held" xml:space="preserve">
     <value>Trattenuto</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Trattenuto (ora del server)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Trattenuto perché: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Riavviarlo ora?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Dall'avvio del servizio</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Dall'avvio del servizio ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Dall'avvio del servizio, il {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Dal {0}</value>

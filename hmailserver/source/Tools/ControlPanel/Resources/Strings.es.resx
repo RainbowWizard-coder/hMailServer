@@ -5092,6 +5092,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Held" xml:space="preserve">
     <value>Retenido</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Retenido (hora del servidor)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Retenido porque: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Since the service started" xml:space="preserve">
     <value>Desde que se inició el servicio</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Desde que se inició el servicio ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Desde que se inició el servicio, el {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Desde {0}</value>

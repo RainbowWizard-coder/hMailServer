@@ -5092,6 +5092,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Held" xml:space="preserve">
     <value>Retenu</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Retenu (heure du serveur)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Retenu parce que : {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Le redémarrer maintenant ?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Depuis le démarrage du service</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Depuis le démarrage du service ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Depuis le démarrage du service, le {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Depuis {0}</value>

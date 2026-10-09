@@ -5146,6 +5146,9 @@ Control Panel может читать файлы сообщений только
   <data name="Held" xml:space="preserve">
     <value>Задержано</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Задержано (время сервера)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Задержано, потому что: {0}</value>
   </data>
@@ -10803,8 +10806,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Since the service started" xml:space="preserve">
     <value>С момента запуска службы</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>С момента запуска службы ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>С момента запуска службы: {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>С {0}</value>

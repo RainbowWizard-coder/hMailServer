@@ -227,6 +227,15 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The time held messages' ages are counted from, or null where they are not shown (QuarantineRow.Held).</summary>
       public DateTime? AgesFrom { get; set; }
 
+      /// <summary>
+      /// The Held column's caption: Held over ages, which need no clock named, and
+      /// Held (server time) over the server's own date and time, which is what its
+      /// cells are where the server is on another computer (the owner's decision 13:
+      /// dates in grids in the reader's format with "(server time)"). The marker was in
+      /// each cell's tool tip alone, which no keyboard or screen reader reaches.
+      /// </summary>
+      public string HeldCaption => AgesFrom == null ? L("Held (server time)") : L("Held");
+
       public void SetFilter(string filter)
       {
          Filter = (filter ?? "").Trim();

@@ -5092,6 +5092,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Held" xml:space="preserve">
     <value>Vastgehouden</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Vastgehouden (servertijd)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Vastgehouden omdat: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Nu opnieuw starten?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Sinds de start van de service</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Sinds de start van de service ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Sinds de start van de service op {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Sinds {0}</value>

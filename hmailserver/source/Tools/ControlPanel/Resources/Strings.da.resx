@@ -5092,6 +5092,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Held" xml:space="preserve">
     <value>Tilbageholdt</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Tilbageholdt (servertid)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Tilbageholdt fordi: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Genstart den nu?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Siden tjenesten startede</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Siden tjenesten startede ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Siden tjenesten startede den {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Siden {0}</value>

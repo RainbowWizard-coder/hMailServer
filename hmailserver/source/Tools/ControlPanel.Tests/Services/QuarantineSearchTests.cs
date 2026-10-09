@@ -108,6 +108,27 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.StartsWith("18 minutes ago", review.Rows[0].HeldTip, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// Where the cells are the server's own date and time - the server on another
+      /// computer - the column says so in its caption, which every reader reaches (the
+      /// owner's decision 13), where the marker was in each cell's tool tip alone; an
+      /// age needs no clock named.
+      /// </summary>
+      [Fact]
+      public void TheHeldColumn_SaysServerTimeWhereItsCellsAreTheServersTime()
+      {
+         var remote = new QuarantineReview { AgesFrom = null };
+         Assert.Equal("Held (server time)", remote.HeldCaption);
+         var local = new QuarantineReview { AgesFrom = new DateTime(2026, 10, 8, 4, 0, 0) };
+         Assert.Equal("Held", local.HeldCaption);
+
+         string view = ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
+         int ages = view.IndexOf("review_.AgesFrom = ServerSession.IsLocalSession ? DateTime.Now : null;", StringComparison.Ordinal);
+         int caption = view.IndexOf("heldColumn_.Header = review_.HeldCaption;", StringComparison.Ordinal);
+         Assert.True(ages >= 0 && caption > ages, "The Held column is not captioned for the clock its cells are read by.");
+         Assert.Contains("GridStyles.HeaderWidth(review_.HeldCaption)", view, StringComparison.Ordinal);
+      }
+
       [Theory]
       [InlineData(0.5, "just now")]
       [InlineData(60, "1 min ago")]

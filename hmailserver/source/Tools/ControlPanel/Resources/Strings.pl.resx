@@ -5146,6 +5146,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Held" xml:space="preserve">
     <value>Wstrzymana</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Wstrzymana (czas serwera)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Wstrzymana z powodu: {0}</value>
   </data>
@@ -10803,8 +10806,8 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Od uruchomienia usługi</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Od uruchomienia usługi ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Od uruchomienia usługi dnia {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Od {0}</value>

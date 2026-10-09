@@ -5146,6 +5146,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Held" xml:space="preserve">
     <value>Pozdrženo</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Pozdrženo (čas serveru)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Pozdrženo, protože: {0}</value>
   </data>
@@ -10803,8 +10806,8 @@ Restartovat ji nyní?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Od spuštění služby</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Od spuštění služby ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Od spuštění služby dne {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Od {0}</value>

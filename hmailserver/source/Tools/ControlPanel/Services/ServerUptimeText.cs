@@ -38,6 +38,16 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// The heading over the counts kept since the service started: with the start,
+      /// marked as the server's time as the Started row is, where the server gave one
+      /// (the owner's decision 13); the words alone where it did not. The heading
+      /// showed the start in the reader's format with no marker, under a Started row
+      /// that had one.
+      /// </summary>
+      public static string SinceStart(string startTime)
+         => ParseStart(startTime) is null ? L("Since the service started") : F("Since the service started at {0}", Started(startTime));
+
+      /// <summary>
       /// How long the service has been up, in catalogued units, when the server's
       /// clock is this computer's (<paramref name="sameClock"/>); otherwise that it is
       /// not known here. <paramref name="compact"/> is the Dashboard's tile: days and

@@ -5092,6 +5092,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Held" xml:space="preserve">
     <value>Zurückgehalten</value>
   </data>
+  <data name="Held (server time)" xml:space="preserve">
+    <value>Zurückgehalten (Serverzeit)</value>
+  </data>
   <data name="Held because: {0}" xml:space="preserve">
     <value>Zurückgehalten, weil: {0}</value>
   </data>
@@ -10690,8 +10693,8 @@ Jetzt neu starten?</value>
   <data name="Since the service started" xml:space="preserve">
     <value>Seit dem Start des Dienstes</value>
   </data>
-  <data name="Since the service started ({0})" xml:space="preserve">
-    <value>Seit dem Start des Dienstes ({0})</value>
+  <data name="Since the service started at {0}" xml:space="preserve">
+    <value>Seit dem Start des Dienstes am {0}</value>
   </data>
   <data name="Since {0}" xml:space="preserve">
     <value>Seit {0}</value>
