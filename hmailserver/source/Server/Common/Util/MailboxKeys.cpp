@@ -18,6 +18,7 @@
 #include "../Application/Application.h"
 #include "../Application/Configuration.h"
 #include "../Application/ErrorManager.h"
+#include "../Application/ExceptionHandler.h"
 #include "../Application/IniFileSettings.h"
 #include "../Application/Logger.h"
 #include "../BO/Account.h"
@@ -953,6 +954,98 @@ namespace HM
 
       if (closed)
          MessageStore::ForgetDecodes();
+   }
+
+   // ---- the idle sweep ------------------------------------------------------------------------
+
+   namespace
+   {
+      // How often the sweep runs: a key closes no later than this after its
+      // idle minutes, which count whole seconds (Now).
+      const int IdleSweepSeconds = 10;
+
+      // The sweep's thread. A pointer that is never freed at exit, as the
+      // sandbox's poller's is, because a thread object destroyed while its
+      // thread still runs ends the process.
+      boost::mutex &SweepLock()
+      {
+         static boost::mutex lock;
+         return lock;
+      }
+
+      boost::thread *&SweepThread()
+      {
+         static boost::thread *thread = nullptr;
+         return thread;
+      }
+
+      void IdleSweepLoop()
+      {
+         // Said once while the sweeps keep failing, and again only after one
+         // has gone through: every ten seconds would be a line nobody reads.
+         bool failing = false;
+
+         while (true)
+         {
+            // The interruption point StopIdleSweep ends the thread at.
+            boost::this_thread::sleep_for(boost::chrono::seconds(IdleSweepSeconds));
+
+            try
+            {
+               MailboxKeys::CloseIdle();
+               failing = false;
+            }
+            catch (const boost::thread_interrupted &)
+            {
+               throw;
+            }
+            catch (...)
+            {
+               if (!failing)
+                  LOG_APPLICATION("MailboxKeys: the idle mailbox keys could not be closed; the sweep tries again every ten seconds.");
+               failing = true;
+            }
+         }
+      }
+
+      void IdleSweepThread()
+      {
+         boost::function<void()> func = &IdleSweepLoop;
+         ExceptionHandler::Run("Mailbox key idle sweep", func);
+      }
+   }
+
+   void
+   MailboxKeys::StartIdleSweep()
+   {
+      boost::lock_guard<boost::mutex> guard(SweepLock());
+
+      boost::thread *&thread = SweepThread();
+      if (thread)
+      {
+         // One sweep in a process: a Start with no Stop before it leaves the
+         // one that is running as it is.
+         if (thread->joinable() && !thread->timed_join(boost::posix_time::milliseconds(1)))
+            return;
+
+         delete thread;
+         thread = nullptr;
+      }
+
+      thread = new boost::thread(&IdleSweepThread);
+   }
+
+   void
+   MailboxKeys::StopIdleSweep()
+   {
+      boost::lock_guard<boost::mutex> guard(SweepLock());
+
+      boost::thread *thread = SweepThread();
+      if (!thread || !thread->joinable())
+         return;
+
+      thread->interrupt();
+      thread->join();
    }
 
    void

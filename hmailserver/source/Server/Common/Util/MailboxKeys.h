@@ -257,9 +257,24 @@ namespace HM
       static std::shared_ptr<MailboxKeyHold> Hold(__int64 accountId);
 
       // Every key nothing holds and nobody has used for MailboxKeyIdleMinutes
-      // closed: its private half written over and forgotten. The minute's sweep
-      // (RemoveExpiredRecords).
+      // closed: its private half written over and forgotten. The idle sweep's
+      // (StartIdleSweep).
       static void CloseIdle();
+
+      // The idle sweep: CloseIdle every ten seconds, on a thread of its own,
+      // from the start of the servers to their stop (Application::StartServers
+      // and StopServers), so that a key closes within ten seconds of its idle
+      // minutes. It was a step of RemoveExpiredRecords, a scheduled task, and
+      // the Scheduler runs its due tasks one after another on one thread and
+      // sleeps its minute after the last of them: the sweep came a minute plus
+      // whatever every other task took that minute - a webhook pass may take a
+      // minute by design (WebhookManager.cpp) - and a key stayed open, and its
+      // private half in memory, for as long past the setting as they ran.
+      // Start again with the sweep running leaves it running; Stop joins it,
+      // which takes no longer than the sweep in hand, since it touches no
+      // database and waits on nothing.
+      static void StartIdleSweep();
+      static void StopIdleSweep();
 
       // An account's key opened by something that is not a sign-in: the
       // recovery route, and the command line's --decrypt-store.

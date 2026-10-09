@@ -350,6 +350,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and the domain's travel to examples, and `AntiSpam/DKIM/ArcSealing.cs` and `AntiSpam/Quarantine.cs` find both
   named in a seal. Found by the project's own review.
 
+- **Fixed: a mailbox key encrypted at rest stayed open, its private half in memory, past `MailboxKeyIdleMinutes` for
+  as long as the server's other scheduled tasks held up their minute.** The sweep that closes an idle key was the first
+  step of `RemoveExpiredRecords`, one of the Scheduler's tasks, and the Scheduler runs every task that is due one after
+  another on one thread and sleeps its minute after the last of them (from 6.3.4, which brought encryption at rest).
+  So the sweeps came a minute plus whatever every task of the minute took apart: a webhook pass may take a minute by
+  design, ten seconds for each subscription whose endpoint does not answer, and the hourly message-store consistency
+  check runs on the same thread as long as the store takes. The sweep now has a thread of its own and runs every ten
+  seconds from the start of the servers to their stop, touching no database and waiting on nothing, so that a key
+  closes within ten seconds of its idle minutes whatever the scheduled tasks are doing. `EncryptionAtRest.md` says
+  so. `Infrastructure/EncryptionAtRest.cs` signs an account in at the start of a webhook pass that six subscriptions
+  to an endpoint that never answers hold for a minute, and finds its key closed within ninety-five seconds of the
+  sign-out, beside the endpoint reached six times ten seconds apart; with the sweep among the scheduled tasks the key
+  closed at the turn after the pass, some two minutes on. Found by the batch's regression gate.
+
 ### Correctness
 
 - **Fixed: a ManageSieve refusal that quoted a script's text with a line break in it was split in two.** RFC 5804's

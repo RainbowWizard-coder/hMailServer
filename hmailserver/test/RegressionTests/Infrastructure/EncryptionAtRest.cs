@@ -380,7 +380,7 @@ namespace RegressionTests.Infrastructure
       }
 
       [Test]
-      [Description("Two IMAP sessions share one key that their LOGINs opened, and hold it past the two idle minutes and a sweep; once both have gone it is still open seventy seconds on - a server closing an unheld key at the next sweep would have closed it - and an administrator's password set a hundred and five seconds on is not a use of it: the key is closed no later than the key of a second mailbox, the witness, whose owner's session went just after, and closed before a password set that kept it open would have let it close. Inconclusive, not passed, when the scheduler made no sweep between the witness's idle minutes and that point. A message delivered while it is closed is encrypted all the same and read at the next sign-in with the new password.")]
+      [Description("Two IMAP sessions share one key that their LOGINs opened, and hold it past the two idle minutes and a sweep; once both have gone it is still open seventy seconds on - a server closing an unheld key at the next sweep would have closed it - and an administrator's password set a hundred and five seconds on is not a use of it: the key is closed no later than the key of a second mailbox, the witness, whose owner's session went just after, and closed before a password set that kept it open would have let it close. Inconclusive, not passed, when no sweep came between the witness's idle minutes and that point. A message delivered while it is closed is encrypted all the same and read at the next sign-in with the new password.")]
       public void TwoSessionsShareTheKeyWhichClosesOnceBothHaveGone()
       {
          SetSetting("mailbox_key_idle_minutes", "2");
@@ -439,17 +439,15 @@ namespace RegressionTests.Infrastructure
          // wraps the open key and is not a use of it.
          //
          // The arithmetic. The idle clock counts whole seconds (time()), and the
-         // sweep (MailboxKeys::CloseIdle, the first thing RemoveExpiredRecords
-         // does) closes a key once 120 of them have passed since its last use:
-         // never sooner than 119 real seconds after it. The sweep runs once a
-         // minute, but the Scheduler sleeps its minute AFTER it has run every task
-         // that was due (Scheduler.cpp), and ScheduledTask::SetNextRunTime counts
-         // the next run from the one that was due, so the sweep is due at every
-         // tick and sweeps come 60 seconds plus the run time of the tick before
-         // apart. A key last used at L closes somewhere between
-         // L + 119 and L + 180 plus that run time, which has no bound: a fixed
-         // deadline of 205 seconds failed once on bench150. So nothing below is
-         // measured against a deadline.
+         // sweep (MailboxKeys::CloseIdle, every ten seconds on a thread of its
+         // own - MailboxKeys::StartIdleSweep) closes a key once 120 of them have
+         // passed since its last use: never sooner than 119 real seconds after
+         // it, and no later than ten seconds after 120. Until the sweep had its
+         // own thread it was the first step of RemoveExpiredRecords, a scheduled
+         // task, and sweeps came 60 seconds plus the run time of every other task
+         // of the Scheduler's tick before apart, which had no bound: a fixed
+         // deadline of 205 seconds failed once on bench150. Nothing below is
+         // measured against a deadline all the same.
          //
          // Instead the witness. One sweep reads the clock once and closes every
          // idle key under one lock, and keyed's last use is no later than the
@@ -467,9 +465,9 @@ namespace RegressionTests.Infrastructure
          // sweep from about gone + 120. With the set at gone + 105 - some
          // fourteen seconds before keyed could close of itself, for the set's
          // own time - the window is gone + 120 to gone + 224, 104 seconds, which
-         // holds a sweep unless the tick before it ran 44 seconds or more. When
-         // it held none, this run cannot tell, and says so: Inconclusive, at the
-         // end, after the rest of the test has run.
+         // holds ten sweeps. When it held none - a sweep that did not run - this
+         // run cannot tell, and says so: Inconclusive, at the end, after the rest
+         // of the test has run.
          SleepUntil(gone.AddSeconds(105));
          ClassicAssert.IsTrue(KeyState(keyed).GetProperty("open").GetBoolean(), "The key closed before its idle minutes were up.");
          const string newPassword = "Idle-Passw0rd-112!";
@@ -505,7 +503,7 @@ namespace RegressionTests.Infrastructure
          bool told = keyedRead < setSent.AddSeconds(119);
          string untold = "No sweep came between the witness's idle minutes and " + (setSent.AddSeconds(119) - gone).TotalSeconds.ToString("0") +
             " seconds after the last session went (keyed was read closed at " + (keyedRead - gone).TotalSeconds.ToString("0") +
-            " seconds): the scheduler's ticks ran long, and this run cannot tell whether the password set was a use of the key.";
+            " seconds): the idle sweep did not run in time, and this run cannot tell whether the password set was a use of the key.";
 
          string marker = Word("numbat");
          new SmtpClientSimulator().Send("sender@example.test", keyed, "While closed", "Delivered while the key was closed: " + marker);
@@ -622,6 +620,85 @@ namespace RegressionTests.Infrastructure
          // And a session whose key has closed is refused while it stays closed.
          WaitFor(() => !KeyState(keyed).GetProperty("open").GetBoolean(), "The key did not close again within the idle minute and the sweep.", 150);
          ClassicAssert.AreEqual(401, HttpRaw("GET", "/api/v1/me", null, null, fresh).status, "A session went on after its key closed.");
+      }
+
+      [Test]
+      [Description("A key closes within its idle minute and the sweep's ten seconds while the scheduled tasks are held up: six webhook subscriptions to an endpoint that takes the connection and never answers make each of the Scheduler's webhook passes some sixty seconds long, ten seconds a subscription, so that its turns come two minutes apart. A sign-in with the password at the start of a pass opens the key, and it is closed no later than ninety-five seconds after the owner signed out - where a sweep among the scheduled tasks, as it was until it had a thread of its own, came at the turn after the pass, some two minutes on. Negative control: the endpoint is reached six times in that pass, ten seconds apart, so the Scheduler's thread was in it for most of the idle minute.")]
+      public void AKeyClosesOnTimeWhileTheScheduledTasksAreHeldUp()
+      {
+         // Within the fixture's row of ports (10140-10149): the REST listener
+         // takes the first.
+         const int endpointPort = 10149;
+         const int subscriptions = 6;
+
+         SetSetting("mailbox_key_idle_minutes", "1");
+         SetSetting("webhooks_enabled", "true");
+
+         // No delivery runs out of attempts while the test runs: a dead letter
+         // is an error report, which the next test's set-up would find.
+         SetSetting("webhook_max_attempts", "20");
+
+         MakeRecoveryKey();
+         string keyed = AddAccount("atrest-busy");
+         SwitchOn(keyed);
+
+         var endpoint = new SilentEndpoint(endpointPort);
+         putBack_.Add(endpoint.Dispose);
+
+         for (int i = 0; i < subscriptions; i++)
+         {
+            string name = "atrest-busy-" + i;
+            (int status, string body) made = Admin("POST", "/api/v1/webhooks",
+               "{\"name\":\"" + name + "\",\"url\":\"http://127.0.0.1:" + endpointPort + "/hook\",\"secret\":\"a-secret-nobody-reads\"}");
+            ClassicAssert.AreEqual(201, made.status, made.body);
+
+            // Deleting a subscription takes its queue with it, so nothing is
+            // left to deliver after the test.
+            putBack_.Add(() => Admin("DELETE", "/api/v1/webhooks/" + name, null));
+         }
+
+         // Three events, so that each subscription has a delivery due at every
+         // pass the test sees: a pass tries one a subscription and holds the
+         // rest of one that did not answer for the next.
+         for (int i = 0; i < 3; i++)
+         {
+            (int status, string body) raised = Admin("POST", "/api/v1/webhooks/test",
+               "{\"event\":\"message.received\",\"domain\":\"" + _domain.Name + "\",\"account\":\"someone@" + _domain.Name + "\"}");
+            ClassicAssert.AreEqual(200, raised.status, raised.body);
+            StringAssert.Contains("\"queued\":" + subscriptions, raised.body, "Each event was not queued for every subscription: " + raised.body);
+         }
+
+         // The start of the next pass: its first connection. Within the minute
+         // and a little, since the last turn found nothing due.
+         WaitFor(() => endpoint.Count > 0, "No webhook pass reached the endpoint: the scheduled tasks did not run.", 150);
+         int passStart = endpoint.Count - 1;
+
+         // The owner signs in and out with the password now, a moment after the
+         // Scheduler's turn has begun - after the sweep that a turn made first,
+         // when it was a scheduled task.
+         var imap = new ImapClientSimulator();
+         ClassicAssert.IsTrue(imap.ConnectAndLogon(keyed, Password), "The owner's LOGIN with the password failed.");
+         ClassicAssert.IsTrue(KeyState(keyed).GetProperty("open").GetBoolean(), "The owner's LOGIN did not open the key.");
+         imap.Logout();
+         imap.Disconnect();
+         DateTime lastUse = DateTime.UtcNow;
+
+         // The idle minute counts whole seconds, so the key may close up to a
+         // second before sixty real ones, and the sweep finds it within ten
+         // seconds of them. Ninety-five leaves room for a slow bench and none
+         // for the turn after the pass, at about a hundred and twenty.
+         WaitFor(() => !KeyState(keyed).GetProperty("open").GetBoolean(),
+            "The key was still open ninety-five seconds after its owner signed out, while the scheduled tasks were held up by the webhook pass: its sweep waited for them.", 95);
+         double closedAfter = (DateTime.UtcNow - lastUse).TotalSeconds;
+         ClassicAssert.GreaterOrEqual(closedAfter, 58.0, "The key closed before its idle minute was up: " + closedAfter.ToString("0.0") + " seconds.");
+
+         // The control: the pass the sign-in came in was a long one. Six
+         // connections, one a subscription, each held ten seconds before the
+         // server gave up on it.
+         WaitFor(() => endpoint.Count >= passStart + subscriptions, "The webhook pass did not reach the endpoint once a subscription.", 90);
+         double passSeconds = (endpoint.AcceptedAt(passStart + subscriptions - 1) - endpoint.AcceptedAt(passStart)).TotalSeconds;
+         ClassicAssert.GreaterOrEqual(passSeconds, 45.0,
+            "The webhook pass was not held up as the test needs - " + passSeconds.ToString("0.0") + " seconds from its first connection to its sixth - so it proves nothing about the sweep.");
       }
 
       [Test]
@@ -2364,6 +2441,88 @@ namespace RegressionTests.Infrastructure
                string body = separator >= 0 ? raw.Substring(separator + 4) : "";
                return (statusCode, responseHeaders, body);
             }
+         }
+      }
+
+      /// <summary>
+      ///    An HTTP endpoint that takes each connection and never answers, holding
+      ///    it open so that the server waits out its own deadline rather than
+      ///    seeing a reset, and that notes when each came.
+      /// </summary>
+      private sealed class SilentEndpoint : IDisposable
+      {
+         private readonly TcpListener _listener;
+         private readonly Thread _thread;
+         private readonly List<TcpClient> _accepted = new List<TcpClient>();
+         private readonly List<DateTime> _acceptedAt = new List<DateTime>();
+         private readonly object _lock = new object();
+         private volatile bool _running = true;
+
+         public SilentEndpoint(int port)
+         {
+            _listener = new TcpListener(System.Net.IPAddress.Loopback, port);
+            _listener.Start();
+
+            _thread = new Thread(Run) { IsBackground = true, Name = "Silent webhook endpoint " + port };
+            _thread.Start();
+         }
+
+         public int Count
+         {
+            get
+            {
+               lock (_lock)
+                  return _acceptedAt.Count;
+            }
+         }
+
+         public DateTime AcceptedAt(int index)
+         {
+            lock (_lock)
+               return _acceptedAt[index];
+         }
+
+         private void Run()
+         {
+            while (_running)
+            {
+               TcpClient client;
+
+               try
+               {
+                  client = _listener.AcceptTcpClient();
+               }
+               catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+               {
+                  return; // the listener was stopped
+               }
+
+               lock (_lock)
+               {
+                  _accepted.Add(client);
+                  _acceptedAt.Add(DateTime.UtcNow);
+               }
+            }
+         }
+
+         public void Dispose()
+         {
+            _running = false;
+
+            try { _listener.Stop(); }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+
+            lock (_lock)
+            {
+               foreach (TcpClient client in _accepted)
+               {
+                  try { client.Close(); }
+                  catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
+               }
+            }
+
+            try { _thread.Join(2000); }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: best effort only, and the outcome of the surrounding operation does not depend on this succeeding. */ }
          }
       }
    }

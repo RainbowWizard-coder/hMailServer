@@ -497,6 +497,10 @@ namespace HM
       // reached Running, after which StopServers returns at its own first check.
       RemoveSessionWorkQueues_();
 
+      // The same backstop for the mailbox keys' idle sweep, which such a start
+      // may have started: stopped while what it reads is still here.
+      MailboxKeys::StopIdleSweep();
+
       // Backup manager is created by initinstance so should be destroyed here -
       // let go of after the lock, by the last holder.
       std::shared_ptr<BackupManager> backupManager;
@@ -722,6 +726,11 @@ namespace HM
       // files put right (Util/MailboxKeys.h). A server with no keyed account
       // reads the empty table and nothing more.
       MailboxKeys::Start();
+
+      // The sweep that closes the keys gone idle, every ten seconds on a thread
+      // of its own: not one of the scheduled tasks, whose turns come a minute
+      // plus whatever all of them took apart (MailboxKeys.h).
+      MailboxKeys::StartIdleSweep();
 
       // What an IMAP APPEND the last process stopped in the middle of left in
       // the message store - a literal's file with no row - removed before any
@@ -1686,7 +1695,11 @@ namespace HM
          scheduler_.reset();
       }
       droppedScheduler.reset();
-      
+
+      // With the scheduled tasks, as when the sweep was one of them: the keys
+      // left open stay open until the next start's sweep, or the process's end.
+      MailboxKeys::StopIdleSweep();
+
       LOG_DEBUG("Application::StopServers() - Destructing Rest");
       if (notification_server_) notification_server_.reset();
       if (folder_manager_) folder_manager_.reset();

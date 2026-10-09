@@ -270,9 +270,10 @@ session of the owner's holds it for as long as it is signed in, and a sign-in wi
 password and every request of the person's own webmail session count as a use. Reads by
 anybody else do **not** keep it open - a delegate's client reading a shared folder, a
 push, a support session opened into the mailbox - so the key does close once its owner
-has gone. A sweep every minute, the first thing that minute's task does, closes what is
-idle, writes the private key over and forgets what was decoded with it. A restart
-closes every key.
+has gone. A sweep every ten seconds, on a thread of its own, closes what is idle, writes
+the private key over and forgets what was decoded with it, so a key closes no later than
+ten seconds after its idle minutes, whatever the server's scheduled tasks are doing. A
+restart closes every key.
 
 **A sign-in that cannot open the key is refused where it would read the mailbox:**
 
@@ -704,8 +705,8 @@ server never writes - a stage after the encryption, the encryption twice, deflat
 an encrypted one naming a part held once, one carrying a digest - beside the same header
 rebuilt unchanged, which opens.
 
-`RegressionTests/Infrastructure/EncryptionAtRest.cs` (REST on 10140), with a negative
-control wherever a behaviour has a refusal:
+`RegressionTests/Infrastructure/EncryptionAtRest.cs` (REST on 10140, a webhook endpoint that never
+answers on 10149), with a negative control wherever a behaviour has a refusal:
 
 * a delivered message stored as an encrypted container with no plaintext on disk while
   the key is closed, read after a password `LOGIN` that opens the key, beside a sibling
@@ -724,7 +725,10 @@ control wherever a behaviour has a refusal:
   by three minutes all the same; a webmail session ended when its key closed and
   not brought back when the key opens again, and a stale session's request ending neither
   the session signed in after it nor anything but sessions of an earlier opening; pending
-  until the first sign-in, closed by a restart and opened by the password's wrap;
+  until the first sign-in, closed by a restart and opened by the password's wrap; and with
+  one idle minute, closed within ninety-five seconds of the owner's sign-out while six
+  webhook subscriptions to an endpoint that never answers hold each of the scheduled tasks'
+  webhook passes for a minute, beside the endpoint reached six times ten seconds apart;
 * the switch-on ending an IMAP session idling with an app password - which sends nothing,
   so only the switch-on's drop can end it - an IMAP and a POP3 session, and a webmail
   session signed in before it;
