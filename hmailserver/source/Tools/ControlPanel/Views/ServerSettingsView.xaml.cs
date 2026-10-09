@@ -4059,16 +4059,24 @@ namespace hMailServer.ControlPanel.Views
             Sentences(L("How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart."),
                databaseType.Length > 0 ? F("Configured database type: {0}.", databaseType) : null));
 
-         database.Settings.Add(new SectionIniNumber
+         var pool = new SectionIniNumber
          {
             Section = "Database", // no-loc
             Path = "NumberOfConnections",
-            Label = builtInDatabase ? L("Connections in the pool (ignored: this server uses the built-in database)") : L("Connections in the pool"),
+            Label = L("Connections in the pool"),
             Default = 5,
             MinimumValue = 1,
             Blurb = poolNote,
             IniStore = iniStore_
-         });
+         };
+
+         // Where the built-in database forces the value the label says so, as one
+         // whole text (review finding F283); the plain label above is the one the
+         // settings search index reads.
+         if (builtInDatabase)
+            pool.Label = L("Connections in the pool (ignored: this server uses the built-in database)");
+
+         database.Settings.Add(pool);
 
          database.Settings.Add(new SectionIniNumber
          {
