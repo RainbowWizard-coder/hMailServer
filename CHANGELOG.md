@@ -2022,6 +2022,22 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   for a certificate deleted in the meantime says that it was deleted after the list was read, where it said "reload
   the page".
 
+- **Fixed: the Control Panel named settings by their hMailServer.ini keys, and twice by the server's source code,
+  where the reader sees a caption on a page.** The setup checklist said "Set TlsRptFromAddress in the [Settings]
+  section of hMailServer.ini", "ACME is enabled but AcmeDomains is empty" and "Neither OAuth2Issuer nor OAuth2Audience
+  is set", the never-ban list "list the address in AutoBanNeverBan", DNS records "NOTE: MtaStsHostingEnabled=0, so the
+  server will NOT serve this policy at all", the Dashboard "MetricsHistoryDays is 0 in hMailServer.ini", Diagnosing
+  stalled mail named its nine timeouts by key, the Backup & restore hints began "hMailServer.ini setting
+  BackupVerifyRestore", and two notes ended "(Utilities::ComputerName)" and "(the table lives in WindowsEventLog.h)".
+  Each now names the setting by its caption and its page - "Set 'TLS report sender address' on the Transport security
+  page", "add the address to 'Never auto-ban these addresses' on the Auto-ban page", "Note: 'Serve MTA-STS policies
+  for local domains' is off on the Web services & autoconfiguration page", "Message finalization deadline (240)" - in
+  all seventeen languages, each with the caption and the page title its own catalogue gives them; a key stays only
+  where hMailServer.ini is the one place to set it ([Directories] DataFolder, LogFolder). The update check's caption
+  lost its "(UpdateCheckEnabled)", the event log's last level is "Every error the server reports" where it was
+  "Everything ErrorManager reports", and the directory authentication page's port is captioned Port, where it read
+  "Port (Port)".
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -383,7 +383,7 @@ namespace hMailServer.ControlPanel.Views
             if (string.IsNullOrEmpty(result))
             {
                Say_(StatusLevel.Warning, F("The server found no mail servers for {0}, so mail sent to that domain from this server would not be deliverable right now.", domain));
-               details_.Text = L("This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI.");
+               details_.Text = L("This is the server's own resolver answering - the same one SMTP delivery uses, including any 'Override DNS server' set on the DNS resolver page.");
                return;
             }
 
@@ -402,7 +402,7 @@ namespace hMailServer.ControlPanel.Views
             }
 
             report.AppendLine();
-            report.Append(L("Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise."));
+            report.Append(L("Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise."));
 
             Say_(StatusLevel.Good, PluralF(servers.Length,
                "{0} mail server receives mail for {1}.",
@@ -1162,7 +1162,7 @@ namespace hMailServer.ControlPanel.Views
             ? null
             // Asked for by nav key rather than spelled out, so that renaming the
             // page cannot leave this pointing at a page title that no longer exists.
-            : F("The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed.", L(Services.NavigationMap.TitleOf("hardening")));
+            : F("The periodic check is currently switched off ('Periodically cross-check message rows against files on disk' on the {0} page), so this will not be refreshed.", L(Services.NavigationMap.TitleOf("hardening")));
 
          string text;
          try
@@ -1174,7 +1174,7 @@ namespace hMailServer.ControlPanel.Views
                   Level = Severity.Neutral,
                   Message = enabled
                      ? F("The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}.", path)
-                     : F("The consistency check is switched off, so no scan has run. Enable MessageStoreConsistencyCheck on the {0} page; the server then scans at start-up and hourly and writes {1}.", L(Services.NavigationMap.TitleOf("hardening")), path)
+                     : F("The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}.", L(Services.NavigationMap.TitleOf("hardening")), path)
                };
             }
 

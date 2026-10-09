@@ -191,7 +191,7 @@ namespace hMailServer.ControlPanel.Services
          string portText = (port ?? "").Trim();
          if (!int.TryParse(portText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number) || number <= 0 || number > 65535)
          {
-            refusal = F("The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck.",
+            refusal = F("The REST API is off (its port on the API & monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck.",
                portText.Length == 0 ? "0" : portText);
             return null;
          }
@@ -210,7 +210,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (!tls && !loopback)
          {
-            refusal = F("The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server.", bind);
+            refusal = F("The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API & monitoring page, or an ACME certificate issued to this server.", bind);
             return null;
          }
 

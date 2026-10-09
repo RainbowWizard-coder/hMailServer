@@ -125,7 +125,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          // Off.
          Assert.Null(DiscoveryReport.Endpoint("0", "127.0.0.1", "", "", false, true, "localhost", out string off));
-         Assert.Contains("RestApiPort", off);
+         Assert.Contains("its port on the API & monitoring page", off);
          Assert.Null(DiscoveryReport.Endpoint("", "", "", "", false, true, "localhost", out _));
 
          // Plain HTTP on a loopback address, from this machine, with no ACME certificate.
@@ -136,7 +136,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Plain HTTP anywhere else is a listener the server does not start.
          Assert.Null(DiscoveryReport.Endpoint("8045", "0.0.0.0", "", "", false, true, "localhost", out string notRunning));
-         Assert.Contains("RestApiCertificateFile", notRunning);
+         Assert.Contains("TLS certificate file and its private key file on the API & monitoring page", notRunning);
          Assert.Contains("ACME", notRunning);
 
          // A loopback listener, from another machine.
@@ -170,7 +170,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // A certificate without a key is not replaced, and serves nothing beyond loopback.
          Assert.Null(DiscoveryReport.Endpoint("8045", "0.0.0.0", "cert.pem", "", true, true, "localhost", out string half));
-         Assert.Contains("RestApiCertificateFile", half);
+         Assert.Contains("TLS certificate file and its private key file on the API & monitoring page", half);
 
          // From another machine the ACME folder cannot be looked in: a listener
          // bound beyond loopback with no certificate of its own can only be

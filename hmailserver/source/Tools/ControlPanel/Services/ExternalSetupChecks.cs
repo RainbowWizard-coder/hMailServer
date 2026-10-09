@@ -766,7 +766,7 @@ namespace hMailServer.ControlPanel.Services
          ["delivery_port_auth_on"] = N("Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587."),
          ["delivery_port_auth_honeypot"] = N("Port {0} takes no password: EHLO offers AUTH there as bait, and an address that sends one is refused and banned."),
          ["delivery_port_auth_off"] = N("Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned."),
-         ["delivery_port_auth_no_ban"] = N("Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned."),
+         ["delivery_port_auth_no_ban"] = N("Port {0} takes no password, but 'Ban duration' on the Auto-ban page is 0, so an address that sends AUTH there is refused and not banned."),
          ["delivery_port_auth_disabled"] = N("Port {0} does not offer AUTH: DisableAUTHList names it, and an AUTH sent there is refused without a ban."),
          ["delivery_port_none"] = N("No SMTP listener is on port 25, so no delivery port takes a password."),
          ["domain_none_active"] = N("{0} domains, none of them active."),
@@ -1190,11 +1190,11 @@ namespace hMailServer.ControlPanel.Services
 
          if (!iniReadable)
          {
-            item.Add(SetupItemState.CannotTell, F("ArcSealingEnabled could not be read: {0}", iniExcuse));
+            item.Add(SetupItemState.CannotTell, F("Whether ARC sealing is on could not be read: {0}", iniExcuse));
          }
          else if (!ini.ReadBool("ArcSealingEnabled", false))
          {
-            item.Add(SetupItemState.NotNeeded, L("ARC sealing is off (ArcSealingEnabled=0, the default), so nothing external is required."));
+            item.Add(SetupItemState.NotNeeded, L("ARC sealing is off (the default), so nothing external is required."));
          }
          else
          {
@@ -1207,7 +1207,7 @@ namespace hMailServer.ControlPanel.Services
             else
             {
                item.Add(SetupItemState.ActionNeeded,
-                  L("ARC sealing is on (ArcSealingEnabled=1) but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all."));
+                  L("ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all."));
             }
          }
 
@@ -1251,19 +1251,19 @@ namespace hMailServer.ControlPanel.Services
 
          if (!hosting)
          {
-            item.Add(SetupItemState.NotNeeded, L("MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published."));
+            item.Add(SetupItemState.NotNeeded, L("MTA-STS hosting is off, so nothing needs serving and no record should be published."));
          }
          else if (httpsPort <= 0)
          {
             item.Add(SetupItemState.ActionNeeded,
-               L("MTA-STS hosting is enabled (MtaStsHostingEnabled=1, the shipped default) but WebServicesHttpsPort is 0, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set WebServicesHttpsPort if you want MTA-STS; if you do not, this row is safe to ignore, or set MtaStsHostingEnabled=0 to silence it."));
+               L("MTA-STS hosting is on (the shipped default), but the web services listener has no HTTPS port, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set 'HTTPS port' on the Web services & autoconfiguration page if you want MTA-STS; if you do not, this row is safe to ignore, or turn off 'Serve MTA-STS policies for local domains' on the same page to silence it."));
          }
          else if (certFile.Length == 0 && !acme)
          {
             // Verified: with no certificate configured and ACME off, the HTTPS
             // listener logs "No TLS certificate available yet" and stays down.
             item.Add(SetupItemState.ActionNeeded,
-               L("WebServicesHttpsPort is set, but no certificate is configured (WebServicesCertificateFile is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set WebServicesCertificateFile/WebServicesPrivateKeyFile or enable ACME."));
+               L("The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services & autoconfiguration page, or turn on ACME on the Certificates (ACME) page."));
          }
          else
          {
@@ -1309,13 +1309,13 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("TLS reporting (TLS-RPT) - set a sender address to start sending"),
             Purpose = L("Mails daily TLS-failure reports to domains that ask for them, so their operators learn when connections to them are being downgraded."),
-            Action = L("Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent."),
+            Action = L("Set 'TLS report sender address' on the Transport security page to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent."),
             Page = "security"
          };
 
          if (!iniReadable)
          {
-            item.Add(SetupItemState.CannotTell, F("TlsRptFromAddress could not be read: {0}", iniExcuse));
+            item.Add(SetupItemState.CannotTell, F("The TLS report sender address could not be read: {0}", iniExcuse));
          }
          else
          {
@@ -1323,12 +1323,12 @@ namespace hMailServer.ControlPanel.Services
             if (from.Length > 0)
             {
                item.Add(SetupItemState.Done,
-                  F("TlsRptFromAddress is set to {0}, so completed days of statistics are mailed to domains that request reports. Nothing external remains.", from));
+                  F("The TLS report sender address is {0}, so completed days of statistics are mailed to domains that request reports. Nothing external remains.", from));
             }
             else
             {
                item.Add(SetupItemState.ActionNeeded,
-                  L("TlsRptFromAddress is empty (the default), so the server collects TLS statistics hourly and discards every completed day unsent. Set an address if you want reports to go out; ignore this row if you deliberately do not."));
+                  L("The TLS report sender address is empty (the default), so the server collects TLS statistics hourly and discards every completed day unsent. Set an address if you want reports to go out; ignore this row if you deliberately do not."));
             }
          }
 
@@ -1363,7 +1363,7 @@ namespace hMailServer.ControlPanel.Services
             // records survive renewals; with it off, every renewal generates a
             // new key and silently invalidates any published record.
             item.Add(SetupItemState.ActionNeeded,
-               L("ACME is enabled with AcmeReuseKey=0, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - set AcmeReuseKey=1 (the default), or update the TLSA record after every renewal."));
+               L("ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal."));
          }
 
          item.AggregateFromFindings();
@@ -1509,7 +1509,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("ACME certificates - the CA must reach this server from the internet"),
             Purpose = L("Issues and renews certificates automatically, but only if the certificate authority can fetch the http-01 challenge from this server."),
-            Action = L("Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker."),
+            Action = L("Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker."),
             Page = "acme"
          };
 
@@ -1522,7 +1522,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (!ini.ReadBool("AcmeEnabled", false))
          {
-            item.Add(SetupItemState.NotNeeded, L("ACME is off (AcmeEnabled=0, the default), so nothing external is required."));
+            item.Add(SetupItemState.NotNeeded, L("ACME is off (the default), so nothing external is required."));
             item.AggregateFromFindings();
             return item;
          }
@@ -1536,7 +1536,7 @@ namespace hMailServer.ControlPanel.Services
          {
             // Verified: RequestCertificate logs and returns before contacting the CA.
             item.Add(SetupItemState.ActionNeeded,
-               L("ACME is enabled but AcmeDomains is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)."));
+               L("ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)."));
          }
          else
          {
@@ -1692,7 +1692,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("OAuth2 / XOAUTH2 - the identity provider's key material must be installed"),
             Purpose = L("Lets clients log on with bearer tokens from an identity provider instead of passwords; tokens are only accepted if their signature verifies against key material you install."),
-            Action = L("Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them."),
+            Action = L("Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and choose it as 'RSA/EC public key file' on the Authentication page (or set 'Shared HMAC secret' there for HS256). Set 'Expected token issuer' and 'Expected audience' to the values the provider puts in its tokens, or validation will reject them."),
             Page = "authentication"
          };
 
@@ -1705,7 +1705,7 @@ namespace hMailServer.ControlPanel.Services
 
          if (!ini.ReadBool("OAuth2Enabled", false))
          {
-            item.Add(SetupItemState.NotNeeded, L("OAuth2 is off (OAuth2Enabled=0, the default), so no identity provider or key material is required."));
+            item.Add(SetupItemState.NotNeeded, L("OAuth2 is off (the default), so no identity provider or key material is required."));
             item.AggregateFromFindings();
             return item;
          }
@@ -1726,13 +1726,13 @@ namespace hMailServer.ControlPanel.Services
             {
                anythingWrong = true;
                item.Add(SetupItemState.ActionNeeded,
-                  L("OAuth2 is enabled and allows RS256, but OAuth2PublicKeyFile is empty - every RS256 token fails signature verification, so no client can log on with a token. Install the identity provider's public key as a PEM file and point OAuth2PublicKeyFile at it."));
+                  L("OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there."));
             }
             else if (local && !File.Exists(publicKeyFile))
             {
                anythingWrong = true;
                item.Add(SetupItemState.ActionNeeded,
-                  F("OAuth2PublicKeyFile points at {0}, which does not exist on this machine, so RS256 tokens cannot be verified.", publicKeyFile));
+                  F("The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified.", publicKeyFile));
             }
          }
 
@@ -1740,7 +1740,7 @@ namespace hMailServer.ControlPanel.Services
          {
             anythingWrong = true;
             item.Add(SetupItemState.ActionNeeded,
-               L("HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list."));
+               L("HS256 is among the allowed signing algorithms but the shared HMAC secret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list."));
          }
 
          // Blank is not "will be checked and might mismatch" - it is "not checked".
@@ -1757,9 +1757,9 @@ namespace hMailServer.ControlPanel.Services
             anythingWrong = true;
 
             string unchecked_ = noIssuer && noAudience
-               ? L("Neither OAuth2Issuer nor OAuth2Audience is set, so neither is checked")
-               : noIssuer ? L("OAuth2Issuer is not set, so the issuer is not checked")
-                          : L("OAuth2Audience is not set, so the audience is not checked");
+               ? L("Neither the expected token issuer nor the expected audience is set, so neither is checked")
+               : noIssuer ? L("The expected token issuer is not set, so the issuer is not checked")
+                          : L("The expected audience is not set, so the audience is not checked");
 
             item.Add(SetupItemState.ActionNeeded,
                F("{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list.", unchecked_));
@@ -1799,12 +1799,12 @@ namespace hMailServer.ControlPanel.Services
          }
          else if (!ini.ReadBool("AutoconfigEnabled", true))
          {
-            item.Add(SetupItemState.NotNeeded, L("Autoconfiguration is off (AutoconfigEnabled=0), so no listener or DNS names are required."));
+            item.Add(SetupItemState.NotNeeded, L("Autoconfiguration is off, so no listener or DNS names are required."));
          }
          else if (ReadIniInt(ini, "WebServicesHttpPort", 0) <= 0 && ReadIniInt(ini, "WebServicesHttpsPort", 0) <= 0)
          {
             item.Add(SetupItemState.ActionNeeded,
-               L("Autoconfiguration is enabled (AutoconfigEnabled=1, the shipped default) but both WebServicesHttpPort and WebServicesHttpsPort are 0, so nothing answers the configuration URLs. Set a port if you want clients to self-configure; if you do not, this row is safe to ignore, or set AutoconfigEnabled=0 to silence it."));
+               L("Autoconfiguration is on (the shipped default), but the web services listener has neither an HTTP nor an HTTPS port, so nothing answers the configuration URLs. Set a port on the Web services & autoconfiguration page if you want clients to self-configure; if you do not, this row is safe to ignore, or turn off 'Thunderbird autoconfig + Outlook autodiscover' there to silence it."));
          }
          else
          {

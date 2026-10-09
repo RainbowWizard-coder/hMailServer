@@ -402,8 +402,8 @@
   <data name="A criterion of the rule “{0}”." xml:space="preserve">
     <value>ルール「{0}」の条件です。</value>
   </data>
-  <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
-    <value>カスタムのウイルス スキャナーや外部ツールが応答しなくなった場合 - ExternalProcessTimeout によって制限されます。</value>
+  <data name="A custom virus scanner or external tool that hangs - bounded by 'External process timeout' on the Server limits &amp; expert settings page." xml:space="preserve">
+    <value>カスタムのウイルス スキャナーや外部ツールが応答しなくなった場合 - [サーバーの制限と上級者向け設定] ページの「外部プロセスのタイムアウト」によって制限されます。</value>
   </data>
   <data name="A delivery between two hard bounces starts the count again. A refusal this server cannot trust as a dead mailbox - a bare 550 with no enhanced code, a policy refusal, its own connection failures - never counts." xml:space="preserve">
     <value>2 回のハード バウンスの間に配信が 1 回あると、カウントはやり直しになります。このサーバーが存在しないメールボックスとして信頼できない拒否 (拡張コードのない単なる 550、ポリシーによる拒否、サーバー自身の接続エラー) は、決してカウントされません。</value>
@@ -579,8 +579,8 @@
   <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
     <value>MX ホストが複数ある受信者ドメインは、再試行が別のサーバーに届く可能性があるため、単一ホストのドメインより多くの試行に値します。この設定は、上の再試行回数に、実際に試された MX ホストの数を掛け合わせます。</value>
   </data>
-  <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; ClientSessionCeiling (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
-    <value>リモート サーバーの応答が極端に遅い場合です。アイドル タイムアウトは 1 バイト受信するたびに再設定されるため、以前は、ときどき 1 バイトだけ送るホストが配信スレッドを無期限に占有できました。ClientSessionCeiling (既定では 30 分) は絶対的な上限で、一度だけ設定され、再設定されることはありません。</value>
+  <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
+    <value>リモート サーバーの応答が極端に遅い場合です。アイドル タイムアウトは 1 バイト受信するたびに再設定されるため、以前は、ときどき 1 バイトだけ送るホストが配信スレッドを無期限に占有できました。「1 つのクライアント セッションの絶対的な有効時間」 (既定では 30 分) は絶対的な上限で、一度だけ設定され、再設定されることはありません。</value>
   </data>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>ドメイン全体に対する応答です。閉鎖したオフィスや廃止した部署などに使います。応答するのは、独自の不在メッセージを持たないアカウント宛てのメールだけです。アカウント自身のメッセージが常に優先され、1 通のメッセージに対する応答は多くても 1 通です。</value>
@@ -687,8 +687,8 @@
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>6.2.17 より古いバージョンです。これらの行が追加されたのが 6.2.17 なので、アップグレードしてください。</value>
   </data>
-  <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
-    <value>ウイルス スキャナーが応答しなくなった場合です。ClamAV にはメッセージを受け入れた後で接続するため、clamd が固まると「受け入れられたのに決して配信されない」という形で現れます。各ソケット操作は ClamMinTimeout / ClamMaxTimeout によって制限されます。これは 1 回の読み取りまたは書き込みに対する期限で、毎回あらためて設定されるため、分割して送られる大きなメッセージは、合計では ClamMaxTimeout より長くかかることがあります。</value>
+  <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by the ClamAV minimum and maximum timeouts on the Anti-virus settings page - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than the maximum timeout in total." xml:space="preserve">
+    <value>ウイルス スキャナーが応答しなくなった場合です。ClamAV にはメッセージを受け入れた後で接続するため、clamd が固まると「受け入れられたのに決して配信されない」という形で現れます。各ソケット操作は [ウイルス対策の設定] ページにある ClamAV の最小タイムアウトと最大タイムアウトによって制限されます。これは 1 回の読み取りまたは書き込みに対する期限で、毎回あらためて設定されるため、分割して送られる大きなメッセージは、合計では最大タイムアウトより長くかかることがあります。</value>
   </data>
   <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
     <value>プロファイルの元に戻す手段が保存されていますが読み取れないため、元に戻せません。プロファイルを適用するには破棄してください。監査証跡に、プロファイルが置き換えた各値が記録されています。</value>
@@ -705,14 +705,14 @@
   <data name="ACME directory URL" xml:space="preserve">
     <value>ACME ディレクトリ URL</value>
   </data>
-  <data name="ACME is enabled but AcmeDomains is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME は有効ですが AcmeDomains が空のため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。証明書に含めるホスト名を列挙してください (例: mail.yourdomain.com、mta-sts.yourdomain.com)。</value>
+  <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
+    <value>ACME は無効です (既定値)。そのため外部に必要なものはありません。</value>
   </data>
-  <data name="ACME is enabled with AcmeReuseKey=0, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - set AcmeReuseKey=1 (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME は AcmeReuseKey=0 で有効になっているため、証明書を更新するたびに新しい秘密鍵が生成されます。'3 1 1' の TLSA レコードを公開している場合、それらは次回の更新で機能しなくなります。AcmeReuseKey=1 (既定値) に設定するか、更新のたびに TLSA レコードを更新してください。</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME は有効ですが「更新をまたいで秘密鍵を再利用する」がオフになっているため、証明書を更新するたびに新しい秘密鍵が生成されます。'3 1 1' の TLSA レコードを公開している場合、それらは次回の更新で機能しなくなります。[証明書 (ACME)] ページでこれをもう一度オンにする (既定値) か、更新のたびに TLSA レコードを更新してください。</value>
   </data>
-  <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
-    <value>ACME は無効です (AcmeEnabled=0、既定値)。そのため外部に必要なものはありません。</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME は有効ですが [証明書 (ACME)] ページの「証明書のホスト名」が空のため、証明書は一度も要求されません。クライアントは 'No domains configured' をログに記録して停止します。そこに証明書に含めるホスト名を列挙してください (例: mail.yourdomain.com、mta-sts.yourdomain.com)。</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME は有効になっていますが、まだ証明書が発行されていません。fullchain.pem と privkey.pem の両方が {0} にそろっていません。発行はサーバー自身のスケジュールで行われるため、有効にしてから数分間はこの状態が普通です。それが続く場合は、CA がこのサーバーに到達できていません。「セットアップ チェックリスト」ページがまさにそれを確認します。</value>
@@ -744,14 +744,14 @@
   <data name="ARC sealing" xml:space="preserve">
     <value>ARC シールの付与</value>
   </data>
-  <data name="ARC sealing is off (ArcSealingEnabled=0, the default), so nothing external is required." xml:space="preserve">
-    <value>ARC シールの付与は無効です (ArcSealingEnabled=0、既定値)。そのため外部に必要なものはありません。</value>
-  </data>
-  <data name="ARC sealing is on (ArcSealingEnabled=1) but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
-    <value>ARC シールの付与は有効 (ArcSealingEnabled=1) ですが、セレクターと鍵ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
+  <data name="ARC sealing is off (the default), so nothing external is required." xml:space="preserve">
+    <value>ARC シールの付与は無効です (既定値)。そのため外部に必要なものはありません。</value>
   </data>
   <data name="ARC sealing is on and at least one active domain has a DKIM selector and key to seal with. The DNS side is covered by the DKIM item above - the seal verifies against the same TXT record." xml:space="preserve">
     <value>ARC シールの付与は有効で、シールに使う DKIM のセレクターと鍵を持つ有効なドメインが少なくとも 1 つあります。DNS 側は上の DKIM の項目でカバーされています。シールは同じ TXT レコードで検証されるためです。</value>
+  </data>
+  <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
+    <value>ARC シールの付与は有効 ですが、セレクターと鍵ファイルを設定した DKIM 署名を持つ有効なドメインが 1 つもないため、転送メールには何も告げられないままシールがまったく付きません。</value>
   </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>転送メールへの ARC シールの付与 - ドメインの DKIM 鍵が必要です</value>
@@ -780,6 +780,9 @@
   <data name="About" xml:space="preserve">
     <value>バージョン情報</value>
   </data>
+  <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
+    <value>1 つのクライアント セッションの絶対的な有効時間 (1800)</value>
+  </data>
   <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
     <value>1 つのクライアント セッションの絶対的な有効時間 (秒)</value>
   </data>
@@ -804,8 +807,8 @@
   <data name="Accept the XCLIENT command (Postfix)" xml:space="preserve">
     <value>XCLIENT コマンド (Postfix) を受け入れる</value>
   </data>
-  <data name="Acceptance exceeded FinalizationTimeout (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
-    <value>受け入れ処理が FinalizationTimeout (既定では 240 秒) を超えました。送信者は永久に待つのではなく再試行し、エラーのエントリには期限が記され、その上にある各段階の所要時間が、何に時間を費やしたかを示します。</value>
+  <data name="Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
+    <value>受け入れ処理がメッセージ最終処理の期限 (既定では 240 秒) を超えました。送信者は永久に待つのではなく再試行し、エラーのエントリには期限が記され、その上にある各段階の所要時間が、何に時間を費やしたかを示します。</value>
   </data>
   <data name="Accepting" xml:space="preserve">
     <value>受け入れ</value>
@@ -1281,8 +1284,8 @@
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>すべてのファイル (*.*)|*.*</value>
   </data>
-  <data name="All in hMailServer.ini under [Settings], all in seconds, with defaults chosen to sit well inside a typical sending server's timeout. Two exceptions matter: SAMaxTimeout and ClamMaxTimeout go through TimeoutCalculator, which returns the minimum whenever the maximum is lower than it - so 0 gives a shorter bound, not an absent one. To lengthen either a long way, raise the matching ...MinTimeout too." xml:space="preserve">
-    <value>いずれも hMailServer.ini の [Settings] にあり、単位はすべて秒です。既定値は、一般的な送信サーバーのタイムアウトに十分収まるように選ばれています。重要な例外が 2 つあります。SAMaxTimeout と ClamMaxTimeout は TimeoutCalculator を通り、最大値が最小値を下回る場合は常に最小値が返されます。つまり 0 は制限を無くすのではなく、より短い制限になります。どちらかを大きく延ばすには、対応する ...MinTimeout も上げてください。</value>
+  <data name="All in seconds, the default in brackets, with defaults chosen to sit well inside a typical sending server's timeout. The SpamAssassin and ClamAV timeouts are on the Anti-spam settings and Anti-virus settings pages, the rest on the Server limits &amp; expert settings page. Two exceptions matter: a SpamAssassin or ClamAV maximum timeout below its minimum timeout gives way to the minimum - so 0 gives a shorter bound, not an absent one. To lengthen either a long way, raise the matching minimum timeout too." xml:space="preserve">
+    <value>単位はすべて秒で、かっこ内は既定値です。既定値は、一般的な送信サーバーのタイムアウトに十分収まるように選ばれています。SpamAssassin と ClamAV のタイムアウトは [スパム対策の設定] ページと [ウイルス対策の設定] ページに、それ以外は [サーバーの制限と上級者向け設定] ページにあります。重要な例外が 2 つあります。SpamAssassin や ClamAV の最大タイムアウトが最小タイムアウトを下回る場合は、最小タイムアウトが使われます。つまり 0 は制限を無くすのではなく、より短い制限になります。どちらかを大きく延ばすには、対応する最小タイムアウトも上げてください。</value>
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>連携しているすべてのドメイン</value>
@@ -1534,20 +1537,17 @@
   <data name="Anti-spam" xml:space="preserve">
     <value>スパム対策</value>
   </data>
-  <data name="Anti-spam (SAMaxTimeout)" xml:space="preserve">
-    <value>スパム対策 (SAMaxTimeout)</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>スパム対策の設定</value>
+  </data>
+  <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
+    <value>スパム対策の設定 (SpamAssassin のタイムアウト)</value>
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>スパム対策の設定 (SpamAssassin)</value>
   </data>
   <data name="Anti-virus" xml:space="preserve">
     <value>ウイルス対策</value>
-  </data>
-  <data name="Anti-virus (ClamMaxTimeout)" xml:space="preserve">
-    <value>ウイルス対策 (ClamMaxTimeout)</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>ウイルス対策の設定</value>
@@ -1639,17 +1639,11 @@
   <data name="Ar_chive" xml:space="preserve">
     <value>アーカイブ(_C)</value>
   </data>
-  <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
-    <value>ArcSealingEnabled を読み取れませんでした: {0}</value>
-  </data>
   <data name="Archive" xml:space="preserve">
     <value>アーカイブ</value>
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>アーカイブ フォルダー (空 = アーカイブを無効)</value>
-  </data>
-  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>ArchiveDir はサーバーを通過するすべてのメッセージの生のコピーであり、これまでそこから何かが削除されることはありませんでした。そのため忙しいサーバーでは増える一方のディレクトリになり、それに気付くのは、ディスクがいっぱいになった管理者です。この設定はそこを整理します。0 はすべてを保持し、それが意図的な既定値です。アーカイブは通常、法的または契約上の理由で保持されるものであり、アップグレードを機にそこから削除を始めるサーバーは、保持せよと命じられたものをまさに破壊することになるからです。この掃除が削除するのは .eml ファイルだけなので、アーカイブに置いてあるほかのものはそのまま残ります。実行は起動時と、その後 12 時間ごとです。</value>
   </data>
   <data name="Archives in the destination" xml:space="preserve">
     <value>保存先のアーカイブ</value>
@@ -1692,9 +1686,6 @@
   </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>確認が必要</value>
-  </data>
-  <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
-    <value>AsyncQueueStallThreshold (120)</value>
   </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>RCPT TO の時点、本文が転送される前 — ここでの拒否は 550 になります</value>
@@ -1819,11 +1810,11 @@
   <data name="Autoconfiguration hands clients the right host names, ports and security." xml:space="preserve">
     <value>自動設定は、正しいホスト名、ポート、セキュリティをクライアントに渡します。</value>
   </data>
-  <data name="Autoconfiguration is enabled (AutoconfigEnabled=1, the shipped default) but both WebServicesHttpPort and WebServicesHttpsPort are 0, so nothing answers the configuration URLs. Set a port if you want clients to self-configure; if you do not, this row is safe to ignore, or set AutoconfigEnabled=0 to silence it." xml:space="preserve">
-    <value>自動設定は有効 (AutoconfigEnabled=1、出荷時の既定値) ですが、WebServicesHttpPort と WebServicesHttpsPort がどちらも 0 のため、設定 URL に応答するものがありません。クライアントに自動設定させたい場合はポートを設定してください。不要であればこの行は無視して構いませんし、AutoconfigEnabled=0 にすれば表示されなくなります。</value>
+  <data name="Autoconfiguration is off, so no listener or DNS names are required." xml:space="preserve">
+    <value>自動設定は無効 のため、リスナーも DNS 名も必要ありません。</value>
   </data>
-  <data name="Autoconfiguration is off (AutoconfigEnabled=0), so no listener or DNS names are required." xml:space="preserve">
-    <value>自動設定は無効 (AutoconfigEnabled=0) のため、リスナーも DNS 名も必要ありません。</value>
+  <data name="Autoconfiguration is on (the shipped default), but the web services listener has neither an HTTP nor an HTTPS port, so nothing answers the configuration URLs. Set a port on the Web services &amp; autoconfiguration page if you want clients to self-configure; if you do not, this row is safe to ignore, or turn off 'Thunderbird autoconfig + Outlook autodiscover' there to silence it." xml:space="preserve">
+    <value>自動設定は有効 (出荷時の既定値) ですが、Web サービスのリスナーに HTTP ポートも HTTPS ポートもないため、設定 URL に応答するものがありません。クライアントに自動設定させたい場合は、[Web サービスと自動設定] ページでポートを設定してください。不要であればこの行は無視して構いませんし、同じページで「Thunderbird autoconfig + Outlook autodiscover」をオフにすれば表示されなくなります。</value>
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>autodiscover と autoconfig は組み込みの HTTP リスナーから配信されます。</value>
@@ -2227,8 +2218,8 @@
   <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
     <value>前回のバックアップの実行時刻を判断できません: {0} をこのコンピューターから読み取れませんでした。サーバー上のフォルダーか、ログ ページのバックアップ ログを確認してください。</value>
   </data>
-  <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
-    <value>スケジュールが設定されているかどうか判断できません: このコンピューターに hMailServer.ini が見つかりませんでした。サーバー自身で ScheduledBackupTime と ScheduledBackupIntervalMinutes を確認してください。</value>
+  <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
+    <value>スケジュールが設定されているかどうか判断できません: このコンピューターに hMailServer.ini が見つかりませんでした。サーバー自身で 毎日のバックアップ時刻とバックアップ間隔を確認してください。</value>
   </data>
   <data name="Case" xml:space="preserve">
     <value>ケース</value>
@@ -2236,8 +2227,8 @@
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>1 回の IMAP SEARCH または SORT に対する上限で、検索の開始時点から計測します。非常に大きなメールボックスを検索する 1 つのクライアントが接続を無期限に占有できないようにするためです。大きなメールボックスを持つユーザーから、検索が失敗する、何も返らないという報告があれば、引き上げるべきはこの 2 つです。どちらか一方だけを 0 にして無効にすることもできます。</value>
   </data>
-  <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
-    <value>認証済みの 1 アカウントが一定期間内に送信できる量の上限で、侵害されたアカウントがスパム送信に使われることへのブレーキです。SMTP サブミッション時にアカウントごとに、メッセージ数とエンベロープ受信者数を別々に数えます。制限で拒否されたメッセージには一時エラーが返されるため、正規のクライアントは後で再試行します。このページのほかの項目とは異なり、これらは hMailServer.INI の [SendingLimits] と [SendingLimitsOverrides] セクションにあり、ファイルの変更から数秒以内に再読み込みされます。ここで保存すると、サービスを再起動せずに適用されます。カウンターはデータ ディレクトリ内の状態ファイルによって再起動をまたいで保持されます。</value>
+  <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
+    <value>認証済みの 1 アカウントが一定期間内に送信できる量の上限で、侵害されたアカウントがスパム送信に使われることへのブレーキです。SMTP サブミッション時にアカウントごとに、メッセージ数とエンベロープ受信者数を別々に数えます。制限で拒否されたメッセージには一時エラーが返されるため、正規のクライアントは後で再試行します。このページのほかの項目とは異なり、これらは変更から数秒以内に再読み込みされます。ここで保存すると、サービスを再起動せずに適用されます。カウンターはデータ ディレクトリ内の状態ファイルによって再起動をまたいで保持されます。</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>証明書</value>
@@ -2362,8 +2353,8 @@
   <data name="Check for _updates" xml:space="preserve">
     <value>更新プログラムを確認(_U)</value>
   </data>
-  <data name="Check for a new release once a day (UpdateCheckEnabled)" xml:space="preserve">
-    <value>1 日に 1 回、新しいリリースを確認する (UpdateCheckEnabled)</value>
+  <data name="Check for a new release once a day" xml:space="preserve">
+    <value>1 日に 1 回、新しいリリースを確認する</value>
   </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>HELO のホストを確認する</value>
@@ -2497,11 +2488,11 @@
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV と外部スキャナー、および感染が見つかったメッセージの扱い。</value>
   </data>
+  <data name="ClamAV maximum timeout (90)" xml:space="preserve">
+    <value>ClamAV の最大タイムアウト (90)</value>
+  </data>
   <data name="ClamAV: idle timeout per socket operation. 0 is NOT no bound." xml:space="preserve">
     <value>ClamAV: ソケット操作ごとのアイドル タイムアウト。0 は「上限なし」ではありません。</value>
-  </data>
-  <data name="ClamMaxTimeout (90)" xml:space="preserve">
-    <value>ClamMaxTimeout (90)</value>
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
@@ -2574,9 +2565,6 @@
   </data>
   <data name="Client secret for introspection" xml:space="preserve">
     <value>イントロスペクション用のクライアント シークレット</value>
-  </data>
-  <data name="ClientSessionCeiling (1800)" xml:space="preserve">
-    <value>ClientSessionCeiling (1800)</value>
   </data>
   <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
     <value>有効期限の確認時に許容する時計のずれ (秒)</value>
@@ -3300,9 +3288,6 @@
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE、MTA-STS、ARC、TLS レポート。</value>
   </data>
-  <data name="DBConnectionAcquireTimeout (60)" xml:space="preserve">
-    <value>DBConnectionAcquireTimeout (60)</value>
-  </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
   </data>
@@ -3363,6 +3348,9 @@
   <data name="DNS host" xml:space="preserve">
     <value>DNS ホスト</value>
   </data>
+  <data name="DNS query timeout (10)" xml:space="preserve">
+    <value>DNS クエリのタイムアウト (10)</value>
+  </data>
   <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
     <value>DNS クエリのタイムアウト (秒、0 = 上限なし)</value>
   </data>
@@ -3371,9 +3359,6 @@
   </data>
   <data name="DNS resolver" xml:space="preserve">
     <value>DNS リゾルバー</value>
-  </data>
-  <data name="DNSQueryTimeout (10)" xml:space="preserve">
-    <value>DNSQueryTimeout (10)</value>
   </data>
   <data name="D_epartment" xml:space="preserve">
     <value>部署 (_B)</value>
@@ -4546,6 +4531,9 @@
   <data name="Event handler script. Tab inserts a tab character; press Control and Tab together to move to the next control." xml:space="preserve">
     <value>イベント ハンドラー スクリプト。Tab はタブ文字を挿入します。次のコントロールに移動するには Ctrl と Tab を同時に押してください。</value>
   </data>
+  <data name="Event script execution timeout (60)" xml:space="preserve">
+    <value>イベント スクリプトの実行タイムアウト (60)</value>
+  </data>
   <data name="Event script execution timeout (seconds)" xml:space="preserve">
     <value>イベント スクリプトの実行タイムアウト (秒)</value>
   </data>
@@ -4581,6 +4569,9 @@
   </data>
   <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
     <value>メトリクス エンドポイントが公開するカウンターはすべてサーバー全体のもので、それがメトリクスをレポートに変えないための歯止めです。サーバーがどれだけのメールを処理したかは見えますが、特定のドメインがどれだけ処理したかは決して見えません。この設定は、ホストしているドメインごとの送受信メッセージ数を追加します。既定ではオフで、これは慎重さからではなくカーディナリティの判断です。ラベル値はそれぞれ、これをスクレイプする側で別個の時系列になるため、数千のドメインをホストする運用者は、後で気付くのではなく、そのコストを払うことを自ら選ぶべきです。ラベルが付くのはこのサーバーがホストしているドメインだけなので、見知らぬ相手からどれだけメールが来ても時系列が作られることはありません。</value>
+  </data>
+  <data name="Every error the server reports" xml:space="preserve">
+    <value>サーバーが報告するすべてのエラー</value>
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>キュー ID {0} のすべてのイベント (古い順)。</value>
@@ -4635,9 +4626,6 @@
   </data>
   <data name="Everything" xml:space="preserve">
     <value>すべて</value>
-  </data>
-  <data name="Everything ErrorManager reports" xml:space="preserve">
-    <value>ErrorManager が報告するすべて</value>
   </data>
   <data name="Everything else" xml:space="preserve">
     <value>その他すべて</value>
@@ -4771,6 +4759,9 @@
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>外部フィルタリング エンジン (rspamd、およびその他の HTTP を話すもの)</value>
   </data>
+  <data name="External process timeout (300)" xml:space="preserve">
+    <value>外部プロセスのタイムアウト (300)</value>
+  </data>
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>外部プロセスのタイムアウト。コマンド ライン ウイルス スキャナーなど (秒)</value>
   </data>
@@ -4785,9 +4776,6 @@
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>OAuth2 で FETCH する外部アカウントのホスト (コンマ区切り。使わない場合は空にする)</value>
-  </data>
-  <data name="ExternalProcessTimeout (300)" xml:space="preserve">
-    <value>ExternalProcessTimeout (300)</value>
   </data>
   <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
     <value>追加の MX ホストごとの追加配信試行回数</value>
@@ -4869,9 +4857,6 @@
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>強力なランダム シークレットを入力</value>
-  </data>
-  <data name="FinalizationTimeout (240)" xml:space="preserve">
-    <value>FinalizationTimeout (240)</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>DNS ツリー ウォークで組織ドメインを検出する (RFC 9989)</value>
@@ -5155,8 +5140,8 @@
   <data name="HELO names and sender domains that are not host names" xml:space="preserve">
     <value>ホスト名ではない HELO 名と送信者ドメイン</value>
   </data>
-  <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
-    <value>HS256 が OAuth2AllowedAlgorithms に含まれていますが OAuth2HmacSecret が空のため、HS256 トークンは決して検証できません。共有シークレットを設定するか、リストから HS256 を削除してください。</value>
+  <data name="HS256 is among the allowed signing algorithms but the shared HMAC secret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
+    <value>HS256 は許可する署名アルゴリズムに含まれていますが共有 HMAC シークレットが空のため、HS256 トークンは決して検証できません。共有シークレットを設定するか、リストから HS256 を削除してください。</value>
   </data>
   <data name="HTM_L disclaimer (empty = the plain text, with its line breaks)" xml:space="preserve">
     <value>免責事項（HTML）(_M)（空欄 = プレーンテキストとその改行）</value>
@@ -5263,8 +5248,8 @@
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>実行ファイルまたは文書が添付された外部からのメッセージを、サンドボックスがファイルを開いてクリーンまたは悪意ありと回答するまで保留します。</value>
   </data>
-  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
-    <value>誤ったパスワードの拒否をしばらく保留してから送ります。接続での最初の失敗はこの秒数だけ待ち、2 回目はその 2 倍、というように最大 30 秒まで、SMTP、POP3、IMAP のいずれでも同様です。正しいパスワードが遅延されることはありません。待機は接続上のタイマーであり、スレッドをスリープさせるものではないため、ログオン失敗が殺到しても、サーバーが失うのはそれらが到着するソケットだけです。旧来の TarpitDelay が 10 年間スタブのままだったのは、素朴な実装が自業自得の停止を招くからです。</value>
+  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on." xml:space="preserve">
+    <value>誤ったパスワードの拒否をしばらく保留してから送ります。接続での最初の失敗はこの秒数だけ待ち、2 回目はその 2 倍、というように最大 30 秒まで、SMTP、POP3、IMAP のいずれでも同様です。正しいパスワードが遅延されることはありません。待機は接続上のタイマーであり、スレッドをスリープさせるものではないため、ログオン失敗が殺到しても、サーバーが失うのはそれらが到着するソケットだけです。</value>
   </data>
   <data name="Honeypot" xml:space="preserve">
     <value>ハニーポット</value>
@@ -6144,11 +6129,11 @@
   <data name="MTA-STS and DANE publish that commitment; TLS-RPT tells you who failed it." xml:space="preserve">
     <value>MTA-STS と DANE はその約束を公開し、TLS-RPT は誰がそれを守れなかったかを教えてくれます。</value>
   </data>
-  <data name="MTA-STS hosting is enabled (MtaStsHostingEnabled=1, the shipped default) but WebServicesHttpsPort is 0, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set WebServicesHttpsPort if you want MTA-STS; if you do not, this row is safe to ignore, or set MtaStsHostingEnabled=0 to silence it." xml:space="preserve">
-    <value>MTA-STS ホスティングは有効 (MtaStsHostingEnabled=1、出荷時の既定値) ですが WebServicesHttpsPort が 0 のため、ポリシーをまったく配信できません。RFC 8461 は HTTPS 経由しか認めていません。MTA-STS を使うなら WebServicesHttpsPort を設定してください。不要であればこの行は無視して構いませんし、MtaStsHostingEnabled=0 にすれば表示されなくなります。</value>
+  <data name="MTA-STS hosting is off, so nothing needs serving and no record should be published." xml:space="preserve">
+    <value>MTA-STS ホスティングは無効 のため、配信するものはなく、レコードを公開すべきでもありません。</value>
   </data>
-  <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
-    <value>MTA-STS ホスティングは無効 (MtaStsHostingEnabled=0) のため、配信するものはなく、レコードを公開すべきでもありません。</value>
+  <data name="MTA-STS hosting is on (the shipped default), but the web services listener has no HTTPS port, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set 'HTTPS port' on the Web services &amp; autoconfiguration page if you want MTA-STS; if you do not, this row is safe to ignore, or turn off 'Serve MTA-STS policies for local domains' on the same page to silence it." xml:space="preserve">
+    <value>MTA-STS ホスティングは有効 (出荷時の既定値) ですが、Web サービスのリスナーに HTTPS ポートがないため、ポリシーをまったく配信できません。RFC 8461 は HTTPS 経由しか認めていません。MTA-STS を使うなら [Web サービスと自動設定] ページで「HTTPS ポート」を設定してください。不要であればこの行は無視して構いませんし、同じページで「ローカル ドメインの MTA-STS ポリシーを提供する」をオフにすれば表示されなくなります。</value>
   </data>
   <data name="MTA-STS policy" xml:space="preserve">
     <value>MTA-STS ポリシー</value>
@@ -6496,6 +6481,9 @@
   <data name="Message archiving" xml:space="preserve">
     <value>メッセージのアーカイブ</value>
   </data>
+  <data name="Message finalization deadline (240)" xml:space="preserve">
+    <value>メッセージ最終処理の期限 (240)</value>
+  </data>
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>メッセージ最終処理の期限 (秒、0 = 期限なし)</value>
   </data>
@@ -6763,12 +6751,6 @@
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format は、エントリごとに host、ident、session、[date]、"category and message"、status、bytes という 1 行を書き出すため、ログ解析ツールは hMailServer について何も知らなくても 5xx 応答を数えられます。ident と bytes は常に "-" です (サーバーは identd に問い合わせず、ロガーには転送サイズが伝えられません)。AWStats ジャーナルは別のファイルで、この設定では変わりません。そのスイッチは上にあります。</value>
   </data>
-  <data name="NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
-    <value>注意: MtaStsHostingEnabled=0 のため、サーバーはこのポリシーをまったく配信しません。</value>
-  </data>
-  <data name="NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
-    <value>注意: WebServicesHttpsPort=0 のため HTTPS リスナーが動作せず、ポリシーを配信できません (RFC 8461 は HTTPS のみを認めています)。TXT レコードは、どこにも存在しないポリシーを広告することになります。</value>
-  </data>
   <data name="N_ote" xml:space="preserve">
     <value>メモ(_O)</value>
   </data>
@@ -6808,11 +6790,11 @@
   <data name="Negotiate binds authenticate per user, so type a user name, domain and password to test one." xml:space="preserve">
     <value>Negotiate バインドはユーザーごとに認証するため、テストするにはユーザー名、ドメイン、パスワードを入力してください。</value>
   </data>
-  <data name="Neither OAuth2Issuer nor OAuth2Audience is set, so neither is checked" xml:space="preserve">
-    <value>OAuth2Issuer も OAuth2Audience も設定されていないため、どちらも確認されません</value>
-  </data>
   <data name="Neither the executable nor the signature database folder is set." xml:space="preserve">
     <value>実行ファイルもシグネチャ データベース フォルダーも設定されていません。</value>
+  </data>
+  <data name="Neither the expected token issuer nor the expected audience is set, so neither is checked" xml:space="preserve">
+    <value>期待するトークン発行者も期待するオーディエンスも設定されていないため、どちらも確認されません</value>
   </data>
   <data name="Never" xml:space="preserve">
     <value>なし</value>
@@ -6973,8 +6955,8 @@
   <data name="No backup destination is set." xml:space="preserve">
     <value>バックアップ先が設定されていません。</value>
   </data>
-  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
-    <value>事前のバックアップなし: UpdateBackupBeforeApply がオフです。</value>
+  <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
+    <value>事前のバックアップなし: 「無人での適用の前に、設定されている保存先へバックアップする」 がオフです。</value>
   </data>
   <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
     <value>事前のバックアップなし: バックアップ先が設定されていません (バックアップと復元)。ロールバックで戻るのは以前のプログラムで、データベースは戻りません。</value>
@@ -7387,8 +7369,14 @@
   <data name="Note" xml:space="preserve">
     <value>メモ</value>
   </data>
+  <data name="Note: 'Serve MTA-STS policies for local domains' is off on the Web services &amp; autoconfiguration page, so the server does not serve this policy." xml:space="preserve">
+    <value>注意: [Web サービスと自動設定] ページの「ローカル ドメインの MTA-STS ポリシーを提供する」がオフのため、サーバーはこのポリシーを配信しません。</value>
+  </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>注意: 証明書の検証がオフになっているため、暗号化された接続は、どのディレクトリに到達しているかを証明しません。サーバーは起動ごとに 1 回これをログに記録します。</value>
+  </data>
+  <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
+    <value>注意: [Web サービスと自動設定] ページで Web サービスのリスナーに HTTPS ポートがないため、ポリシーを配信できません (RFC 8461 は HTTPS のみを認めています)。TXT レコードは、どこにも存在しないポリシーを広告することになります。</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>スコアによっては何も起きません: どちらのしきい値も 0 で、サーバーはしきい値が 0 より大きい場合にのみマークまたは拒否します。</value>
@@ -7456,11 +7444,11 @@
   <data name="Nothing was changed." xml:space="preserve">
     <value>何も変更されませんでした。</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
-    <value>削除できるほど古いものはありませんでした。ウィンドウは MessageTraceRetentionDays で、0 は「削除しない」を意味します。</value>
-  </data>
   <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
     <value>削除できるほど古いものはありませんでした。ウィンドウは [スパム対策の設定] ページ (検疫されたメッセージを削除するまでの日数) で設定します。0 は「削除しない」を意味します。</value>
+  </data>
+  <data name="Nothing was old enough to remove. The window is set on the Logging page (Delete trace events after), and 0 means never." xml:space="preserve">
+    <value>削除できるほど古いものはありませんでした。ウィンドウは [ログ] ページ (トレース イベントを削除するまでの日数) で設定します。0 は「削除しない」を意味します。</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>何も読み取られませんでした。</value>
@@ -7501,26 +7489,17 @@
   <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
     <value>リレー用の OAuth2 (Microsoft 365)</value>
   </data>
-  <data name="OAuth2 is enabled and allows RS256, but OAuth2PublicKeyFile is empty - every RS256 token fails signature verification, so no client can log on with a token. Install the identity provider's public key as a PEM file and point OAuth2PublicKeyFile at it." xml:space="preserve">
-    <value>OAuth2 は有効で RS256 を許可していますが、OAuth2PublicKeyFile が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでログオンできません。ID プロバイダーの公開鍵を PEM ファイルとしてインストールし、OAuth2PublicKeyFile でそれを指定してください。</value>
-  </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 は有効で、許可されたアルゴリズムが必要とする鍵素材がそろっており、発行者とオーディエンスの両方が確認されます。そのため、トークンはあなたのプロバイダーがこのサーバー専用に発行したものでなければなりません。</value>
   </data>
-  <data name="OAuth2 is off (OAuth2Enabled=0, the default), so no identity provider or key material is required." xml:space="preserve">
-    <value>OAuth2 は無効 (OAuth2Enabled=0、既定値) のため、ID プロバイダーも鍵素材も不要です。</value>
+  <data name="OAuth2 is off (the default), so no identity provider or key material is required." xml:space="preserve">
+    <value>OAuth2 は無効 (既定値) のため、ID プロバイダーも鍵素材も不要です。</value>
+  </data>
+  <data name="OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there." xml:space="preserve">
+    <value>OAuth2 は有効で RS256 を許可していますが、[認証] ページの「RSA/EC 公開鍵ファイル」が空です。すべての RS256 トークンが署名検証に失敗するため、どのクライアントもトークンでログオンできません。ID プロバイダーの公開鍵を PEM ファイルとしてインストールし、そこでそれを選択してください。</value>
   </data>
   <data name="OAuth2 is switched on but no client can log on with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed logon - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
     <value>OAuth2 はオンになっていますが、{0} がないため、どのクライアントもトークンでログオンできません。署名検証をまったく実行できないため、すべてのトークンが拒否され、ログにはログオンの失敗しか記録されません。それは設定の不備ではなく「パスワードが違う」と読めてしまいます。</value>
-  </data>
-  <data name="OAuth2Audience is not set, so the audience is not checked" xml:space="preserve">
-    <value>OAuth2Audience が設定されていないため、オーディエンスは確認されません</value>
-  </data>
-  <data name="OAuth2Issuer is not set, so the issuer is not checked" xml:space="preserve">
-    <value>OAuth2Issuer が設定されていないため、発行者は確認されません</value>
-  </data>
-  <data name="OAuth2PublicKeyFile points at {0}, which does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
-    <value>OAuth2PublicKeyFile は {0} を指していますが、このコンピューターに存在しないため、RS256 トークンを検証できません。</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
@@ -7665,6 +7644,9 @@
   </data>
   <data name="On by default." xml:space="preserve">
     <value>既定ではオンです。</value>
+  </data>
+  <data name="On by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>既定ではオンです。アーカイブを書き出した後、そのメッセージ ストアを、復元が使うのと同じコードで一時フォルダーに展開し、バックアップがステージングしたファイルだけに限定したうえで、すべてのメッセージ行についてファイルの有無を確認します。結果はバックアップ ログにあります。実行中はストアが 2 つ存在するため、一時ボリュームに収まらないストアではオフにしてください。</value>
   </data>
   <data name="On by default. Off leaves the keys people already have in the database untouched." xml:space="preserve">
     <value>既定ではオンです。オフにしても、利用者がデータベースに既に持っているキーはそのまま残ります。</value>
@@ -8023,8 +8005,8 @@
   <data name="Out of office" xml:space="preserve">
     <value>不在通知</value>
   </data>
-  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
-    <value>一覧からも、全員の宛先欄からも、CardDAV のコレクションからも外れます。メールボックスは隠れません。メールは届き、アドレスを知っている人は書けます。サーバーの DirectoryUserEditable 設定にかかわらず、本人がウェブメールで自分で設定できます。</value>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the Webmail page's 'Let people edit their own directory entry' setting says." xml:space="preserve">
+    <value>一覧からも、全員の宛先欄からも、CardDAV のコレクションからも外れます。メールボックスは隠れません。メールは届き、アドレスを知っている人は書けます。[ウェブメール] ページの「利用者が自分のディレクトリ エントリを編集できるようにする」設定にかかわらず、本人がウェブメールで自分で設定できます。</value>
   </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>送信時の TLS</value>
@@ -8367,8 +8349,8 @@
   <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
     <value>ポート {0} はまだ AUTH を受け付けています。他のサーバーがメールを配送するポートであり、そこで試されるパスワードは推測です。SMTP 認証を [ハニーポット] または [オフ] にし、メール クライアントは 587 でサインインさせてください。</value>
   </data>
-  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
-    <value>ポート {0} はパスワードを受け付けませんが、AutoBanMinutes が 0 のため、そこに AUTH を送ったアドレスは拒否されるだけで禁止されません。</value>
+  <data name="Port {0} takes no password, but 'Ban duration' on the Auto-ban page is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>ポート {0} はパスワードを受け付けませんが、[自動ブロック] ページの「ブロック期間」が 0 のため、そこに AUTH を送ったアドレスは拒否されるだけで禁止されません。</value>
   </data>
   <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
     <value>ポート {0} はパスワードを受け付けません。EHLO はそこで AUTH を提示せず、それでも AUTH を送ったアドレスは拒否され禁止されます。</value>
@@ -8385,8 +8367,8 @@
   <data name="Post" xml:space="preserve">
     <value>投稿</value>
   </data>
-  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
-    <value>投稿を許可すると、SmtpAuthenticatedSenderCheck が有効な場合、このアカウントは SMTP でこのメールボックスのアドレスとして送信 (Send-As) することもできます。</value>
+  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when 'An authenticated session may only send as an address its account owns or has been granted' is on, on the Protocols page's SMTP tab." xml:space="preserve">
+    <value>投稿を許可すると、[プロトコル] ページの [SMTP] タブで「認証済みのセッションでは、そのアカウントが所有しているか権限を与えられているアドレスとしてのみ送信できる」が有効な場合、このアカウントは SMTP でこのメールボックスのアドレスとして送信 (Send-As) することもできます。</value>
   </data>
   <data name="Pre-filled with the domain's postmaster address, as configured on the domain. Change it if reports should go elsewhere." xml:space="preserve">
     <value>ドメインで設定されている postmaster アドレスがあらかじめ入力されています。レポートの送り先を変えたい場合は変更してください。</value>
@@ -8547,8 +8529,8 @@
   <data name="Publish" xml:space="preserve">
     <value>公開</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>AcmeDomains に列挙されているすべての名前について、公開の A/AAAA レコードを公開し、インターネットからチャレンジ ポートへの受信 TCP を許可してください (NAT がある場合はポート転送を設定します)。外部からの到達性は内部からは調べられないため、外部ネットワークかオンラインのポート チェッカーで確認してください。</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>[証明書 (ACME)] ページの「証明書のホスト名」にあるすべての名前について、公開の A/AAAA レコードを公開し、インターネットからチャレンジ ポートへの受信 TCP を許可してください (NAT がある場合はポート転送を設定します)。外部からの到達性は内部からは調べられないため、外部ネットワークかオンラインのポート チェッカーで確認してください。</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>DNS プロバイダーで公開してください。今公開したばかりなら、伝播を待って (通常は数分、ときには数時間) もう一度確認してください。</value>
@@ -8998,8 +8980,8 @@
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>ゲートウェイを受信リレーとして登録し、そのアドレスがクライアントとして扱われないようにします。</value>
   </data>
-  <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
-    <value>このサーバーを ID プロバイダーにアプリケーションとして登録し、プロバイダーの公開署名鍵を PEM ファイルとしてダウンロードして、hMailServer.ini の OAuth2PublicKeyFile をそれに向けてください (HS256 の場合は OAuth2HmacSecret を設定します)。OAuth2Issuer と OAuth2Audience には、プロバイダーがトークンに入れる値を設定してください。そうしないと、検証で拒否されます。</value>
+  <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and choose it as 'RSA/EC public key file' on the Authentication page (or set 'Shared HMAC secret' there for HS256). Set 'Expected token issuer' and 'Expected audience' to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
+    <value>このサーバーを ID プロバイダーにアプリケーションとして登録し、プロバイダーの公開署名鍵を PEM ファイルとしてダウンロードして、[認証] ページの「RSA/EC 公開鍵ファイル」でそれを選択してください (HS256 の場合は同じページで「共有 HMAC シークレット」を設定します)。「期待するトークン発行者」と「期待するオーディエンス」には、プロバイダーがトークンに入れる値を設定してください。そうしないと、検証で拒否されます。</value>
   </data>
   <data name="Registered in Microsoft Entra with the delegated IMAP.AccessAsUser.All and offline_access permissions, and personal Microsoft accounts allowed for Outlook.com." xml:space="preserve">
     <value>Microsoft Entra に登録し、委任されたアクセス許可 IMAP.AccessAsUser.All と offline_access を付け、Outlook.com 用に個人用 Microsoft アカウントを許可したもの。</value>
@@ -9242,10 +9224,10 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>認証済みユーザーのクライアント IP を置き換える (空 = 実際の IP を保持)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. The person can put it back only if the Webmail page keeps deleted messages for them, which is off by default." xml:space="preserve">
     <value>{0} のメールボックスをアーカイブの内容で置き換えますか?
 
-まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われます。RecoverDeletedDays の期間だけ保持されます (既定では無効)。</value>
+まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われます。本人がそれを戻せるのは、[ウェブメール] ページで削除されたメッセージを保持する設定にしている場合だけです (既定では無効)。</value>
   </data>
   <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
     <value>チェックしたカテゴリのサーバーのデータを、バックアップの内容で置き換えますか? 現在のデータは上書きされ、元に戻すことはできません。</value>
@@ -9279,6 +9261,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>レポートのメールボックス:</value>
+  </data>
+  <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
+    <value>非同期ワーク キューを停滞と報告するまでの時間 (120)</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>非同期ワーク キューを停滞と報告するまでの時間 (秒)</value>
@@ -9388,8 +9373,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>正当な転送メールを DMARC 失敗のペナルティから救いますが、対象は、信頼するシーラーのリストに載っている転送元だけです。リストが空だと、有効にしていてもこの機能はまったく何もしません。</value>
   </data>
-  <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
-    <value>サーバー自身が名前解決を行うため、hMailServer.INI のカスタム DNSServer が尊重されます。これがメールの実際の宛先であり、このワークステーションからの nslookup では保証できないものです。</value>
+  <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
+    <value>サーバー自身が名前解決を行うため、[DNS リゾルバー] ページで設定した「DNS サーバーを上書き」が尊重されます。これがメールの実際の宛先であり、このワークステーションからの nslookup では保証できないものです。</value>
   </data>
   <data name="Restart the service…" xml:space="preserve">
     <value>サービスを再起動…</value>
@@ -9654,9 +9639,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="SAML sign-in is under it too. Empty uses the import sign-in's base address, on the Import tab." xml:space="preserve">
     <value>SAML サインインもこの下にあります。空の場合は、「インポート」タブにあるサインインによるインポートのベース アドレスを使います。</value>
-  </data>
-  <data name="SAMaxTimeout (90)" xml:space="preserve">
-    <value>SAMaxTimeout (90)</value>
   </data>
   <data name="SHA-256" xml:space="preserve">
     <value>SHA-256</value>
@@ -9985,15 +9967,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Scheduled backups" xml:space="preserve">
     <value>スケジュールされたバックアップ</value>
   </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' は有効な 24 時間制の HH:MM ではなく、間隔も設定されていないため、スケジュールされたバックアップは実行されません。</value>
-  </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' は有効な 24 時間制の HH:MM ではないため、サーバーは間隔にフォールバックします: {1} 分ごとに 1 回のバックアップ。</value>
-  </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' は有効な 24 時間制の HH:MM ではないため、サーバーは間隔にフォールバックします: {1} 分ごとに 1 回のバックアップ。</value>
-  </data>
   <data name="Schema" xml:space="preserve">
     <value>スキーマ</value>
   </data>
@@ -10050,9 +10023,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Script events" xml:space="preserve">
     <value>スクリプトのイベント</value>
-  </data>
-  <data name="ScriptTimeout (60)" xml:space="preserve">
-    <value>ScriptTimeout (60)</value>
   </data>
   <data name="Scripting" xml:space="preserve">
     <value>スクリプト</value>
@@ -10432,17 +10402,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
     <value>メッセージ全体が削除される場合にのみ送信されます。添付ファイルを削除する場合は、その代わりに入る注記が受信者に知らせ、ほかの誰にも通知されません。</value>
   </data>
-  <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
-    <value>これとは別に、このサーバーは他のドメインにそのようなレポートを送信しています。TlsRptFromAddress が {0} に設定されているため、自身のレポートが送信されます。</value>
+  <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
+    <value>これとは別に、このサーバーが他のドメインに自身のレポートを送信するのは、[トランスポート セキュリティ] ページで「TLS レポートの送信者アドレス」が設定されている場合だけです。このコンピューターでは hMailServer.ini が見つからず、確認できませんでした。</value>
   </data>
-  <data name="Separately, this server sends its own reports to other domains only when TlsRptFromAddress is set in hMailServer.INI - which could not be found on this machine to check." xml:space="preserve">
-    <value>これとは別に、このサーバーが他のドメインに自身のレポートを送信するのは hMailServer.INI で TlsRptFromAddress が設定されている場合だけです。このコンピューターではそのファイルを確認できませんでした。</value>
+  <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini on the server is not readable from this machine to check it." xml:space="preserve">
+    <value>これとは別に、このサーバーが他のドメインに自身のレポートを送信するのは、[トランスポート セキュリティ] ページで「TLS レポートの送信者アドレス」が設定されている場合だけです。サーバー上の hMailServer.ini はこのコンピューターから読み取れないため、確認できません。</value>
   </data>
-  <data name="Separately, this server sends its own reports to other domains only when TlsRptFromAddress is set in hMailServer.INI on the server - not readable from this machine." xml:space="preserve">
-    <value>これとは別に、このサーバーが他のドメインに自身のレポートを送信するのはサーバー上の hMailServer.INI で TlsRptFromAddress が設定されている場合だけです。このコンピューターからは読み取れません。</value>
+  <data name="Separately, this server sends no such reports of its own: 'TLS report sender address' on the Transport security page is empty (the default), so it collects statistics and discards every completed day unsent. Set it if you want to send reports too." xml:space="preserve">
+    <value>これとは別に、このサーバー自身はそのようなレポートを送信していません。[トランスポート セキュリティ] ページの「TLS レポートの送信者アドレス」が空 (既定) のため、統計を収集しては完了した日ごとに送信せずに破棄しています。レポートも送信したい場合は設定してください。</value>
   </data>
-  <data name="Separately, this server's own SENDING of such reports to other domains is inert: TlsRptFromAddress is empty in hMailServer.INI (the default), so it collects statistics and discards every completed day unsent. Set it on the Transport security page if you want to send reports too." xml:space="preserve">
-    <value>これとは別に、このサーバー自身による他のドメインへのそのようなレポートの送信は無効です。hMailServer.INI の TlsRptFromAddress が空 (既定) のため、統計を収集しては完了した日ごとに送信せずに破棄しています。レポートも送信したい場合はトランスポート セキュリティ ページで設定してください。</value>
+  <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
+    <value>これとは別に、このサーバーは他のドメインにそのようなレポートを送信しています。TLS レポートの送信者アドレスが {0} のため、自身のレポートが送信されます。</value>
   </data>
   <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
     <value>サービス アカウントのパスワード (ServicePassword)(_I)</value>
@@ -10558,8 +10528,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Session resumption" xml:space="preserve">
     <value>セッションの再開</value>
   </data>
-  <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
-    <value>hMailServer.ini の [Settings] セクションで TlsRptFromAddress を、レポートの送信元にするメールボックスに設定してください。空のままにするのも有効な選択です。収集した統計が破棄され、レポートが送信されないというだけです。</value>
+  <data name="Set 'TLS report sender address' on the Transport security page to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
+    <value>[トランスポート セキュリティ] ページで「TLS レポートの送信者アドレス」を、レポートの送信元にするメールボックスに設定してください。空のままにするのも有効な選択です。収集した統計が破棄され、レポートが送信されないというだけです。</value>
   </data>
   <data name="Set a new administrator password" xml:space="preserve">
     <value>新しい管理者パスワードの設定</value>
@@ -10861,8 +10831,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Skipped, by reason" xml:space="preserve">
     <value>スキップ (理由別)</value>
   </data>
-  <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
-    <value>正当なメッセージに必要な数を超える受信者を指定するセッションを遅くします。この数を超えると、未認証セッションでのそれ以降の RCPT TO はすべて、応答の前に遅延を待ちます。辞書攻撃やスパム送信は数百のアドレスを指定してそれぞれの代償を払いますが、送信側 MTA は数個しか指定せず、この数に達しません。認証済みセッションと、スパム対策がオフの IP 範囲は対象外です。待機は接続上のタイマーであり、スレッドをスリープさせるものではありません。直ちに有効になり、hMailServer.ini に SmtpTarpitCount と SmtpTarpitDelaySeconds として保存されます。</value>
+  <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
+    <value>正当なメッセージに必要な数を超える受信者を指定するセッションを遅くします。この数を超えると、未認証セッションでのそれ以降の RCPT TO はすべて、応答の前に遅延を待ちます。辞書攻撃やスパム送信は数百のアドレスを指定してそれぞれの代償を払いますが、送信側 MTA は数個しか指定せず、この数に達しません。認証済みセッションと、スパム対策がオフの IP 範囲は対象外です。待機は接続上のタイマーであり、スレッドをスリープさせるものではありません。直ちに有効になります。</value>
   </data>
   <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
     <value>一度だけ保存する最小の部分 (KB、0 で一度だけの保存を行いません)</value>
@@ -10932,6 +10902,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
     <value>SpamAssassin はホスト未設定のままオンになっているため、すべてのメッセージが判定なしで受け入れられ、サーバーは毎回 HM5508 を報告します。</value>
+  </data>
+  <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
+    <value>SpamAssassin の最大タイムアウト (90)</value>
   </data>
   <data name="SpamAssassin's own score" xml:space="preserve">
     <value>SpamAssassin 自身のスコア</value>
@@ -11052,9 +11025,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Store: " xml:space="preserve">
     <value>ストア: </value>
-  </data>
-  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
-    <value>hMailServer.ini に ScheduledBackupTime、ScheduledBackupIntervalMinutes、ScheduledBackupKeepCount、ScheduledBackupMaxAgeDays として保存されます。</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>サーバー上の hMailServer.ini に保存されます。取得したトークンは有効期間の 80% が経過するまでメモリにキャッシュされ、自動的に再取得されます。</value>
@@ -11473,14 +11443,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The REST API could not be reached: {0}" xml:space="preserve">
     <value>REST API に接続できませんでした: {0}</value>
   </data>
-  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
-    <value>REST API は動作していません。暗号化なしの HTTP は 127.0.0.1 または ::1 でのみ提供され、{0} で待ち受けるには RestApiCertificateFile と RestApiPrivateKeyFile、またはこのサーバーに発行された ACME 証明書が必要です。</value>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>REST API は動作していません。暗号化なしの HTTP は 127.0.0.1 または ::1 でのみ提供され、{0} で待ち受けるには「API と監視」ページの TLS 証明書ファイルとその秘密鍵ファイル、またはこのサーバーに発行された ACME 証明書が必要です。</value>
   </data>
-  <data name="The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>REST API はオフ (RestApiPort は {0}) ですが、これらの設定は REST API 経由でしか扱えません。サーバーは値を保持していますが、COM プロパティはありません。「API と監視」ページで REST API にポートを割り当て、サーバーを再初期化してから、このページを開き直してください。</value>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
+    <value>REST API はオフ (「API と監視」ページでのポートは {0}) ですが、これらの設定は REST API 経由でしか扱えません。サーバーは値を保持していますが、COM プロパティはありません。「API と監視」ページで REST API にポートを割り当て、サーバーを再初期化してから、このページを開き直してください。</value>
   </data>
-  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
-    <value>REST API はオフです (RestApiPort は {0})。このページはケースを REST API 経由で読み取ります。[設定] で有効にするか、Control Deck でケースを確認してください。</value>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
+    <value>REST API はオフです (「API と監視」ページでのポートは {0})。このページはケースを REST API 経由で読み取ります。そのページでポートを割り当てるか、Control Deck でケースを確認してください。</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>REST API は {0} でのみ待ち受けており、別のマシン上のコントロール パネルからは到達できません。これらの設定は、サーバー上の Control Deck か、そこで動いているコントロール パネルから変更してください。</value>
@@ -11497,6 +11467,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>外部の監視システムが読み取る REST API、Prometheus メトリクス、ヘルス エンドポイント。</value>
   </data>
+  <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>RSA/EC 公開鍵ファイル {0} がこのコンピューターに存在しないため、RS256 トークンを検証できません。</value>
+  </data>
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP エージェント、アラート、送信 Webhook、監査ログ</value>
   </data>
@@ -11508,6 +11481,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>TCP/IP ポート一覧を読み取れませんでした: {0}</value>
+  </data>
+  <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
+    <value>TLS レポートの送信者アドレスを読み取れませんでした: {0}</value>
+  </data>
+  <data name="The TLS report sender address is empty (the default), so the server collects TLS statistics hourly and discards every completed day unsent. Set an address if you want reports to go out; ignore this row if you deliberately do not." xml:space="preserve">
+    <value>TLS レポートの送信者アドレスが空 (既定) のため、サーバーは TLS 統計を 1 時間ごとに収集し、完了した日ごとに送信せず破棄します。レポートを送信したい場合はアドレスを設定してください。意図的に送信しない場合はこの行を無視してください。</value>
+  </data>
+  <data name="The TLS report sender address is {0}, so completed days of statistics are mailed to domains that request reports. Nothing external remains." xml:space="preserve">
+    <value>TLS レポートの送信者アドレスが {0} のため、完了した日の統計はレポートを要求するドメインにメールで送信されます。外部に残っている作業はありません。</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>SURBL サーバー ページの URI ブロック リストには、メッセージがリンクする登録可能なドメインとアドレスのすべてを、1 通につき 200 まで問い合わせます。リンクがそれより多くを挙げるメッセージは全体を問い合わせず、代わりに下のスコアを、有効なリストの数にかかわらず 1 回だけ加算します。これにより、掲載されたリンクを架空のドメインの中に隠すことは無償ではなくなります。有効な URI ブロック リストがないあいだは何も加算されません。</value>
@@ -11599,6 +11581,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>ウイルス対策設定を読み取れませんでした: </value>
   </data>
+  <data name="The archive folder is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>アーカイブ フォルダーはサーバーを通過するすべてのメッセージの生のコピーであり、これまでそこから何かが削除されることはありませんでした。そのため忙しいサーバーでは増える一方のディレクトリになり、それに気付くのは、ディスクがいっぱいになった管理者です。この設定はそこを整理します。0 はすべてを保持し、それが意図的な既定値です。アーカイブは通常、法的または契約上の理由で保持されるものであり、アップグレードを機にそこから削除を始めるサーバーは、保持せよと命じられたものをまさに破壊することになるからです。この掃除が削除するのは .eml ファイルだけなので、アーカイブに置いてあるほかのものはそのまま残ります。実行は起動時と、その後 12 時間ごとです。</value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>アーカイブにはこのアカウントのメッセージがありません。</value>
   </data>
@@ -11622,6 +11607,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>バックアップ先 {0} はサーバー上に存在しません。</value>
+  </data>
+  <data name="The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
+    <value>この場合、バックアップはどのメッセージが存在するかを記録しますが、その内容は記録せず、復元ではファイルがデータ フォルダーに残っていることを前提とします。バックアップと復元の両方に適用されます。</value>
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>バックアップはデータベースとメッセージストアをフォルダーに書き出します。バックアップ先が設定されるまでバックアップは存在しません。</value>
@@ -11799,8 +11787,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>整合性チェックは有効ですが、まだレポートを書き出していません。サーバーは起動時とその後 1 時間ごとにスキャンし、{0} を書き出します。</value>
   </data>
-  <data name="The consistency check is switched off, so no scan has run. Enable MessageStoreConsistencyCheck on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
-    <value>整合性チェックが無効になっているため、スキャンは実行されていません。{0} ページで MessageStoreConsistencyCheck を有効にしてください。サーバーはその後、起動時と 1 時間ごとにスキャンし、{1} を書き出します。</value>
+  <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
+    <value>整合性チェックが無効になっているため、スキャンは実行されていません。{0} ページで「メッセージの行とディスク上のファイルを定期的に突き合わせる」を有効にしてください。サーバーはその後、起動時と 1 時間ごとにスキャンし、{1} を書き出します。</value>
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
     <value>ARC シール付与の対になる機能です。受信メールにおいて、信頼されたシーラーからの有効な ARC チェーンは、転送によって DMARC 合格が壊れたメッセージの DMARC 失敗スコアを相殺できます (RFC 8617)。この設定は hMailServer.INI ではなく他のスパム対策設定と一緒に保存されるため、スパム対策の設定ページの送信者認証の下で構成します。信頼されたシーラーのリストが空の場合、この機能は意図的に何もしません。誰でも ARC チェーン全体を捏造し、自分の DNS で公開した鍵でシールを付けることができ、それは完璧に検証を通過します。したがって、シーラーを既に信頼していない限り、合格したチェーンは何も証明しません。このリストは機能のオプションではなく、機能そのものです。相殺量が DMARC 失敗スコアを超えることはなく、スパム対策の設定ページで DMARC スコアリングが有効な間だけ適用されます。</value>
@@ -11810,6 +11798,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>現在のパスワードは最新のものとして数えられるため、パスワードを同じものに設定することも拒否されます。誰かが最も試しそうな繰り返しです。</value>
+  </data>
+  <data name="The daily backup time '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run." xml:space="preserve">
+    <value>毎日のバックアップ時刻 '{0}' は有効な 24 時間制の HH:MM ではなく、間隔も設定されていないため、スケジュールされたバックアップは実行されません。</value>
+  </data>
+  <data name="The daily backup time '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute." xml:space="preserve">
+    <value>毎日のバックアップ時刻 '{0}' は有効な 24 時間制の HH:MM ではないため、サーバーは間隔にフォールバックします: {1} 分ごとに 1 回のバックアップ。</value>
+  </data>
+  <data name="The daily backup time '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes." xml:space="preserve">
+    <value>毎日のバックアップ時刻 '{0}' は有効な 24 時間制の HH:MM ではないため、サーバーは間隔にフォールバックします: {1} 分ごとに 1 回のバックアップ。</value>
   </data>
   <data name="The daily digest" xml:space="preserve">
     <value>毎日のダイジェスト</value>
@@ -11897,6 +11894,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>各ドメインが公開すべき正確な SPF、DKIM、DMARC、MTA-STS、TLS-RPT レコードと、それぞれが実際に公開されているかどうかのチェック。</value>
+  </data>
+  <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
+    <value>期待するオーディエンスが設定されていないため、オーディエンスは確認されません</value>
+  </data>
+  <data name="The expected token issuer is not set, so the issuer is not checked" xml:space="preserve">
+    <value>期待するトークン発行者が設定されていないため、発行者は確認されません</value>
   </data>
   <data name="The expiry has to be in the future. A key that is already expired is refused on its first use." xml:space="preserve">
     <value>有効期限は未来でなければなりません。既に期限切れのキーは、最初の使用時に拒否されます。</value>
@@ -12206,8 +12209,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>プロトコルごとのアイドル タイムアウトは、接続が閉じられるまでに何もせずに待機できる時間を決めます。</value>
   </data>
-  <data name="The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed." xml:space="preserve">
-    <value>定期チェックは現在無効になっている ({0} ページの MessageStoreConsistencyCheck) ため、この情報は更新されません。</value>
+  <data name="The periodic check is currently switched off ('Periodically cross-check message rows against files on disk' on the {0} page), so this will not be refreshed." xml:space="preserve">
+    <value>定期チェックは現在無効になっている ({0} ページの「メッセージの行とディスク上のファイルを定期的に突き合わせる」) ため、この情報は更新されません。</value>
   </data>
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>このアクセス許可は {0} から継承されています。コマンドはフォルダーによるその継承を停止します。</value>
@@ -12313,8 +12316,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh." xml:space="preserve">
     <value>レポートのヘッダーは {0} と示していますが、実際に列挙されているのは {1} です。サーバーが書き換えている最中に読み取られた可能性が高いので、更新してください。</value>
   </data>
-  <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
-    <value>リゾルバーが応答していません。TCP/IP ログで "DNS - Query timed out" を探してください。解決策として DNSServer に手を伸ばさないでください。特定のリゾルバーが必要でない限り、空のままにしてください。</value>
+  <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for 'Override DNS server' on the DNS resolver page as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
+    <value>リゾルバーが応答していません。TCP/IP ログで "DNS - Query timed out" を探してください。解決策として [DNS リゾルバー] ページの「DNS サーバーを上書き」に手を伸ばさないでください。特定のリゾルバーが必要でない限り、空のままにしてください。</value>
   </data>
   <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
     <value>残りはまだ待機中です。もう一度実行するか、スケジュールに任せて処理させてください。</value>
@@ -12325,11 +12328,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>再試行の回数と間隔、そしてそれらを使い切ったときに何が起きるかはここにあります。</value>
   </data>
-  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
-    <value>{0} の逆引きに応答がなかったため、リストは今このアドレスを免除できません。再試行するか、アドレスを AutoBanNeverBan に記載してください。</value>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or add the address to 'Never auto-ban these addresses' on the Auto-ban page." xml:space="preserve">
+    <value>{0} の逆引きに応答がなかったため、リストは今このアドレスを免除できません。再試行するか、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
   </data>
-  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
-    <value>逆引き名 {0} はアドレスまたはパブリックサフィックスであり、リストは決して照合しません。代わりにアドレスを AutoBanNeverBan に記載してください。</value>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead." xml:space="preserve">
+    <value>逆引き名 {0} はアドレスまたはパブリックサフィックスであり、リストは決して照合しません。代わりに、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
   </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>ローテーションが拒否しました: {0}</value>
@@ -12343,8 +12346,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The run failed: " xml:space="preserve">
     <value>実行に失敗しました: </value>
   </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>ログオン失敗の連続で作成されるものと同じ期限付き IP 範囲で、同じ掃除処理で解除され、同じ照合処理でファイアウォールに反映されます。AutoBanNeverBan にあるアドレスや受信リレーには決して適用されません。既定ではオフで、宛先が 2 つある誤送信のレポート 1 通で本物のメールサーバーを遮断しないためです。上の拒否がオフの間は何もしません。</value>
+  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
+    <value>ログオン失敗の連続で作成されるものと同じ期限付き IP 範囲で、同じ掃除処理で解除され、同じ照合処理でファイアウォールに反映されます。[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にあるアドレスや受信リレーには決して適用されません。既定ではオフで、宛先が 2 つある誤送信のレポート 1 通で本物のメールサーバーを遮断しないためです。上の拒否がオフの間は何もしません。</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>ログ ファイルが受け取るのと同じ行、カテゴリ、マスクに、ログを記録したスレッドでスパンがアクティブなときはいつでもトレース ID とスパン ID が付加されます。エクスポーターは自身の失敗行を決してエクスポートしません。そうしないと、停止したコレクターが自分自身を養うことになります。</value>
@@ -12363,6 +12366,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.INI がここには見つかりませんでした。サーバーは同じ数値を hmailservermessagestore_missing_files メトリクスとして公開しています。(_M)</value>
+  </data>
+  <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
+    <value>スケジュールと保持期間はサーバー上の hMailServer.ini に保存されます。</value>
   </data>
   <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
     <value>スケジュールはドメインと一緒に保存されます。下のボタンはすぐに実行されます。ローテーションがこのドメインを管理している間、上のセレクターと鍵ファイルを変更するのはローテーションです。</value>
@@ -12472,14 +12478,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
     <value>サーバーは開始中または停止中のため、ポートが待ち受けされているかどうかはまだわかりません。しばらくしてから、このページをもう一度開いてください。</value>
   </data>
-  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
-    <value>サーバーは履歴を保持していません。hMailServer.ini の MetricsHistoryDays が 0 です。保持する日数に設定してください。</value>
+  <data name="The server keeps no history: 'Keep metric history for' on the API &amp; monitoring page is 0. Set it to the days to keep." xml:space="preserve">
+    <value>サーバーは履歴を保持していません。「API と監視」ページの「メトリクス履歴を保持する期間」が 0 です。保持する日数に設定してください。</value>
   </data>
   <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
     <value>サーバーのログを書き込まれるそばから表示します。このコンピューターのログ フォルダーから読み取ります。</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>サーバーは新しい接続を受け付けなくなりました。処理中のメールを完了しています。</value>
+  </data>
+  <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>サーバーはこの値を COM API 経由で返すだけで、自身では何も翻訳しません。このコントロールパネルには独自の言語設定 (右上の管理者メニューの「言語を変更」) があるため、これはサードパーティの管理ツールにのみ影響します。バウンスとエラーの文言はサーバー メッセージ ページにあります。</value>
   </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>サーバーは、各アカウントに誰が書いたか、各アカウントが誰に書いたかを覚えていて、外部の送信者が初めて現れたときに読み手に知らせます。このドメインに配信されるメッセージごとにデータベース参照が一回かかり、オフの間は何もかかりません。</value>
@@ -12671,6 +12680,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The version to go back to" xml:space="preserve">
     <value>戻す先のバージョン</value>
   </data>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
+    <value>Web サービスのリスナーには HTTPS ポートがありますが証明書がないため (「TLS 証明書ファイル」が空で ACME がオフ)、HTTPS リスナーは起動せず、ポリシーは依然として取得できません。[Web サービスと自動設定] ページで「TLS 証明書ファイル」と「TLS 秘密鍵ファイル」を設定するか、[証明書 (ACME)] ページで ACME を有効にしてください。</value>
+  </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>Web サービスの設定を読み取れませんでした: {0}</value>
   </data>
@@ -12803,11 +12815,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
     <value>このインストールには {0} がないため、更新を自分でインストールできません。{2} から hMailServer {1} をダウンロードし、Get-AuthenticodeSignature が Valid で Progressive Robot Ltd による署名と報告することを確認してから、管理者として実行してください。</value>
   </data>
-  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>これは「プロトコル」&gt;「SMTP」&gt;「ホスト名」で、サーバーがすべての送信配信で HELO/EHLO に名乗る名前です (Utilities::ComputerName)。IP の所有者に、公開 IP の PTR がこの名前に正確に解決されるように依頼し、この名前の A レコードを同じ IP に向けて公開してください。受信側は両方向を確認します。</value>
-  </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>これは hMailServer.INI の [Settings] UseLanguage です。サーバーはこれを COM API 経由で返すだけで、自身では何も翻訳しません。このコントロールパネルには独自の言語設定 (右上の管理者メニューの「言語を変更」) があるため、これはサードパーティの管理ツールにのみ影響します。バウンスとエラーの文言はサーバー メッセージ ページにあります。</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery. Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>これは「プロトコル」&gt;「SMTP」&gt;「ホスト名」で、サーバーがすべての送信配信で HELO/EHLO に名乗る名前です。IP の所有者に、公開 IP の PTR がこの名前に正確に解決されるように依頼し、この名前の A レコードを同じ IP に向けて公開してください。受信側は両方向を確認します。</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>これは最新のリリースです</value>
@@ -12818,8 +12827,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>表示されるのはこの 1 回だけです。ストアはキーではなく SHA-256 ダイジェストを保持するため、復元も再表示もできません。紛失した場合は、ここで失効させて別のキーを作成してください。</value>
   </data>
-  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
-    <value>これはサーバー自身のリゾルバーの応答です。SMTP 配信が使うものと同じで、hMailServer.INI で設定されたカスタムの DNSServer があればそれも含みます。</value>
+  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any 'Override DNS server' set on the DNS resolver page." xml:space="preserve">
+    <value>これはサーバー自身のリゾルバーの応答です。SMTP 配信が使うものと同じで、[DNS リゾルバー] ページで「DNS サーバーを上書き」を設定していれば、それも含みます。</value>
   </data>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>このキーは変更と削除ができます。有効期限 {0}。</value>
@@ -12980,15 +12989,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Timeouts and queue bounds" xml:space="preserve">
     <value>タイムアウトとキューの上限</value>
   </data>
-  <data name="TlsRptFromAddress could not be read: {0}" xml:space="preserve">
-    <value>TlsRptFromAddress を読み取れませんでした: {0}</value>
-  </data>
-  <data name="TlsRptFromAddress is empty (the default), so the server collects TLS statistics hourly and discards every completed day unsent. Set an address if you want reports to go out; ignore this row if you deliberately do not." xml:space="preserve">
-    <value>TlsRptFromAddress が空 (既定) のため、サーバーは TLS 統計を 1 時間ごとに収集し、完了した日ごとに送信せず破棄します。レポートを送信したい場合はアドレスを設定してください。意図的に送信しない場合はこの行を無視してください。</value>
-  </data>
-  <data name="TlsRptFromAddress is set to {0}, so completed days of statistics are mailed to domains that request reports. Nothing external remains." xml:space="preserve">
-    <value>TlsRptFromAddress は {0} に設定されているため、完了した日の統計はレポートを要求するドメインにメールで送信されます。外部に残っている作業はありません。</value>
-  </data>
   <data name="To" xml:space="preserve">
     <value>宛先</value>
   </data>
@@ -13109,8 +13109,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
     <value>外部からのメールに対する二つの検査で、外部の判定はタグ付けタブと同じです。表示名がここの有効なアカウントまたは保護対象者の名前と一致しながら、アドレスがその人のものでない送信者。そして、このサーバーが受け持つドメインまたは保護対象パートナーから一文字の編集または一つの紛らわしい文字だけ離れた送信者ドメイン。フラグはウェブメールが警告として表示するヘッダーを追加し、隔離はスパム判定と同様に複製を保留し、管理者による解放は再検査なしで配信します。読者が安全と印を付けた送信者は対象外で、ここで受け持つドメインまたはパートナーである送信者ドメインも同様です。</value>
   </data>
-  <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
-    <value>2 つの半分から成ります。ポリシーが存在することを送信者に伝える TXT レコードと、https://mta-sts.{0}/.well-known/mta-sts.txt から取得されるポリシー自体です。MtaStsHostingEnabled がオンで HTTPS の Web サービス リスナーが動作していれば、このサーバーがそのポリシーを自ら提供します (アップロードするファイルはありません。RFC 8461 セクション 3.3 は HTTPS のみを許可します)。名前 mta-sts.{0} にはこのサーバーを指す A または CNAME レコードも必要で、リスナーの証明書はその名前をカバーしていなければなりません。</value>
+  <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when 'Serve MTA-STS policies for local domains' is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
+    <value>2 つの半分から成ります。ポリシーが存在することを送信者に伝える TXT レコードと、https://mta-sts.{0}/.well-known/mta-sts.txt から取得されるポリシー自体です。「ローカル ドメインの MTA-STS ポリシーを提供する」がオンで HTTPS の Web サービス リスナーが動作していれば、このサーバーがそのポリシーを自ら提供します (アップロードするファイルはありません。RFC 8461 セクション 3.3 は HTTPS のみを許可します)。名前 mta-sts.{0} にはこのサーバーを指す A または CNAME レコードも必要で、リスナーの証明書はその名前をカバーしていなければなりません。</value>
   </data>
   <data name="Two-factor" xml:space="preserve">
     <value>2 要素</value>
@@ -13373,6 +13373,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="W_hose mail" xml:space="preserve">
     <value>誰のメール(_H)</value>
   </data>
+  <data name="Wait for a free database connection (60)" xml:space="preserve">
+    <value>空きデータベース接続の待機 (60)</value>
+  </data>
   <data name="Wait for a free database connection (seconds)" xml:space="preserve">
     <value>空きデータベース接続の待機 (秒)</value>
   </data>
@@ -13453,9 +13456,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
     <value>Web サービスとクライアントの自動設定</value>
-  </data>
-  <data name="WebServicesHttpsPort is set, but no certificate is configured (WebServicesCertificateFile is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set WebServicesCertificateFile/WebServicesPrivateKeyFile or enable ACME." xml:space="preserve">
-    <value>WebServicesHttpsPort は設定されていますが、証明書が設定されていないため (WebServicesCertificateFile が空で ACME がオフ)、HTTPS リスナーは起動せず、ポリシーは依然として取得できません。WebServicesCertificateFile/WebServicesPrivateKeyFile を設定するか、ACME を有効にしてください。</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhook</value>
@@ -13664,8 +13664,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Where the copy goes" xml:space="preserve">
     <value>写しの送り先</value>
   </data>
-  <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read." xml:space="preserve">
-    <value>上の出力フォルダーも hMailServer.INI の [Directories] DataFolder も読み取れなかったため、発行された証明書の書き込み先を判断できませんでした。</value>
+  <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
+    <value>上の出力フォルダーもサーバーのデータ フォルダー (hMailServer.ini の [Directories] DataFolder) も読み取れなかったため、発行された証明書の書き込み先を判断できませんでした。</value>
   </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>検索の開始点 (例: DC=example,DC=local)。検索モード、つまりバインド方式が Simple で DN テンプレートが設定されていない場合に必須です。</value>
@@ -13681,6 +13681,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
     <value>このサーバーの状態は判断できません: リスナーを読み取れませんでした。</value>
+  </data>
+  <data name="Whether ARC sealing is on could not be read: {0}" xml:space="preserve">
+    <value>ARC シールの付与が有効かどうかを読み取れませんでした: {0}</value>
   </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>STARTTLS が提供されるかどうかを判断できませんでした。TCP/IP ポートと証明書を読み取れませんでした。このリスナーは TLS 対応の IMAP、POP3、または SMTP ポートから証明書を借り、独自の証明書を持ちません。</value>
@@ -13919,8 +13922,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
     <value>書き込み専用です。保存済みのパスワードがここに再び表示されることはありません。維持する場合はボックスを空のままにしてください。パスワードはサーバー上の hMailServer.INI にプレーン テキストで保存されます。サーバーはそれをそのままディレクトリに提示しなければならず、ハッシュ化できないためです。それに応じて INI へのファイル アクセスを制限してください。このパスワードがサーバーの外に出るのは、上で設定したトランスポート経由の場合だけです。</value>
   </data>
-  <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Stable event ids (the table lives in WindowsEventLog.h); a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
-    <value>オペレーターがアラートを設定する条件 (データベースが利用できない、リスナーが起動しなかった、クラッシュ、バックアップの失敗、ディスク空き容量の下限) を Windows のアプリケーション ログに書き込みます。そこはイベント ビューアー、監視エージェント、SIEM のコレクターが参照できる場所です。イベント ID は安定しています (対応表は WindowsEventLog.h にあります)。健全なサーバーは何も書き込みません。プロトコルのトラフィックや通常のログがここに書かれることは決してありません。セッションのたびにアプリケーション ログへ記録するようなメール サーバーは、そのうちアンインストールされてしまうからです。</value>
+  <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
+    <value>オペレーターがアラートを設定する条件 (データベースが利用できない、リスナーが起動しなかった、クラッシュ、バックアップの失敗、ディスク空き容量の下限) を Windows のアプリケーション ログに書き込みます。そこはイベント ビューアー、監視エージェント、SIEM のコレクターが参照できる場所です。条件ごとに変わらない固有のイベント ID があるため、アラートはそれで照合できます。健全なサーバーは何も書き込みません。プロトコルのトラフィックや通常のログがここに書かれることは決してありません。セッションのたびにアプリケーション ログへ記録するようなメール サーバーは、そのうちアンインストールされてしまうからです。</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>はい</value>
@@ -14468,11 +14471,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Plus addressing character" xml:space="preserve">
     <value>プラス アドレッシングの文字(_P)</value>
   </data>
+  <data name="_Port" xml:space="preserve">
+    <value>ポート(_P)</value>
+  </data>
   <data name="_Port (0 = 25)" xml:space="preserve">
     <value>ポート (0 = 25)(_P)</value>
-  </data>
-  <data name="_Port (Port)" xml:space="preserve">
-    <value>ポート (Port)(_P)</value>
   </data>
   <data name="_Postmaster address (mail to unknown recipients is redirected here)" xml:space="preserve">
     <value>postmaster アドレス (不明な受信者宛てのメールはここに転送されます)(_P)</value>
@@ -15072,17 +15075,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini を読み取れませんでした: {0} 6.3.6 以降、このファイルは管理者のものです。これらの設定を表示・変更するには、コントロール パネルを閉じて「管理者として実行」で起動してください。</value>
   </data>
-  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
-    <value>hMailServer.ini の設定 BackupMessagesDBOnly です。この場合、バックアップはどのメッセージが存在するかを記録しますが、その内容は記録せず、復元ではファイルがデータ フォルダーに残っていることを前提とします。バックアップと復元の両方に適用されます。</value>
-  </data>
-  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
-    <value>hMailServer.ini の設定 BackupVerifyRestore で、既定ではオンです。アーカイブを書き出した後、そのメッセージ ストアを、復元が使うのと同じコードで一時フォルダーに展開し、バックアップがステージングしたファイルだけに限定したうえで、すべてのメッセージ行についてファイルの有無を確認します。結果はバックアップ ログにあります。実行中はストアが 2 つ存在するため、一時ボリュームに収まらないストアではオフにしてください。</value>
-  </data>
   <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
     <value>このコンピューターに hMailServer.ini が見つからなかったため、BackupMessagesDBOnly はサーバー自身でしか変更できません。</value>
   </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupVerifyRestore can only be changed on the server itself." xml:space="preserve">
-    <value>このコンピューターに hMailServer.ini が見つからなかったため、BackupVerifyRestore はサーバー自身でしか変更できません。</value>
+  <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
+    <value>このコンピューターに hMailServer.ini が見つからなかったため、この設定はサーバー自身でしか変更できません。</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>ヘッダー '{0}'</value>
@@ -15267,8 +15264,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="mx lines are derived from {0}'s live MX records at request time; the lookup below is this machine's view of the same answer." xml:space="preserve">
     <value>mx の行は、リクエスト時点での {0} の実際の MX レコードから導かれます。下の参照結果は、同じ答えをこのコンピューターから見たものです。</value>
   </data>
-  <data name="mx lines from the MtaStsPolicyMx override in hMailServer.INI." xml:space="preserve">
-    <value>mx の行は、hMailServer.INI の MtaStsPolicyMx による上書きから取られます。</value>
+  <data name="mx lines from 'Policy MX host patterns' on the Web services &amp; autoconfiguration page." xml:space="preserve">
+    <value>mx の行は、[Web サービスと自動設定] ページの「ポリシーの MX ホスト パターン」から取られます。</value>
   </data>
   <data name="my certificate has expired" xml:space="preserve">
     <value>証明書の期限が切れた</value>
@@ -15816,8 +15813,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} answered HTTP 200, but the body is not an MTA-STS policy (it does not begin &quot;version: STSv1&quot;). Something other than the MTA-STS host is answering that URL. Served: {1}" xml:space="preserve">
     <value>{0} は HTTP 200 を返しましたが、本文が MTA-STS ポリシーではありません ("version: STSv1" で始まっていません)。その URL に応答しているのは、MTA-STS ホスト以外の何かです。配信された内容: {1}</value>
   </data>
-  <data name="{0} answered HTTP {1}. The server serves the policy only when MtaStsHostingEnabled is on, the domain is hosted and active, and the request's Host header is mta-sts.{2}." xml:space="preserve">
-    <value>{0} は HTTP {1} を返しました。サーバーがこのポリシーを配信するのは、MtaStsHostingEnabled がオンで、ドメインがホストされていて有効であり、リクエストの Host ヘッダーが mta-sts.{2} である場合だけです。</value>
+  <data name="{0} answered HTTP {1}. The server serves the policy only when 'Serve MTA-STS policies for local domains' is on, the domain is hosted and active, and the request's Host header is mta-sts.{2}." xml:space="preserve">
+    <value>{0} は HTTP {1} を返しました。サーバーがこのポリシーを配信するのは、「ローカル ドメインの MTA-STS ポリシーを提供する」がオンで、ドメインがホストされていて有効であり、リクエストの Host ヘッダーが mta-sts.{2} である場合だけです。</value>
   </data>
   <data name="{0} answered with a redirect (HTTP {1}). Sending servers must not follow redirects (RFC 8461 section 3.3), so this counts as no policy." xml:space="preserve">
     <value>{0} はリダイレクト (HTTP {1}) を返しました。送信側サーバーはリダイレクトをたどってはならないため (RFC 8461 セクション 3.3)、これはポリシーがないものとして扱われます。</value>
@@ -15864,8 +15861,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>設定済みのポートのうち {0} 件が待ち受けされていません: {1}。いずれかを追加または変更したばかりの場合は、サーバーを再初期化してください。サーバーはポートの一覧を起動時に読み込みます。そうでない場合は、別のプログラムがそのポートを使用している、このコンピューターにそのアドレスが存在しない、または TLS ポートの証明書を読み込めなかった、のいずれかです。どれに当たるかはエラー ログに記録されています。</value>
   </data>
-  <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
-    <value>{0} をこのコンピューターから取得できませんでした: {1} 考えられる原因: mta-sts.{2} の A/CNAME レコードがない、HTTPS リスナーが動作していない (出荷時の既定は WebServicesHttpsPort=0)、または証明書が mta-sts.{2} を含んでいない、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
+  <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (it has no HTTPS port until one is set on the Web services &amp; autoconfiguration page), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
+    <value>{0} をこのコンピューターから取得できませんでした: {1} 考えられる原因: mta-sts.{2} の A/CNAME レコードがない、HTTPS リスナーが動作していない ([Web サービスと自動設定] ページで設定するまで HTTPS ポートはありません)、または証明書が mta-sts.{2} を含んでいない、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} が見つかりませんでした。綴りを確認するか、代わりにサーバーの IP アドレスを入力してください。</value>
@@ -15897,8 +15894,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} がポート {1} で応答しませんでした。Windows が hMailServer COM API にリモートで到達するには、このポートが必要です。コンピューターの電源が入っていること、ファイアウォールが DCOM を許可していること、そして正しい名前に接続していることを確認してください。</value>
   </data>
-  <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
-    <value>{0} はこのコンピューターから 10 秒以内に応答しませんでした。考えられる原因: mta-sts.{1} の A/CNAME レコードがない、HTTPS リスナーが動作していない (WebServicesHttpsPort)、または途中にファイアウォールがある、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
+  <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
+    <value>{0} はこのコンピューターから 10 秒以内に応答しませんでした。考えられる原因: mta-sts.{1} の A/CNAME レコードがない、HTTPS リスナーが動作していない ([Web サービスと自動設定] ページで HTTPS ポートが未設定)、または途中にファイアウォールがある、のいずれかです。確認はこのコンピューターからのみ行っています。</value>
   </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} 件のドメインがありますが、有効なものはありません。</value>
@@ -15954,8 +15951,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>{0} には postmaster アドレスが設定されておらず、このページが勝手にメールボックスを作り出すことはありません。レポートを受け取るべきアドレスを入力してください。入力されるまで、コピーできるレコードはありません。</value>
   </data>
-  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
-    <value>{0} には逆引き名がないため、どのパターンでも免除できません。代わりにアドレスを AutoBanNeverBan に記載してください。</value>
+  <data name="{0} has no reverse name, so no pattern can spare it. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead." xml:space="preserve">
+    <value>{0} には逆引き名がないため、どのパターンでも免除できません。代わりに、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にアドレスを追加してください。</value>
   </data>
   <data name="{0} have expired and are refused" xml:space="preserve">
     <value>{0} 件は期限切れで、拒否されます</value>

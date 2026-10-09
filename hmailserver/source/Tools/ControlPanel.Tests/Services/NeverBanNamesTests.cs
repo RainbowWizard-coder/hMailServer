@@ -146,7 +146,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string text = NeverBanNames.Describe(NeverBanNames.ParseCheck(Verdict(""), out _));
 
          Assert.Contains("has no reverse name", text);
-         Assert.Contains("AutoBanNeverBan", text);
+         Assert.Contains("'Never auto-ban these addresses' on the Auto-ban page", text);
       }
 
       [Fact]

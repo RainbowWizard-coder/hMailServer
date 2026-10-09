@@ -281,7 +281,7 @@ namespace hMailServer.ControlPanel.Services
          // COM; nothing else in the server consults it. The classic Administrator
          // was the tool that did, and it was removed in 6.2.10.
          new SettingClaim("UserInterfaceLanguage", ClaimKind.Conditional,
-            N("This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page.")),
+            N("The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page.")),
 
          new SettingClaim("Logging.LogFormat", ClaimKind.Honoured,
             N("NCSA Common Log Format writes one line per entry as host, ident, session, [date], \"category and message\", status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always \"-\" (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above.")),

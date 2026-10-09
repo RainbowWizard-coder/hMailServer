@@ -500,7 +500,7 @@ namespace hMailServer.ControlPanel.Services
          switch (preparation.BackupSkipped)
          {
             case "chosen": return L("No backup first: you chose to install without one.");
-            case "off": return L("No backup first: UpdateBackupBeforeApply is off.");
+            case "off": return L("No backup first: 'Back up to the configured destination before an unattended apply' is off.");
             case "no-destination": return L("No backup first: no backup destination is set (Backup & restore). A rollback puts the previous program back, not the database.");
             default: return "";
          }

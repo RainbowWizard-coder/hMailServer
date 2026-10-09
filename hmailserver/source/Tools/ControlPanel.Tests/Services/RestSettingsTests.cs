@@ -100,7 +100,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          // Off: the sentence names the setting and the page it is set on.
          Assert.Null(RestSettings.Endpoint("0", "127.0.0.1", "", "", false, true, "localhost", out string off));
-         Assert.Contains("RestApiPort", off);
+         Assert.Contains("its port on the API & monitoring page", off);
          Assert.Contains("API & monitoring", off);
          Assert.Null(RestSettings.Endpoint("", "", "", "", false, true, "localhost", out _));
          Assert.Null(RestSettings.Endpoint("70000", "", "", "", false, true, "localhost", out _));
@@ -112,7 +112,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // Plain HTTP anywhere else is a listener the server does not start.
          Assert.Null(RestSettings.Endpoint("8045", "0.0.0.0", "", "", false, true, "localhost", out string notRunning));
-         Assert.Contains("RestApiCertificateFile", notRunning);
+         Assert.Contains("TLS certificate file and its private key file on the API & monitoring page", notRunning);
 
          // A loopback listener, from another machine.
          Assert.Null(RestSettings.Endpoint("8045", "127.0.0.1", "", "", null, false, "mail.example.com", out string far));

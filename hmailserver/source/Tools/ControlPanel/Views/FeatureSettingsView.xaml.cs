@@ -1510,7 +1510,7 @@ namespace hMailServer.ControlPanel.Views
             return new WarningState
             {
                Level = StatusLevel.Information,
-               Text = L("Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read.")
+               Text = L("Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read.")
             };
          }
 
@@ -2504,7 +2504,7 @@ namespace hMailServer.ControlPanel.Views
                   Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
                   Settings =
                   {
-                     new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day (UpdateCheckEnabled)") },
+                     new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
                      new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
                      new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
                      new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.progressiverobot.com/releases.json" },
@@ -2566,7 +2566,7 @@ namespace hMailServer.ControlPanel.Views
                   // the whole case for shipping it on. A healthy server writes zero
                   // events, and a per-id throttle (5 per 10 minutes) answers floods.
                   Title = L("Windows Event Log"),
-                  Blurb = L("Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Stable event ids (the table lives in WindowsEventLog.h); a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled."),
+                  Blurb = L("Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled."),
                   Settings =
                   {
                      new BoolSetting { Key = "WindowsEventLogEnabled", Default = true, Label = L("Write operational events to the Windows Application log") },
@@ -2580,7 +2580,7 @@ namespace hMailServer.ControlPanel.Views
                            (1, L("Critical only")),
                            (2, L("Critical and High (default - a healthy server writes nothing)")),
                            (3, L("Critical, High and Medium")),
-                           (4, L("Everything ErrorManager reports"))
+                           (4, L("Every error the server reports"))
                         }
                      }
                   }
@@ -2748,7 +2748,7 @@ namespace hMailServer.ControlPanel.Views
                   // of seconds, so unlike everything else on this page these apply
                   // without a service restart.
                   Title = L("Per-account sending limits"),
-                  Blurb = L("Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory."),
+                  Blurb = L("Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory."),
                   Settings =
                   {
                      new NumberSetting

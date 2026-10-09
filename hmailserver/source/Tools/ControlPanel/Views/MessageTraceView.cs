@@ -290,7 +290,7 @@ namespace hMailServer.ControlPanel.Views
                int removed = (int)trace.DeleteExpired();
 
                if (removed == 0)
-                  Status_(StatusLevel.Information, L("Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never."));
+                  Status_(StatusLevel.Information, L("Nothing was old enough to remove. The window is set on the Logging page (Delete trace events after), and 0 means never."));
                else
                   Status_(StatusLevel.Good, Plural(removed, "{0} event past the retention window was removed.", "{0} events past the retention window were removed."));
             }

@@ -39,7 +39,7 @@ namespace hMailServer.ControlPanel.Views
          (L("Keep seen/unseen state"), 4, null),
          (L("Set flags"), 8, null),
          (L("Insert / append messages"), 16, null),
-         (L("Post"), 32, L("Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on.")),
+         (L("Post"), 32, L("Post also lets the account send as this mailbox's address over SMTP (Send-As), when 'An authenticated session may only send as an address its account owns or has been granted' is on, on the Protocols page's SMTP tab.")),
          (L("Create sub-folders"), 64, null),
          (L("Delete folder"), 128, null),
          (L("Delete messages"), 256, null),

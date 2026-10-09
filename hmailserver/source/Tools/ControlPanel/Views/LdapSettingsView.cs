@@ -420,7 +420,7 @@ namespace hMailServer.ControlPanel.Views
             L("Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address."),
             placeholder: "dc01.example.local"));
 
-         content.Children.Add(portRow_ = LabelledBox_(L("_Port (Port)"), port_, "ldap-port",
+         content.Children.Add(portRow_ = LabelledBox_(L("_Port"), port_, "ldap-port",
             L("Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem."),
             placeholder: L("Automatic - 636 for LDAPS, 389 otherwise")));
 

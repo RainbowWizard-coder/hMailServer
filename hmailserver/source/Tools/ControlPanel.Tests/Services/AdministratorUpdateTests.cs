@@ -372,7 +372,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Null(AdministratorUpdate.ParsePreparation("{not json"));
 
          Assert.Contains("chose", AdministratorUpdate.BackupText(new AdministratorUpdate.Preparation { BackupSkipped = "chosen" }));
-         Assert.Contains("UpdateBackupBeforeApply", AdministratorUpdate.BackupText(new AdministratorUpdate.Preparation { BackupSkipped = "off" }));
+         Assert.Contains("Back up to the configured destination before an unattended apply", AdministratorUpdate.BackupText(new AdministratorUpdate.Preparation { BackupSkipped = "off" }));
          Assert.Contains("no backup destination", AdministratorUpdate.BackupText(new AdministratorUpdate.Preparation { BackupSkipped = "no-destination" }));
          Assert.Contains("the disk is full", AdministratorUpdate.BackupFailedQuestion(new AdministratorUpdate.Preparation { BackupFailed = "the disk is full" }, "6.3.7", "6.3.6"));
       }

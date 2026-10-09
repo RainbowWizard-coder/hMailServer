@@ -142,11 +142,11 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(Table(new[]
          {
             (L("SpamTestSpamAssassin with a large Time:"), L("spamd is unreachable, overloaded, or accepting connections without answering.")),
-            (L("SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow"), L("The resolver is not answering: look in the TCP/IP log for \"DNS - Query timed out\". Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver.")),
+            (L("SpamTestDNSBlackLists, SpamTestSURBL or SpamTestSPF slow"), L("The resolver is not answering: look in the TCP/IP log for \"DNS - Query timed out\". Do not reach for 'Override DNS server' on the DNS resolver page as the fix - leave it empty unless you need a specific resolver.")),
             (L("\"done spam-protection\", then silence"), L("Message modifications: the spam headers, the signature, the List-* headers, or the write of the modified message back to disk.")),
             (L("script/save slow"), L("An OnAcceptMessage event script, or the database.")),
             (L("Nothing between 354 and silence"), L("A version older than 6.2.17; upgrade, because that is the version that added these lines.")),
-            (L("451 4.3.1 replies"), L("Acceptance exceeded FinalizationTimeout (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
+            (L("451 4.3.1 replies"), L("Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time.")),
          }));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
@@ -175,9 +175,9 @@ namespace hMailServer.ControlPanel.Views
             L("Delivery runs on a separate, smaller pool. The usual causes, in the order they occur:"));
          var content = (StackPanel)card.Content;
 
-         content.Children.Add(Bullet(L("A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total.")));
-         content.Children.Add(Bullet(L("A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; ClientSessionCeiling (30 minutes by default) is the absolute ceiling, armed once and never re-armed.")));
-         content.Children.Add(Bullet(L("A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout.")));
+         content.Children.Add(Bullet(L("A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by the ClamAV minimum and maximum timeouts on the Anti-virus settings page - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than the maximum timeout in total.")));
+         content.Children.Add(Bullet(L("A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed.")));
+         content.Children.Add(Bullet(L("A custom virus scanner or external tool that hangs - bounded by 'External process timeout' on the Server limits & expert settings page.")));
          content.Children.Add(Bullet(L("The database: check for errors mentioning the connection pool. When the pool deadline expires a recipient lookup answers 451 4.3.2 rather than 550, so a database locked by a backup defers mail instead of bouncing it.")));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
@@ -191,26 +191,26 @@ namespace hMailServer.ControlPanel.Views
       private Card Bounds()
       {
          var card = Section(L("The settings that bound each stage"),
-            L("All in hMailServer.ini under [Settings], all in seconds, with defaults chosen to sit well inside a typical sending server's timeout. Two exceptions matter: SAMaxTimeout and ClamMaxTimeout go through TimeoutCalculator, which returns the minimum whenever the maximum is lower than it - so 0 gives a shorter bound, not an absent one. To lengthen either a long way, raise the matching ...MinTimeout too."));
+            L("All in seconds, the default in brackets, with defaults chosen to sit well inside a typical sending server's timeout. The SpamAssassin and ClamAV timeouts are on the Anti-spam settings and Anti-virus settings pages, the rest on the Server limits & expert settings page. Two exceptions matter: a SpamAssassin or ClamAV maximum timeout below its minimum timeout gives way to the minimum - so 0 gives a shorter bound, not an absent one. To lengthen either a long way, raise the matching minimum timeout too."));
          var content = (StackPanel)card.Content;
 
          content.Children.Add(Table(new[]
          {
-            (L("FinalizationTimeout (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no bound.")),
-            (L("SAMaxTimeout (90)"), L("SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 is NOT no bound.")),
-            (L("ClamMaxTimeout (90)"), L("ClamAV: idle timeout per socket operation. 0 is NOT no bound.")),
-            (L("DNSQueryTimeout (10)"), L("A single DNS query. 0 = no bound.")),
-            (L("ScriptTimeout (60)"), L("One event script invocation. 0 = no bound.")),
-            (L("ExternalProcessTimeout (300)"), L("An external scanner process. 0 = no bound.")),
-            (L("ClientSessionCeiling (1800)"), L("An entire outbound delivery session. 0 = no bound.")),
-            (L("AsyncQueueStallThreshold (120)"), L("How long every worker may be busy before the saturation report. 0 = reporting off.")),
-            (L("DBConnectionAcquireTimeout (60)"), L("Waiting for a pooled database connection. 0 = no bound.")),
+            (L("Message finalization deadline (240)"), L("The whole accept pipeline; then the sender gets a 451. 0 = no bound.")),
+            (L("SpamAssassin maximum timeout (90)"), L("SpamAssassin: idle timeout, and a session ceiling of this plus 30 s. 0 is NOT no bound.")),
+            (L("ClamAV maximum timeout (90)"), L("ClamAV: idle timeout per socket operation. 0 is NOT no bound.")),
+            (L("DNS query timeout (10)"), L("A single DNS query. 0 = no bound.")),
+            (L("Event script execution timeout (60)"), L("One event script invocation. 0 = no bound.")),
+            (L("External process timeout (300)"), L("An external scanner process. 0 = no bound.")),
+            (L("Absolute lifetime of one client session (1800)"), L("An entire outbound delivery session. 0 = no bound.")),
+            (L("Report the async work queue as stalled after (120)"), L("How long every worker may be busy before the saturation report. 0 = reporting off.")),
+            (L("Wait for a free database connection (60)"), L("Waiting for a pooled database connection. 0 = no bound.")),
          }));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
          links.Children.Add(Link(L("Server limits & expert settings (the timeouts)"), "hardening"));
-         links.Children.Add(Link(L("Anti-spam (SAMaxTimeout)"), "antispam"));
-         links.Children.Add(Link(L("Anti-virus (ClamMaxTimeout)"), "antivirus"));
+         links.Children.Add(Link(L("Anti-spam settings (SpamAssassin timeouts)"), "antispam"));
+         links.Children.Add(Link(L("Anti-virus settings (ClamAV timeouts)"), "antivirus"));
          content.Children.Add(links);
          return card;
       }

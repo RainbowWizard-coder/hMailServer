@@ -164,10 +164,10 @@ namespace hMailServer.ControlPanel.Services
             return F("{0} is never auto-banned: its reverse name {1} resolves back to it and is covered by {2}.", check.Address, check.Name, check.Pattern);
 
          if (!check.Answered)
-            return F("The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan.", check.Address);
+            return F("The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or add the address to 'Never auto-ban these addresses' on the Auto-ban page.", check.Address);
 
          if (check.Names.Count == 0)
-            return F("{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead.", check.Address);
+            return F("{0} has no reverse name, so no pattern can spare it. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead.", check.Address);
 
          NeverBanCheckedName covered = check.Names.FirstOrDefault(n => n.Usable && n.Pattern.Length > 0);
          if (covered != null)
@@ -179,7 +179,7 @@ namespace hMailServer.ControlPanel.Services
 
          NeverBanCheckedName usable = check.Names.FirstOrDefault(n => n.Usable);
          if (usable == null)
-            return F("The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead.", check.Names[0].Name);
+            return F("The reverse name {0} is an address or a public suffix, which the list never matches. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead.", check.Names[0].Name);
 
          return usable.ResolvesBack == true
             ? F("No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address.", usable.Name, check.Address)

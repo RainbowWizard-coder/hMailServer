@@ -1921,7 +1921,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "ArchiveRetentionDays",
             Label = L("Delete archived messages after (days; 0 = keep for ever)"),
             Default = 0,
-            Blurb = L("ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after."),
+            Blurb = L("The archive folder is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after."),
             IniStore = iniStore_
          });
 
@@ -2440,7 +2440,7 @@ namespace hMailServer.ControlPanel.Views
          // Not a score: this one costs the sender time rather than points, which is
          // why it is a card of its own rather than a row in the thresholds.
          var tarpit = Card(L("Recipient tarpit"),
-            L("Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds."));
+            L("Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once."));
          tarpit.Settings.Add(new ComText { Path = "AntiSpam.TarpitCount", Label = L("Recipients a message may name before the delay starts (0 = off)"), Numeric = true });
          tarpit.Settings.Add(new ComText { Path = "AntiSpam.TarpitDelay", Label = L("Delay for each further recipient (seconds, at most 30; 0 = off)"), Numeric = true });
          Tab(L("General")).Cards.Add(tarpit);
@@ -2571,7 +2571,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.BanMultiRcptNullSender",
             Label = L("Also ban the connecting address for a while"),
-            Blurb = L("The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off.")
+            Blurb = L("The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off.")
          });
          nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8760)"), Numeric = true });
          Tab(L("Host checks")).Cards.Add(nullSender);
@@ -3268,7 +3268,7 @@ namespace hMailServer.ControlPanel.Views
          // WHETHER a guess is answered; this decides HOW SOON, and it applies from
          // the first wrong password rather than after a threshold.
          var tarpit = Card(L("Logon tarpit"),
-            L("Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage."));
+            L("Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on."));
          tarpit.Settings.Add(new IniNumber
          {
             Path = "LogonTarpitSeconds",

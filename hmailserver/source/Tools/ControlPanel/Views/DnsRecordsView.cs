@@ -1034,7 +1034,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Card card = Section(F("MTA-STS - require TLS from servers delivering to {0}", domain.Name), out StackPanel content);
 
-         content.Children.Add(Paragraph(F("Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name.", domain.Name),
+         content.Children.Add(Paragraph(F("Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when 'Serve MTA-STS policies for local domains' is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name.", domain.Name),
             Typography.Caption));
 
          // The id's only job is to CHANGE whenever the policy changes, so senders
@@ -1137,9 +1137,9 @@ namespace hMailServer.ControlPanel.Views
                : L("Connected to a remote server: hMailServer.INI cannot be read from here, so mode and max_age shown are the shipped defaults."));
 
          if (iniReadable && !hosting)
-            caveat = Sentences(caveat, L("NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all."));
+            caveat = Sentences(caveat, L("Note: 'Serve MTA-STS policies for local domains' is off on the Web services & autoconfiguration page, so the server does not serve this policy."));
          else if (iniReadable && httpsPort <= 0)
-            caveat = Sentences(caveat, L("NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves."));
+            caveat = Sentences(caveat, L("Note: the web services listener has no HTTPS port on the Web services & autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves."));
 
          List<string> mxHosts = null;
          string mxNote;
@@ -1147,7 +1147,7 @@ namespace hMailServer.ControlPanel.Views
          if (mxOverride.Length > 0)
          {
             mxHosts = mxOverride.Split(',').Select(s => s.Trim().ToLowerInvariant()).Where(s => s.Length > 0).ToList();
-            mxNote = L("mx lines from the MtaStsPolicyMx override in hMailServer.INI.");
+            mxNote = L("mx lines from 'Policy MX host patterns' on the Web services & autoconfiguration page.");
          }
          else
          {
@@ -1279,7 +1279,7 @@ namespace hMailServer.ControlPanel.Views
             if (code != 200)
             {
                SetResultOn(mark, text, StatusLevel.Warning, L("Not served"),
-                  F("{0} answered HTTP {1}. The server serves the policy only when MtaStsHostingEnabled is on, the domain is hosted and active, and the request's Host header is mta-sts.{2}.", url, code, domainName));
+                  F("{0} answered HTTP {1}. The server serves the policy only when 'Serve MTA-STS policies for local domains' is on, the domain is hosted and active, and the request's Host header is mta-sts.{2}.", url, code, domainName));
                return;
             }
 
@@ -1300,13 +1300,13 @@ namespace hMailServer.ControlPanel.Views
          catch (TaskCanceledException)
          {
             SetResultOn(mark, text, StatusLevel.Warning, L("Not served"),
-               F("{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only.", url, domainName));
+               F("{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services & autoconfiguration page), or a firewall in between. Checked from this machine only.", url, domainName));
          }
          catch (HttpRequestException ex)
          {
             string reason = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
             SetResultOn(mark, text, StatusLevel.Warning, L("Not served"),
-               F("{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only.", url, reason, domainName));
+               F("{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (it has no HTTPS port until one is set on the Web services & autoconfiguration page), or a certificate that does not cover mta-sts.{2}. Checked from this machine only.", url, reason, domainName));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -1387,17 +1387,17 @@ namespace hMailServer.ControlPanel.Views
             {
                string from = ini.Read("TlsRptFromAddress", "").Trim();
                sendingNote = from.Length > 0
-                  ? F("Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out.", from)
-                  : L("Separately, this server's own SENDING of such reports to other domains is inert: TlsRptFromAddress is empty in hMailServer.INI (the default), so it collects statistics and discards every completed day unsent. Set it on the Transport security page if you want to send reports too.");
+                  ? F("Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out.", from)
+                  : L("Separately, this server sends no such reports of its own: 'TLS report sender address' on the Transport security page is empty (the default), so it collects statistics and discards every completed day unsent. Set it if you want to send reports too.");
             }
             else
             {
-               sendingNote = L("Separately, this server sends its own reports to other domains only when TlsRptFromAddress is set in hMailServer.INI - which could not be found on this machine to check.");
+               sendingNote = L("Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it.");
             }
          }
          else
          {
-            sendingNote = L("Separately, this server sends its own reports to other domains only when TlsRptFromAddress is set in hMailServer.INI on the server - not readable from this machine.");
+            sendingNote = L("Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini on the server is not readable from this machine to check it.");
          }
          content.Children.Add(Paragraph(sendingNote, Typography.Caption));
 
@@ -1499,7 +1499,7 @@ namespace hMailServer.ControlPanel.Views
          else if (serverHostName_.Length > 0)
          {
             heloName = serverHostName_;
-            heloNote = L("This is Protocols > SMTP > Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions.");
+            heloNote = L("This is Protocols > SMTP > Host name, the name the server announces in HELO/EHLO on every outbound delivery. Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions.");
          }
          else
          {

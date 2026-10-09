@@ -402,8 +402,8 @@
   <data name="A criterion of the rule “{0}”." xml:space="preserve">
     <value>Een criterium van de regel ‘{0}’.</value>
   </data>
-  <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
-    <value>Een aangepaste virusscanner of extern hulpmiddel dat blijft hangen - begrensd door ExternalProcessTimeout.</value>
+  <data name="A custom virus scanner or external tool that hangs - bounded by 'External process timeout' on the Server limits &amp; expert settings page." xml:space="preserve">
+    <value>Een aangepaste virusscanner of extern hulpmiddel dat blijft hangen - begrensd door 'Time-out voor externe processen' op de pagina Serverlimieten en expertinstellingen.</value>
   </data>
   <data name="A delivery between two hard bounces starts the count again. A refusal this server cannot trust as a dead mailbox - a bare 550 with no enhanced code, a policy refusal, its own connection failures - never counts." xml:space="preserve">
     <value>Een aflevering tussen twee harde bounces begint de telling opnieuw. Een weigering die deze server niet kan vertrouwen als niet-bestaand postvak - een kale 550 zonder uitgebreide code, een beleidsweigering, eigen verbindingsfouten - telt nooit.</value>
@@ -579,8 +579,8 @@
   <data name="A recipient domain with several MX hosts is worth more attempts than one with a single host, because a retry can land on a different server. This multiplies the retry count above by the number of MX hosts actually tried." xml:space="preserve">
     <value>Een ontvangend domein met meerdere MX-hosts is meer pogingen waard dan een met één host, omdat een nieuwe poging op een andere server kan uitkomen. Dit vermenigvuldigt het aantal pogingen hierboven met het aantal daadwerkelijk geprobeerde MX-hosts.</value>
   </data>
-  <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; ClientSessionCeiling (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
-    <value>Een externe server die extreem traag antwoordt. De inactiviteitstime-out wordt bij elke byte opnieuw gezet, dus een host die af en toe één byte stuurt, kon een bezorgthread voorheen onbeperkt vasthouden; ClientSessionCeiling (standaard 30 minuten) is het absolute plafond, eenmaal gezet en nooit opnieuw.</value>
+  <data name="A remote server that answers extremely slowly. The idle timeout is re-armed on every byte, so a host that sends one byte occasionally used to hold a delivery thread indefinitely; 'Absolute lifetime of one client session' (30 minutes by default) is the absolute ceiling, armed once and never re-armed." xml:space="preserve">
+    <value>Een externe server die extreem traag antwoordt. De inactiviteitstime-out wordt bij elke byte opnieuw gezet, dus een host die af en toe één byte stuurt, kon een bezorgthread voorheen onbeperkt vasthouden; 'Absolute levensduur van één clientsessie' (standaard 30 minuten) is het absolute plafond, eenmaal gezet en nooit opnieuw.</value>
   </data>
   <data name="A reply for the whole domain - a closed office, a decommissioned department. It answers only for accounts that have NO vacation message of their own: an account's own message always wins, and at most one reply answers any message." xml:space="preserve">
     <value>Een antwoord voor het hele domein - een gesloten kantoor, een opgeheven afdeling. Het antwoordt alleen voor accounts die GEEN eigen afwezigheidsbericht hebben: het eigen bericht van een account wint altijd, en hooguit één antwoord beantwoordt een bericht.</value>
@@ -687,8 +687,8 @@
   <data name="A version older than 6.2.17; upgrade, because that is the version that added these lines." xml:space="preserve">
     <value>Een versie ouder dan 6.2.17; upgrade, want dat is de versie die deze regels toevoegde.</value>
   </data>
-  <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by ClamMinTimeout / ClamMaxTimeout - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than ClamMaxTimeout in total." xml:space="preserve">
-    <value>Een virusscanner die niet meer reageert. ClamAV wordt benaderd nadat het bericht is geaccepteerd, dus een vastgelopen clamd toont zich als geaccepteerd-maar-nooit-bezorgd. Elke socketbewerking wordt begrensd door ClamMinTimeout / ClamMaxTimeout - een deadline op één lees- of schrijfbewerking, telkens opnieuw gezet, zodat een groot bericht dat in stukken wordt gestreamd in totaal langer kan duren dan ClamMaxTimeout.</value>
+  <data name="A virus scanner that stops responding. ClamAV is contacted after the message is accepted, so a wedged clamd shows up as accepted-but-never-delivered. Each socket operation is bounded by the ClamAV minimum and maximum timeouts on the Anti-virus settings page - a deadline on one read or write, armed afresh each time, so a large message streamed in chunks can take longer than the maximum timeout in total." xml:space="preserve">
+    <value>Een virusscanner die niet meer reageert. ClamAV wordt benaderd nadat het bericht is geaccepteerd, dus een vastgelopen clamd toont zich als geaccepteerd-maar-nooit-bezorgd. Elke socketbewerking wordt begrensd door de minimale en maximale time-out van ClamAV op de pagina Antivirusinstellingen - een deadline op één lees- of schrijfbewerking, telkens opnieuw gezet, zodat een groot bericht dat in stukken wordt gestreamd in totaal langer kan duren dan de maximale time-out.</value>
   </data>
   <data name="A way back from a profile is held and cannot be read, so it cannot be put back. Discard it to apply a profile; the audit trail names each value the profile replaced." xml:space="preserve">
     <value>Er wordt een weg terug van een profiel bewaard die niet te lezen is, dus die kan niet worden teruggezet. Gooi hem weg om een profiel toe te passen; het auditspoor noemt elke waarde die het profiel verving.</value>
@@ -705,14 +705,14 @@
   <data name="ACME directory URL" xml:space="preserve">
     <value>ACME-directory-URL</value>
   </data>
-  <data name="ACME is enabled but AcmeDomains is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
-    <value>ACME is ingeschakeld maar AcmeDomains is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.uwdomein.nl, mta-sts.uwdomein.nl).</value>
+  <data name="ACME is off (the default), so nothing external is required." xml:space="preserve">
+    <value>ACME staat uit (de standaard), dus er is niets externs vereist.</value>
   </data>
-  <data name="ACME is enabled with AcmeReuseKey=0, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - set AcmeReuseKey=1 (the default), or update the TLSA record after every renewal." xml:space="preserve">
-    <value>ACME is ingeschakeld met AcmeReuseKey=0, dus elke certificaatverlenging genereert een nieuwe privésleutel. Als u '3 1 1' TLSA-records publiceert, breken die bij de volgende verlenging - stel AcmeReuseKey=1 in (de standaard), of werk het TLSA-record na elke verlenging bij.</value>
+  <data name="ACME is on and 'Reuse the private key across renewals' is off, so every certificate renewal generates a new private key. If you publish '3 1 1' TLSA records they will break on the next renewal - turn it on again on the Certificates (ACME) page (the default), or update the TLSA record after every renewal." xml:space="preserve">
+    <value>ACME is ingeschakeld en 'De privésleutel hergebruiken bij verlengingen' staat uit, dus elke certificaatverlenging genereert een nieuwe privésleutel. Als u '3 1 1' TLSA-records publiceert, breken die bij de volgende verlenging - schakel het weer in op de pagina Certificaten (ACME) (de standaard), of werk het TLSA-record na elke verlenging bij.</value>
   </data>
-  <data name="ACME is off (AcmeEnabled=0, the default), so nothing external is required." xml:space="preserve">
-    <value>ACME staat uit (AcmeEnabled=0, de standaard), dus er is niets externs vereist.</value>
+  <data name="ACME is on, but 'Host names for the certificate' on the Certificates (ACME) page is empty, so no certificate is ever requested - the client logs 'No domains configured' and stops. List there the host names the certificate should cover (for example mail.yourdomain.com, mta-sts.yourdomain.com)." xml:space="preserve">
+    <value>ACME is ingeschakeld maar 'Hostnamen voor het certificaat' op de pagina Certificaten (ACME) is leeg, dus er wordt nooit een certificaat aangevraagd - de client logt 'No domains configured' en stopt. Som daar de hostnamen op die het certificaat moet dekken (bijvoorbeeld mail.uwdomein.nl, mta-sts.uwdomein.nl).</value>
   </data>
   <data name="ACME is switched on but no certificate has been issued yet - fullchain.pem and privkey.pem are not both in {0}. Issue happens on the server's own schedule, so this is normal for a few minutes after enabling it; if it persists, the CA could not reach this server, and the Setup checklist page checks exactly that." xml:space="preserve">
     <value>ACME is ingeschakeld maar er is nog geen certificaat uitgegeven - fullchain.pem en privkey.pem staan niet allebei in {0}. Uitgifte gebeurt volgens het eigen schema van de server, dus dit is normaal gedurende enkele minuten na het inschakelen; houdt het aan, dan kon de CA deze server niet bereiken, en de pagina Configuratiechecklist controleert precies dat.</value>
@@ -744,14 +744,14 @@
   <data name="ARC sealing" xml:space="preserve">
     <value>ARC-verzegeling</value>
   </data>
-  <data name="ARC sealing is off (ArcSealingEnabled=0, the default), so nothing external is required." xml:space="preserve">
-    <value>ARC-verzegeling staat uit (ArcSealingEnabled=0, de standaard), dus er is niets externs vereist.</value>
-  </data>
-  <data name="ARC sealing is on (ArcSealingEnabled=1) but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
-    <value>ARC-verzegeling staat aan (ArcSealingEnabled=1) maar geen enkel actief domein heeft DKIM-ondertekening met een selector en sleutelbestand geconfigureerd, dus doorgestuurde mail wordt stilzwijgend helemaal niet verzegeld.</value>
+  <data name="ARC sealing is off (the default), so nothing external is required." xml:space="preserve">
+    <value>ARC-verzegeling staat uit (de standaard), dus er is niets externs vereist.</value>
   </data>
   <data name="ARC sealing is on and at least one active domain has a DKIM selector and key to seal with. The DNS side is covered by the DKIM item above - the seal verifies against the same TXT record." xml:space="preserve">
     <value>ARC-verzegeling staat aan en minstens één actief domein heeft een DKIM-selector en sleutel om mee te verzegelen. De DNS-kant wordt gedekt door het DKIM-punt hierboven - het zegel wordt geverifieerd tegen hetzelfde TXT-record.</value>
+  </data>
+  <data name="ARC sealing is on, but no active domain has DKIM signing with a selector and key file configured, so forwarded mail is silently not sealed at all." xml:space="preserve">
+    <value>ARC-verzegeling staat aan maar geen enkel actief domein heeft DKIM-ondertekening met een selector en sleutelbestand geconfigureerd, dus doorgestuurde mail wordt stilzwijgend helemaal niet verzegeld.</value>
   </data>
   <data name="ARC sealing of forwarded mail - needs a domain DKIM key" xml:space="preserve">
     <value>ARC-verzegeling van doorgestuurde mail - vereist een DKIM-sleutel van het domein</value>
@@ -780,6 +780,9 @@
   <data name="About" xml:space="preserve">
     <value>Info</value>
   </data>
+  <data name="Absolute lifetime of one client session (1800)" xml:space="preserve">
+    <value>Absolute levensduur van één clientsessie (1800)</value>
+  </data>
   <data name="Absolute lifetime of one client session (seconds)" xml:space="preserve">
     <value>Absolute levensduur van één clientsessie (seconden)</value>
   </data>
@@ -804,8 +807,8 @@
   <data name="Accept the XCLIENT command (Postfix)" xml:space="preserve">
     <value>Het XCLIENT-commando (Postfix) accepteren</value>
   </data>
-  <data name="Acceptance exceeded FinalizationTimeout (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
-    <value>Acceptatie overschreed FinalizationTimeout (standaard 240 s): de afzender probeert opnieuw in plaats van eindeloos te wachten, de foutvermelding noemt de deadline, en de fasetijden erboven noemen wat de tijd heeft verbruikt.</value>
+  <data name="Acceptance exceeded the message finalization deadline (240 s by default): the sender retries rather than waiting for ever, the error entry names the deadline, and the stage timings above it name what consumed the time." xml:space="preserve">
+    <value>Acceptatie overschreed de deadline voor het afronden van een bericht (standaard 240 s): de afzender probeert opnieuw in plaats van eindeloos te wachten, de foutvermelding noemt de deadline, en de fasetijden erboven noemen wat de tijd heeft verbruikt.</value>
   </data>
   <data name="Accepting" xml:space="preserve">
     <value>Accepteren</value>
@@ -1281,8 +1284,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="All files (*.*)|*.*" xml:space="preserve">
     <value>Alle bestanden (*.*)|*.*</value>
   </data>
-  <data name="All in hMailServer.ini under [Settings], all in seconds, with defaults chosen to sit well inside a typical sending server's timeout. Two exceptions matter: SAMaxTimeout and ClamMaxTimeout go through TimeoutCalculator, which returns the minimum whenever the maximum is lower than it - so 0 gives a shorter bound, not an absent one. To lengthen either a long way, raise the matching ...MinTimeout too." xml:space="preserve">
-    <value>Allemaal in hMailServer.ini onder [Settings], allemaal in seconden, met standaarden die ruim binnen de time-out van een typische verzendende server vallen. Twee uitzonderingen zijn van belang: SAMaxTimeout en ClamMaxTimeout gaan door TimeoutCalculator, die het minimum teruggeeft wanneer het maximum lager is - 0 geeft dus een kortere grens, geen ontbrekende. Om een van beide flink te verlengen, verhoog ook de bijbehorende ...MinTimeout.</value>
+  <data name="All in seconds, the default in brackets, with defaults chosen to sit well inside a typical sending server's timeout. The SpamAssassin and ClamAV timeouts are on the Anti-spam settings and Anti-virus settings pages, the rest on the Server limits &amp; expert settings page. Two exceptions matter: a SpamAssassin or ClamAV maximum timeout below its minimum timeout gives way to the minimum - so 0 gives a shorter bound, not an absent one. To lengthen either a long way, raise the matching minimum timeout too." xml:space="preserve">
+    <value>Allemaal in seconden, de standaard tussen haakjes, met standaarden die ruim binnen de time-out van een typische verzendende server vallen. De time-outs van SpamAssassin en ClamAV staan op de pagina's Antispaminstellingen en Antivirusinstellingen, de rest op de pagina Serverlimieten en expertinstellingen. Twee uitzonderingen zijn van belang: een maximale time-out van SpamAssassin of ClamAV die lager is dan zijn minimale time-out, wijkt voor het minimum - 0 geeft dus een kortere grens, geen ontbrekende. Om een van beide flink te verlengen, verhoog ook de bijbehorende minimale time-out.</value>
   </data>
   <data name="All linked domains" xml:space="preserve">
     <value>Alle gekoppelde domeinen</value>
@@ -1534,20 +1537,17 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Anti-spam" xml:space="preserve">
     <value>Antispam</value>
   </data>
-  <data name="Anti-spam (SAMaxTimeout)" xml:space="preserve">
-    <value>Antispam (SAMaxTimeout)</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Antispaminstellingen</value>
+  </data>
+  <data name="Anti-spam settings (SpamAssassin timeouts)" xml:space="preserve">
+    <value>Antispaminstellingen (time-outs van SpamAssassin)</value>
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Antispaminstellingen (SpamAssassin)</value>
   </data>
   <data name="Anti-virus" xml:space="preserve">
     <value>Antivirus</value>
-  </data>
-  <data name="Anti-virus (ClamMaxTimeout)" xml:space="preserve">
-    <value>Antivirus (ClamMaxTimeout)</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Antivirusinstellingen</value>
@@ -1639,17 +1639,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Ar_chive" xml:space="preserve">
     <value>A_rchief</value>
   </data>
-  <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
-    <value>ArcSealingEnabled kon niet worden gelezen: {0}</value>
-  </data>
   <data name="Archive" xml:space="preserve">
     <value>Archief</value>
   </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Archiefmap (leeg = archivering uit)</value>
-  </data>
-  <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
-    <value>ArchiveDir is een ruwe kopie van elk bericht dat door de server gaat, en tot nu toe verwijderde niets er ooit iets uit - dus op een drukke server is het een map die alleen maar groeit, en de beheerder die daar achter komt is degene wiens schijf vol is gelopen. Dit snoeit hem. 0 bewaart alles, en dat is met opzet de standaard: een archief wordt meestal om een juridische of contractuele reden bewaard, en een server die er bij een upgrade uit begon te verwijderen zou precies vernietigen wat hem is opgedragen te bewaren. De opruiming verwijdert alleen .eml-bestanden, dus al het andere dat u in het archief bewaart blijft met rust, en hij draait bij het opstarten en daarna elke twaalf uur.</value>
   </data>
   <data name="Archives in the destination" xml:space="preserve">
     <value>Archieven in de doelmap</value>
@@ -1692,9 +1686,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Asks for a confirmation" xml:space="preserve">
     <value>Vraagt om een bevestiging</value>
-  </data>
-  <data name="AsyncQueueStallThreshold (120)" xml:space="preserve">
-    <value>AsyncQueueStallThreshold (120)</value>
   </data>
   <data name="At RCPT TO, before the body is transferred — a refusal here is a 550" xml:space="preserve">
     <value>Bij RCPT TO, voordat de inhoud wordt overgedragen — een weigering hier is een 550</value>
@@ -1819,11 +1810,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Autoconfiguration hands clients the right host names, ports and security." xml:space="preserve">
     <value>Autoconfiguratie geeft clients de juiste hostnamen, poorten en beveiliging.</value>
   </data>
-  <data name="Autoconfiguration is enabled (AutoconfigEnabled=1, the shipped default) but both WebServicesHttpPort and WebServicesHttpsPort are 0, so nothing answers the configuration URLs. Set a port if you want clients to self-configure; if you do not, this row is safe to ignore, or set AutoconfigEnabled=0 to silence it." xml:space="preserve">
-    <value>Autoconfiguratie is ingeschakeld (AutoconfigEnabled=1, de meegeleverde standaard), maar zowel WebServicesHttpPort als WebServicesHttpsPort staat op 0, dus niets beantwoordt de configuratie-URL's. Stel een poort in als u wilt dat clients zichzelf configureren; wilt u dat niet, dan kunt u deze rij gerust negeren, of AutoconfigEnabled=0 instellen om hem te laten zwijgen.</value>
+  <data name="Autoconfiguration is off, so no listener or DNS names are required." xml:space="preserve">
+    <value>Autoconfiguratie staat uit, dus er is geen listener en er zijn geen DNS-namen nodig.</value>
   </data>
-  <data name="Autoconfiguration is off (AutoconfigEnabled=0), so no listener or DNS names are required." xml:space="preserve">
-    <value>Autoconfiguratie staat uit (AutoconfigEnabled=0), dus er is geen listener en er zijn geen DNS-namen nodig.</value>
+  <data name="Autoconfiguration is on (the shipped default), but the web services listener has neither an HTTP nor an HTTPS port, so nothing answers the configuration URLs. Set a port on the Web services &amp; autoconfiguration page if you want clients to self-configure; if you do not, this row is safe to ignore, or turn off 'Thunderbird autoconfig + Outlook autodiscover' there to silence it." xml:space="preserve">
+    <value>Autoconfiguratie is ingeschakeld (de meegeleverde standaard), maar de listener van de webservices heeft geen HTTP- en geen HTTPS-poort, dus niets beantwoordt de configuratie-URL's. Stel een poort in op de pagina Webservices en autoconfiguratie als u wilt dat clients zichzelf configureren; wilt u dat niet, dan kunt u deze rij gerust negeren, of daar 'Thunderbird autoconfig + Outlook autodiscover' uitschakelen om hem te laten zwijgen.</value>
   </data>
   <data name="Autodiscover and autoconfig are served by the built-in HTTP listener." xml:space="preserve">
     <value>Autodiscover en autoconfig worden geserveerd door de ingebouwde HTTP-listener.</value>
@@ -2227,8 +2218,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
     <value>Niet vast te stellen wanneer de laatste back-up is gedraaid: {0} kon niet vanaf deze machine worden gelezen. Kijk in de map op de server, of in het back-uplogboek op de pagina Logboeken.</value>
   </data>
-  <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself." xml:space="preserve">
-    <value>Niet vast te stellen of er een schema is geconfigureerd: hMailServer.ini is op deze machine niet gevonden. Controleer ScheduledBackupTime en ScheduledBackupIntervalMinutes op de server zelf.</value>
+  <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
+    <value>Niet vast te stellen of er een schema is geconfigureerd: hMailServer.ini is op deze machine niet gevonden. Controleer de dagelijkse back-uptijd en het back-upinterval op de server zelf.</value>
   </data>
   <data name="Case" xml:space="preserve">
     <value>Zaak</value>
@@ -2236,8 +2227,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Ceilings on a single IMAP SEARCH or SORT, measured from the start of the search, so that one client searching a very large mailbox cannot occupy a connection indefinitely. If users with big mailboxes report searches failing or returning nothing, these are the two to raise. Either half can be turned off on its own by setting it to 0." xml:space="preserve">
     <value>Plafonds voor één IMAP SEARCH of SORT, gemeten vanaf het begin van de zoekopdracht, zodat één client die een heel groot postvak doorzoekt niet onbeperkt een verbinding kan bezetten. Melden gebruikers met grote postvakken dat zoekopdrachten mislukken of niets opleveren, dan zijn dit de twee om te verhogen. Elk van beide helften kan afzonderlijk worden uitgeschakeld door hem op 0 te zetten.</value>
   </data>
-  <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these live in the [SendingLimits] and [SendingLimitsOverrides] sections of hMailServer.INI and are re-read within a couple of seconds of the file changing - saving here applies them WITHOUT a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
-    <value>Plafonds voor wat één geauthenticeerd account over een voortschrijdende periode mag indienen - de rem op een gecompromitteerd account dat voor spam wordt gebruikt. Wordt per account geteld bij SMTP-indiening: berichten en envelopontvangers afzonderlijk, en een bericht dat door de limiet wordt geweigerd krijgt een tijdelijke fout, zodat een echte client het later opnieuw probeert. Anders dan de rest van deze pagina staan deze in de secties [SendingLimits] en [SendingLimitsOverrides] van hMailServer.INI en worden ze binnen een paar seconden na een wijziging van het bestand opnieuw gelezen - hier opslaan past ze ZONDER een herstart van de service toe. Tellers overleven een herstart via een statusbestand in de datamap.</value>
+  <data name="Ceilings on what one authenticated account may submit over a rolling period - the brake on a compromised account being used to spam. Counted per account at SMTP submission: messages and envelope recipients separately, and a message refused by the limit gets a temporary error so a real client retries later. Unlike the rest of this page these are re-read within a couple of seconds of a change - saving here applies them without a service restart. Counters survive a restart via a state file in the data directory." xml:space="preserve">
+    <value>Plafonds voor wat één geauthenticeerd account over een voortschrijdende periode mag indienen - de rem op een gecompromitteerd account dat voor spam wordt gebruikt. Wordt per account geteld bij SMTP-indiening: berichten en envelopontvangers afzonderlijk, en een bericht dat door de limiet wordt geweigerd krijgt een tijdelijke fout, zodat een echte client het later opnieuw probeert. Anders dan de rest van deze pagina worden deze binnen een paar seconden na een wijziging opnieuw gelezen - hier opslaan past ze zonder een herstart van de service toe. Tellers overleven een herstart via een statusbestand in de datamap.</value>
   </data>
   <data name="Certificate" xml:space="preserve">
     <value>Certificaat</value>
@@ -2362,8 +2353,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Check for _updates" xml:space="preserve">
     <value>Op _updates controleren</value>
   </data>
-  <data name="Check for a new release once a day (UpdateCheckEnabled)" xml:space="preserve">
-    <value>Eenmaal per dag op een nieuwe release controleren (UpdateCheckEnabled)</value>
+  <data name="Check for a new release once a day" xml:space="preserve">
+    <value>Eenmaal per dag op een nieuwe release controleren</value>
   </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Host in HELO controleren</value>
@@ -2497,11 +2488,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="ClamAV and external scanners, and what to do with a message that is found to be infected." xml:space="preserve">
     <value>ClamAV en externe scanners, en wat er moet gebeuren met een bericht dat geïnfecteerd blijkt.</value>
   </data>
+  <data name="ClamAV maximum timeout (90)" xml:space="preserve">
+    <value>Maximale time-out van ClamAV (90)</value>
+  </data>
   <data name="ClamAV: idle timeout per socket operation. 0 is NOT no bound." xml:space="preserve">
     <value>ClamAV: inactiviteitstime-out per socketbewerking. 0 is NIET onbegrensd.</value>
-  </data>
-  <data name="ClamMaxTimeout (90)" xml:space="preserve">
-    <value>ClamMaxTimeout (90)</value>
   </data>
   <data name="ClamWin" xml:space="preserve">
     <value>ClamWin</value>
@@ -2574,9 +2565,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Client secret for introspection" xml:space="preserve">
     <value>Clientgeheim voor introspectie</value>
-  </data>
-  <data name="ClientSessionCeiling (1800)" xml:space="preserve">
-    <value>ClientSessionCeiling (1800)</value>
   </data>
   <data name="Clock-drift tolerance in seconds when checking an expiry" xml:space="preserve">
     <value>Tolerantie voor klokafwijking in seconden bij het controleren van een vervaldatum</value>
@@ -3300,9 +3288,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="DANE, MTA-STS, ARC and TLS reporting." xml:space="preserve">
     <value>DANE, MTA-STS, ARC en TLS-rapportage.</value>
   </data>
-  <data name="DBConnectionAcquireTimeout (60)" xml:space="preserve">
-    <value>DBConnectionAcquireTimeout (60)</value>
-  </data>
   <data name="DKIM" xml:space="preserve">
     <value>DKIM</value>
   </data>
@@ -3363,6 +3348,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="DNS host" xml:space="preserve">
     <value>DNS-host</value>
   </data>
+  <data name="DNS query timeout (10)" xml:space="preserve">
+    <value>Time-out voor DNS-query's (10)</value>
+  </data>
   <data name="DNS query timeout (seconds; 0 = no bound)" xml:space="preserve">
     <value>Time-out voor DNS-query's (seconden; 0 = geen grens)</value>
   </data>
@@ -3371,9 +3359,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="DNS resolver" xml:space="preserve">
     <value>DNS-resolver</value>
-  </data>
-  <data name="DNSQueryTimeout (10)" xml:space="preserve">
-    <value>DNSQueryTimeout (10)</value>
   </data>
   <data name="D_epartment" xml:space="preserve">
     <value>_Afdeling</value>
@@ -4546,6 +4531,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Event handler script. Tab inserts a tab character; press Control and Tab together to move to the next control." xml:space="preserve">
     <value>Gebeurtenisscript. Tab voegt een tabteken in; druk Control en Tab samen in om naar het volgende besturingselement te gaan.</value>
   </data>
+  <data name="Event script execution timeout (60)" xml:space="preserve">
+    <value>Time-out voor uitvoering van gebeurtenisscripts (60)</value>
+  </data>
   <data name="Event script execution timeout (seconds)" xml:space="preserve">
     <value>Time-out voor uitvoering van gebeurtenisscripts (seconden)</value>
   </data>
@@ -4581,6 +4569,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Every counter the metrics endpoint exposes is server-wide, which is what stops metrics becoming reporting: you can see how much mail the server handled, never how much any one domain did. This adds a count of messages sent and received per hosted domain. Off by default, and that is a cardinality decision rather than a cautious one - every label value is a separate time series in whatever scrapes this, so an operator hosting several thousand domains should choose to pay for that rather than find out. Only domains this server hosts are ever labelled, so no amount of mail from strangers can create series." xml:space="preserve">
     <value>Elke teller die het metrics-eindpunt blootstelt geldt voor de hele server, en dat is wat voorkomt dat metrics rapportage worden: u ziet hoeveel mail de server heeft verwerkt, nooit hoeveel één domein heeft gedaan. Dit voegt een telling toe van verzonden en ontvangen berichten per gehost domein. Standaard uit, en dat is een beslissing over cardinaliteit en geen voorzichtigheid - elke labelwaarde is een aparte tijdreeks in wat dit ook scrapet, dus een beheerder die enkele duizenden domeinen host hoort daar bewust voor te kiezen in plaats van er achteraf achter te komen. Alleen domeinen die deze server host krijgen ooit een label, dus geen enkele hoeveelheid mail van vreemden kan reeksen aanmaken.</value>
+  </data>
+  <data name="Every error the server reports" xml:space="preserve">
+    <value>Elke fout die de server meldt</value>
   </data>
   <data name="Every event for queue id {0}, oldest first." xml:space="preserve">
     <value>Elke gebeurtenis voor wachtrij-id {0}, oudste eerst.</value>
@@ -4635,9 +4626,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Everything" xml:space="preserve">
     <value>Alles</value>
-  </data>
-  <data name="Everything ErrorManager reports" xml:space="preserve">
-    <value>Alles wat ErrorManager meldt</value>
   </data>
   <data name="Everything else" xml:space="preserve">
     <value>Al het overige</value>
@@ -4771,6 +4759,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Externe filterengine (rspamd en alles wat verder HTTP spreekt)</value>
   </data>
+  <data name="External process timeout (300)" xml:space="preserve">
+    <value>Time-out voor externe processen (300)</value>
+  </data>
   <data name="External process timeout, e.g. a command-line virus scanner (seconds)" xml:space="preserve">
     <value>Time-out voor externe processen, bijv. een virusscanner op de opdrachtregel (seconden)</value>
   </data>
@@ -4785,9 +4776,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Hosts van externe accounts waarvan met OAuth2 wordt opgehaald (door komma's gescheiden; laat dit leeg om er geen te gebruiken)</value>
-  </data>
-  <data name="ExternalProcessTimeout (300)" xml:space="preserve">
-    <value>ExternalProcessTimeout (300)</value>
   </data>
   <data name="Extra delivery attempts per additional MX host" xml:space="preserve">
     <value>Extra bezorgpogingen per extra MX-host</value>
@@ -4869,9 +4857,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Fill in a strong random secret" xml:space="preserve">
     <value>Vul een sterk willekeurig geheim in</value>
-  </data>
-  <data name="FinalizationTimeout (240)" xml:space="preserve">
-    <value>FinalizationTimeout (240)</value>
   </data>
   <data name="Find organizational domains by DNS tree walk (RFC 9989)" xml:space="preserve">
     <value>Organisatiedomeinen bepalen door de DNS-boom te doorlopen (RFC 9989)</value>
@@ -5155,8 +5140,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="HELO names and sender domains that are not host names" xml:space="preserve">
     <value>HELO-namen en afzenderdomeinen die geen hostnamen zijn</value>
   </data>
-  <data name="HS256 is in OAuth2AllowedAlgorithms but OAuth2HmacSecret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
-    <value>HS256 staat in OAuth2AllowedAlgorithms maar OAuth2HmacSecret is leeg, dus HS256-tokens kunnen nooit worden geverifieerd. Stel het gedeelde geheim in, of haal HS256 uit de lijst.</value>
+  <data name="HS256 is among the allowed signing algorithms but the shared HMAC secret is empty, so HS256 tokens can never verify. Set the shared secret, or remove HS256 from the list." xml:space="preserve">
+    <value>HS256 staat bij de toegestane ondertekeningsalgoritmen maar het gedeelde HMAC-geheim is leeg, dus HS256-tokens kunnen nooit worden geverifieerd. Stel het gedeelde geheim in, of haal HS256 uit de lijst.</value>
   </data>
   <data name="HTM_L disclaimer (empty = the plain text, with its line breaks)" xml:space="preserve">
     <value>Disclaimer als HTM_L (leeg = de platte tekst, met de regeleinden)</value>
@@ -5263,8 +5248,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Houdt een bericht van buiten met een bijgevoegd uitvoerbaar bestand of document vast totdat een sandbox het bestand heeft geopend en schoon of kwaadaardig heeft geantwoord.</value>
   </data>
-  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on - the reason the old TarpitDelay was a stub for a decade is that the naive version is a self-inflicted outage." xml:space="preserve">
-    <value>Houdt de weigering van een fout wachtwoord even vast voordat die wordt verzonden: de eerste mislukking op een verbinding wacht dit aantal seconden, de tweede twee keer zo lang, enzovoort tot 30 seconden, en dat op SMTP, POP3 en IMAP gelijk. Een juist wachtwoord wordt nooit vertraagd. Het wachten is een timer op de verbinding en geen slapende thread, dus een vloed van mislukte aanmeldingen kost de server niets behalve de sockets waarop ze binnenkomen - dat de oude TarpitDelay tien jaar lang een lege huls was, komt doordat de naïeve versie een zelf veroorzaakte storing is.</value>
+  <data name="Holds the refusal of a wrong password for a while before sending it: the first failure on a connection waits this many seconds, the second twice as long, and so on up to 30 seconds, on SMTP, POP3 and IMAP alike. A correct password is never delayed. The wait is a timer on the connection, not a thread asleep, so a flood of failed logons costs the server nothing but the sockets they arrive on." xml:space="preserve">
+    <value>Houdt de weigering van een fout wachtwoord even vast voordat die wordt verzonden: de eerste mislukking op een verbinding wacht dit aantal seconden, de tweede twee keer zo lang, enzovoort tot 30 seconden, en dat op SMTP, POP3 en IMAP gelijk. Een juist wachtwoord wordt nooit vertraagd. Het wachten is een timer op de verbinding en geen slapende thread, dus een vloed van mislukte aanmeldingen kost de server niets behalve de sockets waarop ze binnenkomen.</value>
   </data>
   <data name="Honeypot" xml:space="preserve">
     <value>Honeypot</value>
@@ -6144,11 +6129,11 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="MTA-STS and DANE publish that commitment; TLS-RPT tells you who failed it." xml:space="preserve">
     <value>MTA-STS en DANE publiceren die toezegging; TLS-RPT vertelt u wie zich er niet aan hield.</value>
   </data>
-  <data name="MTA-STS hosting is enabled (MtaStsHostingEnabled=1, the shipped default) but WebServicesHttpsPort is 0, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set WebServicesHttpsPort if you want MTA-STS; if you do not, this row is safe to ignore, or set MtaStsHostingEnabled=0 to silence it." xml:space="preserve">
-    <value>Het hosten van MTA-STS is ingeschakeld (MtaStsHostingEnabled=1, de meegeleverde standaard) maar WebServicesHttpsPort is 0, dus het beleid kan helemaal niet worden geserveerd - RFC 8461 staat het alleen via HTTPS toe. Stel WebServicesHttpsPort in als u MTA-STS wilt; wilt u dat niet, dan kunt u deze rij gerust negeren, of stel MtaStsHostingEnabled=0 in om hem stil te maken.</value>
+  <data name="MTA-STS hosting is off, so nothing needs serving and no record should be published." xml:space="preserve">
+    <value>Het hosten van MTA-STS staat uit, dus er hoeft niets te worden geserveerd en er hoort geen record te worden gepubliceerd.</value>
   </data>
-  <data name="MTA-STS hosting is off (MtaStsHostingEnabled=0), so nothing needs serving and no record should be published." xml:space="preserve">
-    <value>Het hosten van MTA-STS staat uit (MtaStsHostingEnabled=0), dus er hoeft niets te worden geserveerd en er hoort geen record te worden gepubliceerd.</value>
+  <data name="MTA-STS hosting is on (the shipped default), but the web services listener has no HTTPS port, so the policy cannot be served at all - RFC 8461 only allows it over HTTPS. Set 'HTTPS port' on the Web services &amp; autoconfiguration page if you want MTA-STS; if you do not, this row is safe to ignore, or turn off 'Serve MTA-STS policies for local domains' on the same page to silence it." xml:space="preserve">
+    <value>Het hosten van MTA-STS is ingeschakeld (de meegeleverde standaard) maar de listener van de webservices heeft geen HTTPS-poort, dus het beleid kan helemaal niet worden geserveerd - RFC 8461 staat het alleen via HTTPS toe. Stel 'HTTPS-poort' in op de pagina Webservices en autoconfiguratie als u MTA-STS wilt; wilt u dat niet, dan kunt u deze rij gerust negeren, of schakel op dezelfde pagina 'MTA-STS-beleid serveren voor lokale domeinen' uit om hem stil te maken.</value>
   </data>
   <data name="MTA-STS policy" xml:space="preserve">
     <value>MTA-STS-beleid</value>
@@ -6496,6 +6481,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Message archiving" xml:space="preserve">
     <value>Berichtarchivering</value>
   </data>
+  <data name="Message finalization deadline (240)" xml:space="preserve">
+    <value>Deadline voor het afronden van een bericht (240)</value>
+  </data>
   <data name="Message finalization deadline (seconds; 0 = no deadline)" xml:space="preserve">
     <value>Deadline voor het afronden van een bericht (seconden; 0 = geen deadline)</value>
   </data>
@@ -6763,12 +6751,6 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="NCSA Common Log Format writes one line per entry as host, ident, session, [date], &quot;category and message&quot;, status, bytes - so a log analyser can count 5xx replies without knowing anything about hMailServer. Ident and bytes are always &quot;-&quot; (the server never queries identd and the logger is not told transfer sizes), and the AWStats journal is a separate file that this setting does not change: its own switch is above." xml:space="preserve">
     <value>NCSA Common Log Format schrijft per vermelding één regel als host, ident, sessie, [datum], "categorie en bericht", status, bytes - zodat een loganalyseprogramma 5xx-antwoorden kan tellen zonder iets van hMailServer te weten. Ident en bytes zijn altijd "-" (de server bevraagt identd nooit en de logger krijgt de overdrachtsgroottes niet te horen), en het AWStats-journaal is een apart bestand dat deze instelling niet verandert: de schakelaar daarvoor staat hierboven.</value>
   </data>
-  <data name="NOTE: MtaStsHostingEnabled=0, so the server will NOT serve this policy at all." xml:space="preserve">
-    <value>LET OP: MtaStsHostingEnabled=0, dus de server serveert dit beleid helemaal NIET.</value>
-  </data>
-  <data name="NOTE: WebServicesHttpsPort=0, so no HTTPS listener runs and the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
-    <value>LET OP: WebServicesHttpsPort=0, dus er draait geen HTTPS-listener en het beleid kan niet worden geserveerd (RFC 8461 staat alleen HTTPS toe). Het TXT-record zou een beleid aankondigen dat niemand serveert.</value>
-  </data>
   <data name="N_ote" xml:space="preserve">
     <value>No_titie</value>
   </data>
@@ -6808,11 +6790,11 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Negotiate binds authenticate per user, so type a user name, domain and password to test one." xml:space="preserve">
     <value>Negotiate-binds authenticeren per gebruiker, dus typ een gebruikersnaam, domein en wachtwoord om er een te testen.</value>
   </data>
-  <data name="Neither OAuth2Issuer nor OAuth2Audience is set, so neither is checked" xml:space="preserve">
-    <value>Noch OAuth2Issuer noch OAuth2Audience is ingesteld, dus geen van beide wordt gecontroleerd</value>
-  </data>
   <data name="Neither the executable nor the signature database folder is set." xml:space="preserve">
     <value>Noch het uitvoerbare bestand noch de map met de handtekeningendatabase is ingesteld.</value>
+  </data>
+  <data name="Neither the expected token issuer nor the expected audience is set, so neither is checked" xml:space="preserve">
+    <value>Noch de verwachte tokenuitgever noch de verwachte audience is ingesteld, dus geen van beide wordt gecontroleerd</value>
   </data>
   <data name="Never" xml:space="preserve">
     <value>Nooit</value>
@@ -6973,8 +6955,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Er is geen back-upbestemming ingesteld.</value>
   </data>
-  <data name="No backup first: UpdateBackupBeforeApply is off." xml:space="preserve">
-    <value>Eerst geen back-up: UpdateBackupBeforeApply staat uit.</value>
+  <data name="No backup first: 'Back up to the configured destination before an unattended apply' is off." xml:space="preserve">
+    <value>Eerst geen back-up: 'Een back-up naar het geconfigureerde doel maken vóór een onbeheerde installatie' staat uit.</value>
   </data>
   <data name="No backup first: no backup destination is set (Backup &amp; restore). A rollback puts the previous program back, not the database." xml:space="preserve">
     <value>Eerst geen back-up: er is geen back-upbestemming ingesteld (Back-up en herstel). Een rollback zet het vorige programma terug, niet de database.</value>
@@ -7387,8 +7369,14 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Note" xml:space="preserve">
     <value>Notitie</value>
   </data>
+  <data name="Note: 'Serve MTA-STS policies for local domains' is off on the Web services &amp; autoconfiguration page, so the server does not serve this policy." xml:space="preserve">
+    <value>Let op: 'MTA-STS-beleid serveren voor lokale domeinen' staat uit op de pagina Webservices en autoconfiguratie, dus de server serveert dit beleid niet.</value>
+  </data>
   <data name="Note: certificate verification is turned off, so the encrypted connection does not prove which directory it reaches. The server logs this once per start." xml:space="preserve">
     <value>Let op: certificaatverificatie staat uit, dus de versleutelde verbinding bewijst niet welke directory hij bereikt. De server logt dit eenmaal per start.</value>
+  </data>
+  <data name="Note: the web services listener has no HTTPS port on the Web services &amp; autoconfiguration page, so the policy cannot be served (RFC 8461 allows HTTPS only). The TXT record would advertise a policy nothing serves." xml:space="preserve">
+    <value>Let op: de listener van de webservices heeft geen HTTPS-poort op de pagina Webservices en autoconfiguratie, dus het beleid kan niet worden geserveerd (RFC 8461 staat alleen HTTPS toe). Het TXT-record zou een beleid aankondigen dat niemand serveert.</value>
   </data>
   <data name="Nothing at all happens on score: both thresholds are 0, and the server only marks or refuses when the threshold is above 0." xml:space="preserve">
     <value>Er gebeurt helemaal niets op basis van score: beide drempels staan op 0, en de server markeert of weigert alleen wanneer de drempel boven 0 ligt.</value>
@@ -7456,11 +7444,11 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Nothing was changed." xml:space="preserve">
     <value>Er is niets gewijzigd.</value>
   </data>
-  <data name="Nothing was old enough to remove. The window is MessageTraceRetentionDays, and 0 means never." xml:space="preserve">
-    <value>Er was niets oud genoeg om te verwijderen. Het venster is MessageTraceRetentionDays, en 0 betekent nooit.</value>
-  </data>
   <data name="Nothing was old enough to remove. The window is set on the Anti-spam settings page (Delete quarantined messages after), and 0 means never." xml:space="preserve">
     <value>Er was niets oud genoeg om te verwijderen. Het venster stelt u in op de pagina Antispaminstellingen (Berichten in quarantaine verwijderen na), en 0 betekent nooit.</value>
+  </data>
+  <data name="Nothing was old enough to remove. The window is set on the Logging page (Delete trace events after), and 0 means never." xml:space="preserve">
+    <value>Er was niets oud genoeg om te verwijderen. Het venster stelt u in op de pagina Logboekregistratie (Tracegebeurtenissen verwijderen na), en 0 betekent nooit.</value>
   </data>
   <data name="Nothing was read." xml:space="preserve">
     <value>Er is niets gelezen.</value>
@@ -7501,26 +7489,17 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="OAuth2 for the relay (Microsoft 365)" xml:space="preserve">
     <value>OAuth2 voor de relay (Microsoft 365)</value>
   </data>
-  <data name="OAuth2 is enabled and allows RS256, but OAuth2PublicKeyFile is empty - every RS256 token fails signature verification, so no client can log on with a token. Install the identity provider's public key as a PEM file and point OAuth2PublicKeyFile at it." xml:space="preserve">
-    <value>OAuth2 is ingeschakeld en staat RS256 toe, maar OAuth2PublicKeyFile is leeg - elk RS256-token faalt bij de handtekeningverificatie, dus geen enkele client kan zich met een token aanmelden. Installeer de publieke sleutel van de identiteitsprovider als PEM-bestand en laat OAuth2PublicKeyFile ernaar wijzen.</value>
-  </data>
   <data name="OAuth2 is enabled, the key material its allowed algorithms need is in place, and both the issuer and the audience are checked - so a token has to have been minted by your provider for this server specifically." xml:space="preserve">
     <value>OAuth2 is ingeschakeld, het sleutelmateriaal dat de toegestane algoritmen nodig hebben is aanwezig, en zowel de uitgever als de audience wordt gecontroleerd - dus een token moet specifiek voor deze server door uw provider zijn uitgegeven.</value>
   </data>
-  <data name="OAuth2 is off (OAuth2Enabled=0, the default), so no identity provider or key material is required." xml:space="preserve">
-    <value>OAuth2 staat uit (OAuth2Enabled=0, de standaard), dus er is geen identiteitsprovider of sleutelmateriaal vereist.</value>
+  <data name="OAuth2 is off (the default), so no identity provider or key material is required." xml:space="preserve">
+    <value>OAuth2 staat uit (de standaard), dus er is geen identiteitsprovider of sleutelmateriaal vereist.</value>
+  </data>
+  <data name="OAuth2 is on and allows RS256, but 'RSA/EC public key file' on the Authentication page is empty - every RS256 token fails signature verification, so no client can sign in with a token. Install the identity provider's public key as a PEM file and choose it there." xml:space="preserve">
+    <value>OAuth2 is ingeschakeld en staat RS256 toe, maar 'Bestand met de publieke RSA-/EC-sleutel' op de pagina Authenticatie is leeg - elk RS256-token faalt bij de handtekeningverificatie, dus geen enkele client kan zich met een token aanmelden. Installeer de publieke sleutel van de identiteitsprovider als PEM-bestand en kies het daar.</value>
   </data>
   <data name="OAuth2 is switched on but no client can log on with a token, because it is missing {0}. Signature verification cannot run at all, so every token is rejected and the log records only a failed logon - which reads as &quot;the password is wrong&quot; rather than as a configuration gap." xml:space="preserve">
     <value>OAuth2 staat aan, maar geen enkele client kan zich met een token aanmelden, omdat {0} ontbreekt. Handtekeningverificatie kan helemaal niet draaien, dus elk token wordt afgewezen en het logboek registreert alleen een mislukte aanmelding - wat leest als "het wachtwoord is fout" in plaats van als een gat in de configuratie.</value>
-  </data>
-  <data name="OAuth2Audience is not set, so the audience is not checked" xml:space="preserve">
-    <value>OAuth2Audience is niet ingesteld, dus de audience wordt niet gecontroleerd</value>
-  </data>
-  <data name="OAuth2Issuer is not set, so the issuer is not checked" xml:space="preserve">
-    <value>OAuth2Issuer is niet ingesteld, dus de uitgever wordt niet gecontroleerd</value>
-  </data>
-  <data name="OAuth2PublicKeyFile points at {0}, which does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
-    <value>OAuth2PublicKeyFile wijst naar {0}, dat niet op deze machine bestaat, dus RS256-tokens kunnen niet worden geverifieerd.</value>
   </data>
   <data name="OK" xml:space="preserve">
     <value>OK</value>
@@ -7665,6 +7644,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="On by default." xml:space="preserve">
     <value>Standaard aan.</value>
+  </data>
+  <data name="On by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
+    <value>Standaard aan. Nadat het archief is geschreven, wordt de berichtenopslag ervan via dezelfde code als een herstel gebruikt naar de tijdelijke map uitgepakt, beperkt tot precies de bestanden die de back-up had klaargezet, en wordt voor elke berichtenrij gecontroleerd of het bijbehorende bestand er is; het resultaat staat in het back-uplogboek. De opslag bestaat twee keer terwijl dit draait, dus schakel het uit voor een opslag die het tijdelijke volume niet kan bevatten.</value>
   </data>
   <data name="On by default. Off leaves the keys people already have in the database untouched." xml:space="preserve">
     <value>Standaard aan. Uit laat de sleutels die mensen al in de database hebben ongemoeid.</value>
@@ -8023,8 +8005,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Out of office" xml:space="preserve">
     <value>Afwezigheid</value>
   </data>
-  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says." xml:space="preserve">
-    <value>Uit de lijst, uit het Aan-veld van iedereen en uit de CardDAV-collectie. Het verbergt geen postbus: post komt aan en wie het adres kent, kan schrijven. De persoon kan dit zelf in de webmail instellen, wat de serverinstelling DirectoryUserEditable ook zegt.</value>
+  <data name="Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the Webmail page's 'Let people edit their own directory entry' setting says." xml:space="preserve">
+    <value>Uit de lijst, uit het Aan-veld van iedereen en uit de CardDAV-collectie. Het verbergt geen postbus: post komt aan en wie het adres kent, kan schrijven. De persoon kan dit zelf in de webmail instellen, wat de instelling 'Mensen hun eigen adresboekvermelding laten bewerken' op de pagina Webmail ook zegt.</value>
   </data>
   <data name="Outbound TLS" xml:space="preserve">
     <value>Uitgaande TLS</value>
@@ -8367,8 +8349,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Port {0} still accepts AUTH: it is where other servers deliver mail, and a password tried there is a guess. Set its SMTP authentication to Honeypot or Off, and sign mail clients in on 587." xml:space="preserve">
     <value>Poort {0} neemt nog AUTH aan: daar leveren andere servers mail af, en een wachtwoord dat daar wordt geprobeerd, is een gok. Zet de SMTP-authenticatie op Honeypot of Uit, en laat mailclients zich aanmelden op 587.</value>
   </data>
-  <data name="Port {0} takes no password, but AutoBanMinutes is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
-    <value>Poort {0} neemt geen wachtwoord aan, maar AutoBanMinutes is 0, dus een adres dat daar AUTH stuurt, wordt geweigerd en niet verbannen.</value>
+  <data name="Port {0} takes no password, but 'Ban duration' on the Auto-ban page is 0, so an address that sends AUTH there is refused and not banned." xml:space="preserve">
+    <value>Poort {0} neemt geen wachtwoord aan, maar 'Duur van het verbannen' op de pagina Automatisch verbannen is 0, dus een adres dat daar AUTH stuurt, wordt geweigerd en niet verbannen.</value>
   </data>
   <data name="Port {0} takes no password: EHLO does not offer AUTH there, and an address that sends one anyway is refused and banned." xml:space="preserve">
     <value>Poort {0} neemt geen wachtwoord aan: EHLO biedt daar geen AUTH aan, en een adres dat er toch een stuurt, wordt geweigerd en verbannen.</value>
@@ -8385,8 +8367,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Post" xml:space="preserve">
     <value>Plaatsen</value>
   </data>
-  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
-    <value>Plaatsen laat het account ook via SMTP verzenden als het adres van dit postvak (Send-As), wanneer SmtpAuthenticatedSenderCheck aanstaat.</value>
+  <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when 'An authenticated session may only send as an address its account owns or has been granted' is on, on the Protocols page's SMTP tab." xml:space="preserve">
+    <value>Plaatsen laat het account ook via SMTP verzenden als het adres van dit postvak (Send-As), wanneer 'Een geauthenticeerde sessie mag alleen verzenden als een adres dat het account bezit of toegewezen heeft gekregen' aanstaat op het tabblad SMTP van de pagina Protocollen.</value>
   </data>
   <data name="Pre-filled with the domain's postmaster address, as configured on the domain. Change it if reports should go elsewhere." xml:space="preserve">
     <value>Vooraf ingevuld met het postmasteradres van het domein, zoals op het domein geconfigureerd. Wijzig het als de rapporten ergens anders heen moeten.</value>
@@ -8547,8 +8529,8 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Publish" xml:space="preserve">
     <value>Publiceren</value>
   </data>
-  <data name="Publish a public A/AAAA record for every name listed in AcmeDomains, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
-    <value>Publiceer een openbaar A/AAAA-record voor elke naam die in AcmeDomains staat, en sta inkomend TCP op de challengepoort vanaf internet toe (stuur de poort door achter elke NAT). Bereikbaarheid van buitenaf kan niet van binnenuit worden gepeild, dus test die vanaf een extern netwerk of met een online poortcontrole.</value>
+  <data name="Publish a public A/AAAA record for every name in 'Host names for the certificate' on the Certificates (ACME) page, and allow inbound TCP on the challenge port from the internet (port-forward through any NAT). Reachability from outside cannot be probed from inside, so test it from an external network or an online port checker." xml:space="preserve">
+    <value>Publiceer een openbaar A/AAAA-record voor elke naam in 'Hostnamen voor het certificaat' op de pagina Certificaten (ACME), en sta inkomend TCP op de challengepoort vanaf internet toe (stuur de poort door achter elke NAT). Bereikbaarheid van buitenaf kan niet van binnenuit worden gepeild, dus test die vanaf een extern netwerk of met een online poortcontrole.</value>
   </data>
   <data name="Publish it at your DNS provider - or, if you just did, wait for propagation (usually minutes, sometimes hours) and check again." xml:space="preserve">
     <value>Publiceer het bij uw DNS-provider - of wacht, als u dat net hebt gedaan, op de propagatie (meestal minuten, soms uren) en controleer opnieuw.</value>
@@ -8998,8 +8980,8 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Register the gateway as an incoming relay so its address is not treated as the client." xml:space="preserve">
     <value>Registreer de gateway als inkomende relay, zodat zijn adres niet als de client wordt behandeld.</value>
   </data>
-  <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and point OAuth2PublicKeyFile in hMailServer.ini at it (or set OAuth2HmacSecret for HS256). Set OAuth2Issuer and OAuth2Audience to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
-    <value>Registreer deze server als toepassing bij de identiteitsprovider, download de publieke ondertekeningssleutel van de provider als PEM-bestand en laat OAuth2PublicKeyFile in hMailServer.ini daarnaar wijzen (of stel OAuth2HmacSecret in voor HS256). Stel OAuth2Issuer en OAuth2Audience in op de waarden die de provider in zijn tokens zet, anders wijst de validatie ze af.</value>
+  <data name="Register this server as an application with the identity provider, download the provider's public signing key as a PEM file, and choose it as 'RSA/EC public key file' on the Authentication page (or set 'Shared HMAC secret' there for HS256). Set 'Expected token issuer' and 'Expected audience' to the values the provider puts in its tokens, or validation will reject them." xml:space="preserve">
+    <value>Registreer deze server als toepassing bij de identiteitsprovider, download de publieke ondertekeningssleutel van de provider als PEM-bestand en kies het als 'Bestand met de publieke RSA-/EC-sleutel' op de pagina Authenticatie (of stel daar 'Gedeeld HMAC-geheim' in voor HS256). Stel 'Verwachte tokenuitgever' en 'Verwachte audience' in op de waarden die de provider in zijn tokens zet, anders wijst de validatie ze af.</value>
   </data>
   <data name="Registered in Microsoft Entra with the delegated IMAP.AccessAsUser.All and offline_access permissions, and personal Microsoft accounts allowed for Outlook.com." xml:space="preserve">
     <value>Geregistreerd in Microsoft Entra met de gedelegeerde machtigingen IMAP.AccessAsUser.All en offline_access, en persoonlijke Microsoft-accounts toegestaan voor Outlook.com.</value>
@@ -9242,10 +9224,10 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging en met SMTP-a
   <data name="Replace the client IP for authenticated users (empty = keep the real IP)" xml:space="preserve">
     <value>Het client-IP vervangen voor geauthenticeerde gebruikers (leeg = het echte IP behouden)</value>
   </data>
-  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default." xml:space="preserve">
+  <data name="Replace the mailbox of {0} with the one in the archive?&#10;&#10;Every folder is emptied first: mail that arrived since the backup is gone. The person can put it back only if the Webmail page keeps deleted messages for them, which is off by default." xml:space="preserve">
     <value>De mailbox van {0} vervangen door die uit het archief?
 
-Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg. Die wordt alleen bewaard gedurende RecoverDeletedDays, dat standaard uit staat.</value>
+Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg. De persoon kan die alleen terugzetten als de pagina Webmail verwijderde berichten bewaart, wat standaard uit staat.</value>
   </data>
   <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
     <value>De gegevens van de server in de aangevinkte categorieën vervangen door de inhoud van de back-up? Wat er nu staat wordt overschreven, en dit kan niet ongedaan worden gemaakt.</value>
@@ -9279,6 +9261,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Report mailbox:" xml:space="preserve">
     <value>Rapportpostvak:</value>
+  </data>
+  <data name="Report the async work queue as stalled after (120)" xml:space="preserve">
+    <value>De asynchrone werkwachtrij als vastgelopen melden na (120)</value>
   </data>
   <data name="Report the async work queue as stalled after (seconds)" xml:space="preserve">
     <value>De asynchrone werkwachtrij als vastgelopen melden na (seconden)</value>
@@ -9388,8 +9373,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Rescues legitimate forwarded mail from DMARC-failure penalties, but only for forwarders on your trusted-sealer list - with the list empty the feature does nothing at all, even when enabled." xml:space="preserve">
     <value>Redt legitieme doorgestuurde mail van strafpunten voor een DMARC-fout, maar alleen voor doorstuurders op uw lijst met vertrouwde verzegelaars - met een lege lijst doet de functie helemaal niets, ook wanneer ze is ingeschakeld.</value>
   </data>
-  <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
-    <value>Wordt door de server zelf opgezocht, dus een aangepaste DNSServer in hMailServer.INI wordt gerespecteerd - dit is waar mail werkelijk heen gaat, en dat kan een nslookup vanaf dit werkstation niet beloven.</value>
+  <data name="Resolved by the server itself, so an 'Override DNS server' set on the DNS resolver page is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
+    <value>Wordt door de server zelf opgezocht, dus een op de pagina DNS-resolver ingestelde 'DNS-server overschrijven' wordt gerespecteerd - dit is waar mail werkelijk heen gaat, en dat kan een nslookup vanaf dit werkstation niet beloven.</value>
   </data>
   <data name="Restart the service…" xml:space="preserve">
     <value>Service herstarten…</value>
@@ -9654,9 +9639,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="SAML sign-in is under it too. Empty uses the import sign-in's base address, on the Import tab." xml:space="preserve">
     <value>De SAML-aanmelding valt er ook onder. Leeg gebruikt het basisadres van de import met aanmelding, op het tabblad Importeren.</value>
-  </data>
-  <data name="SAMaxTimeout (90)" xml:space="preserve">
-    <value>SAMaxTimeout (90)</value>
   </data>
   <data name="SHA-256" xml:space="preserve">
     <value>SHA-256</value>
@@ -9985,15 +9967,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Scheduled backups" xml:space="preserve">
     <value>Geplande back-ups</value>
   </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' is geen geldige 24-uurs UU:MM-tijd en er is geen interval ingesteld, dus er zal nooit een geplande back-up draaien.</value>
-  </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' is geen geldige 24-uurs UU:MM-tijd, dus valt de server terug op het interval: één back-up elke {1} minuut.</value>
-  </data>
-  <data name="ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes." xml:space="preserve">
-    <value>ScheduledBackupTime '{0}' is geen geldige 24-uurs UU:MM-tijd, dus valt de server terug op het interval: één back-up elke {1} minuten.</value>
-  </data>
   <data name="Schema" xml:space="preserve">
     <value>Schema</value>
   </data>
@@ -10050,9 +10023,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Script events" xml:space="preserve">
     <value>Scriptgebeurtenissen</value>
-  </data>
-  <data name="ScriptTimeout (60)" xml:space="preserve">
-    <value>ScriptTimeout (60)</value>
   </data>
   <data name="Scripting" xml:space="preserve">
     <value>Scripting</value>
@@ -10432,17 +10402,17 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
     <value>Wordt alleen verzonden wanneer het hele bericht wordt verwijderd. Worden de bijlagen verwijderd, dan vertelt de notitie op hun plaats het de ontvanger, en krijgt verder niemand bericht.</value>
   </data>
-  <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
-    <value>Los daarvan VERSTUURT deze server zulke rapporten naar andere domeinen: TlsRptFromAddress is ingesteld op {0}, dus zijn eigen rapporten gaan de deur uit.</value>
+  <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini could not be found on this machine to check it." xml:space="preserve">
+    <value>Los daarvan verstuurt deze server alleen eigen rapporten naar andere domeinen wanneer 'Afzenderadres voor TLS-rapporten' is ingesteld op de pagina Transportbeveiliging; hMailServer.ini kon op deze machine niet worden gevonden om dat te controleren.</value>
   </data>
-  <data name="Separately, this server sends its own reports to other domains only when TlsRptFromAddress is set in hMailServer.INI - which could not be found on this machine to check." xml:space="preserve">
-    <value>Los daarvan verstuurt deze server alleen eigen rapporten naar andere domeinen wanneer TlsRptFromAddress is ingesteld in hMailServer.INI - dat bestand kon op deze machine niet worden gevonden om dat te controleren.</value>
+  <data name="Separately, this server sends its own reports to other domains only when 'TLS report sender address' is set on the Transport security page; hMailServer.ini on the server is not readable from this machine to check it." xml:space="preserve">
+    <value>Los daarvan verstuurt deze server alleen eigen rapporten naar andere domeinen wanneer 'Afzenderadres voor TLS-rapporten' is ingesteld op de pagina Transportbeveiliging; hMailServer.ini op de server is vanaf deze machine niet leesbaar om dat te controleren.</value>
   </data>
-  <data name="Separately, this server sends its own reports to other domains only when TlsRptFromAddress is set in hMailServer.INI on the server - not readable from this machine." xml:space="preserve">
-    <value>Los daarvan verstuurt deze server alleen eigen rapporten naar andere domeinen wanneer TlsRptFromAddress is ingesteld in hMailServer.INI op de server - dat is vanaf deze machine niet leesbaar.</value>
+  <data name="Separately, this server sends no such reports of its own: 'TLS report sender address' on the Transport security page is empty (the default), so it collects statistics and discards every completed day unsent. Set it if you want to send reports too." xml:space="preserve">
+    <value>Los daarvan verstuurt deze server zelf geen zulke rapporten: 'Afzenderadres voor TLS-rapporten' op de pagina Transportbeveiliging is leeg (de standaard), dus verzamelt hij statistieken en gooit hij elke afgeronde dag ongestuurd weg. Stel het in als u ook rapporten wilt versturen.</value>
   </data>
-  <data name="Separately, this server's own SENDING of such reports to other domains is inert: TlsRptFromAddress is empty in hMailServer.INI (the default), so it collects statistics and discards every completed day unsent. Set it on the Transport security page if you want to send reports too." xml:space="preserve">
-    <value>Los daarvan doet het VERSTUREN van zulke rapporten door deze server naar andere domeinen niets: TlsRptFromAddress is leeg in hMailServer.INI (de standaard), dus verzamelt hij statistieken en gooit hij elke afgeronde dag ongestuurd weg. Stel het in op de pagina Transportbeveiliging als u ook rapporten wilt versturen.</value>
+  <data name="Separately, this server sends such reports to other domains: its TLS report sender address is {0}, so its own reports go out." xml:space="preserve">
+    <value>Los daarvan verstuurt deze server zulke rapporten naar andere domeinen: zijn afzenderadres voor TLS-rapporten is {0}, dus zijn eigen rapporten gaan de deur uit.</value>
   </data>
   <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
     <value>Wachtwoord van het serviceacco_unt (ServicePassword)</value>
@@ -10558,8 +10528,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Session resumption" xml:space="preserve">
     <value>Sessiehervatting</value>
   </data>
-  <data name="Set TlsRptFromAddress in the [Settings] section of hMailServer.ini to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
-    <value>Stel TlsRptFromAddress in de sectie [Settings] van hMailServer.ini in op een postvak waarvandaan rapporten moeten worden verstuurd. Het leeg laten is een geldige keuze - het betekent alleen dat de verzamelde statistieken worden weggegooid en er nooit rapporten worden verstuurd.</value>
+  <data name="Set 'TLS report sender address' on the Transport security page to a mailbox reports should be sent from. Leaving it empty is a valid choice - it just means the collected statistics are discarded and no reports are ever sent." xml:space="preserve">
+    <value>Stel 'Afzenderadres voor TLS-rapporten' op de pagina Transportbeveiliging in op een postvak waarvandaan rapporten moeten worden verstuurd. Het leeg laten is een geldige keuze - het betekent alleen dat de verzamelde statistieken worden weggegooid en er nooit rapporten worden verstuurd.</value>
   </data>
   <data name="Set a new administrator password" xml:space="preserve">
     <value>Nieuw beheerderswachtwoord instellen</value>
@@ -10861,8 +10831,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Skipped, by reason" xml:space="preserve">
     <value>Overgeslagen, per reden</value>
   </data>
-  <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once; stored in hMailServer.ini as SmtpTarpitCount and SmtpTarpitDelaySeconds." xml:space="preserve">
-    <value>Vertraagt een sessie die meer ontvangers noemt dan een legitiem bericht nodig heeft. Voorbij dat aantal wacht elke volgende RCPT TO in een niet-geauthenticeerde sessie de vertraging af voordat hij wordt beantwoord - een dictionary-aanval of een spamrun noemt honderden adressen en betaalt voor elk ervan, terwijl een verzendende MTA er een handvol noemt en dat aantal nooit bereikt. Geauthenticeerde sessies en IP-bereiken met spambescherming uit zijn vrijgesteld. Het wachten is een timer op de verbinding, geen slapende thread. Werkt direct; opgeslagen in hMailServer.ini als SmtpTarpitCount en SmtpTarpitDelaySeconds.</value>
+  <data name="Slows a session that names more recipients than a legitimate message needs. Past the count, every further RCPT TO in an unauthenticated session waits the delay before it is answered - a dictionary attack or a spam run names hundreds of addresses and pays for each one, while a sending MTA names a handful and never reaches the count. Authenticated sessions and IP ranges with spam protection off are exempt. The wait is a timer on the connection, not a thread asleep. Takes effect at once." xml:space="preserve">
+    <value>Vertraagt een sessie die meer ontvangers noemt dan een legitiem bericht nodig heeft. Voorbij dat aantal wacht elke volgende RCPT TO in een niet-geauthenticeerde sessie de vertraging af voordat hij wordt beantwoord - een dictionary-aanval of een spamrun noemt honderden adressen en betaalt voor elk ervan, terwijl een verzendende MTA er een handvol noemt en dat aantal nooit bereikt. Geauthenticeerde sessies en IP-bereiken met spambescherming uit zijn vrijgesteld. Het wachten is een timer op de verbinding, geen slapende thread. Werkt direct.</value>
   </data>
   <data name="Smallest part held once (KB; 0 holds nothing once)" xml:space="preserve">
     <value>Kleinste deel dat één keer wordt bewaard (KB; 0 bewaart niets één keer)</value>
@@ -10932,6 +10902,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="SpamAssassin is on with no host set, so every message is accepted without a verdict and the server reports HM5508 each time." xml:space="preserve">
     <value>SpamAssassin staat aan zonder ingestelde host, dus elk bericht wordt zonder oordeel geaccepteerd en de server meldt telkens HM5508.</value>
+  </data>
+  <data name="SpamAssassin maximum timeout (90)" xml:space="preserve">
+    <value>Maximale time-out van SpamAssassin (90)</value>
   </data>
   <data name="SpamAssassin's own score" xml:space="preserve">
     <value>De eigen score van SpamAssassin</value>
@@ -11052,9 +11025,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Store: " xml:space="preserve">
     <value>Opslag: </value>
-  </data>
-  <data name="Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays." xml:space="preserve">
-    <value>Opgeslagen in hMailServer.ini als ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount en ScheduledBackupMaxAgeDays.</value>
   </data>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Opgeslagen in hMailServer.ini op de server. Het token dat ermee wordt gekocht, wordt in het geheugen bewaard totdat 80% van zijn levensduur is verstreken en wordt dan automatisch opnieuw opgehaald.</value>
@@ -11473,14 +11443,14 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API could not be reached: {0}" xml:space="preserve">
     <value>De REST-API kon niet worden bereikt: {0}</value>
   </data>
-  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs RestApiCertificateFile and RestApiPrivateKeyFile, or an ACME certificate issued to this server." xml:space="preserve">
-    <value>De REST-API draait niet: hij levert gewone HTTP alleen op 127.0.0.1 of ::1, en luisteren op {0} vereist RestApiCertificateFile en RestApiPrivateKeyFile, of een ACME-certificaat dat aan deze server is uitgegeven.</value>
+  <data name="The REST API is not running: it serves plain HTTP on 127.0.0.1 or ::1 only, and listening on {0} needs a TLS certificate file and its private key file on the API &amp; monitoring page, or an ACME certificate issued to this server." xml:space="preserve">
+    <value>De REST-API draait niet: hij levert gewone HTTP alleen op 127.0.0.1 of ::1, en luisteren op {0} vereist een TLS-certificaatbestand en het bijbehorende privésleutelbestand op de pagina API en monitoring, of een ACME-certificaat dat aan deze server is uitgegeven.</value>
   </data>
-  <data name="The REST API is off (RestApiPort is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
-    <value>De REST-API staat uit (RestApiPort is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and these settings are reached over it: the server keeps them, but no COM property carries them. Give the REST API a port on the API &amp; monitoring page, reinitialise the server, and open this page again." xml:space="preserve">
+    <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}), en deze instellingen worden erover bereikt: de server bewaart ze, maar geen COM-eigenschap draagt ze. Geef de REST-API een poort op de pagina API en monitoring, initialiseer de server opnieuw en open deze pagina opnieuw.</value>
   </data>
-  <data name="The REST API is off (RestApiPort is {0}), and this page reads the cases over it. Turn it on under Settings, or read the cases in the Control Deck." xml:space="preserve">
-    <value>De REST-API staat uit (RestApiPort is {0}) en deze pagina leest de zaken erover. Zet hem aan onder Instellingen, of lees de zaken in het Control Deck.</value>
+  <data name="The REST API is off (its port on the API &amp; monitoring page is {0}), and this page reads the cases over it. Give it a port there, or read the cases in the Control Deck." xml:space="preserve">
+    <value>De REST-API staat uit (de poort op de pagina API en monitoring is {0}) en deze pagina leest de zaken erover. Geef hem daar een poort, of lees de zaken in het Control Deck.</value>
   </data>
   <data name="The REST API listens on {0} only, which a Control Panel on another machine cannot reach. Change these settings in the Control Deck on the server, or from a Control Panel running there." xml:space="preserve">
     <value>De REST-API luistert alleen op {0}, wat een Control Panel op een andere machine niet kan bereiken. Wijzig deze instellingen in het Control Deck op de server, of vanuit een Control Panel dat daar draait.</value>
@@ -11497,6 +11467,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
     <value>De REST-API, de Prometheus-metrics en de gezondheidseindpunten die een extern monitoringsysteem uitleest.</value>
   </data>
+  <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
+    <value>Het bestand met de publieke RSA-/EC-sleutel {0} bestaat niet op deze machine, dus RS256-tokens kunnen niet worden geverifieerd.</value>
+  </data>
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>De SNMP-agent, de waarschuwingen, de uitgaande webhooks en het auditlogboek</value>
   </data>
@@ -11508,6 +11481,15 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
     <value>De lijst met TCP/IP-poorten kon niet worden gelezen: {0}</value>
+  </data>
+  <data name="The TLS report sender address could not be read: {0}" xml:space="preserve">
+    <value>Het afzenderadres voor TLS-rapporten kon niet worden gelezen: {0}</value>
+  </data>
+  <data name="The TLS report sender address is empty (the default), so the server collects TLS statistics hourly and discards every completed day unsent. Set an address if you want reports to go out; ignore this row if you deliberately do not." xml:space="preserve">
+    <value>Het afzenderadres voor TLS-rapporten is leeg (de standaard), dus de server verzamelt elk uur TLS-statistieken en gooit elke voltooide dag ongestuurd weg. Stel een adres in als u wilt dat er rapporten uitgaan; negeer deze rij als u dat bewust niet wilt.</value>
+  </data>
+  <data name="The TLS report sender address is {0}, so completed days of statistics are mailed to domains that request reports. Nothing external remains." xml:space="preserve">
+    <value>Het afzenderadres voor TLS-rapporten is {0}, dus voltooide dagen met statistieken worden gemaild naar domeinen die om rapporten vragen. Er is buiten de server niets meer nodig.</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>De URI-blokkeerlijsten op de pagina SURBL-servers worden gevraagd naar elk registreerbaar domein en elk adres waar een bericht naar linkt, tot 200 per bericht. Een bericht waarvan de links er meer noemen, wordt niet in zijn geheel gevraagd: het krijgt in plaats daarvan de score hieronder, één keer, ongeacht hoeveel lijsten actief zijn, zodat het verbergen van een vermelde link tussen verzonnen domeinen niet gratis is. Er wordt niets gescoord zolang geen URI-blokkeerlijst actief is.</value>
@@ -11599,6 +11581,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The anti-virus configuration could not be read: " xml:space="preserve">
     <value>Kon de antivirusconfiguratie niet lezen: </value>
   </data>
+  <data name="The archive folder is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
+    <value>De archiefmap is een ruwe kopie van elk bericht dat door de server gaat, en tot nu toe verwijderde niets er ooit iets uit - dus op een drukke server is het een map die alleen maar groeit, en de beheerder die daar achter komt is degene wiens schijf vol is gelopen. Dit snoeit hem. 0 bewaart alles, en dat is met opzet de standaard: een archief wordt meestal om een juridische of contractuele reden bewaard, en een server die er bij een upgrade uit begon te verwijderen zou precies vernietigen wat hem is opgedragen te bewaren. De opruiming verwijdert alleen .eml-bestanden, dus al het andere dat u in het archief bewaart blijft met rust, en hij draait bij het opstarten en daarna elke twaalf uur.</value>
+  </data>
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Het archief bevat geen berichten voor dit account.</value>
   </data>
@@ -11622,6 +11607,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="The backup destination {0} does not exist on the server." xml:space="preserve">
     <value>De back-upbestemming {0} bestaat niet op de server.</value>
+  </data>
+  <data name="The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
+    <value>De back-up legt dan vast welke berichten bestaan, maar niet hun inhoud, en een herstel verwacht dat de bestanden nog in de datamap staan. Geldt voor back-up en herstel.</value>
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>De back-up schrijft de database en de berichtenopslag naar een map; zolang er geen is ingesteld, is er geen back-up.</value>
@@ -11799,8 +11787,8 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>De consistentiecontrole is ingeschakeld, maar heeft nog geen rapport geschreven. De server scant bij het opstarten en daarna elk uur, en schrijft {0}.</value>
   </data>
-  <data name="The consistency check is switched off, so no scan has run. Enable MessageStoreConsistencyCheck on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
-    <value>De consistentiecontrole staat uit, dus er heeft geen scan gedraaid. Schakel MessageStoreConsistencyCheck in op de pagina {0}; de server scant dan bij het opstarten en elk uur en schrijft {1}.</value>
+  <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
+    <value>De consistentiecontrole staat uit, dus er heeft geen scan gedraaid. Schakel 'Berichtrijen periodiek vergelijken met de bestanden op schijf' in op de pagina {0}; de server scant dan bij het opstarten en elk uur en schrijft {1}.</value>
   </data>
   <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
     <value>De tegenhanger van ARC-verzegeling: bij inkomende mail kan een geldige ARC-keten van een vertrouwde verzegelaar de DMARC-faalscore compenseren voor een bericht waarvan het geslaagde DMARC-resultaat door doorsturen is vernietigd (RFC 8617). Het wordt ingesteld op de pagina Antispam, onder afzenderauthenticatie, omdat het bij de andere antispaminstellingen wordt opgeslagen en niet in hMailServer.INI. Met een lege lijst van vertrouwde verzegelaars doet de functie helemaal niets, en dat is bewust: iedereen kan een complete ARC-keten fabriceren en verzegelen met sleutels die hij in zijn eigen DNS publiceert, en die valideert perfect - een geslaagde keten bewijst dus niets tenzij u de verzegelaar al vertrouwt. De lijst is geen optie van de functie, het is de functie. De compensatie is nooit groter dan de DMARC-faalscore en geldt alleen zolang DMARC-scoring is ingeschakeld op de pagina Antispam.</value>
@@ -11810,6 +11798,15 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   </data>
   <data name="The current password counts as the most recent one, so setting a password to itself is refused too - the repeat somebody is most likely to try." xml:space="preserve">
     <value>Het huidige wachtwoord telt als het meest recente, dus een wachtwoord op zichzelf instellen wordt ook geweigerd - juist de herhaling die iemand het eerst zal proberen.</value>
+  </data>
+  <data name="The daily backup time '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run." xml:space="preserve">
+    <value>De dagelijkse back-uptijd '{0}' is geen geldige 24-uurs UU:MM-tijd en er is geen interval ingesteld, dus er zal nooit een geplande back-up draaien.</value>
+  </data>
+  <data name="The daily backup time '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute." xml:space="preserve">
+    <value>De dagelijkse back-uptijd '{0}' is geen geldige 24-uurs UU:MM-tijd, dus valt de server terug op het interval: één back-up elke {1} minuut.</value>
+  </data>
+  <data name="The daily backup time '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes." xml:space="preserve">
+    <value>De dagelijkse back-uptijd '{0}' is geen geldige 24-uurs UU:MM-tijd, dus valt de server terug op het interval: één back-up elke {1} minuten.</value>
   </data>
   <data name="The daily digest" xml:space="preserve">
     <value>Het dagelijkse overzicht</value>
@@ -11897,6 +11894,12 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   </data>
   <data name="The exact SPF, DKIM, DMARC, MTA-STS and TLS-RPT records each domain should publish, with a check for whether each one is live." xml:space="preserve">
     <value>De exacte SPF-, DKIM-, DMARC-, MTA-STS- en TLS-RPT-records die elk domein zou moeten publiceren, met een controle of elk record echt live is.</value>
+  </data>
+  <data name="The expected audience is not set, so the audience is not checked" xml:space="preserve">
+    <value>De verwachte audience is niet ingesteld, dus de audience wordt niet gecontroleerd</value>
+  </data>
+  <data name="The expected token issuer is not set, so the issuer is not checked" xml:space="preserve">
+    <value>De verwachte tokenuitgever is niet ingesteld, dus de uitgever wordt niet gecontroleerd</value>
   </data>
   <data name="The expiry has to be in the future. A key that is already expired is refused on its first use." xml:space="preserve">
     <value>De vervaldatum moet in de toekomst liggen. Een sleutel die al verlopen is, wordt bij het eerste gebruik geweigerd.</value>
@@ -12206,8 +12209,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The per-protocol idle timeouts decide how long a connection may sit doing nothing before it is closed." xml:space="preserve">
     <value>De inactiviteitstime-outs per protocol bepalen hoe lang een verbinding niets mag doen voordat hij wordt gesloten.</value>
   </data>
-  <data name="The periodic check is currently switched off (MessageStoreConsistencyCheck on the {0} page), so this will not be refreshed." xml:space="preserve">
-    <value>De periodieke controle staat momenteel uit (MessageStoreConsistencyCheck op de pagina {0}), dus dit wordt niet vernieuwd.</value>
+  <data name="The periodic check is currently switched off ('Periodically cross-check message rows against files on disk' on the {0} page), so this will not be refreshed." xml:space="preserve">
+    <value>De periodieke controle staat momenteel uit ('Berichtrijen periodiek vergelijken met de bestanden op schijf' op de pagina {0}), dus dit wordt niet vernieuwd.</value>
   </data>
   <data name="The permission is inherited from {0}; the command stops the folder inheriting it." xml:space="preserve">
     <value>Het recht is overgenomen van {0}; de opdracht zorgt dat de map het niet meer overneemt.</value>
@@ -12313,8 +12316,8 @@ Toch toevoegen?</value>
   <data name="The report header says {0} but lists {1} - it was probably read while the server was rewriting it, so refresh." xml:space="preserve">
     <value>De rapportkop zegt {0} maar somt {1} op - het is waarschijnlijk gelezen terwijl de server het herschreef, dus vernieuw.</value>
   </data>
-  <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for DNSServer as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
-    <value>De resolver antwoordt niet: zoek in het TCP/IP-logboek naar "DNS - Query timed out". Grijp niet naar DNSServer als oplossing - laat die leeg tenzij u een specifieke resolver nodig hebt.</value>
+  <data name="The resolver is not answering: look in the TCP/IP log for &quot;DNS - Query timed out&quot;. Do not reach for 'Override DNS server' on the DNS resolver page as the fix - leave it empty unless you need a specific resolver." xml:space="preserve">
+    <value>De resolver antwoordt niet: zoek in het TCP/IP-logboek naar "DNS - Query timed out". Grijp niet naar 'DNS-server overschrijven' op de pagina DNS-resolver als oplossing - laat die leeg tenzij u een specifieke resolver nodig hebt.</value>
   </data>
   <data name="The rest are still waiting; run this again or leave the schedule to catch up." xml:space="preserve">
     <value>De rest wacht nog; voer dit opnieuw uit of laat het schema het inhalen.</value>
@@ -12325,11 +12328,11 @@ Toch toevoegen?</value>
   <data name="The retry counts and intervals are here, along with what happens when they run out." xml:space="preserve">
     <value>De aantallen nieuwe pogingen en de intervallen staan hier, samen met wat er gebeurt wanneer ze op zijn.</value>
   </data>
-  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or list the address in AutoBanNeverBan." xml:space="preserve">
-    <value>De reverse-opzoeking van {0} werd niet beantwoord, dus de lijst kan het adres nu niet sparen. Probeer het opnieuw of zet het adres in AutoBanNeverBan.</value>
+  <data name="The reverse lookup of {0} was not answered, so the list cannot spare it now. Try again, or add the address to 'Never auto-ban these addresses' on the Auto-ban page." xml:space="preserve">
+    <value>De reverse-opzoeking van {0} werd niet beantwoord, dus de lijst kan het adres nu niet sparen. Probeer het opnieuw of voeg het adres toe aan 'Deze adressen nooit automatisch bannen' op de pagina Automatisch verbannen.</value>
   </data>
-  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. List the address in AutoBanNeverBan instead." xml:space="preserve">
-    <value>De reverse-naam {0} is een adres of een openbaar achtervoegsel, dat de lijst nooit vergelijkt. Zet het adres in plaats daarvan in AutoBanNeverBan.</value>
+  <data name="The reverse name {0} is an address or a public suffix, which the list never matches. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead." xml:space="preserve">
+    <value>De reverse-naam {0} is een adres of een openbaar achtervoegsel, dat de lijst nooit vergelijkt. Voeg het adres in plaats daarvan toe aan 'Deze adressen nooit automatisch bannen' op de pagina Automatisch verbannen.</value>
   </data>
   <data name="The rotation refused: {0}" xml:space="preserve">
     <value>De rotatie weigerde: {0}</value>
@@ -12343,8 +12346,8 @@ Toch toevoegen?</value>
   <data name="The run failed: " xml:space="preserve">
     <value>De run is mislukt: </value>
   </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address on AutoBanNeverBan or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>Hetzelfde verlopende IP-bereik dat een reeks mislukte aanmeldingen aanmaakt, opgeheven door dezelfde opruiming en in de firewall gespiegeld door dezelfde afstemming; nooit voor een adres in AutoBanNeverBan of een inkomend relay. Standaard uit, zodat één verkeerd verzonden rapport met twee ontvangers geen echte mailserver verbant. Doet niets zolang de weigering hierboven uit staat.</value>
+  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
+    <value>Hetzelfde verlopende IP-bereik dat een reeks mislukte aanmeldingen aanmaakt, opgeheven door dezelfde opruiming en in de firewall gespiegeld door dezelfde afstemming; nooit voor een adres in 'Deze adressen nooit automatisch bannen' op de pagina Automatisch verbannen of een inkomend relay. Standaard uit, zodat één verkeerd verzonden rapport met twee ontvangers geen echte mailserver verbant. Doet niets zolang de weigering hierboven uit staat.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Dezelfde regels, categorieën en hetzelfde masker als de logbestanden krijgen, met de trace- en span-id erbij zodra er een span actief is op de thread die logde. De exporter exporteert nooit zijn eigen foutregels, anders zou een dode collector zichzelf voeden.</value>
@@ -12363,6 +12366,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Het scanresultaat is alleen leesbaar op de servermachine - hMailServer.INI is hier niet gevonden. De server publiceert hetzelfde getal als het meetpunt hmailserver_messagestore_missing_files.</value>
+  </data>
+  <data name="The schedule and the retention are stored in hMailServer.ini on the server." xml:space="preserve">
+    <value>Het schema en de bewaring worden opgeslagen in hMailServer.ini op de server.</value>
   </data>
   <data name="The schedule is saved with the domain. The buttons below act at once. While the rotation manages the domain, the selector and key file above are the rotation's to change." xml:space="preserve">
     <value>Het schema wordt met het domein opgeslagen. De knoppen hieronder werken meteen. Zolang de rotatie het domein beheert, wijzigt alleen zij de selector en het sleutelbestand hierboven.</value>
@@ -12472,14 +12478,17 @@ Toch toevoegen?</value>
   <data name="The server is starting or stopping, so whether its ports are being listened on cannot be said yet. Open this page again in a moment." xml:space="preserve">
     <value>De server wordt gestart of gestopt, dus of er op zijn poorten wordt geluisterd, valt nog niet te zeggen. Open deze pagina zo meteen opnieuw.</value>
   </data>
-  <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
-    <value>De server bewaart geen geschiedenis: MetricsHistoryDays is 0 in hMailServer.ini. Zet die op het aantal te bewaren dagen.</value>
+  <data name="The server keeps no history: 'Keep metric history for' on the API &amp; monitoring page is 0. Set it to the days to keep." xml:space="preserve">
+    <value>De server bewaart geen geschiedenis: 'Metriekgeschiedenis bewaren gedurende' op de pagina API en monitoring is 0. Zet die op het aantal te bewaren dagen.</value>
   </data>
   <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
     <value>Het serverlogboek zoals het wordt geschreven, gelezen uit de logmap op deze computer.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>De server accepteert geen nieuwe verbindingen meer; de mail die onderweg is, wordt afgerond.</value>
+  </data>
+  <data name="The server only hands this value back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
+    <value>De server geeft deze waarde alleen terug via de COM-API - hij vertaalt zelf niets, en dit Control Panel heeft een eigen taalinstelling (De taal wijzigen, in het beheerdersmenu rechtsboven) - dus het raakt alleen beheerhulpmiddelen van derden. De formulering van bounces en fouten staat op de pagina Serverberichten.</value>
   </data>
   <data name="The server remembers who has written to each account and who each account has written to, and says so in the reader the first time an outside sender appears. It costs one database lookup for each message delivered to this domain, and nothing at all while this is off." xml:space="preserve">
     <value>De server onthoudt wie naar elk account heeft geschreven en naar wie elk account heeft geschreven, en zegt het in het leesprogramma de eerste keer dat een afzender van buiten verschijnt. Dat kost één databaseopvraging per bericht dat aan dit domein wordt afgeleverd, en helemaal niets zolang dit uit staat.</value>
@@ -12671,6 +12680,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The version to go back to" xml:space="preserve">
     <value>De versie om naar terug te gaan</value>
   </data>
+  <data name="The web services listener has an HTTPS port but no certificate ('TLS certificate file' is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set 'TLS certificate file' and 'TLS private key file' on the Web services &amp; autoconfiguration page, or turn on ACME on the Certificates (ACME) page." xml:space="preserve">
+    <value>De listener van de webservices heeft een HTTPS-poort maar geen certificaat ('TLS-certificaatbestand' is leeg en ACME staat uit), dus de HTTPS-listener start niet en het beleid kan nog steeds niet worden opgehaald. Stel 'TLS-certificaatbestand' en 'TLS-privésleutelbestand' in op de pagina Webservices en autoconfiguratie, of schakel ACME in op de pagina Certificaten (ACME).</value>
+  </data>
   <data name="The web services settings could not be read: {0}" xml:space="preserve">
     <value>De instellingen voor de webservices konden niet worden gelezen: {0}</value>
   </data>
@@ -12803,11 +12815,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This installation has no {0}, so it cannot install the update itself. Download hMailServer {1} from {2}, check that Get-AuthenticodeSignature reports it Valid and signed by Progressive Robot Ltd, and run it as an administrator." xml:space="preserve">
     <value>Deze installatie heeft geen {0}, dus kan ze de update niet zelf installeren. Download hMailServer {1} van {2}, controleer dat Get-AuthenticodeSignature het als Valid en ondertekend door Progressive Robot Ltd meldt, en voer het uit als administrator.</value>
   </data>
-  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery (Utilities::ComputerName). Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
-    <value>Dit is Protocollen &gt; SMTP &gt; Hostnaam, de naam die de server bij elke uitgaande bezorging aankondigt in HELO/EHLO (Utilities::ComputerName). Vraag de eigenaar van het IP-adres om de PTR van uw publieke IP-adres precies naar deze naam te laten verwijzen, en publiceer een A-record voor deze naam dat terugwijst naar hetzelfde IP-adres - ontvangers controleren beide richtingen.</value>
-  </data>
-  <data name="This is [Settings] UseLanguage in hMailServer.INI. The server only hands it back over the COM API - it does not translate anything itself, and this Control Panel has a language setting of its own (Change the language, in the administrator menu at the top right) - so it affects third-party administration tools only. Bounce and error wording is on the Server messages page." xml:space="preserve">
-    <value>Dit is [Settings] UseLanguage in hMailServer.INI. De server geeft de waarde alleen terug via de COM-API - hij vertaalt zelf niets, en dit Control Panel heeft een eigen taalinstelling (De taal wijzigen, in het beheerdersmenu rechtsboven) - dus het raakt alleen beheerhulpmiddelen van derden. De formulering van bounces en fouten staat op de pagina Serverberichten.</value>
+  <data name="This is Protocols &gt; SMTP &gt; Host name, the name the server announces in HELO/EHLO on every outbound delivery. Ask the IP's owner to make the PTR of your public IP resolve to exactly this name, and publish an A record for this name pointing back at the same IP - receivers check both directions." xml:space="preserve">
+    <value>Dit is Protocollen &gt; SMTP &gt; Hostnaam, de naam die de server bij elke uitgaande bezorging aankondigt in HELO/EHLO. Vraag de eigenaar van het IP-adres om de PTR van uw publieke IP-adres precies naar deze naam te laten verwijzen, en publiceer een A-record voor deze naam dat terugwijst naar hetzelfde IP-adres - ontvangers controleren beide richtingen.</value>
   </data>
   <data name="This is the latest release" xml:space="preserve">
     <value>Dit is de nieuwste release</value>
@@ -12818,8 +12827,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This is the only time it will ever be shown. The store keeps a SHA-256 digest, not the key, so it cannot be recovered or re-displayed - if it is lost, revoke it here and create another." xml:space="preserve">
     <value>Dit is de enige keer dat hij ooit wordt getoond. De opslag bewaart een SHA-256-digest en niet de sleutel zelf, dus hij kan niet worden hersteld of opnieuw getoond - raakt hij kwijt, trek hem dan hier in en maak een nieuwe aan.</value>
   </data>
-  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any custom DNSServer configured in hMailServer.INI." xml:space="preserve">
-    <value>Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezorging gebruikt, inclusief een eventuele aangepaste DNSServer die in hMailServer.INI is ingesteld.</value>
+  <data name="This is the server's own resolver answering - the same one SMTP delivery uses, including any 'Override DNS server' set on the DNS resolver page." xml:space="preserve">
+    <value>Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezorging gebruikt, inclusief een eventuele 'DNS-server overschrijven' die op de pagina DNS-resolver is ingesteld.</value>
   </data>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Deze sleutel kan dingen wijzigen en verwijderen. Verloopt {0}.</value>
@@ -12980,15 +12989,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Timeouts and queue bounds" xml:space="preserve">
     <value>Time-outs en wachtrijgrenzen</value>
   </data>
-  <data name="TlsRptFromAddress could not be read: {0}" xml:space="preserve">
-    <value>TlsRptFromAddress kon niet worden gelezen: {0}</value>
-  </data>
-  <data name="TlsRptFromAddress is empty (the default), so the server collects TLS statistics hourly and discards every completed day unsent. Set an address if you want reports to go out; ignore this row if you deliberately do not." xml:space="preserve">
-    <value>TlsRptFromAddress is leeg (de standaard), dus de server verzamelt elk uur TLS-statistieken en gooit elke voltooide dag ongestuurd weg. Stel een adres in als u wilt dat er rapporten uitgaan; negeer deze rij als u dat bewust niet wilt.</value>
-  </data>
-  <data name="TlsRptFromAddress is set to {0}, so completed days of statistics are mailed to domains that request reports. Nothing external remains." xml:space="preserve">
-    <value>TlsRptFromAddress is ingesteld op {0}, dus voltooide dagen met statistieken worden gemaild naar domeinen die om rapporten vragen. Er is buiten de server niets meer nodig.</value>
-  </data>
   <data name="To" xml:space="preserve">
     <value>Aan</value>
   </data>
@@ -13109,8 +13109,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Two checks on mail from outside, judged as the tagging tab judges outside: a sender whose display name is the name of an active account here or of a protected person, while the address is not theirs; and a sender domain one edit or one look-alike character from a domain this server hosts or a protected partner. Flag adds a header the webmail shows as a warning; quarantine holds the copy as a spam verdict would, and an administrator's release delivers it without checking again. A sender the reader marked safe is exempt, and so is a sender domain that is itself hosted here or a partner." xml:space="preserve">
     <value>Twee controles op mail van buiten, waarbij buiten wordt beoordeeld zoals het tabblad Markering dat doet: een afzender wiens weergavenaam de naam is van een actief account hier of van een beschermde persoon, terwijl het adres niet van hem is; en een afzenderdomein dat één wijziging of één verwarrend teken verwijderd is van een domein dat deze server host of van een beschermde partner. Markeren voegt een kopregel toe die de webmail als waarschuwing toont; quarantaine houdt de kopie vast zoals een spamoordeel dat zou doen, en vrijgave door een beheerder bezorgt hem zonder nieuwe controle. Een afzender die de lezer als veilig heeft gemarkeerd is uitgezonderd, evenals een afzenderdomein dat zelf hier wordt gehost of een partner is.</value>
   </data>
-  <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when MtaStsHostingEnabled is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
-    <value>Twee helften: een TXT-record dat afzenders vertelt dat er een beleid bestaat, en het beleid zelf, opgehaald van https://mta-sts.{0}/.well-known/mta-sts.txt. Deze server serveert dat beleid zelf - er is geen bestand om te uploaden - wanneer MtaStsHostingEnabled aanstaat en er een HTTPS-listener voor de webservices draait (RFC 8461 sectie 3.3 staat alleen HTTPS toe). De naam mta-sts.{0} heeft ook een A- of CNAME-record nodig dat naar deze server wijst, en het certificaat van de listener moet die naam dekken.</value>
+  <data name="Two halves: a TXT record that tells senders a policy exists, and the policy itself, fetched from https://mta-sts.{0}/.well-known/mta-sts.txt. This server serves that policy itself - there is no file to upload - when 'Serve MTA-STS policies for local domains' is on and an HTTPS web-services listener is running (RFC 8461 section 3.3 allows HTTPS only). The name mta-sts.{0} also needs an A or CNAME record pointing at this server, and the listener's certificate must cover that name." xml:space="preserve">
+    <value>Twee helften: een TXT-record dat afzenders vertelt dat er een beleid bestaat, en het beleid zelf, opgehaald van https://mta-sts.{0}/.well-known/mta-sts.txt. Deze server serveert dat beleid zelf - er is geen bestand om te uploaden - wanneer 'MTA-STS-beleid serveren voor lokale domeinen' aanstaat en er een HTTPS-listener voor de webservices draait (RFC 8461 sectie 3.3 staat alleen HTTPS toe). De naam mta-sts.{0} heeft ook een A- of CNAME-record nodig dat naar deze server wijst, en het certificaat van de listener moet die naam dekken.</value>
   </data>
   <data name="Two-factor" xml:space="preserve">
     <value>Tweefactor</value>
@@ -13373,6 +13373,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="W_hose mail" xml:space="preserve">
     <value>_Wiens post</value>
   </data>
+  <data name="Wait for a free database connection (60)" xml:space="preserve">
+    <value>Wachten op een vrije databaseverbinding (60)</value>
+  </data>
   <data name="Wait for a free database connection (seconds)" xml:space="preserve">
     <value>Wachten op een vrije databaseverbinding (seconden)</value>
   </data>
@@ -13453,9 +13456,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
     <value>Webservices en autoconfiguratie van clients</value>
-  </data>
-  <data name="WebServicesHttpsPort is set, but no certificate is configured (WebServicesCertificateFile is empty and ACME is off), so the HTTPS listener does not start and the policy still cannot be fetched. Set WebServicesCertificateFile/WebServicesPrivateKeyFile or enable ACME." xml:space="preserve">
-    <value>WebServicesHttpsPort is ingesteld, maar er is geen certificaat geconfigureerd (WebServicesCertificateFile is leeg en ACME staat uit), dus de HTTPS-listener start niet en het beleid kan nog steeds niet worden opgehaald. Stel WebServicesCertificateFile/WebServicesPrivateKeyFile in of schakel ACME in.</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooks</value>
@@ -13664,8 +13664,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Where the copy goes" xml:space="preserve">
     <value>Waar de kopie naartoe gaat</value>
   </data>
-  <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor [Directories] DataFolder in hMailServer.INI could be read." xml:space="preserve">
-    <value>Waar het uitgegeven certificaat geschreven zou worden, kon niet worden bepaald, omdat noch de uitvoermap hierboven, noch [Directories] DataFolder in hMailServer.INI kon worden gelezen.</value>
+  <data name="Where the issued certificate would be written could not be determined, because neither the output folder above nor the server's data folder ([Directories] DataFolder in hMailServer.ini) could be read." xml:space="preserve">
+    <value>Waar het uitgegeven certificaat geschreven zou worden, kon niet worden bepaald, omdat noch de uitvoermap hierboven, noch de datamap van de server ([Directories] DataFolder in hMailServer.ini) kon worden gelezen.</value>
   </data>
   <data name="Where the search starts, e.g. DC=example,DC=local. Required in search mode - that is, when the bind method is Simple and no DN template is set." xml:space="preserve">
     <value>Waar het zoeken begint, bijv. DC=example,DC=local. Vereist in de zoekmodus - dat wil zeggen, wanneer de bindmethode Simple is en er geen DN-sjabloon is ingesteld.</value>
@@ -13681,6 +13681,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Where this server stands cannot be said: the listeners could not be read." xml:space="preserve">
     <value>Waar deze server staat, valt niet te zeggen: de listeners konden niet worden gelezen.</value>
+  </data>
+  <data name="Whether ARC sealing is on could not be read: {0}" xml:space="preserve">
+    <value>Of ARC-verzegeling aanstaat, kon niet worden gelezen: {0}</value>
   </data>
   <data name="Whether STARTTLS will be offered could not be determined: the TCP/IP ports and certificates could not be read. This listener borrows its certificate from a TLS-capable IMAP, POP3 or SMTP port and has none of its own." xml:space="preserve">
     <value>Of STARTTLS wordt aangeboden, kon niet worden bepaald: de TCP/IP-poorten en certificaten konden niet worden gelezen. Deze listener leent zijn certificaat van een IMAP-, POP3- of SMTP-poort die TLS aankan, en heeft er zelf geen.</value>
@@ -13919,8 +13922,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Write-only: a stored password is never shown here again - leave the box blank to keep it. It is stored as plain text in hMailServer.INI on the server, because the server has to present it to the directory verbatim and so cannot hash it; restrict file access to the INI accordingly. It only ever leaves the server over the transport configured above." xml:space="preserve">
     <value>Alleen schrijven: een opgeslagen wachtwoord wordt hier nooit meer getoond - laat het vak leeg om het te behouden. Het wordt als klare tekst opgeslagen in hMailServer.INI op de server, omdat de server het letterlijk aan de directory moet aanbieden en het dus niet kan hashen; beperk de bestandstoegang tot de INI daarop. Het verlaat de server alleen via het hierboven geconfigureerde transport.</value>
   </data>
-  <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Stable event ids (the table lives in WindowsEventLog.h); a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
-    <value>Schrijft de omstandigheden waarop een operator alarmeert - database niet beschikbaar, een listener die niet wilde starten, een crash, een mislukte back-up, de schijfondergrens - naar het Windows-toepassingslogboek, waar Event Viewer, monitoringagents en SIEM-collectors ze kunnen zien. Stabiele gebeurtenis-id's (de tabel staat in WindowsEventLog.h); een gezonde server schrijft er helemaal niets naartoe. Protocolverkeer en routinelogging gaan hier nooit heen - een mailserver die elke sessie naar het toepassingslogboek schrijft, wordt vanzelf gedeïnstalleerd.</value>
+  <data name="Writes the conditions an operator alerts on - database unavailable, a listener that would not start, a crash, a failed backup, the disk floor - to the Windows Application log, where Event Viewer, monitoring agents and SIEM collectors can see them. Each condition has an event id of its own that does not change, so an alert can match on it; a healthy server writes nothing at all. Protocol traffic and routine logging never go here - a mail server that logs every session to the Application log gets itself uninstalled." xml:space="preserve">
+    <value>Schrijft de omstandigheden waarop een operator alarmeert - database niet beschikbaar, een listener die niet wilde starten, een crash, een mislukte back-up, de schijfondergrens - naar het Windows-toepassingslogboek, waar Event Viewer, monitoringagents en SIEM-collectors ze kunnen zien. Elke omstandigheid heeft een eigen gebeurtenis-id die niet verandert, zodat een alarm erop kan filteren; een gezonde server schrijft er helemaal niets naartoe. Protocolverkeer en routinelogging gaan hier nooit heen - een mailserver die elke sessie naar het toepassingslogboek schrijft, wordt vanzelf gedeïnstalleerd.</value>
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Ja</value>
@@ -14468,11 +14471,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Plus addressing character" xml:space="preserve">
     <value>P_lusadresseringsteken</value>
   </data>
+  <data name="_Port" xml:space="preserve">
+    <value>_Poort</value>
+  </data>
   <data name="_Port (0 = 25)" xml:space="preserve">
     <value>_Poort (0 = 25)</value>
-  </data>
-  <data name="_Port (Port)" xml:space="preserve">
-    <value>_Poort (Port)</value>
   </data>
   <data name="_Postmaster address (mail to unknown recipients is redirected here)" xml:space="preserve">
     <value>_Postmasteradres (mail aan onbekende ontvangers wordt hierheen omgeleid)</value>
@@ -15072,17 +15075,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kon niet worden gelezen: {0} Vanaf 6.3.6 is het bestand van de beheerders. Sluit het Configuratiescherm en start het met Als administrator uitvoeren om deze instellingen te zien en te wijzigen.</value>
   </data>
-  <data name="hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore." xml:space="preserve">
-    <value>hMailServer.ini-instelling BackupMessagesDBOnly. De back-up legt dan vast welke berichten bestaan, maar niet hun inhoud, en een herstel verwacht dat de bestanden nog in de datamap staan. Geldt voor back-up en herstel.</value>
-  </data>
-  <data name="hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold." xml:space="preserve">
-    <value>hMailServer.ini-instelling BackupVerifyRestore, standaard aan. Nadat het archief is geschreven, wordt de berichtenopslag ervan via dezelfde code als een herstel gebruikt naar de tijdelijke map uitgepakt, beperkt tot precies de bestanden die de back-up had klaargezet, en wordt voor elke berichtenrij gecontroleerd of het bijbehorende bestand er is; het resultaat staat in het back-uplogboek. De opslag bestaat twee keer terwijl dit draait, dus schakel het uit voor een opslag die het tijdelijke volume niet kan bevatten.</value>
-  </data>
   <data name="hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself." xml:space="preserve">
     <value>hMailServer.ini is niet gevonden op deze machine, dus BackupMessagesDBOnly kan alleen op de server zelf worden gewijzigd.</value>
   </data>
-  <data name="hMailServer.ini was not found on this machine, so BackupVerifyRestore can only be changed on the server itself." xml:space="preserve">
-    <value>hMailServer.ini is niet gevonden op deze machine, dus BackupVerifyRestore kan alleen op de server zelf worden gewijzigd.</value>
+  <data name="hMailServer.ini was not found on this machine, so this can only be changed on the server itself." xml:space="preserve">
+    <value>hMailServer.ini is niet gevonden op deze machine, dus deze instelling kan alleen op de server zelf worden gewijzigd.</value>
   </data>
   <data name="header '{0}'" xml:space="preserve">
     <value>header '{0}'</value>
@@ -15267,8 +15264,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="mx lines are derived from {0}'s live MX records at request time; the lookup below is this machine's view of the same answer." xml:space="preserve">
     <value>mx-regels worden bij de aanvraag afgeleid van de live MX-records van {0}; de opzoeking hieronder is de kijk van deze machine op hetzelfde antwoord.</value>
   </data>
-  <data name="mx lines from the MtaStsPolicyMx override in hMailServer.INI." xml:space="preserve">
-    <value>mx-regels uit de MtaStsPolicyMx-override in hMailServer.INI.</value>
+  <data name="mx lines from 'Policy MX host patterns' on the Web services &amp; autoconfiguration page." xml:space="preserve">
+    <value>mx-regels uit 'MX-hostpatronen voor het beleid' op de pagina Webservices en autoconfiguratie.</value>
   </data>
   <data name="my certificate has expired" xml:space="preserve">
     <value>mijn certificaat is verlopen</value>
@@ -15816,8 +15813,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} answered HTTP 200, but the body is not an MTA-STS policy (it does not begin &quot;version: STSv1&quot;). Something other than the MTA-STS host is answering that URL. Served: {1}" xml:space="preserve">
     <value>{0} antwoordde met HTTP 200, maar de inhoud is geen MTA-STS-beleid (die begint niet met "version: STSv1"). Iets anders dan de MTA-STS-host beantwoordt die URL. Geserveerd: {1}</value>
   </data>
-  <data name="{0} answered HTTP {1}. The server serves the policy only when MtaStsHostingEnabled is on, the domain is hosted and active, and the request's Host header is mta-sts.{2}." xml:space="preserve">
-    <value>{0} antwoordde met HTTP {1}. De server serveert het beleid alleen wanneer MtaStsHostingEnabled aanstaat, het domein wordt gehost en actief is, en de Host-header van het verzoek mta-sts.{2} is.</value>
+  <data name="{0} answered HTTP {1}. The server serves the policy only when 'Serve MTA-STS policies for local domains' is on, the domain is hosted and active, and the request's Host header is mta-sts.{2}." xml:space="preserve">
+    <value>{0} antwoordde met HTTP {1}. De server serveert het beleid alleen wanneer 'MTA-STS-beleid serveren voor lokale domeinen' aanstaat, het domein wordt gehost en actief is, en de Host-header van het verzoek mta-sts.{2} is.</value>
   </data>
   <data name="{0} answered with a redirect (HTTP {1}). Sending servers must not follow redirects (RFC 8461 section 3.3), so this counts as no policy." xml:space="preserve">
     <value>{0} antwoordde met een omleiding (HTTP {1}). Verzendende servers mogen omleidingen niet volgen (RFC 8461 sectie 3.3), dus dit telt als geen beleid.</value>
@@ -15864,8 +15861,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
     <value>Er wordt niet geluisterd op {0} geconfigureerde poorten: {1}. Als u er net een hebt toegevoegd of gewijzigd, herinitialiseer dan de server: die leest zijn poortlijst bij het opstarten. Anders houdt een ander programma de poort vast, bestaat het adres niet op deze machine, of kon het certificaat van een TLS-poort niet worden geladen - het foutenlogboek zegt welke.</value>
   </data>
-  <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
-    <value>{0} kon niet vanaf deze machine worden opgehaald: {1} Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{2}, de HTTPS-listener draait niet (WebServicesHttpsPort=0 is de meegeleverde standaard), of een certificaat dat mta-sts.{2} niet dekt. Alleen vanaf deze machine gecontroleerd.</value>
+  <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (it has no HTTPS port until one is set on the Web services &amp; autoconfiguration page), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
+    <value>{0} kon niet vanaf deze machine worden opgehaald: {1} Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{2}, de HTTPS-listener draait niet (hij heeft geen HTTPS-poort totdat er een is ingesteld op de pagina Webservices en autoconfiguratie), of een certificaat dat mta-sts.{2} niet dekt. Alleen vanaf deze machine gecontroleerd.</value>
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} kon niet worden gevonden. Controleer de spelling, of voer in plaats daarvan het IP-adres van de server in.</value>
@@ -15897,8 +15894,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} did not answer on port {1}, which Windows needs in order to reach the hMailServer COM API remotely. Check that the machine is switched on, that its firewall allows DCOM, and that you are connecting to the right name." xml:space="preserve">
     <value>{0} antwoordde niet op poort {1}, die Windows nodig heeft om de hMailServer COM-API op afstand te bereiken. Controleer of de machine aanstaat, of de firewall ervan DCOM toestaat, en of u verbinding maakt met de juiste naam.</value>
   </data>
-  <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (WebServicesHttpsPort), or a firewall in between. Checked from this machine only." xml:space="preserve">
-    <value>{0} antwoordde niet binnen 10 seconden vanaf deze machine. Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{1}, de HTTPS-listener draait niet (WebServicesHttpsPort), of een firewall ertussen. Alleen vanaf deze machine gecontroleerd.</value>
+  <data name="{0} did not answer within 10 seconds from this machine. Likely causes: no A/CNAME record for mta-sts.{1}, the HTTPS listener is not running (no HTTPS port on the Web services &amp; autoconfiguration page), or a firewall in between. Checked from this machine only." xml:space="preserve">
+    <value>{0} antwoordde niet binnen 10 seconden vanaf deze machine. Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{1}, de HTTPS-listener draait niet (geen HTTPS-poort op de pagina Webservices en autoconfiguratie), of een firewall ertussen. Alleen vanaf deze machine gecontroleerd.</value>
   </data>
   <data name="{0} domain, and it is not active." xml:space="preserve">
     <value>{0} domein, en het is niet actief.</value>
@@ -15954,8 +15951,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="{0} has no postmaster address configured, and this page will not invent a mailbox - enter the address that should receive the reports. Until one is entered there is no record to copy." xml:space="preserve">
     <value>Voor {0} is geen postmasteradres geconfigureerd, en deze pagina verzint geen postvak - voer het adres in dat de rapporten moet ontvangen. Zolang er geen is ingevoerd, is er geen record om te kopiëren.</value>
   </data>
-  <data name="{0} has no reverse name, so no pattern can spare it. List the address in AutoBanNeverBan instead." xml:space="preserve">
-    <value>{0} heeft geen reverse-naam, dus geen patroon kan het adres sparen. Zet het adres in plaats daarvan in AutoBanNeverBan.</value>
+  <data name="{0} has no reverse name, so no pattern can spare it. Add the address to 'Never auto-ban these addresses' on the Auto-ban page instead." xml:space="preserve">
+    <value>{0} heeft geen reverse-naam, dus geen patroon kan het adres sparen. Voeg het adres in plaats daarvan toe aan 'Deze adressen nooit automatisch bannen' op de pagina Automatisch verbannen.</value>
   </data>
   <data name="{0} have expired and are refused" xml:space="preserve">
     <value>{0} zijn verlopen en worden geweigerd</value>

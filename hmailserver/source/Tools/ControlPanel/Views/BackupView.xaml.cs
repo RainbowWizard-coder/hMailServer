@@ -111,7 +111,7 @@ namespace hMailServer.ControlPanel.Views
             CheckMessagesDbOnly.IsEnabled = false;
             MessagesDbOnlyRow.Hint = L("hMailServer.ini was not found on this machine, so BackupMessagesDBOnly can only be changed on the server itself.");
             CheckVerifyRestore.IsEnabled = false;
-            VerifyRestoreRow.Hint = L("hMailServer.ini was not found on this machine, so BackupVerifyRestore can only be changed on the server itself.");
+            VerifyRestoreRow.Hint = L("hMailServer.ini was not found on this machine, so this can only be changed on the server itself.");
 
             // An editor that cannot read the value back must not write it either -
             // it would misreport its own state on the next visit.
@@ -466,7 +466,7 @@ namespace hMailServer.ControlPanel.Views
          bool replace = MailboxModeReplace.IsChecked is true;
 
          string question = replace
-            ? F("Replace the mailbox of {0} with the one in the archive?\n\nEvery folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default.", address)
+            ? F("Replace the mailbox of {0} with the one in the archive?\n\nEvery folder is emptied first: mail that arrived since the backup is gone. The person can put it back only if the Webmail page keeps deleted messages for them, which is off by default.", address)
             : F("Merge the folders and messages of the archive into the mailbox of {0}?\n\nNothing already there is removed.", address);
 
          // Replace empties the mailbox first and is drawn as the destructive act it
@@ -699,7 +699,7 @@ namespace hMailServer.ControlPanel.Views
          if (!iniStore_.IsAvailable)
          {
             scheduleLevel = StatusLevel.Warning;
-            scheduleText = L("Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check ScheduledBackupTime and ScheduledBackupIntervalMinutes on the server itself.");
+            scheduleText = L("Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself.");
          }
          else
          {
@@ -722,14 +722,14 @@ namespace hMailServer.ControlPanel.Views
                expectedMinutes = intervalMinutes;
                scheduleLevel = StatusLevel.Warning;
                scheduleText = PluralF(intervalMinutes,
-                  "ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute.",
-                  "ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes.",
+                  "The daily backup time '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minute.",
+                  "The daily backup time '{0}' is not a valid 24-hour HH:MM time, so the server falls back to the interval: one backup every {1} minutes.",
                   time, intervalMinutes);
             }
             else if (time.Length > 0)
             {
                scheduleLevel = StatusLevel.Critical;
-               scheduleText = F("ScheduledBackupTime '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run.", time);
+               scheduleText = F("The daily backup time '{0}' is not a valid 24-hour HH:MM time and no interval is set, so no scheduled backup will ever run.", time);
             }
             else if (intervalMinutes > 0)
             {

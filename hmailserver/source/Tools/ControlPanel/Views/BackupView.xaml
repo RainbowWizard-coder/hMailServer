@@ -42,11 +42,11 @@
                     <!-- The two hMailServer.ini switches under it, each with its note
                          as the hint (which is also the editor's help text). -->
                     <scaffold:FieldRow x:Name="MessagesDbOnlyRow" Margin="22,0,0,12"
-                                       Hint="{loc:L 'hMailServer.ini setting BackupMessagesDBOnly. The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore.'}">
+                                       Hint="{loc:L 'The backup then records which messages exist but not their contents, and a restore expects the files to still be in the data folder. Applies to backup and restore.'}">
                         <CheckBox x:Name="CheckMessagesDbOnly" Content="{loc:L 'Message metadata _only — do not copy the message files'}" />
                     </scaffold:FieldRow>
                     <scaffold:FieldRow x:Name="VerifyRestoreRow" Margin="22,0,0,12"
-                                       Hint="{loc:L 'hMailServer.ini setting BackupVerifyRestore, on by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold.'}">
+                                       Hint="{loc:L 'On by default. After the archive is written its message store is extracted to the temp folder through the same code a restore uses, held to exactly the files the backup staged, and every message row is checked for its file; the result is in the backup log. The store exists twice while it runs, so turn it off for a store the temp volume cannot hold.'}">
                         <CheckBox x:Name="CheckVerifyRestore" Content="{loc:L '_Verify each backup by extracting its message store and reconciling it against the rows'}" />
                     </scaffold:FieldRow>
                     <CheckBox x:Name="CheckSettings" Content="{loc:L 'Back up _settings'}" Margin="0,0,0,12" />
@@ -118,7 +118,7 @@
                             <TextBlock Style="{StaticResource TextCaption}" Margin="0,0,0,8"
                                        Text="{loc:L 'Keeping several generations of messages needs compression: without \'Compress destination files (zip)\' every backup writes its message files into the same DataBackup folder, overwriting the previous run\'s, so retention can only keep generations of the small settings-and-domains archives.'}" />
                             <TextBlock Style="{StaticResource TextCaption}"
-                                       Text="{loc:L 'Stored in hMailServer.ini as ScheduledBackupTime, ScheduledBackupIntervalMinutes, ScheduledBackupKeepCount and ScheduledBackupMaxAgeDays.'}" />
+                                       Text="{loc:L 'The schedule and the retention are stored in hMailServer.ini on the server.'}" />
                         </StackPanel>
                     </scaffold:SettingsSection>
                 </StackPanel>

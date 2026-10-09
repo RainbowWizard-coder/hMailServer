@@ -527,7 +527,7 @@ namespace hMailServer.ControlPanel.Views
 
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(dirOptOut_));
-         panel.Children.Add(DialogFields.Note(L("Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the server's DirectoryUserEditable setting says.")));
+         panel.Children.Add(DialogFields.Note(L("Out of the listing, out of everybody's To field and out of the CardDAV collection. It hides no mailbox: mail still arrives and anybody who knows the address can still write. The person can set this for themselves in the webmail whatever the Webmail page's 'Let people edit their own directory entry' setting says.")));
 
          RefreshDirectoryPhotoState_();
          return DialogFields.Scroll(panel);
