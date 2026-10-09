@@ -760,8 +760,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   delivery queue's are; the box is captioned *Sending domain*, with an Alt key, capped at 320 pixels, a name wider
   than it ending in an ellipsis and whole in its tool tip; and every column keeps a width - the address and the
   source share what is left between them, each over a floor and trimmed with an ellipsis, Why is 140 pixels and
-  trimmed too, Status and the six counts are 64 or their header's width, Since, Expires and the dates 150 and Listed
-  70 - so a narrow window scrolls a grid sideways rather than squeezing a column out.
+  trimmed too, Status is 84 or its header's width (84 holds ステータス, which a floor of 64 cut to "ステー…" in the
+  smallest window, where the header is not always counted once the grid scrolls sideways), the six counts 64 or
+  theirs, Since, Expires and the dates 150 and Listed 70 - so a narrow window scrolls a grid sideways rather than
+  squeezing a column out.
 - **Fixed: the Control Panel's distribution lists card cut every address to about ten characters beside two
   10-pixel word buttons.** Properties and Members were words at 10 pixels, the only text in the Control Panel below
   the 12-pixel caption size, and with the trash button took most of a half-width card from the address, the row's

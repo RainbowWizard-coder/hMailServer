@@ -478,12 +478,15 @@ namespace hMailServer.ControlPanel.Views
       // stars, Source read "Refuse" and "An ad" in a 1280 window and Since and
       // Expires were off the card altogether, so when an entry lapses could not
       // be seen; and the counts' address was cut to "gone@old-provider.exampl"
-      // with no ellipsis while its date columns had room to spare.
+      // with no ellipsis while its date columns had room to spare. Status's floor
+      // holds its widest header, ステータス, on its own: an Auto column's header is
+      // not always counted once the grid is narrower than its columns and scrolls
+      // sideways, and floored at 64 the column read "ステー…" in the smallest window.
       private void BuildColumns_()
       {
          entries_.Columns.Add(Trimmed_(L("Address"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200));
          entries_.Columns.Add(Trimmed_(L("Why"), nameof(EntryView.Why), new DataGridLength(140), 140));
-         entries_.Columns.Add(Fitted_(L("Status"), nameof(EntryView.Status), 64));
+         entries_.Columns.Add(Fitted_(L("Status"), nameof(EntryView.Status), 84));
          entries_.Columns.Add(Trimmed_(L("Source"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160));
          entries_.Columns.Add(Text_(L("Since"), nameof(EntryView.Since), new DataGridLength(150)));
          entries_.Columns.Add(Text_(L("Expires"), nameof(EntryView.Expires), new DataGridLength(150)));
@@ -519,7 +522,7 @@ namespace hMailServer.ControlPanel.Views
       private static DataGridTextColumn Trimmed_(string header, string path, DataGridLength width, double minWidth)
          => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width, MinWidth = minWidth });
 
-      /// <summary>A column of short codes: so many pixels, or its header's width where that is more ("ステータス" is wider than 64).</summary>
+      /// <summary>A column of short codes: so many pixels, or its header's width where that is more. The header's width is not counted every time the grid scrolls sideways, so a header that must be whole in the smallest window is held by the floor.</summary>
       private static DataGridTextColumn Fitted_(string header, string path, double minWidth)
          => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = DataGridLength.Auto, MinWidth = minWidth };
 

@@ -68,7 +68,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.Contains("Trimmed_(L(\"Address\"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200)", columns, StringComparison.Ordinal);
          Assert.Contains("Trimmed_(L(\"Why\"), nameof(EntryView.Why), new DataGridLength(140), 140)", columns, StringComparison.Ordinal);
-         Assert.Contains("Fitted_(L(\"Status\"), nameof(EntryView.Status), 64)", columns, StringComparison.Ordinal);
+         Assert.Contains("Fitted_(L(\"Status\"), nameof(EntryView.Status), 84)", columns, StringComparison.Ordinal);
          Assert.Contains("Trimmed_(L(\"Source\"), nameof(EntryView.Source), new DataGridLength(1, DataGridLengthUnitType.Star), 160)", columns, StringComparison.Ordinal);
          Assert.Contains("Text_(L(\"Since\"), nameof(EntryView.Since), new DataGridLength(150))", columns, StringComparison.Ordinal);
          Assert.Contains("Text_(L(\"Expires\"), nameof(EntryView.Expires), new DataGridLength(150))", columns, StringComparison.Ordinal);
@@ -80,7 +80,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("new DataGridLength(2, DataGridLengthUnitType.Star)", columns, StringComparison.Ordinal);
 
          // A column of short codes is its floor or its header's width, whichever
-         // is more, so that "ステータス" is not cut to "ステー…".
+         // is more; the floor holds "ステータス" on its own (84: five 12-pixel glyphs
+         // in semibold and the header's 20 pixels of padding), since the header is
+         // not always counted once the grid scrolls sideways, and at 64 the
+         // smallest window read "ステー…".
          string fitted = WithheldRowTests.MemberText(Source(), "private static DataGridTextColumn Fitted_(string header, string path, double minWidth)");
          Assert.True(fitted != null && fitted.Contains("Width = DataGridLength.Auto, MinWidth = minWidth", StringComparison.Ordinal), "A fitted column has no floor.");
       }
