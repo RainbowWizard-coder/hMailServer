@@ -9056,6 +9056,11 @@ A blocked domain is accepted again at once; an allowed domain goes back under gr
 
 An address it spared can be auto-banned again from the next ban on.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Remove {0} from the suppression list of {1}?
+
+The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Remove {0} from {1}?&#13;
 &#13;
@@ -11119,11 +11124,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Take the role {0} away from {1}? The account keeps only what its admin level gives it.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Take {0} off the suppression list of {1}?
-
-The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Taken (server time)</value>

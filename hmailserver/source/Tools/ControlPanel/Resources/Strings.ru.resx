@@ -9108,7 +9108,7 @@ Control Panel может читать файлы сообщений только
     <value>Убрать запись для {0} из папки {1}? Права, которые она даёт, сразу прекратят действовать.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
-    <value>Удалить правило журналирования для {0}? То, что уже отправлено, останется там, куда было отправлено.</value>
+    <value>Убрать правило журналирования для {0}? То, что уже отправлено, останется там, куда было отправлено.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Убрать получателя {0} из этого списка?</value>
@@ -9117,7 +9117,7 @@ Control Panel может читать файлы сообщений только
     <value>Удалить образцовый домен со всеми почтовыми ящиками, сообщениями и правилами в нём? Всё, что в него добавлено, тоже исчезнет.</value>
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
-    <value>Удалить bearer-токен песочницы? Тогда запросы к песочнице будут отправляться без него.</value>
+    <value>Убрать bearer-токен песочницы? Тогда запросы к песочнице будут отправляться без него.</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
     <value>Убрать второй фактор {0}? Собственный пароль снова позволит входить в почтовые клиенты, а коды приложения-аутентификатора перестанут работать.</value>
@@ -9126,7 +9126,7 @@ Control Panel может читать файлы сообщений только
     <value>Удалить выбранную учётную запись из этой группы</value>
   </data>
   <data name="Remove the stored passphrase for '{0}'? If the key file is encrypted, the key will stop loading at the next restart (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Удалить сохранённую парольную фразу для «{0}»? Если файл ключа зашифрован, при следующем перезапуске ключ перестанет загружаться (ошибка сервера 6170), а порты TLS, использующие этот сертификат, не запустятся.</value>
+    <value>Убрать сохранённую парольную фразу для «{0}»? Если файл ключа зашифрован, при следующем перезапуске ключ перестанет загружаться (ошибка сервера 6170), а порты TLS, использующие этот сертификат, не запустятся.</value>
   </data>
   <data name="Remove the stored private key passphrase from the selected certificate" xml:space="preserve">
     <value>Удалить сохранённую парольную фразу закрытого ключа из выбранного сертификата</value>
@@ -9156,8 +9156,13 @@ Control Panel может читать файлы сообщений только
 
 Адрес, который он освобождал, со следующего бана снова может быть забанен автоматически.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Убрать {0} из списка подавления домена {1}?
+
+Следующее сообщение на этот адрес будет отправлено, а в список адрес вернётся только после стольких постоянных отказов подряд, сколько требует порог.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
-    <value>Удалить {0} из {1}?
+    <value>Убрать {0} из {1}?
 
 Любой доступ, предоставленный этой группе, перестанет распространяться на эту учётную запись.</value>
   </data>
@@ -11252,11 +11257,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Снять роль {0} с {1}? У учётной записи останутся только права, которые даёт её уровень администратора.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Убрать {0} из списка подавления домена {1}?
-
-Следующее сообщение на этот адрес будет отправлено, а в список адрес вернётся только после стольких постоянных отказов подряд, сколько требует порог.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Создана (время сервера)</value>

@@ -9056,6 +9056,11 @@ Et blokkert domene godtas straks igjen; et tillatt domene havner under greylisti
 
 En adresse den sparte, kan utestenges automatisk igjen fra neste utestenging.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Fjerne {0} fra sperrelisten for {1}?
+
+Neste melding til adressen blir sendt, og den kommer først på listen igjen etter så mange harde returmeldinger på rad som terskelen krever.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Fjerne {0} fra {1}?
 
@@ -11119,11 +11124,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Fjerne rollen {0} fra {1}? Kontoen beholder bare det administratornivået gir den.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Ta {0} av sperrelisten for {1}?
-
-Neste melding til adressen blir sendt, og den kommer først på listen igjen etter så mange harde returmeldinger på rad som terskelen krever.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Tatt (servertid)</value>

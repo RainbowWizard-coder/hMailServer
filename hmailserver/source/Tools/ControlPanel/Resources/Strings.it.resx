@@ -9056,6 +9056,11 @@ Un dominio bloccato viene subito accettato di nuovo; un dominio consentito torna
 
 Un indirizzo che risparmiava può essere di nuovo bloccato automaticamente dal prossimo blocco.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Rimuovere {0} dalla lista di soppressione di {1}?
+
+Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista solo dopo tanti rimbalzi permanenti di fila quanti ne richiede la soglia.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Rimuovere {0} da {1}?
 
@@ -11119,11 +11124,6 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Togliere il ruolo {0} a {1}? L'account conserva solo ciò che gli dà il suo livello di amministrazione.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Togliere {0} dalla lista di soppressione di {1}?
-
-Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista solo dopo tanti rimbalzi permanenti di fila quanti ne richiede la soglia.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Eseguito (ora del server)</value>

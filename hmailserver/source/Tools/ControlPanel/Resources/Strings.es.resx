@@ -9008,7 +9008,7 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
     <value>¿Quitar la entrada de {0} de la carpeta {1}? Los permisos que concede terminan de inmediato.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
-    <value>¿Eliminar la regla de registro para {0}? Lo que ya ha enviado se queda donde se envió.</value>
+    <value>¿Quitar la regla de registro para {0}? Lo que ya ha enviado se queda donde se envió.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>¿Quitar el destinatario {0} de esta lista?</value>
@@ -9055,6 +9055,11 @@ Un dominio bloqueado vuelve a aceptarse de inmediato; un dominio permitido vuelv
     <value>¿Quitar {0} de la lista de nunca bloquear?
 
 Una dirección que eximía puede volver a bloquearse automáticamente desde el siguiente bloqueo.</value>
+  </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>¿Quitar {0} de la lista de supresión de {1}?
+
+El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tras tantos rebotes permanentes seguidos como exija el umbral.</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>¿Quitar {0} de {1}?
@@ -11119,11 +11124,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>¿Quitar el rol {0} a {1}? La cuenta conserva solo lo que le da su nivel de administrador.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>¿Quitar {0} de la lista de supresión de {1}?
-
-El próximo mensaje a esa dirección se enviará, y solo volverá a la lista tras tantos rebotes permanentes seguidos como exija el umbral.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Realizada (hora del servidor)</value>

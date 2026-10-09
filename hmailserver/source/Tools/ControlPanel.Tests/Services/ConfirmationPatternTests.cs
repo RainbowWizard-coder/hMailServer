@@ -309,6 +309,143 @@ namespace hMailServer.ControlPanel.Tests.Services
             "A question's act and its decline share an Alt key, so neither key presses its button; move one of them in the catalogue:\n" + string.Join("\n", offenders.Distinct()));
       }
 
+      // The languages of VerbOfTheAct_'s columns, English first.
+      private static readonly string[] VerbLanguages_ =
+      {
+         "en", "cs", "da", "de", "es", "fi", "fr", "it", "ja", "nb", "nl", "pl", "pt-BR", "ru", "sv", "tr", "uk", "zh-Hans"
+      };
+
+      // Each act's verb in each language, as the stem its caption and its question
+      // share (lower case; forms of one verb that share no stem are given apart by
+      // "|"), in VerbLanguages_'s order.
+      private static readonly Dictionary<string, string[]> VerbOfTheAct_ = new(StringComparer.Ordinal)
+      {
+         ["Re_move"] = new[] { "remove", "odebr", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "убра", "ta bort", "kaldır", "вилуч", "移除" },
+         ["_Remove stored passphrase"] = new[] { "remove", "odstran", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "убра", "ta bort", "kaldır", "вилуч", "移除" },
+         ["_Remove message"] = new[] { "remove", "odebr", "fjern", "entfern", "quit", "poist", "retir", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "удал", "ta bort", "kaldır", "вилуч", "移除" },
+         ["Re_move the sample domain"] = new[] { "remove", "odstran", "fjern", "entfern", "elimin", "poist", "supprim", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "удал", "ta bort", "kaldır", "вилуч", "移除" },
+         ["_Take the role away"] = new[] { "take", "odebr", "fjern", "entfern", "quit", "poist", "retir", "togli", "取り消", "fjern", "verwijder", "odbierz|odebra", "remov", "сня", "ta bort", "kaldır", "зня", "收回" },
+         ["_Clear"] = new[] { "clear", "vymaz", "ryd", "lösch", "borr", "tyhjen", "effac", "cancell", "クリア", "tøm", "wissen", "wyczy", "limp", "очист", "rensa", "temizle", "очист", "清除" },
+      };
+
+      /// <summary>
+      /// A question asks with the verb its button acts with, in English and in every
+      /// language (review findings F185 and F076): the button says what the question
+      /// asks, and Remove, which takes an entry out of a list the thing outlives, is
+      /// not Delete, which destroys it. Russian asked "Удалить" (delete) over the
+      /// button "Убрать" (remove), German "entziehen" over "Rolle entfernen", and the
+      /// English suppression list "Take ... off" over Remove: one act asked, another
+      /// answered. Every question whose act is one of VerbOfTheAct_'s captions is held
+      /// to the forms of that act's verb, which its caption must carry too, so that a
+      /// caption translated anew cannot leave the table behind unseen. The Delete
+      /// buttons are not held to it: Czech asks with odstranit and Spanish with
+      /// eliminar beside the Smazat and Borrar of their button, synonyms both.
+      /// </summary>
+      [Fact]
+      public void EachQuestion_AsksWithTheVerbOnItsButton_InEveryLanguage()
+      {
+         string confirmations = ReadControlPanelFile(Path.Join("Services", "Confirmations.cs"));
+         var questions = new List<(string Where, string Action, string Question)>();
+         var unread = new List<string>();
+         foreach ((string relative, string source) in SourceFiles())
+         {
+            foreach (string call in Calls(source, "Confirm("))
+            {
+               // The act is the third argument: Confirm(text, caption, action, ...).
+               List<string> arguments = Arguments(call);
+               Match action = arguments.Count > 2 ? Regex.Match(arguments[2], @"^L\(""((?:[^""\\]|\\.)*)""\)$") : Match.Empty;
+               string act = action.Success ? Regex.Unescape(action.Groups[1].Value) : null;
+               if (act == null || !VerbOfTheAct_.ContainsKey(act))
+                  continue;
+
+               List<string> texts = MarkedTexts_(arguments[0]);
+               Match helper = Regex.Match(arguments[0], @"^Confirmations\.(\w+)");
+               if (texts.Count == 0 && helper.Success)
+                  texts = MarkedTexts_(ConfirmationsMember_(confirmations, helper.Groups[1].Value));
+               if (texts.Count == 0)
+                  unread.Add(relative + ": " + call.Split('\n')[0].Trim());
+               questions.AddRange(texts.Select(text => (relative, act, text)));
+            }
+         }
+
+         Assert.True(unread.Count == 0, "A question with one of these acts is asked with a text this cannot read, so its verb goes unchecked:\n" + string.Join("\n", unread));
+
+         // Each act is read, and the questions that asked otherwise are among those read,
+         // so that the scan cannot go blind.
+         foreach (string act in VerbOfTheAct_.Keys)
+            Assert.Contains(questions, question => question.Action == act);
+         Assert.Contains(questions, question => question.Question.StartsWith("Remove {0} from {1}?", StringComparison.Ordinal));
+         Assert.Contains(questions, question => question.Question.StartsWith("Remove {0} from the suppression list of {1}?", StringComparison.Ordinal));
+         Assert.Contains(questions, question => question.Question.StartsWith("Take the role {0} away from {1}?", StringComparison.Ordinal));
+
+         string resources = Path.GetDirectoryName(ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         var catalogues = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal) { ["en"] = null };
+         foreach (string path in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         {
+            catalogues[Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length)] = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+         }
+
+         Assert.Equal(VerbLanguages_.Length, catalogues.Count);
+         var offenders = new List<string>();
+         foreach ((string tag, Dictionary<string, string> catalogue) in catalogues)
+         {
+            int column = Array.IndexOf(VerbLanguages_, tag);
+            Assert.True(column >= 0, "Strings." + tag + ".resx has no column in VerbOfTheAct_.");
+            foreach ((string where, string action, string question) in questions)
+            {
+               string act = Regex.Replace(Translated_(catalogue, action), @"\s*\(_.\)", "").Replace("_", "", StringComparison.Ordinal).ToLowerInvariant();
+               string asked = QuestionOf_(Translated_(catalogue, question)).ToLowerInvariant();
+               string[] forms = VerbOfTheAct_[action][column].Split('|');
+               if (!forms.Any(form => act.Contains(form, StringComparison.Ordinal)))
+                  offenders.Add(tag + ": the button \"" + act + "\" carries none of " + string.Join(", ", forms) + "; give VerbOfTheAct_ the forms of its verb");
+               else if (!forms.Any(form => asked.Contains(form, StringComparison.Ordinal)))
+                  offenders.Add(tag + ", " + where + ": \"" + asked + "\" over the button \"" + act + "\"");
+            }
+         }
+
+         Assert.True(offenders.Count == 0,
+            "A question asks with another verb than its button acts with; ask with the button's verb:\n" + string.Join("\n", offenders.Distinct()));
+      }
+
+      /// <summary>The texts an expression marks: L("..."), F("...", ...), Plural(n, "...", "...") and PluralF(n, "...", "...", ...).</summary>
+      private static List<string> MarkedTexts_(string expression)
+      {
+         const string text = @"""((?:[^""\\]|\\.)*)""";
+         var texts = Regex.Matches(expression, @"\b(?:L|F)\(\s*" + text)
+            .Select(match => Regex.Unescape(match.Groups[1].Value)).ToList();
+         foreach (Match plural in Regex.Matches(expression, @"\bPluralF?\([^,]+,\s*" + text + @"\s*,\s*" + text))
+         {
+            texts.Add(Regex.Unescape(plural.Groups[1].Value));
+            texts.Add(Regex.Unescape(plural.Groups[2].Value));
+         }
+
+         return texts;
+      }
+
+      /// <summary>A member of Services/Confirmations, from its declaration to the next comment or member.</summary>
+      private static string ConfirmationsMember_(string confirmations, string name)
+      {
+         Match declaration = Regex.Match(confirmations, @"public static string " + name + @"\b");
+         Assert.True(declaration.Success, "Confirmations." + name + " is gone.");
+         Match next = Regex.Match(confirmations.Substring(declaration.Index + declaration.Length), @"\n\s*(?:public |//)");
+         return confirmations.Substring(declaration.Index, declaration.Length + (next.Success ? next.Index : confirmations.Length - declaration.Index - declaration.Length));
+      }
+
+      // A text the catalogue leaves empty is shown in English; English has no catalogue.
+      private static string Translated_(Dictionary<string, string> catalogue, string text)
+         => catalogue != null && catalogue.TryGetValue(text, out string value) && value.Length > 0 ? value : text;
+
+      // The question a confirmation asks: its text to the first question mark, or to the
+      // full stop a Japanese question ends with.
+      private static readonly char[] QuestionEnds_ = { '?', '？', '。' };
+
+      private static string QuestionOf_(string text)
+      {
+         int end = text.IndexOfAny(QuestionEnds_);
+         return end < 0 ? text : text.Substring(0, end);
+      }
+
       /// <summary>
       /// The key a caption's Alt key is, as WPF's AccessText reads it: the character
       /// after the first underscore that is not doubled, upper-cased as

@@ -9156,6 +9156,11 @@ Zablokowana domena jest od razu znów przyjmowana; dozwolona domena od następne
 
 Adres, który oszczędzała, może znów zostać automatycznie zablokowany od następnej blokady.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Usunąć {0} z listy blokowanych domeny {1}?
+
+Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę dopiero po tylu trwałych zwrotach z rzędu, ile wymaga próg.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Usunąć {0} z {1}?
 
@@ -11252,11 +11257,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Odebrać rolę {0} kontu {1}? Konto zachowa tylko uprawnienia wynikające z jego poziomu administratora.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Usunąć {0} z listy blokowanych domeny {1}?
-
-Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę dopiero po tylu trwałych zwrotach z rzędu, ile wymaga próg.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Wykonano (czas serwera)</value>

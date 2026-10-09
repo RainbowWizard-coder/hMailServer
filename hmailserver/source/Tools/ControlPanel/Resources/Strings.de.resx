@@ -9056,6 +9056,11 @@ Eine gesperrte Domain wird sofort wieder angenommen; eine zugelassene Domain unt
 
 Eine Adresse, die dadurch verschont wurde, kann ab dem nächsten Bann wieder automatisch gebannt werden.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>{0} aus der Unterdrückungsliste von {1} entfernen?
+
+Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder auf die Liste, wenn sie so viele harte Unzustellbarkeiten in Folge hatte, wie der Schwellenwert verlangt.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0} aus {1} entfernen?
 
@@ -11118,12 +11123,7 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
     <value>Markierung und Haftungsausschluss</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>{1} die Rolle {0} entziehen? Das Konto behält nur, was seine Administratorstufe ihm gibt.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>{0} von der Unterdrückungsliste von {1} nehmen?
-
-Die nächste Nachricht an diese Adresse wird gesendet, und sie kommt erst wieder auf die Liste, wenn sie so viele harte Unzustellbarkeiten in Folge hatte, wie der Schwellenwert verlangt.</value>
+    <value>Die Rolle {0} von {1} entfernen? Das Konto behält nur, was seine Administratorstufe ihm gibt.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Erstellt (Serverzeit)</value>

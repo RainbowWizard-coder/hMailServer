@@ -9017,7 +9017,7 @@
     <value>移除样例域及其中的所有邮箱、邮件和规则吗？之后添加到它里面的内容也会一并移除。</value>
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
-    <value>删除沙箱的 Bearer 令牌？此后发往沙箱的请求将不带令牌。</value>
+    <value>移除沙箱的 Bearer 令牌？此后发往沙箱的请求将不带令牌。</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
     <value>是否移除 {0} 的第二重验证？其自身的密码将可以再次登录邮件客户端，身份验证器应用的验证码将失效。</value>
@@ -9055,6 +9055,11 @@
     <value>要将 {0} 从永不封禁列表中移除吗？
 
 它豁免过的地址自下一次封禁起可能再次被自动封禁。</value>
+  </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>要将 {0} 从 {1} 的抑制列表中移除吗？
+
+发往该地址的下一封邮件将会发出；只有连续硬退信的次数达到阈值后，才会将其重新列入。</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>是否将 {0} 从 {1} 中移除？
@@ -11119,11 +11124,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>是否从 {1} 收回角色 {0}？该账户将只保留其管理员级别所赋予的权限。</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>要将 {0} 从 {1} 的抑制列表中移除吗？
-
-发往该地址的下一封邮件将会发出；只有连续硬退信的次数达到阈值后，才会将其重新列入。</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>创建时间（服务器时间）</value>

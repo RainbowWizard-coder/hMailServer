@@ -9117,7 +9117,7 @@
     <value>Вилучити зразковий домен з усіма скриньками, повідомленнями та правилами в ньому? Усе, що до нього додано, теж зникне.</value>
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
-    <value>Видалити bearer-токен пісочниці? Тоді запити до пісочниці надсилатимуться без нього.</value>
+    <value>Вилучити bearer-токен пісочниці? Тоді запити до пісочниці надсилатимуться без нього.</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
     <value>Вилучити другий фактор {0}? Власний пароль знову даватиме вхід у поштові клієнти, а коди застосунку автентифікації перестануть працювати.</value>
@@ -9155,6 +9155,11 @@
     <value>Вилучити {0} зі списку «ніколи не банити»?
 
 Адресу, яку він звільняв, з наступного бану знову можуть забанити автоматично.</value>
+  </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Вилучити {0} зі списку придушення домену {1}?
+
+Наступне повідомлення на цю адресу буде надіслано, а до списку адреса повернеться лише після стількох постійних відмов поспіль, скільки вимагає поріг.</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Вилучити {0} з {1}?
@@ -11252,11 +11257,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Зняти роль {0} з {1}? Обліковому запису залишаться лише права, які дає його рівень адміністратора.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Вилучити {0} зі списку придушення домену {1}?
-
-Наступне повідомлення на цю адресу буде надіслано, а до списку адреса повернеться лише після стількох постійних відмов поспіль, скільки вимагає поріг.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Створено (час сервера)</value>

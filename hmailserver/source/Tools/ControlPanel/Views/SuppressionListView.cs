@@ -373,7 +373,7 @@ namespace hMailServer.ControlPanel.Views
          // Cancel on Enter, like every other confirmation that changes what the
          // server does: the next message to this address will be sent.
          if (!MessageBox.Confirm(
-               F("Take {0} off the suppression list of {1}?\n\nThe next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for.", selected.Address, Domain),
+               F("Remove {0} from the suppression list of {1}?\n\nThe next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for.", selected.Address, Domain),
                L("Remove from the suppression list"), L("Re_move"), destructive: true))
          {
             return;

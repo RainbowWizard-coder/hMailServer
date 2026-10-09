@@ -9056,6 +9056,11 @@ Et blokeret domæne accepteres straks igen; et tilladt domæne kommer fra næste
 
 En adresse, som den skånede, kan blokeres automatisk igen fra næste blokering.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Fjern {0} fra spærrelisten for {1}?
+
+Den næste besked til adressen bliver sendt, og den kommer først på listen igen efter så mange hårde returmails i træk, som tærsklen kræver.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Fjern {0} fra {1}?
 
@@ -11119,11 +11124,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Fjern rollen {0} fra {1}? Kontoen beholder kun det, dens administratorniveau giver den.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Fjern {0} fra spærrelisten for {1}?
-
-Den næste besked til adressen bliver sendt, og den kommer først på listen igen efter så mange hårde returmails i træk, som tærsklen kræver.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Taget (servertid)</value>

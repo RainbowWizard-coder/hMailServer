@@ -9156,8 +9156,13 @@ Blokovaná doména se hned znovu přijímá; povolená doména se od další rel
 
 Adresu, kterou ušetřil, lze od dalšího zákazu znovu automaticky zakázat.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Odebrat {0} ze seznamu blokovaných domény {1}?
+
+Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí až po tolika trvalých nedoručenkách po sobě, kolik určuje práh.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
-    <value>Odstranit {0} z {1}?
+    <value>Odebrat {0} z {1}?
 
 Veškerý přístup udělený této skupině přestane pro tento účet platit.</value>
   </data>
@@ -11252,11 +11257,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Odebrat roli {0} účtu {1}? Účet si ponechá jen oprávnění dané svou úrovní správce.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Odebrat {0} ze seznamu blokovaných domény {1}?
-
-Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí až po tolika trvalých nedoručenkách po sobě, kolik určuje práh.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Pořízeno (čas serveru)</value>

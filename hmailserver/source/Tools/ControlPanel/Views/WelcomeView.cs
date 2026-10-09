@@ -336,9 +336,12 @@ namespace hMailServer.ControlPanel.Views
          if (sampleBusy_)
             return;
 
+         // The question's button is the page's own, which names the act with the verb
+         // each catalogue asks it with: under the list's Remove, French, Spanish,
+         // Russian and Czech asked their word for delete over their word for remove.
          bool removing = sampleState_ == "present";
          if (removing && !Dialogs.Confirm(L("Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too."),
-                L("Control Panel"), L("Re_move"), destructive: true))
+                L("Control Panel"), L("Re_move the sample domain"), destructive: true))
             return;
 
          sampleBusy_ = true;

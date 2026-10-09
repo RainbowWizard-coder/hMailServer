@@ -9056,6 +9056,11 @@ Engellenen bir alan adı hemen yeniden kabul edilir; izin verilen bir alan adı 
 
 Koruduğu bir adres, bir sonraki yasaklamadan itibaren yeniden otomatik yasaklanabilir.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>{0}, {1} engelleme listesinden kaldırılsın mı?
+
+Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerektirdiği sayıda art arda kalıcı geri dönüşten sonra listeye yeniden alınır.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0}, {1} grubundan kaldırılsın mı?
 
@@ -11118,12 +11123,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Etiketleme ve yasal uyarı</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>{0} rolü {1} hesabından alınsın mı? Hesapta yalnızca yönetici düzeyinin verdiği yetkiler kalır.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>{0}, {1} engelleme listesinden kaldırılsın mı?
-
-Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerektirdiği sayıda art arda kalıcı geri dönüşten sonra listeye yeniden alınır.</value>
+    <value>{0} rolü {1} hesabından kaldırılsın mı? Hesapta yalnızca yönetici düzeyinin verdiği yetkiler kalır.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Alındığı zaman (sunucu saati)</value>

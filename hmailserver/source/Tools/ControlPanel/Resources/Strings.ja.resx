@@ -9056,6 +9056,11 @@
 
 これで免除されていたアドレスは、次の BAN から再び自動 BAN されることがあります。</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>{0} を {1} の抑止リストから削除しますか？
+
+このアドレスへの次のメッセージは送信されます。再びリストに載るのは、しきい値の回数だけ連続してハード バウンスした後です。</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0} を {1} から削除しますか?
 
@@ -11118,12 +11123,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>タグ付けと免責事項</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>{1} からロール {0} を外しますか? このアカウントには、その管理者レベルが与える権限だけが残ります。</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>{0} を {1} の抑止リストから外しますか？
-
-このアドレスへの次のメッセージは送信されます。再びリストに載るのは、しきい値の回数だけ連続してハード バウンスした後です。</value>
+    <value>{1} からロール {0} を取り消しますか? このアカウントには、その管理者レベルが与える権限だけが残ります。</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>作成日時 (サーバー時刻)</value>

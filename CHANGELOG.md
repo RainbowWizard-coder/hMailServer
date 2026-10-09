@@ -1371,8 +1371,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   names the message's sender and recipients and says that it is deleted without a bounce; the quarantine's delete of
   one message names its subject and its sender, where it asked *Delete this message permanently?*; the restart after a
   save says that a restart drops every open session and takes *Later* on Enter; and the account dialog's recovery tab,
-  which still raised the grey Win32 box, uses the themed one. The Control Panel's tests hold every page to the one
-  shape, so that a Yes and No question cannot come back.
+  which still raised the grey Win32 box, uses the themed one. Each question asks with its button's verb in every
+  language, where the suppression list asked *Take bounce@partner.example.net off the suppression list of
+  example.com?* over *Remove*, as six of its translations did, six catalogues asked their word for delete over their
+  word for remove - of a group's member, a stored passphrase, a journaling rule, the sandbox's token or the sample
+  domain - and six took a role away over a button that removes it. The Control Panel's tests hold every page to the
+  one shape, so that a Yes and No question cannot come back.
 - **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete
   user00@example.com?* did not say that the mailbox and every message in it went with the account, and the five
   deletes were four sentence shapes, the domain's built from a translated fragment (*its 1 account*) put into a

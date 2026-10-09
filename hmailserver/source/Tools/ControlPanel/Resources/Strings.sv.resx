@@ -9056,6 +9056,11 @@ En blockerad domän accepteras genast igen; en tillåten domän hamnar under gre
 
 En adress som den skonade kan spärras automatiskt igen från och med nästa spärr.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Ta bort {0} från spärrlistan för {1}?
+
+Nästa meddelande till adressen skickas, och den hamnar på listan igen först efter så många hårda studsar i följd som tröskeln kräver.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Ta bort {0} från {1}?&#13;
 &#13;
@@ -11118,12 +11123,7 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
     <value>Märkning och ansvarsfriskrivning</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>Ta rollen {0} från {1}? Kontot behåller bara det som dess administratörsnivå ger det.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Ta bort {0} från spärrlistan för {1}?
-
-Nästa meddelande till adressen skickas, och den hamnar på listan igen först efter så många hårda studsar i följd som tröskeln kräver.</value>
+    <value>Ta bort rollen {0} från {1}? Kontot behåller bara det som dess administratörsnivå ger det.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Tagen (servertid)</value>

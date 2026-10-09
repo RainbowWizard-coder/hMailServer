@@ -9008,7 +9008,7 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
     <value>Retirer l'entrée de {0} du dossier {1} ? Les droits qu'elle donne prennent fin aussitôt.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
-    <value>Supprimer la règle de journalisation pour {0} ? Ce qu'elle a déjà envoyé reste là où cela a été envoyé.</value>
+    <value>Retirer la règle de journalisation pour {0} ? Ce qu'elle a déjà envoyé reste là où cela a été envoyé.</value>
   </data>
   <data name="Remove the recipient {0} from this list?" xml:space="preserve">
     <value>Retirer le destinataire {0} de cette liste ?</value>
@@ -9017,7 +9017,7 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
     <value>Supprimer le domaine d'exemple avec toutes ses boîtes, ses messages et ses règles ? Tout ce qui y a été ajouté part aussi.</value>
   </data>
   <data name="Remove the sandbox's bearer token? Requests to the sandbox are then sent without one." xml:space="preserve">
-    <value>Supprimer le jeton bearer du bac à sable ? Les requêtes vers le bac à sable sont alors envoyées sans jeton.</value>
+    <value>Retirer le jeton bearer du bac à sable ? Les requêtes vers le bac à sable sont alors envoyées sans jeton.</value>
   </data>
   <data name="Remove the second factor of {0}? Its own password signs in to mail clients again, and the authenticator app's codes stop working." xml:space="preserve">
     <value>Retirer le second facteur de {0} ? Son propre mot de passe connecte de nouveau les clients de messagerie, et les codes de l'application d'authentification cessent de fonctionner.</value>
@@ -9055,6 +9055,11 @@ Un domaine bloqué est de nouveau accepté aussitôt ; un domaine autorisé repa
     <value>Retirer {0} de la liste des jamais bannis ?
 
 Une adresse qu'il épargnait peut de nouveau être bannie automatiquement dès le prochain bannissement.</value>
+  </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>Retirer {0} de la liste de suppression de {1} ?
+
+Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'après autant de rebonds définitifs d'affilée que le seuil l'exige.</value>
   </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>Retirer {0} de {1} ?
@@ -11119,11 +11124,6 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
     <value>Retirer le rôle {0} à {1} ? Le compte ne garde que ce que lui donne son niveau d'administration.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>Retirer {0} de la liste de suppression de {1} ?
-
-Le prochain message vers cette adresse sera envoyé, et elle n'y reviendra qu'après autant de rebonds définitifs d'affilée que le seuil l'exige.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Effectuée (heure du serveur)</value>

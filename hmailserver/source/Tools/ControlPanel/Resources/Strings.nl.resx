@@ -9056,6 +9056,11 @@ Een geblokkeerd domein wordt meteen weer geaccepteerd; een toegestaan domein val
 
 Een adres dat het spaarde, kan vanaf de volgende ban weer automatisch gebannen worden.</value>
   </data>
+  <data name="Remove {0} from the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
+    <value>{0} van de onderdrukkingslijst van {1} verwijderen?
+
+Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de lijst na zoveel harde bounces op rij als de drempel vraagt.</value>
+  </data>
   <data name="Remove {0} from {1}?&#13;&#10;&#13;&#10;Any access this group has been granted stops applying to that account." xml:space="preserve">
     <value>{0} uit {1} verwijderen?
 
@@ -11118,12 +11123,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>Markering en disclaimer</value>
   </data>
   <data name="Take the role {0} away from {1}? The account keeps only what its admin level gives it." xml:space="preserve">
-    <value>De rol {0} afnemen van {1}? Het account houdt alleen wat zijn beheerdersniveau het geeft.</value>
-  </data>
-  <data name="Take {0} off the suppression list of {1}?&#10;&#10;The next message to it will be sent, and it is listed again only after as many hard bounces in a row as the threshold asks for." xml:space="preserve">
-    <value>{0} van de onderdrukkingslijst van {1} halen?
-
-Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de lijst na zoveel harde bounces op rij als de drempel vraagt.</value>
+    <value>De rol {0} van {1} verwijderen? Het account houdt alleen wat zijn beheerdersniveau het geeft.</value>
   </data>
   <data name="Taken (server time)" xml:space="preserve">
     <value>Gemaakt (servertijd)</value>
