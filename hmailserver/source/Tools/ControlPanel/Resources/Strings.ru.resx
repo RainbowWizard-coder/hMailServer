@@ -2542,6 +2542,12 @@ Control Panel может читать файлы сообщений только
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Удалить коды восстановления</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Удалить одноразовые коды восстановления этой учётной записи? Код заменяет второй фактор, поэтому набор, который увидел кто-то ещё, — постоянный обход его. Владелец создаст новый набор в веб-почте. Адрес восстановления остаётся нетронутым.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Удалить адрес восстановления этой учётной записи? Каждая ссылка для сброса пароля, уже отправленная туда, перестаёт действовать, и владелец задаёт новый адрес в веб-почте. Одноразовые коды остаются нетронутыми.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Очищено</value>
   </data>
@@ -4318,9 +4324,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольная фраза _шифрования</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Завершить одноразовые коды восстановления этой учётной записи? Код заменяет второй фактор, поэтому набор, который увидел кто-то ещё, — постоянный обход его. Владелец создаст новый набор в веб-почте. Адрес восстановления остаётся нетронутым.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Конечная точка (пусто = собственная точка службы)</value>
@@ -9142,9 +9145,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Удалить токен</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Удалить адрес восстановления этой учётной записи? Каждая ссылка для сброса пароля, уже отправленная туда, перестаёт действовать, и владелец задаёт новый адрес в веб-почте. Одноразовые коды остаются нетронутыми.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Убрать {0} из списка?

@@ -2542,6 +2542,12 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Usuń kody odzyskiwania</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Usunąć jednorazowe kody odzyskiwania tego konta? Kod zastępuje drugi składnik konta, więc zestaw, który zobaczył ktoś inny, jest stałą drogą w około niego. Właściciel konta tworzy nowy zestaw w poczcie w przeglądarce. Adres odzyskiwania pozostaje nietknięty.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Usunąć adres odzyskiwania tego konta? Każdy odnośnik resetujący będący już w drodze przestaje działać, a właściciel konta ustawia nowy adres w poczcie w przeglądarce. Kody jednorazowe pozostają nietknięte.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Wyczyszczono</value>
   </data>
@@ -4318,9 +4324,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Hasło szyfrowa_nia</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Zakończyć jednorazowe kody odzyskiwania tego konta? Kod zastępuje drugi składnik konta, więc zestaw, który zobaczył ktoś inny, jest stałą drogą w około niego. Właściciel konta tworzy nowy zestaw w poczcie w przeglądarce. Adres odzyskiwania pozostaje nietknięty.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Punkt końcowy (puste = własny usługi)</value>
@@ -9142,9 +9145,6 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Usuń token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Usunąć adres odzyskiwania tego konta? Każdy odnośnik resetujący będący już w drodze przestaje działać, a właściciel konta ustawia nowy adres w poczcie w przeglądarce. Kody jednorazowe pozostają nietknięte.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Usunąć {0} z listy?

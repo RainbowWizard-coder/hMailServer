@@ -2518,6 +2518,12 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Effacer les codes de récupération</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Effacer les codes de récupération à usage unique de ce compte ? Un code tient lieu du deuxième facteur du compte : un jeu qu'une autre personne a lu est donc un contournement permanent. Le titulaire en crée un nouveau dans le webmail. L'adresse de récupération n'est pas touchée.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Effacer l'adresse de récupération de ce compte ? Tout lien de réinitialisation déjà en route vers elle cesse de fonctionner, et le titulaire définit une nouvelle adresse dans le webmail. Les codes à usage unique ne sont pas touchés.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Effacé</value>
   </data>
@@ -4272,9 +4278,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Phrase secrète de chiffreme_nt</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Mettre fin aux codes de récupération à usage unique de ce compte ? Un code tient lieu du deuxième facteur du compte : un jeu qu'une autre personne a lu est donc un contournement permanent. Le titulaire en crée un nouveau dans le webmail. L'adresse de récupération n'est pas touchée.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Point d'accès (vide = celui du service)</value>
@@ -9042,9 +9045,6 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Supprimer le jeton</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Retirer l'adresse de récupération de ce compte ? Tout lien de réinitialisation déjà en route vers elle cesse de fonctionner, et le titulaire définit une nouvelle adresse dans le webmail. Les codes à usage unique ne sont pas touchés.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Retirer {0} de la liste ?

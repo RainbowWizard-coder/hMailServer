@@ -326,20 +326,23 @@ namespace hMailServer.ControlPanel.Tests.Services
          ["Re_move the sample domain"] = new[] { "remove", "odstran", "fjern", "entfern", "elimin", "poist", "supprim", "rimuov", "削除", "fjern", "verwijder", "usu", "remov", "удал", "ta bort", "kaldır", "вилуч", "移除" },
          ["_Take the role away"] = new[] { "take", "odebr", "fjern", "entfern", "quit", "poist", "retir", "togli", "取り消", "fjern", "verwijder", "odbierz|odebra", "remov", "сня", "ta bort", "kaldır", "зня", "收回" },
          ["_Clear"] = new[] { "clear", "vymaz", "ryd", "lösch", "borr", "tyhjen", "effac", "cancell", "クリア", "tøm", "wissen", "wyczy", "limp", "очист", "rensa", "temizle", "очист", "清除" },
+         ["_Clear the recovery address"] = new[] { "clear", "smaz", "slet", "lösch", "borr", "poist", "effac", "cancell", "消去", "slett", "wissen", "usu", "apag", "удал", "radera", "sil", "видал", "清除" },
+         ["Clear the recovery co_des"] = new[] { "clear", "smaz", "slet", "lösch", "borr", "poist", "effac", "cancell", "消去", "slett", "wissen", "usu", "apag", "удал", "radera", "sil", "видал", "清除" },
       };
 
       /// <summary>
       /// A question asks with the verb its button acts with, in English and in every
       /// language (review findings F185 and F076): the button says what the question
-      /// asks, and Remove, which takes an entry out of a list the thing outlives, is
-      /// not Delete, which destroys it. Russian asked "Удалить" (delete) over the
-      /// button "Убрать" (remove), German "entziehen" over "Rolle entfernen", and the
-      /// English suppression list "Take ... off" over Remove: one act asked, another
-      /// answered. Every question whose act is one of VerbOfTheAct_'s captions is held
-      /// to the forms of that act's verb, which its caption must carry too, so that a
-      /// caption translated anew cannot leave the table behind unseen. The Delete
-      /// buttons are not held to it: Czech asks with odstranit and Spanish with
-      /// eliminar beside the Smazat and Borrar of their button, synonyms both.
+      /// asks, and Remove, which takes an entry out of a list the thing outlives, is not
+      /// Delete, which destroys it. Russian asked "Удалить" (delete) over the button
+      /// "Убрать" (remove), German "entziehen" over "Rolle entfernen", the English
+      /// suppression list "Take ... off" over Remove, and the recovery tab "Remove" and
+      /// "End" over Clear: one act asked, another answered. Every question whose act is
+      /// one of VerbOfTheAct_'s captions is held to the forms of that act's verb, which
+      /// its caption must carry too, so that a caption translated anew cannot leave the
+      /// table behind unseen. The Delete buttons are not held to it: Czech asks with
+      /// odstranit and Spanish with eliminar beside the Smazat and Borrar of their
+      /// button, synonyms both.
       /// </summary>
       [Fact]
       public void EachQuestion_AsksWithTheVerbOnItsButton_InEveryLanguage()
@@ -377,6 +380,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains(questions, question => question.Question.StartsWith("Remove {0} from {1}?", StringComparison.Ordinal));
          Assert.Contains(questions, question => question.Question.StartsWith("Remove {0} from the suppression list of {1}?", StringComparison.Ordinal));
          Assert.Contains(questions, question => question.Question.StartsWith("Take the role {0} away from {1}?", StringComparison.Ordinal));
+         Assert.Contains(questions, question => question.Question.StartsWith("Clear this account's recovery address?", StringComparison.Ordinal));
+         Assert.Contains(questions, question => question.Question.StartsWith("Clear this account's one-time recovery codes?", StringComparison.Ordinal));
 
          string resources = Path.GetDirectoryName(ControlPanelFile(Path.Join("Resources", "Strings.resx")));
          var catalogues = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal) { ["en"] = null };

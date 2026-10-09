@@ -2542,6 +2542,12 @@
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Видалити коди відновлення</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Видалити одноразові коди відновлення цього облікового запису? Код замінює другий чинник, тож набір, який побачив хтось інший, — це сталий обхід його. Власник створить новий набір у вебпошті. Адреса відновлення лишається недоторканою.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Видалити адресу відновлення цього облікового запису? Кожне посилання для скидання пароля, що вже надіслано туди, перестає діяти, і власник задає нову адресу у вебпошті. Одноразові коди лишаються недоторканими.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Очищено</value>
   </data>
@@ -4318,9 +4324,6 @@
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Парольна фраза _шифрування</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Завершити одноразові коди відновлення цього облікового запису? Код замінює другий чинник, тож набір, який побачив хтось інший, — це сталий обхід його. Власник створить новий набір у вебпошті. Адреса відновлення лишається недоторканою.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Кінцева точка (порожньо = власна точка служби)</value>
@@ -9142,9 +9145,6 @@
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Видалити токен</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Видалити адресу відновлення цього облікового запису? Кожне посилання для скидання пароля, що вже надіслано туди, перестає діяти, і власник задає нову адресу у вебпошті. Одноразові коди лишаються недоторканими.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Вилучити {0} зі списку?

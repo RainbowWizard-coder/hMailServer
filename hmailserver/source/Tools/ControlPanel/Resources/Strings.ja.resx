@@ -2518,6 +2518,12 @@
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>回復コードを消去</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>このアカウントの使い捨て回復コードを消去しますか。コードはアカウントの二要素の代わりになるため、他人が見た組はそれを回避する常設の手段になります。所有者はウェブメールで新しい組を作ります。回復用アドレスはそのままです。</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>このアカウントの回復用アドレスを消去しますか。すでに送信されたパスワード リセットのリンクはすべて無効になり、所有者はウェブメールで新しいアドレスを設定します。使い捨てコードはそのままです。</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>消去</value>
   </data>
@@ -4272,9 +4278,6 @@
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>暗号化のパスフレーズ(_P)</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>このアカウントの使い捨て回復コードを終了しますか。コードはアカウントの二要素の代わりになるため、他人が見た組はそれを回避する常設の手段になります。所有者はウェブメールで新しい組を作ります。回復用アドレスはそのままです。</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>エンドポイント (空 = サービス自身のエンドポイント)</value>
@@ -9042,9 +9045,6 @@
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>トークンを削除</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>このアカウントの回復用アドレスを削除しますか。すでに送信されたパスワード リセットのリンクはすべて無効になり、所有者はウェブメールで新しいアドレスを設定します。使い捨てコードはそのままです。</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} をリストから削除しますか?

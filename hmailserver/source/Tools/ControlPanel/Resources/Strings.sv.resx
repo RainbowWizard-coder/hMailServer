@@ -2518,6 +2518,12 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Radera återställningskoderna</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Radera det här kontots engångskoder för återställning? En kod träder i stället för kontots andra faktor, så en uppsättning som någon annan har läst är en bestående väg förbi den. Kontoinnehavaren gör en ny uppsättning i webbmailen. Återställningsadressen lämnas i fred.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Radera det här kontots återställningsadress? Varje återställningslänk som redan är på väg dit slutar fungera, och kontoinnehavaren sätter en ny adress i webbmailen. Engångskoderna lämnas i fred.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Rensat</value>
   </data>
@@ -4272,9 +4278,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Lösenfras för kr_yptering</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Avsluta det här kontots engångskoder för återställning? En kod träder i stället för kontots andra faktor, så en uppsättning som någon annan har läst är en bestående väg förbi den. Kontoinnehavaren gör en ny uppsättning i webbmailen. Återställningsadressen lämnas i fred.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Slutpunkt (tomt = tjänstens egen)</value>
@@ -9042,9 +9045,6 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Ta bort token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Ta bort det här kontots återställningsadress? Varje återställningslänk som redan är på väg dit slutar fungera, och kontoinnehavaren sätter en ny adress i webbmailen. Engångskoderna lämnas i fred.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Ta bort {0} från listan?

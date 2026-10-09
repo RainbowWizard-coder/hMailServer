@@ -2518,6 +2518,12 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Wiederherstellungscodes löschen</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Die Einmal-Wiederherstellungscodes dieses Kontos löschen? Ein Code tritt an die Stelle des zweiten Faktors des Kontos, ein Satz, den jemand anderes gelesen hat, ist also ein dauerhafter Weg daran vorbei. Der Kontoinhaber legt im Webmail einen neuen Satz an. Die Wiederherstellungsadresse bleibt unberührt.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Die Wiederherstellungsadresse dieses Kontos löschen? Jeder Link zum Zurücksetzen des Kennworts, der schon unterwegs dorthin ist, hört auf zu wirken, und der Kontoinhaber setzt im Webmail eine neue Adresse. Die Einmalcodes bleiben unberührt.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Geleert</value>
   </data>
@@ -4272,9 +4278,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passphrase zur Verschlüsselun_g</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Die Einmal-Wiederherstellungscodes dieses Kontos beenden? Ein Code tritt an die Stelle des zweiten Faktors des Kontos, ein Satz, den jemand anderes gelesen hat, ist also ein dauerhafter Weg daran vorbei. Der Kontoinhaber legt im Webmail einen neuen Satz an. Die Wiederherstellungsadresse bleibt unberührt.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpunkt (leer = der des Dienstes)</value>
@@ -9042,9 +9045,6 @@ Führen Sie dies aus, wenn Clients melden, dass Nachrichten unter der falschen U
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Token entfernen</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Die Wiederherstellungsadresse dieses Kontos entfernen? Jeder Link zum Zurücksetzen des Kennworts, der schon unterwegs dorthin ist, hört auf zu wirken, und der Kontoinhaber setzt im Webmail eine neue Adresse. Die Einmalcodes bleiben unberührt.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} aus der Liste entfernen?

@@ -2518,6 +2518,12 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Apagar os códigos de recuperação</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Apagar os códigos de recuperação de uso único desta conta? Um código faz as vezes do segundo fator da conta, então um conjunto que outra pessoa leu é um desvio permanente. O titular cria um conjunto novo pelo webmail. O endereço de recuperação não é tocado.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Apagar o endereço de recuperação desta conta? Todo link de redefinição já a caminho dele para de funcionar, e o titular define um novo endereço pelo webmail. Os códigos de uso único não são tocados.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Limpo</value>
   </data>
@@ -4272,9 +4278,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>_Frase secreta de criptografia</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Encerrar os códigos de recuperação de uso único desta conta? Um código faz as vezes do segundo fator da conta, então um conjunto que outra pessoa leu é um desvio permanente. O titular cria um conjunto novo pelo webmail. O endereço de recuperação não é tocado.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (vazio = o do próprio serviço)</value>
@@ -9042,9 +9045,6 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Remover o token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Remover o endereço de recuperação desta conta? Todo link de redefinição já a caminho dele para de funcionar, e o titular define um novo endereço pelo webmail. Os códigos de uso único não são tocados.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Remover {0} da lista?

@@ -2518,6 +2518,12 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>De herstelcodes wissen</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>De eenmalige herstelcodes van dit account wissen? Een code komt in de plaats van de tweede factor van het account, dus een set die iemand anders heeft gelezen is een blijvende weg eromheen. De accounthouder maakt een nieuwe set in de webmail. Het hersteladres blijft ongemoeid.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Het hersteladres van dit account wissen? Elke herstelkoppeling die er al naartoe onderweg is, stopt met werken, en de accounthouder stelt een nieuw adres in vanuit de webmail. De eenmalige codes blijven ongemoeid.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Gewist</value>
   </data>
@@ -4272,9 +4278,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Wachtwoordzin voor versleutelin_g</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>De eenmalige herstelcodes van dit account beëindigen? Een code komt in de plaats van de tweede factor van het account, dus een set die iemand anders heeft gelezen is een blijvende weg eromheen. De accounthouder maakt een nieuwe set in de webmail. Het hersteladres blijft ongemoeid.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Eindpunt (leeg = dat van de dienst)</value>
@@ -9042,9 +9045,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Token verwijderen</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Het hersteladres van dit account verwijderen? Elke herstelkoppeling die er al naartoe onderweg is, stopt met werken, en de accounthouder stelt een nieuw adres in vanuit de webmail. De eenmalige codes blijven ongemoeid.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} van de lijst verwijderen?

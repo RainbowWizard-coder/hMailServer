@@ -2542,6 +2542,12 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Smazat kódy pro obnovu</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Smazat jednorázové kódy pro obnovu u tohoto účtu? Kód zastupuje druhý faktor účtu, takže sada, kterou viděl někdo jiný, je trvalou cestou kolem něj. Držitel účtu si vytvoří novou sadu ve webové poště. Adresy pro obnovu se to netýká.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Smazat adresu pro obnovu u tohoto účtu? Každý odkaz pro obnovu, který je už na cestě, přestane fungovat, a držitel účtu si nastaví novou adresu ve webové poště. Jednorázových kódů se to netýká.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Vymazáno</value>
   </data>
@@ -4318,9 +4324,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Šifrovací hes_lo</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Ukončit jednorázové kódy pro obnovu u tohoto účtu? Kód zastupuje druhý faktor účtu, takže sada, kterou viděl někdo jiný, je trvalou cestou kolem něj. Držitel účtu si vytvoří novou sadu ve webové poště. Adresy pro obnovu se to netýká.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Koncový bod (prázdné = vlastní bod služby)</value>
@@ -9142,9 +9145,6 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Odebrat token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Odebrat adresu pro obnovu u tohoto účtu? Každý odkaz pro obnovu, který je už na cestě, přestane fungovat, a držitel účtu si nastaví novou adresu ve webové poště. Jednorázových kódů se to netýká.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Odebrat {0} ze seznamu?

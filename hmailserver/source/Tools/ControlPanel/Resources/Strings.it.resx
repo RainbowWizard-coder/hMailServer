@@ -2518,6 +2518,12 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Cancella i codici di recupero</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Cancellare i codici di recupero monouso di questo account? Un codice sostituisce il secondo fattore dell'account, quindi un insieme che qualcun altro ha letto è una via stabile per aggirarlo. Il titolare ne crea uno nuovo nella webmail. L'indirizzo di recupero resta intatto.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Cancellare l'indirizzo di recupero di questo account? Ogni collegamento di reimpostazione già in viaggio verso di esso smette di funzionare, e il titolare imposta un nuovo indirizzo nella webmail. I codici monouso restano intatti.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Svuotato</value>
   </data>
@@ -4272,9 +4278,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Passphrase di cifratu_ra</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Terminare i codici di recupero monouso di questo account? Un codice sostituisce il secondo fattore dell'account, quindi un insieme che qualcun altro ha letto è una via stabile per aggirarlo. Il titolare ne crea uno nuovo nella webmail. L'indirizzo di recupero resta intatto.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (vuoto = quello del servizio)</value>
@@ -9042,9 +9045,6 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Rimuovi il token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Rimuovere l'indirizzo di recupero di questo account? Ogni collegamento di reimpostazione già in viaggio verso di esso smette di funzionare, e il titolare imposta un nuovo indirizzo nella webmail. I codici monouso restano intatti.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Rimuovere {0} dall’elenco?

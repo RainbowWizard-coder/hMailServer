@@ -2518,6 +2518,12 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Kurtarma kodlarını sil</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Bu hesabın tek kullanımlık kurtarma kodları silinsin mi? Bir kod hesabın ikinci etkeninin yerini tutar, bu yüzden başkasının gördüğü bir takım onu aşmanın kalıcı bir yoludur. Hesap sahibi web postasında yeni bir takım oluşturur. Kurtarma adresine dokunulmaz.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Bu hesabın kurtarma adresi silinsin mi? Oraya çoktan yola çıkmış her sıfırlama bağlantısı çalışmayı bırakır ve hesap sahibi web postasından yeni bir adres ayarlar. Tek kullanımlık kodlara dokunulmaz.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Temizlendi</value>
   </data>
@@ -4272,9 +4278,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>_Şifreleme parola tümcesi</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>Bu hesabın tek kullanımlık kurtarma kodları sonlandırılsın mı? Bir kod hesabın ikinci etkeninin yerini tutar, bu yüzden başkasının gördüğü bir takım onu aşmanın kalıcı bir yoludur. Hesap sahibi web postasında yeni bir takım oluşturur. Kurtarma adresine dokunulmaz.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Uç nokta (boş = hizmetin kendi uç noktası)</value>
@@ -9042,9 +9045,6 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Belirteci kaldır</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Bu hesabın kurtarma adresi kaldırılsın mı? Oraya çoktan yola çıkmış her sıfırlama bağlantısı çalışmayı bırakır ve hesap sahibi web postasından yeni bir adres ayarlar. Tek kullanımlık kodlara dokunulmaz.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>{0} listeden kaldırılsın mı?

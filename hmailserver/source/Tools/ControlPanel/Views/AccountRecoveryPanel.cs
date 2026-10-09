@@ -118,8 +118,10 @@ namespace hMailServer.ControlPanel.Views
 
       private void Clear()
       {
+         // Each question asks with its button's verb, Clear, in every language
+         // (ConfirmationPatternTests), where they asked Remove and End over it.
          if (!MessageBox.Confirm(
-               L("Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone."),
+               L("Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone."),
                L("Clear the recovery address"), L("_Clear the recovery address"), destructive: true))
          {
             return;
@@ -148,7 +150,7 @@ namespace hMailServer.ControlPanel.Views
       private void ClearCodes()
       {
          if (!MessageBox.Confirm(
-               L("End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone."),
+               L("Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone."),
                L("Clear the recovery codes"), L("Clear the recovery co_des"), destructive: true))
          {
             return;

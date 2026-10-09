@@ -1375,8 +1375,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   language, where the suppression list asked *Take bounce@partner.example.net off the suppression list of
   example.com?* over *Remove*, as six of its translations did, six catalogues asked their word for delete over their
   word for remove - of a group's member, a stored passphrase, a journaling rule, the sandbox's token or the sample
-  domain - and six took a role away over a button that removes it. The Control Panel's tests hold every page to the
-  one shape, so that a Yes and No question cannot come back.
+  domain - six took a role away over a button that removes it, and the recovery tab asked *Remove this account's
+  recovery address?* and *End this account's one-time recovery codes?* over its *Clear* buttons in every language. The
+  Control Panel's tests hold every page to the one shape, so that a Yes and No question cannot come back.
 - **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete
   user00@example.com?* did not say that the mailbox and every message in it went with the account, and the five
   deletes were four sentence shapes, the domain's built from a translated fragment (*its 1 account*) put into a

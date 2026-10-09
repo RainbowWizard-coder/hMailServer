@@ -2518,6 +2518,12 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Clear the recovery codes</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Cleared</value>
   </data>
@@ -4272,9 +4278,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Encryption _passphrase</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Endpoint (empty = the service's own)</value>
@@ -9042,9 +9045,6 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Remove the token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>Remove {0} from the list?

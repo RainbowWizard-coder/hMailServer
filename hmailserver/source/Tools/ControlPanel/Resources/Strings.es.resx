@@ -2518,6 +2518,12 @@ Los detalles completos se escribieron en:
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>Borrar los códigos de recuperación</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>¿Borrar los códigos de recuperación de un solo uso de esta cuenta? Un código sustituye al segundo factor de la cuenta, así que un juego que otra persona haya visto es una vía permanente para saltarlo. El titular crea un juego nuevo en el webmail. La dirección de recuperación no se toca.</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>¿Borrar la dirección de recuperación de esta cuenta? Todo enlace de restablecimiento que ya vaya de camino allí deja de funcionar, y el titular define una dirección nueva en el webmail. Los códigos de un solo uso no se tocan.</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>Vaciado</value>
   </data>
@@ -4272,9 +4278,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>Fra_se de contraseña de cifrado</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>¿Terminar los códigos de recuperación de un solo uso de esta cuenta? Un código sustituye al segundo factor de la cuenta, así que un juego que otra persona haya visto es una vía permanente para saltarlo. El titular crea un juego nuevo en el webmail. La dirección de recuperación no se toca.</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>Punto de acceso (vacío = el del servicio)</value>
@@ -9042,9 +9045,6 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Quitar el token</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>¿Quitar la dirección de recuperación de esta cuenta? Todo enlace de restablecimiento que ya vaya de camino allí deja de funcionar, y el titular define una dirección nueva en el webmail. Los códigos de un solo uso no se tocan.</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>¿Quitar {0} de la lista?

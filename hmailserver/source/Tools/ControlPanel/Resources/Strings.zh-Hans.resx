@@ -2518,6 +2518,12 @@
   <data name="Clear the recovery codes" xml:space="preserve">
     <value>清除恢复代码</value>
   </data>
+  <data name="Clear this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
+    <value>要清除此账户的一次性恢复代码吗？代码可以代替账户的第二因素，因此被他人看过的一组代码就是绕过它的长期通道。所有者需在网页邮箱中生成新的一组。恢复地址不受影响。</value>
+  </data>
+  <data name="Clear this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
+    <value>要清除此账户的恢复地址吗？已经发往该地址的所有重置链接都会失效，所有者需在网页邮箱中设置新地址。一次性代码不受影响。</value>
+  </data>
   <data name="Cleared" xml:space="preserve">
     <value>已清除</value>
   </data>
@@ -4272,9 +4278,6 @@
   </data>
   <data name="Encryption _passphrase" xml:space="preserve">
     <value>加密口令(_P)</value>
-  </data>
-  <data name="End this account's one-time recovery codes? A code stands in for the account's second factor, so a set somebody else has read is a standing way past it. The account holder makes a fresh set in the webmail. The recovery address is left alone." xml:space="preserve">
-    <value>要结束此账户的一次性恢复代码吗？代码可以代替账户的第二因素，因此被他人看过的一组代码就是绕过它的长期通道。所有者需在网页邮箱中生成新的一组。恢复地址不受影响。</value>
   </data>
   <data name="Endpoint (empty = the service's own)" xml:space="preserve">
     <value>端点（空 = 服务自己的端点）</value>
@@ -9042,9 +9045,6 @@
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>删除令牌</value>
-  </data>
-  <data name="Remove this account's recovery address? Every password-reset link already on its way there stops working, and the account holder sets a new address in the webmail. The one-time codes are left alone." xml:space="preserve">
-    <value>要移除此账户的恢复地址吗？已经发往该地址的所有重置链接都会失效，所有者需在网页邮箱中设置新地址。一次性代码不受影响。</value>
   </data>
   <data name="Remove {0} from the list?&#10;&#10;A blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session." xml:space="preserve">
     <value>从列表中移除 {0}？
