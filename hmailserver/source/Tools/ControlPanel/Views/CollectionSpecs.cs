@@ -198,7 +198,7 @@ namespace hMailServer.ControlPanel.Views
          EditTitle = N("Edit the greylisting exemption"),
          CountOne = N("1 IP address"),
          CountMany = N("{0} IP addresses"),
-         DeletePrompt = N("Delete the greylisting white-list entry {0}? Mail from it is greylisted again."),
+         DeletePrompt = N("Delete the greylisting exemption {0}? Mail from it is greylisted again."),
          DeleteNameProps = new[] { "IPAddress" }, // no-loc: the properties that name an entry
          EmptyText = L("No addresses, so no server is let past greylisting for its IP address."),
          GetCollection = () => AntiSpam.GreyListingWhiteAddresses,
@@ -267,13 +267,13 @@ namespace hMailServer.ControlPanel.Views
          // wildcards, its pill rules and the virus overview patterns.
          Subtitle = L("Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered."),
          ItemNoun = L("pattern"),
-         AddTitle = N("Add a blocked attachment rule"),
-         EditTitle = N("Edit the blocked attachment rule"),
+         AddTitle = N("Add a blocked attachment pattern"),
+         EditTitle = N("Edit the blocked attachment pattern"),
          CountOne = N("1 pattern"),
          CountMany = N("{0} patterns"),
-         DeletePrompt = N("Delete the blocked attachment rule {0}? Attachments it matched are no longer removed."),
+         DeletePrompt = N("Delete the blocked attachment pattern {0}? Attachments it matched are no longer replaced."),
          DeleteNameProps = new[] { "Wildcard" }, // no-loc: the properties that name an entry
-         EmptyText = L("No wildcards, so no attachment is stripped for its file name."),
+         EmptyText = L("No patterns, so no attachment is replaced for its file name."),
          GetCollection = () => Settings.AntiVirus.BlockedAttachments,
          StateNotice = BlockingStateNotice_,
          Fields =

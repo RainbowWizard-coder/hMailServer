@@ -957,8 +957,8 @@ Control Panel может читать файлы сообщений только
   <data name="Add a _route" xml:space="preserve">
     <value>Добавить _маршрут</value>
   </data>
-  <data name="Add a blocked attachment rule" xml:space="preserve">
-    <value>Добавить правило для заблокированных вложений</value>
+  <data name="Add a blocked attachment pattern" xml:space="preserve">
+    <value>Добавить шаблон для заблокированных вложений</value>
   </data>
   <data name="Add a blocked sender" xml:space="preserve">
     <value>Добавить заблокированного отправителя</value>
@@ -2521,8 +2521,8 @@ Control Panel может читать файлы сообщений только
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Классифицировать отказы и вести список подавления</value>
   </data>
-  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
-    <value>Очистить все записи серых списков? Каждый отправитель, которого нет в белом списке, снова будет задержан на своём следующем сообщении.</value>
+  <data name="Clear every greylisting record? Every sender that matches none of the greylisting exemptions is delayed again on its next message." xml:space="preserve">
+    <value>Очистить все записи серых списков? Каждый отправитель, который не совпадает ни с одним из исключений серых списков, снова будет задержан на своём следующем сообщении.</value>
   </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Очистить тройки серых списков</value>
@@ -3624,8 +3624,8 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Удалить пароль приложения {0}? Клиент, который им пользуется, сразу перестанет подключаться.</value>
   </data>
-  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
-    <value>Удалить правило блокировки вложений {0}? Вложения, под которые оно подходило, больше не удаляются.</value>
+  <data name="Delete the blocked attachment pattern {0}? Attachments it matched are no longer replaced." xml:space="preserve">
+    <value>Удалить шаблон блокировки вложений {0}? Вложения, под которые он подходил, больше не заменяются.</value>
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Удалить заблокированного отправителя {0}?</value>
@@ -3678,8 +3678,8 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
     <value>Удалить исключение из greylisting {0}? Почта, под которую оно подходило, снова попадает под greylisting.</value>
   </data>
-  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
-    <value>Удалить запись {0} из белого списка greylisting? Почта с этого адреса снова попадает под greylisting.</value>
+  <data name="Delete the greylisting exemption {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>Удалить исключение серых списков {0}? Почта с этого адреса снова попадает под действие серых списков.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>Удалить входящую ретрансляцию {0}?</value>
@@ -4132,8 +4132,8 @@ Control Panel может читать файлы сообщений только
   <data name="Edit the SURBL server" xml:space="preserve">
     <value>Изменить сервер SURBL</value>
   </data>
-  <data name="Edit the blocked attachment rule" xml:space="preserve">
-    <value>Изменить правило для заблокированных вложений</value>
+  <data name="Edit the blocked attachment pattern" xml:space="preserve">
+    <value>Изменить шаблон для заблокированных вложений</value>
   </data>
   <data name="Edit the blocked sender" xml:space="preserve">
     <value>Изменить заблокированного отправителя</value>
@@ -7120,6 +7120,9 @@ Control Panel может читать файлы сообщений только
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Ни один шаблон не покрывает {0}. Имя разрешается обратно в {1}, поэтому шаблон, покрывающий его, освободил бы адрес.</value>
   </data>
+  <data name="No patterns, so no attachment is replaced for its file name." xml:space="preserve">
+    <value>Нет шаблонов, поэтому ни одно вложение не заменяется из-за имени файла.</value>
+  </data>
   <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
     <value>Нет политик, поэтому сервер общается с каждым внешним доменом по своим общим настройкам.</value>
   </data>
@@ -7206,9 +7209,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Ни один антивирусный сканер работать не может. Блокировка вложений всё ещё удаляет файлы по шаблонам имён на своей странице, но внутрь сообщения и внутрь архива не заглядывает ничто.</value>
-  </data>
-  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
-    <value>Нет шаблонов, поэтому ни одно вложение не удаляется из-за имени файла.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Никто - участники добавляются здесь</value>

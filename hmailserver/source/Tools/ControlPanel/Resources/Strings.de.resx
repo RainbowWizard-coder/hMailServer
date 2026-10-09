@@ -951,8 +951,8 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add a _route" xml:space="preserve">
     <value>_Route hinzufügen</value>
   </data>
-  <data name="Add a blocked attachment rule" xml:space="preserve">
-    <value>Regel für gesperrte Anhänge hinzufügen</value>
+  <data name="Add a blocked attachment pattern" xml:space="preserve">
+    <value>Muster für gesperrte Anhänge hinzufügen</value>
   </data>
   <data name="Add a blocked sender" xml:space="preserve">
     <value>Gesperrten Absender hinzufügen</value>
@@ -1604,7 +1604,7 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Die Vorschau auf jede mit einem Verzeichnis verknüpfte Domäne anwenden?</value>
   </data>
   <data name="Apply the preview to the domain {0}?" xml:space="preserve">
-    <value>Die Vorschau auf die Domäne {0} anwenden?</value>
+    <value>Die Vorschau auf die Domain {0} anwenden?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Die Spam_filterung des Servers auf dieses Konto anwenden</value>
@@ -2497,8 +2497,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Unzustellbarkeiten auswerten und eine Unterdrückungsliste führen</value>
   </data>
-  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
-    <value>Alle Greylisting-Einträge löschen? Jeder Absender, der auf keiner weißen Liste steht, wird bei seiner nächsten Nachricht wieder verzögert.</value>
+  <data name="Clear every greylisting record? Every sender that matches none of the greylisting exemptions is delayed again on its next message." xml:space="preserve">
+    <value>Alle Greylisting-Einträge löschen? Jeder Absender, der keiner der Greylisting-Ausnahmen entspricht, wird bei seiner nächsten Nachricht wieder verzögert.</value>
   </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Greylisting-Tripel löschen</value>
@@ -2927,7 +2927,7 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Diese Seite konnte nicht geladen werden: {0}</value>
   </data>
   <data name="Could not make the sample domain: {0}" xml:space="preserve">
-    <value>Die Beispieldomäne konnte nicht angelegt werden: {0}</value>
+    <value>Die Beispieldomain konnte nicht angelegt werden: {0}</value>
   </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Die Aktion konnte nicht verschoben werden: {0}</value>
@@ -3049,7 +3049,7 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Der Empfänger konnte nicht entfernt werden: {0}</value>
   </data>
   <data name="Could not remove the sample domain: {0}" xml:space="preserve">
-    <value>Die Beispieldomäne konnte nicht entfernt werden: {0}</value>
+    <value>Die Beispieldomain konnte nicht entfernt werden: {0}</value>
   </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Der Dienst konnte nicht neu gestartet werden: {0}</value>
@@ -3594,8 +3594,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Das App-Passwort {0} löschen? Der Client, der es verwendet, kann sich sofort nicht mehr verbinden.</value>
   </data>
-  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
-    <value>Die Regel für gesperrte Anhänge {0} löschen? Anhänge, auf die sie passte, werden nicht mehr entfernt.</value>
+  <data name="Delete the blocked attachment pattern {0}? Attachments it matched are no longer replaced." xml:space="preserve">
+    <value>Das Muster für gesperrte Anhänge {0} löschen? Anhänge, auf die es passte, werden nicht mehr ersetzt.</value>
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Den gesperrten Absender {0} löschen?</value>
@@ -3619,19 +3619,19 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
     <value>Die Verteilerliste {0} löschen? E-Mails an sie werden nicht mehr zugestellt; die Postfächer der Mitglieder bleiben unberührt.</value>
   </data>
   <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
-    <value>Den Domänenalias {0} löschen? E-Mails an Adressen unter diesem Namen werden nicht mehr an diese Domäne zugestellt.</value>
+    <value>Den Domainalias {0} löschen? E-Mails an Adressen unter diesem Namen werden nicht mehr an diese Domain zugestellt.</value>
   </data>
   <data name="Delete the domain {0}? It has no accounts; its aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
-    <value>Die Domäne {0} löschen? Sie hat keine Konten; ihre Aliase und Verteilerlisten werden mit ihr gelöscht. Es gibt kein Zurück.</value>
+    <value>Die Domain {0} löschen? Sie hat keine Konten; ihre Aliase und Verteilerlisten werden mit ihr gelöscht. Es gibt kein Zurück.</value>
   </data>
   <data name="Delete the domain {0}? Its one account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
-    <value>Die Domäne {0} löschen? Ihr einziges Konto, jede darin gespeicherte Nachricht und die Aliase und Verteilerlisten der Domäne werden mit ihr gelöscht. Es gibt kein Zurück.</value>
+    <value>Die Domain {0} löschen? Ihr einziges Konto, jede darin gespeicherte Nachricht und die Aliase und Verteilerlisten der Domain werden mit ihr gelöscht. Es gibt kein Zurück.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} account, every message stored in it, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
     <value>Die Domain {0} löschen? Ihr {1} Konto, jede darin gespeicherte Nachricht und die Aliase und Verteilerlisten der Domain werden mit ihr gelöscht. Es gibt kein Zurück.</value>
   </data>
   <data name="Delete the domain {0}? Its {1} accounts, every message stored in them, and the domain's aliases and distribution lists are deleted with it. There is no undo." xml:space="preserve">
-    <value>Die Domäne {0} löschen? Ihre {1} Konten, jede darin gespeicherte Nachricht und die Aliase und Verteilerlisten der Domäne werden mit ihr gelöscht. Es gibt kein Zurück.</value>
+    <value>Die Domain {0} löschen? Ihre {1} Konten, jede darin gespeicherte Nachricht und die Aliase und Verteilerlisten der Domain werden mit ihr gelöscht. Es gibt kein Zurück.</value>
   </data>
   <data name="Delete the entry {0}?" xml:space="preserve">
     <value>Den Eintrag {0} löschen?</value>
@@ -3645,8 +3645,8 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
     <value>Die Greylisting-Ausnahme {0} löschen? E-Mails, auf die sie passte, unterliegen wieder dem Greylisting.</value>
   </data>
-  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
-    <value>Den Eintrag {0} der Greylisting-Weißen-Liste löschen? E-Mails von dort unterliegen wieder dem Greylisting.</value>
+  <data name="Delete the greylisting exemption {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>Die Greylisting-Ausnahme {0} löschen? E-Mails von dort unterliegen wieder dem Greylisting.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>Das eingehende Relay {0} löschen?</value>
@@ -4086,8 +4086,8 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Edit the SURBL server" xml:space="preserve">
     <value>SURBL-Server bearbeiten</value>
   </data>
-  <data name="Edit the blocked attachment rule" xml:space="preserve">
-    <value>Regel für gesperrte Anhänge bearbeiten</value>
+  <data name="Edit the blocked attachment pattern" xml:space="preserve">
+    <value>Muster für gesperrte Anhänge bearbeiten</value>
   </data>
   <data name="Edit the blocked sender" xml:space="preserve">
     <value>Gesperrten Absender bearbeiten</value>
@@ -6727,7 +6727,7 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>Nein</value>
   </data>
   <data name="No API keys yet, so every REST request has to carry the administrator password, which has full authority over every domain and cannot be scoped, expired or revoked on its own. Create a key to use in its place." xml:space="preserve">
-    <value>Noch keine API-Schlüssel, daher muss jede REST-Anfrage das Administratorkennwort mitführen, das volle Befugnis über jede Domäne hat und sich nicht für sich allein eingrenzen, ablaufen lassen oder widerrufen lässt. Legen Sie einen Schlüssel an, der stattdessen verwendet wird.</value>
+    <value>Noch keine API-Schlüssel, daher muss jede REST-Anfrage das Administratorkennwort mitführen, das volle Befugnis über jede Domain hat und sich nicht für sich allein eingrenzen, ablaufen lassen oder widerrufen lässt. Legen Sie einen Schlüssel an, der stattdessen verwendet wird.</value>
   </data>
   <data name="No Active Directory domains could be found in the current forest." xml:space="preserve">
     <value>In der aktuellen Gesamtstruktur konnten keine Active-Directory-Domänen gefunden werden.</value>
@@ -6796,7 +6796,7 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>In dieser Domain gibt es noch keine Konten.</value>
   </data>
   <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
-    <value>Kein aktives Konto in einer aktiven Domäne passt zu „{0}“, die Nachricht würde also niemand erhalten.</value>
+    <value>Kein aktives Konto in einer aktiven Domain passt zu „{0}“, die Nachricht würde also niemand erhalten.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Keine aktive Domain, es gibt also noch nichts zu veröffentlichen.</value>
@@ -7044,6 +7044,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Kein Muster deckt {0} ab. Der Name löst wieder auf {1} auf, also würde ein Muster, das ihn abdeckt, die Adresse verschonen.</value>
   </data>
+  <data name="No patterns, so no attachment is replaced for its file name." xml:space="preserve">
+    <value>Keine Muster, daher wird kein Anhang wegen seines Dateinamens ersetzt.</value>
+  </data>
   <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
     <value>Keine Richtlinien, daher spricht der Server mit jeder fremden Domain nach seinen allgemeinen Einstellungen.</value>
   </data>
@@ -7127,9 +7130,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Kein Virenscanner kann laufen. Die Anhangsperre entfernt weiterhin die Dateinamensmuster auf ihrer eigenen Seite, aber nichts sieht in eine Nachricht oder in ein Archiv hinein.</value>
-  </data>
-  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
-    <value>Keine Wildcards, daher wird kein Anhang wegen seines Dateinamens entfernt.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Niemand - die Mitglieder werden hier hinzugefügt</value>
@@ -8520,7 +8520,7 @@ Es werden keine neuen Verbindungen angenommen und keine Mail zugestellt, bis er 
     <value>Öffentliche RSA-/EC-Schlüsseldatei (PEM, für RS*-/ES*-Tokens)</value>
   </data>
   <data name="R_emote domain" xml:space="preserve">
-    <value>_Externe Domäne</value>
+    <value>_Externe Domain</value>
   </data>
   <data name="R_esume" xml:space="preserve">
     <value>_Fortsetzen</value>
@@ -13901,7 +13901,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>Zertifikat _löschen</value>
   </data>
   <data name="_Delete domain" xml:space="preserve">
-    <value>Domäne _löschen</value>
+    <value>Domain _löschen</value>
   </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>Ordner _löschen</value>
@@ -13967,7 +13967,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>_Domain:</value>
   </data>
   <data name="_Domains" xml:space="preserve">
-    <value>_Domänen</value>
+    <value>_Domains</value>
   </data>
   <data name="_Domains it may act on (optional)" xml:space="preserve">
     <value>_Domains, auf die er wirken darf (optional)</value>
@@ -14060,7 +14060,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>_Header-Name (z. B. X-Spam-Status)</value>
   </data>
   <data name="_Hosted domain" xml:space="preserve">
-    <value>_Gehostete Domäne</value>
+    <value>_Gehostete Domain</value>
   </data>
   <data name="_How the selected member is sent a managed list's mail" xml:space="preserve">
     <value>_Wie das ausgewählte Mitglied die Post einer verwalteten Liste erhält</value>
@@ -14345,7 +14345,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>Konto _umbenennen</value>
   </data>
   <data name="_Rename the domain" xml:space="preserve">
-    <value>Domäne _umbenennen</value>
+    <value>Domain _umbenennen</value>
   </data>
   <data name="_Replace all ports" xml:space="preserve">
     <value>Alle Ports _ersetzen</value>
@@ -16191,7 +16191,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>{0}, von {1}, Bewertung {2}</value>
   </data>
   <data name="{0}, from {1}, score {2}, held because: {3}" xml:space="preserve">
-    <value>{0}, von {1}, Punktzahl {2}, zurückgehalten, weil: {3}</value>
+    <value>{0}, von {1}, Bewertung {2}, zurückgehalten, weil: {3}</value>
   </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, nicht verfügbar</value>

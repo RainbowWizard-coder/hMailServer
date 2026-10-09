@@ -951,8 +951,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a _route" xml:space="preserve">
     <value>Een route _toevoegen</value>
   </data>
-  <data name="Add a blocked attachment rule" xml:space="preserve">
-    <value>Een regel voor geblokkeerde bijlagen toevoegen</value>
+  <data name="Add a blocked attachment pattern" xml:space="preserve">
+    <value>Een patroon voor geblokkeerde bijlagen toevoegen</value>
   </data>
   <data name="Add a blocked sender" xml:space="preserve">
     <value>Een geblokkeerde afzender toevoegen</value>
@@ -2497,8 +2497,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Classify bounces and keep a suppression list" xml:space="preserve">
     <value>Bounces indelen en een onderdrukkingslijst bijhouden</value>
   </data>
-  <data name="Clear every greylisting record? Every sender not on a white list is delayed again on its next message." xml:space="preserve">
-    <value>Alle greylistingrecords wissen? Elke afzender die niet op een witte lijst staat, wordt bij zijn volgende bericht opnieuw vertraagd.</value>
+  <data name="Clear every greylisting record? Every sender that matches none of the greylisting exemptions is delayed again on its next message." xml:space="preserve">
+    <value>Alle greylistingrecords wissen? Elke afzender die met geen van de greylisting-uitzonderingen overeenkomt, wordt bij zijn volgende bericht opnieuw vertraagd.</value>
   </data>
   <data name="Clear greylisting triplets" xml:space="preserve">
     <value>Greylisting-triplets wissen</value>
@@ -3594,8 +3594,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
     <value>Het app-wachtwoord {0} verwijderen? De client die het gebruikt kan meteen geen verbinding meer maken.</value>
   </data>
-  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
-    <value>De regel voor geblokkeerde bijlagen {0} verwijderen? Bijlagen die erop pasten, worden niet meer verwijderd.</value>
+  <data name="Delete the blocked attachment pattern {0}? Attachments it matched are no longer replaced." xml:space="preserve">
+    <value>Het patroon voor geblokkeerde bijlagen {0} verwijderen? Bijlagen die erop pasten, worden niet meer vervangen.</value>
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>De geblokkeerde afzender {0} verwijderen?</value>
@@ -3645,8 +3645,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
     <value>De greylisting-omzeiling {0} verwijderen? Mail die erop paste, valt weer onder greylisting.</value>
   </data>
-  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
-    <value>De vermelding {0} op de witte lijst voor greylisting verwijderen? Mail daarvandaan valt weer onder greylisting.</value>
+  <data name="Delete the greylisting exemption {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>De greylisting-uitzondering {0} verwijderen? Mail daarvandaan valt weer onder greylisting.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>De inkomende relay {0} verwijderen?</value>
@@ -4086,8 +4086,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edit the SURBL server" xml:space="preserve">
     <value>De SURBL-server bewerken</value>
   </data>
-  <data name="Edit the blocked attachment rule" xml:space="preserve">
-    <value>De regel voor geblokkeerde bijlagen bewerken</value>
+  <data name="Edit the blocked attachment pattern" xml:space="preserve">
+    <value>Het patroon voor geblokkeerde bijlagen bewerken</value>
   </data>
   <data name="Edit the blocked sender" xml:space="preserve">
     <value>De geblokkeerde afzender bewerken</value>
@@ -7044,6 +7044,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No pattern covers {0}. It resolves back to {1}, so a pattern covering it would spare the address." xml:space="preserve">
     <value>Geen patroon dekt {0}. De naam verwijst terug naar {1}, dus een patroon dat hem dekt, zou het adres sparen.</value>
   </data>
+  <data name="No patterns, so no attachment is replaced for its file name." xml:space="preserve">
+    <value>Geen patronen, dus geen enkele bijlage wordt om zijn bestandsnaam vervangen.</value>
+  </data>
   <data name="No policies, so the server talks to every remote domain on its general settings." xml:space="preserve">
     <value>Geen beleidsregels, dus de server communiceert met elk extern domein volgens zijn algemene instellingen.</value>
   </data>
@@ -7127,9 +7130,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No virus scanner can run. Attachment blocking still strips the file-name patterns on its own page, but nothing looks inside a message or inside an archive." xml:space="preserve">
     <value>Geen enkele virusscanner kan draaien. Bijlageblokkering verwijdert nog steeds de bestandsnaampatronen op zijn eigen pagina, maar niets kijkt in een bericht of in een archief.</value>
-  </data>
-  <data name="No wildcards, so no attachment is stripped for its file name." xml:space="preserve">
-    <value>Geen jokertekens, dus geen enkele bijlage wordt om zijn bestandsnaam verwijderd.</value>
   </data>
   <data name="Nobody - the members are added here" xml:space="preserve">
     <value>Niemand - de leden worden hier toegevoegd</value>

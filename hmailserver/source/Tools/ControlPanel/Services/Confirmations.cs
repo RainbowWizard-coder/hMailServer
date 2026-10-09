@@ -165,7 +165,7 @@ namespace hMailServer.ControlPanel.Services
          => L("The retention is 0, which keeps everything: nothing is ever old enough to remove.");
 
       public static string ClearGreylisting
-         => L("Clear every greylisting record? Every sender not on a white list is delayed again on its next message.");
+         => L("Clear every greylisting record? Every sender that matches none of the greylisting exemptions is delayed again on its next message.");
 
       /// <summary>
       /// The server sendout, with how many active accounts in active domains match the
