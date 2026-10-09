@@ -172,6 +172,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Minimum = Minimum", number, StringComparison.Ordinal);
       }
 
+      /// <summary>F139's four width rules in one group: the directory pages take the settings pages' rule too.</summary>
+      [Theory]
+      [InlineData("LdapSettingsView.cs", "port_, timeout_")]
+      [InlineData("DirectorySyncView.cs", "maxUsers_, scheduleMinutes_")]
+      public void TheDirectoryPages_TakeTheSameWidths(string view, string numbers)
+      {
+         string source = File.ReadAllText(Path.Join(Path.GetDirectoryName(SourcePath_()), view));
+         Assert.DoesNotContain("box.MaxWidth = 520;", source, StringComparison.Ordinal);
+         Assert.DoesNotContain("box.MaxWidth = 620;", source, StringComparison.Ordinal);
+         Assert.DoesNotContain("MinWidth = 320;", source, StringComparison.Ordinal);
+         Assert.Contains("box.HorizontalAlignment = HorizontalAlignment.Stretch;", source, StringComparison.Ordinal);
+         Assert.Contains("foreach (Wpf.Ui.Controls.TextBox number in new[] { " + numbers + " })", source, StringComparison.Ordinal);
+         Assert.Contains("number.Width = 180;", source, StringComparison.Ordinal);
+      }
+
+      private static string SourcePath_()
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Views", "FeatureSettingsView.xaml.cs");
+            if (File.Exists(candidate))
+               return candidate;
+         }
+
+         throw new FileNotFoundException("FeatureSettingsView.xaml.cs could not be found from the test binaries.");
+      }
+
       private static string Definition_(string key)
       {
          string source = Source_();

@@ -204,6 +204,13 @@ namespace hMailServer.ControlPanel.Views
          foreach (Wpf.Ui.Controls.TextBox box in new[] { filter_, mailAttribute_, usernameAttribute_, displayNameAttribute_, maxUsers_, scheduleMinutes_ })
             box.TextChanged += (s, e) => { if (!loading_) saveState_.Follow(); };
 
+         // The two numbers are a number's width, as the settings pages' numbers are (F139).
+         foreach (Wpf.Ui.Controls.TextBox number in new[] { maxUsers_, scheduleMinutes_ })
+         {
+            number.HorizontalAlignment = HorizontalAlignment.Left;
+            number.Width = 180;
+         }
+
          // The five that decide what a run selects, also to the run card.
          foreach (Wpf.Ui.Controls.TextBox box in new[] { filter_, mailAttribute_, usernameAttribute_, displayNameAttribute_, maxUsers_ })
             box.TextChanged += (s, e) => { if (!loading_) FollowSelection_(); };
@@ -283,9 +290,8 @@ namespace hMailServer.ControlPanel.Views
       private static FieldRow LabelledBox_(string label, Wpf.Ui.Controls.TextBox box,
          string automationId, string caption, string placeholder = "")
       {
-         box.MaxWidth = 620;
-         box.MinWidth = 320;
-         box.HorizontalAlignment = HorizontalAlignment.Left;
+         // The form column's width, as on the other settings pages (review finding F139).
+         box.HorizontalAlignment = HorizontalAlignment.Stretch;
          box.PlaceholderText = placeholder;
          System.Windows.Automation.AutomationProperties.SetAutomationId(box, automationId);
 
@@ -359,9 +365,7 @@ namespace hMailServer.ControlPanel.Views
             L("Preview changes nothing and reports exactly what Apply would do - they share one decider in the server, so a preview cannot describe an action the apply would not take. Apply stays disabled until a preview has been run with the options as they stand."),
             out StackPanel content);
 
-         domainChoice_.MinWidth = 320;
-         domainChoice_.MaxWidth = 620;
-         domainChoice_.HorizontalAlignment = HorizontalAlignment.Left;
+         domainChoice_.HorizontalAlignment = HorizontalAlignment.Stretch;
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainChoice_, "dirsync-domain");
          domainChoice_.SelectionChanged += (s, e) => InvalidatePreview_();
          content.Children.Add(new FieldRow

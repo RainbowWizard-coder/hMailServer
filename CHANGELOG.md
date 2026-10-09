@@ -1983,8 +1983,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   MTA-STS max age from a day to a year, a work factor 0 or its range - saying "Enter a whole number from 0 to 65,535."
   on the field and writing nothing on the page. The MTA-STS policy mode is a list of enforce, testing and none, each
   saying what it does; the DNS override is held to one IPv4 address as the server reads it; addresses are 260 pixels
-  wide and other text the width of the form. The drop size for oversized inbound messages is captioned in KB, the unit
-  the server compares it in, where it said bytes.
+  wide and other text the width of the form, as on Directory authentication and Directory synchronisation, whose boxes
+  were 320 to 620 pixels and whose numbers are now 180. The drop size for oversized inbound messages is captioned in
+  KB, the unit the server compares it in, where it said bytes.
 
 - **Fixed: fields that count only while their switch is on stayed editable while it was off.** A domain's account,
   alias and list limits, its plus-addressing character, signature, relay credential, out-of-office text for local

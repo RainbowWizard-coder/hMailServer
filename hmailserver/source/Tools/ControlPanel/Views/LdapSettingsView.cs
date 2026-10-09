@@ -200,6 +200,13 @@ namespace hMailServer.ControlPanel.Views
 
          WireLiveState_();
          WireSaveState_();
+
+         // The two numbers are a number's width, as the settings pages' numbers are (F139).
+         foreach (Wpf.Ui.Controls.TextBox number in new[] { port_, timeout_ })
+         {
+            number.HorizontalAlignment = HorizontalAlignment.Left;
+            number.Width = 180;
+         }
       }
 
       public void OnEnter()
@@ -321,9 +328,8 @@ namespace hMailServer.ControlPanel.Views
       private static FieldRow LabelledBox_(string label, Wpf.Ui.Controls.TextBox box,
          string automationId, string caption, string placeholder = "")
       {
-         box.MaxWidth = 520;
-         box.MinWidth = 320;
-         box.HorizontalAlignment = HorizontalAlignment.Left;
+         // The form column's width, as on the other settings pages (review finding F139).
+         box.HorizontalAlignment = HorizontalAlignment.Stretch;
          box.PlaceholderText = placeholder;
          System.Windows.Automation.AutomationProperties.SetAutomationId(box, automationId);
 
@@ -349,9 +355,7 @@ namespace hMailServer.ControlPanel.Views
       private static FieldRow LabelledCombo_(string label, ComboBox combo,
          string automationId, string caption, params (int Value, string Text)[] options)
       {
-         combo.MinWidth = 320;
-         combo.MaxWidth = 520;
-         combo.HorizontalAlignment = HorizontalAlignment.Left;
+         combo.HorizontalAlignment = HorizontalAlignment.Stretch;
          foreach ((int value, string text) in options)
             combo.Items.Add(new ComboBoxItem { Content = text, Tag = value });
 
@@ -486,9 +490,7 @@ namespace hMailServer.ControlPanel.Views
             L("Whatever your directory accepts for a simple bind: a UPN (svc-mail@example.local), DOMAIN\\name, or a full DN. Left empty, the server searches anonymously - which usually fails against Active Directory, with a reported reason that names this setting."),
             placeholder: "svc-mail@example.local"));
 
-         servicePassword_.MaxWidth = 520;
-         servicePassword_.MinWidth = 320;
-         servicePassword_.HorizontalAlignment = HorizontalAlignment.Left;
+         servicePassword_.HorizontalAlignment = HorizontalAlignment.Stretch;
          System.Windows.Automation.AutomationProperties.SetAutomationId(servicePassword_, "ldap-service-password");
 
          string passwordCaption =
@@ -593,9 +595,7 @@ namespace hMailServer.ControlPanel.Views
             L("Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here."),
             placeholder: "EXAMPLE")); // no-loc
 
-         testPassword_.MaxWidth = 520;
-         testPassword_.MinWidth = 320;
-         testPassword_.HorizontalAlignment = HorizontalAlignment.Left;
+         testPassword_.HorizontalAlignment = HorizontalAlignment.Stretch;
          testPassword_.PlaceholderText = L("Leave empty to test only the infrastructure");
          System.Windows.Automation.AutomationProperties.SetAutomationId(testPassword_, "ldap-test-password");
          content.Children.Add(new FieldRow
