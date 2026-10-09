@@ -544,6 +544,7 @@ namespace hMailServer.ControlPanel.Views
             SetValue_(Pop3Value, L("POP3 sessions"), notRead);
             SetValue_(StartedValue, L("Started"), notRead);
             SetValue_(UptimeValue, L("Uptime"), notRead);
+            SinceStartHeading.Text = L("Since the service started");
          }
 
          LoadWarnings(app);
