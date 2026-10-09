@@ -473,7 +473,7 @@ namespace hMailServer.ControlPanel.Views
       {
          if (!MessageBox.Confirm(
                L("Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later."),
-               L("Keep the shipped settings"), L("_Keep the shipped settings"), cancelByDefault: true))
+               L("Keep the shipped settings"), L("Keep the _shipped settings"), cancelByDefault: true))
          {
             return;
          }

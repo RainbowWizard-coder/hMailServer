@@ -1086,6 +1086,9 @@
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Додавати _підпис до відповідей</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Додати _перший домен…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Додати _перший запис…</value>
   </data>
@@ -1100,9 +1103,6 @@
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Додайте домен на сторінці Домени. Його ім'я - частина після @ у кожній адресі, яку він міститиме.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Додати _перший домен…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Додайте наведений нижче ключ до програми автентифікації, а потім підтвердьте кодом. Після реєстрації самого лише пароля адміністратора для входу не вистачить — код знадобиться також COM API та REST API. Зберігайте ключ у безпечному місці: якщо ви втратите програму автентифікації, локальний адміністратор має видалити AdministratorTotpSecret із розділу [Security] файлу hMailServer.ini в редакторі, запущеному від імені адміністратора, і перезапустити службу hMailServer.</value>
@@ -4185,6 +4185,9 @@
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Редагується на інших вкладках цього діалогу.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Редагування {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Редагування {0} - збережені зміни діють протягом двох секунд; перезапуск служби не потрібен.</value>
@@ -9396,7 +9399,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>Відновлення розпочато — виконується у фоновому режимі на сервері.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Відновити типові _порти</value>
+    <value>Відновити _типові порти</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Відновити типові діапа_зони</value>
@@ -14015,6 +14018,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Перевіряти цей пароль через Windows (Active Directory або локальний обліковий запис Windows)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Очистити</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Видалити адресу відновлення</value>
   </data>
@@ -14264,9 +14270,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Залишити стару адресу як псевдонім</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Залишити постачені параметри</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>Продовжити _роботу</value>
   </data>
@@ -14489,9 +14492,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Повторно ініціалізувати</value>
   </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Повторно ініціалізувати зараз</value>
-  </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Вузол ретрансляції (порожньо = використовувати загальносерверний ретранслятор)</value>
   </data>
@@ -14592,7 +14592,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>_Налаштувати ACME…</value>
   </data>
   <data name="_Show in IP ranges" xml:space="preserve">
-    <value>Показати в _діапазонах IP</value>
+    <value>Показ_ати в діапазонах IP</value>
   </data>
   <data name="_Source address or range it may be used from (optional)" xml:space="preserve">
     <value>_Адреса або діапазон джерела, з якого його можна використовувати (необов’язково)</value>

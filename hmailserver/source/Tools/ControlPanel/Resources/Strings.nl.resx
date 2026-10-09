@@ -949,7 +949,7 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
     <value>Een _kopregel toevoegen die de lezer als balk toont</value>
   </data>
   <data name="Add a _route" xml:space="preserve">
-    <value>Een _route toevoegen</value>
+    <value>Een route _toevoegen</value>
   </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Een regel voor geblokkeerde bijlagen toevoegen</value>
@@ -1080,6 +1080,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Handtekening toevoegen aan antwoo_rden</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Eerste _domein toevoegen…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Eerste _item toevoegen…</value>
   </data>
@@ -1094,9 +1097,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Voeg het domein toe op de pagina Domeinen. De naam is het deel na de @ in elk adres dat het zal bevatten.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Eerste _domein toevoegen…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Voeg de sleutel hieronder toe aan een authenticator-app en bevestig dan met een code. Na inschrijving meldt het beheerderswachtwoord alleen niet meer aan - de COM-API en REST-API hebben dan ook een code nodig. Bewaar de sleutel ergens veilig: als u de authenticator verliest, moet een lokale beheerder AdministratorTotpSecret uit de sectie [Security] van hMailServer.ini verwijderen, met een editor die als administrator draait, en de service hMailServer opnieuw starten.</value>
@@ -4139,6 +4139,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Wordt bewerkt op de andere tabbladen van dit venster.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>{0} wordt bewerkt</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} wordt bewerkt - opgeslagen wijzigingen zijn binnen twee seconden actief; geen herstart van de service.</value>
@@ -9296,7 +9299,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>Herstel gestart - het draait op de achtergrond op de server.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Standaard_poorten herstellen</value>
+    <value>S_tandaardpoorten herstellen</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Standaardbereiken _herstellen</value>
@@ -13843,6 +13846,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Dit wachtwoord controleren bij Windows (Active Directory of een lokaal Windows-account)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Wissen</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Hersteladres wissen</value>
   </data>
@@ -14092,9 +14098,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>Het oude adres als alias _behouden</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>De geleverde instellingen _houden</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Doorwerken</value>
   </data>
@@ -14316,9 +14319,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Herinitialiseren</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>Nu _herinitialiseren</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relayhost (leeg = de serverbrede relayer gebruiken)</value>

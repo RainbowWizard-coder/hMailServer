@@ -119,7 +119,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // "Remove" takes an entry out of a list the thing outlives - a folder's
          // access entries, a list's recipients; "Delete" destroys.
          string permissions = ReadControlPanelFile(Path.Join("Views", "FolderPermissionsDialog.cs"));
-         Assert.Contains("var del = new Wpf.Ui.Controls.Button { Content = L(\"_Remove\")", permissions, StringComparison.Ordinal);
+         Assert.Contains("var del = new Wpf.Ui.Controls.Button { Content = L(\"Re_move\")", permissions, StringComparison.Ordinal);
          Assert.DoesNotContain("L(\"_Remove selected\")", ReadControlPanelFile(Path.Join("Views", "RecipientsDialog.cs")), StringComparison.Ordinal);
       }
 

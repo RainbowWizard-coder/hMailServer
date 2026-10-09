@@ -1086,6 +1086,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Přidávat podpis k _odpovědím</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Přidat první _doménu…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Přidat _první položku…</value>
   </data>
@@ -1100,9 +1103,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Přidejte doménu na stránce Domény. Její název je část za @ v každé adrese, kterou bude obsahovat.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Přidat první _doménu…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Přidejte klíč níže do ověřovací aplikace a potvrďte jej kódem. Po registraci samotné heslo správce nepřihlásí – kód budou vyžadovat i COM API a REST API. Klíč uschovejte na bezpečném místě: pokud o ověřovací aplikaci přijdete, musí místní správce odstranit AdministratorTotpSecret z oddílu [Security] souboru hMailServer.ini v editoru spuštěném jako správce a restartovat službu hMailServer.</value>
@@ -2342,7 +2342,7 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
     <value>Zkontrolovat SPF</value>
   </data>
   <data name="Check _all records" xml:space="preserve">
-    <value>Zkontrolovat _všechny záznamy</value>
+    <value>Z_kontrolovat všechny záznamy</value>
   </data>
   <data name="Check _policy (HTTPS)" xml:space="preserve">
     <value>_Zkontrolovat politiku (HTTPS)</value>
@@ -4185,6 +4185,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Upravuje se na ostatních kartách tohoto dialogu.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Úprava {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Úprava {0} - uložené změny jsou živé do dvou sekund; bez restartu služby.</value>
@@ -9396,10 +9399,10 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
     <value>Obnovení spuštěno – běží na pozadí na serveru.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Obnovit výchozí _porty</value>
+    <value>O_bnovit výchozí porty</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Obnovit výchozí _rozsahy</value>
+    <value>O_bnovit výchozí rozsahy</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Obnovit sc_hránku</value>
@@ -14015,6 +14018,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Ověřit toto heslo proti Windows (Active Directory, nebo místní účet Windows)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Vymazat</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Smazat adresu pro obnovu</value>
   </data>
@@ -14264,9 +14270,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Ponechat starou adresu jako alias</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Ponechat dodaná nastavení</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Pokračovat v práci</value>
   </data>
@@ -14489,9 +14492,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Reinicializovat</value>
   </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Reinicializovat nyní</value>
-  </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay hostitel (prázdné = použít relayer platný pro celý server)</value>
   </data>
@@ -14589,7 +14589,7 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
     <value>_Server</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
-    <value>_Nastavit ACME…</value>
+    <value>Nas_tavit ACME…</value>
   </data>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>Zobrazit v _rozsazích IP</value>

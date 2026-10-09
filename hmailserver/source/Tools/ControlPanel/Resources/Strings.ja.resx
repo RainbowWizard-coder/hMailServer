@@ -1080,6 +1080,9 @@
   <data name="Add signature to _replies" xml:space="preserve">
     <value>返信に署名を追加する(_R)</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>最初のドメインを追加(_F)…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>最初の項目を追加(_F)…</value>
   </data>
@@ -1094,9 +1097,6 @@
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>ドメイン ページでドメインを追加します。ドメイン名は、そのドメインが持つすべてのアドレスの @ より後の部分です。</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>最初のドメインを追加(_D)…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>下のキーを認証アプリに追加し、コードで確認してください。登録が済むと、管理者パスワードだけではサインインできなくなり、COM API と REST API でもコードが必要になります。キーは安全な場所に保管してください。認証アプリを失った場合は、ローカルの管理者が、管理者として実行したエディターで hMailServer.ini の [Security] セクションから AdministratorTotpSecret を削除し、hMailServer サービスを再起動する必要があります。</value>
@@ -4139,6 +4139,9 @@
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>このダイアログのほかのタブで編集します。</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>{0} を編集中</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} を編集中 - 保存した変更は 2 秒以内に反映されます。サービスの再起動は不要です。</value>
@@ -13843,6 +13846,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>このパスワードを Windows (Active Directory またはローカルの Windows アカウント) で確認する(_C)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>クリア(_C)</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>回復用アドレスを消去(_C)</value>
   </data>
@@ -14092,9 +14098,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>古いアドレスをエイリアスとして残す(_K)</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>出荷時の設定を保持(_K)</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>作業を続ける(_K)</value>
   </data>
@@ -14316,9 +14319,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>再初期化(_R)</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>今すぐ再初期化(_R)</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>リレー ホスト (空 = サーバー全体のリレーを使用)(_R)</value>

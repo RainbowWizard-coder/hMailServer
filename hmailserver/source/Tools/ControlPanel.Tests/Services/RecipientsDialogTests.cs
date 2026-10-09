@@ -47,7 +47,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string between = ctor.Substring(list, actions - list);
          Assert.Contains("new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right", between, StringComparison.Ordinal);
          Assert.Contains("L(\"Add from A_D…\")", between, StringComparison.Ordinal);
-         Assert.Contains("L(\"_Remove\")", between, StringComparison.Ordinal);
+         Assert.Contains("L(\"Re_move\")", between, StringComparison.Ordinal);
          Assert.Contains("ButtonStyles.DangerText(removeButton);", between, StringComparison.Ordinal);
          Assert.Contains("SelectionGate.Bind(listBox_, removeButton);", between, StringComparison.Ordinal);
       }

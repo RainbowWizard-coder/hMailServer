@@ -949,7 +949,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
     <value>Lisää _otsake, jonka lukija näyttää palkkina</value>
   </data>
   <data name="Add a _route" xml:space="preserve">
-    <value>Lisää _reitti</value>
+    <value>Lisää re_itti</value>
   </data>
   <data name="Add a blocked attachment rule" xml:space="preserve">
     <value>Lisää estettyjen liitteiden sääntö</value>
@@ -1080,6 +1080,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Lisää allekirjoitus _vastauksiin</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Lisää ensimmäinen _verkkotunnus…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Lisää _ensimmäinen kohde…</value>
   </data>
@@ -1094,9 +1097,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Lisää verkkotunnus sivulla Verkkotunnukset. Sen nimi on @-merkin jälkeinen osa jokaisessa osoitteessa, jonka se tulee sisältämään.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Lisää ensimmäinen _verkkotunnus…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Lisää alla oleva avain todennussovellukseen ja vahvista sitten koodilla. Käyttöönoton jälkeen ylläpitäjän salasana ei yksin kirjaa sisään – myös COM API ja REST API vaativat koodin. Säilytä avain turvassa: jos todennussovellus katoaa, paikallisen järjestelmänvalvojan on poistettava AdministratorTotpSecret-arvo hMailServer.ini-tiedoston [Security]-osiosta järjestelmänvalvojana käynnistetyllä editorilla ja käynnistettävä hMailServer-palvelu uudelleen.</value>
@@ -4139,6 +4139,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Muokataan tämän valintaikkunan muilla välilehdillä.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Muokataan: {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Muokataan: {0} - tallennetut muutokset ovat voimassa kahden sekunnin kuluessa; ei palvelun uudelleenkäynnistystä.</value>
@@ -9296,10 +9299,10 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
     <value>Palautus aloitettu - suoritetaan taustalla palvelimella.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>P_alauta oletusportit</value>
+    <value>Palauta ol_etusportit</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Palauta _vakioalueet</value>
+    <value>Palauta va_kioalueet</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Palauta postilaatikko (_x)</value>
@@ -9656,7 +9659,7 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
     <value>_Vaihda säännön tila</value>
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
-    <value>Tallenna _käyttöoikeudet</value>
+    <value>Tallenna käytt_öoikeudet</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Hiekkalaatikko</value>
@@ -13843,6 +13846,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>Tarkista tämä salasana Windowsia _vasten (Active Directory tai paikallinen Windows-tili)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Tyhjennä</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Poista palautusosoite</value>
   </data>
@@ -14092,9 +14098,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>Säi_lytä vanha osoite aliaksena</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Säilytä toimitetut asetukset</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Jatka työskentelyä</value>
   </data>
@@ -14316,9 +14319,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Alusta uudelleen</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Alusta uudelleen nyt</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Välityskone (tyhjä = käytä palvelimenlaajuista välittäjää)</value>

@@ -128,10 +128,14 @@ OTHER_SCRIPTS = {"ja", "zh-Hans", "ru", "uk"}
 
 # Keys of ordinary words that are names in every language and script: products,
 # formats, the DKIM canonicalisation names, an IMAP right, the Control Panel's
-# own name. A new key belongs here only when it is a name.
+# own name. A new key belongs here only when it is a name. The keys the keyboard
+# shortcuts name - Del, Enter, Esc and Ins - are printed so on the keycaps of a
+# Japanese, Chinese, Russian and Ukrainian keyboard, and are named so in the
+# shortcut lists of those languages' own software.
 SAME_IN_EVERY_SCRIPT = {
    "Azure Blob Storage", "NCSA Common Log Format", "Control Panel", "hMailServer Control Panel",
    "Relaxed", "Simple", "Sieve", "Expunge", "Web  ", "OK",
+   "Del", "Enter", "Esc", "Ins",
 }
 
 # English words written in capitals, which are words and not acronyms: the rule

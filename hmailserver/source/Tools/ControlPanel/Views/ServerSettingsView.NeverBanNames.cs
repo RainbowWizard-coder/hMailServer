@@ -202,7 +202,7 @@ namespace hMailServer.ControlPanel.Views
             // the next failed logon.
             if (!MessageBox.Confirm(
                   F("Remove {0} from the never-ban list?\n\nAn address it spared can be auto-banned again from the next ban on.", selected.Pattern),
-                  L("Remove from the never-ban list"), L("_Remove"), destructive: true))
+                  L("Remove from the never-ban list"), L("Re_move"), destructive: true))
             {
                return;
             }

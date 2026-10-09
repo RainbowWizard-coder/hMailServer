@@ -1080,6 +1080,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Signatur zu Antwo_rten hinzufügen</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Erste _Domain hinzufügen…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Ersten _Eintrag hinzufügen…</value>
   </data>
@@ -1094,9 +1097,6 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Legen Sie die Domain auf der Seite Domains an. Ihr Name ist der Teil nach dem @ in jeder Adresse, die sie enthalten wird.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Erste _Domain hinzufügen…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Fügen Sie den Schlüssel unten einer Authenticator-App hinzu und bestätigen Sie dann mit einem Code. Nach der Einrichtung meldet das Administratorpasswort allein nicht mehr an - auch die COM-API und die REST-API brauchen einen Code. Bewahren Sie den Schlüssel sicher auf: verlieren Sie den Authenticator, muss ein lokaler Administrator AdministratorTotpSecret aus dem Abschnitt [Security] von hMailServer.ini löschen, mit einem als Administrator gestarteten Editor, und den Dienst hMailServer neu starten.</value>
@@ -4139,6 +4139,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Wird auf den anderen Registerkarten dieses Dialogs bearbeitet.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>{0} wird bearbeitet</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} wird bearbeitet - gespeicherte Änderungen sind innerhalb von zwei Sekunden aktiv; kein Neustart des Dienstes.</value>
@@ -9296,7 +9299,7 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
     <value>Die Wiederherstellung wurde gestartet - sie läuft im Hintergrund auf dem Server.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Standard-_Ports wiederherstellen</value>
+    <value>Standard-Ports _wiederherstellen</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Standard-Bereiche wie_derherstellen</value>
@@ -13843,6 +13846,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>Dieses Passwort gegen Windows _prüfen (Active Directory oder ein lokales Windows-Konto)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Leeren</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Wiederherstellungsadresse löschen</value>
   </data>
@@ -14003,7 +14009,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>_Läuft ab</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
-    <value>_Ablauf nach (Tagen)</value>
+    <value>A_blauf nach (Tagen)</value>
   </data>
   <data name="_Expiry date" xml:space="preserve">
     <value>Ab_laufdatum</value>
@@ -14091,9 +14097,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>Alte Adresse als Alias _behalten</value>
-  </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>Ausgelieferte Einstellungen _behalten</value>
   </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Weiterarbeiten</value>
@@ -14317,9 +14320,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Reinitialisieren</value>
   </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>Jetzt _reinitialisieren</value>
-  </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay-Host (leer = den serverweiten Relayer verwenden)</value>
   </data>
@@ -14417,7 +14417,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>S_erver</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
-    <value>ACME einri_chten…</value>
+    <value>_ACME einrichten…</value>
   </data>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>In IP-Bereichen _anzeigen</value>

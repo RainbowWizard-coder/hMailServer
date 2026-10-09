@@ -484,7 +484,7 @@ namespace hMailServer.ControlPanel.Views
          // Later takes Enter: a reinitialise disconnects whoever is connected.
          if (!MessageBox.Confirm(
                 L("Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?"),
-                L("Control Panel"), L("_Reinitialise now"), cancelByDefault: true, decline: L("_Later")))
+                L("Control Panel"), L("Reinitialise _now"), cancelByDefault: true, decline: L("_Later")))
             return;
 
          Reinitialise_();

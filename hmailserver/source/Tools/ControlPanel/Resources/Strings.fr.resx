@@ -1080,6 +1080,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Ajouter la signature aux _réponses</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Ajouter le premier _domaine…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Ajouter la _première entrée…</value>
   </data>
@@ -1094,9 +1097,6 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Ajoutez le domaine sur la page Domaines. Son nom est la partie après le @ de chaque adresse qu'il contiendra.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Ajouter le premier _domaine…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Ajoutez la clé ci-dessous à une application d'authentification, puis confirmez avec un code. Une fois enrôlé, le mot de passe administrateur seul ne permettra plus de se connecter - l'API COM et l'API REST auront aussi besoin d'un code. Gardez la clé en lieu sûr : si vous perdez l'authentificateur, un administrateur local doit supprimer AdministratorTotpSecret de la section [Security] de hMailServer.ini, avec un éditeur lancé en tant qu'administrateur, puis redémarrer le service hMailServer.</value>
@@ -4139,6 +4139,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Modifié sur les autres onglets de cette boîte de dialogue.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Modification de {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Modification de {0} - les changements enregistrés sont actifs sous deux secondes ; pas de redémarrage du service.</value>
@@ -9296,7 +9299,7 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
     <value>Restauration démarrée - elle s'exécute en arrière-plan sur le serveur.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Rétablir les p_orts par défaut</value>
+    <value>Ré_tablir les ports par défaut</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Restaurer les pla_ges par défaut</value>
@@ -13843,6 +13846,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Vérifier ce mot de passe auprès de Windows (Active Directory, ou un compte Windows local)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Effacer</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Effacer l'adresse de récupération</value>
   </data>
@@ -14092,9 +14098,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Conserver l'ancienne adresse comme alias</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Garder les paramètres livrés</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Continuer à travailler</value>
   </data>
@@ -14317,9 +14320,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Réinitialiser</value>
   </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Réinitialiser maintenant</value>
-  </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>Hôte de _relais (vide = utiliser le relayeur global du serveur)</value>
   </data>
@@ -14417,7 +14417,7 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
     <value>_Serveur</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
-    <value>_Configurer ACME…</value>
+    <value>Confi_gurer ACME…</value>
   </data>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>_Voir dans les plages IP</value>

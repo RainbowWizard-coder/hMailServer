@@ -1086,6 +1086,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Добавлять _подпись к ответам</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Добавить _первый домен…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Добавить _первую запись…</value>
   </data>
@@ -1100,9 +1103,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Добавьте домен на странице Домены. Его имя - часть после @ в каждом адресе, который он будет содержать.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Добавить _первый домен…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Добавьте приведённый ниже ключ в приложение-аутентификатор, затем подтвердите его кодом. После регистрации пароль администратора сам по себе не даст войти — код понадобится и COM API, и REST API. Храните ключ в надёжном месте: если аутентификатор потерян, локальный администратор должен удалить AdministratorTotpSecret из раздела [Security] файла hMailServer.ini в редакторе, запущенном от имени администратора, и перезапустить службу hMailServer.</value>
@@ -1892,7 +1892,7 @@ Control Panel может читать файлы сообщений только
     <value>Создавать резервную копию в настроенное расположение перед автоматической установкой (нет расположения или неудачная резервная копия — значит установка не выполняется)</value>
   </data>
   <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
-    <value>_Архив резервной копии (HMBackup*.7z на сервере)</value>
+    <value>Архив _резервной копии (HMBackup*.7z на сервере)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>Резервная копия сохранена в {0}.</value>
@@ -4185,6 +4185,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Редактируется на других вкладках этого диалога.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Изменение {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд; перезапуск службы не нужен.</value>
@@ -9396,10 +9399,10 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Восстановление запущено — выполняется в фоне на сервере.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Восстановить _порты по умолчанию</value>
+    <value>Восстановить порты по у_молчанию</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Восстановить диапазо_ны по умолчанию</value>
+    <value>Восстановить диапазоны по у_молчанию</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Восстановить почтовый ящик (_x)</value>
@@ -14015,6 +14018,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Проверять этот пароль через Windows (Active Directory или локальную учётную запись Windows)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Очистить</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Удалить адрес восстановления</value>
   </data>
@@ -14264,9 +14270,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Оставить старый адрес как псевдоним</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Оставить поставляемые параметры</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>Продолжить _работу</value>
   </data>
@@ -14488,9 +14491,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Повторно инициализировать</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Повторно инициализировать сейчас</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Узел ретрансляции (пусто — использовать общесерверный ретранслятор)</value>

@@ -197,7 +197,7 @@ namespace hMailServer.ControlPanel.Views
       {
          // The person's codes stop working and the account's own password signs in
          // to mail clients again: asked first, with Cancel the answer Enter gives.
-         if (!Dialogs.Confirm(Confirmations.RemoveSecondFactor(address_), L("Control Panel"), L("_Remove"), destructive: true))
+         if (!Dialogs.Confirm(Confirmations.RemoveSecondFactor(address_), L("Control Panel"), L("Re_move"), destructive: true))
             return;
 
          try

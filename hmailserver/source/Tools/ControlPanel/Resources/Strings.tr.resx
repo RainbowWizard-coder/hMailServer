@@ -1080,6 +1080,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add signature to _replies" xml:space="preserve">
     <value>İmzayı _yanıtlara ekle</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>İ_lk alan adını ekle…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>_İlk girdiyi ekle…</value>
   </data>
@@ -1094,9 +1097,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Alan adını Etki alanları sayfasında ekleyin. Adı, barındıracağı her adreste @ işaretinden sonraki kısımdır.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>İ_lk alan adını ekle…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Aşağıdaki anahtarı bir kimlik doğrulayıcı uygulamaya ekleyin, sonra bir kodla onaylayın. Kayıt tamamlandığında yönetici parolası tek başına oturum açmaz - COM API'si ve REST API de bir kod isteyecektir. Anahtarı güvenli bir yerde saklayın: kimlik doğrulayıcıyı kaybederseniz yerel bir yöneticinin, yönetici olarak çalıştırılan bir düzenleyiciyle hMailServer.ini dosyasının [Security] bölümünden AdministratorTotpSecret değerini silmesi ve hMailServer hizmetini yeniden başlatması gerekir.</value>
@@ -4139,6 +4139,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Bu iletişim kutusunun diğer sekmelerinde düzenlenir.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>{0} düzenleniyor</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} düzenleniyor - kaydedilen değişiklikler iki saniye içinde geçerli olur; hizmetin yeniden başlatılması gerekmez.</value>
@@ -9296,7 +9299,7 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
     <value>Geri yükleme başlatıldı - sunucuda arka planda çalışır.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Varsayılan _portları geri yükle</value>
+    <value>Varsayılan portları geri yü_kle</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Varsayılan aralıkları _geri yükle</value>
@@ -13843,6 +13846,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>Bu parolayı Windows'a karşı _denetle (Active Directory ya da yerel bir Windows hesabı)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Temizle</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Kurtarma adresini sil</value>
   </data>
@@ -14092,9 +14098,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>Eski adresi diğer ad olarak _koru</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>Gelen ayarları _koru</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>Çalışmaya _devam et</value>
   </data>
@@ -14317,9 +14320,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Yeniden başlat (Reinitialize)</value>
   </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>Şimdi yeniden _başlat (Reinitialize)</value>
-  </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Aktarma ana bilgisayarı (boş = sunucu geneli aktarıcıyı kullan)</value>
   </data>
@@ -14417,7 +14417,7 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
     <value>_Sunucu</value>
   </data>
   <data name="_Set up ACME…" xml:space="preserve">
-    <value>ACME'yi _ayarla…</value>
+    <value>ACME'yi aya_rla…</value>
   </data>
   <data name="_Show in IP ranges" xml:space="preserve">
     <value>IP aralıklarında _göster</value>

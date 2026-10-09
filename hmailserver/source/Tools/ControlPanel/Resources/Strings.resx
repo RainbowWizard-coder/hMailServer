@@ -1080,6 +1080,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Add signature to _replies</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Add the _first domain…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Add the _first entry…</value>
   </data>
@@ -1094,9 +1097,6 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Add the domain on the Domains page. Its name is the part after the @ in every address it will hold.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Add the first _domain…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service.</value>
@@ -4139,6 +4139,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Edited on this dialog's other tabs.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Editing {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Editing {0} - saved changes are live within two seconds; no service restart.</value>
@@ -13843,6 +13846,9 @@ It will keep trying as you use the application.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Check this password against Windows (Active Directory, or a local Windows account)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Clear</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Clear the recovery address</value>
   </data>
@@ -14092,9 +14098,6 @@ It will keep trying as you use the application.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Keep the old address as an alias</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Keep the shipped settings</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Keep working</value>
   </data>
@@ -14316,9 +14319,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Reinitialise</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Reinitialise now</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay host (empty = use the server-wide relayer)</value>

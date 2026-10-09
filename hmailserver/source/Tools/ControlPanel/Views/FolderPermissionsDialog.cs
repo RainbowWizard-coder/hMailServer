@@ -114,7 +114,7 @@ namespace hMailServer.ControlPanel.Views
          // and Edit and Remove act on the chosen entry, so they can be pressed only
          // while there is one, where a press with none did nothing (review findings
          // F183, F076 and F184).
-         var del = new Wpf.Ui.Controls.Button { Content = L("_Remove"), MinWidth = 88 };
+         var del = new Wpf.Ui.Controls.Button { Content = L("Re_move"), MinWidth = 88 };
          ButtonStyles.DangerText(del);
          del.Click += (s, e) => DeleteSelected();
          SelectionGate.Bind(list_, edit, del);
@@ -226,7 +226,7 @@ namespace hMailServer.ControlPanel.Views
          int id = ids_[index];
          (int type, string subject) = subjects_[index];
 
-         if (!Dialogs.Confirm(Confirmations.RemoveFolderPermission(type, subject, folderName_), L("Control Panel"), L("_Remove"), destructive: true))
+         if (!Dialogs.Confirm(Confirmations.RemoveFolderPermission(type, subject, folderName_), L("Control Panel"), L("Re_move"), destructive: true))
             return;
 
          notice_.Hide();

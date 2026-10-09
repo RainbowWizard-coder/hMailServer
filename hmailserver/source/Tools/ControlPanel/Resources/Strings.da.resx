@@ -1080,6 +1080,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Tilføj signatur til _svar</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Tilføj det første _domæne…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Tilføj den _første post…</value>
   </data>
@@ -1094,9 +1097,6 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Tilføj domænet på siden Domæner. Navnet er delen efter @ i hver adresse, det kommer til at rumme.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Tilføj det første _domæne…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Føj nøglen nedenfor til en godkendelsesapp, og bekræft derefter med en kode. Når den først er tilmeldt, kan administratoradgangskoden alene ikke logge på – COM-API'et og REST-API'et kræver også en kode. Opbevar nøglen et sikkert sted: hvis du mister godkendelsesappen, skal en lokal administrator slette AdministratorTotpSecret fra afsnittet [Security] i hMailServer.ini med en editor, der køres som administrator, og genstarte tjenesten hMailServer.</value>
@@ -4139,6 +4139,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Redigeres på dialogens andre faner.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Redigerer {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Redigerer {0} - gemte ændringer er aktive inden for to sekunder; ingen genstart af tjenesten.</value>
@@ -9296,10 +9299,10 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
     <value>Gendannelse startet - kører i baggrunden på serveren.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Gendan standard_portene</value>
+    <value>_Gendan standardportene</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Gendan standardinte_rvallerne</value>
+    <value>_Gendan standardintervallerne</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Gendan postk_assen</value>
@@ -9656,7 +9659,7 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
     <value>S_kift reglen om</value>
   </data>
   <data name="Sa_ve permissions" xml:space="preserve">
-    <value>_Gem tilladelser</value>
+    <value>Ge_m tilladelser</value>
   </data>
   <data name="Sandbox" xml:space="preserve">
     <value>Sandkasse</value>
@@ -13843,6 +13846,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Kontrollér denne adgangskode mod Windows (Active Directory eller en lokal Windows-konto)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>_Ryd</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Slet gendannelsesadressen</value>
   </data>
@@ -14092,9 +14098,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Behold den gamle adresse som alias</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Behold de leverede indstillinger</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Arbejd videre</value>
   </data>
@@ -14316,9 +14319,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Reinitialiser</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Reinitialiser nu</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay-vært (tomt = brug den serverdækkende relayer)</value>

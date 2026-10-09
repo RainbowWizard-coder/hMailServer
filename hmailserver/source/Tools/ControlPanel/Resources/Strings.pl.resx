@@ -1086,6 +1086,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Dodawaj podpis do _odpowiedzi</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Dodaj _pierwszą domenę…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Dodaj _pierwszy wpis…</value>
   </data>
@@ -1100,9 +1103,6 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Dodaj domenę na stronie Domeny. Jej nazwa to część po znaku @ w każdym adresie, który będzie zawierać.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Dodaj _pierwszą domenę…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Dodaj poniższy klucz do aplikacji uwierzytelniającej, a następnie potwierdź kodem. Po rejestracji samo hasło administratora nie zaloguje - COM API i REST API również będą wymagać kodu. Klucz należy przechowywać w bezpiecznym miejscu: w razie utraty aplikacji uwierzytelniającej lokalny administrator musi usunąć AdministratorTotpSecret z sekcji [Security] pliku hMailServer.ini w edytorze uruchomionym jako administrator i ponownie uruchomić usługę hMailServer.</value>
@@ -4185,6 +4185,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Edytowane na innych kartach tego okna dialogowego.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Edytowanie {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Edytowanie {0} - zapisane zmiany działają w ciągu dwóch sekund; bez ponownego uruchamiania usługi.</value>
@@ -9399,7 +9402,7 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
     <value>Przywróć domyślne por_ty</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
-    <value>Przywróć domyślne zak_resy</value>
+    <value>Przywróć domyślne za_kresy</value>
   </data>
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Przywróć skrzynkę pocztową (_x)</value>
@@ -14015,6 +14018,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Sprawdzaj to hasło w systemie Windows (Active Directory lub lokalne konto Windows)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>W_yczyść</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Usuń adres odzyskiwania</value>
   </data>
@@ -14264,9 +14270,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Zachowaj stary adres jako alias</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Zachowaj dostarczone ustawienia</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Pracuj dalej</value>
   </data>
@@ -14488,9 +14491,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Zainicjalizuj ponownie</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Zainicjuj ponownie teraz</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Host przekaźnika (puste = użyj przekaźnika dla całego serwera)</value>

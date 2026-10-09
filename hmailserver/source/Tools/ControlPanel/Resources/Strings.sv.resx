@@ -1080,6 +1080,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add signature to _replies" xml:space="preserve">
     <value>Lägg till signatur i sva_r</value>
   </data>
+  <data name="Add the _first domain…" xml:space="preserve">
+    <value>Lägg till den _första domänen…</value>
+  </data>
   <data name="Add the _first entry…" xml:space="preserve">
     <value>Lägg till den _första posten…</value>
   </data>
@@ -1094,9 +1097,6 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Add the domain on the Domains page. Its name is the part after the @ in every address it will hold." xml:space="preserve">
     <value>Lägg till domänen på sidan Domäner. Namnet är delen efter @ i varje adress den kommer att rymma.</value>
-  </data>
-  <data name="Add the first _domain…" xml:space="preserve">
-    <value>Lägg till den första _domänen…</value>
   </data>
   <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
     <value>Lägg till nyckeln nedan i en autentiseringsapp och bekräfta sedan med en kod. När den är registrerad loggar administratörslösenordet inte in på egen hand - COM API:et och REST API:et kommer också att kräva en kod. Förvara nyckeln säkert: om du förlorar autentiseringsappen måste en lokal administratör ta bort AdministratorTotpSecret från avsnittet [Security] i hMailServer.ini, med en redigerare som körs som administratör, och starta om tjänsten hMailServer.</value>
@@ -4139,6 +4139,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Redigeras på dialogrutans andra flikar.</value>
+  </data>
+  <data name="Editing {0}" xml:space="preserve">
+    <value>Redigerar {0}</value>
   </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Redigerar {0} - sparade ändringar är i drift inom två sekunder; ingen omstart av tjänsten.</value>
@@ -9296,7 +9299,7 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
     <value>Återställningen startade - körs i bakgrunden på servern.</value>
   </data>
   <data name="Restore the default p_orts" xml:space="preserve">
-    <value>Återställ standardp_ortarna</value>
+    <value>_Återställ standardportarna</value>
   </data>
   <data name="Restore the default ran_ges" xml:space="preserve">
     <value>Återställ standardinterv_allen</value>
@@ -13843,6 +13846,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Kontrollera det här lösenordet mot Windows (Active Directory, eller ett lokalt Windows-konto)</value>
   </data>
+  <data name="_Clear" xml:space="preserve">
+    <value>Re_nsa</value>
+  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Radera återställningsadressen</value>
   </data>
@@ -14092,9 +14098,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Behåll den gamla adressen som alias</value>
   </data>
-  <data name="_Keep the shipped settings" xml:space="preserve">
-    <value>_Behåll de levererade inställningarna</value>
-  </data>
   <data name="_Keep working" xml:space="preserve">
     <value>_Fortsätt arbeta</value>
   </data>
@@ -14316,9 +14319,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Reinitialise" xml:space="preserve">
     <value>_Ominitiera</value>
-  </data>
-  <data name="_Reinitialise now" xml:space="preserve">
-    <value>_Ominitiera nu</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relävärd (tomt = använd det serverövergripande relät)</value>

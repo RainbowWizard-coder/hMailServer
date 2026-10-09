@@ -417,7 +417,7 @@ namespace hMailServer.ControlPanel.Views
             (KpiUptime, L("Uptime")),
             (KpiProcessed, L("Messages processed")),
             (KpiQueue, L("In queue")),
-            (KpiSpam, L("Spam blocked")),
+            (KpiSpam, L("Spam detected")),
             (KpiViruses, L("Viruses removed"))
          };
 

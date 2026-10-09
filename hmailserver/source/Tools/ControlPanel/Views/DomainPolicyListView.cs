@@ -251,7 +251,7 @@ namespace hMailServer.ControlPanel.Views
          // domain removed is accepted again at once.
          if (!MessageBox.Confirm(
                F("Remove {0} from the list?\n\nA blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session.", selected.Pattern),
-               L("Remove from the domain list"), L("_Remove"), destructive: true))
+               L("Remove from the domain list"), L("Re_move"), destructive: true))
          {
             return;
          }
@@ -338,7 +338,7 @@ namespace hMailServer.ControlPanel.Views
          // F207), raises the card's floor where it needs more than the rows.
          var rows = new FillPanel();
          rows.Children.Add(FillPanel.Filling(entries_, FillPanel.ListRowsFloor));
-         var first = new Wpf.Ui.Controls.Button { Content = L("Add the first _domain…") };
+         var first = new Wpf.Ui.Controls.Button { Content = L("Add the _first domain…") };
          AutomationProperties.SetAutomationId(first, "domainpolicy-add-first");
          first.Click += (_, _) => AddEntry();
          empty_.Action = first;
