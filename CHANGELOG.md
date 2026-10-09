@@ -1369,15 +1369,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its own whole question with the entry's name, *Delete the SURBL server multi.surbl.org?* or *Delete the security
   group Sales?* with what goes with the group, where it put the list's noun into one template; the queue's question
   names the message's sender and recipients and says that it is deleted without a bounce; the quarantine's delete of
-  one message names its subject and its sender, where it asked *Delete this message permanently?*; the restart after a
-  save says that a restart drops every open session and takes *Later* on Enter; and the account dialog's recovery tab,
-  which still raised the grey Win32 box, uses the themed one. Each question asks with its button's verb in every
-  language, where the suppression list asked *Take bounce@partner.example.net off the suppression list of
-  example.com?* over *Remove*, as six of its translations did, six catalogues asked their word for delete over their
-  word for remove - of a group's member, a stored passphrase, a journaling rule, the sandbox's token or the sample
-  domain - six took a role away over a button that removes it, and the recovery tab asked *Remove this account's
-  recovery address?* and *End this account's one-time recovery codes?* over its *Clear* buttons in every language. The
-  Control Panel's tests hold every page to the one shape, so that a Yes and No question cannot come back.
+  one message names its subject and its sender, where it asked *Delete this message permanently?*, and its delete of a
+  group or of the checked messages is titled *Quarantine*, the name a screen reader gives the question, where every
+  delete was titled *Delete quarantined message*; the restart after a save says that a restart drops every open
+  session and takes *Later* on Enter; and the account dialog's recovery tab, which still raised the grey Win32 box,
+  uses the themed one. Each question asks with its button's verb in every language, where the suppression list asked
+  *Take bounce@partner.example.net off the suppression list of example.com?* over *Remove*, as six of its translations
+  did, six catalogues asked their word for delete over their word for remove - of a group's member, a stored
+  passphrase, a journaling rule, the sandbox's token or the sample domain - six took a role away over a button that
+  removes it, and the recovery tab asked *Remove this account's recovery address?* and *End this account's one-time
+  recovery codes?* over its *Clear* buttons in every language. The Control Panel's tests hold every page to the one
+  shape, so that a Yes and No question cannot come back.
 - **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete
   user00@example.com?* did not say that the mailbox and every message in it went with the account, and the five
   deletes were four sentence shapes, the domain's built from a translated fragment (*its 1 account*) put into a

@@ -1005,7 +1005,10 @@ namespace hMailServer.ControlPanel.Views
                   "Delete the {0} checked message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",
                   "Delete the {0} checked messages permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.");
 
-         return MessageBox.Confirm(question, L("Delete quarantined message"), L("_Delete"), destructive: true);
+         // A delete of more than one message is captioned with the page's name, as the
+         // sweep's is: the caption is the window's title and the name a screen reader
+         // gives the question, which said "Delete quarantined message" of a group's five.
+         return MessageBox.Confirm(question, count == 1 ? L("Delete quarantined message") : L("Quarantine"), L("_Delete"), destructive: true);
       }
 
       private static bool ConfirmRelease_(int count, string groupTitle)

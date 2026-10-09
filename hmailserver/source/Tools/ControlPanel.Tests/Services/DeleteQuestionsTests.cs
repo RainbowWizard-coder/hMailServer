@@ -435,6 +435,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains(call, sweep, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The quarantine's delete of a group or of the checked messages is captioned
+      /// with the page's name, as the sweep is, where it was "Delete quarantined
+      /// message" for every count: a window titled, and a question a screen reader
+      /// named, as the delete of one message over "Delete the 5 messages from
+      /// mass-mail.example permanently?". The delete of one keeps that caption.
+      /// </summary>
+      [Fact]
+      public void TheQuarantinesDeleteOfSeveral_IsCaptionedWithThePage()
+      {
+         string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
+         string ask = WithheldRowTests.MemberText(page, "private bool ConfirmDelete_(IReadOnlyList<int> ids, string groupTitle)");
+         Assert.True(ask != null, "QuarantineView.ConfirmDelete_ is gone.");
+         Assert.Contains("int count = ids.Count;", ask, StringComparison.Ordinal);
+         Assert.Contains("MessageBox.Confirm(question, count == 1 ? L(\"Delete quarantined message\") : L(\"Quarantine\"), L(\"_Delete\"), destructive: true)", ask, StringComparison.Ordinal);
+         Assert.Single(ConfirmationPatternTests.Calls(ask, "Confirm("));
+      }
+
       [Fact]
       public void AGroupsOrTheCheckedMessagesRelease_AsksFirst_WithCancelOnEnter()
       {
