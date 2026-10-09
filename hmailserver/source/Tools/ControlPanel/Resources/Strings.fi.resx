@@ -5212,8 +5212,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Miten palvelin päättää, että mail.example.com ja example.com kuuluvat samalle organisaatiolle, mitä DMARC:n oletusarvoinen väljä kohdistus vertaa. Vanha vastaus oli Public Suffix List - tiedosto jokaisen rekisterin delegointisäännöistä, käännetty mukaan ja päivitetty koontiaikana. DMARCbis korvasi sen DNS-puun kävelyllä ylöspäin kysyen jokaiselta tasolta, onko se organisaatioraja, jotta verkkotunnuksen omistaja voi ilmoittaa rajansa listan anomisen sijaan. Tämän poistaminen käytöstä palaa käännettyyn listaan, mikä tapahtuu myös jokaiselle yksittäiselle haulle, jota kävely ei voi suorittaa loppuun, koska DNS ei ollut käytettävissä - nimiselvittimen katko ei saa hiljaa muuttaa väljää kohdistusta tiukaksi. Maksaa enintään kahdeksan DNS-kyselyä verkkotunnusta kohden, välimuistissa viisi minuuttia.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Miten palvelin käyttää tietokantaa, johon se on jo määritetty. Missä tuo tietokanta ON - palvelin, nimi, tunnistetiedot ja tyyppi - asetetaan asennusohjelmassa eikä sitä voi tarkoituksella muokata täällä, koska väärä arvo siellä estää palvelinta käynnistymästä sen sijaan, että hidastaisi sitä. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Miten palvelin käyttää tietokantaa, johon se on jo määritetty. Missä tuo tietokanta on - palvelin, nimi, tunnistetiedot ja tyyppi - asetetaan asennusohjelmassa eikä sitä voi tarkoituksella muokata täällä, koska väärä arvo siellä estää palvelinta käynnistymästä sen sijaan, että hidastaisi sitä. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Miten tämä palvelin selvittää MX-, PTR-, SPF-, DKIM-, DMARC- ja estolistahaut.</value>
@@ -12111,6 +12111,9 @@ Lisätäänkö silti?</value>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Palvelin ei ilmoittanut avainten kierrätystä.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Palvelin ei ilmoittanut tätä lukua.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Palvelin ei palauttanut käyttökelpoista rekisteröintiä. Katso sen virheloki.</value>
   </data>
@@ -12527,6 +12530,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Tämä palvelin vaatii järjestelmänvalvojalta kertakäyttökoodin.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Tämä palvelin käyttää sisäänrakennettua tietokantaa (SQL Server Compact), joka käyttää aina yhtä yhteyttä; varannon koko tulee voimaan, kun palvelin siirretään MySQL:ään, SQL Serveriin tai PostgreSQL:ään.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Tämän palvelimen julkinen VAPID-avain</value>

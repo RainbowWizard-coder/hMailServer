@@ -5212,8 +5212,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Sunucunun mail.example.com ile example.com'un aynı kuruluşa ait olduğuna nasıl karar verdiği; DMARC'nin varsayılan gevşek hizalamasının karşılaştırdığı budur. Eski yanıt Public Suffix List idi - her kayıt otoritesinin yetki devri kurallarını içeren, derlemeye gömülen ve derleme zamanında yenilenen bir dosya. DMARCbis bunun yerine, her düzeye kuruluş sınırı olup olmadığını sorarak DNS'te yukarı doğru yürümeyi getirdi; böylece bir etki alanı sahibi bir listeye başvurmak yerine sınırının nerede olduğunu kendisi belirtebilir. Bunu kapatmak derlenmiş listeye geri döner; DNS erişilemez olduğu için yürüyüşün tamamlayamadığı her tekil arama için de olan budur - bir çözümleyici kesintisi gevşek hizalamayı sessizce katı hizalamaya çevirmemelidir. Etki alanı başına en çok sekiz DNS sorgusuna mal olur ve beş dakika önbelleğe alınır.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Sunucunun zaten yapılandırılmış olduğu veritabanını nasıl kullandığı. O veritabanının NEREDE olduğu - sunucu, ad, kimlik bilgileri ve tür - kurulum sihirbazı tarafından ayarlanır ve burada bilinçli olarak düzenlenemez, çünkü oradaki yanlış bir değer sunucuyu yavaşlatmak yerine başlamasını engeller. Hizmet yeniden başlatıldıktan sonra uygulanır.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Sunucunun zaten yapılandırılmış olduğu veritabanını nasıl kullandığı. O veritabanının nerede olduğu - sunucu, ad, kimlik bilgileri ve tür - kurulum sihirbazı tarafından ayarlanır ve burada bilinçli olarak düzenlenemez, çünkü oradaki yanlış bir değer sunucuyu yavaşlatmak yerine başlamasını engeller. Hizmet yeniden başlatıldıktan sonra uygulanır.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Bu sunucunun MX, PTR, SPF, DKIM, DMARC ve engelleme listesi aramalarını nasıl çözdüğü.</value>
@@ -12111,6 +12111,9 @@ Yine de eklensin mi?</value>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Sunucu anahtar döndürmeyi bildirmedi.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Sunucu bu değeri bildirmedi.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Sunucu kullanılabilir bir kayıt döndürmedi. Hata günlüğüne bakın.</value>
   </data>
@@ -12527,6 +12530,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Bu sunucu yönetici için tek kullanımlık kod gerektiriyor.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Bu sunucu yerleşik veritabanını (SQL Server Compact) kullanır ve bu veritabanı her zaman tek bağlantı kullanır; havuz boyutu MySQL, SQL Server veya PostgreSQL'e geçişten sonra uygulanır.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Bu sunucunun VAPID ortak anahtarı</value>

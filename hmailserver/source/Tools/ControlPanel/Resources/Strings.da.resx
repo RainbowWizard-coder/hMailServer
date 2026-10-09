@@ -5212,8 +5212,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Hvordan serveren afgør, at mail.example.com og example.com hører til den samme organisation, hvilket er det, DMARCs standard, afslappet alignment, sammenligner. Det gamle svar var Public Suffix List – en fil med hvert registers delegeringsregler, kompileret ind og opdateret ved byggetid. DMARCbis erstattede den med en gennemgang op ad DNS, der spørger hvert niveau, om det er en organisatorisk grænse, så en domæneejer kan angive, hvor deres grænse går, i stedet for at anmode en liste. Slås dette fra, falder serveren tilbage til den kompilerede liste, hvilket også er, hvad der sker for ethvert enkelt opslag, som gennemgangen ikke kan fuldføre, fordi DNS var utilgængelig – et resolverudfald må ikke stille og roligt forvandle afslappet alignment til streng. Koster op til otte DNS-forespørgsler pr. domæne, cachet i fem minutter.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Hvordan serveren bruger den database, den allerede er konfigureret til. Hvor den database ER – serveren, navnet, legitimationsoplysningerne og typen – sættes op af installationsguiden og kan med vilje ikke redigeres her, fordi en forkert værdi dér forhindrer serveren i at starte frem for at gøre den langsommere. Gælder efter en genstart af tjenesten.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Hvordan serveren bruger den database, den allerede er konfigureret til. Hvor den database er – serveren, navnet, legitimationsoplysningerne og typen – sættes op af installationsguiden og kan med vilje ikke redigeres her, fordi en forkert værdi dér forhindrer serveren i at starte frem for at gøre den langsommere. Gælder efter en genstart af tjenesten.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og blokeringslister op.</value>
@@ -12111,6 +12111,9 @@ Tilføj alligevel?</value>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Serveren rapporterede ikke nøglerotationen.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Serveren rapporterede ikke dette tal.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Serveren returnerede ikke en brugbar tilmelding. Se dens fejllog.</value>
   </data>
@@ -12527,6 +12530,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Denne server kræver en engangskode for administratoren.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Denne server bruger den indbyggede database (SQL Server Compact), som altid bruger én forbindelse; puljens størrelse gælder efter et skift til MySQL, SQL Server eller PostgreSQL.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Serverens offentlige VAPID-nøgle</value>

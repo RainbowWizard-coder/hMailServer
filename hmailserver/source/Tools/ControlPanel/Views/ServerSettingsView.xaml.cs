@@ -683,6 +683,16 @@ namespace hMailServer.ControlPanel.Views
          /// </summary>
          public int MinimumValue;
 
+         /// <summary>
+         /// Whether the server ignores this value as it is configured, so that the
+         /// box shows it and does not offer to change it: the connection pool of a
+         /// server on the built-in database, which the server forces to one
+         /// connection whatever is set. A live box there was an invitation to an
+         /// edit that saves, reports success and does nothing. The card says why,
+         /// in a notice beside the row.
+         /// </summary>
+         public bool Ignored;
+
          private Wpf.Ui.Controls.NumberBox number_;
 
          // The value comes from the INI file, not from a COM property.
@@ -695,7 +705,10 @@ namespace hMailServer.ControlPanel.Views
                current = Default;
 
             loaded_ = ((long)current).ToString();
-            return number_ = NumberEditor(current, MinimumValue, Default);
+            number_ = NumberEditor(current, MinimumValue, Default);
+            if (Ignored)
+               number_.IsEnabled = false;
+            return number_;
          }
 
          private string loaded_;
@@ -979,16 +992,22 @@ namespace hMailServer.ControlPanel.Views
                if (ComErrorText.IsTransportFailure(ex))
                   return NotReadFigure_(ex);
 
-               // A figure the server could not give is a Warning notice, with its
-               // mark and word and the runtime's code in the tool tip, where it was
-               // a line of body text standing in the figure's place - a JSON
-               // parser's message read as a statistic.
-               return new Scaffold.InlineNotice
+               // A figure that could not be read is a notice where the figure would
+               // be, not a sentence in the figure's own type: "This could not be
+               // read from the server: ..." was drawn as the value, at the value's
+               // size, with a System.Text.Json parser message in it when the server
+               // answered nothing a figure could be read from.
+               var notice = new Scaffold.InlineNotice
                {
                   Level = StatusLevel.Warning,
-                  Text = F("This could not be read from the server: {0}", ServerSession.DescribeComError(ex)),
+                  Text = ReportedNothing(ex)
+                     ? L("The server did not report this figure.")
+                     : F("This could not be read from the server: {0}", ServerSession.DescribeComError(ex)),
+                  Margin = new Thickness(0),
                   ToolTip = ComErrorText.TechnicalDetail(ex)
                };
+               SetAid(notice, Path);
+               return notice;
             }
 
             var line = new TextBlock
@@ -1017,6 +1036,15 @@ namespace hMailServer.ControlPanel.Views
             System.Windows.Automation.AutomationProperties.SetAutomationId(pill, "setting-not-read");
             return pill;
          }
+
+         /// <summary>
+         /// Whether the server answered with nothing a figure can be read from - an
+         /// empty or older answer that is not the JSON this row reads, or one
+         /// without the field - which is said as such, rather than as the
+         /// parser's own message.
+         /// </summary>
+         internal static bool ReportedNothing(Exception ex)
+            => ex is System.Text.Json.JsonException || ex is KeyNotFoundException;
 
          /// <summary>Nothing to read back: this row edits nothing.</summary>
          public override object ReadEditor() => null;
@@ -1243,6 +1271,30 @@ namespace hMailServer.ControlPanel.Views
       /// Ctrl+K still finds the setting by name and lands the reader on the note
       /// that explains it, rather than on nothing at all.
       /// </summary>
+      /// <summary>
+      /// A notice among a card's rows: something true of the rows around it that
+      /// is neither a setting nor a value, at its level - the built-in database's
+      /// one connection beside the pool size it overrides. Writes nothing.
+      /// </summary>
+      private sealed class ComNoticeRow : ComSetting, INotPersisted
+      {
+         public StatusLevel Level = StatusLevel.Information;
+         public string Text;
+
+         public override bool WantsInitialValue => false;
+
+         protected override bool CaptionOnRow => false;
+
+         protected override FrameworkElement BuildEditor(object value)
+            => new Scaffold.InlineNotice { Level = Level, Text = Text, Margin = new Thickness(0) };
+
+         public override object ReadEditor() => null;
+
+         public override void Write(object owner, string property)
+         {
+         }
+      }
+
       private class ComInert : ComSetting, INotPersisted
       {
          protected override FrameworkElement BuildEditor(object value)
@@ -4131,38 +4183,38 @@ namespace hMailServer.ControlPanel.Views
          bool builtInDatabase = string.Equals(databaseType, "MSSQLCE", StringComparison.OrdinalIgnoreCase);
 
          // Named rather than described: an administrator who is about to raise the
-         // pool size needs to know it will be ignored BEFORE they raise it, and the
-         // only honest way to know is to read the configured type.
+         // pool size needs to know it will be ignored before they raise it, and the
+         // only honest way to know is to read the configured type. On the built-in
+         // database the box shows the value and does not offer to change it, and a
+         // notice above it says why, in a sentence: it was a live box under a
+         // caption that said "(ignored: ...)" and a note that shouted the reason.
          string poolNote =
             L("How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits & expert settings page, which is what they are waiting on.");
 
-         if (builtInDatabase)
-         {
-            poolNote = Sentences(poolNote, L("THIS SERVER USES THE BUILT-IN DATABASE (MSSQLCE), where the value is forced to 1 whatever is set here. That is deliberate: SQL Server Compact does not behave reliably under concurrent connections. Changing it below will have no effect until the server is moved to MySQL, MSSQL or PostgreSQL."));
-         }
-
          var database = Card(L("Database connections"),
-            Sentences(L("How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart."),
+            Sentences(L("How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart."),
                databaseType.Length > 0 ? F("Configured database type: {0}.", databaseType) : null));
 
-         var pool = new SectionIniNumber
+         if (builtInDatabase)
+         {
+            database.Settings.Add(new ComNoticeRow
+            {
+               Level = StatusLevel.Information,
+               Text = L("This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL.")
+            });
+         }
+
+         database.Settings.Add(new SectionIniNumber
          {
             Section = "Database", // no-loc
             Path = "NumberOfConnections",
             Label = L("Connections in the pool"),
             Default = 5,
             MinimumValue = 1,
+            Ignored = builtInDatabase,
             Blurb = poolNote,
             IniStore = iniStore_
-         };
-
-         // Where the built-in database forces the value the label says so, as one
-         // whole text (review finding F283); the plain label above is the one the
-         // settings search index reads.
-         if (builtInDatabase)
-            pool.Label = L("Connections in the pool (ignored: this server uses the built-in database)");
-
-         database.Settings.Add(pool);
+         });
 
          database.Settings.Add(new SectionIniNumber
          {

@@ -5266,8 +5266,8 @@
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Як сервер вирішує, що mail.example.com і example.com належать одній організації - саме це порівнює типове послаблене вирівнювання DMARC. Стара відповідь - Public Suffix List, файл із правилами делегування кожного реєстру, вкомпільований і оновлюваний під час збірки. DMARCbis замінив його обходом угору по DNS із запитом до кожного рівня, чи є він організаційною межею, тож власник домену може заявити, де його межа, замість того щоб просити список. Вимкнення повертає до вкомпільованого списку, що також стається з будь-яким окремим пошуком, який обхід не може завершити через недоступність DNS - збій розв'язувача не повинен непомітно перетворити послаблене вирівнювання на суворе. Коштує до восьми запитів DNS на домен, кешується на п'ять хвилин.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Як сервер використовує базу даних, для якої його вже налаштовано. ДЕ ця база даних - сервер, назва, облікові дані й тип - налаштовує майстер встановлення, і тут це навмисно не редагується, бо неправильне значення там не дає серверу запуститися, а не робить його повільнішим. Застосовується після перезапуску служби.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Як сервер використовує базу даних, для якої його вже налаштовано. Де ця база даних - сервер, назва, облікові дані й тип - налаштовує майстер встановлення, і тут це навмисно не редагується, бо неправильне значення там не дає серверу запуститися, а не робить його повільнішим. Застосовується після перезапуску служби.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Як цей сервер розв'язує запити MX, PTR, SPF, DKIM, DMARC і списків блокування.</value>
@@ -12257,6 +12257,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Сервер не повідомив стан ротації ключів.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Сервер не повідомив це значення.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Сервер не повернув придатної реєстрації. Дивіться його журнал помилок.</value>
   </data>
@@ -12679,6 +12682,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Цей сервер вимагає одноразовий код для адміністратора.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Цей сервер використовує вбудовану базу даних (SQL Server Compact), яка завжди працює через одне підключення; розмір пулу діє після переходу на MySQL, SQL Server або PostgreSQL.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Відкритий ключ VAPID цього сервера</value>

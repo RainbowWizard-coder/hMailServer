@@ -5212,8 +5212,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Hoe de server bepaalt dat mail.example.com en example.com bij dezelfde organisatie horen, wat is wat de standaard relaxed uitlijning van DMARC vergelijkt. Het oude antwoord was de Public Suffix List - een bestand met de delegatieregels van elke registry, meegecompileerd en bij het bouwen ververst. DMARCbis heeft dat vervangen door een wandeling omhoog door DNS waarbij aan elk niveau wordt gevraagd of het een organisatiegrens is, zodat een domeineigenaar zelf kan aangeven waar zijn grens ligt in plaats van een lijst te moeten verzoeken. Dit uitschakelen valt terug op de meegecompileerde lijst, en dat gebeurt ook bij elke afzonderlijke opzoeking die de wandeling niet kan afmaken doordat DNS niet beschikbaar was - een storing in de resolver mag relaxed uitlijning niet stilzwijgend in strict veranderen. Kost tot acht DNS-query's per domein, vijf minuten gecached.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Hoe de server de database gebruikt waarvoor hij al is geconfigureerd. WAAR die database staat - de server, de naam, de referenties en het type - wordt ingesteld door de installatiewizard en is hier bewust niet te bewerken, omdat een verkeerde waarde daar de server niet trager maakt maar helemaal niet laat starten. Geldt na een herstart van de service.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Hoe de server de database gebruikt waarvoor hij al is geconfigureerd. Waar die database staat - de server, de naam, de referenties en het type - wordt ingesteld door de installatiewizard en is hier bewust niet te bewerken, omdat een verkeerde waarde daar de server niet trager maakt maar helemaal niet laat starten. Geldt na een herstart van de service.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Hoe deze server MX-, PTR-, SPF-, DKIM-, DMARC- en blokkeerlijstopzoekingen uitvoert.</value>
@@ -12111,6 +12111,9 @@ Toch toevoegen?</value>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>De server heeft de sleutelrotatie niet gemeld.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>De server heeft dit getal niet gemeld.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>De server heeft geen bruikbare inschrijving teruggegeven. Zie zijn foutenlogboek.</value>
   </data>
@@ -12527,6 +12530,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Deze server vereist een eenmalige code voor de beheerder.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Deze server gebruikt de ingebouwde database (SQL Server Compact), die altijd één verbinding gebruikt; de grootte van de pool geldt na een overstap naar MySQL, SQL Server of PostgreSQL.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Openbare VAPID-sleutel van deze server</value>

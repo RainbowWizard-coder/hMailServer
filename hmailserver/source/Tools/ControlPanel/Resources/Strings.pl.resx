@@ -5266,8 +5266,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Jak serwer rozstrzyga, że mail.example.com i example.com należą do tej samej organizacji, co porównuje domyślna łagodna zgodność w DMARC. Dawną odpowiedzią była Public Suffix List - plik z regułami delegacji wszystkich rejestrów, wkompilowany i odświeżany przy budowaniu. DMARCbis zastąpił ją przechodzeniem w górę drzewa DNS z pytaniem na każdym poziomie, czy jest on granicą organizacyjną, dzięki czemu właściciel domeny może sam wskazać, gdzie leży jego granica, zamiast prosić o wpis na liście. Wyłączenie tej opcji powoduje powrót do wkompilowanej listy - dzieje się tak również przy każdym pojedynczym wyszukiwaniu, którego przechodzenie nie może dokończyć z powodu niedostępności DNS: awaria resolwera nie może po cichu zamienić zgodności łagodnej w ścisłą. Kosztuje do ośmiu zapytań DNS na domenę, buforowanych przez pięć minut.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Jak serwer korzysta z bazy danych, dla której jest już skonfigurowany. To, GDZIE ta baza się znajduje - serwer, nazwa, poświadczenia i typ - ustawia kreator instalacji i celowo nie da się tego tutaj edytować, ponieważ błędna wartość w tym miejscu nie spowalnia serwera, lecz uniemożliwia jego uruchomienie. Obowiązuje po ponownym uruchomieniu usługi.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Jak serwer korzysta z bazy danych, dla której jest już skonfigurowany. To, gdzie ta baza się znajduje - serwer, nazwa, poświadczenia i typ - ustawia kreator instalacji i celowo nie da się tego tutaj edytować, ponieważ błędna wartość w tym miejscu nie spowalnia serwera, lecz uniemożliwia jego uruchomienie. Obowiązuje po ponownym uruchomieniu usługi.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Jak ten serwer wykonuje wyszukiwania MX, PTR, SPF, DKIM, DMARC oraz na listach blokowania.</value>
@@ -12257,6 +12257,9 @@ Dodać mimo to?</value>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Serwer nie podał stanu rotacji kluczy.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Serwer nie podał tej wartości.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Serwer nie zwrócił użytecznej rejestracji. Należy zajrzeć do jego dziennika błędów.</value>
   </data>
@@ -12679,6 +12682,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Ten serwer wymaga kodu jednorazowego dla administratora.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Ten serwer korzysta z wbudowanej bazy danych (SQL Server Compact), która zawsze używa jednego połączenia; rozmiar puli obowiązuje po przejściu na MySQL, SQL Server lub PostgreSQL.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Klucz publiczny VAPID tego serwera</value>

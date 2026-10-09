@@ -5212,8 +5212,8 @@
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>mail.example.com と example.com が同じ組織に属するとサーバーがどう判断するか。これが DMARC の既定である緩やかなアライメントで比較されるものです。かつての答えは Public Suffix List で、すべてのレジストリの委任規則を集めたファイルをコンパイル時に組み込み、ビルド時に更新していました。DMARCbis はこれを、DNS を上へ辿って各レベルに組織の境界かどうかを尋ねる方式に置き換え、ドメイン所有者がリストに申請する代わりに自分で境界を宣言できるようにしました。これをオフにするとコンパイル済みリストにフォールバックします。DNS が利用できずウォークを完了できなかった個々の参照でも同じことが起きます。リゾルバーの障害が、緩やかなアライメントを黙って厳密なものに変えてはならないからです。ドメインあたり最大 8 回の DNS クエリを要し、5 分間キャッシュされます。</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>すでに設定されているデータベースをサーバーがどう使うか。そのデータベースが「どこにあるか」(サーバー、名前、資格情報、種類) はインストール ウィザードが設定するもので、ここでは意図的に編集できません。そこでの誤った値はサーバーを遅くするのではなく、起動できなくするからです。サービスの再起動後に適用されます。</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>すでに設定されているデータベースをサーバーがどう使うか。そのデータベースがどこにあるか(サーバー、名前、資格情報、種類) はインストール ウィザードが設定するもので、ここでは意図的に編集できません。そこでの誤った値はサーバーを遅くするのではなく、起動できなくするからです。サービスの再起動後に適用されます。</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>このサーバーが MX、PTR、SPF、DKIM、DMARC、ブロック リストの参照をどう解決するか。</value>
@@ -12111,6 +12111,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>サーバーは鍵のローテーションを報告しませんでした。</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>サーバーはこの数値を報告しませんでした。</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>サーバーは使用可能な登録情報を返しませんでした。サーバーのエラー ログを確認してください。</value>
   </data>
@@ -12527,6 +12530,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>このサーバーは管理者にワンタイム コードを要求します。</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>このサーバーは組み込みデータベース (SQL Server Compact) を使用しており、接続は常に 1 つです。プールのサイズは MySQL、SQL Server、PostgreSQL のいずれかに移行した後に適用されます。</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>このサーバーの VAPID 公開キー</value>

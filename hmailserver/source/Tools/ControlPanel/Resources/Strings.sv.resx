@@ -5212,8 +5212,8 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Hur servern avgör att mail.example.com och example.com hör till samma organisation, vilket är vad DMARC:s avslappnade standardjustering jämför. Det gamla svaret var Public Suffix List - en fil med varje registrys delegeringsregler, inkompilerad och uppdaterad vid byggtillfället. DMARCbis ersatte den med en vandring uppåt i DNS som frågar varje nivå om den är en organisationsgräns, så att en domänägare kan ange var deras gräns går i stället för att be en lista. Att stänga av detta faller tillbaka på den inkompilerade listan, vilket också är vad som händer för varje enskild uppslagning vandringen inte kan slutföra för att DNS inte var tillgängligt - ett resolveravbrott får inte tyst förvandla avslappnad justering till strikt. Kostar upp till åtta DNS-frågor per domän, cachade i fem minuter.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Hur servern använder den databas den redan är konfigurerad för. Var den databasen FINNS - servern, namnet, uppgifterna och typen - ställs in av installationsguiden och är medvetet inte redigerbart här, eftersom ett felaktigt värde där hindrar servern från att starta snarare än gör den långsammare. Gäller efter en omstart av tjänsten.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Hur servern använder den databas den redan är konfigurerad för. Var den databasen finns - servern, namnet, uppgifterna och typen - ställs in av installationsguiden och är medvetet inte redigerbart här, eftersom ett felaktigt värde där hindrar servern från att starta snarare än gör den långsammare. Gäller efter en omstart av tjänsten.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Hur den här servern slår upp MX, PTR, SPF, DKIM, DMARC och spärrlistor.</value>
@@ -12111,6 +12111,9 @@ Lägg till det ändå?</value>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Servern rapporterade inte nyckelrotationen.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Servern rapporterade inte den här siffran.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Servern returnerade ingen användbar registrering. Se dess fellogg.</value>
   </data>
@@ -12527,6 +12530,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Den här servern kräver en engångskod för administratören.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Den här servern använder den inbyggda databasen (SQL Server Compact), som alltid använder en anslutning; poolens storlek gäller efter en flytt till MySQL, SQL Server eller PostgreSQL.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Serverns publika VAPID-nyckel</value>

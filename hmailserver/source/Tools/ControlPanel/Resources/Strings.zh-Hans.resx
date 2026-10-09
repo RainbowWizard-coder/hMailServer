@@ -5212,7 +5212,7 @@
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>服务器如何判定 mail.example.com 和 example.com 属于同一个组织，这正是 DMARC 默认的宽松对齐所比较的内容。旧的答案是公共后缀列表 - 一个包含每个注册机构委派规则的文件，编译进程序并在构建时刷新。DMARCbis 用沿 DNS 向上遍历、逐级询问是否为组织边界的方式取代了它，这样域所有者可以自行声明边界在哪里，而不必向列表申请。关闭此项会回退到编译进来的列表；对于因 DNS 不可用而无法完成遍历的任何单次查询也是如此 - 解析器故障绝不能悄悄把宽松对齐变成严格对齐。每个域最多花费八次 DNS 查询，缓存五分钟。</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>服务器如何使用它已经配置好的数据库。该数据库在哪里 - 服务器、名称、凭据和类型 - 由安装向导设置，并且有意不在此处提供编辑，因为那里的错误值会让服务器无法启动，而不仅仅是变慢。在重启服务后生效。</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
@@ -12111,6 +12111,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>服务器没有报告密钥轮换。</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>服务器没有报告此数值。</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>服务器没有返回可用的注册信息。请查看其错误日志。</value>
   </data>
@@ -12527,6 +12530,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>本服务器要求管理员提供一次性验证码。</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>此服务器使用内置数据库（SQL Server Compact），它始终只使用一个连接；池大小在迁移到 MySQL、SQL Server 或 PostgreSQL 之后才生效。</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>本服务器的 VAPID 公钥</value>

@@ -5266,8 +5266,8 @@ Control Panel может читать файлы сообщений только
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Как сервер решает, что mail.example.com и example.com относятся к одной организации, — именно это сравнивает мягкое выравнивание, применяемое DMARC по умолчанию. Прежним ответом был Public Suffix List — файл с правилами делегирования всех реестров, вкомпилированный внутрь и обновляемый при сборке. DMARCbis заменил его обходом дерева DNS вверх, при котором у каждого уровня спрашивают, является ли он организационной границей, — так владелец домена может сам объявить, где проходит его граница, вместо того чтобы проситься в список. Отключение этого параметра возвращает вкомпилированный список; к нему же сервер возвращается для любого отдельного запроса, который обход не смог завершить из-за недоступности DNS, — сбой резолвера не должен незаметно превращать мягкое выравнивание в строгое. Обходится до восьми запросов DNS на домен, с кэшированием на пять минут.</value>
   </data>
-  <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
-    <value>Как сервер использует базу данных, для которой он уже настроен. То, ГДЕ эта база находится, — сервер, имя, учётные данные и тип — задаётся мастером установки и намеренно не редактируется здесь, поскольку неверное значение там не замедлит сервер, а не даст ему запуститься. Вступает в силу после перезапуска службы.</value>
+  <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
+    <value>Как сервер использует базу данных, для которой он уже настроен. То, где эта база находится, — сервер, имя, учётные данные и тип — задаётся мастером установки и намеренно не редактируется здесь, поскольку неверное значение там не замедлит сервер, а не даст ему запуститься. Вступает в силу после перезапуска службы.</value>
   </data>
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Как этот сервер выполняет запросы MX, PTR, SPF, DKIM, DMARC и списков блокировки.</value>
@@ -12257,6 +12257,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Сервер не сообщил состояние ротации ключей.</value>
   </data>
+  <data name="The server did not report this figure." xml:space="preserve">
+    <value>Сервер не сообщил это значение.</value>
+  </data>
   <data name="The server did not return a usable enrolment. See its error log." xml:space="preserve">
     <value>Сервер не вернул пригодную регистрацию. Смотрите его журнал ошибок.</value>
   </data>
@@ -12679,6 +12682,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This server requires a one-time code for the administrator." xml:space="preserve">
     <value>Этот сервер требует одноразовый код для администратора.</value>
+  </data>
+  <data name="This server uses the built-in database (SQL Server Compact), which always uses one connection; the pool size applies after a move to MySQL, SQL Server or PostgreSQL." xml:space="preserve">
+    <value>Этот сервер использует встроенную базу данных (SQL Server Compact), которая всегда работает через одно подключение; размер пула действует после перехода на MySQL, SQL Server или PostgreSQL.</value>
   </data>
   <data name="This server's VAPID public key" xml:space="preserve">
     <value>Открытый ключ VAPID этого сервера</value>
