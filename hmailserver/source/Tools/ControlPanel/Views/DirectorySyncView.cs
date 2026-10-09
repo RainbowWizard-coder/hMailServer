@@ -117,6 +117,13 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private string previewedOptions_;
 
+      /// <summary>
+      /// What that preview read, for the question Apply asks: how many mailboxes it
+      /// creates, updates and marks inactive, and how many entries it skips (review
+      /// finding F128). Read only while previewedOptions_ is the options in force.
+      /// </summary>
+      private DirectorySyncReport previewReport_;
+
       private bool loading_;
 
       /// <summary>
@@ -816,6 +823,7 @@ namespace hMailServer.ControlPanel.Views
             if (!apply && report.Succeeded)
             {
                previewedOptions_ = options;
+               previewReport_ = report;
                applyButton_.IsEnabled = true;
             }
             else if (apply)
@@ -848,11 +856,17 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         // The question repeats what the preview just showed, the domain and the counts,
+         // where it said only that mailboxes would be created and updated.
+         DirectorySyncReport preview = previewReport_;
+         string domain = domainChoice_.SelectedIndex <= 0 ? "" : (string)domainChoice_.SelectedItem;
          if (!MessageBox.Confirm(
-            F("This creates and updates mailboxes on the server to match the directory{0}\r\n\r\nNo message is deleted and no account is removed. Continue?",
-               disableMissing_.IsChecked is true
-                  ? L(", and marks accounts inactive when their directory entry has gone.")
-                  : L(". No account will be disabled.")),
+            Confirmations.DirectorySyncApply(domain,
+               preview?.Count(DirectorySyncRowKind.Create) ?? 0,
+               preview?.Count(DirectorySyncRowKind.Update) ?? 0,
+               preview?.Count(DirectorySyncRowKind.Disable) ?? 0,
+               preview?.Count(DirectorySyncRowKind.Skip) ?? 0,
+               disableMissing_.IsChecked is true),
             L("Apply directory synchronisation"),
             L("_Apply"),
             destructive: true))

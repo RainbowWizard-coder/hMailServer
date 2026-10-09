@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(имя компьютера Windows, на котором работает сервер)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, и помечает учётные записи неактивными, когда их запись в каталоге исчезла.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, пик {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, поэтому проверка никогда не сможет завершиться успешно.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Ни одна учётная запись отключена не будет.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...подсчитанных за (минут)</value>
@@ -1608,6 +1602,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Применить сейчас</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Применить предварительный просмотр ко всем доменам, связанным с каталогом?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Применить предварительный просмотр к домену {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>_Применять серверную фильтрацию спама к этой учётной записи</value>
@@ -3435,9 +3435,6 @@ Control Panel может читать файлы сообщений только
   <data name="Delete" xml:space="preserve">
     <value>Удалить</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>Удалить диапазон IP «{0}»?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>Удалить _учётную запись</value>
   </data>
@@ -3467,9 +3464,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Удалять архивы старше указанного числа дней (0 — хранить все)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Удалить сертификат «{0}»?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Удалять подтверждённые записи через (дней)</value>
@@ -3513,6 +3507,9 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Удалить список блокировки DNS {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Удалить диапазон IP {0} ({1} - {2})? Тогда эти адреса попадут в следующий охватывающий их диапазон, по приоритету.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Удалить сервер SURBL {0}?</value>
   </data>
@@ -3530,6 +3527,18 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Удалить заблокированного отправителя {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Удалить сертификат {0}? Порт TCP/IP, который его предъявляет, не запустится снова, пока для него не будет выбран другой сертификат.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Удалить сертификат {0}? Ни один порт TCP/IP его не предъявляет.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Удалить сертификат {0}? Его предъявляет порт TCP/IP {1}, который не запустится снова, пока для него не будет выбран другой сертификат.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Удалить сертификат {0}? Его предъявляют эти порты TCP/IP, и они не запустятся снова, пока для них не будет выбран другой сертификат: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Удалить отмеченные сообщения</value>
@@ -6015,6 +6024,12 @@ Control Panel может читать файлы сообщений только
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Почтовый ящик разблокирован.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Создаваемые ящики: {0}. Обновляемые ящики: {1}. Учётные записи, отмечаемые как неактивные: {2}. Пропускаемые записи каталога: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Создаваемые ящики: {0}. Обновляемые ящики: {1}. Пропускаемые записи каталога: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Ящики, зашифрованные при хранении</value>
   </data>
@@ -6855,6 +6870,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>В {0} нет подходящих учётных записей.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Ни одно сообщение не удаляется и ни одна учётная запись не убирается.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Ни одно сообщение не проверяется на вирусы, и ни одно вложение не блокируется. Всё доставляется в том виде, в каком приходит.</value>
@@ -12289,11 +12307,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Это не удалось прочитать с сервера: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Это создаёт и обновляет почтовые ящики на сервере в соответствии с каталогом{0}
-
-Ни одно сообщение не удаляется и ни одна учётная запись не убирается. Продолжить?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Этого документа нет в этой копии программы.</value>

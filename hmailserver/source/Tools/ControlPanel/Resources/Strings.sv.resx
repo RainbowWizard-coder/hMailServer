@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(serverns Windows-datornamn)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, och markerar konton som inaktiva när deras katalogpost är borta.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, topp {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, så verifieringen kan aldrig lyckas.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Inget konto inaktiveras.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...räknade inom (minuter)</value>
@@ -1599,6 +1593,12 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Tillämpa nu</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Tillämpa förhandsgranskningen på alla domäner som är kopplade till en katalog?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Tillämpa förhandsgranskningen på domänen {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Tillämpa serverns skräppost_filtrering på det här kontot</value>
@@ -3417,9 +3417,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete" xml:space="preserve">
     <value>Ta bort</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>Ta bort IP-intervallet '{0}'?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>Ta bort _konto</value>
   </data>
@@ -3449,9 +3446,6 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Ta bort arkiv äldre än så här många dagar (0 = behåll alla)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Ta bort certifikatet '{0}'?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Ta bort bekräftade efter (dagar)</value>
@@ -3495,6 +3489,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Ta bort DNS-spärrlistan {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Ta bort IP-intervallet {0} ({1} - {2})? De adresserna hamnar då under nästa intervall som täcker dem, efter prioritet.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Ta bort SURBL-servern {0}?</value>
   </data>
@@ -3512,6 +3509,18 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Ta bort den blockerade avsändaren {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Ta bort certifikatet {0}? En TCP/IP-port som presenterar det startar inte igen förrän ett annat certifikat har valts för den.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Ta bort certifikatet {0}? Ingen TCP/IP-port presenterar det.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Ta bort certifikatet {0}? TCP/IP-porten {1} presenterar det och startar inte igen förrän ett annat certifikat har valts för den.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Ta bort certifikatet {0}? De här TCP/IP-portarna presenterar det och startar inte igen förrän ett annat certifikat har valts för dem: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Ta bort de markerade meddelandena</value>
@@ -5958,6 +5967,12 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Brevlådan upplåst.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Skapade brevlådor: {0}. Uppdaterade brevlådor: {1}. Konton som markeras som inaktiva: {2}. Överhoppade katalogposter: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Skapade brevlådor: {0}. Uppdaterade brevlådor: {1}. Överhoppade katalogposter: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Brevlådor krypterade i vila</value>
   </data>
@@ -6792,6 +6807,9 @@ Inget som redan finns där tas bort.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Inga matchande konton i {0}.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Inget meddelande tas bort och inget konto avlägsnas.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Inget meddelande skannas efter virus, och ingen bilaga blockeras. Allt levereras som det kommer.</value>
@@ -12140,11 +12158,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Detta kunde inte läsas från servern: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Detta skapar och uppdaterar brevlådor på servern så att de matchar katalogen{0}&#13;
-&#13;
-Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Det här dokumentet finns inte i den här kopian av programmet.</value>

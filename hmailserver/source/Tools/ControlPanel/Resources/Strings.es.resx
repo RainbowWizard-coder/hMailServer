@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(el nombre de equipo de Windows del servidor)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, y marca las cuentas como inactivas cuando su entrada del directorio ha desaparecido.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, pico {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, así que la verificación nunca podrá tener éxito.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. No se desactivará ninguna cuenta.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...contados en (minutos)</value>
@@ -1599,6 +1593,12 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Aplicar ahora</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>¿Aplicar la vista previa a todos los dominios vinculados a un directorio?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>¿Aplicar la vista previa al dominio {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Aplicar el _filtrado de spam del servidor a esta cuenta</value>
@@ -3417,9 +3417,6 @@ Los detalles completos se escribieron en:
   <data name="Delete" xml:space="preserve">
     <value>Borrar</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>¿Borrar el rango de IP '{0}'?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>Borrar _cuenta</value>
   </data>
@@ -3449,9 +3446,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Borrar los archivos más antiguos de estos días (0 = conservar todos)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>¿Borrar el certificado '{0}'?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Borrar los confirmados después de (días)</value>
@@ -3495,6 +3489,9 @@ Los detalles completos se escribieron en:
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>¿Borrar la lista de bloqueo DNS {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>¿Borrar el rango de IP {0} ({1} - {2})? Esas direcciones pasan entonces al siguiente rango que las cubra, por prioridad.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>¿Borrar el servidor SURBL {0}?</value>
   </data>
@@ -3512,6 +3509,18 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>¿Borrar el remitente bloqueado {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>¿Borrar el certificado {0}? Un puerto TCP/IP que lo presenta no vuelve a iniciarse hasta que se le elija otro certificado.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>¿Borrar el certificado {0}? Ningún puerto TCP/IP lo presenta.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>¿Borrar el certificado {0}? El puerto TCP/IP {1} lo presenta, y no vuelve a iniciarse hasta que se le elija otro certificado.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>¿Borrar el certificado {0}? Estos puertos TCP/IP lo presentan, y no vuelven a iniciarse hasta que se les elija otro certificado: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Eliminar los mensajes seleccionados</value>
@@ -5958,6 +5967,12 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Buzón desbloqueado.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Buzones creados: {0}. Buzones actualizados: {1}. Cuentas marcadas como inactivas: {2}. Entradas del directorio omitidas: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Buzones creados: {0}. Buzones actualizados: {1}. Entradas del directorio omitidas: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Buzones cifrados en reposo</value>
   </data>
@@ -6792,6 +6807,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>No hay cuentas coincidentes en {0}.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>No se borra ningún mensaje ni se elimina ninguna cuenta.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>No se analiza ningún mensaje en busca de virus, y no se bloquea ningún adjunto. Todo se entrega tal como llega.</value>
@@ -12140,11 +12158,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Esto no se pudo leer del servidor: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Esto crea y actualiza buzones en el servidor para que coincidan con el directorio{0}
-
-No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Este documento no está en esta copia del programa.</value>

@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(serverens Windows-maskinnavn)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, og merker kontoer som inaktive når katalogoppføringen deres er borte.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, topp {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, så verifiseringen kan aldri lykkes.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Ingen konto blir deaktivert.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...telles innenfor (minutter)</value>
@@ -1599,6 +1593,12 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Bruk nå</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Bruke forhåndsvisningen på alle domener som er koblet til en katalog?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Bruke forhåndsvisningen på domenet {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Bruk serverens spam_filtrering på denne kontoen</value>
@@ -3417,9 +3417,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Delete" xml:space="preserve">
     <value>Slett</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>Slette IP-området '{0}'?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>Slett _konto</value>
   </data>
@@ -3449,9 +3446,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Slett arkiver eldre enn så mange dager (0 = behold alle)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Slette sertifikatet '{0}'?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Slett bekreftede etter (dager)</value>
@@ -3495,6 +3489,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Slette DNS-blokkeringslisten {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Slette IP-området {0} ({1} - {2})? Disse adressene havner da under det neste området som dekker dem, etter prioritet.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Slette SURBL-serveren {0}?</value>
   </data>
@@ -3512,6 +3509,18 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Slette den blokkerte avsenderen {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Slette sertifikatet {0}? En TCP/IP-port som presenterer det, starter ikke igjen før et annet sertifikat er valgt for den.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Slette sertifikatet {0}? Ingen TCP/IP-port presenterer det.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Slette sertifikatet {0}? TCP/IP-porten {1} presenterer det, og starter ikke igjen før et annet sertifikat er valgt for den.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Slette sertifikatet {0}? Disse TCP/IP-portene presenterer det, og starter ikke igjen før et annet sertifikat er valgt for dem: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Slett de merkede meldingene</value>
@@ -5958,6 +5967,12 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Postboksen er låst opp.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Opprettede postbokser: {0}. Oppdaterte postbokser: {1}. Kontoer merket som inaktive: {2}. Katalogoppføringer som hoppes over: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Opprettede postbokser: {0}. Oppdaterte postbokser: {1}. Katalogoppføringer som hoppes over: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Postkasser kryptert i hvile</value>
   </data>
@@ -6792,6 +6807,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Ingen samsvarende kontoer i {0}.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Ingen melding slettes, og ingen konto fjernes.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Ingen melding skannes for virus, og ingen vedlegg blokkeres. Alt leveres slik det kommer.</value>
@@ -12140,11 +12158,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Dette kunne ikke leses fra serveren: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Dette oppretter og oppdaterer postbokser på serveren slik at de samsvarer med katalogen{0}
-
-Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Dette dokumentet finnes ikke i denne kopien av programmet.</value>

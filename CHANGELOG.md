@@ -1252,6 +1252,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   list's members' mailboxes are not affected; the domain's accounts, every message stored in them and its aliases and
   distribution lists, one sentence for a domain with no account, one and several; and the public folder with every
   message in it, named without quotes.
+- **Fixed: deleting a TLS certificate or an IP range, and applying directory synchronisation, asked a question that
+  named neither the act nor what followed.** *Delete certificate 'legacy.example.com'?* and *Delete IP range 'Branch
+  office'?* were Yes and No boxes, and Directory synchronisation's Apply asked OK or Cancel without the counts its
+  preview had just shown. The certificate's question now names the TCP/IP ports that present it, *SMTP 465, IMAP 993*,
+  which do not start again until another certificate is chosen for them, or says that no port does; the range's names
+  its addresses and says that they then fall under the next range that covers them, by priority; and Apply repeats the
+  preview, the domain or every linked domain and how many mailboxes it creates and updates, how many accounts it marks
+  inactive when that is ticked and how many directory entries it skips, before saying that no message is deleted and
+  no account removed. Each is asked with its act on the button, *Delete certificate*, *Delete range*, *Apply*, as the
+  never-ban list's *Remove* and the IP ranges page's *Replace all ranges* are.
 
 ### Administration
 

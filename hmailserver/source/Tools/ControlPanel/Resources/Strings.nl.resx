@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(de Windows-computernaam van de server)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, en markeert accounts als inactief wanneer hun directoryvermelding is verdwenen.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, piek {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, dus verificatie kan nooit slagen.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Er wordt geen account uitgeschakeld.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...geteld binnen (minuten)</value>
@@ -1599,6 +1593,12 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Nu toepassen</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Het voorbeeld toepassen op elk domein dat aan een directory is gekoppeld?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Het voorbeeld toepassen op het domein {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>De spam_filtering van de server op dit account toepassen</value>
@@ -3417,9 +3417,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete" xml:space="preserve">
     <value>Verwijderen</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>IP-bereik '{0}' verwijderen?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>_Account verwijderen</value>
   </data>
@@ -3449,9 +3446,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Archieven verwijderen die ouder zijn dan dit aantal dagen (0 = alles bewaren)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Certificaat '{0}' verwijderen?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Bevestigde records verwijderen na (dagen)</value>
@@ -3495,6 +3489,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>De DNS-blokkeerlijst {0} verwijderen?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Het IP-bereik {0} ({1} - {2}) verwijderen? Die adressen vallen dan onder het volgende bereik dat ze dekt, op prioriteit.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>De SURBL-server {0} verwijderen?</value>
   </data>
@@ -3512,6 +3509,18 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>De geblokkeerde afzender {0} verwijderen?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Het certificaat {0} verwijderen? Een TCP/IP-poort die het presenteert, start pas weer als er een ander certificaat voor is gekozen.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Het certificaat {0} verwijderen? Geen enkele TCP/IP-poort presenteert het.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Het certificaat {0} verwijderen? De TCP/IP-poort {1} presenteert het, en start pas weer als er een ander certificaat voor is gekozen.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Het certificaat {0} verwijderen? Deze TCP/IP-poorten presenteren het, en starten pas weer als er een ander certificaat voor is gekozen: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>De aangevinkte berichten verwijderen</value>
@@ -5958,6 +5967,12 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Postvak ontgrendeld.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Aangemaakte postvakken: {0}. Bijgewerkte postvakken: {1}. Als inactief gemarkeerde accounts: {2}. Overgeslagen directoryvermeldingen: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Aangemaakte postvakken: {0}. Bijgewerkte postvakken: {1}. Overgeslagen directoryvermeldingen: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>In rust versleutelde mailboxen</value>
   </data>
@@ -6792,6 +6807,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Geen overeenkomende accounts in {0}.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Er wordt geen bericht verwijderd en er wordt geen account verwijderd.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Geen enkel bericht wordt op virussen gescand, en geen enkele bijlage wordt geblokkeerd. Alles wordt bezorgd zoals het binnenkomt.</value>
@@ -12140,11 +12158,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Dit kon niet van de server worden gelezen: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Dit maakt postvakken op de server aan en werkt ze bij zodat ze overeenkomen met de directory{0}
-
-Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Dit document zit niet in deze kopie van het programma.</value>

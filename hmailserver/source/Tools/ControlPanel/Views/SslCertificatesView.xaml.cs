@@ -629,7 +629,8 @@ namespace hMailServer.ControlPanel.Views
          if (CertGrid.SelectedItem is not CertRow row)
             return;
 
-         if (!MessageBox.Confirm(F("Delete certificate '{0}'?", row.Name), L("Control Panel"), L("_Delete certificate"), destructive: true))
+         if (!MessageBox.Confirm(Confirmations.DeleteCertificate(row.Name, PortsPresenting_(row.Id)), L("Control Panel"),
+                L("_Delete certificate"), destructive: true))
             return;
 
          dynamic certs = ServerSession.Current.Application.Settings.SSLCertificates;
@@ -658,6 +659,57 @@ namespace hMailServer.ControlPanel.Views
          }
 
          Reload();
+      }
+
+      /// <summary>
+      /// The TCP/IP ports that present the certificate - an SSL/TLS or STARTTLS port
+      /// that names it - as "SMTP 465", for the question asked before it is deleted:
+      /// such a port does not start again until another certificate is chosen for it
+      /// (review finding F128). Null when the ports could not be read.
+      /// </summary>
+      private static List<string> PortsPresenting_(int certificateId)
+      {
+         var presenting = new List<string>();
+         dynamic ports = null;
+         try
+         {
+            ports = ServerSession.Current.Application.Settings.TCPIPPorts;
+            int count = (int)ports.Count;
+            for (int i = 0; i < count; i++)
+            {
+               dynamic port = ports.Item[i];
+               try
+               {
+                  // eConnectionSecurity: 0 none, 1 SSL/TLS, 2 STARTTLS optional, 3 required.
+                  if ((int)port.ConnectionSecurity > 0 && (int)port.SSLCertificateID == certificateId)
+                  {
+                     int protocol = (int)port.Protocol;
+                     string name = protocol switch
+                     {
+                        ServerSession.SessionSmtp => "SMTP",
+                        ServerSession.SessionPop3 => "POP3",
+                        ServerSession.SessionImap => "IMAP",
+                        _ => "#" + protocol
+                     };
+                     presenting.Add(name + " " + (int)port.PortNumber);
+                  }
+               }
+               finally
+               {
+                  ServerSession.Release((object)port);
+               }
+            }
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return null;
+         }
+         finally
+         {
+            ServerSession.Release((object)ports);
+         }
+
+         return presenting;
       }
    }
 }

@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(název počítače serveru ve Windows)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, a navíc označuje účty jako neaktivní, když jejich položka v adresáři zmizí.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, maximum {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, takže ověření nemůže nikdy uspět.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Žádný účet nebude zakázán.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...počítáno během (minut)</value>
@@ -1608,6 +1602,12 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Použít nyní</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Použít náhled na všechny domény propojené s adresářem?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Použít náhled na doménu {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Uplatnit na tento účet _filtrování spamu na serveru</value>
@@ -3435,9 +3435,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete" xml:space="preserve">
     <value>Smazat</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>Smazat IP rozsah „{0}“?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>_Odstranit účet</value>
   </data>
@@ -3467,9 +3464,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Mazat archivy starší než tento počet dní (0 = uchovat vše)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Smazat certifikát „{0}“?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Smazat potvrzené záznamy po (dnech)</value>
@@ -3513,6 +3507,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Odstranit blokovací seznam DNS {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Odstranit rozsah IP {0} ({1} - {2})? Tyto adresy pak spadnou pod další rozsah, který je pokrývá, podle priority.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Odstranit server SURBL {0}?</value>
   </data>
@@ -3530,6 +3527,18 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Odstranit blokovaného odesílatele {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Odstranit certifikát {0}? Port TCP/IP, který ho předkládá, se znovu nespustí, dokud pro něj nebude vybrán jiný certifikát.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Odstranit certifikát {0}? Žádný port TCP/IP ho nepředkládá.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Odstranit certifikát {0}? Předkládá ho port TCP/IP {1}, který se znovu nespustí, dokud pro něj nebude vybrán jiný certifikát.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Odstranit certifikát {0}? Předkládají ho tyto porty TCP/IP, které se znovu nespustí, dokud pro ně nebude vybrán jiný certifikát: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Odstranit zaškrtnuté zprávy</value>
@@ -6015,6 +6024,12 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Poštovní schránka byla odemčena.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Vytvořené schránky: {0}. Aktualizované schránky: {1}. Účty označené jako neaktivní: {2}. Přeskočené položky adresáře: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Vytvořené schránky: {0}. Aktualizované schránky: {1}. Přeskočené položky adresáře: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Schránky šifrované v klidu</value>
   </data>
@@ -6855,6 +6870,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>V {0} nejsou žádné odpovídající účty.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Žádná zpráva se nesmaže a žádný účet se neodstraní.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Žádná zpráva se nekontroluje na viry a žádná příloha se neblokuje. Vše se doručuje tak, jak přijde.</value>
@@ -12289,11 +12307,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Toto nešlo ze serveru přečíst: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Toto vytvoří a aktualizuje schránky na serveru tak, aby odpovídaly adresáři{0}
-
-Žádná zpráva se nesmaže a žádný účet se neodstraní. Pokračovat?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Tento dokument není součástí této kopie programu.</value>

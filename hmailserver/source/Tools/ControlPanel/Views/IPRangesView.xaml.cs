@@ -526,7 +526,7 @@ namespace hMailServer.ControlPanel.Views
          if (RangeGrid.SelectedItem is not RangeRow row)
             return;
 
-         if (!MessageBox.Confirm(F("Delete IP range '{0}'?", row.Name), L("Control Panel"), L("_Delete range"), destructive: true))
+         if (!MessageBox.Confirm(Confirmations.DeleteIpRange(row.Name, row.LowerIP, row.UpperIP), L("Control Panel"), L("_Delete range"), destructive: true))
             return;
 
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;

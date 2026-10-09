@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(ім’я комп’ютера Windows, на якому працює сервер)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, а також позначає облікові записи неактивними, коли їхній запис у каталозі зник.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, пік {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, тому перевірка ніколи не зможе бути успішною.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Жоден обліковий запис не буде вимкнено.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>…підраховано протягом (хвилин)</value>
@@ -1608,6 +1602,12 @@
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Застосувати зараз</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Застосувати попередній перегляд до всіх доменів, пов'язаних із каталогом?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Застосувати попередній перегляд до домену {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>_Застосовувати серверне фільтрування спаму до цього облікового запису</value>
@@ -3435,9 +3435,6 @@
   <data name="Delete" xml:space="preserve">
     <value>Видалити</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>Видалити IP-діапазон «{0}»?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>Видалити _обліковий запис</value>
   </data>
@@ -3467,9 +3464,6 @@
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Видаляти архіви, старші за стільки днів (0 = зберігати всі)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Видалити сертифікат «{0}»?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Видаляти підтверджені записи через (днів)</value>
@@ -3513,6 +3507,9 @@
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Видалити список блокування DNS {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Видалити діапазон IP {0} ({1} - {2})? Тоді ці адреси потраплять до наступного діапазону, який їх охоплює, за пріоритетом.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Видалити сервер SURBL {0}?</value>
   </data>
@@ -3530,6 +3527,18 @@
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Видалити заблокованого відправника {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Видалити сертифікат {0}? Порт TCP/IP, який його надає, не запуститься знову, доки для нього не буде вибрано інший сертифікат.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Видалити сертифікат {0}? Жоден порт TCP/IP його не надає.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Видалити сертифікат {0}? Його надає порт TCP/IP {1}, який не запуститься знову, доки для нього не буде вибрано інший сертифікат.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Видалити сертифікат {0}? Його надають ці порти TCP/IP, і вони не запустяться знову, доки для них не буде вибрано інший сертифікат: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Видалити позначені повідомлення</value>
@@ -6015,6 +6024,12 @@
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Поштову скриньку розблоковано.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Створювані скриньки: {0}. Оновлювані скриньки: {1}. Облікові записи, що позначаються неактивними: {2}. Пропущені записи каталогу: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Створювані скриньки: {0}. Оновлювані скриньки: {1}. Пропущені записи каталогу: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Скриньки, зашифровані в стані спокою</value>
   </data>
@@ -6855,6 +6870,9 @@
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>У {0} немає відповідних облікових записів.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Жодне повідомлення не видаляється і жоден обліковий запис не вилучається.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Жодне повідомлення не сканується на віруси, і жодне вкладення не блокується. Усе доставляється так, як надійшло.</value>
@@ -12289,11 +12307,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Це не вдалося прочитати із сервера: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Це створює та оновлює поштові скриньки на сервері відповідно до каталогу{0}
-
-Жодне повідомлення не видаляється і жоден обліковий запис не вилучається. Продовжити?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Цього документа немає в цій копії програми.</value>

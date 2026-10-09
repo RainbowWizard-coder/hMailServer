@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(il nome computer Windows del server)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, e contrassegna gli account come inattivi quando la loro voce di directory è scomparsa.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, picco {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, quindi la verifica non potrà mai riuscire.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Nessun account verrà disattivato.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...conteggiati entro (minuti)</value>
@@ -1599,6 +1593,12 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Applica ora</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Applicare l'anteprima a tutti i domini collegati a una directory?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Applicare l'anteprima al dominio {0}?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Applica il _filtro antispam del server a questo account</value>
@@ -3417,9 +3417,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Delete" xml:space="preserve">
     <value>Elimina</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>Eliminare l'intervallo IP '{0}'?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>Elimina _account</value>
   </data>
@@ -3449,9 +3446,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Elimina gli archivi più vecchi di questo numero di giorni (0 = conserva tutti)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Eliminare il certificato '{0}'?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Elimina le voci confermate dopo (giorni)</value>
@@ -3495,6 +3489,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Eliminare la lista di blocco DNS {0}?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Eliminare l'intervallo IP {0} ({1} - {2})? Quegli indirizzi ricadono allora nel successivo intervallo che li copre, per priorità.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Eliminare il server SURBL {0}?</value>
   </data>
@@ -3512,6 +3509,18 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Eliminare il mittente bloccato {0}?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Eliminare il certificato {0}? Una porta TCP/IP che lo presenta non si riavvia finché non le viene scelto un altro certificato.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Eliminare il certificato {0}? Nessuna porta TCP/IP lo presenta.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Eliminare il certificato {0}? La porta TCP/IP {1} lo presenta, e non si riavvia finché non le viene scelto un altro certificato.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Eliminare il certificato {0}? Queste porte TCP/IP lo presentano, e non si riavviano finché non viene scelto per loro un altro certificato: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Elimina i messaggi selezionati</value>
@@ -5958,6 +5967,12 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Casella sbloccata.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Caselle create: {0}. Caselle aggiornate: {1}. Account contrassegnati come inattivi: {2}. Voci della directory saltate: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Caselle create: {0}. Caselle aggiornate: {1}. Voci della directory saltate: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Caselle cifrate a riposo</value>
   </data>
@@ -6792,6 +6807,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Nessun account corrispondente in {0}.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Nessun messaggio viene eliminato e nessun account viene rimosso.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Nessun messaggio viene sottoposto a scansione antivirus, e nessun allegato viene bloccato. Tutto viene consegnato così come arriva.</value>
@@ -12140,11 +12158,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Non è stato possibile leggere questo dal server: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Questo crea e aggiorna le caselle sul server per allinearle alla directory{0}
-
-Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Questo documento non è in questa copia del programma.</value>

@@ -84,9 +84,6 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(der Windows-Computername des Servers)</value>
   </data>
-  <data name=", and marks accounts inactive when their directory entry has gone." xml:space="preserve">
-    <value>, und markiert Konten als inaktiv, wenn ihr Verzeichniseintrag verschwunden ist.</value>
-  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, Spitze {0}</value>
   </data>
@@ -95,9 +92,6 @@
   </data>
   <data name=", so verification can never succeed." xml:space="preserve">
     <value>, die Prüfung kann also nie gelingen.</value>
-  </data>
-  <data name=". No account will be disabled." xml:space="preserve">
-    <value>. Kein Konto wird deaktiviert.</value>
   </data>
   <data name="...counted within (minutes)" xml:space="preserve">
     <value>...gezählt innerhalb (Minuten)</value>
@@ -1599,6 +1593,12 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Apply now" xml:space="preserve">
     <value>Jetzt anwenden</value>
+  </data>
+  <data name="Apply the preview to every domain linked to a directory?" xml:space="preserve">
+    <value>Die Vorschau auf jede mit einem Verzeichnis verknüpfte Domäne anwenden?</value>
+  </data>
+  <data name="Apply the preview to the domain {0}?" xml:space="preserve">
+    <value>Die Vorschau auf die Domäne {0} anwenden?</value>
   </data>
   <data name="Apply the server's spam _filtering to this account" xml:space="preserve">
     <value>Die Spam_filterung des Servers auf dieses Konto anwenden</value>
@@ -3417,9 +3417,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete" xml:space="preserve">
     <value>Löschen</value>
   </data>
-  <data name="Delete IP range '{0}'?" xml:space="preserve">
-    <value>IP-Bereich '{0}' löschen?</value>
-  </data>
   <data name="Delete _account" xml:space="preserve">
     <value>_Konto löschen</value>
   </data>
@@ -3449,9 +3446,6 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Delete archives older than this many days (0 = keep all)" xml:space="preserve">
     <value>Archive löschen, die älter sind als so viele Tage (0 = alle behalten)</value>
-  </data>
-  <data name="Delete certificate '{0}'?" xml:space="preserve">
-    <value>Zertifikat '{0}' löschen?</value>
   </data>
   <data name="Delete confirmed after (days)" xml:space="preserve">
     <value>Bestätigt löschen nach (Tagen)</value>
@@ -3495,6 +3489,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete the DNS block list {0}?" xml:space="preserve">
     <value>Die DNS-Sperrliste {0} löschen?</value>
   </data>
+  <data name="Delete the IP range {0} ({1} - {2})? Those addresses then fall under the next range that covers them, by priority." xml:space="preserve">
+    <value>Den IP-Bereich {0} ({1} - {2}) löschen? Diese Adressen fallen dann unter den nächsten Bereich, der sie abdeckt, nach Priorität.</value>
+  </data>
   <data name="Delete the SURBL server {0}?" xml:space="preserve">
     <value>Den SURBL-Server {0} löschen?</value>
   </data>
@@ -3512,6 +3509,18 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   </data>
   <data name="Delete the blocked sender {0}?" xml:space="preserve">
     <value>Den gesperrten Absender {0} löschen?</value>
+  </data>
+  <data name="Delete the certificate {0}? A TCP/IP port that presents it does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Das Zertifikat {0} löschen? Ein TCP/IP-Port, der es vorlegt, startet erst wieder, wenn ein anderes Zertifikat für ihn gewählt ist.</value>
+  </data>
+  <data name="Delete the certificate {0}? No TCP/IP port presents it." xml:space="preserve">
+    <value>Das Zertifikat {0} löschen? Kein TCP/IP-Port legt es vor.</value>
+  </data>
+  <data name="Delete the certificate {0}? The TCP/IP port {1} presents it, and does not start again until another certificate is chosen for it." xml:space="preserve">
+    <value>Das Zertifikat {0} löschen? Der TCP/IP-Port {1} legt es vor und startet erst wieder, wenn ein anderes Zertifikat für ihn gewählt ist.</value>
+  </data>
+  <data name="Delete the certificate {0}? These TCP/IP ports present it, and do not start again until another certificate is chosen for them: {1}." xml:space="preserve">
+    <value>Das Zertifikat {0} löschen? Diese TCP/IP-Ports legen es vor und starten erst wieder, wenn ein anderes Zertifikat für sie gewählt ist: {1}.</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Die ausgewählten Nachrichten löschen</value>
@@ -5958,6 +5967,12 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
   <data name="Mailbox unlocked." xml:space="preserve">
     <value>Postfach entsperrt.</value>
   </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Accounts marked inactive: {2}. Directory entries skipped: {3}." xml:space="preserve">
+    <value>Angelegte Postfächer: {0}. Aktualisierte Postfächer: {1}. Als inaktiv markierte Konten: {2}. Übersprungene Verzeichniseinträge: {3}.</value>
+  </data>
+  <data name="Mailboxes created: {0}. Mailboxes updated: {1}. Directory entries skipped: {2}." xml:space="preserve">
+    <value>Angelegte Postfächer: {0}. Aktualisierte Postfächer: {1}. Übersprungene Verzeichniseinträge: {2}.</value>
+  </data>
   <data name="Mailboxes encrypted at rest" xml:space="preserve">
     <value>Im Ruhezustand verschlüsselte Postfächer</value>
   </data>
@@ -6792,6 +6807,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="No matching accounts in {0}." xml:space="preserve">
     <value>Keine passenden Konten in {0}.</value>
+  </data>
+  <data name="No message is deleted and no account is removed." xml:space="preserve">
+    <value>Es wird keine Nachricht gelöscht und kein Konto entfernt.</value>
   </data>
   <data name="No message is scanned for viruses, and no attachment is blocked. Everything is delivered as it arrives." xml:space="preserve">
     <value>Keine Nachricht wird auf Viren gescannt, und kein Anhang wird gesperrt. Alles wird so zugestellt, wie es ankommt.</value>
@@ -12140,11 +12158,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="This could not be read from the server: {0}" xml:space="preserve">
     <value>Dies konnte nicht vom Server gelesen werden: {0}</value>
-  </data>
-  <data name="This creates and updates mailboxes on the server to match the directory{0}&#13;&#10;&#13;&#10;No message is deleted and no account is removed. Continue?" xml:space="preserve">
-    <value>Dies legt Postfächer auf dem Server an und aktualisiert sie, damit sie zum Verzeichnis passen{0}
-
-Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="This document is not in this copy of the program." xml:space="preserve">
     <value>Dieses Dokument ist in dieser Kopie des Programms nicht enthalten.</value>
