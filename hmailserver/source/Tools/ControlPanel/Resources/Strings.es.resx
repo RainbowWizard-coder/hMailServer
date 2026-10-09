@@ -1470,7 +1470,7 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>Una excepción sustituye los topes globales para esa dirección; 0:0 la exime por completo. Sin el :hours opcional, la excepción usa el periodo global. Una línea mal formada se ignora con una entrada de registro y el límite global sigue aplicándose a esa cuenta. Las líneas de comentario de esta sección INI no se muestran aquí y se pierden si se guarda la lista.</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Se produjo un error inesperado:
 
 {0}
@@ -1478,7 +1478,7 @@ El Control Panel solo puede leer archivos de mensajes cuando se ejecuta en la mi
 Los detalles completos se escribieron en:
 {1}
 
-¿Reiniciar el Control Panel ahora? Elija No para intentar seguir trabajando.</value>
+¿Reiniciar el Control Panel ahora? Sin reiniciarlo puede seguir funcionando o volver a dar el mismo error.</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>Ya se está instalando una actualización en este servidor: hMailServer {0}, iniciada a las {1} por {2}.</value>
@@ -1551,9 +1551,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Cuenta todo lo que no sea letra ni dígito, en vez de una lista fija de puntuación, para que una distribución de teclado que no tenga no pueda hacer la regla imposible de cumplir.</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Todo lo que la use deja de funcionar en su siguiente petición, y la clave no puede restaurarse - solo sustituirse por una nueva.</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>Contraseñas de aplicación</value>
@@ -3468,6 +3465,9 @@ Los detalles completos se escribieron en:
   <data name="Delete e-mail" xml:space="preserve">
     <value>Borrar correo</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>¿Borrar todas las carpetas y mensajes del buzón de {0}? No se puede deshacer.</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Borrar carpeta</value>
   </data>
@@ -3489,20 +3489,35 @@ Los detalles completos se escribieron en:
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>Borrar los mensajes en cuarentena después de (días; 0 = nunca)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>¿Borrar la regla '{0}'?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Borrar el ra_ngo seleccionado</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>¿Borrar la lista de bloqueo DNS {0}?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>¿Borrar el servidor SURBL {0}?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>¿Borrar el alias {0}?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>¿Borrar la contraseña de aplicación {0}? El cliente que la usa deja de conectarse de inmediato.</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>¿Borrar la regla de adjuntos bloqueados {0}? Los adjuntos que coincidían con ella ya no se quitan.</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>¿Borrar el remitente bloqueado {0}?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Eliminar los mensajes seleccionados</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>¿Borrar la lista de distribución {0}?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>¿Borrar el alias de dominio {0}? El correo a direcciones con ese nombre ya no se entrega a este dominio.</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>¿Borrar el dominio {0}?
@@ -3514,20 +3529,47 @@ Esto elimina permanentemente su {1} cuenta, cada mensaje almacenado en ella y to
 
 Esto elimina permanentemente sus {1} cuentas, cada mensaje almacenado en ellas y todos los alias y listas de distribución del dominio. No se puede deshacer.</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>¿Borrar la entrada {0}?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>¿Borrar la cuenta externa {0}? Ya no se descarga correo de ella; lo ya descargado se queda.</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>¿Borrar la carpeta '{0}' y todos los mensajes que contiene?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>¿Borrar la exención de greylisting {0}? El correo que coincidía con ella vuelve a pasar por greylisting.</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>¿Borrar la entrada {0} de la lista blanca de greylisting? El correo que llega desde ella vuelve a pasar por greylisting.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>¿Borrar el relé entrante {0}?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>¿Borrar la entrada de la lista {0}?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>¿Borrar la carpeta pública '{0}' y todos los mensajes que contiene?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>¿Borrar la ruta de '{0}'?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>¿Borrar la política de dominio remoto {0}? El correo hacia y desde ese dominio vuelve a seguir los ajustes de todo el servidor.</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>¿Borrar la ruta de {0}?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>¿Borrar la regla {0}?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>¿Borrar el grupo de seguridad {0}? Se quitan los permisos de carpeta y los calendarios compartidos que se le concedieron, así que sus miembros los pierden.</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Borrar el certificado seleccionado</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>¿Borrar la exención antispam {0}? El correo que cubre vuelve a pasar por las comprobaciones antispam.</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>Eliminar el mensaje entero</value>
@@ -3555,9 +3597,6 @@ Se informó a los remitentes de que se habían aceptado, así que nada se reinte
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>¿Borrar el enlace del puerto {0} {1}?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>¿Borrar esta contraseña de aplicación? El cliente que la usa dejará de conectarse de inmediato.</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>Eliminar este grupo</value>
   </data>
@@ -3565,9 +3604,6 @@ Se informó a los remitentes de que se habían aceptado, así que nada se reinte
     <value>¿Borrar este mensaje permanentemente?
 
 Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay otra copia.</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>¿Borrar este {0}?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>Borrar los eventos de traza después de (días; 0 = nunca)</value>
@@ -5372,9 +5408,6 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Tiene que existir: este servidor no crea ninguno.</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>Ya ha caducado, así que nada la usa con éxito; revocarla la quita de esta lista.</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>Está enlazado a {0}, así que esas contraseñas cruzan la red. Asigne un certificado a un puerto de buzón compatible con TLS en la página Puertos TCP/IP, enlace este oyente a 127.0.0.1, o póngalo detrás de un terminador TLS.</value>
@@ -7824,9 +7857,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Sintaxis de Perl, buscada en el texto de un mensaje y en sus adjuntos de texto, hasta 2000 caracteres. Vacío, el valor predeterminado, es un detector de números de cuenta que nunca salta. Un patrón que el servidor no puede compilar se rechaza.</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>¿Borrar permanentemente TODAS las carpetas y mensajes de este buzón?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>Permisos</value>
   </data>
@@ -8638,8 +8668,8 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Quitar de la lista de supresión</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>¿Quitar el mensaje {0} de la cola?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>¿Quitar el mensaje {0} ({1} a {2}) de la cola? Se borra sin rebote, así que no se avisa al remitente.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>¿Eliminar la regla de registro para {0}? Lo que ya ha enviado se queda donde se envió.</value>
@@ -8731,6 +8761,9 @@ SMTP 25 y 587, POP3 110, IMAP 143 - sin seguridad de conexión y con la autentic
     <value>¿Reemplazar el buzón de {0} por el del archivo?
 
 Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad desaparece. Solo se conserva durante RecoverDeletedDays, que está desactivado de forma predeterminada.</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>¿Sustituir los datos del servidor de las categorías marcadas por el contenido de la copia de seguridad? Lo que hay ahora se sobrescribe y no se puede deshacer.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Sustituye todos los puertos por el conjunto estándar: SMTP 25 y 587, POP3 110, IMAP 143, todos sin seguridad de conexión.</value>
@@ -8915,11 +8948,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Restaurar el bu_zón</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>Restaurar sustituye los datos actuales de las categorías seleccionadas por el contenido de la copia de seguridad.
-
-¿Continuar?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>Entrega restringida</value>
   </data>
@@ -8980,13 +9008,14 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Revoke" xml:space="preserve">
     <value>Revocar</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>¿Revocar la clave de API "{0}"?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>Revocar la clave de API {0}</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>¿Revocar la clave de API {0}? Todo lo que la use deja de funcionar en su siguiente petición, y la clave no puede restaurarse - solo sustituirse por una nueva.</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>¿Revocar la clave de API {0}? Ya ha caducado, así que nada la usa con éxito; revocarla la quita de esta lista.</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>Revocada</value>
@@ -10059,15 +10088,14 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Settings" xml:space="preserve">
     <value>Ajustes</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Los ajustes se guardaron. Debe reiniciarse el servicio hMailServer para que los cambios surtan efecto.
-
-¿Reiniciarlo ahora?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Ajustes guardados. Uno de ellos solo surte efecto cuando se reinicia el servicio hMailServer, y un reinicio corta todas las sesiones abiertas.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Ajustes guardados. {0} de ellos solo surten efecto cuando se reinicia el servicio hMailServer.
-
-¿Reiniciarlo ahora?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Ajustes guardados. Surten efecto cuando se reinicia el servicio hMailServer, y un reinicio corta todas las sesiones abiertas.</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Ajustes guardados. {0} de ellos solo surten efecto cuando se reinicia el servicio hMailServer, y un reinicio corta todas las sesiones abiertas.</value>
   </data>
   <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Ajustes guardados. {0} de ellos solo surte efecto cuando se reinicia el servicio hMailServer.
@@ -13231,6 +13259,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Add account…" xml:space="preserve">
     <value>_Añadir cuenta…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>_Añadir de todos modos</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>_Añadir dominio</value>
   </data>
@@ -13267,6 +13298,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Apply" xml:space="preserve">
     <value>_Aplicar</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Aplicar ahora</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Aplicar este perfil</value>
   </data>
@@ -13290,6 +13324,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Examinar…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>_Cancelar la clave siguiente</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Cambiar el pepper</value>
@@ -13345,11 +13382,38 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Delete" xml:space="preserve">
     <value>_Borrar</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>_Borrar la cuenta</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>_Borrar el alias</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>_Borrar el certificado</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>_Borrar el dominio</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>_Borrar carpeta</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>_Borrar la lista</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>_Borrar los mensajes más antiguos de (días; 0 = la política del dominio, -1 = conservar para siempre)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>_Borrar el puerto</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>_Borrar el rango</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>_Borrar el relé</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>_Borrar la ruta</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>_Borrar lo seleccionado</value>
@@ -13374,6 +13438,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>_Descartar</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>_Descartar y reconstruir</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atributo del nombre para _mostrar</value>
@@ -13410,6 +13477,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Inscribir un segundo factor</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>_Borrar rastros</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>_Caduca tras (días)</value>
@@ -13468,6 +13538,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>Carpetas _IMAP de este buzón</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>_Instalar la actualización</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>_Instalar la actualización</value>
   </data>
@@ -13483,8 +13556,17 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Conservar el mensaje original</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>Conser_var la clave siguiente</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Conservar la dirección antigua como alias</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>_Conservar los ajustes de fábrica</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>_Seguir trabajando</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Tipo de cuenta</value>
@@ -13494,6 +13576,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>Ape_llidos</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>_Más tarde</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Limitar el número de cuentas</value>
@@ -13513,6 +13598,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Lower IP address" xml:space="preserve">
     <value>Dirección IP _inferior</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>_Crear un nuevo par de claves</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>Anulación del umbral de _marcado (-1 = usar el ajuste global, 0 = no marcar nunca)</value>
   </data>
@@ -13528,6 +13616,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Members…" xml:space="preserve">
     <value>_Miembros…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>_Combinar</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>_Mensaje</value>
   </data>
@@ -13542,6 +13633,12 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Move" xml:space="preserve">
     <value>_Mover</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>_Pasar la firma</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>_Pasar la firma de todos modos</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nombre</value>
@@ -13590,6 +13687,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>_Pausar</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>_Pausar el servidor de correo</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Permisos</value>
@@ -13657,8 +13757,14 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>Solo _lectura - puede listar y leer; se rechaza todo cambio</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>_Recalcular</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Ac_tualizar</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>_Reinicializar ahora</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>Host de _relé (vacío = usar el relé de todo el servidor)</value>
@@ -13678,14 +13784,44 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Remove expired" xml:space="preserve">
     <value>_Quitar lo caducado</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>_Quitar el mensaje</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>_Quitar lo seleccionado</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Quitar la frase de contraseña guardada</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>_Cambiar el nombre de la cuenta</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>_Cambiar el nombre del dominio</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>_Sustituir todos los puertos</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>_Sustituir todos los rangos</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>_Sustituir los datos</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>_Sustituir el buzón</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>_Sustituir la frase de contraseña</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>E_xigir dirección de remitente (vacío = cualquiera)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>_Reiniciar ahora</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>_Reiniciar el Control Panel</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>_Reiniciar el servicio</value>
@@ -13699,6 +13835,12 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Resume" xml:space="preserve">
     <value>_Reanudar</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>_Retirar el selector antiguo</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>_Revocar la clave</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>_Ruta</value>
   </data>
@@ -13711,6 +13853,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>_Guardar y recargar</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>_Guardar de todos modos</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>_Guardar los cambios</value>
   </data>
@@ -13719,6 +13864,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Select" xml:space="preserve">
     <value>_Seleccionar</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>_Enviar</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>_Enviar a todas las cuentas coincidentes</value>

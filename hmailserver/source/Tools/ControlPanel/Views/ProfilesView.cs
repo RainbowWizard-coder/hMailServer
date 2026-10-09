@@ -351,15 +351,14 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         // YesNo, No on Enter, like every other confirmation that changes what the
+         // Cancel on Enter, like every other confirmation that changes what the
          // server does.
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                PluralF(changes_,
                   "Apply the {0} profile? {1} setting changes, and what it held is kept so that it can be put back.",
                   "Apply the {0} profile? {1} settings change, and what they held is kept so that they can be put back.",
                   choice.Name, changes_),
-               L("Apply a profile"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-             != MessageBoxResult.Yes)
+               L("Apply a profile"), L("_Apply this profile"), cancelByDefault: true))
          {
             return;
          }
@@ -405,10 +404,9 @@ namespace hMailServer.ControlPanel.Views
          if (string.IsNullOrEmpty(snapshotProfile_))
             return;
 
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                F("Put back the values the {0} profile replaced? A setting changed since is left as it is, and a filter the profile turned on may be turned off again.", snapshotProfile_),
-               L("Put back a profile's changes"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-             != MessageBoxResult.Yes)
+               L("Put back a profile's changes"), L("_Put back what it changed"), cancelByDefault: true))
          {
             return;
          }
@@ -468,10 +466,9 @@ namespace hMailServer.ControlPanel.Views
 
       private void DeclineProfiles()
       {
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                L("Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later."),
-               L("Keep the shipped settings"), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)
-             != MessageBoxResult.Yes)
+               L("Keep the shipped settings"), L("_Keep the shipped settings"), cancelByDefault: true))
          {
             return;
          }

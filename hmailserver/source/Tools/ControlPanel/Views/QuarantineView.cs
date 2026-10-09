@@ -713,9 +713,10 @@ namespace hMailServer.ControlPanel.Views
 
       private bool ConfirmDelete_(int count, string groupTitle)
       {
-         // YesNo like every other destructive confirmation in the application
-         // (revoke key, delete folder, empty mailbox), and No takes Enter: for an
-         // action with no undo and no other copy, the keyboard default declines.
+         // Named Delete and drawn as the destructive act it is, like every other
+         // destructive confirmation in the application (revoke key, delete folder,
+         // empty mailbox), and Cancel takes Enter: for an action with no undo and
+         // no other copy, the keyboard default declines.
          string question = count == 1
             ? L("Delete this message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.")
             : groupTitle != null
@@ -727,8 +728,7 @@ namespace hMailServer.ControlPanel.Views
                   "Delete the {0} checked message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",
                   "Delete the {0} checked messages permanently?\n\nThe senders were told they were accepted, so nothing will retry and there is no other copy.");
 
-         return MessageBox.Show(question, L("Delete quarantined message"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
-            MessageBoxResult.No) == MessageBoxResult.Yes;
+         return MessageBox.Confirm(question, L("Delete quarantined message"), L("_Delete"), destructive: true);
       }
 
       /// <summary>What happened, in one line, with the first reason a message was left where it was.</summary>

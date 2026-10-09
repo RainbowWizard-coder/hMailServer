@@ -871,8 +871,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void SwitchRotation()
       {
-         if (MessageBox.Show(F("Move signing for {0} to the next key now?", domainName_),
-                             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Move signing for {0} to the next key now?", domainName_), L("Control Panel"), L("_Move signing")))
             return;
 
          // Before the propagation period is over the server refuses a plain switch,
@@ -881,8 +880,8 @@ namespace hMailServer.ControlPanel.Views
          DateTimeOffset? due = rotation_?.Next?.SwitchDue;
          if (!due.HasValue || due.Value > DateTimeOffset.UtcNow)
          {
-            if (MessageBox.Show(L("The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way."),
-                                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            if (!MessageBox.Confirm(L("The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way."),
+                                L("Control Panel"), L("_Move signing anyway"), cancelByDefault: true, level: StatusLevel.Warning))
                return;
             force = true;
          }
@@ -892,8 +891,8 @@ namespace hMailServer.ControlPanel.Views
 
       private void RetireRotation()
       {
-         if (MessageBox.Show(F("Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted.", domainName_),
-                             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Retire the old selector of {0} now? Its TXT record may then be removed, and a key file the rotation generated is deleted.", domainName_),
+                             L("Control Panel"), L("_Retire the old selector"), destructive: true))
             return;
 
          RotationCall(d => (string)d.DKIMRotationRetire(), L("The old selector was retired."));
@@ -901,8 +900,8 @@ namespace hMailServer.ControlPanel.Views
 
       private void CancelRotation()
       {
-         if (MessageBox.Show(F("Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change.", domainName_),
-                             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Cancel the next key of {0}? The staged selector is removed, a key file the rotation generated for it is deleted, and signing does not change.", domainName_),
+                             L("Control Panel"), L("_Cancel the next key"), destructive: true, decline: L("_Keep the next key")))
             return;
 
          RotationCall(d => (string)d.DKIMRotationCancel(), L("The next key was cancelled."));
@@ -1200,9 +1199,9 @@ namespace hMailServer.ControlPanel.Views
          // which is exactly how domains got renamed by accident.
          bool renaming = !string.Equals(newName, domainName_, StringComparison.OrdinalIgnoreCase);
          if (renaming &&
-             MessageBox.Show(
+             !MessageBox.Confirm(
                 F("Rename {0} to {1}?\n\nEvery account, alias and distribution list moves to the new name, and forwards or memberships in other domains that point at {0} addresses are updated to match. Mail sent to the old name will no longer be accepted.", domainName_, newName),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                L("Control Panel"), L("_Rename the domain")))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;

@@ -418,9 +418,10 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (MessageBox.Show(
-               L("Delete this app password? The client using it will stop connecting immediately."),
-               L("Delete app password"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         string name = list_.SelectedItem is CredentialRow row ? row.Name : "";
+         if (!MessageBox.Confirm(
+               F("Delete the app password {0}? The client using it stops connecting at once.", name),
+               L("Delete app password"), L("_Delete"), destructive: true))
             return;
 
          try

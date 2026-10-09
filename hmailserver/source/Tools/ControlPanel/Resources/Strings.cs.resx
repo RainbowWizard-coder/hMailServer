@@ -1479,7 +1479,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>Výjimka nahrazuje globální stropy pro danou adresu; 0:0 ji vyjímá zcela. Bez nepovinné části :hours používá výjimka globální období. Chybně zapsaný řádek se ignoruje se zápisem do logu a pro daný účet nadále platí globální limit. Řádky s komentáři v této sekci INI se zde nezobrazují a při uložení seznamu se zahodí.</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Došlo k neočekávané chybě:
 
 {0}
@@ -1487,7 +1487,7 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
 Úplné podrobnosti byly zapsány do:
 {1}
 
-Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</value>
+Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu narazit na stejnou chybu.</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>Na tomto serveru se už instaluje aktualizace: hMailServer {0}, spuštěno v {1} uživatelem {2}.</value>
@@ -1560,9 +1560,6 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Počítá se cokoli, co není písmeno ani číslice, místo pevného seznamu interpunkce, takže klávesové rozložení, které nemáte, nemůže učinit pravidlo nesplnitelným.</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Cokoli, co jej používá, přestane fungovat hned při dalším požadavku a klíč nelze obnovit – lze jej pouze nahradit novým.</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>Hesla aplikací</value>
@@ -3486,6 +3483,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Delete e-mail" xml:space="preserve">
     <value>Odstranit e-mail</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>Odstranit všechny složky a zprávy v poštovní schránce {0}? Nelze vrátit zpět.</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Odstranit složku</value>
   </data>
@@ -3507,20 +3507,35 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>Mazat zprávy v karanténě po (dny; 0 = nikdy)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>Odstranit pravidlo '{0}'?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Odstranit vybraný rozsa_h</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>Odstranit blokovací seznam DNS {0}?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>Odstranit server SURBL {0}?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Odstranit alias {0}?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>Odstranit heslo aplikace {0}? Klient, který ho používá, se okamžitě přestane připojovat.</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>Odstranit pravidlo pro blokované přílohy {0}? Přílohy, na které se vztahovalo, se už nebudou odstraňovat.</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>Odstranit blokovaného odesílatele {0}?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Odstranit zaškrtnuté zprávy</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Odstranit distribuční seznam {0}?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>Odstranit alias domény {0}? Pošta na adresy s tímto názvem se už nebude doručovat do této domény.</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Odstranit doménu {0}?
@@ -3537,20 +3552,47 @@ Tím se trvale odstraní jejích {1} účtů, každá zpráva v nich uložená a
 
 Tím se trvale odstraní její {1} účty, každá zpráva v nich uložená a všechny aliasy a distribuční seznamy domény. Nelze vrátit zpět.</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>Odstranit položku {0}?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>Odstranit externí účet {0}? Pošta se z něj už nebude stahovat; co už bylo staženo, zůstane.</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Odstranit složku '{0}' a všechny zprávy v ní?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>Odstranit výjimku z greylistingu {0}? Pošta, na kterou se vztahovala, bude opět podléhat greylistingu.</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>Odstranit položku bílého seznamu greylistingu {0}? Pošta z této adresy bude opět podléhat greylistingu.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>Odstranit příchozí relay {0}?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>Odstranit položku seznamu {0}?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Odstranit veřejnou složku '{0}' a všechny zprávy v ní?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>Odstranit trasu pro '{0}'?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>Odstranit pravidlo pro vzdálenou doménu {0}? Pošta do této domény a z ní se opět řídí nastavením celého serveru.</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>Odstranit trasu pro {0}?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>Odstranit pravidlo {0}?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>Odstranit skupinu zabezpečení {0}? Oprávnění ke složkám a sdílení kalendářů, která jí byla udělena, se odeberou, takže je její členové ztratí.</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Odstranit vybraný certifikát</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>Odstranit výjimku z antispamu {0}? Pošta, na kterou se vztahuje, znovu projde antispamovými kontrolami.</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>Smazat celou zprávu</value>
@@ -3588,9 +3630,6 @@ Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jin�
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Odstranit vazbu portu {0} {1}?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>Odstranit toto heslo aplikace? Klient, který ho používá, se okamžitě přestane připojovat.</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>Odstranit tuto skupinu</value>
   </data>
@@ -3598,9 +3637,6 @@ Odesílatelům bylo řečeno, že byly přijaty, takže nic je nezopakuje a jin�
     <value>Trvale odstranit tuto zprávu?
 
 Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná kopie neexistuje.</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>Odstranit {0}?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>Mazat události trasování po (dny; 0 = nikdy)</value>
@@ -5426,9 +5462,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Musí existovat: tento server žádný nevytváří.</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>Už vypršel, takže ho nic úspěšně nepoužívá; odvolání ho odstraní z tohoto seznamu.</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>Je navázán na {0}, takže tato hesla procházejí sítí. Buď přiřaďte certifikát některému portu poštovní schránky s podporou TLS na stránce Porty TCP/IP, navažte tento listener na 127.0.0.1, nebo jej postavte za TLS terminátor.</value>
@@ -7902,9 +7935,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Syntaxe Perl, hledaná v textu zprávy a v jejích textových přílohách, nejvýše 2000 znaků. Prázdné, výchozí, je detektor čísel účtů, který se nikdy nespustí. Vzor, který server nedokáže zkompilovat, je odmítnut.</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>Trvale odstranit VŠECHNY složky a zprávy v této poštovní schránce?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>Oprávnění</value>
   </data>
@@ -8722,8 +8752,8 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Odebrat ze seznamu blokovaných</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>Odstranit zprávu {0} z fronty?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Odebrat z fronty zprávu {0} (od {1} pro {2})? Smaže se bez nedoručenky, takže se to odesílatel nedozví.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Odebrat pravidlo žurnálování pro {0}? Co již odeslalo, zůstává tam, kam to bylo odesláno.</value>
@@ -8815,6 +8845,9 @@ SMTP 25 a 587, POP3 110, IMAP 143 – bez zabezpečení připojení a s ověřov
     <value>Nahradit schránku {0} tou z archivu?
 
 Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude pryč. Uchová se jen po dobu RecoverDeletedDays, což je ve výchozím nastavení vypnuto.</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>Nahradit data serveru v zaškrtnutých kategoriích obsahem zálohy? To, co tam je teď, se přepíše a nelze to vrátit zpět.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Nahradí každý port standardní sadou: SMTP 25 a 587, POP3 110, IMAP 143, vše bez zabezpečení připojení.</value>
@@ -8999,11 +9032,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Obnovit sc_hránku</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>Obnovení nahradí současná data vybraných kategorií obsahem zálohy.
-
-Pokračovat?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>Omezené doručování</value>
   </data>
@@ -9064,13 +9092,14 @@ Pokračovat?</value>
   <data name="Revoke" xml:space="preserve">
     <value>Odvolat</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>Odvolat API klíč „{0}“?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>Odvolat API klíč {0}</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>Odvolat API klíč {0}? Cokoli, co jej používá, přestane fungovat hned při dalším požadavku a klíč nelze obnovit - lze jej pouze nahradit novým.</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>Odvolat API klíč {0}? Už vypršel, takže ho nic úspěšně nepoužívá; odvolání ho odstraní z tohoto seznamu.</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>Odvoláno</value>
@@ -10167,15 +10196,14 @@ Pokračovat?</value>
   <data name="Settings" xml:space="preserve">
     <value>Nastavení</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Nastavení uloženo. Aby se změny projevily, je nutné restartovat službu hMailServer.
-
-Restartovat ji nyní?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Nastavení uložena. Jedno z nich se projeví až po restartu služby hMailServer a restart ukončí všechny otevřené relace.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer.
-
-Restartovat ji nyní?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Nastavení uložena. Projeví se po restartu služby hMailServer a restart ukončí všechny otevřené relace.</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer a restart ukončí všechny otevřené relace.</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?|few" xml:space="preserve">
     <value>Nastavení uložena. {0} z nich se projeví až po restartu služby hMailServer.
@@ -13389,6 +13417,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Add account…" xml:space="preserve">
     <value>_Přidat účet…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>_Přesto přidat</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>_Přidat doménu</value>
   </data>
@@ -13425,6 +13456,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Apply" xml:space="preserve">
     <value>_Použít</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Použít nyní</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Použít tento profil</value>
   </data>
@@ -13448,6 +13482,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Procházet…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>_Zrušit další klíč</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Změnit pepper</value>
@@ -13503,11 +13540,38 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Delete" xml:space="preserve">
     <value>_Smazat</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>_Odstranit účet</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>_Odstranit alias</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>_Odstranit certifikát</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>_Odstranit doménu</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>_Odstranit složku</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>_Odstranit seznam</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>_Mazat zprávy starší než (dny; 0 = politika domény, -1 = uchovat navždy)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>_Odstranit port</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>_Odstranit rozsah</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>_Odstranit relay</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>_Odstranit trasu</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>Od_stranit vybrané</value>
@@ -13532,6 +13596,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>_Zahodit</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>_Zahodit a znovu sestavit</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Atribut zobrazovaného _jména</value>
@@ -13568,6 +13635,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Zaregistrovat druhý faktor</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>_Smazat stopy</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>_Vyprší po (dnech)</value>
@@ -13626,6 +13696,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP složky v této poštovní schránce</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>_Nainstalovat aktualizaci</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>_Nainstalovat aktualizaci</value>
   </data>
@@ -13641,8 +13714,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Keep original message" xml:space="preserve">
     <value>Ponechat původní _zprávu</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>_Ponechat další klíč</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Ponechat starou adresu jako alias</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>_Ponechat dodaná nastavení</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>_Pokračovat v práci</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Druh účtu</value>
@@ -13652,6 +13734,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>_Příjmení</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>_Později</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Omezit počet účtů</value>
@@ -13671,6 +13756,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Lower IP address" xml:space="preserve">
     <value>_Dolní IP adresa</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>_Vytvořit nový pár klíčů</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>_Výjimka hranice pro označení (-1 = použít globální nastavení, 0 = nikdy neoznačovat)</value>
   </data>
@@ -13686,6 +13774,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Members…" xml:space="preserve">
     <value>_Členové…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>_Sloučit</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>_Zpráva</value>
   </data>
@@ -13700,6 +13791,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Move" xml:space="preserve">
     <value>Pře_sunout</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>_Přepnout podepisování</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>_Přesto přepnout podepisování</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Název</value>
@@ -13748,6 +13845,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>Po_zastavit</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>_Pozastavit poštovní server</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Oprávnění</value>
@@ -13815,8 +13915,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Pouze pro čtení – může vypisovat a číst; každá změna je odmítnuta</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>_Přepočítat</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>O_bnovit</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>_Reinicializovat nyní</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay hostitel (prázdné = použít relayer platný pro celý server)</value>
@@ -13836,14 +13942,44 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Remove expired" xml:space="preserve">
     <value>_Odstranit vypršelé</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>_Odebrat zprávu</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>_Odebrat vybrané</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Odstranit uložené přístupové heslo</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>_Přejmenovat účet</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>_Přejmenovat doménu</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>_Nahradit všechny porty</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>_Nahradit všechny rozsahy</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>_Nahradit data</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>_Nahradit poštovní schránku</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>_Nahradit přístupové heslo</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Vyžadovat adresu odesílatele (prázdné = libovolná)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>_Restartovat nyní</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>_Restartovat Control Panel</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>_Restartovat službu</value>
@@ -13857,6 +13993,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Resume" xml:space="preserve">
     <value>Po_kračovat</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>_Vyřadit starý selektor</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>_Odvolat klíč</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>_Trasa</value>
   </data>
@@ -13869,6 +14011,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>_Uložit a znovu načíst</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>_Přesto uložit</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>_Uložit změny</value>
   </data>
@@ -13877,6 +14022,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Select" xml:space="preserve">
     <value>_Vybrat</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>_Odeslat</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>_Odeslat všem odpovídajícím účtům</value>

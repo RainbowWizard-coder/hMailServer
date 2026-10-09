@@ -499,9 +499,9 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                 L("Replace ALL IP ranges with the defaults?\n\nEvery custom range - including any auto-ban entries - will be removed and replaced with 'My computer' (127.0.0.1) and 'Internet' (everything else). This changes who may connect and relay, immediately."),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                L("Control Panel"), L("_Replace all ranges"), destructive: true))
             return;
 
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
@@ -526,8 +526,7 @@ namespace hMailServer.ControlPanel.Views
          if (RangeGrid.SelectedItem is not RangeRow row)
             return;
 
-         if (MessageBox.Show(F("Delete IP range '{0}'?", row.Name), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete IP range '{0}'?", row.Name), L("Control Panel"), L("_Delete range"), destructive: true))
             return;
 
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;

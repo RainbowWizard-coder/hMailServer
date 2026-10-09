@@ -16,8 +16,6 @@ using Button = Wpf.Ui.Controls.Button;
 using TextBox = Wpf.Ui.Controls.TextBox;
 using TextBlock = System.Windows.Controls.TextBlock;
 using DataGrid = System.Windows.Controls.DataGrid;
-using MessageBoxButton = System.Windows.MessageBoxButton;
-using MessageBoxResult = System.Windows.MessageBoxResult;
 using System.Linq;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 
@@ -144,6 +142,16 @@ namespace hMailServer.ControlPanel.Views
          // Cancel afterwards keeps them. Said under the hint (SavedAsMadeNote), as
          // the Levels tab says it of its own Save (review findings F196 and F108).
          public bool SavesAsMadeInDialog;
+
+         // The question Delete asks, one whole catalogued sentence marked with N()
+         // and translated where it is asked, with the entry's name for {0}: "Delete
+         // the SURBL server {0}?" (review findings F066, F185). The question was
+         // "Delete this {0}?" with the noun put in, which named no entry - on a grid
+         // whose selected row was hard to tell from the others - and answered Enter
+         // with Yes. The name is the first of DeleteNameProps the row has a value
+         // for, or, without them, the first text the grid shows.
+         public string DeletePrompt = N("Delete the entry {0}?");
+         public string[] DeleteNameProps;
       }
 
       internal sealed class Row
@@ -567,8 +575,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (MessageBox.Show(F("Delete this {0}?", spec_.ItemNoun), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F(spec_.DeletePrompt, DeleteName_(row)), L("Control Panel"), L("_Delete"), destructive: true))
             return;
 
          dynamic collection = null;
@@ -592,6 +599,26 @@ namespace hMailServer.ControlPanel.Views
          }
 
          Reload();
+      }
+
+      /// <summary>
+      /// What the delete question calls the row: the first of the spec's
+      /// DeleteNameProps with a value, or the first text the grid shows - never a
+      /// tick box's Yes or a number - or, failing both, the row's first cells.
+      /// </summary>
+      private string DeleteName_(Row row)
+      {
+         IEnumerable<string> props = spec_.DeleteNameProps
+            ?? spec_.Fields.Where(f => f.ShowInGrid && f.Kind is FieldKind.Text or FieldKind.Multiline).Select(f => f.Prop);
+
+         foreach (string prop in props)
+         {
+            string value = row.Display(prop);
+            if (!string.IsNullOrWhiteSpace(value))
+               return value.Trim();
+         }
+
+         return row.ToString();
       }
 
       private dynamic FindById(dynamic collection, int id)

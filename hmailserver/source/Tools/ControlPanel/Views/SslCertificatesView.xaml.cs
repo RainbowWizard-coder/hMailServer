@@ -404,8 +404,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          if (row.Passphrase == StoredPassphrase.Set &&
-             MessageBox.Show(F("A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?", row.Name), L("Control Panel"),
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+             !MessageBox.Confirm(F("A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?", row.Name), L("Control Panel"),
+                L("_Replace the passphrase"), destructive: true))
          {
             return;
          }
@@ -426,8 +426,8 @@ namespace hMailServer.ControlPanel.Views
          if (CertGrid.SelectedItem is not CertRow row)
             return;
 
-         if (MessageBox.Show(F("Remove the stored passphrase for '{0}'? If the key file is encrypted, the key will stop loading at the next restart (server error 6170) and the TLS ports using this certificate will not start.", row.Name), L("Control Panel"),
-               MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Remove the stored passphrase for '{0}'? If the key file is encrypted, the key will stop loading at the next restart (server error 6170) and the TLS ports using this certificate will not start.", row.Name), L("Control Panel"),
+               L("_Remove stored passphrase"), destructive: true))
          {
             return;
          }
@@ -581,8 +581,8 @@ namespace hMailServer.ControlPanel.Views
             });
 
             if (encrypted == true &&
-                MessageBox.Show(L("The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.\n\nAdd it anyway?"),
-                   L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                !MessageBox.Confirm(L("The private key file is encrypted (passphrase-protected) and no passphrase was entered. The certificate will be added, but its key will not load (server error 6170) and the TLS ports using it will not start until the passphrase is saved.\n\nAdd it anyway?"),
+                   L("Control Panel"), L("_Add anyway"), cancelByDefault: true, level: StatusLevel.Warning))
             {
                return;
             }
@@ -629,8 +629,7 @@ namespace hMailServer.ControlPanel.Views
          if (CertGrid.SelectedItem is not CertRow row)
             return;
 
-         if (MessageBox.Show(F("Delete certificate '{0}'?", row.Name), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete certificate '{0}'?", row.Name), L("Control Panel"), L("_Delete certificate"), destructive: true))
             return;
 
          dynamic certs = ServerSession.Current.Application.Settings.SSLCertificates;

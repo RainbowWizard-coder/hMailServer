@@ -142,8 +142,7 @@ namespace hMailServer.ControlPanel.Views
          if (RouteGrid.SelectedItem is not RouteRow row)
             return;
 
-         if (MessageBox.Show(F("Delete the route for '{0}'?", row.DomainName), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete the route for {0}?", row.DomainName), L("Control Panel"), L("_Delete route"), destructive: true))
             return;
 
          dynamic routes = ServerSession.Current.Application.Settings.Routes;

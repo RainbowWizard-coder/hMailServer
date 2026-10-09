@@ -108,29 +108,63 @@ namespace hMailServer.ControlPanel.Views
       /// something never looks like the safe one. Escape and the title bar's
       /// close both decline. True when the action was chosen.
       /// </summary>
+      /// <remarks>
+      /// This is the one confirmation of the Control Panel (review finding F185):
+      /// no page asks with Yes and No, or OK and Cancel, any more - the shape that
+      /// made Enter delete an entry the question never named, and drew a merge
+      /// that removes nothing with the same red Yes as a replace that empties a
+      /// mailbox. The text names the thing acted on, the button names the act, and
+      /// a destructive act never takes Enter. ConfirmationPatternTests holds every
+      /// page to it.
+      /// </remarks>
       /// <param name="action">The caption of the affirmative, with its Alt key - one of the catalogued button captions.</param>
       /// <param name="destructive">Whether the affirmative deletes, revokes or replaces something.</param>
       /// <param name="cancelByDefault">
       /// Whether Enter declines rather than chooses the action: for a question whose
       /// affirmative cannot be taken back - a pepper that stops passwords working, a
-      /// role that hands out everything - a reflexive Enter must not be the yes. The
-      /// action keeps the primary appearance; only the key moves.
+      /// role that hands out everything, a release that delivers - a reflexive Enter
+      /// must not be the yes. The action keeps the primary appearance; only the key
+      /// moves. Left out, it is whether the action is destructive: the button that
+      /// deletes, revokes or replaces something is never the one Enter presses.
       /// </param>
-      public static bool Confirm(string text, string caption, string action, bool destructive = false, bool cancelByDefault = false)
+      /// <param name="decline">
+      /// The caption of the other button, with its Alt key, where Cancel would not say
+      /// what declining does - Later for a restart, Keep working after a failure. Null
+      /// is Cancel. Escape and the title bar's close give it either way.
+      /// </param>
+      /// <param name="level">
+      /// The level the question is drawn at, where it is not the one the action gives
+      /// it (Warning for a destructive action, none otherwise): Critical for the
+      /// question asked after an error.
+      /// </param>
+      public static bool Confirm(string text, string caption, string action, bool destructive = false, bool? cancelByDefault = null,
+         string decline = null, StatusLevel? level = null)
       {
          var dispatcher = Application.Current?.Dispatcher;
          if (dispatcher != null && !dispatcher.CheckAccess())
-            return dispatcher.Invoke(() => Confirm(text, caption, action, destructive, cancelByDefault));
+            return dispatcher.Invoke(() => Confirm(text, caption, action, destructive, cancelByDefault, decline, level));
 
-         var dialog = new MessageDialog(ActiveWindow_(), CaptionOrDefault_(caption), text,
-            destructive ? StatusLevel.Warning : StatusLevel.Normal,
-            new[]
-            {
-               new Choice(action, MessageBoxResult.Yes, Primary: true, IsCancel: false, IsDefault: !cancelByDefault, Destructive: destructive),
-               new Choice(L("Cancel"), MessageBoxResult.Cancel, Primary: false, IsCancel: true, IsDefault: cancelByDefault, Destructive: false)
-            });
+         MessageDialog dialog = ConfirmDialog_(ActiveWindow_(), text, caption, action, destructive, cancelByDefault, decline, level);
          dialog.ShowDialog();
          return dialog.Result == MessageBoxResult.Yes;
+      }
+
+      // Built apart from being shown, so that the review harness can draw a
+      // confirmation as the Control Panel draws it. The action is first and
+      // primary (danger when destructive), the decline second, Escape's; Enter
+      // goes to whichever Confirmations.CancelTakesEnter says.
+      private static MessageDialog ConfirmDialog_(Window owner, string text, string caption, string action, bool destructive, bool? cancelByDefault,
+         string decline, StatusLevel? level)
+      {
+         bool cancelTakesEnter = Confirmations.CancelTakesEnter(destructive, cancelByDefault);
+
+         return new MessageDialog(owner, CaptionOrDefault_(caption), text,
+            level ?? (destructive ? StatusLevel.Warning : StatusLevel.Normal),
+            new[]
+            {
+               new Choice(action, MessageBoxResult.Yes, Primary: true, IsCancel: false, IsDefault: !cancelTakesEnter, Destructive: destructive),
+               new Choice(decline ?? L("Cancel"), MessageBoxResult.Cancel, Primary: false, IsCancel: true, IsDefault: cancelTakesEnter, Destructive: false)
+            });
       }
 
       /// <summary>

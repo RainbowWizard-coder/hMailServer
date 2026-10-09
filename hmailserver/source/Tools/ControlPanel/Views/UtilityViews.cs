@@ -188,8 +188,7 @@ namespace hMailServer.ControlPanel.Views
 
          string relayName = selected.Split("   (")[0];
 
-         if (MessageBox.Show(F("Delete the incoming relay {0}?", relayName), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete the incoming relay {0}?", relayName), L("Control Panel"), L("_Delete relay"), destructive: true))
             return;
 
          dynamic relays = ServerSession.Current.Application.Settings.IncomingRelays;
@@ -429,8 +428,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (MessageBox.Show(F("Send this message to all accounts matching '{0}'?", wildcard_.Text),
-             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Send this message to all accounts matching '{0}'?", wildcard_.Text), L("Control Panel"), L("_Send"), cancelByDefault: true))
             return;
 
          try

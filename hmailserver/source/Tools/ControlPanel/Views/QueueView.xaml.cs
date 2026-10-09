@@ -89,8 +89,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (MessageBox.Show(F("Remove message {0} from the queue?", row.Id), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(Confirmations.RemoveQueuedMessage(row.Id, row.From, row.Recipients), L("Control Panel"), L("_Remove message"), destructive: true))
             return;
 
          try

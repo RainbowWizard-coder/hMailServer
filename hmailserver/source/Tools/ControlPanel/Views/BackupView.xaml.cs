@@ -311,9 +311,9 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (MessageBox.Show(
-             L("Restoring replaces current data for the selected categories with the backup contents.\n\nContinue?"),
-             L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(
+             L("Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo."),
+             L("Control Panel"), L("_Replace data"), destructive: true))
             return;
 
          try
@@ -416,7 +416,12 @@ namespace hMailServer.ControlPanel.Views
             ? F("Replace the mailbox of {0} with the one in the archive?\n\nEvery folder is emptied first: mail that arrived since the backup is gone. It is kept only for RecoverDeletedDays, which is off by default.", address)
             : F("Merge the folders and messages of the archive into the mailbox of {0}?\n\nNothing already there is removed.", address);
 
-         if (MessageBox.Show(question, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         // Replace empties the mailbox first and is drawn as the destructive act it
+         // is; Merge removes nothing, and its button is an ordinary one.
+         bool chosen = replace
+            ? MessageBox.Confirm(question, L("Control Panel"), L("_Replace mailbox"), destructive: true)
+            : MessageBox.Confirm(question, L("Control Panel"), L("_Merge"));
+         if (!chosen)
             return;
 
          try
@@ -517,8 +522,7 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (MessageBox.Show(F("Put message {0} back into the mailbox of {1}?", messageId, address), L("Control Panel"),
-                             MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Put message {0} back into the mailbox of {1}?", messageId, address), L("Control Panel"), L("_Put the message back")))
             return;
 
          try

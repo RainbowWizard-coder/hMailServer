@@ -1470,7 +1470,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>Ohitus korvaa kyseisen osoitteen yleiset ylärajat; 0:0 vapauttaa sen kokonaan. Ilman valinnaista :hours-osaa ohitus käyttää yleistä jaksoa. Virheellinen rivi ohitetaan lokimerkinnän kera ja yleinen raja koskee yhä kyseistä tiliä. Tämän INI-osion kommenttirivejä ei näytetä tässä, ja ne katoavat jos lista tallennetaan.</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Tapahtui odottamaton virhe:
 
 {0}
@@ -1478,7 +1478,7 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
 Täydet tiedot kirjoitettiin tiedostoon:
 {1}
 
-Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittää jatkaa työskentelyä.</value>
+Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä se voi jatkaa toimintaansa tai kohdata saman virheen uudelleen.</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>Tälle palvelimelle asennetaan jo päivitystä: hMailServer {0}, aloitettu {1}, aloittaja {2}.</value>
@@ -1551,9 +1551,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Kelpaa mikä tahansa merkki joka ei ole kirjain tai numero, eikä kiinteä lista välimerkkejä, jottei sääntöä voi tehdä mahdottomaksi täyttää näppäimistöasettelulla jota sinulla ei ole.</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Kaikki mikä käyttää sitä lakkaa toimimasta heti seuraavassa pyynnössään, eikä avainta voi palauttaa – vain korvata uudella.</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>Sovellussalasanat</value>
@@ -3468,6 +3465,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Delete e-mail" xml:space="preserve">
     <value>Poista sähköposti</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>Poistetaanko kaikki kansiot ja viestit käyttäjän {0} postilaatikosta? Tätä ei voi kumota.</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Poista kansio</value>
   </data>
@@ -3489,20 +3489,35 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>Poista karanteenissa olevat viestit (päivää; 0 = ei koskaan)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>Poistetaanko sääntö '{0}'?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Poista valittu al_ue</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>Poistetaanko DNS-estolista {0}?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>Poistetaanko SURBL-palvelin {0}?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Poistetaanko alias {0}?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>Poistetaanko sovellussalasana {0}? Sitä käyttävä asiakas lakkaa yhdistämästä heti.</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>Poistetaanko estettyjen liitteiden sääntö {0}? Sen tunnistamia liitteitä ei enää poisteta.</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>Poistetaanko estetty lähettäjä {0}?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Poista valitut viestit</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Poistetaanko jakelulista {0}?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>Poistetaanko verkkotunnusalias {0}? Sen nimisiin osoitteisiin tulevaa postia ei enää toimiteta tähän verkkotunnukseen.</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Poistetaanko verkkotunnus {0}?
@@ -3514,20 +3529,47 @@ Tämä poistaa pysyvästi sen {1} tilin, jokaisen siihen tallennetun viestin sek
 
 Tämä poistaa pysyvästi sen {1} tiliä, jokaisen niihin tallennetun viestin sekä kaikki verkkotunnuksen aliakset ja jakelulistat. Tätä ei voi kumota.</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>Poistetaanko merkintä {0}?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>Poistetaanko ulkoinen tili {0}? Siltä ei enää ladata postia; jo ladattu säilyy.</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Poistetaanko kansio '{0}' ja kaikki sen viestit?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>Poistetaanko greylisting-ohitusmerkintä {0}? Sen tunnistama posta joutuu taas greylistingin piiriin.</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>Poistetaanko greylistingin sallittujen listan merkintä {0}? Sieltä tuleva posta joutuu taas greylistingin piiriin.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>Poistetaanko saapuva välityspalvelin {0}?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>Poistetaanko luettelon merkintä {0}?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Poistetaanko julkinen kansio '{0}' ja kaikki sen viestit?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>Poistetaanko reitti kohteelle '{0}'?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>Poistetaanko etäverkkotunnuksen käytäntö {0}? Posta kyseiseen verkkotunnukseen ja sieltä noudattaa taas koko palvelimen asetuksia.</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>Poistetaanko reitti kohteelle {0}?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>Poistetaanko sääntö {0}?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>Poistetaanko suojausryhmä {0}? Sille annetut kansioiden käyttöoikeudet ja kalenterien jaot poistetaan, joten sen jäsenet menettävät ne.</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Poista valittu varmenne</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>Poistetaanko roskapostipoikkeus {0}? Sen kattama posti käy taas läpi roskapostitarkistukset.</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>Poista koko viesti</value>
@@ -3555,9 +3597,6 @@ Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yr
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Poistetaanko {0}-portin {1} sidonta?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>Poistetaanko tämä sovellussalasana? Sitä käyttävä asiakas lakkaa yhdistämästä heti.</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>Poista tämä ryhmä</value>
   </data>
@@ -3565,9 +3604,6 @@ Lähettäjille ilmoitettiin, että viestit oli hyväksytty, joten mikään ei yr
     <value>Poistetaanko tämä viesti pysyvästi?
 
 Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uudelleen eikä toista kopiota ole.</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>Poistetaanko tämä {0}?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>Poista jäljitystapahtumat (päivää; 0 = ei koskaan)</value>
@@ -5372,9 +5408,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Sen on oltava olemassa: tämä palvelin ei luo sellaista.</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>Se on jo vanhentunut, joten mikään ei käytä sitä onnistuneesti; kumoaminen poistaa sen tästä luettelosta.</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>Se on sidottu osoitteeseen {0}, joten nuo salasanat kulkevat verkon yli. Joko määritä varmenne TLS-kykyiselle postilaatikkoportille TCP/IP-portit-sivulla, sido tämä kuuntelija osoitteeseen 127.0.0.1 tai laita se TLS-terminaattorin taakse.</value>
@@ -7824,9 +7857,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Perl-syntaksi, jota haetaan viestin tekstistä ja sen tekstiliitteistä, enintään 2000 merkkiä. Tyhjä, oletus, on tilinumerotunnistin, joka ei koskaan laukea. Malli, jota palvelin ei pysty kääntämään, hylätään.</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>Poistetaanko pysyvästi KAIKKI tämän postilaatikon kansiot ja viestit?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>Käyttöoikeudet</value>
   </data>
@@ -8638,8 +8668,8 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Poista estolistalta</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>Poistetaanko viesti {0} jonosta?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Poistetaanko viesti {0} (lähettäjä {1}, vastaanottaja {2}) jonosta? Se poistetaan ilman palautusviestiä, joten lähettäjälle ei kerrota.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Poistetaanko journalointisääntö kohteelta {0}? Se, mitä se on jo lähettänyt, jää sinne minne se lähetettiin.</value>
@@ -8731,6 +8761,9 @@ SMTP 25 ja 587, POP3 110, IMAP 143 - ilman yhteyden suojausta ja SMTP-todennus P
     <value>Korvataanko tilin {0} postilaatikko arkiston postilaatikolla?
 
 Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häviää. Se säilyy vain RecoverDeletedDays-ajan, joka on oletuksena pois käytöstä.</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>Korvataanko palvelimen tiedot valituissa luokissa varmuuskopion sisällöllä? Nykyiset tiedot korvataan, eikä tätä voi kumota.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Korvaa jokaisen portin vakiojoukolla: SMTP 25 ja 587, POP3 110, IMAP 143, kaikki ilman yhteyden suojausta.</value>
@@ -8915,11 +8948,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Palauta postilaatikko (_x)</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>Palautus korvaa valittujen luokkien nykyiset tiedot varmuuskopion sisällöllä.
-
-Jatketaanko?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>Rajoitettu toimitus</value>
   </data>
@@ -8980,13 +9008,14 @@ Jatketaanko?</value>
   <data name="Revoke" xml:space="preserve">
     <value>Kumoa</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>Kumotaanko API-avain "{0}"?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>Kumoa API-avain {0}</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>Kumotaanko API-avain {0}? Kaikki mikä käyttää sitä lakkaa toimimasta heti seuraavassa pyynnössään, eikä avainta voi palauttaa - vain korvata uudella.</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>Kumotaanko API-avain {0}? Se on jo vanhentunut, joten mikään ei käytä sitä onnistuneesti; kumoaminen poistaa sen tästä luettelosta.</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>Kumottu</value>
@@ -10059,15 +10088,14 @@ Jatketaanko?</value>
   <data name="Settings" xml:space="preserve">
     <value>Asetukset</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Asetukset tallennettu. hMailServer-palvelu on käynnistettävä uudelleen, jotta muutokset tulevat voimaan.
-
-Käynnistetäänkö se uudelleen nyt?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Asetukset tallennettu. Yksi niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen, ja uudelleenkäynnistys katkaisee kaikki avoimet istunnot.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen.
-
-Käynnistetäänkö se uudelleen nyt?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Asetukset tallennettu. Ne tulevat voimaan, kun hMailServer-palvelu käynnistetään uudelleen, ja uudelleenkäynnistys katkaisee kaikki avoimet istunnot.</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen, ja uudelleenkäynnistys katkaisee kaikki avoimet istunnot.</value>
   </data>
   <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Asetukset tallennettu. {0} niistä tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen.
@@ -13231,6 +13259,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Add account…" xml:space="preserve">
     <value>_Lisää tili…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>_Lisää silti</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>_Lisää verkkotunnus</value>
   </data>
@@ -13267,6 +13298,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Apply" xml:space="preserve">
     <value>_Käytä</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Ota käyttöön nyt</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Ota tämä profiili käyttöön</value>
   </data>
@@ -13290,6 +13324,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Selaa…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>_Peruuta seuraava avain</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Vaihda pepper</value>
@@ -13345,11 +13382,38 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Delete" xml:space="preserve">
     <value>_Poista</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>_Poista tili</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>_Poista alias</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>_Poista varmenne</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>_Poista verkkotunnus</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>_Poista kansio</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>_Poista lista</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>_Poista viestit, jotka ovat vanhempia kuin (päivää; 0 = verkkotunnuksen käytäntö, -1 = säilytä ikuisesti)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>_Poista portti</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>_Poista alue</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>_Poista välityspalvelin</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>_Poista reitti</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>Poista _valitut</value>
@@ -13374,6 +13438,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>_Hylkää</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>_Hylkää ja rakenna uudelleen</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>_Näyttönimen attribuutti</value>
@@ -13410,6 +13477,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Ota toinen tunnistustekijä käyttöön</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>_Poista jäljet</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>_Vanhenee (päivää)</value>
@@ -13468,6 +13538,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>IMAP-_kansiot tässä postilaatikossa</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>_Asenna päivitys</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>_Asenna päivitys</value>
   </data>
@@ -13483,8 +13556,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Keep original message" xml:space="preserve">
     <value>_Säilytä alkuperäinen viesti</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>_Säilytä seuraava avain</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>Säi_lytä vanha osoite aliaksena</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>_Säilytä toimitetut asetukset</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>_Jatka työskentelyä</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>Tilin _laji</value>
@@ -13494,6 +13576,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>_Sukunimi</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>_Myöhemmin</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Rajoita tilien määrää</value>
@@ -13513,6 +13598,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Lower IP address" xml:space="preserve">
     <value>_Alempi IP-osoite</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>_Luo uusi avainpari</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>_Merkintäkynnyksen ohitus (-1 = käytä yleistä asetusta, 0 = älä koskaan merkitse)</value>
   </data>
@@ -13528,6 +13616,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Members…" xml:space="preserve">
     <value>_Jäsenet…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>_Yhdistä</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>V_iesti</value>
   </data>
@@ -13542,6 +13633,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Move" xml:space="preserve">
     <value>_Siirrä</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>_Siirrä allekirjoitus</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>_Siirrä allekirjoitus silti</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Nimi</value>
@@ -13590,6 +13687,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>_Keskeytä</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>_Keskeytä postipalvelin</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Käyttöoikeudet</value>
@@ -13657,8 +13757,14 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Vain luku - voi luetella ja lukea; jokainen muutos evätään</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>_Laske uudelleen</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Päiv_itä</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>_Alusta uudelleen nyt</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Välityskone (tyhjä = käytä palvelimenlaajuista välittäjää)</value>
@@ -13678,14 +13784,44 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Remove expired" xml:space="preserve">
     <value>_Poista vanhentuneet</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>_Poista viesti</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>_Poista valitut</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Poista tallennettu tunnuslause</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>_Nimeä tili uudelleen</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>_Nimeä verkkotunnus uudelleen</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>_Korvaa kaikki portit</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>_Korvaa kaikki alueet</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>_Korvaa tiedot</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>_Korvaa postilaatikko</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>_Korvaa tunnuslause</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Vaadi lähettäjän _osoite (tyhjä = mikä tahansa)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>_Käynnistä uudelleen nyt</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>_Käynnistä Control Panel uudelleen</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>_Käynnistä palvelu uudelleen</value>
@@ -13699,6 +13835,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Resume" xml:space="preserve">
     <value>_Jatka</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>_Poista vanha valitsin käytöstä</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>_Kumoa avain</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>R_eitti</value>
   </data>
@@ -13711,6 +13853,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>_Tallenna ja lataa uudelleen</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>_Tallenna silti</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>_Tallenna muutokset</value>
   </data>
@@ -13719,6 +13864,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Select" xml:space="preserve">
     <value>_Valitse</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>_Lähetä</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>_Lähetä kaikille täsmääville tileille</value>

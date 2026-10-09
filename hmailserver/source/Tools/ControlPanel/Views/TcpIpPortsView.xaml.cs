@@ -370,9 +370,10 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void OfferReinitialize_()
       {
-         if (MessageBox.Show(
+         // Later takes Enter: a reinitialise disconnects whoever is connected.
+         if (!MessageBox.Confirm(
                 L("Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?"),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                L("Control Panel"), L("_Reinitialise now"), cancelByDefault: true, decline: L("_Later")))
             return;
 
          Mouse.OverrideCursor = Cursors.Wait;
@@ -449,9 +450,9 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                 L("Replace ALL configured ports with the defaults?\n\nSMTP 25 and 587, POP3 110, IMAP 143 - without connection security, and with SMTP authentication On on both SMTP ports, so a port 25 that is a honeypot takes AUTH again. TLS ports and custom bindings will be removed. The change takes effect when the server is reinitialised."),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                L("Control Panel"), L("_Replace all ports"), destructive: true))
             return;
 
          dynamic ports = ServerSession.Current.Application.Settings.TCPIPPorts;
@@ -480,8 +481,7 @@ namespace hMailServer.ControlPanel.Views
          if (PortGrid.SelectedItem is not PortRow row)
             return;
 
-         if (MessageBox.Show(F("Delete the {0} port {1} binding?", row.Protocol, row.Port), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete the {0} port {1} binding?", row.Protocol, row.Port), L("Control Panel"), L("_Delete port"), destructive: true))
             return;
 
          bool deleted = false;

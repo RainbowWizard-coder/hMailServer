@@ -284,7 +284,7 @@ namespace hMailServer.ControlPanel.Views
          string label = (string)list_.Items[index];
 
          if (!Dialogs.Confirm(F("Remove {0} from {1}?\r\n\r\nAny access this group has been granted stops applying to that account.", label, groupName_),
-                              L("Control Panel"), L("_Remove")))
+                              L("Control Panel"), L("_Remove"), destructive: true))
          {
             return;
          }

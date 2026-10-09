@@ -177,14 +177,12 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
-            // YesNo, No on Enter, like every other confirmation that changes what
-            // the server does: an address the pattern spared can be banned again
-            // from the next failed logon.
-            if (MessageBox.Show(
+            // Cancel on Enter, like every other confirmation that changes what the
+            // server does: an address the pattern spared can be banned again from
+            // the next failed logon.
+            if (!MessageBox.Confirm(
                   F("Remove {0} from the never-ban list?\n\nAn address it spared can be auto-banned again from the next ban on.", selected.Pattern),
-                  L("Remove from the never-ban list"), MessageBoxButton.YesNo, MessageBoxImage.Question,
-                  MessageBoxResult.No)
-                != MessageBoxResult.Yes)
+                  L("Remove from the never-ban list"), L("_Remove"), destructive: true))
             {
                return;
             }

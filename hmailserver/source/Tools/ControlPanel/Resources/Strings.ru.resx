@@ -1479,7 +1479,7 @@ Control Panel может читать файлы сообщений только
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>Переопределение заменяет глобальные пределы для этого адреса; 0:0 полностью освобождает его от них. Без необязательной части :hours переопределение использует глобальный период. Строка с ошибкой формата игнорируется с записью в журнал, и к этой учётной записи по-прежнему применяется глобальное ограничение. Строки комментариев в этом разделе INI здесь не показываются и теряются при сохранении списка.</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Произошла непредвиденная ошибка:
 
 {0}
@@ -1487,7 +1487,7 @@ Control Panel может читать файлы сообщений только
 Полные сведения записаны в файл:
 {1}
 
-Перезапустить Control Panel сейчас? Выберите «Нет», чтобы попытаться продолжить работу.</value>
+Перезапустить Control Panel сейчас? Без перезапуска он может продолжить работу, а может снова столкнуться с той же ошибкой.</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>На этом сервере уже устанавливается обновление: hMailServer {0}, начато в {1} пользователем {2}.</value>
@@ -1560,9 +1560,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Засчитывается всё, что не является буквой или цифрой, а не фиксированный перечень знаков препинания, — поэтому раскладка клавиатуры, которой у вас нет, не сделает правило невыполнимым.</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Всё, что его использует, перестанет работать на самом первом же следующем запросе, а ключ восстановить нельзя — только заменить новым.</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>Пароли приложений</value>
@@ -3486,6 +3483,9 @@ Control Panel может читать файлы сообщений только
   <data name="Delete e-mail" xml:space="preserve">
     <value>Удалить письмо</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>Удалить все папки и сообщения в почтовом ящике {0}? Отменить это действие нельзя.</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Удалить папку</value>
   </data>
@@ -3507,20 +3507,35 @@ Control Panel может читать файлы сообщений только
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>Удалять сообщения из карантина через (дней; 0 — никогда)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>Удалить правило «{0}»?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Уд_алить выбранный диапазон</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>Удалить список блокировки DNS {0}?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>Удалить сервер SURBL {0}?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Удалить псевдоним {0}?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>Удалить пароль приложения {0}? Клиент, который им пользуется, сразу перестанет подключаться.</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>Удалить правило блокировки вложений {0}? Вложения, под которые оно подходило, больше не удаляются.</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>Удалить заблокированного отправителя {0}?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Удалить отмеченные сообщения</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Удалить список рассылки {0}?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>Удалить псевдоним домена {0}? Почта на адреса с этим именем больше не доставляется в этот домен.</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Удалить домен {0}?
@@ -3537,20 +3552,47 @@ Control Panel может читать файлы сообщений только
 
 Будут безвозвратно удалены его {1} учётные записи, все хранящиеся в них сообщения, а также все псевдонимы и списки рассылки этого домена. Отменить это действие нельзя.</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>Удалить запись {0}?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>Удалить внешнюю учётную запись {0}? Почта из неё больше не загружается; уже загруженное остаётся.</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Удалить папку «{0}» и все сообщения в ней?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>Удалить исключение из greylisting {0}? Почта, под которую оно подходило, снова попадает под greylisting.</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>Удалить запись {0} из белого списка greylisting? Почта с этого адреса снова попадает под greylisting.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>Удалить входящую ретрансляцию {0}?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>Удалить запись списка {0}?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Удалить общую папку «{0}» и все сообщения в ней?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>Удалить маршрут для «{0}»?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>Удалить правило для внешнего домена {0}? Почта в этот домен и из него снова подчиняется общим параметрам сервера.</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>Удалить маршрут для {0}?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>Удалить правило {0}?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>Удалить группу безопасности {0}? Выданные ей права на папки и общий доступ к календарям будут удалены, и её участники их потеряют.</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Удалить выбранный сертификат</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>Удалить исключение антиспама {0}? Почта, на которую оно распространяется, снова проходит антиспам-проверки.</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>Удалить сообщение целиком</value>
@@ -3588,9 +3630,6 @@ Control Panel может читать файлы сообщений только
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Удалить привязку {0} к порту {1}?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>Удалить этот пароль приложения? Клиент, который им пользуется, сразу перестанет подключаться.</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>Удалить эту группу</value>
   </data>
@@ -3598,9 +3637,6 @@ Control Panel может читать файлы сообщений только
     <value>Удалить это сообщение безвозвратно?
 
 Отправителю сообщили, что письмо принято, поэтому повторных попыток не будет и другой копии не существует.</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>Удалить этот объект: {0}?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>Удалять события трассировки через (дней; 0 — никогда)</value>
@@ -5426,9 +5462,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Она должна существовать: этот сервер её не создаёт.</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>Срок его действия уже истёк, поэтому успешно им ничто не пользуется; отзыв убирает его из этого списка.</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>Он привязан к {0}, поэтому эти пароли идут по сети. Либо назначьте сертификат почтовому порту с поддержкой TLS на странице «Порты TCP/IP», либо привяжите этот прослушиватель к 127.0.0.1, либо поставьте его за терминатором TLS.</value>
@@ -7902,9 +7935,6 @@ Control Panel может читать файлы сообщений только
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Синтаксис Perl, поиск по тексту сообщения и его текстовым вложениям, до 2000 символов. Пусто, по умолчанию, — детектор номеров счетов, который никогда не срабатывает. Шаблон, который сервер не может скомпилировать, отклоняется.</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>Безвозвратно удалить ВСЕ папки и сообщения в этом почтовом ящике?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>Разрешения</value>
   </data>
@@ -8722,8 +8752,8 @@ Control Panel может читать файлы сообщений только
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Убрать из списка подавления</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>Удалить сообщение {0} из очереди?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Удалить из очереди сообщение {0} (от {1} для {2})? Оно удаляется без уведомления о недоставке, так что отправитель об этом не узнает.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Удалить правило журналирования для {0}? То, что уже отправлено, останется там, куда было отправлено.</value>
@@ -8815,6 +8845,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>Заменить ящик {0} ящиком из архива?
 
 Сначала каждая папка будет очищена: почта, пришедшая после резервного копирования, пропадёт. Она хранится только в течение RecoverDeletedDays, что по умолчанию выключено.</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>Заменить данные сервера в отмеченных категориях содержимым резервной копии? То, что там сейчас, будет перезаписано, и отменить это нельзя.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Заменяет все порты стандартным набором: SMTP 25 и 587, POP3 110, IMAP 143 — все без защиты подключения.</value>
@@ -8999,11 +9032,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Восстановить почтовый ящик (_x)</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>Восстановление заменяет текущие данные в выбранных категориях содержимым резервной копии.
-
-Продолжить?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>Ограниченная доставка</value>
   </data>
@@ -9064,13 +9092,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Revoke" xml:space="preserve">
     <value>Отозвать</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>Отозвать ключ API «{0}»?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>Отозвать ключ API {0}</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>Отозвать ключ API {0}? Всё, что его использует, перестанет работать на первом же следующем запросе, а ключ восстановить нельзя - только заменить новым.</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>Отозвать ключ API {0}? Срок его действия уже истёк, поэтому успешно им ничто не пользуется; отзыв убирает его из этого списка.</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>Отозван</value>
@@ -10167,15 +10196,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Settings" xml:space="preserve">
     <value>Параметры</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Параметры сохранены. Чтобы изменения вступили в силу, службу hMailServer необходимо перезапустить.
-
-Перезапустить её сейчас?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Параметры сохранены. Один из них вступит в силу только после перезапуска службы hMailServer, а перезапуск обрывает все открытые сеансы.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Параметры сохранены. {0} из них вступят в силу только после перезапуска службы hMailServer.
-
-Перезапустить её сейчас?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Параметры сохранены. Они вступят в силу после перезапуска службы hMailServer, а перезапуск обрывает все открытые сеансы.</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Параметры сохранены. Число параметров, которые вступят в силу только после перезапуска службы hMailServer: {0}. Перезапуск обрывает все открытые сеансы.</value>
   </data>
   <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?|few" xml:space="preserve">
     <value>Параметры сохранены. {0} из них вступят в силу только после перезапуска службы hMailServer.
@@ -13389,6 +13417,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Add account…" xml:space="preserve">
     <value>_Добавить учётную запись…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>_Всё равно добавить</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>_Добавить домен</value>
   </data>
@@ -13425,6 +13456,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Apply" xml:space="preserve">
     <value>П_рименить</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Применить сейчас</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>П_рименить этот профиль</value>
   </data>
@@ -13448,6 +13482,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Обзор…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>_Отменить следующий ключ</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Изменить перец</value>
@@ -13503,11 +13540,38 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Delete" xml:space="preserve">
     <value>_Удалить</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>_Удалить учётную запись</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>_Удалить псевдоним</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>_Удалить сертификат</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>_Удалить домен</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>_Удалить папку</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>_Удалить список</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>Удалять сообщения старше (_дней; 0 — политика домена, -1 — хранить вечно)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>_Удалить порт</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>_Удалить диапазон</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>_Удалить ретрансляцию</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>_Удалить маршрут</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>Удалить _выбранное</value>
@@ -13532,6 +13596,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>_Отбросить</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>_Сбросить и перестроить</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Атрибут _отображаемого имени</value>
@@ -13568,6 +13635,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Зарегистрировать второй фактор</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>_Стереть следы</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>_Истекает через (дней)</value>
@@ -13626,6 +13696,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>Папки _IMAP в этом почтовом ящике</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>_Установить обновление</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>_Установить обновление</value>
   </data>
@@ -13641,8 +13714,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Keep original message" xml:space="preserve">
     <value>_Сохранять исходное сообщение</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>_Сохранить следующий ключ</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Оставить старый адрес как псевдоним</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>_Оставить поставляемые параметры</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>Продолжить _работу</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Тип учётной записи</value>
@@ -13652,6 +13734,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>_Фамилия</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>По_зже</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Ограничить число учётных записей</value>
@@ -13671,6 +13756,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Lower IP address" xml:space="preserve">
     <value>Нижний _IP-адрес</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>_Создать новую пару ключей</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>Переопределение порога пометки (-_1 — использовать общий параметр, 0 — никогда не помечать)</value>
   </data>
@@ -13686,6 +13774,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Members…" xml:space="preserve">
     <value>_Участники…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>_Объединить</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>_Сообщение</value>
   </data>
@@ -13700,6 +13791,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Move" xml:space="preserve">
     <value>_Перенести</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>_Перевести подпись</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>_Всё равно перевести подпись</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Имя</value>
@@ -13748,6 +13845,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>_Приостановить</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>_Приостановить почтовый сервер</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Разрешения</value>
@@ -13815,8 +13915,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Только чтение — можно просматривать и читать; любое изменение отклоняется</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>_Пересчитать</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>О_бновить</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>_Повторно инициализировать сейчас</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Узел ретрансляции (пусто — использовать общесерверный ретранслятор)</value>
@@ -13836,14 +13942,44 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Remove expired" xml:space="preserve">
     <value>_Убрать просроченные</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>_Удалить сообщение</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>_Убрать выбранное</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Убрать сохранённую парольную фразу</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>_Переименовать учётную запись</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>_Переименовать домен</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>_Заменить все порты</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>_Заменить все диапазоны</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>_Заменить данные</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>_Заменить почтовый ящик</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>_Заменить парольную фразу</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Требовать адрес отправителя (пусто — любой)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>_Перезапустить сейчас</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>_Перезапустить Control Panel</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>_Перезапустить службу</value>
@@ -13857,6 +13993,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Resume" xml:space="preserve">
     <value>_Возобновить</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>_Вывести старый селектор из употребления</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>_Отозвать ключ</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>_Маршрут</value>
   </data>
@@ -13869,6 +14011,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>_Сохранить и перезагрузить</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>_Всё равно сохранить</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>_Сохранить изменения</value>
   </data>
@@ -13877,6 +14022,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Select" xml:space="preserve">
     <value>_Выбрать</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>_Отправить</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>_Отправить всем подходящим учётным записям</value>

@@ -4891,8 +4891,8 @@ namespace hMailServer.ControlPanel.Views
          {
             string existing = (string)settings.WebPushVapidPublicKey;
             if (!string.IsNullOrEmpty(existing) &&
-                MessageBox.Show(L("Make a new VAPID key pair?\n\nEvery Web Push subscription made under the present pair stops working at once, and each person has to allow notifications again. Do this when the private key may have been copied."),
-                   L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                !MessageBox.Confirm(L("Make a new VAPID key pair?\n\nEvery Web Push subscription made under the present pair stops working at once, and each person has to allow notifications again. Do this when the private key may have been copied."),
+                   L("Control Panel"), L("_Make a new key pair"), destructive: true))
             {
                return (true, L("Nothing was changed."));
             }
@@ -5777,8 +5777,7 @@ namespace hMailServer.ControlPanel.Views
                before.Value.Messages.ToString("N0", System.Globalization.CultureInfo.CurrentCulture));
          }
 
-         if (MessageBox.Show(warning, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning)
-             != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(warning, L("Control Panel"), L("_Discard and rebuild"), destructive: true))
          {
             return (true, L("Nothing was changed."));
          }
@@ -5813,9 +5812,9 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private static (bool ok, string text) RecalculateFolderUids_()
       {
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                 L("Recalculate the IMAP folder UID counters?\r\n\r\nFor every folder, the counter is moved up to the highest message UID that folder actually holds. Counters that are already correct or ahead are left alone, and no message is changed.\r\n\r\nRun this if clients report messages appearing under the wrong UID, or after restoring a database."),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                L("Control Panel"), L("_Recalculate")))
          {
             return (true, L("Nothing was changed."));
          }

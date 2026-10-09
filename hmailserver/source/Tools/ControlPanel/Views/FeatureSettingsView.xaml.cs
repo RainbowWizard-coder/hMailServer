@@ -3280,16 +3280,20 @@ namespace hMailServer.ControlPanel.Views
          // waits and applies them all at its next start: never that the save took effect.
          SetState_(state, F("Saved {0} - restart the service to apply.", time));
 
-         string question = waiting == null
-            ? L("Settings saved. The hMailServer service must be restarted for the changes to take effect.\n\nRestart it now?")
-            : Plural(waitingForRestart,
-               "Settings saved. {0} of them takes effect only when the hMailServer service restarts.\n\nRestart it now?",
-               "Settings saved. {0} of them take effect only when the hMailServer service restarts.\n\nRestart it now?");
-         if (MessageBox.Show(question, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+         if (AskRestart_(waiting == null ? null : waitingForRestart))
             RestartService();
 
          return true;
       }
+
+      /// <summary>
+      /// Whether to restart the service now, after a save whose settings wait for it:
+      /// Restart now or Later, and Later is what Enter gives, because a restart drops
+      /// every open session and a reflexive Enter after Save must not do that.
+      /// </summary>
+      private static bool AskRestart_(int? waiting)
+         => MessageBox.Confirm(Confirmations.RestartAfterSave(waiting), L("Control Panel"), L("_Restart now"),
+            cancelByDefault: true, decline: L("_Later"));
 
       /// <summary>
       /// Asks before a save writes a new password pepper on a server with accounts

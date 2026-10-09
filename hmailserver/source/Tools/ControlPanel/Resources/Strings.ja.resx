@@ -1470,7 +1470,7 @@
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>個別設定は、そのアドレスについて全体の上限を置き換えます。0:0 にすると完全に対象外になります。省略可能な :hours を書かない場合、個別設定は全体の期間を使用します。形式が正しくない行はログに記録したうえで無視され、そのアカウントには全体の制限がそのまま適用されます。この INI セクションのコメント行はここには表示されず、リストを保存すると失われます。</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>予期しないエラーが発生しました:
 
 {0}
@@ -1478,7 +1478,7 @@
 詳細は次の場所に書き出されました:
 {1}
 
-コントロールパネルを今すぐ再起動しますか? 作業を続けてみる場合は「いいえ」を選んでください。</value>
+コントロールパネルを今すぐ再起動しますか? 再起動しない場合、そのまま動作を続けることもあれば、同じエラーが再び起きることもあります。</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>このサーバーでは既に更新プログラムのインストールが進行中です: hMailServer {0}、{1} に {2} が開始しました。</value>
@@ -1551,9 +1551,6 @@
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>記号の固定リストではなく、英字でも数字でもない文字がすべて対象になります。そのため、手元にないキーボード レイアウトのせいで条件を満たせなくなることはありません。</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>これを使用しているものは、次のリクエストで直ちに動作しなくなります。キーは復元できず、新しいものに置き換えることしかできません。</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>アプリ パスワード</value>
@@ -3468,6 +3465,9 @@
   <data name="Delete e-mail" xml:space="preserve">
     <value>メールを削除</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>{0} のメールボックス内のすべてのフォルダーとメッセージを削除しますか? 元に戻すことはできません。</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>フォルダーを削除</value>
   </data>
@@ -3489,20 +3489,35 @@
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>検疫されたメッセージを削除するまでの日数 (日、0 = 削除しない)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>ルール '{0}' を削除しますか?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>選択した範囲を削除(_N)</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>DNS ブロック リスト {0} を削除しますか?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>SURBL サーバー {0} を削除しますか?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>エイリアス {0} を削除しますか?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>アプリ パスワード {0} を削除しますか? これを使っているクライアントは直ちに接続できなくなります。</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>ブロック対象の添付ファイルのルール {0} を削除しますか? このルールに一致していた添付ファイルは削除されなくなります。</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>ブロックされた送信者 {0} を削除しますか?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>チェックしたメッセージを削除</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>配布リスト {0} を削除しますか?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>ドメイン エイリアス {0} を削除しますか? その名前のアドレス宛てのメールは、このドメインに配信されなくなります。</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>ドメイン {0} を削除しますか?
@@ -3514,20 +3529,47 @@
 
 これにより、このドメインの {1} 件のアカウント、そこに保存されているすべてのメッセージ、およびこのドメインのすべてのエイリアスと配布リストが完全に削除されます。元に戻すことはできません。</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>エントリ {0} を削除しますか?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>外部アカウント {0} を削除しますか? このアカウントからメールはダウンロードされなくなります。ダウンロード済みのメールは残ります。</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>フォルダー '{0}' とその中のすべてのメッセージを削除しますか?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>グレイリスティングのバイパス エントリ {0} を削除しますか? これに一致していたメールは再びグレイリスティングの対象になります。</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>グレイリスティングのホワイト リストのエントリ {0} を削除しますか? そこからのメールは再びグレイリスティングの対象になります。</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>受信リレー {0} を削除しますか?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>一覧のエントリ {0} を削除しますか?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>公開フォルダー '{0}' とその中のすべてのメッセージを削除しますか?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>'{0}' のルートを削除しますか?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>リモートドメインのポリシー {0} を削除しますか? そのドメインとの間のメールは、再びサーバー全体の設定に従います。</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>{0} のルートを削除しますか?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>ルール {0} を削除しますか?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>セキュリティ グループ {0} を削除しますか? このグループに付与されたフォルダーのアクセス許可とカレンダーの共有は削除されるため、メンバーはそれらを失います。</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>選択した証明書を削除</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>スパム対策の除外 {0} を削除しますか? これが対象としていたメールは、再びスパム チェックを受けます。</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>メッセージ全体を削除する</value>
@@ -3555,9 +3597,6 @@
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>{0} ポート {1} のバインドを削除しますか?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>このアプリ パスワードを削除しますか? これを使っているクライアントは直ちに接続できなくなります。</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>このグループを削除</value>
   </data>
@@ -3565,9 +3604,6 @@
     <value>このメッセージを完全に削除しますか?
 
 送信者には受け入れたと伝えているため、再試行されることはなく、ほかにコピーもありません。</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>この {0} を削除しますか?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>トレース イベントを削除するまでの日数 (日、0 = 削除しない)</value>
@@ -5372,9 +5408,6 @@
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>既に存在している必要があります。このサーバーは作成しません。</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>すでに期限切れなので、これを使って成功しているものはありません。失効させるとこのリストから削除されます。</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>{0} にバインドされているため、これらのパスワードはネットワークを流れます。TCP/IP ポート ページで TLS 対応のメールボックス ポートに証明書を割り当てるか、このリスナーを 127.0.0.1 にバインドするか、TLS 終端の背後に置いてください。</value>
@@ -7824,9 +7857,6 @@
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Perl の構文で、メッセージの本文とテキストの添付ファイルを検索します。最大 2000 文字。既定の空は、一致することのない口座番号の検出です。サーバーがコンパイルできないパターンは拒否されます。</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>このメールボックス内のすべてのフォルダーとメッセージを完全に削除しますか?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>権限</value>
   </data>
@@ -8638,8 +8668,8 @@
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>抑止リストから削除</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>メッセージ {0} をキューから削除しますか?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>メッセージ {0} ({1} から {2} 宛て) をキューから削除しますか? バウンスなしで削除されるため、送信者には通知されません。</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>{0} のジャーナリングルールを削除しますか。すでに送信されたものは送信先に残ります。</value>
@@ -8731,6 +8761,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>{0} のメールボックスをアーカイブの内容で置き換えますか?
 
 まずすべてのフォルダーが空にされます。バックアップ以降に届いたメールは失われます。RecoverDeletedDays の期間だけ保持されます (既定では無効)。</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>チェックしたカテゴリのサーバーのデータを、バックアップの内容で置き換えますか? 現在のデータは上書きされ、元に戻すことはできません。</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>すべてのポートを標準のセットに置き換えます: SMTP 25 と 587、POP3 110、IMAP 143 で、いずれも接続のセキュリティはありません。</value>
@@ -8915,11 +8948,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>メールボックスを復元する(_X)</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>復元すると、選択したカテゴリの現在のデータがバックアップの内容に置き換えられます。
-
-続行しますか?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>配信制限</value>
   </data>
@@ -8980,13 +9008,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Revoke" xml:space="preserve">
     <value>取り消し</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>API キー "{0}" を取り消しますか?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>API キー {0} を取り消す</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>API キー {0} を取り消しますか? これを使用しているものは、次のリクエストで直ちに動作しなくなります。キーは復元できず、新しいものに置き換えることしかできません。</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>API キー {0} を取り消しますか? すでに期限切れなので、これを使って成功しているものはありません。取り消すとこのリストから削除されます。</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>取り消し済み</value>
@@ -10059,15 +10088,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Settings" xml:space="preserve">
     <value>設定</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>設定を保存しました。変更を有効にするには hMailServer サービスを再起動する必要があります。
-
-今すぐ再起動しますか?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>設定を保存しました。そのうちの一つは hMailServer サービスの再起動後にのみ有効になります。再起動すると、開いているすべてのセッションが切断されます。</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。
-
-今すぐ再起動しますか?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>設定を保存しました。これらは hMailServer サービスの再起動後に有効になります。再起動すると、開いているすべてのセッションが切断されます。</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。再起動すると、開いているすべてのセッションが切断されます。</value>
   </data>
   <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>設定を保存しました。このうち {0} 件は hMailServer サービスの再起動後にのみ有効になります。
@@ -13231,6 +13259,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Add account…" xml:space="preserve">
     <value>アカウントを追加(_A)…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>それでも追加(_A)</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>ドメインを追加(_A)</value>
   </data>
@@ -13267,6 +13298,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Apply" xml:space="preserve">
     <value>適用(_A)</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>今すぐ適用(_A)</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>このプロファイルを適用(_A)</value>
   </data>
@@ -13290,6 +13324,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>参照(_B)…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>次の鍵を取り消す(_C)</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>ペッパーを変更(_C)</value>
@@ -13345,11 +13382,38 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Delete" xml:space="preserve">
     <value>削除(_D)</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>アカウントを削除(_D)</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>エイリアスを削除(_D)</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>証明書を削除(_D)</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>ドメインを削除(_D)</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>フォルダーを削除(_D)</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>リストを削除(_D)</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>次の日数より古いメッセージを削除する (日、0 = ドメインのポリシー、-1 = 無期限に保持)(_D)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>ポートを削除(_D)</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>範囲を削除(_D)</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>リレーを削除(_D)</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>ルートを削除(_D)</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>選択したものを削除(_D)</value>
@@ -13374,6 +13438,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>破棄(_D)</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>破棄して再構築(_D)</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>表示名の属性(_D)</value>
@@ -13410,6 +13477,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>第 2 要素を登録する(_E)</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>痕跡を消去(_E)</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>有効期限 (日数)(_E)</value>
@@ -13468,6 +13538,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>このメールボックス内の IMAP フォルダー(_I)</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>更新をインストール(_I)</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>更新をインストール(_I)</value>
   </data>
@@ -13483,8 +13556,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Keep original message" xml:space="preserve">
     <value>元のメッセージを残す(_K)</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>次の鍵を保持(_K)</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>古いアドレスをエイリアスとして残す(_K)</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>出荷時の設定を保持(_K)</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>作業を続ける(_K)</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>アカウントの種類(_K)</value>
@@ -13494,6 +13576,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>姓(_L)</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>後で(_L)</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>アカウント数を制限する(_L)</value>
@@ -13513,6 +13598,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Lower IP address" xml:space="preserve">
     <value>下限の IP アドレス(_L)</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>新しいキー ペアを作成(_M)</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>マークのしきい値の上書き (-1 = グローバル設定を使用、0 = マークしない)(_M)</value>
   </data>
@@ -13528,6 +13616,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Members…" xml:space="preserve">
     <value>メンバー(_M)…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>統合(_M)</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>メッセージ(_M)</value>
   </data>
@@ -13542,6 +13633,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Move" xml:space="preserve">
     <value>移動(_M)</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>署名を切り替える(_M)</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>それでも署名を切り替える(_M)</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>名前(_N)</value>
@@ -13590,6 +13687,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>一時停止(_P)</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>メール サーバーを一時停止(_P)</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>権限(_P)</value>
@@ -13657,8 +13757,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>読み取り専用 - 一覧表示と読み取りができ、変更はすべて拒否されます(_R)</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>再計算(_R)</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>更新(_R)</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>今すぐ再初期化(_R)</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>リレー ホスト (空 = サーバー全体のリレーを使用)(_R)</value>
@@ -13678,14 +13784,44 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Remove expired" xml:space="preserve">
     <value>期限切れを削除(_R)</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>メッセージを削除(_R)</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>選択したものを削除(_R)</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>保存済みパスフレーズを削除(_R)</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>アカウント名を変更(_R)</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>ドメイン名を変更(_R)</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>すべてのポートを置き換える(_R)</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>すべての範囲を置き換える(_R)</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>データを置き換える(_R)</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>メールボックスを置き換える(_R)</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>パスフレーズを置き換える(_R)</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>必須の送信者アドレス (空 = 制限なし)(_R)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>今すぐ再起動(_R)</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>コントロールパネルを再起動(_R)</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>サービスを再起動(_R)</value>
@@ -13699,6 +13835,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Resume" xml:space="preserve">
     <value>再開(_R)</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>古いセレクターを廃止(_R)</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>キーを取り消す(_R)</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>ルート(_R)</value>
   </data>
@@ -13711,6 +13853,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>保存して再読み込み(_S)</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>それでも保存(_S)</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>変更を保存(_S)</value>
   </data>
@@ -13719,6 +13864,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Select" xml:space="preserve">
     <value>選択(_S)</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>送信(_S)</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>一致するすべてのアカウントに送信(_S)</value>

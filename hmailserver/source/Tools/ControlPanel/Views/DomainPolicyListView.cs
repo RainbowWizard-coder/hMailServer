@@ -242,13 +242,12 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         // YesNo, No on Enter, like every other confirmation that changes what the
-         // server does: a black domain removed is accepted again at once.
-         if (MessageBox.Show(
+         // Remove, drawn as the destructive act it is, with Cancel on Enter, like
+         // every other confirmation that changes what the server does: a blocked
+         // domain removed is accepted again at once.
+         if (!MessageBox.Confirm(
                F("Remove {0} from the list?\n\nA blocked domain is accepted again at once; an allowed domain goes back under greylisting and the spam score from the next session.", selected.Pattern),
-               L("Remove from the domain list"), MessageBoxButton.YesNo, MessageBoxImage.Question,
-               MessageBoxResult.No)
-             != MessageBoxResult.Yes)
+               L("Remove from the domain list"), L("_Remove"), destructive: true))
          {
             return;
          }

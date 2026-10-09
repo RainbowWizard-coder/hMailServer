@@ -174,8 +174,7 @@ namespace hMailServer.ControlPanel.Views
             Notice_(StatusLevel.Information, L("Select a folder first."));
             return;
          }
-         if (MessageBox.Show(F("Delete the public folder '{0}' and all messages in it?", name), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete the public folder '{0}' and all messages in it?", name), L("Control Panel"), L("_Delete folder"), destructive: true))
             return;
 
          dynamic folders = ServerSession.Current.Application.Settings.PublicFolders;

@@ -1507,8 +1507,7 @@ namespace hMailServer.ControlPanel
             // below reports what it finds.
          }
 
-         if (MessageBox.Show(SettingApplies.ApplyNowQuestion(draining), L("Control Panel"),
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(SettingApplies.ApplyNowQuestion(draining), L("Control Panel"), L("_Apply now")))
             return;
 
          ApplyPendingButton.IsEnabled = false;

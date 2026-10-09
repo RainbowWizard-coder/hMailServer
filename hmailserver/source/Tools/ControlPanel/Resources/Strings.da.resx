@@ -1470,7 +1470,7 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>En tilsidesættelse erstatter de globale lofter for den adresse; 0:0 fritager den helt. Uden det valgfrie :hours bruger tilsidesættelsen den globale periode. En forkert udformet linje ignoreres med en logpost, og den globale grænse gælder stadig for den konto. Kommentarlinjer i denne INI-sektion vises ikke her og forsvinder, hvis listen gemmes.</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Der opstod en uventet fejl:
 
 {0}
@@ -1478,7 +1478,7 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
 Alle detaljer blev skrevet til:
 {1}
 
-Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbejdet.</value>
+Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ramme den samme fejl igen.</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>Der installeres allerede en opdatering på denne server: hMailServer {0}, startet {1} af {2}.</value>
@@ -1551,9 +1551,6 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Alt, der ikke er et bogstav eller et ciffer, tæller med, frem for en fast liste over tegnsætning, så et tastaturlayout, du ikke har, ikke kan gøre reglen umulig at opfylde.</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Alt, der bruger den, holder op med at virke ved den allernæste forespørgsel, og nøglen kan ikke gendannes – kun erstattes med en ny.</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>App-adgangskoder</value>
@@ -3468,6 +3465,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Delete e-mail" xml:space="preserve">
     <value>Slet e-mail</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>Slet alle mapper og meddelelser i postkassen for {0}? Det kan ikke fortrydes.</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Slet mappe</value>
   </data>
@@ -3489,20 +3489,35 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>Slet meddelelser i karantæne efter (dage; 0 = aldrig)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>Slet reglen '{0}'?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Slet _det valgte interval</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>Slet DNS-blokeringslisten {0}?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>Slet SURBL-serveren {0}?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>Slet aliasset {0}?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>Slet app-adgangskoden {0}? Den klient, der bruger den, holder straks op med at kunne forbinde.</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>Slet reglen for blokerede vedhæftninger {0}? Vedhæftninger, den matchede, fjernes ikke længere.</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>Slet den blokerede afsender {0}?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>Slet de markerede meddelelser</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>Slet distributionslisten {0}?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>Slet domænealiasset {0}? Post til adresser under det navn leveres ikke længere til dette domæne.</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Slet domænet {0}?
@@ -3514,20 +3529,47 @@ Dette fjerner permanent dets {1} konto, hver eneste meddelelse, der er gemt i de
 
 Dette fjerner permanent dets {1} konti, hver eneste meddelelse, der er gemt i dem, og alle domænets aliasser og distributionslister. Det kan ikke fortrydes.</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>Slet posten {0}?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>Slet den eksterne konto {0}? Der hentes ikke længere post fra den; det, der er hentet, bliver.</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Slet mappen '{0}' og alle meddelelser i den?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>Slet greylisting-undtagelsen {0}? Post, den matchede, bliver greylistet igen.</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>Slet greylisting-hvidlisteposten {0}? Post derfra bliver greylistet igen.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>Slet det indgående relay {0}?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>Slet listeposten {0}?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>Slet den offentlige mappe '{0}' og alle meddelelser i den?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>Slet ruten for '{0}'?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>Slet politikken for eksternt domæne {0}? Post til og fra det domæne følger igen de serverbrede indstillinger.</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>Slet ruten for {0}?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>Slet reglen {0}?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>Slet sikkerhedsgruppen {0}? De mappetilladelser og kalenderdelinger, den har fået, fjernes, så dens medlemmer mister dem.</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Slet det valgte certifikat</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>Slet spamundtagelsen {0}? Post, den dækker, går igennem spamkontrollerne igen.</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>Slet hele meddelelsen</value>
@@ -3555,9 +3597,6 @@ Afsenderne fik besked om, at de var blevet accepteret, så intet vil forsøge ig
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>Slet {0}-bindingen til port {1}?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>Slet denne app-adgangskode? Den klient, der bruger den, holder op med at kunne forbinde med det samme.</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>Slet denne gruppe</value>
   </data>
@@ -3565,9 +3604,6 @@ Afsenderne fik besked om, at de var blevet accepteret, så intet vil forsøge ig
     <value>Slet denne meddelelse permanent?
 
 Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der findes ingen anden kopi.</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>Slet denne {0}?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>Slet sporingshændelser efter (dage; 0 = aldrig)</value>
@@ -5372,9 +5408,6 @@ Det verificerede installationsprogram overdrages til opdateringshjælperen: tjen
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Den skal findes: denne server opretter ingen.</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>Den er allerede udløbet, så intet bruger den med succes; tilbagekaldelse fjerner den fra denne liste.</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>Den er bundet til {0}, så de adgangskoder krydser netværket. Tildel enten et certifikat til en TLS-egnet postkasseport på siden TCP/IP-porte, bind denne lytter til 127.0.0.1, eller sæt den bag en TLS-terminator.</value>
@@ -7824,9 +7857,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Perl-syntaks, søgt i en meddelelses tekst og dens tekstvedhæftninger, op til 2000 tegn. Tom, standarden, er en kontonummerdetektor, der aldrig slår til. Et mønster, som serveren ikke kan kompilere, afvises.</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>Slet permanent ALLE mapper og meddelelser i denne postkasse?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>Rettigheder</value>
   </data>
@@ -8638,8 +8668,8 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Fjern fra spærrelisten</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>Fjern meddelelse {0} fra køen?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Fjern meddelelse {0} ({1} til {2}) fra køen? Den slettes uden en returmail, så afsenderen får ikke besked.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>Fjern journaliseringsreglen for {0}? Det, den allerede har sendt, bliver, hvor det blev sendt hen.</value>
@@ -8731,6 +8761,9 @@ SMTP 25 og 587, POP3 110, IMAP 143 - uden forbindelsessikkerhed og med SMTP-godk
     <value>Erstat postkassen for {0} med den i arkivet?
 
 Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gemmes kun i RecoverDeletedDays, som er slået fra som standard.</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>Erstat serverens data i de afkrydsede kategorier med sikkerhedskopiens indhold? Det, der er der nu, overskrives, og det kan ikke fortrydes.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Erstatter hver port med standardsættet: SMTP 25 og 587, POP3 110, IMAP 143, alle uden forbindelsessikkerhed.</value>
@@ -8915,11 +8948,6 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>Gendan postk_assen</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>Gendannelse erstatter de nuværende data for de valgte kategorier med sikkerhedskopiens indhold.
-
-Vil du fortsætte?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>Begrænset levering</value>
   </data>
@@ -8980,13 +9008,14 @@ Vil du fortsætte?</value>
   <data name="Revoke" xml:space="preserve">
     <value>Tilbagekald</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>Tilbagekald API-nøglen "{0}"?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>Tilbagekald API-nøglen {0}</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>Tilbagekald API-nøglen {0}? Alt, der bruger den, holder op med at virke ved den allernæste forespørgsel, og nøglen kan ikke gendannes - kun erstattes med en ny.</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>Tilbagekald API-nøglen {0}? Den er allerede udløbet, så intet bruger den med succes; tilbagekaldelse fjerner den fra denne liste.</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>Tilbagekaldt</value>
@@ -10059,15 +10088,14 @@ Vil du fortsætte?</value>
   <data name="Settings" xml:space="preserve">
     <value>Indstillinger</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Indstillinger gemt. hMailServer-tjenesten skal genstartes, for at ændringerne træder i kraft.
-
-Genstart den nu?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Indstillingerne er gemt. Én af dem træder først i kraft, når hMailServer-tjenesten genstartes, og en genstart afbryder alle åbne sessioner.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes.
-
-Genstart den nu?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Indstillingerne er gemt. De træder i kraft, når hMailServer-tjenesten genstartes, og en genstart afbryder alle åbne sessioner.</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes, og en genstart afbryder alle åbne sessioner.</value>
   </data>
   <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Indstillingerne er gemt. {0} af dem træder først i kraft, når hMailServer-tjenesten genstartes.
@@ -13231,6 +13259,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Add account…" xml:space="preserve">
     <value>_Tilføj konto…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>_Tilføj alligevel</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>_Tilføj domæne</value>
   </data>
@@ -13267,6 +13298,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Apply" xml:space="preserve">
     <value>_Anvend</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>_Anvend nu</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Anvend denne profil</value>
   </data>
@@ -13290,6 +13324,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Gennemse…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>_Annuller den næste nøgle</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Skift pepperen</value>
@@ -13345,11 +13382,38 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Delete" xml:space="preserve">
     <value>_Slet</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>_Slet konto</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>_Slet alias</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>_Slet certifikat</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>_Slet domæne</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>_Slet mappe</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>_Slet liste</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>_Slet meddelelser, der er ældre end (dage; 0 = domænets politik, -1 = behold for evigt)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>_Slet port</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>_Slet interval</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>_Slet relay</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>_Slet rute</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>_Slet valgte</value>
@@ -13374,6 +13438,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>_Kassér</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>_Kassér og genopbyg</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attribut for _visningsnavn</value>
@@ -13410,6 +13477,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Tilmeld en anden faktor</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>_Slet spor</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>_Udløber efter (dage)</value>
@@ -13468,6 +13538,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP-mapper i denne postkasse</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>_Installer opdateringen</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>_Installér opdatering</value>
   </data>
@@ -13483,8 +13556,17 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Keep original message" xml:space="preserve">
     <value>_Behold den oprindelige meddelelse</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>_Behold den næste nøgle</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>_Behold den gamle adresse som alias</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>_Behold de leverede indstillinger</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>_Arbejd videre</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Kontotype</value>
@@ -13494,6 +13576,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>_Efternavn</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>_Senere</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Begræns antallet af konti</value>
@@ -13513,6 +13598,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Lower IP address" xml:space="preserve">
     <value>Nedre _IP-adresse</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>_Lav et nyt nøglepar</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>_Tilsidesættelse af markeringstærskel (-1 = brug den globale indstilling, 0 = markér aldrig)</value>
   </data>
@@ -13528,6 +13616,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Members…" xml:space="preserve">
     <value>_Medlemmer…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>_Flet</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>_Meddelelse</value>
   </data>
@@ -13542,6 +13633,12 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Move" xml:space="preserve">
     <value>_Flyt</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>_Skift signeringen</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>_Skift signeringen alligevel</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Navn</value>
@@ -13590,6 +13687,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>_Pause</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>_Sæt mailserveren på pause</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Rettigheder</value>
@@ -13657,8 +13757,14 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Skrivebeskyttet - kan liste og læse; enhver ændring nægtes</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>_Genberegn</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Opd_atér</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>_Reinitialiser nu</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relay-vært (tomt = brug den serverdækkende relayer)</value>
@@ -13678,14 +13784,44 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Remove expired" xml:space="preserve">
     <value>Fjern _udløbne</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>_Fjern meddelelse</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>_Fjern valgte</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Fjern gemt adgangssætning</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>_Omdøb kontoen</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>_Omdøb domænet</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>_Erstat alle porte</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>_Erstat alle intervaller</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>_Erstat data</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>_Erstat postkassen</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>_Erstat adgangssætningen</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Kræv afsenderadresse (_tomt = enhver)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>_Genstart nu</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>_Genstart Control Panel</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>_Genstart tjenesten</value>
@@ -13699,6 +13835,12 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Resume" xml:space="preserve">
     <value>_Genoptag</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>_Udfas den gamle selector</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>_Tilbagekald nøgle</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>_Rute</value>
   </data>
@@ -13711,6 +13853,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>_Gem og genindlæs</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>_Gem alligevel</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>Ge_m ændringer</value>
   </data>
@@ -13719,6 +13864,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="_Select" xml:space="preserve">
     <value>_Vælg</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>_Send</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>_Send til alle matchende konti</value>

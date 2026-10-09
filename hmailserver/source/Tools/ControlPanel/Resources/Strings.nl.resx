@@ -1470,7 +1470,7 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="An override replaces the global ceilings for that address; 0:0 exempts it entirely. Without the optional :hours the override uses the global period. A malformed line is ignored with a log entry and the global limit still applies to that account. Comment lines in this INI section are not shown here and are dropped if the list is saved." xml:space="preserve">
     <value>Een uitzondering vervangt de globale plafonds voor dat adres; 0:0 stelt het volledig vrij. Zonder de optionele :hours gebruikt de uitzondering de globale periode. Een verkeerd gevormde regel wordt genegeerd met een logvermelding en de globale limiet blijft voor dat account gelden. Commentaarregels in deze INI-sectie worden hier niet getoond en vallen weg als de lijst wordt opgeslagen.</value>
   </data>
-  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Choose No to try to keep working." xml:space="preserve">
+  <data name="An unexpected error occurred:&#10;&#10;{0}&#10;&#10;The full details were written to:&#10;{1}&#10;&#10;Restart the Control Panel now? Without a restart it may carry on, or meet the same error again." xml:space="preserve">
     <value>Er is een onverwachte fout opgetreden:
 
 {0}
@@ -1478,7 +1478,7 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
 De volledige details zijn geschreven naar:
 {1}
 
-Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
+Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of loopt het opnieuw tegen dezelfde fout aan.</value>
   </data>
   <data name="An update is already being installed on this server: hMailServer {0}, started at {1} by {2}." xml:space="preserve">
     <value>Op deze server wordt al een update geïnstalleerd: hMailServer {0}, gestart om {1} door {2}.</value>
@@ -1551,9 +1551,6 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Anything that is not a letter or a digit counts, rather than a fixed list of punctuation, so a keyboard layout you do not have cannot make the rule unsatisfiable." xml:space="preserve">
     <value>Alles wat geen letter of cijfer is telt, in plaats van een vaste lijst leestekens, zodat een toetsenbordindeling die u niet hebt de regel niet onvervulbaar kan maken.</value>
-  </data>
-  <data name="Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
-    <value>Alles wat het gebruikt stopt bij de eerstvolgende aanvraag met werken, en de sleutel kan niet worden hersteld - alleen vervangen door een nieuwe.</value>
   </data>
   <data name="App passwords" xml:space="preserve">
     <value>App-wachtwoorden</value>
@@ -3468,6 +3465,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Delete e-mail" xml:space="preserve">
     <value>E-mail verwijderen</value>
   </data>
+  <data name="Delete every folder and message in the mailbox of {0}? There is no undo." xml:space="preserve">
+    <value>Alle mappen en berichten in het postvak van {0} verwijderen? Dit kan niet ongedaan worden gemaakt.</value>
+  </data>
   <data name="Delete folder" xml:space="preserve">
     <value>Map verwijderen</value>
   </data>
@@ -3489,20 +3489,35 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Delete quarantined messages after (days; 0 = never)" xml:space="preserve">
     <value>Berichten in quarantaine verwijderen na (dagen; 0 = nooit)</value>
   </data>
-  <data name="Delete rule '{0}'?" xml:space="preserve">
-    <value>Regel '{0}' verwijderen?</value>
-  </data>
   <data name="Delete selected ra_nge" xml:space="preserve">
     <value>Geselecteerd _bereik verwijderen</value>
   </data>
+  <data name="Delete the DNS block list {0}?" xml:space="preserve">
+    <value>De DNS-blokkeerlijst {0} verwijderen?</value>
+  </data>
+  <data name="Delete the SURBL server {0}?" xml:space="preserve">
+    <value>De SURBL-server {0} verwijderen?</value>
+  </data>
   <data name="Delete the alias {0}?" xml:space="preserve">
     <value>De alias {0} verwijderen?</value>
+  </data>
+  <data name="Delete the app password {0}? The client using it stops connecting at once." xml:space="preserve">
+    <value>Het app-wachtwoord {0} verwijderen? De client die het gebruikt kan meteen geen verbinding meer maken.</value>
+  </data>
+  <data name="Delete the blocked attachment rule {0}? Attachments it matched are no longer removed." xml:space="preserve">
+    <value>De regel voor geblokkeerde bijlagen {0} verwijderen? Bijlagen die erop pasten, worden niet meer verwijderd.</value>
+  </data>
+  <data name="Delete the blocked sender {0}?" xml:space="preserve">
+    <value>De geblokkeerde afzender {0} verwijderen?</value>
   </data>
   <data name="Delete the checked messages" xml:space="preserve">
     <value>De aangevinkte berichten verwijderen</value>
   </data>
   <data name="Delete the distribution list {0}?" xml:space="preserve">
     <value>De distributielijst {0} verwijderen?</value>
+  </data>
+  <data name="Delete the domain alias {0}? Mail to addresses at that name is no longer delivered to this domain." xml:space="preserve">
+    <value>De domeinalias {0} verwijderen? Mail aan adressen onder die naam wordt niet meer aan dit domein bezorgd.</value>
   </data>
   <data name="Delete the domain {0}?&#10;&#10;This permanently removes its {1} account, every message stored in it, and all of the domain's aliases and distribution lists. There is no undo." xml:space="preserve">
     <value>Het domein {0} verwijderen?
@@ -3514,20 +3529,47 @@ Dit verwijdert definitief het {1} account ervan, samen met elk bericht dat daari
 
 Dit verwijdert definitief de {1} accounts ervan, samen met elk bericht dat daarin is opgeslagen en alle aliassen en distributielijsten van het domein. Dit kan niet ongedaan worden gemaakt.</value>
   </data>
+  <data name="Delete the entry {0}?" xml:space="preserve">
+    <value>De vermelding {0} verwijderen?</value>
+  </data>
+  <data name="Delete the external account {0}? Mail is no longer downloaded from it; what was downloaded stays." xml:space="preserve">
+    <value>Het externe account {0} verwijderen? Er wordt geen mail meer van opgehaald; wat al is opgehaald, blijft.</value>
+  </data>
   <data name="Delete the folder '{0}' and all messages in it?" xml:space="preserve">
     <value>De map '{0}' en alle berichten erin verwijderen?</value>
+  </data>
+  <data name="Delete the greylisting bypass entry {0}? Mail it matched is greylisted again." xml:space="preserve">
+    <value>De greylisting-omzeiling {0} verwijderen? Mail die erop paste, valt weer onder greylisting.</value>
+  </data>
+  <data name="Delete the greylisting white-list entry {0}? Mail from it is greylisted again." xml:space="preserve">
+    <value>De vermelding {0} op de witte lijst voor greylisting verwijderen? Mail daarvandaan valt weer onder greylisting.</value>
   </data>
   <data name="Delete the incoming relay {0}?" xml:space="preserve">
     <value>De inkomende relay {0} verwijderen?</value>
   </data>
+  <data name="Delete the list entry {0}?" xml:space="preserve">
+    <value>De lijstvermelding {0} verwijderen?</value>
+  </data>
   <data name="Delete the public folder '{0}' and all messages in it?" xml:space="preserve">
     <value>De openbare map '{0}' en alle berichten erin verwijderen?</value>
   </data>
-  <data name="Delete the route for '{0}'?" xml:space="preserve">
-    <value>De route voor '{0}' verwijderen?</value>
+  <data name="Delete the remote domain policy {0}? Mail to and from that domain follows the server-wide settings again." xml:space="preserve">
+    <value>De regel voor het externe domein {0} verwijderen? Mail van en naar dat domein volgt weer de instellingen voor de hele server.</value>
+  </data>
+  <data name="Delete the route for {0}?" xml:space="preserve">
+    <value>De route voor {0} verwijderen?</value>
+  </data>
+  <data name="Delete the rule {0}?" xml:space="preserve">
+    <value>De regel {0} verwijderen?</value>
+  </data>
+  <data name="Delete the security group {0}? The folder permissions and calendar shares given to it are removed, so its members lose them." xml:space="preserve">
+    <value>De beveiligingsgroep {0} verwijderen? De mapmachtigingen en agendadelingen die de groep heeft gekregen, worden verwijderd, dus de leden raken ze kwijt.</value>
   </data>
   <data name="Delete the selected certificate" xml:space="preserve">
     <value>Het geselecteerde certificaat verwijderen</value>
+  </data>
+  <data name="Delete the spam exemption {0}? Mail it covers goes through the spam checks again." xml:space="preserve">
+    <value>De spamuitzondering {0} verwijderen? Mail die eronder valt, gaat weer door de spamcontroles.</value>
   </data>
   <data name="Delete the whole message" xml:space="preserve">
     <value>Het hele bericht verwijderen</value>
@@ -3555,9 +3597,6 @@ De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opn
   <data name="Delete the {0} port {1} binding?" xml:space="preserve">
     <value>De {0}-binding op poort {1} verwijderen?</value>
   </data>
-  <data name="Delete this app password? The client using it will stop connecting immediately." xml:space="preserve">
-    <value>Dit app-wachtwoord verwijderen? De client die het gebruikt kan meteen geen verbinding meer maken.</value>
-  </data>
   <data name="Delete this group" xml:space="preserve">
     <value>Deze groep verwijderen</value>
   </data>
@@ -3565,9 +3604,6 @@ De afzenders is verteld dat hun bericht was geaccepteerd, dus er wordt niets opn
     <value>Dit bericht definitief verwijderen?
 
 De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert het opnieuw en er is geen andere kopie.</value>
-  </data>
-  <data name="Delete this {0}?" xml:space="preserve">
-    <value>Deze {0} verwijderen?</value>
   </data>
   <data name="Delete trace events after (days; 0 = never)" xml:space="preserve">
     <value>Tracegebeurtenissen verwijderen na (dagen; 0 = nooit)</value>
@@ -5372,9 +5408,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="It has to exist: this server makes none." xml:space="preserve">
     <value>Hij moet bestaan: deze server maakt er geen.</value>
-  </data>
-  <data name="It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
-    <value>Het is al verlopen, dus niets gebruikt het nog met succes; intrekken haalt het uit deze lijst.</value>
   </data>
   <data name="It is bound to {0}, so those passwords cross the network. Either assign a certificate to a TLS-capable mailbox port on the TCP/IP ports page, bind this listener to 127.0.0.1, or put it behind a TLS terminator." xml:space="preserve">
     <value>Hij is gebonden aan {0}, dus die wachtwoorden gaan over het netwerk. Wijs een certificaat toe aan een TLS-geschikte postvakpoort op de pagina TCP/IP-poorten, bind deze listener aan 127.0.0.1, of zet hem achter een TLS-terminator.</value>
@@ -7824,9 +7857,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Perl syntax, searched in a message's text and its text attachments, up to 2000 characters. Empty, the default, is an account-number detector that never fires. A pattern the server cannot compile is refused." xml:space="preserve">
     <value>Perl-syntaxis, gezocht in de tekst van een bericht en in de tekstbijlagen, tot 2000 tekens. Leeg, de standaard, is een rekeningnummerdetector die nooit afgaat. Een patroon dat de server niet kan compileren, wordt geweigerd.</value>
   </data>
-  <data name="Permanently delete ALL folders and messages in this mailbox?" xml:space="preserve">
-    <value>ALLE mappen en berichten in dit postvak definitief verwijderen?</value>
-  </data>
   <data name="Permissions" xml:space="preserve">
     <value>Rechten</value>
   </data>
@@ -8638,8 +8668,8 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Remove from the suppression list" xml:space="preserve">
     <value>Van de onderdrukkingslijst verwijderen</value>
   </data>
-  <data name="Remove message {0} from the queue?" xml:space="preserve">
-    <value>Bericht {0} uit de wachtrij verwijderen?</value>
+  <data name="Remove message {0} ({1} to {2}) from the queue? It is deleted without a bounce, so its sender is not told." xml:space="preserve">
+    <value>Bericht {0} ({1} aan {2}) uit de wachtrij verwijderen? Het wordt zonder bounce gewist, dus de afzender krijgt geen bericht.</value>
   </data>
   <data name="Remove the journaling rule for {0}? What it has already sent stays where it was sent." xml:space="preserve">
     <value>De journalingregel voor {0} verwijderen? Wat al verzonden is, blijft waar het naartoe is gestuurd.</value>
@@ -8731,6 +8761,9 @@ SMTP 25 en 587, POP3 110, IMAP 143 - zonder verbindingsbeveiliging en met SMTP-a
     <value>De mailbox van {0} vervangen door die uit het archief?
 
 Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg. Die wordt alleen bewaard gedurende RecoverDeletedDays, dat standaard uit staat.</value>
+  </data>
+  <data name="Replace the server's data in the ticked categories with what the backup holds? What is there now is overwritten, and there is no undo." xml:space="preserve">
+    <value>De gegevens van de server in de aangevinkte categorieën vervangen door de inhoud van de back-up? Wat er nu staat wordt overschreven, en dit kan niet ongedaan worden gemaakt.</value>
   </data>
   <data name="Replaces every port with the standard set: SMTP 25 and 587, POP3 110, IMAP 143, all without connection security." xml:space="preserve">
     <value>Vervangt elke poort door de standaardset: SMTP 25 en 587, POP3 110, IMAP 143, alle zonder verbindingsbeveiliging.</value>
@@ -8915,11 +8948,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Restore the mailbo_x" xml:space="preserve">
     <value>De mailbo_x herstellen</value>
   </data>
-  <data name="Restoring replaces current data for the selected categories with the backup contents.&#10;&#10;Continue?" xml:space="preserve">
-    <value>Herstellen vervangt de huidige gegevens voor de geselecteerde categorieën door de inhoud van de back-up.
-
-Doorgaan?</value>
-  </data>
   <data name="Restricted delivery" xml:space="preserve">
     <value>Beperkte bezorging</value>
   </data>
@@ -8980,13 +9008,14 @@ Doorgaan?</value>
   <data name="Revoke" xml:space="preserve">
     <value>Intrekken</value>
   </data>
-  <data name="Revoke the API key &quot;{0}&quot;?&#13;&#10;&#13;&#10;{1}" xml:space="preserve">
-    <value>De API-sleutel "{0}" intrekken?
-
-{1}</value>
-  </data>
   <data name="Revoke the API key {0}" xml:space="preserve">
     <value>De API-sleutel {0} intrekken</value>
+  </data>
+  <data name="Revoke the API key {0}? Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one." xml:space="preserve">
+    <value>De API-sleutel {0} intrekken? Alles wat hem gebruikt stopt bij de eerstvolgende aanvraag met werken, en de sleutel kan niet worden hersteld - alleen vervangen door een nieuwe.</value>
+  </data>
+  <data name="Revoke the API key {0}? It is already expired, so nothing is using it successfully; revoking removes it from this list." xml:space="preserve">
+    <value>De API-sleutel {0} intrekken? Hij is al verlopen, dus niets gebruikt hem nog met succes; intrekken haalt hem uit deze lijst.</value>
   </data>
   <data name="Revoked" xml:space="preserve">
     <value>Ingetrokken</value>
@@ -10059,15 +10088,14 @@ Doorgaan?</value>
   <data name="Settings" xml:space="preserve">
     <value>Instellingen</value>
   </data>
-  <data name="Settings saved. The hMailServer service must be restarted for the changes to take effect.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Instellingen opgeslagen. De hMailServer-service moet worden herstart om de wijzigingen van kracht te laten worden.
-
-Nu herstarten?</value>
+  <data name="Settings saved. One of them takes effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Instellingen opgeslagen. Eén ervan wordt pas van kracht wanneer de hMailServer-service opnieuw start, en een herstart verbreekt elke open sessie.</value>
   </data>
-  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
-    <value>Instellingen opgeslagen. {0} ervan worden pas van kracht wanneer de hMailServer-service opnieuw start.
-
-Nu opnieuw starten?</value>
+  <data name="Settings saved. They take effect when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Instellingen opgeslagen. Ze worden van kracht wanneer de hMailServer-service opnieuw start, en een herstart verbreekt elke open sessie.</value>
+  </data>
+  <data name="Settings saved. {0} of them take effect only when the hMailServer service restarts, and a restart drops every open session." xml:space="preserve">
+    <value>Instellingen opgeslagen. {0} ervan worden pas van kracht wanneer de hMailServer-service opnieuw start, en een herstart verbreekt elke open sessie.</value>
   </data>
   <data name="Settings saved. {0} of them takes effect only when the hMailServer service restarts.&#10;&#10;Restart it now?" xml:space="preserve">
     <value>Instellingen opgeslagen. {0} ervan wordt pas van kracht wanneer de hMailServer-service opnieuw start.
@@ -13231,6 +13259,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Add account…" xml:space="preserve">
     <value>_Account toevoegen…</value>
   </data>
+  <data name="_Add anyway" xml:space="preserve">
+    <value>_Toch toevoegen</value>
+  </data>
   <data name="_Add domain" xml:space="preserve">
     <value>_Domein toevoegen</value>
   </data>
@@ -13267,6 +13298,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Apply" xml:space="preserve">
     <value>_Toepassen</value>
   </data>
+  <data name="_Apply now" xml:space="preserve">
+    <value>Nu _toepassen</value>
+  </data>
   <data name="_Apply this profile" xml:space="preserve">
     <value>Dit profiel _toepassen</value>
   </data>
@@ -13290,6 +13324,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Browse…" xml:space="preserve">
     <value>_Bladeren…</value>
+  </data>
+  <data name="_Cancel the next key" xml:space="preserve">
+    <value>Volgende sleutel _annuleren</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>Peper _wijzigen</value>
@@ -13345,11 +13382,38 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Delete" xml:space="preserve">
     <value>V_erwijderen</value>
   </data>
+  <data name="_Delete account" xml:space="preserve">
+    <value>Account _verwijderen</value>
+  </data>
+  <data name="_Delete alias" xml:space="preserve">
+    <value>Alias _verwijderen</value>
+  </data>
+  <data name="_Delete certificate" xml:space="preserve">
+    <value>Certificaat _verwijderen</value>
+  </data>
+  <data name="_Delete domain" xml:space="preserve">
+    <value>Domein _verwijderen</value>
+  </data>
   <data name="_Delete folder" xml:space="preserve">
     <value>Map _verwijderen</value>
   </data>
+  <data name="_Delete list" xml:space="preserve">
+    <value>Lijst _verwijderen</value>
+  </data>
   <data name="_Delete messages older than (days; 0 = the domain's policy, -1 = keep forever)" xml:space="preserve">
     <value>_Berichten verwijderen ouder dan (dagen; 0 = het beleid van het domein, -1 = altijd bewaren)</value>
+  </data>
+  <data name="_Delete port" xml:space="preserve">
+    <value>Poort _verwijderen</value>
+  </data>
+  <data name="_Delete range" xml:space="preserve">
+    <value>Bereik _verwijderen</value>
+  </data>
+  <data name="_Delete relay" xml:space="preserve">
+    <value>Relay _verwijderen</value>
+  </data>
+  <data name="_Delete route" xml:space="preserve">
+    <value>Route _verwijderen</value>
   </data>
   <data name="_Delete selected" xml:space="preserve">
     <value>_Selectie verwijderen</value>
@@ -13374,6 +13438,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Discard" xml:space="preserve">
     <value>_Verwerpen</value>
+  </data>
+  <data name="_Discard and rebuild" xml:space="preserve">
+    <value>_Weggooien en opnieuw opbouwen</value>
   </data>
   <data name="_Display name attribute" xml:space="preserve">
     <value>W_eergavenaamattribuut</value>
@@ -13410,6 +13477,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Enrol a second factor" xml:space="preserve">
     <value>_Tweede factor inschrijven</value>
+  </data>
+  <data name="_Erase traces" xml:space="preserve">
+    <value>Sporen _wissen</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>Ver_loopt na (dagen)</value>
@@ -13468,6 +13538,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_IMAP folders in this mailbox" xml:space="preserve">
     <value>_IMAP-mappen in dit postvak</value>
   </data>
+  <data name="_Install the update" xml:space="preserve">
+    <value>Update _installeren</value>
+  </data>
   <data name="_Install update" xml:space="preserve">
     <value>Update _installeren</value>
   </data>
@@ -13483,8 +13556,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Keep original message" xml:space="preserve">
     <value>_Oorspronkelijk bericht behouden</value>
   </data>
+  <data name="_Keep the next key" xml:space="preserve">
+    <value>Volgende sleutel _houden</value>
+  </data>
   <data name="_Keep the old address as an alias" xml:space="preserve">
     <value>Het oude adres als alias _behouden</value>
+  </data>
+  <data name="_Keep the shipped settings" xml:space="preserve">
+    <value>De geleverde instellingen _houden</value>
+  </data>
+  <data name="_Keep working" xml:space="preserve">
+    <value>_Doorwerken</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Soort account</value>
@@ -13494,6 +13576,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Last name" xml:space="preserve">
     <value>A_chternaam</value>
+  </data>
+  <data name="_Later" xml:space="preserve">
+    <value>_Later</value>
   </data>
   <data name="_Limit number of accounts" xml:space="preserve">
     <value>_Aantal accounts beperken</value>
@@ -13513,6 +13598,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Lower IP address" xml:space="preserve">
     <value>_Onderste IP-adres</value>
   </data>
+  <data name="_Make a new key pair" xml:space="preserve">
+    <value>Een nieuw sleutelpaar _maken</value>
+  </data>
   <data name="_Mark threshold override (-1 = use the global setting, 0 = never mark)" xml:space="preserve">
     <value>_Afwijkende markeerdrempel (-1 = de globale instelling gebruiken, 0 = nooit markeren)</value>
   </data>
@@ -13528,6 +13616,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Members…" xml:space="preserve">
     <value>_Leden…</value>
   </data>
+  <data name="_Merge" xml:space="preserve">
+    <value>_Samenvoegen</value>
+  </data>
   <data name="_Message" xml:space="preserve">
     <value>_Bericht</value>
   </data>
@@ -13542,6 +13633,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Move" xml:space="preserve">
     <value>_Verplaatsen</value>
+  </data>
+  <data name="_Move signing" xml:space="preserve">
+    <value>Ondertekenen _verplaatsen</value>
+  </data>
+  <data name="_Move signing anyway" xml:space="preserve">
+    <value>Ondertekenen _toch verplaatsen</value>
   </data>
   <data name="_Name" xml:space="preserve">
     <value>_Naam</value>
@@ -13590,6 +13687,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Pause" xml:space="preserve">
     <value>_Pauzeren</value>
+  </data>
+  <data name="_Pause the mail server" xml:space="preserve">
+    <value>Mailserver _pauzeren</value>
   </data>
   <data name="_Permissions" xml:space="preserve">
     <value>_Rechten</value>
@@ -13657,8 +13757,14 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Alleen-lezen - kan opsommen en lezen; elke wijziging wordt geweigerd</value>
   </data>
+  <data name="_Recalculate" xml:space="preserve">
+    <value>_Herberekenen</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Ver_nieuwen</value>
+  </data>
+  <data name="_Reinitialise now" xml:space="preserve">
+    <value>Nu _herinitialiseren</value>
   </data>
   <data name="_Relay host (empty = use the server-wide relayer)" xml:space="preserve">
     <value>_Relayhost (leeg = de serverbrede relayer gebruiken)</value>
@@ -13678,14 +13784,44 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Remove expired" xml:space="preserve">
     <value>_Verlopen items verwijderen</value>
   </data>
+  <data name="_Remove message" xml:space="preserve">
+    <value>Bericht _verwijderen</value>
+  </data>
   <data name="_Remove selected" xml:space="preserve">
     <value>_Selectie verwijderen</value>
   </data>
   <data name="_Remove stored passphrase" xml:space="preserve">
     <value>_Opgeslagen wachtwoordzin verwijderen</value>
   </data>
+  <data name="_Rename the account" xml:space="preserve">
+    <value>Account _hernoemen</value>
+  </data>
+  <data name="_Rename the domain" xml:space="preserve">
+    <value>Domein _hernoemen</value>
+  </data>
+  <data name="_Replace all ports" xml:space="preserve">
+    <value>Alle poorten _vervangen</value>
+  </data>
+  <data name="_Replace all ranges" xml:space="preserve">
+    <value>Alle bereiken _vervangen</value>
+  </data>
+  <data name="_Replace data" xml:space="preserve">
+    <value>Gegevens _vervangen</value>
+  </data>
+  <data name="_Replace mailbox" xml:space="preserve">
+    <value>Postvak _vervangen</value>
+  </data>
+  <data name="_Replace the passphrase" xml:space="preserve">
+    <value>Wachtwoordzin _vervangen</value>
+  </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Afzenderadres _vereisen (leeg = elk adres)</value>
+  </data>
+  <data name="_Restart now" xml:space="preserve">
+    <value>Nu _herstarten</value>
+  </data>
+  <data name="_Restart the Control Panel" xml:space="preserve">
+    <value>Control Panel _herstarten</value>
   </data>
   <data name="_Restart the service" xml:space="preserve">
     <value>Service _herstarten</value>
@@ -13699,6 +13835,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Resume" xml:space="preserve">
     <value>_Hervatten</value>
   </data>
+  <data name="_Retire the old selector" xml:space="preserve">
+    <value>Oude selector _uitfaseren</value>
+  </data>
+  <data name="_Revoke key" xml:space="preserve">
+    <value>Sleutel _intrekken</value>
+  </data>
   <data name="_Route" xml:space="preserve">
     <value>Ro_ute</value>
   </data>
@@ -13711,6 +13853,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="_Save &amp; reload" xml:space="preserve">
     <value>_Opslaan en opnieuw laden</value>
   </data>
+  <data name="_Save anyway" xml:space="preserve">
+    <value>_Toch opslaan</value>
+  </data>
   <data name="_Save changes" xml:space="preserve">
     <value>_Wijzigingen opslaan</value>
   </data>
@@ -13719,6 +13864,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Select" xml:space="preserve">
     <value>_Selecteren</value>
+  </data>
+  <data name="_Send" xml:space="preserve">
+    <value>_Verzenden</value>
   </data>
   <data name="_Send to all matching accounts" xml:space="preserve">
     <value>_Naar alle overeenkomende accounts verzenden</value>

@@ -431,8 +431,7 @@ namespace hMailServer.ControlPanel.Views
          if (RuleGrid.SelectedItem is not RuleRow row)
             return;
 
-         if (MessageBox.Show(F("Delete rule '{0}'?", row.Name), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete the rule {0}?", row.Name), L("Control Panel"), L("De_lete rule"), destructive: true))
             return;
 
          WithSelectedRule(rule => rule.Delete());

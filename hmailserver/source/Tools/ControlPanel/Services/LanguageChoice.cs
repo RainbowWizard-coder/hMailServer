@@ -90,8 +90,8 @@ namespace hMailServer.ControlPanel.Services
          if (name == null)
             return false;
 
-         if (Dialogs.Show(F("Show the Control Panel in {0}? It restarts to change language.", name),
-                L("Language"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+         if (!Dialogs.Confirm(F("Show the Control Panel in {0}? It restarts to change language.", name),
+                L("Language"), L("_Restart the Control Panel")))
          {
             return false;
          }

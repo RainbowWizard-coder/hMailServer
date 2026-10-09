@@ -823,8 +823,7 @@ namespace hMailServer.ControlPanel.Views
          string name = display.Replace("  (not subscribed)", "");
 
          // Still a question, and still a destructive one, so it stays a box.
-         if (MessageBox.Show(F("Delete the folder '{0}' and all messages in it?", name), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete the folder '{0}' and all messages in it?", name), L("Control Panel"), L("_Delete folder"), destructive: true))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;
@@ -852,8 +851,8 @@ namespace hMailServer.ControlPanel.Views
       private void EmptyMailbox()
       {
          folderNotice_.Hide();
-         if (MessageBox.Show(L("Permanently delete ALL folders and messages in this mailbox?"), L("Control Panel"),
-             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+         if (!MessageBox.Confirm(F("Delete every folder and message in the mailbox of {0}? There is no undo.", address_), L("Control Panel"),
+                L("_Empty mailbox"), destructive: true))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;
@@ -911,9 +910,9 @@ namespace hMailServer.ControlPanel.Views
       private void EraseTraces()
       {
          folderNotice_.Hide();
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                F("Erase every stored trace of {0}? Quarantine entries, trace rows, greylisting, list memberships, aliases, the address-book entries, certificates, keys and memories other accounts keep of it, the messages outside any mailbox that name it - held for review (discarded for every recipient), expiring or password-protected - the archive tree and the log lines that name the address. What a legal hold covers is left in place. This cannot be undone.", address_),
-               L("Erase traces"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+               L("Erase traces"), L("_Erase traces"), destructive: true))
             return;
 
          dynamic utilities = ServerSession.Current.Application.Utilities;
@@ -1178,8 +1177,8 @@ namespace hMailServer.ControlPanel.Views
          {
             (PasswordStrength.Level level, string summary) = PasswordStrength.Evaluate(password_.Password);
             if (level == PasswordStrength.Level.Weak &&
-                MessageBox.Show(summary + "\n\n" + L("Save this weak password anyway?"), L("Control Panel"),
-                   MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                !MessageBox.Confirm(summary + "\n\n" + L("Save this weak password anyway?"), L("Control Panel"),
+                   L("_Save anyway"), cancelByDefault: true, level: StatusLevel.Warning))
             {
                return;
             }
@@ -1199,9 +1198,9 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
-            if (MessageBox.Show(
+            if (!MessageBox.Confirm(
                    F("Rename {0} to {1}?\n\nThe mailbox and its messages move to the new address. Mail sent to the old address will no longer reach this account unless an alias is created for it.", address_, newAddress),
-                   L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                   L("Control Panel"), L("_Rename the account")))
                return;
          }
 

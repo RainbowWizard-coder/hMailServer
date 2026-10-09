@@ -62,14 +62,16 @@ namespace hMailServer.ControlPanel
          string logPath = LogException(args.Exception);
 
          string message = F(
-            "An unexpected error occurred:\n\n{0}\n\nThe full details were written to:\n{1}\n\nRestart the Control Panel now? Choose No to try to keep working.",
+            "An unexpected error occurred:\n\n{0}\n\nThe full details were written to:\n{1}\n\nRestart the Control Panel now? Without a restart it may carry on, or meet the same error again.",
             args.Exception.Message, logPath);
 
-         // Keep the app alive so the user decides; never silently swallow.
+         // Keep the app alive so the user decides; never silently swallow. The
+         // question is asked at the critical level, as the failure it follows is,
+         // and its two answers say what each does.
          args.Handled = true;
 
-         if (MessageBox.Show(message, L("hMailServer Control Panel"),
-                MessageBoxButton.YesNo, MessageBoxImage.Error) == MessageBoxResult.Yes)
+         if (MessageBox.Confirm(message, L("hMailServer Control Panel"), L("_Restart the Control Panel"),
+                decline: L("_Keep working"), level: StatusLevel.Critical))
          {
             Restart();
          }

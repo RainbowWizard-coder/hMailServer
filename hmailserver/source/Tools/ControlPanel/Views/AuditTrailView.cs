@@ -208,13 +208,11 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         // YesNo, No on Enter, like every other confirmation that changes what the
+         // Cancel on Enter, like every other confirmation that changes what the
          // server does.
-         if (MessageBox.Show(
+         if (!MessageBox.Confirm(
                F("Put {0} back to the value it had before this change? The put-back is recorded as a change of its own.", row.Name),
-               L("Put a setting back"), MessageBoxButton.YesNo, MessageBoxImage.Question,
-               MessageBoxResult.No)
-             != MessageBoxResult.Yes)
+               L("Put a setting back"), L("_Put back"), cancelByDefault: true))
          {
             return;
          }

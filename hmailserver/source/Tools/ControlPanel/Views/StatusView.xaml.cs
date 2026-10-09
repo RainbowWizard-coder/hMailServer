@@ -282,10 +282,10 @@ namespace hMailServer.ControlPanel.Views
          if (app == null)
             return;
 
-         if (action == "install" && MessageBox.Show(
+         if (action == "install" && !MessageBox.Confirm(
                 L("Install the update now?\n\nThe verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here.") + "\n\n" +
                 L("This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome."),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                L("Control Panel"), L("_Install the update")))
             return;
 
          Mouse.OverrideCursor = Cursors.Wait;
@@ -342,9 +342,9 @@ namespace hMailServer.ControlPanel.Views
 
             if (state == ServerStateRunning_)
             {
-               if (MessageBox.Show(
+               if (!MessageBox.Confirm(
                       L("Pause the mail server?\n\nNo new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected."),
-                      L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+                      L("Control Panel"), L("_Pause the mail server")))
                   return;
 
                app.Stop();

@@ -848,17 +848,14 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         MessageBoxResult answer = MessageBox.Show(
+         if (!MessageBox.Confirm(
             F("This creates and updates mailboxes on the server to match the directory{0}\r\n\r\nNo message is deleted and no account is removed. Continue?",
                disableMissing_.IsChecked is true
                   ? L(", and marks accounts inactive when their directory entry has gone.")
                   : L(". No account will be disabled.")),
             L("Apply directory synchronisation"),
-            MessageBoxButton.OKCancel,
-            MessageBoxImage.Warning,
-            MessageBoxResult.Cancel);
-
-         if (answer != MessageBoxResult.OK)
+            L("_Apply"),
+            destructive: true))
             return;
 
          // Re-checked AFTER the dialog, not only before it.

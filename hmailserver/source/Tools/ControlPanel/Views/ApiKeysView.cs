@@ -485,15 +485,8 @@ namespace hMailServer.ControlPanel.Views
       {
          string name = key.Label.Length > 0 ? key.Label : key.Id;
 
-         string consequence = key.IsExpired
-            ? L("It is already expired, so nothing is using it successfully; revoking removes it from this list.")
-            : L("Anything using it stops working on its very next request, and the key cannot be restored - only replaced with a new one.");
-
-         if (MessageBox.Show(F("Revoke the API key \"{0}\"?\r\n\r\n{1}", name, consequence),
-                L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-         {
+         if (!MessageBox.Confirm(Confirmations.RevokeApiKey(name, key.IsExpired), L("Control Panel"), L("_Revoke key"), destructive: true))
             return;
-         }
 
          if (!ApiKeyStore.Revoke(key.Id, out string error))
          {
