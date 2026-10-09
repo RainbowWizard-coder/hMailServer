@@ -3225,6 +3225,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Create the _first key…" xml:space="preserve">
     <value>Eerste _sleutel aanmaken…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Het account toch aanmaken met dit zwakke wachtwoord?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Maak de openbare map en geef accounts of groepen er daarna machtigingen op.</value>
   </data>
@@ -10188,6 +10191,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Selecteer eerst een domein.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Selecteer een domein om de accounts ervan te zien.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Selecteer een domein om de aliassen ervan te zien.</value>

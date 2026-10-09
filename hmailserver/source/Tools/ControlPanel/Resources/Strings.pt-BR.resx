@@ -3225,6 +3225,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Create the _first key…" xml:space="preserve">
     <value>Criar a _primeira chave…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Criar a conta com esta senha fraca mesmo assim?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Crie a pasta pública, depois conceda a contas ou grupos permissão sobre ela.</value>
   </data>
@@ -10188,6 +10191,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Selecione um domínio primeiro.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Selecione um domínio para ver suas contas.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Selecione um domínio para ver seus aliases.</value>

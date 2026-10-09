@@ -3225,6 +3225,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Create the _first key…" xml:space="preserve">
     <value>_İlk anahtarı oluştur…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Hesap bu zayıf parolayla yine de oluşturulsun mu?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Genel klasörü oluşturun, sonra hesaplara veya gruplara üzerinde izin verin.</value>
   </data>
@@ -10188,6 +10191,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Önce bir etki alanı seçin.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Hesaplarını görmek için bir etki alanı seçin.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Diğer adlarını görmek için bir etki alanı seçin.</value>

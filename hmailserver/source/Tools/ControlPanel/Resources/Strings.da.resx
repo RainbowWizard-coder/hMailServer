@@ -3225,6 +3225,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Create the _first key…" xml:space="preserve">
     <value>Opret den _første nøgle…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Vil du oprette kontoen med denne svage adgangskode alligevel?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Opret den offentlige mappe, og giv derefter konti eller grupper tilladelse til den.</value>
   </data>
@@ -10188,6 +10191,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Vælg et domæne først.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Vælg et domæne for at se dets konti.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Vælg et domæne for at se dets aliasser.</value>

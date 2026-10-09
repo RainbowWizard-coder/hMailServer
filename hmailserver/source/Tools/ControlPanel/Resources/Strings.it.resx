@@ -3225,6 +3225,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Create the _first key…" xml:space="preserve">
     <value>Crea la _prima chiave…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Creare comunque l'account con questa password debole?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Crea la cartella pubblica, poi concedi i permessi su di essa ad account o gruppi.</value>
   </data>
@@ -10188,6 +10191,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Seleziona prima un dominio.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Seleziona un dominio per vederne gli account.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Seleziona un dominio per vederne gli alias.</value>

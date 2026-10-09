@@ -203,7 +203,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = CodeBehind();
          string wrap = WithheldRowTests.MemberText(code, "private void AccountForm_SizeChanged(object sender, SizeChangedEventArgs e)");
          Assert.True(wrap != null, "DomainsView.AccountForm_SizeChanged is gone.");
-         foreach (string step in new[] { "PasswordMinWidth", "Grid.SetRow(AccountButtonsLine, beside ? 1 : 2);", "Grid.SetColumnSpan(AccountButtonsLine, beside ? 1 : 2);",
+         foreach (string step in new[] { "PasswordMinWidth", "Grid.SetRow(AccountButtonsLine, beside ? 1 : 3);", "Grid.SetColumnSpan(AccountButtonsLine, beside ? 1 : 2);",
                                          "AccountButtonsCaption.SharedSizeGroup = beside ? \"PasswordLine\" : null;" })
             Assert.True(wrap.Contains(step, StringComparison.Ordinal), "AccountForm_SizeChanged no longer does " + step);
       }

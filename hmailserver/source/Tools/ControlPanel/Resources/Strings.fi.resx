@@ -3225,6 +3225,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Create the _first key…" xml:space="preserve">
     <value>Luo _ensimmäinen avain…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Luodaanko tili tällä heikolla salasanalla silti?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Luo julkinen kansio ja myönnä sitten tileille tai ryhmille käyttöoikeus siihen.</value>
   </data>
@@ -10188,6 +10191,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Valitse ensin verkkotunnus.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Valitse verkkotunnus nähdäksesi sen tilit.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Valitse verkkotunnus nähdäksesi sen aliakset.</value>

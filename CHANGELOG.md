@@ -1945,6 +1945,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   take a whole number; a criterion saved with another comparison keeps it. The IF and THEN dialogs name the rule under
   their heading: "Add a criterion to the rule “Invoices”.", "An action of the rule “Invoices”.".
 
+- **Fixed: with no domain selected, the Domains page's account form kept the last domain's address and the alias and
+  list forms stayed live.** On an empty server, or with the selected domain gone, the accounts card was titled "Select
+  a domain" with nothing under it and its Address box still read user@ the last domain, and Add alias and Add list did
+  nothing when pressed. With no domain the account form is empty and disabled, the card says "Select a domain to see
+  its accounts." as the alias and list cards say theirs, and the alias and list forms are disabled until a domain is
+  selected - also after a read that found no domain to select, where no selection change put the cards in that state.
+
+- **Fixed: Create account on the Domains page took a weak password without a word.** The account dialog judges a
+  password as it is typed and asks before it saves a weak one; the page wrote whatever was typed, so the first mailbox
+  a new administrator made skipped the check. The page now shows the dialog's verdict under the password as it is
+  typed - "Weak password - add 12+ characters, ...", "Fair password ...", "Strong password." - in the level's colour,
+  on a line of its own above the buttons where they wrap, and asks "Create the account with this weak password
+  anyway?" before it creates an account with a weak one, Cancel the answer Enter gives.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -3225,6 +3225,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Create the _first key…" xml:space="preserve">
     <value>Skapa den _första nyckeln…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Skapa kontot med det här svaga lösenordet ändå?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Skapa den publika mappen, och ge sedan konton eller grupper behörighet till den.</value>
   </data>
@@ -10188,6 +10191,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Välj en domän först.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Välj en domän för att se dess konton.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Välj en domän för att se dess alias.</value>

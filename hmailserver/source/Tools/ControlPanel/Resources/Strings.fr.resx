@@ -3225,6 +3225,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Create the _first key…" xml:space="preserve">
     <value>Créer la première c_lé…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Créer quand même le compte avec ce mot de passe faible ?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Créez le dossier public, puis accordez des permissions dessus à des comptes ou des groupes.</value>
   </data>
@@ -10188,6 +10191,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Sélectionnez d'abord un domaine.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Sélectionnez un domaine pour voir ses comptes.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Sélectionnez un domaine pour voir ses alias.</value>

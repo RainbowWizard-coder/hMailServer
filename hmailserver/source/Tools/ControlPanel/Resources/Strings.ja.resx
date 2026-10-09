@@ -3225,6 +3225,9 @@
   <data name="Create the _first key…" xml:space="preserve">
     <value>最初のキーを作成(_F)…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>この脆弱なパスワードでそれでもアカウントを作成しますか?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>公開フォルダーを作成してから、アカウントまたはグループにその権限を付与します。</value>
   </data>
@@ -10188,6 +10191,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>先にドメインを選択してください。</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>ドメインを選択するとそのアカウントが表示されます。</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>ドメインを選択するとそのエイリアスが表示されます。</value>

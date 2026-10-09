@@ -3249,6 +3249,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Create the _first key…" xml:space="preserve">
     <value>Utwórz _pierwszy klucz…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Czy mimo to utworzyć konto z tym słabym hasłem?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Należy utworzyć folder publiczny, a następnie nadać do niego uprawnienia kontom lub grupom.</value>
   </data>
@@ -10312,6 +10315,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Najpierw wybierz domenę.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Wybierz domenę, aby zobaczyć jej konta.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Wybierz domenę, aby zobaczyć jej aliasy.</value>

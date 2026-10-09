@@ -36,6 +36,7 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          WireRows_();
          WireForms_();
+         NewAccountPassword.PasswordChanged += (s, e) => ShowNewAccountStrength_();
       }
 
       public void OnEnter()
@@ -112,7 +113,7 @@ namespace hMailServer.ControlPanel.Views
          bool beside = e.NewSize.Width >= PasswordMinWidth + 8 + buttons;
          Grid.SetColumnSpan(PasswordRow, beside ? 1 : 2);
          PasswordRow.Margin = beside ? new Thickness(0, 0, 8, 0) : new Thickness(0);
-         Grid.SetRow(AccountButtonsLine, beside ? 1 : 2);
+         Grid.SetRow(AccountButtonsLine, beside ? 1 : 3);
          Grid.SetColumn(AccountButtonsLine, beside ? 1 : 0);
          Grid.SetColumnSpan(AccountButtonsLine, beside ? 1 : 2);
          AccountButtonsLine.Margin = beside ? new Thickness(0) : new Thickness(0, 8, 0, 0);
@@ -184,6 +185,7 @@ namespace hMailServer.ControlPanel.Views
             ReloadAccounts();
             ReloadAliases();
             ReloadDistLists();
+            AccountStatus.Visibility = Visibility.Collapsed;
             AliasStatus.Visibility = Visibility.Collapsed;
             DistStatus.Visibility = Visibility.Collapsed;
             return;
@@ -202,6 +204,17 @@ namespace hMailServer.ControlPanel.Views
 
          if (rows.Count > 0 && DomainList.SelectedIndex < 0)
             DomainList.SelectedIndex = 0;
+
+         // With no domain to select - an empty server - the selection may not have
+         // changed, and then nothing put the three cards that hang off a domain in
+         // their no-domain state: the account form stayed live under "Select a
+         // domain" with the last domain's user@ address in it (review finding F063).
+         if (DomainList.SelectedIndex < 0)
+         {
+            ReloadAccounts();
+            ReloadAliases();
+            ReloadDistLists();
+         }
       }
 
       private void DomainSearch_TextChanged(object sender, EventArgs e)
@@ -272,6 +285,9 @@ namespace hMailServer.ControlPanel.Views
             }
          }
          AliasList.ItemsSource = rows;
+         // An alias belongs to a domain: with none selected the form waits for one,
+         // where Add alias pressed then did nothing at all (review finding F063).
+         AddAliasForm.IsEnabled = DomainList.SelectedItem != null;
          SetListStatus(AliasStatus, rows.Count, error,
             DomainList.SelectedItem == null ? L("Select a domain to see its aliases.") : L("No aliases for this domain."),
             L("Couldn't load aliases: "));
@@ -322,6 +338,7 @@ namespace hMailServer.ControlPanel.Views
             }
          }
          DistList.ItemsSource = rows;
+         AddListForm.IsEnabled = DomainList.SelectedItem != null;
          SetListStatus(DistStatus, rows.Count, error,
             DomainList.SelectedItem == null ? L("Select a domain to see its distribution lists.") : L("No distribution lists for this domain."),
             L("Couldn't load distribution lists: "));
@@ -545,11 +562,15 @@ namespace hMailServer.ControlPanel.Views
          if (domainName == null)
          {
             // With no domain there is nothing to create an account in: the form
-            // waits for one, as it waits for a read that works.
+            // waits for one, as it waits for a read that works, empty - it held the
+            // last domain's user@ address - and the card says what to do, as the
+            // alias and list cards do (review finding F063).
             ReadFailure.Clear(AccountNotice);
             AccountsCard.Title = L("Select a domain");
             AccountList.ItemsSource = null;
-            AccountStatus.Visibility = Visibility.Collapsed;
+            NewAccountBox.Text = "";
+            NewAccountPassword.Password = "";
+            StatusText.Show(AccountStatus, null, 0, null, L("Select a domain to see its accounts."));
             AccountForm.IsEnabled = false;
             return;
          }
@@ -717,6 +738,50 @@ namespace hMailServer.ControlPanel.Views
          Services.Toast.Info(L("Generated password copied to clipboard \u2014 reveal it with the eye icon."), L("Password"));
       }
 
+      /// <summary>The level the strength line last said, so that a keystroke that keeps it is not announced again.</summary>
+      private PasswordStrength.Level? strengthShown_;
+
+      /// <summary>
+      /// The new account's password judged as it is typed, by the verdict and in the
+      /// colours the account dialog gives it (PasswordStrength), where the page said
+      /// nothing at all and the first mailbox a new administrator made skipped the
+      /// check the dialog makes (review finding F072). The words carry the verdict; the
+      /// colour repeats it. Announced when the verdict changes, not at every key.
+      /// </summary>
+      private void ShowNewAccountStrength_()
+      {
+         (PasswordStrength.Level level, string summary) = PasswordStrength.Evaluate(NewAccountPassword.Password);
+         NewAccountStrength.Text = summary;
+         NewAccountStrength.Visibility = level == PasswordStrength.Level.Empty ? Visibility.Collapsed : Visibility.Visible;
+
+         // By key, never by a held brush, as the dialog's line: the level's fill-text shade.
+         string key = level switch
+         {
+            PasswordStrength.Level.Strong => StatusSemantics.For(StatusLevel.Good).FillTextBrushKey,
+            PasswordStrength.Level.Fair => StatusSemantics.For(StatusLevel.Warning).FillTextBrushKey,
+            PasswordStrength.Level.Weak => StatusSemantics.For(StatusLevel.Critical).FillTextBrushKey,
+            _ => "TextFillColorSecondaryBrush"
+         };
+         NewAccountStrength.SetResourceReference(TextBlock.ForegroundProperty, key);
+
+         if (strengthShown_ != level && level != PasswordStrength.Level.Empty)
+            Announce.Request(NewAccountStrength);
+         strengthShown_ = level;
+      }
+
+      /// <summary>
+      /// Whether a password may be given to a new account: one that is not weak, or a
+      /// weak one the administrator confirms, as the account dialog asks before it saves
+      /// one - Cancel the answer Enter gives.
+      /// </summary>
+      private static bool NewAccountPasswordAccepted_(string password)
+      {
+         (PasswordStrength.Level level, string summary) = PasswordStrength.Evaluate(password);
+         return level != PasswordStrength.Level.Weak
+            || MessageBox.Confirm(summary + "\n\n" + L("Create the account with this weak password anyway?"), L("Control Panel"),
+                  L("_Create account"), cancelByDefault: true, level: StatusLevel.Warning);
+      }
+
       private void AddAccount_Click(object sender, RoutedEventArgs e)
       {
          string domainName = SelectedDomainName();
@@ -734,6 +799,9 @@ namespace hMailServer.ControlPanel.Views
          if (password.Length == 0)
             PasswordRow.Error = L("Enter a password, or press Generate.");
          if (DialogFields.ShowFirstError(NewAccountRow, PasswordRow))
+            return;
+
+         if (!NewAccountPasswordAccepted_(password))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;

@@ -3225,6 +3225,9 @@ Los detalles completos se escribieron en:
   <data name="Create the _first key…" xml:space="preserve">
     <value>Crear la primera c_lave…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>¿Crear la cuenta con esta contraseña débil de todos modos?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Cree la carpeta pública y luego conceda permisos sobre ella a cuentas o grupos.</value>
   </data>
@@ -10188,6 +10191,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Seleccione primero un dominio.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Seleccione un dominio para ver sus cuentas.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Seleccione un dominio para ver sus alias.</value>

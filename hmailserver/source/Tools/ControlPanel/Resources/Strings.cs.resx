@@ -3249,6 +3249,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Create the _first key…" xml:space="preserve">
     <value>Vytvořit _první klíč…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Přesto vytvořit účet s tímto slabým heslem?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Vytvořte veřejnou složku a poté k ní udělte oprávnění účtům nebo skupinám.</value>
   </data>
@@ -10312,6 +10315,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Nejprve vyberte doménu.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Vyberte doménu, chcete-li zobrazit její účty.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Vyberte doménu, chcete-li zobrazit její aliasy.</value>

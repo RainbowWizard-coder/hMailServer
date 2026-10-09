@@ -3249,6 +3249,9 @@ Control Panel может читать файлы сообщений только
   <data name="Create the _first key…" xml:space="preserve">
     <value>Создать _первый ключ…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Всё равно создать учётную запись с этим слабым паролем?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Создайте общую папку, затем выдайте на неё разрешения учётным записям или группам.</value>
   </data>
@@ -10312,6 +10315,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Сначала выберите домен.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Выберите домен, чтобы увидеть его учётные записи.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Выберите домен, чтобы увидеть его псевдонимы.</value>

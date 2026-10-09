@@ -3225,6 +3225,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Create the _first key…" xml:space="preserve">
     <value>Ersten _Schlüssel anlegen…</value>
   </data>
+  <data name="Create the account with this weak password anyway?" xml:space="preserve">
+    <value>Das Konto trotzdem mit diesem schwachen Passwort anlegen?</value>
+  </data>
   <data name="Create the public folder, then grant accounts or groups permission on it." xml:space="preserve">
     <value>Legen Sie den öffentlichen Ordner an und gewähren Sie dann Konten oder Gruppen Berechtigungen darauf.</value>
   </data>
@@ -10188,6 +10191,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Select a domain first." xml:space="preserve">
     <value>Wählen Sie zuerst eine Domain aus.</value>
+  </data>
+  <data name="Select a domain to see its accounts." xml:space="preserve">
+    <value>Wählen Sie eine Domain aus, um ihre Konten zu sehen.</value>
   </data>
   <data name="Select a domain to see its aliases." xml:space="preserve">
     <value>Wählen Sie eine Domain aus, um ihre Aliase zu sehen.</value>
