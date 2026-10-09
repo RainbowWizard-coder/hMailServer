@@ -496,32 +496,7 @@ namespace hMailServer.ControlPanel.Services
       /// service was restarted, crashed, or the network dropped - rather than
       /// the server rejecting the call.
       /// </summary>
-      public static bool IsTransportFailure(Exception ex)
-      {
-         for (Exception e = ex; e != null; e = e.InnerException)
-         {
-            if (e is InvalidComObjectException)
-               return true;
-
-            if (e is COMException com)
-            {
-               switch ((uint)com.ErrorCode)
-               {
-                  case 0x800706BA: // RPC_S_SERVER_UNAVAILABLE
-                  case 0x800706BE: // RPC_S_CALL_FAILED
-                  case 0x800706BF: // RPC_S_CALL_FAILED_DNE
-                  case 0x800706B5: // RPC_S_UNKNOWN_IF
-                  case 0x80010108: // RPC_E_DISCONNECTED
-                  case 0x80010105: // RPC_E_SERVERFAULT
-                  case 0x800401FD: // CO_E_OBJNOTCONNECTED
-                  case 0x80080005: // CO_E_SERVER_EXEC_FAILURE
-                     return true;
-               }
-            }
-         }
-
-         return false;
-      }
+      public static bool IsTransportFailure(Exception ex) => ComErrorText.IsTransportFailure(ex);
 
       // ---- link maintenance ---------------------------------------------------
 

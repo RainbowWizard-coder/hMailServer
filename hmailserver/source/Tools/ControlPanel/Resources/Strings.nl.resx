@@ -2629,9 +2629,6 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Connection succeeded." xml:space="preserve">
     <value>Verbinding geslaagd.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Verbinding met de server verbroken.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Verbindingen</value>
   </data>
@@ -2966,6 +2963,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Kon de regels niet lezen: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Kon de statistieken van de server niet lezen: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kon de onderdrukkingslijst niet lezen: </value>

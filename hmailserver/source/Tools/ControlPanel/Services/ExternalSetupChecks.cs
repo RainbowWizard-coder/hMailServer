@@ -123,6 +123,13 @@ namespace hMailServer.ControlPanel.Services
       public string FirstError => firstError_;
 
       /// <summary>
+      /// True when a read failed because the link to the service had gone. The
+      /// checklist then says so at Critical, as the shell's pill does, rather than
+      /// as a Warning about values the server could not give.
+      /// </summary>
+      public bool LinkLost => linkLost_;
+
+      /// <summary>
       /// How many DNS TXT lookups this run scheduled. Zero means the items are
       /// already final; otherwise the findings those lookups belong to say
       /// "checking..." until <see cref="ApplyDnsResults"/> rewrites them.
@@ -188,6 +195,10 @@ namespace hMailServer.ControlPanel.Services
       private int failedReads_;
       private string firstError_;
 
+      // Whether a read failed because the link to the service had gone: one event,
+      // shown at one level, Critical, wherever it is shown.
+      private bool linkLost_;
+
       /// <summary>The items of this run, kept so the DNS pass can update them in place.</summary>
       private List<SetupItem> items_ = new();
 
@@ -214,6 +225,7 @@ namespace hMailServer.ControlPanel.Services
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            linkLost_ |= ServerSession.IsTransportFailure(ex);
             return default;
          }
       }
@@ -269,6 +281,7 @@ namespace hMailServer.ControlPanel.Services
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            linkLost_ |= ServerSession.IsTransportFailure(ex);
          }
          finally
          {
@@ -1469,6 +1482,7 @@ namespace hMailServer.ControlPanel.Services
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            linkLost_ |= ServerSession.IsTransportFailure(ex);
             item.Add(SetupItemState.CannotTell, F("The SSL certificate list could not be read - {0}", firstError_));
          }
          finally
@@ -1650,6 +1664,7 @@ namespace hMailServer.ControlPanel.Services
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            linkLost_ |= ServerSession.IsTransportFailure(ex);
             item.Add(SetupItemState.CannotTell, F("The TCP/IP port list could not be read - {0}", firstError_));
          }
          finally

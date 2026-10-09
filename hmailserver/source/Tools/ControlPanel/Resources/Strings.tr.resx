@@ -2629,9 +2629,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Connection succeeded." xml:space="preserve">
     <value>Bağlantı başarılı.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Sunucuyla bağlantı kesildi.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Bağlantılar</value>
   </data>
@@ -2966,6 +2963,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Kurallar okunamadı: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Sunucunun istatistikleri okunamadı: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Engelleme listesi okunamadı: </value>

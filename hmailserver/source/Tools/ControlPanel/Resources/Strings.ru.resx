@@ -2647,9 +2647,6 @@ Control Panel может читать файлы сообщений только
   <data name="Connection succeeded." xml:space="preserve">
     <value>Подключение выполнено.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Подключение к серверу потеряно.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Подключения</value>
   </data>
@@ -2984,6 +2981,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Не удалось прочитать правила: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Не удалось прочитать статистику сервера: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Не удалось прочитать список подавления: </value>

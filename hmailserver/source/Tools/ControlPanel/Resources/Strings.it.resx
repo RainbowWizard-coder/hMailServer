@@ -2629,9 +2629,6 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Connection succeeded." xml:space="preserve">
     <value>Connessione riuscita.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Connessione al server persa.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Connessioni</value>
   </data>
@@ -2966,6 +2963,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Impossibile leggere le regole: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Impossibile leggere le statistiche del server: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Impossibile leggere la lista di soppressione: </value>

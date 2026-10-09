@@ -2647,9 +2647,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Connection succeeded." xml:space="preserve">
     <value>Połączenie powiodło się.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Utracono połączenie z serwerem.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Połączenia</value>
   </data>
@@ -2984,6 +2981,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Nie udało się odczytać reguł: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Nie udało się odczytać statystyk serwera: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Nie udało się odczytać listy blokowanych: </value>

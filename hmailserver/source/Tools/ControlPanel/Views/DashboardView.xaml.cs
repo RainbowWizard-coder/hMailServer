@@ -246,8 +246,11 @@ namespace hMailServer.ControlPanel.Views
 
       public void OnEnter()
       {
-         Refresh();
-         timer_.Start();
+         // The timer runs only while the statistics can be read: a read that fails
+         // stops it and says so, and Try again - or the shell, when the session
+         // heals and it enters the page again - starts it.
+         if (Refresh())
+            timer_.Start();
          BeginSetupCheck_();
       }
 
@@ -261,11 +264,18 @@ namespace hMailServer.ControlPanel.Views
          setupGeneration_++;
       }
 
-      private void Refresh()
+      /// <summary>
+      /// Reads the status snapshot into the KPI cards and the charts. False when the
+      /// read failed, which the notice under the header then says - once, at the
+      /// level its cause has (ReadFailure: Critical, the level the shell's pill gives
+      /// a lost link), with Try again - in place of the grey "Connection to the
+      /// server lost." the subtitle used to carry with no mark, word or colour.
+      /// </summary>
+      private bool Refresh()
       {
          var session = ServerSession.Current;
          if (session == null || !session.IsConnected)
-            return;
+            return false;
 
          try
          {
@@ -301,12 +311,29 @@ namespace hMailServer.ControlPanel.Views
             lastSampleUtc_ = nowUtc;
 
             Header.Subtitle = F("Live server statistics - last update {0}", nowLocal.ToLongTimeString());
+            ReadFailure.Clear(ReadNotice);
+            return true;
          }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Header.Subtitle = L("Connection to the server lost.");
             timer_.Stop();
+            ReadFailure.Show(ReadNotice, null, null, L("Could not read the server's statistics: "), ex, TryAgain_);
+            return false;
          }
+      }
+
+      /// <summary>
+      /// Try again on the notice: reads once more and, when that works, starts the
+      /// timer again and checks the setup again, since the summary card could not
+      /// be built over the same lost link either.
+      /// </summary>
+      private void TryAgain_()
+      {
+         if (!Refresh())
+            return;
+
+         timer_.Start();
+         BeginSetupCheck_();
       }
 
       /// <summary>
@@ -414,6 +441,15 @@ namespace hMailServer.ControlPanel.Views
                return;
             }
 
+            // A link lost while the checks ran is one event, and the notice under the
+            // header says it at Critical: the card says it cannot tell, and draws no
+            // count of things needing attention from values that were never read.
+            if (checks.LinkLost)
+            {
+               ShowSetupUncheckable_(L("The external setup could not be checked - not connected to the server."));
+               return;
+            }
+
             RenderAttention_(checks, checks.DnsLookupCount);
 
             if (checks.DnsLookupCount == 0)
@@ -444,6 +480,7 @@ namespace hMailServer.ControlPanel.Views
          AutomationProperties.SetName(AttentionSummary, AttentionSummary.Text);
          AttentionItems.Children.Clear();
          AttentionNote.Visibility = Visibility.Collapsed;
+         AttentionReadNotice.Visibility = Visibility.Collapsed;
       }
 
       /// <summary>Honest degradation: the summary itself could not be built, which
@@ -456,6 +493,7 @@ namespace hMailServer.ControlPanel.Views
             ExternalSetupChecks.StateWord(SetupItemState.CannotTell) + ": " + message);
          AttentionItems.Children.Clear();
          AttentionNote.Visibility = Visibility.Collapsed;
+         AttentionReadNotice.Visibility = Visibility.Collapsed;
       }
 
       /// <summary>
@@ -489,20 +527,24 @@ namespace hMailServer.ControlPanel.Views
          foreach (SetupItem item in checks.Items.Where(i => i.State == SetupItemState.ActionNeeded))
             AttentionItems.Children.Add(AttentionLine_(item, index++));
 
-         string note = Sentences(
-            pendingDnsLookups > 0
-               ? Plural(pendingDnsLookups,
-                  "{0} DNS record is still being checked in the background; this summary will update.",
-                  "{0} DNS records are still being checked in the background; this summary will update.")
-               : null,
-            checks.FailedReads > 0
-               ? Plural(checks.FailedReads,
-                  "{0} value could not be read from the server, so this summary may be incomplete.",
-                  "{0} values could not be read from the server, so this summary may be incomplete.")
-               : null);
+         string note = pendingDnsLookups > 0
+            ? Plural(pendingDnsLookups,
+               "{0} DNS record is still being checked in the background; this summary will update.",
+               "{0} DNS records are still being checked in the background; this summary will update.")
+            : "";
 
          AttentionNote.Text = note;
          AttentionNote.Visibility = note.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+         // Values the server answered without are a Warning, with the mark and the
+         // word, as the setup checklist says them; a lost link never gets here.
+         if (checks.FailedReads > 0)
+            AttentionReadNotice.Show(StatusLevel.Warning,
+               Plural(checks.FailedReads,
+                  "{0} value could not be read from the server, so this summary may be incomplete.",
+                  "{0} values could not be read from the server, so this summary may be incomplete."));
+         else
+            AttentionReadNotice.Hide();
       }
 
       /// <summary>Colour, shape AND word for the card's overall state - the same

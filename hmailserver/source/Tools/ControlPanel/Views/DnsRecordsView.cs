@@ -110,6 +110,10 @@ namespace hMailServer.ControlPanel.Views
       private int failedReads_;
       private string firstError_;
 
+      // Whether a read failed because the link to the service had gone, which the
+      // notice then says at Critical, as the shell's pill does.
+      private bool linkLost_;
+
       /// <summary>Shared by the MTA-STS policy fetches. Redirects are NOT followed,
       /// because RFC 8461 section 3.3 forbids senders from following them - a
       /// policy behind a redirect is a policy senders never see.</summary>
@@ -182,6 +186,7 @@ namespace hMailServer.ControlPanel.Views
       {
          failedReads_ = 0;
          firstError_ = null;
+         linkLost_ = false;
 
          string previous = SelectedDomainName();
 
@@ -214,6 +219,9 @@ namespace hMailServer.ControlPanel.Views
 
          status_.Text = L("Configuration read from the server. Records are re-derived every time this page is opened; press Check to query DNS.");
 
+         // The level from the cause: a lost link is Critical, as the shell's pill
+         // calls it, and values a server that answered could not give are a Warning.
+         readFailure_.Level = ComErrorText.LevelFor(linkLost_);
          readFailure_.Text = failedReads_ == 0
             ? null
             : PluralF(failedReads_,
@@ -267,6 +275,7 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            linkLost_ |= ServerSession.IsTransportFailure(ex);
          }
          finally
          {
@@ -328,6 +337,7 @@ namespace hMailServer.ControlPanel.Views
          {
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
+            linkLost_ |= ServerSession.IsTransportFailure(ex);
          }
          finally
          {

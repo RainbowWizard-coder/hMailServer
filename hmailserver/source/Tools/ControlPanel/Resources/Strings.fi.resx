@@ -2629,9 +2629,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Connection succeeded." xml:space="preserve">
     <value>Yhteys onnistui.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Yhteys palvelimeen katkesi.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Yhteydet</value>
   </data>
@@ -2966,6 +2963,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Sääntöjä ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Palvelimen tilastoja ei voitu lukea: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Estolistaa ei voitu lukea: </value>

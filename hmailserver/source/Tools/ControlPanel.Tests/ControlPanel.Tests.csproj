@@ -126,6 +126,11 @@
          to every complete catalogue: a sentence that drifted from the server would
          otherwise fall back to English with no failure anywhere. -->
     <Compile Include="..\ControlPanel\Services\ServerSentences.cs" />
+    <!-- What a failed call to the server was: a lost link, shown at Critical as the
+         shell's pill shows it, or a server that answered and could not give a value,
+         shown as a Warning. Apart from ServerSession, which asks it, so that a test
+         can hold the classification and the level to the codes without a server. -->
+    <Compile Include="..\ControlPanel\Services\ComErrorText.cs" />
 
     <!-- The report a directory synchronisation returns is one tab-separated string.
          Turning it into rows a page can count and sort is the only logic in that

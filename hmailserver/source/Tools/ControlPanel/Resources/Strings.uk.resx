@@ -2647,9 +2647,6 @@
   <data name="Connection succeeded." xml:space="preserve">
     <value>Підключення успішне.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Підключення до сервера втрачено.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Підключення</value>
   </data>
@@ -2984,6 +2981,9 @@
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Не вдалося прочитати правила: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Не вдалося прочитати статистику сервера: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Не вдалося прочитати список придушення: </value>

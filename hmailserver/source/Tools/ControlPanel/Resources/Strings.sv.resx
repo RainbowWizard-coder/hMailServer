@@ -2629,9 +2629,6 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Connection succeeded." xml:space="preserve">
     <value>Anslutningen lyckades.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Anslutningen till servern bröts.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Anslutningar</value>
   </data>
@@ -2966,6 +2963,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Kunde inte läsa reglerna: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Kunde inte läsa serverns statistik: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kunde inte läsa spärrlistan: </value>

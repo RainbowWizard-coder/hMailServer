@@ -1125,6 +1125,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   hold what the range has, *Unsaved changes* from the first box ticked or cleared, and *Saved* after a save until
   the next change.
 
+- **Fixed: a lost link to the service was drawn at a different level on each page that said it, and on the Dashboard
+  at none.** The Dashboard put "Connection to the server lost." in its grey subtitle with no mark, word or colour, and
+  its setup summary added a caption counting the values it could not read; the setup checklist and DNS records called
+  the same lost link a Warning, and Setting profiles called it Critical, as the shell's pill does. A lost link is now
+  one event shown at one level. The Dashboard says a failed read of its statistics in a Critical notice under its
+  header, with the reason and Try again, and keeps its subtitle; its setup summary says it cannot tell, rather than
+  counting things that need attention from values that were never read, and values a server that answered could not
+  give are a Warning notice in the card, as the setup checklist says them. The setup checklist and DNS records take
+  their notice's level from the cause (`Services/ComErrorText`): Critical when the link went, Warning when the server
+  answered and some values could not be read. The Dashboard's timer runs only while its statistics can be read; Try
+  again starts it and checks the setup again. `ComErrorTextTests` and `FailureStateTests` hold the classification, the
+  levels and the three pages to it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -2629,9 +2629,6 @@ Los detalles completos se escribieron en:
   <data name="Connection succeeded." xml:space="preserve">
     <value>Conexión correcta.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Se perdió la conexión con el servidor.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Conexiones</value>
   </data>
@@ -2966,6 +2963,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>No se pudieron leer las reglas: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>No se pudieron leer las estadísticas del servidor: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>No se pudo leer la lista de supresión: </value>

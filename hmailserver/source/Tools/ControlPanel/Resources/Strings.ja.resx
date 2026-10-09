@@ -2629,9 +2629,6 @@
   <data name="Connection succeeded." xml:space="preserve">
     <value>接続に成功しました。</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>サーバーへの接続が失われました。</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>接続</value>
   </data>
@@ -2966,6 +2963,9 @@
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>ルールを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>サーバーの統計を読み取れませんでした: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>抑止リストを読み取れませんでした: </value>

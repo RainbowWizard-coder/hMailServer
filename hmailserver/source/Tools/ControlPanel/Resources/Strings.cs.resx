@@ -2647,9 +2647,6 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Connection succeeded." xml:space="preserve">
     <value>Připojení se zdařilo.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Připojení k serveru bylo ztraceno.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Připojení</value>
   </data>
@@ -2984,6 +2981,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Nepodařilo se přečíst pravidla: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Nepodařilo se přečíst statistiky serveru: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Nepodařilo se přečíst seznam blokovaných: </value>

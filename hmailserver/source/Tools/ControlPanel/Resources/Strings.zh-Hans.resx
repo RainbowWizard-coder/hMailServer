@@ -2629,9 +2629,6 @@
   <data name="Connection succeeded." xml:space="preserve">
     <value>连接成功。</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>与服务器的连接已断开。</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>连接</value>
   </data>
@@ -2966,6 +2963,9 @@
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>无法读取规则： </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>无法读取服务器的统计信息： </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>无法读取抑制列表： </value>

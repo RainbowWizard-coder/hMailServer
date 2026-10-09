@@ -2629,9 +2629,6 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Connection succeeded." xml:space="preserve">
     <value>Forbindelsen lykkedes.</value>
   </data>
-  <data name="Connection to the server lost." xml:space="preserve">
-    <value>Forbindelsen til serveren gik tabt.</value>
-  </data>
   <data name="Connections" xml:space="preserve">
     <value>Forbindelser</value>
   </data>
@@ -2966,6 +2963,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   </data>
   <data name="Could not read the rules: " xml:space="preserve">
     <value>Kunne ikke læse reglerne: </value>
+  </data>
+  <data name="Could not read the server's statistics: " xml:space="preserve">
+    <value>Kunne ikke læse serverens statistik: </value>
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kunne ikke læse spærrelisten: </value>

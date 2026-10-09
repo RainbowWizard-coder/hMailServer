@@ -19,6 +19,13 @@
             <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Dashboard'}"
                                  Subtitle="{loc:L 'Live server statistics, refreshed every 2 seconds.'}" />
 
+            <!-- A read of the statistics that failed, said once, at Critical when
+                 the link went - the level the shell's pill gives a lost link - with
+                 Try again (Services/ReadFailure). Before, the page put "Connection to
+                 the server lost." in its grey subtitle, with no mark, word or colour. -->
+            <scaffold:InlineNotice x:Name="ReadNotice" Visibility="Collapsed" Margin="{StaticResource AppCardGap}"
+                                   AutomationProperties.AutomationId="dashboard-read-failure" />
+
             <!-- "Needs attention" summary. The dashboard is the page an
                  administrator lands on, so the one question the setup checklist
                  can answer - "is this server actually set up, and if not
@@ -54,6 +61,10 @@
                     <StackPanel x:Name="AttentionItems" Margin="0,4,0,0" />
                     <TextBlock x:Name="AttentionNote" Style="{StaticResource TextCaption}" Margin="0,6,0,0"
                                Visibility="Collapsed" />
+                    <!-- Values the server answered without: a Warning, as the setup
+                         checklist says it, where it was a grey caption. -->
+                    <scaffold:InlineNotice x:Name="AttentionReadNotice" Level="Warning" Visibility="Collapsed"
+                                           Margin="0,8,0,0" />
                 </StackPanel>
             </scaffold:Card>
 

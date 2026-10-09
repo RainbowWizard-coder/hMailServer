@@ -153,6 +153,9 @@ namespace hMailServer.ControlPanel.Views
 
          baseStatus_ = L("Checked against the server. Everything is re-checked every time this page is opened.");
 
+         // The level from the cause: a lost link is Critical, as the shell's pill
+         // calls it, and values a server that answered could not give are a Warning.
+         readFailure_.Level = ComErrorText.LevelFor(checks_.LinkLost);
          readFailure_.Text = checks_.FailedReads == 0
             ? null
             : PluralF(checks_.FailedReads,
