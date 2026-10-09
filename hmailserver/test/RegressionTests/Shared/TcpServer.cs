@@ -237,6 +237,21 @@ namespace RegressionTests.Shared
                // exception nobody catches ends the test host.
                return;
             }
+            catch (SocketException e)
+            {
+               // .NET's TcpListener.Stop disposes its socket and only then marks itself
+               // stopped, and EndAcceptTcpClient turns the aborted accept's SocketException
+               // into ObjectDisposedException only once it is marked: a thread-pool thread
+               // that gets here between the two gets the SocketException itself (125,
+               // "Operation canceled", on Linux), which nothing caught and which ended the
+               // Linux suite's test host. An accept that fails for any other reason ends
+               // this way too, on either runtime. Either way there is no client to serve;
+               // a failure while the server is not being stopped is kept for
+               // WaitForCompletion to report.
+               if (!_stopServerEvent.WaitOne(0, false))
+                  _clientException = e;
+               return;
+            }
 
             try
             {

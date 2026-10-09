@@ -875,6 +875,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   very stack - eleven times in 3,184,997 servers, and once from `DisposeSocket` on a thread-pool thread, and the
   class as it is threw nothing in 3,289,402.
 
+- **A simulated server disposed with its accept still pending no longer ends the Linux suite's test host.** .NET's
+  `TcpListener.Stop` disposes its socket and only then marks itself stopped, and `EndAcceptTcpClient` turns the
+  aborted accept's SocketException into an ObjectDisposedException only once it is marked; the thread-pool thread
+  that ends the accept can get there first, and `TcpServer.OnAcceptSocket`, which caught ObjectDisposedException and
+  ArgumentException, let the SocketException ("Operation canceled", 125) out of a thread where nothing catches it -
+  the test host crashed. It can happen to any test that disposes a simulator before its last expected client came,
+  `ServerFreeTests.TcpServerLifetime`'s own server disposed before any client among them, and the entry above made it
+  far likelier: two threads stopping the listener at once had cleared that mark sooner than the one that stops it now.
+  `OnAcceptSocket` now ends such an accept as the stopped listener's other answers end it, and keeps a failed accept
+  while the server is not being stopped for `WaitForCompletion` to report. A new test in that fixture disposes five
+  thousand servers in a row with their accept pending: with the class as the entry above left it, it crashed the Linux
+  test host in each of four runs on server2 in the CI image; with the class as it is it passed in each of three. A
+  harness on .NET 10.0.12 disposed such servers one after another: the class as it was crashed after 25,398 to
+  128,602 of them in each of four runs, as the entry above left it after 116 to 1,857 in each of eight, and as it is
+  it ran 1,094,254 in a minute, and 1,934,356 more in three minutes from sixteen threads on two processors, without
+  one. .NET Framework's `Stop` marks its socket closed before it closes it, so on Windows the test passed before as it
+  passes now.
+
 ### Documentation
 
 - **The 6.3.6 section names the CVE identifiers GitLab's CNA has assigned since the tag**, six so far, and says what

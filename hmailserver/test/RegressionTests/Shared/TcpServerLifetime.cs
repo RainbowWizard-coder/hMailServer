@@ -27,7 +27,10 @@ namespace ServerFreeTests
    ///    itself. And a listener whose construction threw left the listen thread a null
    ///    to stop, a NullReferenceException where nothing catches it - which ends the
    ///    Linux suite's test host, and which NUnit's agent on Windows, run with the legacy
-   ///    unhandled-exception policy, lets end the thread alone, without a word.
+   ///    unhandled-exception policy, lets end the thread alone, without a word. And on .NET
+   ///    a server disposed with its accept still pending could have that accept end in a
+   ///    SocketException, which OnAcceptSocket did not catch: the same end for the Linux
+   ///    test host.
    /// </summary>
    [TestFixture]
    public class TcpServerLifetime
@@ -167,6 +170,51 @@ namespace ServerFreeTests
          Assert.That(IsListening(server), Is.False, "The simulated server was still listening after Dispose.");
          Assert.That(() => server.Dispose(), Throws.Nothing);
          Assert.That(server.NumberOfConnectedClients, Is.EqualTo(0));
+      }
+
+      [Test]
+      [Description("Five thousand servers in a row disposed with no client come, their accept still pending: what ends the accept escapes no thread.")]
+      public void ServersDisposedWithTheirAcceptPendingLetNothingEscape()
+      {
+         // .NET's TcpListener.Stop disposes its socket before it marks itself stopped, and
+         // EndAcceptTcpClient makes the aborted accept an ObjectDisposedException only once
+         // it is marked; a thread-pool thread that ends the accept between the two gets a
+         // SocketException. One server seldom meets it; many in a row, the thread pool warm,
+         // do (on server2, in the CI image, a loop of them met it between the 116th and the
+         // 1,857th server once the listen thread alone stopped the listener, and after tens
+         // of thousands while Dispose stopped it too), and when nothing catches it the Linux
+         // test host ends. .NET Framework's Stop marks its socket closed first, so on
+         // Windows this passed before as it passes now.
+         Exception escaped = null;
+         UnhandledExceptionEventHandler watch = (sender, e) =>
+         {
+            var exception = e.ExceptionObject as Exception;
+            if (exception != null && (exception.StackTrace ?? "").Contains("TcpServer"))
+               escaped = exception;
+         };
+
+         AppDomain.CurrentDomain.UnhandledException += watch;
+         try
+         {
+            for (int i = 0; i < 5000 && escaped == null; i++)
+            {
+               // Port 0: the system picks a free port as the listener binds, since nobody
+               // connects. A FreePort before each of servers this close together met
+               // "Address already in use" on Linux in the first run.
+               var server = new LineServer(0);
+               server.StartListen();
+               server.Dispose();
+            }
+
+            // The last accepts end on thread-pool threads a moment after their Dispose.
+            Thread.Sleep(500);
+         }
+         finally
+         {
+            AppDomain.CurrentDomain.UnhandledException -= watch;
+         }
+
+         Assert.That(escaped, Is.Null, "An exception escaped a simulated server's thread: " + escaped);
       }
    }
 }
