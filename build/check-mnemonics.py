@@ -110,12 +110,11 @@ def location(c):
     return f"{os.path.relpath(c.file, ROOT)}:{c.line}"
 
 
-def describe(c, raw=None):
+def describe(c):
     """The caption in a problem, with where it comes from when that is a shared helper."""
-    raw = c.raw if raw is None else raw
     if c.via:
-        return f"\"{raw}\" ({os.path.relpath(c.file, ROOT)} line {c.line}, placed by {c.via[2]})"
-    return f"\"{raw}\" (line {c.line})"
+        return f"\"{c.raw}\" ({os.path.relpath(c.file, ROOT)} line {c.line}, placed by {c.via[2]})"
+    return f"\"{c.raw}\" (line {c.line})"
 
 
 def line_of(text, pos):
