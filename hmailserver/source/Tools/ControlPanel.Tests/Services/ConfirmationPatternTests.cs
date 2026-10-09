@@ -258,9 +258,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          {
             foreach (string call in Calls(source, "Confirm("))
             {
-               Match decline = Regex.Match(call, @"decline:\s*L\(""((?:[^""\\]|\\.)*)""\)");
-               if (!decline.Success)
+               if (!call.Contains("decline:", StringComparison.Ordinal))
                   continue;
+
+               Match decline = Regex.Match(call, @"decline:\s*L\(""((?:[^""\\]|\\.)*)""\)");
+               Assert.True(decline.Success, relative + ": a question names its decline with something other than one caption, which this cannot check: " + call.Split('\n')[0].Trim());
 
                // The act is the third argument: Confirm(text, caption, action, ...).
                List<string> arguments = Arguments(call);
