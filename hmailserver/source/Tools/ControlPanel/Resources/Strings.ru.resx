@@ -14687,7 +14687,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>проверка SPF отправителя пройдена</value>
   </data>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>домен или хост HELO отправителя является одной из {0} записей списка исключений серых списков, и сообщение несёт успешную проверку SPF, DKIM или DMARC, которой требует эта запись</value>
+    <value>домен или хост HELO отправителя является одной из {0} записей списка обхода серых списков, и сообщение несёт успешную проверку SPF, DKIM или DMARC, которой требует эта запись</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>домен отправителя или имя HELO — разрешённый домен</value>
@@ -15806,7 +15806,7 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
     <value>{0}: {1} не содержит блока сертификата PEM, поэтому в нём нет пригодного сертификата ЦС (ошибка сервера 6140). Экспортируйте сертификат ЦС в формате PEM (Base64).</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: домен говорит, что клиент, вероятно, не авторизован, и просит всё же принять письмо. За этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail; softfail никогда не считается pass для исключения из greylisting.</value>
+    <value>~all: домен говорит, что клиент, вероятно, не авторизован, и просит всё же принять письмо. За этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail; softfail никогда не считается pass для обхода серых списков.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ перемещение    Enter открыть    Esc закрыть</value>

@@ -14514,7 +14514,7 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
     <value>a verificação SPF do remetente passou</value>
   </data>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>o domínio ou o host HELO do remetente é uma das {0} entradas da lista de exceções de greylisting e a mensagem traz a aprovação no SPF, DKIM ou DMARC que essa entrada exige</value>
+    <value>o domínio ou o host HELO do remetente é uma das {0} entradas da lista de desvio do greylisting e a mensagem traz a aprovação no SPF, DKIM ou DMARC que essa entrada exige</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>o domínio do remetente ou o nome HELO é um domínio permitido</value>
@@ -15444,7 +15444,7 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
     <value>{0}: {1} não contém nenhum bloco de certificado PEM, então não guarda nenhum certificado de CA utilizável (erro do servidor 6140). Exporte o certificado da CA no formato PEM (Base64).</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: o domínio diz que o cliente provavelmente não está autorizado e pede que a mensagem seja aceita mesmo assim. Muitas fontes de envio em massa se escondem atrás disso. Uma pontuação igual ou acima do limiar de exclusão recusa a mensagem durante a conversa SMTP como um fail faz; um softfail nunca é um pass para a isenção de greylisting.</value>
+    <value>~all: o domínio diz que o cliente provavelmente não está autorizado e pede que a mensagem seja aceita mesmo assim. Muitas fontes de envio em massa se escondem atrás disso. Uma pontuação igual ou acima do limiar de exclusão recusa a mensagem durante a conversa SMTP como um fail faz; um softfail nunca é um pass para o desvio do greylisting.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ mover    Enter abrir    Esc fechar</value>

@@ -14514,7 +14514,7 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
     <value>die SPF-Prüfung des Absenders bestanden wurde</value>
   </data>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>die Domain oder der HELO-Host des Absenders ist einer der {0} Einträge der Greylisting-Ausnahmeliste und die Nachricht trägt das bestandene SPF, DKIM oder DMARC, das dieser Eintrag verlangt</value>
+    <value>die Domain oder der HELO-Host des Absenders ist einer der {0} Einträge der Greylisting-Umgehungsliste und die Nachricht trägt das bestandene SPF, DKIM oder DMARC, das dieser Eintrag verlangt</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>die Domain des Absenders oder der HELO-Name eine zugelassene Domain ist</value>
@@ -15444,7 +15444,7 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
     <value>{0}: {1} enthält keinen PEM-Zertifikatsblock, enthält also kein brauchbares CA-Zertifikat (Serverfehler 6140). Exportieren Sie das CA-Zertifikat im PEM-Format (Base64).</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: die Domain sagt, der Client sei wahrscheinlich nicht autorisiert, und bittet, die Nachricht trotzdem anzunehmen. Viele Massenversender verstecken sich dahinter. Eine Punktzahl auf oder über der Löschschwelle weist die Nachricht im SMTP-Dialog ab wie ein Fehlschlag; ein Softfail gilt für die Greylisting-Ausnahme nie als Pass.</value>
+    <value>~all: die Domain sagt, der Client sei wahrscheinlich nicht autorisiert, und bittet, die Nachricht trotzdem anzunehmen. Viele Massenversender verstecken sich dahinter. Eine Punktzahl auf oder über der Löschschwelle weist die Nachricht im SMTP-Dialog ab wie ein Fehlschlag; ein Softfail gilt für die Greylisting-Umgehung nie als Pass.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ bewegen    Enter öffnen    Esc schließen</value>

@@ -14514,7 +14514,7 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
     <value>la comprobación SPF del remitente pasó</value>
   </data>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>el dominio o el host HELO del remitente es una de las {0} entradas de la lista de exenciones de greylisting y el mensaje lleva el pase de SPF, DKIM o DMARC que exige esa entrada</value>
+    <value>el dominio o el host HELO del remitente es una de las {0} entradas de la lista de omisión del greylisting y el mensaje lleva el pase de SPF, DKIM o DMARC que exige esa entrada</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>el dominio del remitente o el nombre HELO es un dominio permitido</value>
@@ -15444,7 +15444,7 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
     <value>{0}: {1} no contiene ningún bloque de certificado PEM, así que no contiene ningún certificado de CA utilizable (error del servidor 6140). Exporte el certificado de CA en formato PEM (Base64).</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: el dominio dice que el cliente probablemente no está autorizado y pide que el mensaje se acepte de todos modos. Muchas fuentes de envíos masivos se esconden ahí. Una puntuación igual o superior al umbral de borrado rechaza el mensaje durante la conversación SMTP como lo haría un fallo; un softfail nunca cuenta como pass para la exención de greylisting.</value>
+    <value>~all: el dominio dice que el cliente probablemente no está autorizado y pide que el mensaje se acepte de todos modos. Muchas fuentes de envíos masivos se esconden ahí. Una puntuación igual o superior al umbral de borrado rechaza el mensaje durante la conversación SMTP como lo haría un fallo; un softfail nunca cuenta como pass para la omisión del greylisting.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ mover    Intro abrir    Esc cerrar</value>

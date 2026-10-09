@@ -14514,7 +14514,7 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
     <value>afsenderens SPF-kontrol blev bestået</value>
   </data>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>afsenderens domæne eller HELO-vært er en af de {0} poster på greylisting-undtagelserne, og beskeden bærer det SPF-, DKIM- eller DMARC-resultat, posten kræver</value>
+    <value>afsenderens domæne eller HELO-vært er en af de {0} poster på greylisting-omgåelseslisten, og beskeden bærer det SPF-, DKIM- eller DMARC-resultat, posten kræver</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>afsenderens domæne eller HELO-navn er et tilladt domæne</value>
@@ -15444,7 +15444,7 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
     <value>{0}: {1} indeholder ingen PEM-certifikatblok, så den rummer intet brugbart CA-certifikat (serverfejl 6140). Eksportér CA-certifikatet i PEM-format (Base64).</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: domænet siger, at klienten formentlig ikke er autoriseret, og beder om, at beskeden alligevel accepteres. Mange masseudsendere gemmer sig bag det. En score på eller over sletningstærsklen afviser beskeden under SMTP-samtalen, som et fail gør; en softfail er aldrig et pass for greylisting-undtagelsen.</value>
+    <value>~all: domænet siger, at klienten formentlig ikke er autoriseret, og beder om, at beskeden alligevel accepteres. Mange masseudsendere gemmer sig bag det. En score på eller over sletningstærsklen afviser beskeden under SMTP-samtalen, som et fail gør; en softfail er aldrig et pass for greylisting-omgåelsen.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ flyt    Enter åbn    Esc luk</value>

@@ -14687,7 +14687,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>перевірку SPF відправника пройдено</value>
   </data>
   <data name="the sender's domain or HELO host is one of the {0} entries on the greylisting bypass list and the message carries the SPF, DKIM or DMARC pass that entry requires" xml:space="preserve">
-    <value>домен або хост HELO відправника є одним із {0} записів списку винятків сірого списку, і повідомлення несе успішну перевірку SPF, DKIM або DMARC, якої вимагає цей запис</value>
+    <value>домен або хост HELO відправника є одним із {0} записів списку обходу сірого списку, і повідомлення несе успішну перевірку SPF, DKIM або DMARC, якої вимагає цей запис</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>домен відправника або ім’я HELO — дозволений домен</value>
@@ -15806,7 +15806,7 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
     <value>{0}: {1} не містить блоку сертифіката PEM, тому в ньому немає придатного сертифіката ЦС (помилка сервера 6140). Експортуйте сертифікат ЦС у форматі PEM (Base64).</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: домен каже, що клієнт, імовірно, не авторизований, і просить усе ж прийняти лист. За цим ховається багато масових розсилок. Бал на порозі видалення або вище відхиляє лист під час SMTP-діалогу, як це робить fail; softfail ніколи не вважається pass для винятку з greylisting.</value>
+    <value>~all: домен каже, що клієнт, імовірно, не авторизований, і просить усе ж прийняти лист. За цим ховається багато масових розсилок. Бал на порозі видалення або вище відхиляє лист під час SMTP-діалогу, як це робить fail; softfail ніколи не вважається pass для обходу сірого списку.</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ перехід    Enter відкрити    Esc закрити</value>
