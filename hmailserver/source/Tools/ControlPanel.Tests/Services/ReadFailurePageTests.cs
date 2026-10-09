@@ -93,7 +93,6 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "DomainPolicyListView.cs", "private void Status_(StatusLevel level, string text)" },
          { "AuditTrailView.cs", "private void Status_(StatusLevel level, string text)" },
          { "CollectionEditorView.cs", "private void Say_(StatusLevel level, string text)" },
-         { "BackupView.xaml.cs", "private void ShowNotice_(StatusLevel level, string text)" },
          { "SuppressionListView.cs", "private void Status_(StatusLevel level, string text)" },
       };
 

@@ -1541,6 +1541,24 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   are the same as the last time; the entry added or saved is selected, scrolled into view and has the keyboard, a
   delete selects the row that took its place, and Refresh keeps the selected entry selected.
 
+- **Fixed: the Control Panel's Backup & restore page said what its buttons did a screen or more away from them,
+  printed a restore job's raw state, and made a restore type what it could have chosen.** Restore started, a mailbox
+  restore started and the schedule saved all went to one notice above the first card, and only Save settings raised a
+  toast; a mailbox restore's outcome printed the server's state token ("Job 7 is running: …"), and its JSON when it
+  could not be read; the whole restore asked for "the backup XML file" though a backup writes an archive
+  (HMBackup YYYY-MM-DD HHMMSS.7z), the mailbox restore for an archive's name typed by hand, and the one-message restore
+  for an id copied out of a monospace listing; the browse buttons opened the pickers of whichever machine the Control
+  Panel ran on, the server's or not; and "No passphrase is set: the archive is not encrypted…" was an Information
+  notice. Each card now says what its buttons did in its own footer, beside them, and every job started raises a
+  toast; a restore job's outcome is a sentence at its level - queued and running at Information, done at Good, done
+  with messages that could not be put back at Warning, failed at Critical with the server's reason - and an answer
+  that cannot be read is said so. A new card lists the archives in the destination, newest first, by the server's own
+  naming rule, with when each was taken (server time) and its size; choosing one fills the whole restore's path and
+  the mailbox restore's archive, and the whole restore names the archive it takes. The account's messages in an
+  archive are a grid to choose from, and Put the message back acts on the one chosen. Connected to another machine,
+  the archive card says it cannot list that machine's folder and the browse buttons are off, with a tool tip saying
+  to type the path as the server sees it; the no-passphrase notice is a Warning.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

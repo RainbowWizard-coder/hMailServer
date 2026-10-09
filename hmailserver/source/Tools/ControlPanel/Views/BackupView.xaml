@@ -18,7 +18,10 @@
             <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Backup &amp; restore'}"
                                  Subtitle="{loc:L 'Back up domains, messages and settings to a folder; restore from a previous backup.'}" />
 
-            <!-- What the last action said: settings saved, a backup started. -->
+            <!-- A read that failed (Services/ReadFailure). What an action did is
+                 said in its own card, by the buttons that did it: said here, it was
+                 a screen or more above the restore cards' buttons (review finding
+                 F257). -->
             <scaffold:InlineNotice x:Name="Notice" Visibility="Collapsed" />
 
             <scaffold:Card x:Name="BackupCard" Title="{loc:L 'Backup'}" Margin="{StaticResource AppCardGap}">
@@ -70,14 +73,19 @@
                     </scaffold:SettingsSection>
                 </StackPanel>
                 <scaffold:Card.Footer>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:L 'Save s_ettings'}" Click="SaveSettings_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="{loc:L 'Start _backup now'}" Appearance="Primary" Click="StartBackup_Click" />
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:Button Content="{loc:L 'Save s_ettings'}" Click="SaveSettings_Click" Margin="0,0,8,0" />
+                            <ui:Button Content="{loc:L 'Start _backup now'}" Appearance="Primary" Click="StartBackup_Click" />
+                        </StackPanel>
+                        <!-- What the two buttons did, beside them. -->
+                        <scaffold:InlineNotice x:Name="BackupOutcome" Visibility="Collapsed" Margin="0,12,0,0" />
                     </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
 
-            <scaffold:Card Title="{loc:L 'Scheduled backups'}" Margin="{StaticResource AppCardGap}">
+            <scaffold:Card Title="{loc:L 'Scheduled backups'}" Margin="{StaticResource AppCardGap}"
+                           AutomationProperties.AutomationId="backup-schedule">
                 <StackPanel>
                     <!-- State first: whether a schedule exists and how old the newest archive is.
                          Colour, shape AND word (StatusSemantics), so no channel is load-bearing alone. -->
@@ -115,18 +123,49 @@
                     </scaffold:SettingsSection>
                 </StackPanel>
                 <scaffold:Card.Footer>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:Button x:Name="SaveScheduleButton" Content="{loc:L 'Save sc_hedule'}" Click="SaveSchedule_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="{loc:L 'Re-chec_k status'}" Click="RefreshScheduleStatus_Click"
-                                   ToolTip="{loc:L 'Re-read the schedule from hMailServer.ini and look at the destination folder again'}" />
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:Button x:Name="SaveScheduleButton" Content="{loc:L 'Save sc_hedule'}" Click="SaveSchedule_Click" Margin="0,0,8,0" />
+                            <ui:Button Content="{loc:L 'Re-chec_k status'}" Click="RefreshScheduleStatus_Click"
+                                       ToolTip="{loc:L 'Re-read the schedule from hMailServer.ini and look at the destination folder again'}" />
+                        </StackPanel>
+                        <scaffold:InlineNotice x:Name="ScheduleOutcome" Visibility="Collapsed" Margin="0,12,0,0" />
                     </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
 
-            <scaffold:Card Title="{loc:L 'Restore'}"
-                           Description="{loc:L 'Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories.'}">
+            <!-- The archives in the destination, which the three restore cards
+                 share: choosing one puts its path in the whole restore's box and its
+                 name in the mailbox restore's, where both were typed by hand. Read
+                 from this machine, as the last-backup line above is, so on the
+                 server itself; connected to another machine the card says so. -->
+            <scaffold:Card x:Name="ArchivesCard" Title="{loc:L 'Archives in the destination'}" Margin="{StaticResource AppCardGap}"
+                           AutomationProperties.AutomationId="backup-archives"
+                           Description="{loc:L 'The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again.'}">
                 <StackPanel>
-                    <scaffold:FieldRow Label="{loc:L 'Back_up file (HMBackup*.xml on the server)'}">
+                    <scaffold:InlineNotice x:Name="ArchivesNotice" Visibility="Collapsed" />
+                    <Grid>
+                        <DataGrid x:Name="ArchiveGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                                  MinHeight="136" MaxHeight="240" SelectionChanged="ArchiveGrid_SelectionChanged"
+                                  AutomationProperties.AutomationId="backup-archive-list"
+                                  AutomationProperties.Name="{loc:L 'Archives in the destination'}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{loc:L 'Archive'}" Binding="{Binding Name}" Width="*" MinWidth="220" ElementStyle="{StaticResource GridTrimmedText}" />
+                                <DataGridTextColumn Header="{loc:L 'Taken (server time)'}" Binding="{Binding TakenText}" Width="Auto" MinWidth="150" />
+                                <DataGridTextColumn Header="{loc:L 'Size (MB)'}" Binding="{Binding SizeText}" Width="Auto" MinWidth="90"
+                                                    ElementStyle="{StaticResource GridNumberText}" HeaderStyle="{StaticResource GridNumberHeader}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <scaffold:EmptyState x:Name="ArchivesEmpty" Icon="Archive24" Visibility="Collapsed" Padding="12" Margin="0,33,0,0" />
+                    </Grid>
+                </StackPanel>
+            </scaffold:Card>
+
+            <scaffold:Card Title="{loc:L 'Restore'}" Margin="{StaticResource AppCardGap}"
+                           AutomationProperties.AutomationId="backup-restore"
+                           Description="{loc:L 'Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below.'}">
+                <StackPanel>
+                    <scaffold:FieldRow Label="{loc:L 'Back_up archive (HMBackup*.7z on the server)'}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -146,11 +185,15 @@
                     </scaffold:FieldRow>
                 </StackPanel>
                 <scaffold:Card.Footer>
-                    <ui:Button Content="{loc:L 'Start _restore'}" Appearance="Danger" Click="StartRestore_Click" HorizontalAlignment="Left" />
+                    <StackPanel>
+                        <ui:Button Content="{loc:L 'Start _restore'}" Appearance="Danger" Click="StartRestore_Click" HorizontalAlignment="Left" />
+                        <scaffold:InlineNotice x:Name="RestoreOutcome" Visibility="Collapsed" Margin="0,12,0,0" />
+                    </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
 
-            <scaffold:Card Title="{loc:L 'Restore a mailbox'}"
+            <scaffold:Card Title="{loc:L 'Restore a mailbox'}" Margin="{StaticResource AppCardGap}"
+                           AutomationProperties.AutomationId="backup-restore-mailbox"
                            Description="{loc:L 'The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination.'}">
                 <StackPanel>
                     <scaffold:FieldRow Label="{loc:L '_Archive in the backup destination (name or path)'}">
@@ -167,33 +210,53 @@
                                        Hint="{loc:L 'Only for an archive that was written with a passphrase.'}">
                         <local:PasswordField x:Name="MailboxPassphraseBox" />
                     </scaffold:FieldRow>
-                    <TextBlock x:Name="MailboxRestoreOutcome" TextWrapping="Wrap" Margin="0,12,0,0" />
                 </StackPanel>
                 <scaffold:Card.Footer>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:L 'Restore the mailbo_x'}" Appearance="Danger" Click="RestoreMailbox_Click" Margin="0,0,8,0" />
-                        <ui:Button x:Name="MailboxRestoreStatusButton" Content="{loc:L 'Re-read the o_utcome'}" Click="RefreshMailboxRestore_Click" IsEnabled="False" />
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:Button Content="{loc:L 'Restore the mailbo_x'}" Appearance="Danger" Click="RestoreMailbox_Click" Margin="0,0,8,0" />
+                            <ui:Button x:Name="MailboxRestoreStatusButton" Content="{loc:L 'Re-read the o_utcome'}" Click="RefreshMailboxRestore_Click" IsEnabled="False" />
+                        </StackPanel>
+                        <!-- What became of the job, at its level and in words: the
+                             server's state token and its JSON were printed here. -->
+                        <scaffold:InlineNotice x:Name="MailboxOutcome" Visibility="Collapsed" Margin="0,12,0,0" />
                     </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>
 
             <scaffold:Card Title="{loc:L 'Restore one message'}"
+                           AutomationProperties.AutomationId="backup-restore-message"
                            Description="{loc:L 'List the messages of an account as the archive above holds them, then put one back - into the folder it was in, or into a named one. A message whose file is still in the mailbox is not added twice. The archive, address and passphrase are the ones in the card above.'}">
                 <StackPanel>
-                    <ui:TextBox x:Name="ArchivedMessagesBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
-                                MinHeight="120" MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
-                                FontFamily="Consolas" Margin="0,0,0,12" />
-                    <scaffold:FieldRow Label="{loc:L 'Message i_d, from the listing'}">
-                        <ui:TextBox x:Name="ArchivedMessageIdBox" MaxWidth="200" HorizontalAlignment="Left" />
-                    </scaffold:FieldRow>
-                    <scaffold:FieldRow Label="{loc:L 'Into this folder (empt_y: the one it was in)'}" Margin="0,12,0,0">
+                    <!-- The messages as rows to choose from: the one selected is the
+                         one put back, where its id was copied by hand out of a
+                         monospace listing. -->
+                    <Grid Margin="0,0,0,8">
+                        <DataGrid x:Name="ArchivedMessageGrid" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                                  MinHeight="136" MaxHeight="260"
+                                  AutomationProperties.AutomationId="backup-archived-messages"
+                                  AutomationProperties.Name="{loc:L 'Messages in the archive'}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{loc:L 'Subject'}" Binding="{Binding Subject}" Width="2*" MinWidth="160" ElementStyle="{StaticResource GridTrimmedText}" />
+                                <DataGridTextColumn Header="{loc:L 'From'}" Binding="{Binding From}" Width="*" MinWidth="120" ElementStyle="{StaticResource GridTrimmedText}" />
+                                <DataGridTextColumn Header="{loc:L 'Folder'}" Binding="{Binding Folder}" Width="Auto" MinWidth="80" ElementStyle="{StaticResource GridTrimmedText}" />
+                                <DataGridTextColumn Header="{loc:L 'Date (server time)'}" Binding="{Binding Date}" Width="Auto" MinWidth="130" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <scaffold:EmptyState x:Name="ArchivedMessagesEmpty" Icon="Mail24" Visibility="Collapsed" Padding="12" Margin="0,33,0,0" />
+                    </Grid>
+                    <TextBlock x:Name="ArchivedMessagesNote" Style="{StaticResource TextCaption}" Visibility="Collapsed" Margin="0,0,0,8" />
+                    <scaffold:FieldRow Label="{loc:L 'Into this folder (empt_y: the one it was in)'}" Margin="0,4,0,0">
                         <ui:TextBox x:Name="ArchivedMessageFolderBox" />
                     </scaffold:FieldRow>
                 </StackPanel>
                 <scaffold:Card.Footer>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:Button Content="{loc:L 'List the messages _in the archive'}" Click="ListArchivedMessages_Click" Margin="0,0,8,0" />
-                        <ui:Button Content="{loc:L '_Put the message back'}" Appearance="Primary" Click="RestoreArchivedMessage_Click" />
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:Button Content="{loc:L 'List the messages _in the archive'}" Click="ListArchivedMessages_Click" Margin="0,0,8,0" />
+                            <ui:Button x:Name="PutMessageBackButton" Content="{loc:L '_Put the message back'}" Appearance="Primary" Click="RestoreArchivedMessage_Click" />
+                        </StackPanel>
+                        <scaffold:InlineNotice x:Name="MessageOutcome" Visibility="Collapsed" Margin="0,12,0,0" />
                     </StackPanel>
                 </scaffold:Card.Footer>
             </scaffold:Card>

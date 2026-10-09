@@ -1624,11 +1624,17 @@
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled を読み取れませんでした: {0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>アーカイブ</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>アーカイブ フォルダー (空 = アーカイブを無効)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir はサーバーを通過するすべてのメッセージの生のコピーであり、これまでそこから何かが削除されることはありませんでした。そのため忙しいサーバーでは増える一方のディレクトリになり、それに気付くのは、ディスクがいっぱいになった管理者です。この設定はそこを整理します。0 はすべてを保持し、それが意図的な既定値です。アーカイブは通常、法的または契約上の理由で保持されるものであり、アップグレードを機にそこから削除を始めるサーバーは、保持せよと命じられたものをまさに破壊することになるからです。この掃除が削除するのは .eml ファイルだけなので、アーカイブに置いてあるほかのものはそのまま残ります。実行は起動時と、その後 12 時間ごとです。</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>保存先のアーカイブ</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>保持するアーカイブ数 (0 = すべて保持)(_P)</value>
@@ -1846,8 +1852,8 @@
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>無人での適用の前に、設定されている保存先へバックアップする (保存先が指定されていない場合や、バックアップが失敗した場合は適用しません)</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>バックアップ ファイル (サーバー上の HMBackup*.xml)(_U)</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>バックアップ アーカイブ (サーバー上の HMBackup*.7z)(_U)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>{0} にバックアップしました。</value>
@@ -1867,8 +1873,8 @@
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>バックアップと復元</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>バックアップ ファイル (*.xml)|*.xml|すべてのファイル (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>バックアップ アーカイブ (HMBackup*.7z)|HMBackup*.7z|すべてのファイル (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>バックアップ間隔 (分、0 = 無効)(_L)</value>
@@ -2064,6 +2070,9 @@
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>ブラウザーのセッション</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>参照はサーバー自体でのみ使えます。別のコンピューターに接続している場合は、サーバーから見たパスを入力してください。</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>バケット (S3) またはコンテナー (Azure)</value>
@@ -2370,6 +2379,12 @@
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>一覧からルールを選んでください。</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>上の一覧からアーカイブを選ぶか、サーバー上のアーカイブのパスを入力してください。</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>上の一覧からアーカイブを選ぶか、サーバー上のアーカイブのパスを入力します。その内容が、下でチェックしたカテゴリの現在のデータを置き換えます。</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>少なくとも 1 日先の有効期限を選択してください。今日期限が切れる鍵は、作成した当日の途中で動作しなくなります。</value>
@@ -3327,6 +3342,9 @@
   <data name="Database type" xml:space="preserve">
     <value>データベースの種類</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>日時 (サーバー時刻)</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>各メッセージの日付を、ダウンロードした時刻ではなく Received ヘッダーから付ける</value>
   </data>
@@ -4249,14 +4267,8 @@
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>有効期限を YYYY-MM-DD HH:MM:SS の形式で入力してください。</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>一覧に表示されているメッセージの ID を入力してください。</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>アーカイブを暗号化するパスフレーズを入力し、下にもう一度入力してください。</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>サーバー上のバックアップ XML ファイルのパスを入力してください。</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>先にスキャナーのコマンドを入力してください。</value>
@@ -4668,6 +4680,9 @@
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>このグループを折りたたむ</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>フォルダー</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>インポートする PST ファイルをコピーするフォルダー (空 = PST のインポートなし)</value>
@@ -6292,6 +6307,9 @@
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>拒否される代わりに確認のために保留されたメッセージと、それぞれに対してできる 2 つのこと: 受信者に解放するか、削除するか。</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>アーカイブ内のメッセージ</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>インデックス済みのメッセージ: {1} 件中 {0} 件。</value>
   </data>
@@ -6709,6 +6727,9 @@
   <data name="No archive" xml:space="preserve">
     <value>アーカイブなし</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>{0} にはまだバックアップ アーカイブがありません。[今すぐバックアップを開始] で最初のアーカイブが作成されます。</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>バックアップ先が設定されていません。</value>
   </data>
@@ -6765,6 +6786,9 @@
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>宛先フォルダーが設定されていないため、上のスケジュールは設定されるまですべての実行をスキップします。</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>保存先フォルダーが設定されていないため、表示するアーカイブはありません。</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>診断結果は返されませんでした。</value>
@@ -9083,6 +9107,27 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Restore down" xml:space="preserve">
     <value>元に戻す (縮小)</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>復元ジョブ {0} が失敗しました。理由はバックアップ ログにあります。</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>復元ジョブ {0} が失敗しました: {1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>復元ジョブ {0} は完了しましたが、一部のメッセージを戻せませんでした。フォルダー: {1}、追加したメッセージ: {2}、メールボックスに残っているため省略: {3}、失敗: {4}。理由はバックアップ ログにあります。</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>復元ジョブ {0} が完了しました。フォルダー: {1}、追加したメッセージ: {2}、メールボックスに残っているため省略: {3}。</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>復元ジョブ {0} は待機中です。バックアップや他の復元が実行されていなくなり次第開始します。</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>復元ジョブ {0} を実行中です。ここまで - フォルダー: {1}、追加したメッセージ: {2}、メールボックスに残っているため省略: {3}、失敗: {4}。</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>復元ジョブ {0} は、このコントロールパネルが知らない状態を報告しています: {1}。</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>メッセージを復元(_G)</value>
   </data>
@@ -9908,9 +9953,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Select an event first." xml:space="preserve">
     <value>先にイベントを選択してください。</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>以前のバックアップで作成されたバックアップ XML ファイル (保存先フォルダー内) を選択します。その内容が、選択したカテゴリの現在のデータを置き換えます。</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>新しい鍵のセレクター (空欄にすると今日の日付にちなんだ名前になります)</value>
   </data>
@@ -10444,6 +10486,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>SAML によるシングル サインオン</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>サイズ (MB)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>サイズ制限とスキャナー…</value>
   </data>
@@ -10884,6 +10929,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
 
 このアドレスへの次のメッセージは送信されます。再びリストに載るのは、しきい値の回数だけ連続してハード バウンスした後です。</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>作成日時 (サーバー時刻)</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>直ちに有効になりますが、メモリ内にしか保持されません。この値を保存するものはないため、サービスを再起動するたびに組み込みの 10240 KB (10 MB) にリセットされます。別の上限を維持するには、再起動のたびに、たとえば起動スクリプトから COM API 経由で再設定する必要があります。このカードの TTL と有効化スイッチは保存され、再起動後も維持されます。</value>
   </data>
@@ -11193,6 +11241,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>アーカイブにはこのアカウントのメッセージがありません。</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>アーカイブを一覧表示できません: バックアップ設定をサーバーから読み取れませんでした。</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>添付ファイル ブロック設定を読み取れませんでした。</value>
   </data>
@@ -11213,6 +11264,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>バックアップはデータベースとメッセージストアをフォルダーに書き出します。バックアップ先が設定されるまでバックアップは存在しません。</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>保存先フォルダー内のバックアップです (新しい順)。いずれかを選ぶと、下の復元カードがそれを使います。[状態を再確認] でフォルダーを読み直します。</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>バインド アドレスがループバック アドレスではなく、資格情報も設定されていないため、/metrics はすべてのスクレイプに 503 (Service Unavailable) を返します。ベアラー トークンか HTTP Basic の両フィールドを設定するか、127.0.0.1 にバインドしてください。ヘルス プローブはどちらでも応答し続けます。</value>
@@ -12032,6 +12086,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>サーバーのホスト名 (プロトコル &gt; SMTP) が空のため、HELO/EHLO で Windows コンピューター名 (公開 DNS 名ではありません) を名乗っており、"a:" メカニズムを正直に提示することができません。提案はドメインの MX ホストのみを許可します。まずホスト名を設定してください。このページのいくつかのレコードがそれを必要とします。</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>アーカイブに関するサーバーの応答を読み取れませんでした。</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>復元に関するサーバーの応答を読み取れませんでした。</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>サーバーの応答を読み取れませんでした。</value>
   </data>
@@ -12281,6 +12341,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>このコントロールパネルはリモート サーバーに接続しており、鍵ファイルはそのマシンのディスク上にあります。このコンピューターからは読み取れないため、それについて何も検証されていません。これは "OK" ではなく "不明" です。サーバー自体で、またはそのセットアップ チェックリスト ページから確認してください。</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>このコントロールパネルは別のコンピューターに接続しているため、ここから保存先のアーカイブを一覧表示できません。下のカードには、保存先に表示されるとおりのアーカイブ名を入力してください。</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>このコントロールパネルは、実行中のコンピューターではなく {0} に接続されています。{0} の hMailServer サービスはインストーラーを実行できない {1} として動作しているため、そこでの更新はそのサーバーで管理者がインストールします。{0} 自体で hMailServer コントロールパネルを開き、そこで「更新をインストール」をクリックしてください。</value>
@@ -15253,14 +15316,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} 件のアカウントが見つかりました。</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} を追加しました。</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあり、新しい {1} 件を表示しています。検索して絞り込んでください。</value>
   </data>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあります。</value>
-  </data>
-  <data name="{0} added." xml:space="preserve">
-    <value>{0} を追加しました。</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} 件のアドレスがリストにあり、新しい {1} 件を表示しています。検索して絞り込んでください。</value>
@@ -15342,6 +15405,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} が見つかりませんでした。綴りを確認するか、代わりにサーバーの IP アドレスを入力してください。</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>{0} をこのコンピューターから読み取れませんでした: {1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} のデータ テーブル</value>

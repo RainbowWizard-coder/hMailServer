@@ -1624,11 +1624,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled-arvoa ei voitu lukea: {0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>Arkisto</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Arkistokansio (tyhjä = arkistointi pois käytöstä)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir on raakakopio jokaisesta palvelimen läpi kulkevasta viestistä, eikä tähän asti mikään ole koskaan poistanut siitä mitään – joten kiireisellä palvelimella se on kansio joka vain kasvaa, ja ylläpitäjä joka asian huomaa on se jonka levy täyttyi. Tämä karsii sitä. 0 säilyttää kaiken, ja se on oletus tarkoituksella: arkistoa pidetään yleensä oikeudellisesta tai sopimusperusteisesta syystä, ja palvelin joka alkaisi päivityksen yhteydessä poistaa siitä tuhoaisi juuri sitä mitä sen käskettiin säilyttää. Siivous poistaa vain .eml-tiedostoja, joten kaikki muu mitä arkistossa säilytät jää koskematta, ja se suoritetaan käynnistyksessä ja sen jälkeen kahdentoista tunnin välein.</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>Arkistot kohdekansiossa</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>_Säilytettävät arkistot (0 = säilytä kaikki)</value>
@@ -1846,8 +1852,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Ota varmuuskopio määritettyyn kohteeseen ennen valvomatonta asennusta (jos kohdetta ei ole tai varmuuskopio epäonnistuu, asennusta ei tehdä)</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>Varmuuskopio_tiedosto (HMBackup*.xml palvelimella)</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>Varmuuskopio_arkisto (HMBackup*.7z palvelimella)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>Varmuuskopioitu kohteeseen {0}.</value>
@@ -1867,8 +1873,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Varmuuskopiointi ja palautus</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>Varmuuskopiotiedostot (*.xml)|*.xml|Kaikki tiedostot (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>Varmuuskopioarkistot (HMBackup*.7z)|HMBackup*.7z|Kaikki tiedostot (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>Varmuuskopioinnin vä_li minuutteina (0 = pois)</value>
@@ -2064,6 +2070,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>Selainistunnot</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>Selaaminen toimii vain itse palvelimella; kun yhteys on toiseen koneeseen, kirjoita polku niin kuin palvelin sen näkee.</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Bucket (S3) tai säilö (Azure)</value>
@@ -2370,6 +2379,12 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Valitse sääntö luettelosta.</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>Valitse arkisto yllä olevasta luettelosta tai kirjoita arkiston polku palvelimella.</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>Valitse arkisto yllä olevasta luettelosta tai anna arkiston polku palvelimella. Sen sisältö korvaa alla valittujen luokkien nykyiset tiedot.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Valitse vanhenemispäivä, joka on vähintään päivän päässä. Tänään vanheneva avain lakkaisi toimimasta kesken sen päivän, jona se luotiin.</value>
@@ -3327,6 +3342,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Database type" xml:space="preserve">
     <value>Tietokannan tyyppi</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>Päivämäärä (palvelimen aika)</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>Päivää jokainen viesti sen Received-otsakkeen mukaan eikä latausajankohdan mukaan</value>
   </data>
@@ -4249,14 +4267,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Anna vanheneminen muodossa VVVV-KK-PP TT:MM:SS.</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>Anna viestin tunnus sellaisena kuin luettelo sen näyttää.</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Anna salasanalause, jolla arkisto salataan, ja kirjoita se uudelleen alle.</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>Anna varmuuskopion XML-tiedoston polku palvelimella.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Anna ensin tarkistimen komento.</value>
@@ -4668,6 +4680,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>Supista tämä ryhmä</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>Kansio</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>Kansio, johon PST-tiedostot kopioidaan tuontia varten (tyhjä = ei PST-tuontia)</value>
@@ -6292,6 +6307,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Viestit, jotka on pidätetty tarkastettavaksi hylkäämisen sijaan, ja kaksi asiaa, jotka kullekin voi tehdä: vapauttaa sen vastaanottajalle tai poistaa sen.</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>Arkiston viestit</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>Indeksoituja viestejä: {0}/{1}.</value>
   </data>
@@ -6709,6 +6727,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No archive" xml:space="preserve">
     <value>Ei arkistoa</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>Kohteessa {0} ei ole vielä varmuuskopioarkistoja. Aloita varmuuskopiointi nyt kirjoittaa ensimmäisen.</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Varmuuskopion kohdetta ei ole asetettu.</value>
   </data>
@@ -6765,6 +6786,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>Kohdekansiota ei ole määritetty, joten yllä oleva aikataulu ohittaa jokaisen ajon, kunnes sellainen on asetettu.</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>Kohdekansiota ei ole asetettu, joten luetteloitavia arkistoja ei ole.</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>Diagnostiikkatuloksia ei palautunut.</value>
@@ -9083,6 +9107,27 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Restore down" xml:space="preserve">
     <value>Palauta</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>Palautustyö {0} epäonnistui. Varmuuskopiointiloki kertoo syyn.</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>Palautustyö {0} epäonnistui: {1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>Palautustyö {0} on valmis, mutta joitakin viestejä ei voitu palauttaa. Kansiot: {1}; lisätyt viestit: {2}, ohitetut, koska yhä postilaatikossa: {3}, epäonnistuneet: {4}. Varmuuskopiointiloki kertoo syyn.</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>Palautustyö {0} on valmis. Kansiot: {1}; lisätyt viestit: {2}, ohitetut, koska yhä postilaatikossa: {3}.</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>Palautustyö {0} on jonossa: se alkaa heti, kun mikään varmuuskopiointi tai muu palautus ei ole käynnissä.</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>Palautustyö {0} on käynnissä. Tähän mennessä - kansiot: {1}; lisätyt viestit: {2}, ohitetut, koska yhä postilaatikossa: {3}, epäonnistuneet: {4}.</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>Palautustyö {0} ilmoittaa tilan, jota tämä Control Panel ei tunne: {1}.</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Palauta v_iestit</value>
   </data>
@@ -9908,9 +9953,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Select an event first." xml:space="preserve">
     <value>Valitse ensin tapahtuma.</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>Valitse aiemman varmuuskopioinnin luoma XML-varmuuskopiotiedosto (kohdekansiossa). Sen sisältö korvaa valittujen luokkien nykyiset tiedot.</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>Uuden avaimen valitsin (jätä tyhjäksi, niin käytetään tämän päivän päivämäärän mukaan nimettyä)</value>
   </data>
@@ -10444,6 +10486,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>Kertakirjautuminen SAML:llä</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>Koko (Mt)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Kokoraja ja tarkistimet…</value>
   </data>
@@ -10884,6 +10929,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
 
 Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vasta, kun siitä on tullut peräkkäin niin monta pysyvää palautusta kuin kynnysarvo vaatii.</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>Otettu (palvelimen aika)</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Tulee voimaan heti, mutta säilyy vain muistissa: mikään ei tallenna tätä arvoa, joten jokainen palvelun uudelleenkäynnistys palauttaa sen sisäänrakennettuun arvoon 10240 kt (10 Mt). Eri rajan säilyttämiseksi se on asetettava uudelleen jokaisen uudelleenkäynnistyksen jälkeen, esimerkiksi käynnistyskomentosarjasta COM-rajapinnan kautta. Tämän kortin TTL-arvot ja käyttöönottokytkin tallennetaan, ja ne säilyvät uudelleenkäynnistysten yli.</value>
   </data>
@@ -11193,6 +11241,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkistossa ei ole viestejä tälle tilille.</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>Arkistoja ei voi luetella: varmuuskopiointiasetuksia ei voitu lukea palvelimelta.</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Liitteiden eston asetuksia ei voitu lukea.</value>
   </data>
@@ -11213,6 +11264,9 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>Varmuuskopio kirjoittaa tietokannan ja viestivaraston kansioon; kunnes kohde on asetettu, varmuuskopiota ei ole.</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>Kohdekansion varmuuskopiot, uusin ensin. Valitse yksi, niin alla olevat palautuskortit käyttävät sitä; Tarkista tila uudelleen lukee kansion uudelleen.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Sidontaosoite ei ole loopback-osoite eikä tunnistetietoja ole asetettu, joten /metrics vastaa 503 (Service Unavailable) jokaiseen keruuseen. Aseta bearer-token tai molemmat HTTP Basic -kentät tai sido osoitteeseen 127.0.0.1. Kuntotarkistukset vastaavat joka tapauksessa.</value>
@@ -12032,6 +12086,12 @@ Tähän vastaa palvelimen oma nimiselvitin - sama, jota SMTP-toimitus käyttää
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Palvelimen Konenimi (Protokollat &gt; SMTP) on TYHJÄ, joten se ilmoittaa HELO/EHLO:ssa Windows-tietokoneen nimensä - ei julkista DNS-nimeä - eikä yhtään "a:"-mekanismia voi rehellisesti tarjota. Ehdotus valtuuttaa vain verkkotunnuksen MX-koneet. Aseta ensin konenimi; useat tämän sivun tietueet tarvitsevat sitä.</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>Palvelimen vastausta arkistosta ei voitu lukea.</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>Palvelimen vastausta palautuksesta ei voitu lukea.</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Palvelimen vastausta ei voitu lukea.</value>
   </data>
@@ -12281,6 +12341,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Tämä Control Panel on yhteydessä etäpalvelimeen, ja avaintiedosto on sen koneen levyllä - sitä ei voi lukea tältä koneelta, joten siitä ei ole varmistettu mitään. Tämä on "ei tiedossa", ei "OK": tarkista se itse palvelimella tai sen Käyttöönoton tarkistuslista -sivulta.</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>Tämä Control Panel on yhteydessä toiseen koneeseen, joten kohteen arkistoja ei voi luetella täältä. Nimeä arkisto alla olevissa korteissa niin kuin kohde sen luettelee.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Tämä Control Panel on yhdistetty palvelimeen {0}, ei tietokoneeseen, jossa se toimii. Palvelimen {0} hMailServer-palvelu toimii tilillä {1}, joka ei voi ajaa asennusohjelmaa, joten siellä päivitykset asentaa järjestelmänvalvoja kyseisellä palvelimella: avaa hMailServer Control Panel itse palvelimella {0} ja napsauta siellä Asenna päivitys.</value>
@@ -15253,14 +15316,14 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} tiliä löytyi.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} lisätty.</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} osoite listalla, {1} uusinta näytetään. Rajaa hakemalla.</value>
   </data>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} osoite listalla.</value>
-  </data>
-  <data name="{0} added." xml:space="preserve">
-    <value>{0} lisätty.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} osoitetta listalla, {1} uusinta näytetään. Rajaa hakemalla.</value>
@@ -15342,6 +15405,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} ei löytynyt. Tarkista oikeinkirjoitus tai syötä sen sijaan palvelimen IP-osoite.</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>Kohdetta {0} ei voitu lukea tältä koneelta: {1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0}-datataulu</value>

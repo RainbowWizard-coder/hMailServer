@@ -1624,11 +1624,17 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>ArcSealingEnabled kunne ikke leses: {0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>Arkiv</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Arkivmappe (tom = arkivering av)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir er en rå kopi av hver melding som går gjennom serveren, og fram til nå har ingenting noen gang fjernet noe fra den - så på en travel server er det en katalog som bare vokser, og administratoren som oppdager det er den som har fått disken full. Dette rydder i den. 0 beholder alt, og det er standard med vilje: et arkiv holdes som regel av en juridisk eller kontraktsmessig grunn, og en server som begynte å slette fra et slikt ved oppgradering ville ødelagt nøyaktig det den var bedt om å ta vare på. Opprydningen fjerner bare .eml-filer, så alt annet du oppbevarer i arkivet blir liggende, og den kjører ved oppstart og hver tolvte time deretter.</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>Arkiver i målmappen</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>Arkiver som skal _beholdes (0 = behold alle)</value>
@@ -1846,8 +1852,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Sikkerhetskopier til det konfigurerte målet før en uovervåket installasjon (ikke noe mål eller en mislykket sikkerhetskopi betyr ingen installasjon)</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>Sikkerhetskopi_fil (HMBackup*.xml på serveren)</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>Sikkerhetskopi_arkiv (HMBackup*.7z på serveren)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>Sikkerhetskopiert til {0}.</value>
@@ -1867,8 +1873,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Sikkerhetskopiering og gjenoppretting</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>Sikkerhetskopifiler (*.xml)|*.xml|Alle filer (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>Sikkerhetskopiarkiver (HMBackup*.7z)|HMBackup*.7z|Alle filer (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>Sikkerhetskopiinterva_ll i minutter (0 = av)</value>
@@ -2064,6 +2070,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>Nettleserøkter</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>Bla gjennom virker bare på selve serveren; koblet til en annen maskin skriver du stien slik serveren ser den.</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Bucket (S3) eller container (Azure)</value>
@@ -2370,6 +2379,12 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Velg en regel i listen.</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>Velg et arkiv i listen ovenfor, eller skriv inn stien til et på serveren.</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>Velg et arkiv i listen ovenfor, eller oppgi stien til et på serveren. Innholdet erstatter gjeldende data for kategoriene som er krysset av nedenfor.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Velg en utløpsdato minst én dag fram i tid. En nøkkel som utløper i dag, ville sluttet å virke midt på dagen den ble laget.</value>
@@ -3327,6 +3342,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Database type" xml:space="preserve">
     <value>Databasetype</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>Dato (servertid)</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>Dater hver melding etter Received-overskriften i stedet for etter når den ble lastet ned</value>
   </data>
@@ -4249,14 +4267,8 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Skriv inn utløpet som ÅÅÅÅ-MM-DD TT:MM:SS.</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>Oppgi meldingens id slik listen viser den.</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Skriv inn passordfrasen arkivet skal krypteres med, og skriv den igjen nedenfor.</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>Skriv inn stien til sikkerhetskopi-XML-filen på serveren.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Skriv inn skannerkommandoen først.</value>
@@ -4668,6 +4680,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>Fold sammen denne gruppen</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>Mappe</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>Mappe som PST-filer kopieres til for import (tomt = ingen PST-import)</value>
@@ -6292,6 +6307,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Meldinger holdt tilbake for gjennomgang i stedet for å bli avvist, og de to tingene du kan gjøre med hver: frigi den til mottakeren, eller slette den.</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>Meldinger i arkivet</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>Indekserte meldinger: {0} av {1}.</value>
   </data>
@@ -6709,6 +6727,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No archive" xml:space="preserve">
     <value>Ikke noe arkiv</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>Ingen sikkerhetskopiarkiver i {0} ennå. Start sikkerhetskopiering nå skriver det første.</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Ingen mål for sikkerhetskopier er angitt.</value>
   </data>
@@ -6765,6 +6786,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>Ingen målmappe er konfigurert, så tidsplanen ovenfor hopper over hver kjøring til én er satt.</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>Ingen målmappe er angitt, så det er ingen arkiver å vise.</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>Ingen diagnostikkresultater returnert.</value>
@@ -9083,6 +9107,27 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Restore down" xml:space="preserve">
     <value>Gjenopprett ned</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} mislyktes. Sikkerhetskopiloggen sier hvorfor.</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} mislyktes: {1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} er ferdig, men noen meldinger kunne ikke legges tilbake. Mapper: {1}; meldinger lagt til: {2}, hoppet over fordi de fortsatt er i postkassen: {3}, mislyktes: {4}. Sikkerhetskopiloggen sier hvorfor.</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} er ferdig. Mapper: {1}; meldinger lagt til: {2}, hoppet over fordi de fortsatt er i postkassen: {3}.</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} står i kø: den starter så snart ingen sikkerhetskopiering eller annen gjenoppretting kjører.</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} kjører. Så langt - mapper: {1}; meldinger lagt til: {2}, hoppet over fordi de fortsatt er i postkassen: {3}, mislyktes: {4}.</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>Gjenopprettingsjobb {0} melder en tilstand dette Control Panel ikke kjenner: {1}.</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>G_jenopprett meldinger</value>
   </data>
@@ -9908,9 +9953,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Select an event first." xml:space="preserve">
     <value>Velg en hendelse først.</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>Velg XML-filen som en tidligere sikkerhetskopiering opprettet (i målmappen). Innholdet erstatter gjeldende data for de valgte kategoriene.</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>Selektor for den nye nøkkelen (la feltet stå tomt for en som er oppkalt etter dagens dato)</value>
   </data>
@@ -10444,6 +10486,9 @@ Starte den på nytt nå?</value>
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>Enkel pålogging med SAML</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>Størrelse (MB)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Størrelsesgrense og skannere…</value>
   </data>
@@ -10884,6 +10929,9 @@ Starte den på nytt nå?</value>
 
 Neste melding til adressen blir sendt, og den kommer først på listen igjen etter så mange harde returmeldinger på rad som terskelen krever.</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>Tatt (servertid)</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Trer i kraft med en gang, men holdes bare i minnet: ingenting lagrer denne verdien, så hver omstart av tjenesten tilbakestiller den til de innebygde 10240 KB (10 MB). For å beholde en annen grense må den settes på nytt etter hver omstart, for eksempel fra et oppstartsskript gjennom COM-API-et. TTL-ene og aktiveringsbryteren på dette kortet lagres og overlever omstarter.</value>
   </data>
@@ -11193,6 +11241,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Arkivet inneholder ingen meldinger for denne kontoen.</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>Arkivene kan ikke vises: innstillingene for sikkerhetskopiering kunne ikke leses fra serveren.</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Innstillingene for blokkering av vedlegg kunne ikke leses.</value>
   </data>
@@ -11213,6 +11264,9 @@ Neste melding til adressen blir sendt, og den kommer først på listen igjen ett
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>Sikkerhetskopien skriver databasen og meldingslageret til en mappe; til en er angitt finnes det ingen sikkerhetskopi.</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>Sikkerhetskopiene i målmappen, nyeste først. Velg én, så bruker gjenopprettingskortene nedenfor den; Kontroller status på nytt leser mappen på nytt.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Bindingsadressen er ikke en loopback-adresse, og ingen legitimasjon er satt, så /metrics svarer 503 (Service Unavailable) på hver innsamling. Sett et bearer-token, eller begge HTTP Basic-feltene, eller bind til 127.0.0.1. Helseprobene fortsetter å svare uansett.</value>
@@ -12032,6 +12086,12 @@ Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Serverens Vertsnavn (Protokoller &gt; SMTP) er TOMT, så den annonserer Windows-datamaskinnavnet sitt i HELO/EHLO - ikke et offentlig DNS-navn - og ingen "a:"-mekanisme kan ærlig tilbys. Forslaget autoriserer bare domenets MX-verter. Sett vertsnavnet først; flere oppføringer på denne siden trenger det.</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>Serverens svar om arkivet kunne ikke leses.</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>Serverens svar om gjenopprettingen kunne ikke leses.</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Svaret fra tjeneren kunne ikke leses.</value>
   </data>
@@ -12281,6 +12341,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Dette Control Panel er koblet til en ekstern server, og nøkkelfilen ligger på den maskinens disk - den kan ikke leses fra denne maskinen, så ingenting ved den er verifisert. Dette er "ukjent", ikke "OK": sjekk den på selve serveren, eller fra dens side Sjekkliste for oppsett.</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>Dette Control Panel er koblet til en annen maskin, så arkivene i målmappen kan ikke vises herfra. Oppgi arkivet i kortene nedenfor slik målmappen viser det.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Dette Control Panel er koblet til {0}, ikke til datamaskinen det kjører på. hMailServer-tjenesten på {0} kjører som {1}, som ikke kan kjøre et installasjonsprogram, så der installeres oppdateringer av en administrator ved den serveren: åpne hMailServer Control Panel på {0} selv, og klikk på Installer oppdatering der.</value>
@@ -15253,14 +15316,14 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} kontoer funnet.</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>{0} er lagt til.</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresse listet, de {1} nyeste vises. Søk for å avgrense.</value>
   </data>
   <data name="{0} address listed." xml:space="preserve">
     <value>{0} adresse listet.</value>
-  </data>
-  <data name="{0} added." xml:space="preserve">
-    <value>{0} er lagt til.</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresser listet, de {1} nyeste vises. Søk for å avgrense.</value>
@@ -15342,6 +15405,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} ble ikke funnet. Sjekk stavemåten, eller skriv inn serverens IP-adresse i stedet.</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>{0} kunne ikke leses fra denne maskinen: {1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Datatabell for {0}</value>

@@ -185,6 +185,12 @@
     <Compile Include="..\ControlPanel\Services\InstallationPermissions.cs" />
     <Compile Include="..\ControlPanel\Services\AfterUpdateHandoff.cs" />
     <Compile Include="..\ControlPanel\Services\UpdateStatusText.cs" />
+    <!-- What the Backup & restore page reads and says about archives and restore
+         jobs: the archives in the destination, a job's outcome as a level and a
+         sentence, an account's messages in an archive as rows (review finding
+         F257). Linked here rather than through Core, as the overviews' judgements
+         are, because it speaks in StatusLevel. -->
+    <Compile Include="..\ControlPanel\Services\BackupRestoreReport.cs" />
   </ItemGroup>
 
   <ItemGroup>

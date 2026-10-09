@@ -3,10 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using hMailServer.ControlPanel.Services;
@@ -51,10 +50,32 @@ namespace hMailServer.ControlPanel.Views
                   PageCommands.SetCommand(button, PageCommand.Save);
             }
          };
+
+         // Put the message back acts on the message chosen in the list.
+         SelectionGate.Bind(ArchivedMessageGrid, PutMessageBackButton);
       }
 
       public void OnEnter()
       {
+         // What the buttons did on a last visit is not news on this one.
+         foreach (InlineNotice outcome in new[] { BackupOutcome, ScheduleOutcome, RestoreOutcome, MailboxOutcome, MessageOutcome })
+            outcome.Visibility = Visibility.Collapsed;
+
+         // The "…" buttons open the Windows file pickers of the machine this
+         // Control Panel runs on, which are the server's own disks only when it
+         // runs on the server: connected to another machine they browsed the
+         // wrong one (review finding F257). The boxes take a path as the server
+         // sees it either way.
+         bool local = ServerSession.IsLocalSession;
+         foreach (Wpf.Ui.Controls.Button browse in new[] { BrowseDestination, BrowseBackupFile })
+         {
+            browse.IsEnabled = local;
+            browse.ToolTip = local
+               ? (browse == BrowseDestination ? L("Browse for a folder") : L("Browse for a file"))
+               : L("Browsing works on the server itself; connected to another machine, type the path as the server sees it.");
+            ToolTipService.SetShowOnDisabled(browse, true);
+         }
+
          // When a save of each row kept in the settings store reaches the running
          // server, as the server marks it (Services/SettingApplies). All six are
          // marked now: the backup reads its two switches when it runs, and the
@@ -147,19 +168,28 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void ShowEncryptionState_()
       {
-         EncryptionNotice.Level = encryptionPassphraseSet_ ? StatusLevel.Good : StatusLevel.Information;
+         // Warning, not Information: an archive anyone who reaches the folder can
+         // read is a state to act on, not a fact to note (review finding F257).
+         EncryptionNotice.Level = encryptionPassphraseSet_ ? StatusLevel.Good : StatusLevel.Warning;
          EncryptionNotice.Text = encryptionPassphraseSet_
             ? L("A passphrase is set: the archive is encrypted as it is written, file names included, and a restore asks for the passphrase.")
             : L("No passphrase is set: the archive is not encrypted, and anyone who can reach the destination folder can read every mailbox in it.");
       }
 
-      /// <summary>What the last action said, at its level, above the cards.</summary>
-      private void ShowNotice_(StatusLevel level, string text)
+      /// <summary>
+      /// What an action did, at its level, in the footer of the card whose button
+      /// did it. It was said in one notice above the first card, a screen or more
+      /// above the restore cards' buttons, and only Save settings raised a toast
+      /// (review finding F257).
+      /// </summary>
+      private static void ShowOutcome_(InlineNotice outcome, StatusLevel level, string text)
       {
-         ReadFailure.Clear(Notice);
-         Notice.Level = level;
-         Notice.Text = text;
-         Notice.Visibility = Visibility.Visible;
+         outcome.Level = level;
+         outcome.Text = text;
+         outcome.Visibility = Visibility.Visible;
+
+         // Said again when the words are the same as the last time.
+         Announce.Request(outcome);
       }
 
       public void OnLeave()
@@ -277,7 +307,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BrowseBackupFile_Click(object sender, RoutedEventArgs e)
       {
-         string file = PathPicker.PickFile(BackupFileBox.Text, L("Backup files (*.xml)|*.xml|All files (*.*)|*.*"));
+         string file = PathPicker.PickFile(BackupFileBox.Text, L("Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*"));
          if (file != null)
             BackupFileBox.Text = file;
       }
@@ -290,7 +320,7 @@ namespace hMailServer.ControlPanel.Views
             // switches now: both are marked now, and a save publishes them
             // (docs/SettingsApply.md). A server from before that reads them when it
             // starts, and is told so as it was.
-            ShowNotice_(StatusLevel.Good, IniFeatureStore.ServerMarksSettings == false && iniStore_.IsAvailable
+            ShowOutcome_(BackupOutcome, StatusLevel.Good, IniFeatureStore.ServerMarksSettings == false && iniStore_.IsAvailable
                ? L("Backup settings saved - the message-metadata-only switch applies after a service restart.")
                : L("Backup settings saved."));
             Services.Toast.Success(L("Backup settings saved."));
@@ -311,7 +341,9 @@ namespace hMailServer.ControlPanel.Views
             dynamic manager = ServerSession.Current.Application.BackupManager;
             manager.StartBackup();
             ServerSession.Release(manager);
-            ShowNotice_(StatusLevel.Good, F("Backup started {0} - runs in the background on the server.", DateTime.Now.ToLongTimeString()));
+            string started = F("Backup started {0} - runs in the background on the server.", DateTime.Now.ToLongTimeString());
+            ShowOutcome_(BackupOutcome, StatusLevel.Good, started);
+            Services.Toast.Success(started, L("Backup & restore"));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -324,7 +356,7 @@ namespace hMailServer.ControlPanel.Views
          string backupFile = BackupFileBox.Text.Trim();
          if (backupFile.Length == 0)
          {
-            MessageBox.Show(L("Enter the path of the backup XML file on the server."), L("Control Panel"));
+            MessageBox.Show(L("Choose an archive in the list above, or enter the path of one on the server."), L("Control Panel"));
             return;
          }
 
@@ -354,7 +386,8 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(manager);
 
             RestorePassphraseBox.Password = "";
-            ShowNotice_(StatusLevel.Good, L("Restore started - runs in the background on the server."));
+            ShowOutcome_(RestoreOutcome, StatusLevel.Good, L("Restore started - runs in the background on the server."));
+            Services.Toast.Success(L("Restore started - runs in the background on the server."), L("Backup & restore"));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -372,6 +405,10 @@ namespace hMailServer.ControlPanel.Views
       // from the server and shown under the button.
 
       private int lastMailboxRestoreJob_;
+
+      // The card whose job the last one is - the mailbox's or the one message's -
+      // so that Re-read the outcome says it where it was asked for.
+      private InlineNotice lastJobOutcome_;
 
       private bool ReadMailboxRestoreInputs_(out string archive, out string address)
       {
@@ -393,34 +430,20 @@ namespace hMailServer.ControlPanel.Views
          return true;
       }
 
-      private void ShowMailboxRestoreOutcome_(string json)
+      /// <summary>
+      /// What became of a restore job, at its level and in words, in the card that
+      /// started it: queued and running at Information, done at Good (Warning when
+      /// some messages could not be put back), failed at Critical with the server's
+      /// reason. The server's state token was printed here as it came, and its JSON
+      /// when it could not be read (Services/BackupRestoreReport).
+      /// </summary>
+      private void ShowJobOutcome_(InlineNotice outcome, string json)
       {
-         try
-         {
-            using JsonDocument document = JsonDocument.Parse(json);
-            JsonElement root = document.RootElement;
-
-            // Four counts: each after its words as a label, which no language has to decline.
-            string text = F("Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}.",
-               Number_(root, "job"), Text_(root, "state"), Number_(root, "folders"), Number_(root, "added"), Number_(root, "skipped"), Number_(root, "failed"));
-
-            text = Sentences(text, Text_(root, "error"));
-
-            MailboxRestoreOutcome.Text = text;
-         }
-         catch (JsonException)
-         {
-            MailboxRestoreOutcome.Text = json;
-         }
-
+         BackupRestoreReport.JobOutcome job = BackupRestoreReport.Job(json);
+         ShowOutcome_(outcome, job.Level, job.Text);
+         lastJobOutcome_ = outcome;
          MailboxRestoreStatusButton.IsEnabled = lastMailboxRestoreJob_ > 0;
       }
-
-      private static string Text_(JsonElement element, string name)
-         => element.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? "" : "";
-
-      private static long Number_(JsonElement element, string name)
-         => element.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.Number ? value.GetInt64() : 0;
 
       private void RestoreMailbox_Click(object sender, RoutedEventArgs e)
       {
@@ -449,8 +472,8 @@ namespace hMailServer.ControlPanel.Views
             string status = (string)manager.MailboxRestoreStatus(job);
             ServerSession.Release(manager);
 
-            ShowMailboxRestoreOutcome_(status);
-            ShowNotice_(StatusLevel.Good, F("Mailbox restore {0} started - runs in the background on the server.", job));
+            ShowJobOutcome_(MailboxOutcome, status);
+            Services.Toast.Success(F("Mailbox restore {0} started - runs in the background on the server.", job), L("Backup & restore"));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -468,7 +491,7 @@ namespace hMailServer.ControlPanel.Views
             dynamic manager = ServerSession.Current.Application.BackupManager;
             string status = (string)manager.MailboxRestoreStatus(lastMailboxRestoreJob_);
             ServerSession.Release(manager);
-            ShowMailboxRestoreOutcome_(status);
+            ShowJobOutcome_(lastJobOutcome_ ?? MailboxOutcome, status);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -487,40 +510,24 @@ namespace hMailServer.ControlPanel.Views
             string json = (string)manager.DescribeMailbox(archive, address, MailboxPassphraseBox.Password ?? "");
             ServerSession.Release(manager);
 
-            var lines = new StringBuilder();
-
-            using (JsonDocument document = JsonDocument.Parse(json))
+            // Rows to choose from: the one selected is the one Put the message
+            // back puts back, where its id was copied by hand out of a monospace
+            // listing (review finding F257).
+            List<BackupRestoreReport.ArchivedMessage> messages = BackupRestoreReport.ArchivedMessages(json, out string note, out string error);
+            ArchivedMessageGrid.ItemsSource = messages;
+            MessageOutcome.Visibility = Visibility.Collapsed;
+            if (messages == null)
             {
-               JsonElement root = document.RootElement;
-
-               if (root.TryGetProperty("folders", out JsonElement folders) && folders.ValueKind == JsonValueKind.Array)
-               {
-                  foreach (JsonElement folder in folders.EnumerateArray())
-                  {
-                     if (!folder.TryGetProperty("messages", out JsonElement messages) || messages.ValueKind != JsonValueKind.Array)
-                        continue;
-
-                     foreach (JsonElement message in messages.EnumerateArray())
-                     {
-                        lines.Append(Number_(message, "id").ToString(CultureInfo.InvariantCulture).PadRight(10));
-                        lines.Append(Text_(message, "date")).Append("  ");
-                        lines.Append(Text_(message, "folder")).Append("  ");
-                        lines.Append(Text_(message, "from")).Append("  ");
-                        lines.Append(Text_(message, "subject"));
-                        lines.AppendLine();
-                     }
-                  }
-               }
-
-               if (lines.Length == 0)
-                  lines.AppendLine(L("The archive holds no messages for this account."));
-
-               string note = Text_(root, "subjects_note");
-               if (note.Length > 0)
-                  lines.AppendLine(note);
+               ArchivedMessagesEmpty.Visibility = Visibility.Collapsed;
+               ShowOutcome_(MessageOutcome, StatusLevel.Critical, error);
+            }
+            else
+            {
+               StatusText.Show(ArchivedMessagesEmpty, null, messages.Count, null, L("The archive holds no messages for this account."));
             }
 
-            ArchivedMessagesBox.Text = lines.ToString();
+            ArchivedMessagesNote.Text = note;
+            ArchivedMessagesNote.Visibility = string.IsNullOrEmpty(note) ? Visibility.Collapsed : Visibility.Visible;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -533,11 +540,11 @@ namespace hMailServer.ControlPanel.Views
          if (!ReadMailboxRestoreInputs_(out string archive, out string address))
             return;
 
-         if (!long.TryParse(ArchivedMessageIdBox.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long messageId) || messageId <= 0)
-         {
-            MessageBox.Show(L("Enter the id of the message, as the listing shows it."), L("Control Panel"));
+         // Enabled only while a message is selected (SelectionGate).
+         if (ArchivedMessageGrid.SelectedItem is not BackupRestoreReport.ArchivedMessage selected || selected.Id <= 0)
             return;
-         }
+
+         long messageId = selected.Id;
 
          if (!MessageBox.Confirm(F("Put message {0} back into the mailbox of {1}?", messageId, address), L("Control Panel"), L("_Put the message back")))
             return;
@@ -550,8 +557,8 @@ namespace hMailServer.ControlPanel.Views
             string status = (string)manager.MailboxRestoreStatus(job);
             ServerSession.Release(manager);
 
-            ShowMailboxRestoreOutcome_(status);
-            ShowNotice_(StatusLevel.Good, F("Message restore {0} started - runs in the background on the server.", job));
+            ShowJobOutcome_(MessageOutcome, status);
+            Services.Toast.Success(F("Message restore {0} started - runs in the background on the server.", job), L("Backup & restore"));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -603,7 +610,7 @@ namespace hMailServer.ControlPanel.Views
          KeepCountBox.Text = keepCount.ToString(CultureInfo.InvariantCulture);
          MaxAgeBox.Text = maxAgeDays.ToString(CultureInfo.InvariantCulture);
 
-         ShowNotice_(StatusLevel.Good, IniFeatureStore.ServerMarksSettings == false
+         ShowOutcome_(ScheduleOutcome, StatusLevel.Good, IniFeatureStore.ServerMarksSettings == false
             ? L("Backup schedule saved - the service reads these settings when it starts, so they apply after a service restart.")
             : L("Backup schedule saved."));
          Services.Toast.Success(L("Backup schedule saved."));
@@ -723,7 +730,7 @@ namespace hMailServer.ControlPanel.Views
             {
                var newest = System.IO.Directory.EnumerateFiles(destination)
                   .Select(System.IO.Path.GetFileName)
-                  .Select(name => (Name: name, IsArchive: TryParseArchiveName(name, out DateTime created), Created: created))
+                  .Select(name => (Name: name, IsArchive: BackupRestoreReport.TryParseArchiveName(name, out DateTime created), Created: created))
                   .Where(archive => archive.IsArchive)
                   .MaxBy(archive => archive.Created);
                if (newest.Name != null)
@@ -782,6 +789,66 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ApplyStatus(LastBackupNotice, lastLevel, lastText);
+
+         ShowArchives_(destination);
+      }
+
+      /// <summary>
+      /// The archives in the destination, newest first, read from this machine by
+      /// the server's own naming rule, as the last-backup line above is; the three
+      /// restore cards take the one chosen, where its path and its name were typed
+      /// by hand (review finding F257). Connected to another machine the folder is
+      /// not this machine's to read, and the card says so.
+      /// </summary>
+      private void ShowArchives_(string destination)
+      {
+         ArchiveGrid.ItemsSource = null;
+         ArchivesEmpty.Visibility = Visibility.Collapsed;
+         ArchivesNotice.Visibility = Visibility.Collapsed;
+
+         if (destination == null)
+         {
+            ShowOutcome_(ArchivesNotice, StatusLevel.Warning, L("The archives cannot be listed: the backup settings could not be read from the server."));
+            return;
+         }
+
+         if (!ServerSession.IsLocalSession)
+         {
+            ShowOutcome_(ArchivesNotice, StatusLevel.Information, L("This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it."));
+            return;
+         }
+
+         if (destination.Length == 0)
+         {
+            StatusText.Show(ArchivesEmpty, null, 0, null, L("No destination folder is set, so there are no archives to list."));
+            return;
+         }
+
+         List<BackupRestoreReport.Archive> archives;
+         try
+         {
+            archives = BackupRestoreReport.Archives(destination,
+               new System.IO.DirectoryInfo(destination).EnumerateFiles().Select(file => (file.Name, file.Length)).ToList());
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            ShowOutcome_(ArchivesNotice, StatusLevel.Warning, F("{0} could not be read from this machine: {1}", destination, ex.Message));
+            return;
+         }
+
+         ArchiveGrid.ItemsSource = archives;
+         StatusText.Show(ArchivesEmpty, null, archives.Count, null, F("No backup archives in {0} yet. Start backup now writes the first.", destination));
+      }
+
+      private void ArchiveGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+      {
+         if (ArchiveGrid.SelectedItem is not BackupRestoreReport.Archive archive)
+            return;
+
+         // The whole restore opens the archive by its path; the mailbox and the
+         // one-message restores name it as the destination lists it.
+         BackupFileBox.Text = archive.Path;
+         MailboxArchiveBox.Text = archive.Name;
       }
 
       /// <summary>The saved destination, "" when none is set, or null when COM could not be read.</summary>
@@ -845,60 +912,6 @@ namespace hMailServer.ControlPanel.Views
 
          hour = parsedHour;
          minute = parsedMinute;
-         return true;
-      }
-
-      /// <summary>
-      /// Mirrors BackupRetention::ParseArchiveName: "HMBackup YYYY-MM-DD HHMMSS.7z",
-      /// 29 characters, case-insensitive prefix and extension, digits in the digit
-      /// positions, and a date that actually exists. The name is generated in
-      /// exactly one place (BackupExecuter::StartBackup) and parsed by the server's
-      /// own retention and scheduling code with these same rules - if the format
-      /// ever changes, all of them change together.
-      /// </summary>
-      private static bool TryParseArchiveName(string fileName, out DateTime created)
-      {
-         created = DateTime.MinValue;
-
-         if (fileName == null || fileName.Length != 29)
-            return false;
-
-         if (!fileName.StartsWith("HMBackup ", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-         if (!fileName.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-         if (fileName[13] != '-' || fileName[16] != '-' || fileName[19] != ' ')
-            return false;
-
-         int[] dateDigitOffsets = { 9, 10, 11, 12, 14, 15, 17, 18 };
-         if (!dateDigitOffsets.All(offset => char.IsAsciiDigit(fileName[offset])))
-            return false;
-
-         for (int offset = 20; offset <= 25; offset++)
-            if (!char.IsAsciiDigit(fileName[offset]))
-               return false;
-
-         int year = int.Parse(fileName.Substring(9, 4), CultureInfo.InvariantCulture);
-         int month = int.Parse(fileName.Substring(14, 2), CultureInfo.InvariantCulture);
-         int day = int.Parse(fileName.Substring(17, 2), CultureInfo.InvariantCulture);
-         int hour = int.Parse(fileName.Substring(20, 2), CultureInfo.InvariantCulture);
-         int minute = int.Parse(fileName.Substring(22, 2), CultureInfo.InvariantCulture);
-         int second = int.Parse(fileName.Substring(24, 2), CultureInfo.InvariantCulture);
-
-         try
-         {
-            // The archive name carries the server's local time.
-            created = new DateTime(year, month, day, hour, minute, second, DateTimeKind.Local);
-         }
-         catch (ArgumentOutOfRangeException)
-         {
-            // 2026-02-30 and friends: digits in the right places that do not
-            // describe a real instant are not a name the server wrote.
-            return false;
-         }
-
          return true;
       }
 

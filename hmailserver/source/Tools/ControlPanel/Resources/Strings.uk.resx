@@ -1636,11 +1636,17 @@
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Не вдалося прочитати ArcSealingEnabled: {0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>Архів</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Папка архіву (порожньо = архівування вимкнено)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir — це необроблена копія кожного повідомлення, що проходить через сервер, і досі ніщо ніколи нічого з неї не видаляло, тож на завантаженому сервері це папка, яка лише росте, а дізнається про це той адміністратор, у якого заповнився диск. Цей параметр очищає її. 0 зберігає все, і це типове значення обрано навмисно: архів зазвичай ведуть із юридичних або договірних причин, а сервер, який після оновлення почав би з нього видаляти, знищував би саме те, що йому доручили зберігати. Очищення видаляє лише файли .eml, тож усе інше, що ви тримаєте в архіві, лишається недоторканим; воно виконується під час запуску й далі кожні дванадцять годин.</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>Архіви в папці призначення</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>_Скільки архівів зберігати (0 = зберігати всі)</value>
@@ -1861,8 +1867,8 @@
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Створювати резервну копію в налаштоване місце призначення перед застосуванням без нагляду (відсутність місця призначення або невдале резервне копіювання означає, що застосування не відбудеться)</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>_Файл резервної копії (HMBackup*.xml на сервері)</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>_Архів резервної копії (HMBackup*.7z на сервері)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>Резервну копію збережено в {0}.</value>
@@ -1882,8 +1888,8 @@
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Резервне копіювання та відновлення</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>Файли резервних копій (*.xml)|*.xml|Усі файли (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>Архіви резервних копій (HMBackup*.7z)|HMBackup*.7z|Усі файли (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>_Інтервал резервного копіювання у хвилинах (0 = вимкнено)</value>
@@ -2082,6 +2088,9 @@
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>Сеанси браузера</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>Огляд працює лише на самому сервері; під час підключення до іншого комп'ютера введіть шлях так, як його бачить сервер.</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Кошик (S3) або контейнер (Azure)</value>
@@ -2388,6 +2397,12 @@
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Виберіть правило у списку.</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>Виберіть архів у списку вище або введіть шлях до нього на сервері.</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>Виберіть архів у списку вище або вкажіть шлях до нього на сервері. Його вміст замінить поточні дані для категорій, позначених нижче.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Виберіть дату завершення терміну дії щонайменше на день уперед. Ключ, термін дії якого спливає сьогодні, перестав би працювати посеред того самого дня, коли його створено.</value>
@@ -3345,6 +3360,9 @@
   <data name="Database type" xml:space="preserve">
     <value>Тип бази даних</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>Дата (час сервера)</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>Датувати кожне повідомлення за заголовком Received, а не за часом завантаження</value>
   </data>
@@ -4285,14 +4303,8 @@
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введіть час закінчення у форматі РРРР-ММ-ДД ГГ:ХХ:СС.</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>Вкажіть ідентифікатор повідомлення так, як його показує список.</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введіть парольну фразу, якою буде зашифровано архів, і наберіть її ще раз нижче.</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>Введіть шлях до XML-файлу резервної копії на сервері.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Спершу введіть команду сканера.</value>
@@ -4722,6 +4734,9 @@
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>Згорнути цю групу</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>Тека</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>Папка, до якої копіюють файли PST для імпорту (порожньо = без імпорту PST)</value>
@@ -6352,6 +6367,9 @@
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Повідомлення, утримані для перегляду замість відхилення, і дві дії, доступні для кожного: випустити його отримувачеві або видалити.</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>Повідомлення в архіві</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>Проіндексовано повідомлень: {0} з {1}.</value>
   </data>
@@ -6772,6 +6790,9 @@
   <data name="No archive" xml:space="preserve">
     <value>Без архіву</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>У {0} ще немає архівів резервних копій. Перший запише «Почати резервне копіювання зараз».</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Місце для резервної копії не задано.</value>
   </data>
@@ -6828,6 +6849,9 @@
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>Папку призначення не налаштовано, тому розклад вище пропускатиме кожен запуск, доки її не задати.</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>Папку призначення не задано, тому показувати нічого.</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>Результатів діагностики не повернуто.</value>
@@ -9167,6 +9191,27 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Restore down" xml:space="preserve">
     <value>Відновити</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>Завдання відновлення {0} не виконано. Причину вказано в журналі резервного копіювання.</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>Завдання відновлення {0} не виконано: {1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>Завдання відновлення {0} виконано, але деякі повідомлення повернути не вдалося. Тек: {1}; додано повідомлень: {2}, пропущено (ще у скриньці): {3}, не вдалося: {4}. Причину вказано в журналі резервного копіювання.</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>Завдання відновлення {0} виконано. Тек: {1}; додано повідомлень: {2}, пропущено (ще у скриньці): {3}.</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>Завдання відновлення {0} у черзі: воно почнеться, щойно не виконуватиметься ні резервне копіювання, ні інше відновлення.</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>Завдання відновлення {0} виконується. Поки що - тек: {1}; додано повідомлень: {2}, пропущено (ще у скриньці): {3}, не вдалося: {4}.</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>Завдання відновлення {0} повідомляє про стан, якого ця Панель керування не знає: {1}.</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>В_ідновити повідомлення</value>
   </data>
@@ -10016,9 +10061,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Select an event first." xml:space="preserve">
     <value>Спершу виберіть подію.</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>Виберіть XML-файл резервної копії, створений попереднім резервним копіюванням (у папці призначення). Його вміст замінить поточні дані для вибраних категорій.</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>Селектор нового ключа (залиште порожнім, щоб отримати селектор із сьогоднішньою датою)</value>
   </data>
@@ -10557,6 +10599,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>Єдиний вхід через SAML</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>Розмір (МБ)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Обмеження розміру та сканери…</value>
   </data>
@@ -11000,6 +11045,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
 
 Наступне повідомлення на цю адресу буде надіслано, а до списку адреса повернеться лише після стількох постійних відмов поспіль, скільки вимагає поріг.</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>Створено (час сервера)</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Набирає чинності негайно, але зберігається лише в пам'яті: ніщо не зберігає це значення, тому кожен перезапуск служби скидає його до вбудованих 10240 КБ (10 МБ). Щоб зберегти іншу межу, її потрібно задавати знову після кожного перезапуску, наприклад зі скрипту запуску через COM API. TTL і перемикач увімкнення на цій картці зберігаються і переживають перезапуски.</value>
   </data>
@@ -11309,6 +11357,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архіві немає повідомлень для цього облікового запису.</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>Архіви показати не можна: не вдалося прочитати з сервера налаштування резервного копіювання.</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Параметри блокування вкладень не вдалося прочитати.</value>
   </data>
@@ -11329,6 +11380,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>Резервна копія записує базу даних і сховище повідомлень у теку; доки її не задано, резервної копії немає.</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>Резервні копії в папці призначення, спочатку найновіші. Виберіть одну, і картки відновлення нижче її використають; «Перевірити стан ще раз» перечитує папку.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Адреса прив'язки - не loopback-адреса, і облікові дані не задано, тому /metrics відповідає 503 (Service Unavailable) на кожен збір. Задайте bearer-токен, або обидва поля HTTP Basic, або прив'яжіться до 127.0.0.1. Перевірки стану здоров'я відповідають у будь-якому разі.</value>
@@ -12178,6 +12232,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Ім'я вузла сервера (Протоколи &gt; SMTP) ПОРОЖНЄ, тому в HELO/EHLO він оголошує ім'я свого комп'ютера Windows - не публічне ім'я DNS, - і жоден механізм «a:» чесно запропонувати не можна. Пропозиція дозволяє лише MX-вузли домену. Спершу задайте ім'я вузла; воно потрібне кільком записам на цій сторінці.</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>Не вдалося прочитати відповідь сервера про архів.</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>Не вдалося прочитати відповідь сервера про відновлення.</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Не вдалося прочитати відповідь сервера.</value>
   </data>
@@ -12430,6 +12490,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Ця Панель керування під'єднана до віддаленого сервера, і файл ключа розташований на диску того комп'ютера - з цього комп'ютера його прочитати неможливо, тому нічого про нього не перевірено. Це «невідомо», а не «OK»: перевірте його на самому сервері або з його сторінки «Контрольний список налаштування».</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>Ця Панель керування під'єднана до іншого комп'ютера, тому показати звідси архіви в папці призначення не можна. Вкажіть архів у картках нижче так, як він називається в папці призначення.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Ця Панель керування під'єднана до {0}, а не до комп'ютера, на якому вона працює. Служба hMailServer на {0} працює як {1} і не може запустити інсталятор, тому там оновлення встановлює адміністратор на самому сервері: відкрийте Панель керування hMailServer на самому {0} і натисніть там «Установити оновлення».</value>
@@ -15569,6 +15632,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} не вдалося знайти. Перевірте написання або введіть натомість IP-адресу сервера.</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>Не вдалося прочитати {0} з цього комп'ютера: {1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Таблиця даних {0}</value>

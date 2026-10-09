@@ -1624,11 +1624,17 @@
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>无法读取 ArcSealingEnabled：{0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>存档</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>存档文件夹（留空 = 关闭存档）</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir 保存的是经过服务器的每一封邮件的原始副本，而直到现在都没有任何机制从中删除任何东西 - 因此在繁忙的服务器上，它是一个只增不减的目录，而发现这一点的管理员往往就是磁盘被写满的那一位。此项会对它进行清理。0 表示保留全部，而且这是刻意为之的默认值：保留存档通常出于法律或合同上的原因，而一台在升级后开始从中删除内容的服务器，恰恰会销毁它被要求保留的东西。清理只会删除 .eml 文件，因此您在存档中保存的其他内容不会被动；它在启动时运行，此后每十二小时运行一次。</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>目标位置中的存档</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>要保留的存档数(_P)（0 = 全部保留）</value>
@@ -1846,8 +1852,8 @@
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>在无人值守安装之前先备份到已配置的目标位置（没有目标位置或备份失败就不会安装）</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>备份文件(_U)（服务器上的 HMBackup*.xml）</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>备份存档(_U)（服务器上的 HMBackup*.7z）</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>已备份到 {0}。</value>
@@ -1867,8 +1873,8 @@
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>备份与还原</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>备份文件 (*.xml)|*.xml|所有文件 (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>备份存档 (HMBackup*.7z)|HMBackup*.7z|所有文件 (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>备份间隔（分钟）(_L)（0 = 关闭）</value>
@@ -2064,6 +2070,9 @@
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>浏览器会话</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>浏览只能在服务器本机上使用；连接到其他计算机时，请按服务器所见的路径输入。</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>存储桶（S3）或容器（Azure）</value>
@@ -2370,6 +2379,12 @@
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>请在列表中选择一条规则。</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>请在上方列表中选择一个存档，或输入服务器上某个存档的路径。</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>在上方列表中选择一个存档，或输入服务器上某个存档的路径。其内容将替换下方所勾选类别的当前数据。</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>请选择至少一天之后的到期日期。今天就到期的密钥会在制作当天进行到一半时停止工作。</value>
@@ -3327,6 +3342,9 @@
   <data name="Database type" xml:space="preserve">
     <value>数据库类型</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>日期（服务器时间）</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>按 Received 标头而不是下载时间为每封邮件标注日期</value>
   </data>
@@ -4249,14 +4267,8 @@
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>请以 YYYY-MM-DD HH:MM:SS 格式输入到期时间。</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>请输入列表中显示的邮件 ID。</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>请输入用来加密存档的口令，并在下面再输入一次。</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>输入服务器上备份 XML 文件的路径。</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>请先输入扫描器命令。</value>
@@ -4668,6 +4680,9 @@
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>折叠此组</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>文件夹</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>复制待导入 PST 文件的文件夹（空 = 不导入 PST）</value>
@@ -6292,6 +6307,9 @@
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>被暂挂等待审核而不是被拒绝的邮件，以及您对每一封可以做的两件事：把它放行给收件人，或者删除它。</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>存档中的邮件</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>已建立索引的邮件：{1} 封中的 {0} 封。</value>
   </data>
@@ -6709,6 +6727,9 @@
   <data name="No archive" xml:space="preserve">
     <value>无存档</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>{0} 中还没有备份存档。“立即开始备份”会写入第一个。</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>未设置备份目标。</value>
   </data>
@@ -6765,6 +6786,9 @@
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>未配置目标文件夹，因此在设置之前，上面的计划会跳过每一次运行。</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>未设置目标文件夹，因此没有可列出的存档。</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>未返回诊断结果。</value>
@@ -9083,6 +9107,27 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Restore down" xml:space="preserve">
     <value>向下还原</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>恢复作业 {0} 失败。原因见备份日志。</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>恢复作业 {0} 失败：{1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>恢复作业 {0} 已完成，但有些邮件未能放回。文件夹：{1}；已添加邮件：{2}，因仍在邮箱中而跳过：{3}，失败：{4}。原因见备份日志。</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>恢复作业 {0} 已完成。文件夹：{1}；已添加邮件：{2}，因仍在邮箱中而跳过：{3}。</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>恢复作业 {0} 正在排队：一旦没有备份或其他恢复在运行，它就会开始。</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>恢复作业 {0} 正在运行。目前 - 文件夹：{1}；已添加邮件：{2}，因仍在邮箱中而跳过：{3}，失败：{4}。</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>恢复作业 {0} 报告了一个本控制面板不认识的状态：{1}。</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>还原邮件(_G)</value>
   </data>
@@ -9908,9 +9953,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Select an event first." xml:space="preserve">
     <value>请先选择一个事件。</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>选择由先前备份创建的备份 XML 文件 (位于目标文件夹中)。其内容将替换所选类别的当前数据。</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>新密钥的选择器（留空则使用以今天日期命名的选择器）</value>
   </data>
@@ -10444,6 +10486,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>通过 SAML 单点登录</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>大小 (MB)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>大小限制和扫描器…</value>
   </data>
@@ -10884,6 +10929,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
 
 发往该地址的下一封邮件将会发出；只有连续硬退信的次数达到阈值后，才会将其重新列入。</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>创建时间（服务器时间）</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>立即生效，但只保存在内存中: 没有任何地方存储此值，因此每次服务重启都会将其重置为内置的 10240 KB (10 MB)。要保持不同的限制，必须在每次重启后重新设置，例如通过 COM API 从启动脚本设置。此卡片上的 TTL 和启用开关会被存储，并且在重启后保留。</value>
   </data>
@@ -11193,6 +11241,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>存档中没有此账户的邮件。</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>无法列出存档：未能从服务器读取备份设置。</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>附件拦截设置无法读取。</value>
   </data>
@@ -11213,6 +11264,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>备份会把数据库和邮件存储写入一个文件夹；在设置目标之前，没有备份。</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>目标文件夹中的备份，最新的在前。选择一个，下方的恢复卡片就会使用它；“重新检查状态”会重新读取该文件夹。</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>绑定地址不是回环地址，且未设置凭据，因此 /metrics 对每次抓取都应答 503 (Service Unavailable)。请设置持有者令牌，或同时设置两个 HTTP Basic 字段，或绑定到 127.0.0.1。无论如何，健康探测都会继续应答。</value>
@@ -12032,6 +12086,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>服务器的主机名 (协议 &gt; SMTP) 为空，因此它在 HELO/EHLO 中通告的是其 Windows 计算机名 - 不是公共 DNS 名称 - 也就无法诚实地提供任何 "a:" 机制。建议只授权该域的 MX 主机。请先设置主机名；本页的多条记录都需要它。</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>无法读取服务器关于存档的回复。</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>无法读取服务器关于恢复的回复。</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>无法读取服务器的回应。</value>
   </data>
@@ -12281,6 +12341,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>此控制面板连接的是远程服务器，密钥文件在那台机器的磁盘上 - 无法从本机读取，因此未对它做任何验证。这是“未知”，不是“正常”: 请在服务器本身上检查，或从其“设置清单”页检查。</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>此控制面板连接的是另一台计算机，因此无法从这里列出目标位置中的存档。请在下方卡片中按目标位置列出的名称填写存档。</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>此控制面板连接的是 {0}，而不是它所运行的计算机。{0} 上的 hMailServer 服务以 {1} 身份运行，无法运行安装程序，因此那里的更新须由管理员在该服务器上安装：请直接在 {0} 上打开 hMailServer 控制面板，并在那里点击“安装更新”。</value>
@@ -15253,14 +15316,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} accounts found." xml:space="preserve">
     <value>找到 {0} 个账户。</value>
   </data>
+  <data name="{0} added." xml:space="preserve">
+    <value>已添加 {0}。</value>
+  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>列表中有 {0} 个地址，显示最近的 {1} 个。可通过搜索缩小范围。</value>
   </data>
   <data name="{0} address listed." xml:space="preserve">
     <value>列表中有 {0} 个地址。</value>
-  </data>
-  <data name="{0} added." xml:space="preserve">
-    <value>已添加 {0}。</value>
   </data>
   <data name="{0} addresses listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>列表中有 {0} 个地址，显示最近的 {1} 个。可通过搜索缩小范围。</value>
@@ -15342,6 +15405,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>找不到 {0}。请检查拼写，或者改为输入服务器的 IP 地址。</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>无法从本机读取 {0}：{1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>{0} 数据表</value>

@@ -1636,11 +1636,17 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Nie udało się odczytać ArcSealingEnabled: {0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>Archiwum</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Folder archiwum (puste = archiwizacja wyłączona)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir to surowa kopia każdej wiadomości przechodzącej przez serwer, a do tej pory nic nigdy niczego z niego nie usuwało - na obciążonym serwerze jest to więc katalog, który tylko rośnie, a dowiaduje się o tym ten administrator, któremu zapełnił się dysk. Ta opcja go przycina. 0 zachowuje wszystko i jest to celowa wartość domyślna: archiwum prowadzi się zwykle z powodów prawnych lub umownych, a serwer, który po aktualizacji zacząłby z niego usuwać, niszczyłby dokładnie to, co kazano mu przechowywać. Przegląd usuwa wyłącznie pliki .eml, więc cokolwiek innego jest trzymane w archiwum, pozostaje nietknięte; uruchamia się przy starcie i co dwanaście godzin potem.</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>Archiwa w folderze docelowym</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>Archiwa do zachowa_nia (0 = zachowaj wszystkie)</value>
@@ -1861,8 +1867,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Wykonuj kopię zapasową do skonfigurowanego miejsca docelowego przed nienadzorowaną instalacją (brak miejsca docelowego lub nieudana kopia zapasowa oznacza brak instalacji)</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>Plik kopii zapa_sowej (HMBackup*.xml na serwerze)</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>Archiwum kopii zapa_sowej (HMBackup*.7z na serwerze)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>Kopia zapasowa zapisana w {0}.</value>
@@ -1882,8 +1888,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Kopia zapasowa i przywracanie</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>Pliki kopii zapasowej (*.xml)|*.xml|Wszystkie pliki (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>Archiwa kopii zapasowych (HMBackup*.7z)|HMBackup*.7z|Wszystkie pliki (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>Interwał _kopii zapasowej w minutach (0 = wyłączone)</value>
@@ -2082,6 +2088,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>Sesje przeglądarki</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>Przeglądanie działa tylko na samym serwerze; po połączeniu z innym komputerem wpisz ścieżkę tak, jak widzi ją serwer.</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Kubełek (S3) lub kontener (Azure)</value>
@@ -2388,6 +2397,12 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Wybierz regułę z listy.</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>Wybierz archiwum z listy powyżej albo wpisz ścieżkę do archiwum na serwerze.</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>Wybierz archiwum z listy powyżej albo podaj ścieżkę do archiwum na serwerze. Jego zawartość zastąpi bieżące dane w kategoriach zaznaczonych poniżej.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Należy wybrać datę wygaśnięcia oddaloną co najmniej o dzień. Klucz wygasający dzisiaj przestałby działać w połowie dnia, w którym powstał.</value>
@@ -3345,6 +3360,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Database type" xml:space="preserve">
     <value>Typ bazy danych</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>Data (czas serwera)</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>Datuj każdą wiadomość według jej nagłówka Received zamiast według chwili pobrania</value>
   </data>
@@ -4285,14 +4303,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Należy podać wygaśnięcie w formacie YYYY-MM-DD HH:MM:SS.</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>Podaj id wiadomości tak, jak pokazuje je lista.</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Wpisz hasło, którym ma zostać zaszyfrowane archiwum, i wpisz je jeszcze raz poniżej.</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>Podaj ścieżkę pliku XML kopii zapasowej na serwerze.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Najpierw należy podać polecenie skanera.</value>
@@ -4722,6 +4734,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>Zwiń tę grupę</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>Folder</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>Folder, do którego kopiuje się pliki PST do importu (puste = bez importu PST)</value>
@@ -6352,6 +6367,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Wiadomości wstrzymane do przejrzenia zamiast odrzucenia oraz dwie rzeczy, które można z każdą zrobić: zwolnić ją do odbiorcy albo usunąć.</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>Wiadomości w archiwum</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>Zindeksowane wiadomości: {0} z {1}.</value>
   </data>
@@ -6772,6 +6790,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No archive" xml:space="preserve">
     <value>Brak archiwum</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>W {0} nie ma jeszcze archiwów kopii zapasowych. Pierwsze zapisze Rozpocznij kopię zapasową teraz.</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Nie ustawiono miejsca docelowego kopii zapasowej.</value>
   </data>
@@ -6828,6 +6849,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>Nie skonfigurowano folderu docelowego, więc harmonogram powyżej będzie pomijał każde uruchomienie, dopóki folder nie zostanie wskazany.</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>Nie ustawiono folderu docelowego, więc nie ma archiwów do wyświetlenia.</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>Nie zwrócono żadnych wyników diagnostyki.</value>
@@ -9167,6 +9191,27 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Restore down" xml:space="preserve">
     <value>Przywróć w dół</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>Zadanie przywracania {0} nie powiodło się. Przyczynę podaje dziennik kopii zapasowych.</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>Zadanie przywracania {0} nie powiodło się: {1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>Zadanie przywracania {0} zakończone, ale części wiadomości nie udało się przywrócić. Foldery: {1}; dodane wiadomości: {2}, pominięte, bo wciąż są w skrzynce: {3}, nieudane: {4}. Przyczynę podaje dziennik kopii zapasowych.</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>Zadanie przywracania {0} zakończone. Foldery: {1}; dodane wiadomości: {2}, pominięte, bo wciąż są w skrzynce: {3}.</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>Zadanie przywracania {0} czeka w kolejce: rozpocznie się, gdy tylko nie będzie trwać żadna kopia zapasowa ani inne przywracanie.</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>Zadanie przywracania {0} trwa. Dotąd - foldery: {1}; dodane wiadomości: {2}, pominięte, bo wciąż są w skrzynce: {3}, nieudane: {4}.</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>Zadanie przywracania {0} zgłasza stan, którego ten Control Panel nie zna: {1}.</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Przywróć wiado_mości</value>
   </data>
@@ -10016,9 +10061,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Select an event first." xml:space="preserve">
     <value>Najpierw wybierz zdarzenie.</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>Wybierz plik XML kopii zapasowej utworzony przez wcześniejszą kopię (w folderze docelowym). Jego zawartość zastąpi bieżące dane w wybranych kategoriach.</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>Selektor nowego klucza (pozostaw puste, aby użyć selektora nazwanego według dzisiejszej daty)</value>
   </data>
@@ -10557,6 +10599,9 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>Logowanie jednokrotne przez SAML</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>Rozmiar (MB)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Limit rozmiaru i skanery…</value>
   </data>
@@ -11000,6 +11045,9 @@ Uruchomić ją ponownie teraz?</value>
 
 Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę dopiero po tylu trwałych zwrotach z rzędu, ile wymaga próg.</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>Wykonano (czas serwera)</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Obowiązuje natychmiast, ale jest przechowywane wyłącznie w pamięci: nic nie zapisuje tej wartości, więc każde ponowne uruchomienie usługi przywraca wbudowane 10240 KB (10 MB). Aby zachować inny limit, trzeba go ustawiać po każdym uruchomieniu, na przykład ze skryptu startowego przez COM API. Wartości TTL i przełącznik włączający na tej karcie są zapisywane i przetrwają ponowne uruchomienie.</value>
   </data>
@@ -11309,6 +11357,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>Archiwum nie zawiera wiadomości dla tego konta.</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>Nie można wyświetlić archiwów: nie udało się odczytać z serwera ustawień kopii zapasowej.</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Nie udało się odczytać ustawień blokowania załączników.</value>
   </data>
@@ -11329,6 +11380,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>Kopia zapasowa zapisuje bazę danych i magazyn wiadomości do folderu; dopóki nie jest ustawiony, kopii nie ma.</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>Kopie zapasowe w folderze docelowym, od najnowszej. Wybierz jedną, a karty przywracania poniżej jej użyją; Sprawdź stan ponownie odczytuje folder jeszcze raz.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Adres powiązania nie jest adresem pętli zwrotnej, a żadne poświadczenie nie jest ustawione, więc /metrics odpowiada 503 (Service Unavailable) na każde pobranie metryk. Należy ustawić token bearer albo oba pola HTTP Basic, albo powiązać nasłuch z 127.0.0.1. Sondy kondycji odpowiadają tak czy inaczej.</value>
@@ -12178,6 +12232,12 @@ Odpowiada tu własny resolwer serwera - ten sam, którego używa dostarczanie SM
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Nazwa hosta serwera (Protokoły &gt; SMTP) jest PUSTA, więc w HELO/EHLO ogłasza on nazwę swojego komputera w systemie Windows - a nie publiczną nazwę DNS - i żadnego mechanizmu „a:” nie da się uczciwie zaoferować. Sugestia autoryzuje wyłącznie hosty MX domeny. Najpierw należy ustawić nazwę hosta; potrzebuje jej kilka rekordów na tej stronie.</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>Nie udało się odczytać odpowiedzi serwera o archiwum.</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>Nie udało się odczytać odpowiedzi serwera o przywracaniu.</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Nie udało się odczytać odpowiedzi serwera.</value>
   </data>
@@ -12430,6 +12490,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Ten Control Panel jest połączony ze zdalnym serwerem, a plik klucza znajduje się na dysku tamtego komputera - nie da się go odczytać z tego komputera, więc nic w nim nie zostało zweryfikowane. To stan „nieznane”, a nie „OK”: należy sprawdzić go na samym serwerze albo z jego strony Lista kontrolna konfiguracji.</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>Ten Control Panel jest połączony z innym komputerem, więc archiwów w folderze docelowym nie można stąd wyświetlić. Podaj archiwum w kartach poniżej tak, jak nazywa je folder docelowy.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Ten Control Panel jest połączony z {0}, a nie z komputerem, na którym działa. Usługa hMailServer na {0} działa jako {1}, które nie może uruchomić instalatora, więc tam aktualizacje instaluje administrator przy tym serwerze: otwórz hMailServer Control Panel na samym {0} i tam kliknij Zainstaluj aktualizację.</value>
@@ -15569,6 +15632,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>Nie udało się odnaleźć {0}. Należy sprawdzić pisownię albo podać zamiast tego adres IP serwera.</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>Nie udało się odczytać {0} z tego komputera: {1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Tabela danych {0}</value>

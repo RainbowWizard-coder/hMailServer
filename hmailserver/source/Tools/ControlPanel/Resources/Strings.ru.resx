@@ -1636,11 +1636,17 @@ Control Panel может читать файлы сообщений только
   <data name="ArcSealingEnabled could not be read: {0}" xml:space="preserve">
     <value>Не удалось прочитать ArcSealingEnabled: {0}</value>
   </data>
+  <data name="Archive" xml:space="preserve">
+    <value>Архив</value>
+  </data>
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Папка архива (пусто — архивирование выключено)</value>
   </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir — это необработанная копия каждого сообщения, проходящего через сервер, и до сих пор оттуда ничто и никогда не удалялось, так что на нагруженном сервере это каталог, который только растёт, а узнаёт об этом тот администратор, у которого заполнился диск. Этот параметр его подчищает. 0 сохраняет всё, и это значение по умолчанию выбрано намеренно: архив обычно ведут по юридическим или договорным причинам, и сервер, который при обновлении начал бы из него удалять, уничтожал бы ровно то, что ему велели хранить. Очистка удаляет только файлы .eml, поэтому всё прочее, что вы держите в архиве, остаётся нетронутым; она выполняется при запуске и далее каждые двенадцать часов.</value>
+  </data>
+  <data name="Archives in the destination" xml:space="preserve">
+    <value>Архивы в папке назначения</value>
   </data>
   <data name="Archives to kee_p (0 = keep all)" xml:space="preserve">
     <value>_Сколько архивов хранить (0 — хранить все)</value>
@@ -1861,8 +1867,8 @@ Control Panel может читать файлы сообщений только
   <data name="Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)" xml:space="preserve">
     <value>Создавать резервную копию в настроенное расположение перед автоматической установкой (нет расположения или неудачная резервная копия — значит установка не выполняется)</value>
   </data>
-  <data name="Back_up file (HMBackup*.xml on the server)" xml:space="preserve">
-    <value>_Файл резервной копии (HMBackup*.xml на сервере)</value>
+  <data name="Back_up archive (HMBackup*.7z on the server)" xml:space="preserve">
+    <value>_Архив резервной копии (HMBackup*.7z на сервере)</value>
   </data>
   <data name="Backed up to {0}." xml:space="preserve">
     <value>Резервная копия сохранена в {0}.</value>
@@ -1882,8 +1888,8 @@ Control Panel может читать файлы сообщений только
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Резервное копирование и восстановление</value>
   </data>
-  <data name="Backup files (*.xml)|*.xml|All files (*.*)|*.*" xml:space="preserve">
-    <value>Файлы резервных копий (*.xml)|*.xml|Все файлы (*.*)|*.*</value>
+  <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
+    <value>Архивы резервных копий (HMBackup*.7z)|HMBackup*.7z|Все файлы (*.*)|*.*</value>
   </data>
   <data name="Backup interva_l in minutes (0 = off)" xml:space="preserve">
     <value>_Интервал резервного копирования в минутах (0 — выключено)</value>
@@ -2082,6 +2088,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Browser sessions" xml:space="preserve">
     <value>Сеансы браузера</value>
+  </data>
+  <data name="Browsing works on the server itself; connected to another machine, type the path as the server sees it." xml:space="preserve">
+    <value>Обзор работает только на самом сервере; при подключении к другому компьютеру введите путь так, как его видит сервер.</value>
   </data>
   <data name="Bucket (S3) or container (Azure)" xml:space="preserve">
     <value>Корзина (S3) или контейнер (Azure)</value>
@@ -2388,6 +2397,12 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Choose a rule in the list." xml:space="preserve">
     <value>Выберите правило в списке.</value>
+  </data>
+  <data name="Choose an archive in the list above, or enter the path of one on the server." xml:space="preserve">
+    <value>Выберите архив в списке выше или введите путь к нему на сервере.</value>
+  </data>
+  <data name="Choose an archive in the list above, or give the path of one on the server. What it holds replaces the current data for the categories ticked below." xml:space="preserve">
+    <value>Выберите архив в списке выше или укажите путь к нему на сервере. Его содержимое заменит текущие данные для категорий, отмеченных ниже.</value>
   </data>
   <data name="Choose an expiry date at least a day away. A key that expires today would stop working part-way through the day it was made." xml:space="preserve">
     <value>Выберите дату окончания срока действия не раньше чем через день. Ключ, срок действия которого истекает сегодня, перестал бы работать в тот же день, когда был создан.</value>
@@ -3345,6 +3360,9 @@ Control Panel может читать файлы сообщений только
   <data name="Database type" xml:space="preserve">
     <value>Тип базы данных</value>
   </data>
+  <data name="Date (server time)" xml:space="preserve">
+    <value>Дата (время сервера)</value>
+  </data>
   <data name="Date each message by its Received header rather than by when it was downloaded" xml:space="preserve">
     <value>Датировать каждое сообщение по заголовку Received, а не по времени загрузки</value>
   </data>
@@ -4285,14 +4303,8 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введите срок истечения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС.</value>
   </data>
-  <data name="Enter the id of the message, as the listing shows it." xml:space="preserve">
-    <value>Укажите идентификатор сообщения так, как он показан в списке.</value>
-  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
-  </data>
-  <data name="Enter the path of the backup XML file on the server." xml:space="preserve">
-    <value>Укажите путь к XML-файлу резервной копии на сервере.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Сначала укажите команду сканера.</value>
@@ -4722,6 +4734,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Fold this group" xml:space="preserve">
     <value>Свернуть эту группу</value>
+  </data>
+  <data name="Folder" xml:space="preserve">
+    <value>Папка</value>
   </data>
   <data name="Folder PST files are copied into for import (empty = no PST import)" xml:space="preserve">
     <value>Папка, в которую копируются файлы PST для импорта (пусто = без импорта PST)</value>
@@ -6352,6 +6367,9 @@ Control Panel может читать файлы сообщений только
   <data name="Messages held for review instead of being refused, and the two things you can do with each: release it to the recipient, or delete it." xml:space="preserve">
     <value>Сообщения, задержанные для просмотра вместо отклонения, и два действия, возможные с каждым: выпустить его получателю или удалить.</value>
   </data>
+  <data name="Messages in the archive" xml:space="preserve">
+    <value>Сообщения в архиве</value>
+  </data>
   <data name="Messages indexed: {0} of {1}." xml:space="preserve">
     <value>Проиндексировано сообщений: {0} из {1}.</value>
   </data>
@@ -6772,6 +6790,9 @@ Control Panel может читать файлы сообщений только
   <data name="No archive" xml:space="preserve">
     <value>Без архива</value>
   </data>
+  <data name="No backup archives in {0} yet. Start backup now writes the first." xml:space="preserve">
+    <value>В {0} пока нет архивов резервных копий. Первый запишет «Начать резервное копирование сейчас».</value>
+  </data>
   <data name="No backup destination is set." xml:space="preserve">
     <value>Место для резервной копии не задано.</value>
   </data>
@@ -6828,6 +6849,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No destination folder is configured, so the schedule above will skip every run until one is set." xml:space="preserve">
     <value>Папка назначения не задана, поэтому расписание выше будет пропускать каждый запуск, пока она не появится.</value>
+  </data>
+  <data name="No destination folder is set, so there are no archives to list." xml:space="preserve">
+    <value>Папка назначения не задана, поэтому показывать нечего.</value>
   </data>
   <data name="No diagnostic results returned." xml:space="preserve">
     <value>Результаты диагностики не получены.</value>
@@ -9167,6 +9191,27 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Restore down" xml:space="preserve">
     <value>Свернуть в окно</value>
   </data>
+  <data name="Restore job {0} failed. The backup log says why." xml:space="preserve">
+    <value>Задание восстановления {0} не выполнено. Причина - в журнале резервного копирования.</value>
+  </data>
+  <data name="Restore job {0} failed: {1}" xml:space="preserve">
+    <value>Задание восстановления {0} не выполнено: {1}</value>
+  </data>
+  <data name="Restore job {0} is done, but some messages could not be put back. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}. The backup log says why." xml:space="preserve">
+    <value>Задание восстановления {0} выполнено, но некоторые сообщения вернуть не удалось. Папок: {1}; добавлено сообщений: {2}, пропущено (ещё в ящике): {3}, не удалось: {4}. Причина - в журнале резервного копирования.</value>
+  </data>
+  <data name="Restore job {0} is done. Folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}." xml:space="preserve">
+    <value>Задание восстановления {0} выполнено. Папок: {1}; добавлено сообщений: {2}, пропущено (ещё в ящике): {3}.</value>
+  </data>
+  <data name="Restore job {0} is queued: it starts as soon as no backup or other restore is running." xml:space="preserve">
+    <value>Задание восстановления {0} в очереди: оно начнётся, как только не будет выполняться ни резервное копирование, ни другое восстановление.</value>
+  </data>
+  <data name="Restore job {0} is running. So far - folders: {1}; messages added: {2}, skipped as still in the mailbox: {3}, failed: {4}." xml:space="preserve">
+    <value>Задание восстановления {0} выполняется. Пока - папок: {1}; добавлено сообщений: {2}, пропущено (ещё в ящике): {3}, не удалось: {4}.</value>
+  </data>
+  <data name="Restore job {0} reports a state this Control Panel does not know: {1}." xml:space="preserve">
+    <value>Задание восстановления {0} сообщает о состоянии, которого этот Control Panel не знает: {1}.</value>
+  </data>
   <data name="Restore messa_ges" xml:space="preserve">
     <value>Восс_тановить сообщения</value>
   </data>
@@ -10016,9 +10061,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Select an event first." xml:space="preserve">
     <value>Сначала выберите событие.</value>
   </data>
-  <data name="Select the backup XML file created by a previous backup (in the destination folder). The contents replace the current data for the selected categories." xml:space="preserve">
-    <value>Выберите XML-файл резервной копии, созданный предыдущим резервным копированием (он лежит в папке назначения). Его содержимое заменит текущие данные для выбранных категорий.</value>
-  </data>
   <data name="Selector for the new key (leave it empty for one named after today's date)" xml:space="preserve">
     <value>Селектор нового ключа (оставьте пустым, чтобы получить селектор с сегодняшней датой)</value>
   </data>
@@ -10557,6 +10599,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Single sign-on with SAML" xml:space="preserve">
     <value>Единый вход через SAML</value>
   </data>
+  <data name="Size (MB)" xml:space="preserve">
+    <value>Размер (МБ)</value>
+  </data>
   <data name="Size limit and scanners…" xml:space="preserve">
     <value>Ограничение размера и сканеры…</value>
   </data>
@@ -11000,6 +11045,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
 
 Следующее сообщение на этот адрес будет отправлено, а в список адрес вернётся только после стольких постоянных отказов подряд, сколько требует порог.</value>
   </data>
+  <data name="Taken (server time)" xml:space="preserve">
+    <value>Создана (время сервера)</value>
+  </data>
   <data name="Takes effect immediately, but is held in memory only: nothing stores this value, so every service restart resets it to the built-in 10240 KB (10 MB). To keep a different limit it must be set again after each restart, for example from a startup script through the COM API. The TTLs and the enable switch on this card are stored and do survive restarts." xml:space="preserve">
     <value>Вступает в силу немедленно, но хранится только в памяти: это значение нигде не сохраняется, поэтому каждый перезапуск службы возвращает встроенные 10240 КБ (10 МБ). Чтобы удерживать другой предел, его нужно задавать заново после каждого перезапуска — например, из сценария запуска через COM API. Значения TTL и переключатель включения на этой карточке сохраняются и перезапуск переживают.</value>
   </data>
@@ -11309,6 +11357,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The archive holds no messages for this account." xml:space="preserve">
     <value>В архиве нет сообщений для этой учётной записи.</value>
   </data>
+  <data name="The archives cannot be listed: the backup settings could not be read from the server." xml:space="preserve">
+    <value>Архивы показать нельзя: не удалось прочитать с сервера настройки резервного копирования.</value>
+  </data>
   <data name="The attachment blocking settings could not be read." xml:space="preserve">
     <value>Параметры блокировки вложений не удалось прочитать.</value>
   </data>
@@ -11329,6 +11380,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The backup writes the database and the message store to a folder; until one is set there is no backup." xml:space="preserve">
     <value>Резервная копия записывает базу данных и хранилище сообщений в папку; пока она не задана, резервной копии нет.</value>
+  </data>
+  <data name="The backups in the destination folder, newest first. Choose one and the restore cards below use it; Re-check status reads the folder again." xml:space="preserve">
+    <value>Резервные копии в папке назначения, сначала самые новые. Выберите одну, и карточки восстановления ниже будут её использовать; «Проверить состояние заново» перечитывает папку.</value>
   </data>
   <data name="The bind address is not a loopback address and no credential is set, so /metrics answers 503 (Service Unavailable) to every scrape. Set a bearer token, or both HTTP Basic fields, or bind to 127.0.0.1. The health probes keep answering either way." xml:space="preserve">
     <value>Адрес привязки не является адресом обратной петли, а учётные данные не заданы, поэтому /metrics отвечает 503 (Service Unavailable) на каждый сбор метрик. Задайте токен-носитель, или оба поля HTTP Basic, или выполните привязку к 127.0.0.1. Проверки работоспособности продолжают отвечать в любом случае.</value>
@@ -12178,6 +12232,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server's Host name (Protocols &gt; SMTP) is EMPTY, so it announces its Windows computer name in HELO/EHLO - not a public DNS name - and no &quot;a:&quot; mechanism can honestly be offered. The suggestion authorises only the domain's MX hosts. Set the host name first; several records on this page need it." xml:space="preserve">
     <value>Имя узла сервера (Протоколы &gt; SMTP) ПУСТОЕ, поэтому в HELO/EHLO он объявляет имя своего компьютера Windows - не публичное имя DNS, - и ни один механизм «a:» честно предложить нельзя. Предложение разрешает только MX-узлы домена. Сначала задайте имя узла; оно нужно нескольким записям на этой странице.</value>
   </data>
+  <data name="The server's answer about the archive could not be read." xml:space="preserve">
+    <value>Не удалось прочитать ответ сервера об архиве.</value>
+  </data>
+  <data name="The server's answer about the restore could not be read." xml:space="preserve">
+    <value>Не удалось прочитать ответ сервера о восстановлении.</value>
+  </data>
   <data name="The server's answer could not be read." xml:space="preserve">
     <value>Не удалось прочитать ответ сервера.</value>
   </data>
@@ -12430,6 +12490,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="This Control Panel is connected to a remote server, and the key file is on that machine's disk - it cannot be read from this machine, so nothing about it is verified. This is &quot;unknown&quot;, not &quot;OK&quot;: check it on the server itself, or from its Setup checklist page." xml:space="preserve">
     <value>Этот Control Panel подключён к удалённому серверу, и файл ключа находится на диске той машины - с этой машины его прочитать нельзя, поэтому ничего о нём не проверено. Это «неизвестно», а не «OK»: проверьте его на самом сервере или с его страницы «Контрольный список настройки».</value>
+  </data>
+  <data name="This Control Panel is connected to another machine, so the archives in the destination cannot be listed from here. Name the archive in the cards below as the destination lists it." xml:space="preserve">
+    <value>Этот Control Panel подключён к другому компьютеру, поэтому показать отсюда архивы в папке назначения нельзя. Укажите архив в карточках ниже так, как он называется в папке назначения.</value>
   </data>
   <data name="This Control Panel is connected to {0}, not to the computer it runs on. The hMailServer service on {0} runs as {1}, which cannot run an installer, so updates there are installed by an administrator at that server: open the hMailServer Control Panel on {0} itself and click Install update there." xml:space="preserve">
     <value>Этот Control Panel подключён к {0}, а не к компьютеру, на котором он запущен. Служба hMailServer на {0} работает как {1} и не может запустить установщик, поэтому там обновления устанавливает администратор на самом сервере: откройте hMailServer Control Panel на самом {0} и нажмите там «Установить обновление».</value>
@@ -15569,6 +15632,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} could not be found. Check the spelling, or enter the server's IP address instead." xml:space="preserve">
     <value>{0} не найден. Проверьте написание или укажите вместо него IP-адрес сервера.</value>
+  </data>
+  <data name="{0} could not be read from this machine: {1}" xml:space="preserve">
+    <value>Не удалось прочитать {0} с этого компьютера: {1}</value>
   </data>
   <data name="{0} data table" xml:space="preserve">
     <value>Таблица данных {0}</value>
