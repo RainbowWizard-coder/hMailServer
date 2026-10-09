@@ -87,6 +87,7 @@ import io
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -469,7 +470,10 @@ def run_push(bash, registry_tags, new_manifest, carries=None, others="", down=Fa
         docker = os.path.join(fake, "bin", "docker")
         with io.open(docker, "w", encoding="utf-8", newline="\n") as f:
             f.write(FAKE_DOCKER)
-        os.chmod(docker, 0o755)
+        # Executable by the user who runs the self-test, which is all the script's PATH
+        # lookup needs, and by nobody else: the file keeps the mode it was made with and
+        # gains the owner's execute bit alone (inside mkdtemp's directory, which is 0700).
+        os.chmod(docker, os.stat(docker).st_mode | stat.S_IXUSR)
         for tag, manifest in registry_tags.items():
             with open(os.path.join(fake, "registry", tag), "wb") as f:
                 f.write(manifest)
