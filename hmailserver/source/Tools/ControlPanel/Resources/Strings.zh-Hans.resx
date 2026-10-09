@@ -7315,6 +7315,12 @@
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>每 {0} 一个数据点，取自服务器保留的 {1} 天历史。吞吐量是已处理邮件总数每分钟的变化量。</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>有一个设置无法读取，因此在其卡片上标为“未读取”，保存时它在服务器上保持不变。原因：{0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>此卡片上有一个设置无法读取，因此标为“未读取”；保存时它在服务器上保持不变。</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>只存储每个密钥的摘要，因此无法从此处或从文件中读回密钥。吊销一个密钥会把它的节从存储中移除，并在紧接着的下一个请求上生效。</value>
   </data>
@@ -15239,11 +15245,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>有 {0} 项设置无法写入。</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>有 {0} 个设置无法读取，因此在各自的卡片上标为“未读取”，保存时它们在服务器上保持不变。第一个原因：{1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>有 {0} 项设置无法读取：{1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>有 {0} 项设置无法写入。</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>此卡片上有 {0} 个设置无法读取，因此标为“未读取”；保存时它们在服务器上保持不变。</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} 条反垃圾邮件豁免</value>

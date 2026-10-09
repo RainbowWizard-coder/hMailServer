@@ -145,15 +145,20 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The sentence after a read: null when every value was read, which is the
-      /// ordinary case and not worth a notice; otherwise how many were not and
-      /// the first reason.
+      /// ordinary case and not worth a notice; otherwise how many were not, where
+      /// they are - each is marked Not read on its card - and what a save does with
+      /// them, and the first reason last, since it is the server's text and may not
+      /// end a sentence. One sentence per number, so that each language counts its
+      /// own way.
       /// </summary>
       public static string ReadSentence(int failedReads, string diagnosis)
       {
          if (failedReads <= 0)
             return null;
 
-         return PluralF(failedReads, "{0} setting could not be read: {1}", "{0} settings could not be read: {1}", failedReads, diagnosis ?? "");
+         return failedReads == 1
+            ? F("One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}", diagnosis ?? "")
+            : F("{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}", failedReads, diagnosis ?? "");
       }
 
       /// <summary>

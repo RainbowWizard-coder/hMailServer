@@ -7315,6 +7315,12 @@ Nada do que já está lá é removido.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Um ponto por {0}, a partir do histórico de {1} dias que o servidor mantém. A vazão é a variação do total de mensagens processadas por minuto.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Uma configuração não pôde ser lida, por isso está marcada como "Não lido" em seu cartão e, ao salvar, ela fica como está no servidor. Motivo: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Uma configuração deste cartão não pôde ser lida, por isso está marcada como "Não lido"; ao salvar, ela fica como está no servidor.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Apenas um resumo (digest) de cada chave é armazenado, então uma chave não pode ser lida de volta daqui nem do arquivo. Revogar uma remove a seção dela do armazenamento e vale já na requisição seguinte.</value>
   </data>
@@ -15239,11 +15245,17 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} configuração não pôde ser gravada.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} configurações não puderam ser lidas, por isso estão marcadas como "Não lido" em seus cartões e, ao salvar, elas ficam como estão no servidor. Primeiro motivo: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>{0} configurações não puderam ser lidas: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} configurações não puderam ser gravadas.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>{0} configurações deste cartão não puderam ser lidas, por isso estão marcadas como "Não lido"; ao salvar, elas ficam como estão no servidor.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} exceções antispam</value>

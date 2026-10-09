@@ -7315,6 +7315,12 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Sunucunun sakladığı {1} günlük geçmişten, {0} başına bir nokta. Verim, işlenen ileti toplamındaki dakika başına değişimdir.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Bir ayar okunamadı, bu yüzden kartında Okunmadı olarak işaretlendi ve kaydetmek onu sunucuda olduğu gibi bırakır. Nedeni: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Bu karttaki bir ayar okunamadı, bu yüzden Okunmadı olarak işaretlendi; kaydetmek onu sunucuda olduğu gibi bırakır.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Her anahtarın yalnızca bir özeti saklanır; bu yüzden bir anahtar ne buradan ne de dosyadan geri okunabilir. Birini iptal etmek bölümünü depodan kaldırır ve hemen bir sonraki istekte geçerli olur.</value>
   </data>
@@ -15239,11 +15245,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} ayar yazılamadı.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} ayar okunamadı, bu yüzden kartlarında Okunmadı olarak işaretlendi ve kaydetmek onları sunucuda olduğu gibi bırakır. İlk neden: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>{0} ayar okunamadı: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} ayar yazılamadı.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Bu karttaki {0} ayar okunamadı, bu yüzden Okunmadı olarak işaretlendi; kaydetmek onları sunucuda olduğu gibi bırakır.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} spam istisnası</value>

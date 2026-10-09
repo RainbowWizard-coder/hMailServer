@@ -7393,6 +7393,12 @@ Control Panel может читать файлы сообщений только
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Одна точка на {0}, по истории за {1} дн., которую хранит сервер. Пропускная способность — это изменение общего числа обработанных сообщений за минуту.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Один параметр не удалось прочитать, поэтому на своей карточке он помечен «Не прочитано», а при сохранении остаётся на сервере без изменений. Причина: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Один параметр на этой карточке не удалось прочитать, поэтому он помечен «Не прочитано»; при сохранении он остаётся на сервере без изменений.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Хранится только хеш каждого ключа, поэтому сам ключ нельзя прочитать ни отсюда, ни из файла. Отзыв ключа удаляет его раздел из хранилища и вступает в силу на самом первом же следующем запросе.</value>
   </data>
@@ -15565,6 +15571,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>Не удалось записать параметров: {0}.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>Параметров, которые не удалось прочитать: {0}. На своих карточках они помечены «Не прочитано», а при сохранении остаются на сервере без изменений. Первая причина: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>Параметров, которые не удалось прочитать: {0}. {1}</value>
   </data>
@@ -15576,6 +15585,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} settings could not be written.|few" xml:space="preserve">
     <value>Не удалось записать параметров: {0}.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметров на этой карточке, которые не удалось прочитать: {0}. Они помечены «Не прочитано»; при сохранении они остаются на сервере без изменений.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>Исключений антиспама: {0}</value>

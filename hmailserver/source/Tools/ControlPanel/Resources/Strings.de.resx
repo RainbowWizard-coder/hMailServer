@@ -7315,6 +7315,12 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Ein Punkt je {0}, aus der Historie von {1} Tagen, die der Server führt. Der Durchsatz ist die Änderung der Gesamtzahl verarbeiteter Nachrichten pro Minute.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Eine Einstellung konnte nicht gelesen werden und ist deshalb auf ihrer Karte mit „Nicht gelesen“ markiert; beim Speichern bleibt sie auf dem Server unverändert. Grund: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Eine Einstellung auf dieser Karte konnte nicht gelesen werden und ist deshalb mit „Nicht gelesen“ markiert; beim Speichern bleibt sie auf dem Server unverändert.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Gespeichert wird nur ein Digest jedes Schlüssels, ein Schlüssel lässt sich also weder von hier noch aus der Datei zurücklesen. Ein Widerruf entfernt seinen Abschnitt aus dem Speicher und wirkt bei der allernächsten Anfrage.</value>
   </data>
@@ -15239,11 +15245,17 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} Einstellung konnte nicht geschrieben werden.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} Einstellungen konnten nicht gelesen werden und sind deshalb auf ihren Karten mit „Nicht gelesen“ markiert; beim Speichern bleiben sie auf dem Server unverändert. Erster Grund: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>{0} Einstellungen konnten nicht gelesen werden: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} Einstellungen konnten nicht geschrieben werden.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>{0} Einstellungen auf dieser Karte konnten nicht gelesen werden und sind deshalb mit „Nicht gelesen“ markiert; beim Speichern bleiben sie auf dem Server unverändert.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} Spam-Ausnahmen</value>
@@ -15371,11 +15383,11 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, von {1}, Bewertung {2}</value>
   </data>
-  <data name="{0}, on the {1} page" xml:space="preserve">
-    <value>{0}, auf der Seite {1}</value>
-  </data>
   <data name="{0}, not available" xml:space="preserve">
     <value>{0}, nicht verfügbar</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, auf der Seite {1}</value>
   </data>
   <data name="{0}, {1}, as read at {2}" xml:space="preserve">
     <value>{0}, {1}, Stand {2}</value>

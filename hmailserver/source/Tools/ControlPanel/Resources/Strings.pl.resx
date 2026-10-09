@@ -7393,6 +7393,12 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Jeden punkt na {0}, z {1}-dniowej historii przechowywanej przez serwer. Przepustowość to zmiana łącznej liczby przetworzonych wiadomości na minutę.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać jednego ustawienia, dlatego na swojej karcie jest oznaczone jako „Nieodczytane”, a zapisanie pozostawia je na serwerze bez zmian. Powód: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Nie udało się odczytać jednego ustawienia na tej karcie, dlatego jest oznaczone jako „Nieodczytane”; zapisanie pozostawia je na serwerze bez zmian.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Przechowywany jest wyłącznie skrót każdego klucza, więc klucza nie da się odczytać ani stąd, ani z pliku. Unieważnienie usuwa jego sekcję z magazynu i obowiązuje już od następnego żądania.</value>
   </data>
@@ -15565,6 +15571,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>Nie udało się zapisać {0} ustawienia.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>Liczba ustawień, których nie udało się odczytać: {0}. Na swoich kartach są oznaczone jako „Nieodczytane”, a zapisanie pozostawia je na serwerze bez zmian. Pierwszy powód: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>Nie udało się odczytać {0} ustawień: {1}</value>
   </data>
@@ -15576,6 +15585,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} settings could not be written.|few" xml:space="preserve">
     <value>Nie udało się zapisać {0} ustawień.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Liczba ustawień na tej karcie, których nie udało się odczytać: {0}. Są oznaczone jako „Nieodczytane”; zapisanie pozostawia je na serwerze bez zmian.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>Wyjątki antyspamowe: {0}</value>

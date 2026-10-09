@@ -7315,6 +7315,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Un punto ogni {0}, dallo storico di {1} giorni che il server conserva. Il throughput è la variazione al minuto del totale dei messaggi elaborati.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Non è stato possibile leggere un'impostazione, quindi è contrassegnata come «Non letto» sulla sua scheda e il salvataggio la lascia com'è sul server. Motivo: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Non è stato possibile leggere un'impostazione di questa scheda, quindi è contrassegnata come «Non letto»; il salvataggio la lascia com'è sul server.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Di ogni chiave viene memorizzato solo un digest, quindi una chiave non può essere riletta né da qui né dal file. Revocarne una rimuove la sua sezione dall'archivio e ha effetto già dalla richiesta immediatamente successiva.</value>
   </data>
@@ -15239,11 +15245,17 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>Non è stato possibile scrivere {0} impostazione.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>Non è stato possibile leggere {0} impostazioni, quindi sono contrassegnate come «Non letto» sulle loro schede e il salvataggio le lascia come sono sul server. Primo motivo: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>Non è stato possibile leggere {0} impostazioni: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>Non è stato possibile scrivere {0} impostazioni.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Non è stato possibile leggere {0} impostazioni di questa scheda, quindi sono contrassegnate come «Non letto»; il salvataggio le lascia come sono sul server.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} esenzioni antispam</value>

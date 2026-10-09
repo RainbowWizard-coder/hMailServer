@@ -7315,6 +7315,12 @@ Inget som redan finns där tas bort.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>En punkt per {0}, från den {1}-dagarshistorik servern behåller. Genomströmning är förändringen i totalen behandlade meddelanden per minut.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>En inställning kunde inte läsas, så den är markerad Inte läst på sitt kort, och när du sparar lämnas den som den är på servern. Varför: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>En inställning på det här kortet kunde inte läsas, så den är markerad Inte läst; när du sparar lämnas den som den är på servern.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Bara en digest av varje nyckel lagras, så en nyckel kan inte läsas tillbaka härifrån eller från filen. Att återkalla en tar bort dess sektion från lagret och träder i kraft vid allra nästa begäran.</value>
   </data>
@@ -15239,11 +15245,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} inställning kunde inte skrivas.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} inställningar kunde inte läsas, så de är markerade Inte läst på sina kort, och när du sparar lämnas de som de är på servern. Den första orsaken: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>{0} inställningar kunde inte läsas: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} inställningar kunde inte skrivas.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>{0} inställningar på det här kortet kunde inte läsas, så de är markerade Inte läst; när du sparar lämnas de som de är på servern.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} skräppostundantag</value>

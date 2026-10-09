@@ -1159,6 +1159,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and a statistic the server could not give is a Warning notice in place of the figure. The catches whose try is
   local - a file, the registry, a browser, an HTTPS fetch or an LDAP probe from this machine - keep their own text,
   and `FailureStateTests` names each with its reason, so that a new catch showing a failure's raw text fails it.
+- **Fixed: a settings card whose settings could not be read showed only its heading, and nothing said which card
+  had lost what.** On the delivery, protocols, webmail, SSL/TLS, auto-ban, advanced, performance, anti-spam and
+  anti-virus pages, a setting the server would not give was skipped - correctly, since no default is ever saved - but
+  the only sign was "29 setting(s) could not be read" at the top of the page: the Rules tab showed only "Rules", the
+  Thresholds & actions card was a bare heading, and on an older server the September greylisting settings simply
+  vanished. Each such setting now keeps its caption and note on its card with a neutral *Not read* pill where its
+  editor would be; the card says at its top, as a Warning, how many of its settings could not be read and that saving
+  leaves them as they are on the server; and the page's sentence says the same of the page - one sentence per number
+  - with the first reason last. `FailureStateTests` holds both roads to an unread row, the REST key the server does
+  not answer and the COM read that threw, to the row and the count, and the page's sentence to its wording.
 
 ### Administration
 

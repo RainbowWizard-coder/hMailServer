@@ -7393,6 +7393,12 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Jeden bod na {0}, z {1}denní historie, kterou server uchovává. Propustnost je změna celkového počtu zpracovaných zpráv za minutu.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Jedno nastavení se nepodařilo přečíst, proto je na své kartě označeno „Nepřečteno“ a uložení ho na serveru ponechá beze změny. Důvod: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Jedno nastavení na této kartě se nepodařilo přečíst, proto je označeno „Nepřečteno“; uložení ho na serveru ponechá beze změny.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Z každého klíče se ukládá pouze otisk, takže klíč nelze zpětně přečíst ani odsud, ani ze souboru. Odvolání klíče odstraní jeho sekci z úložiště a projeví se hned při dalším požadavku.</value>
   </data>
@@ -15565,6 +15571,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} nastavení nešlo zapsat.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>Nastavení, která se nepodařilo přečíst: {0}. Na svých kartách jsou označena „Nepřečteno“ a uložení je na serveru ponechá beze změny. První důvod: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>{0} nastavení nešlo přečíst: {1}</value>
   </data>
@@ -15576,6 +15585,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} settings could not be written.|few" xml:space="preserve">
     <value>{0} nastavení nešlo zapsat.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Nastavení na této kartě, která se nepodařilo přečíst: {0}. Jsou označena „Nepřečteno“; uložení je na serveru ponechá beze změny.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>Výjimky z antispamu: {0}</value>

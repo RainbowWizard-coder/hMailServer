@@ -2470,8 +2470,9 @@ namespace hMailServer.ControlPanel.Views
          grey.Settings.Add(new ComBool { Path = "AntiSpam.BypassGreylistingOnSPFSuccess", Label = L("Bypass on SPF success") });
          // The hardened greylisting of 18 September 2026 (discussion #282): each
          // off or inert by default, so a server that never touches them runs
-         // classic greylisting. A server older than these has no such properties
-         // and the rows say so as every other COM row does.
+         // classic greylisting. A server older than these has no such properties,
+         // and the rows say so as every other COM row does: each is marked Not read
+         // and the card counts them at its top (BuildUi, UnreadRow_).
          grey.Settings.Add(new ComBool
          {
             Path = "AntiSpam.GreyListingSlideOnEarlyRetry",
@@ -5136,6 +5137,13 @@ namespace hMailServer.ControlPanel.Views
                // once, at the top of the card, in place of them.
                string restProblem = null;
 
+               // How many of this card's settings could not be read. Each keeps its
+               // caption with "Not read" where its editor would be, and the card says
+               // how many at its top and that saving leaves them as they are, so that
+               // a card never stands as a bare heading and the page's count of unread
+               // settings can be found card by card.
+               int unread = 0;
+
                foreach (ComSetting setting in card.Settings)
                {
                   object value = null;
@@ -5157,6 +5165,8 @@ namespace hMailServer.ControlPanel.Views
                         {
                            failedReads_++;
                            diag_ ??= F("The server does not answer {0} in {1}; it may be older than this Control Panel.", rest.Key, rest.Group);
+                           unread++;
+                           fields.Children.Add(lastRow = UnreadRow_(setting));
                            continue;
                         }
 
@@ -5176,7 +5186,9 @@ namespace hMailServer.ControlPanel.Views
                      {
                         failedReads_++;
                         diag_ ??= ServerSession.DescribeComError(ex);
-                        continue;   // value could not be read; skip this editor
+                        unread++;
+                        fields.Children.Add(lastRow = UnreadRow_(setting));
+                        continue;   // value could not be read: no editor, and Save leaves it alone
                      }
                   }
 
@@ -5198,6 +5210,17 @@ namespace hMailServer.ControlPanel.Views
                      Level = StatusLevel.Warning,
                      Text = restProblem,
                      Margin = new Thickness(0, 0, 0, lastRow != null ? DesignTokens.Space.Md : 0)
+                  });
+               }
+               else if (unread > 0)
+               {
+                  fields.Children.Insert(0, new Scaffold.InlineNotice
+                  {
+                     Level = StatusLevel.Warning,
+                     Text = unread == 1
+                        ? L("One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.")
+                        : F("{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.", unread),
+                     Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
                   });
                }
 
@@ -5261,6 +5284,32 @@ namespace hMailServer.ControlPanel.Views
          // and the page does not announce unsaved changes before anybody has
          // typed anything.
          Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() => building_ = false));
+      }
+
+      /// <summary>
+      /// The row of a setting whose value could not be read: its caption, with no
+      /// access key since there is nothing to put the keyboard in, and a neutral
+      /// "Not read" pill where its editor would be - the word the overviews give a
+      /// value they could not read. Its note stays under it, so that the setting
+      /// can still be recognised. No editor, so nothing is filled with a default and
+      /// Save leaves the setting as it is on the server (it is not in built_).
+      /// </summary>
+      private static Scaffold.FieldRow UnreadRow_(ComSetting setting)
+      {
+         var pill = new Scaffold.StatusPill
+         {
+            Level = StatusLevel.Normal,
+            Text = L("Not read"),
+            HorizontalAlignment = HorizontalAlignment.Left
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(pill, "setting-not-read");
+
+         return new Scaffold.FieldRow
+         {
+            Label = MnemonicText.Escape(MnemonicText.Strip(setting.Label ?? setting.Path ?? "")),
+            Hint = setting.Blurb,
+            Content = pill
+         };
       }
 
       /// <summary>

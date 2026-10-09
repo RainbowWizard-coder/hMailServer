@@ -7315,6 +7315,12 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Eén meetpunt per {0}, uit de geschiedenis van {1} dagen die de server bijhoudt. De doorvoer is de verandering van het totaal aan verwerkte berichten per minuut.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Eén instelling kon niet worden gelezen en is daarom op haar kaart gemarkeerd als Niet gelezen; opslaan laat haar op de server zoals ze is. Waarom: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Eén instelling op deze kaart kon niet worden gelezen en is daarom gemarkeerd als Niet gelezen; opslaan laat haar op de server zoals ze is.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Van elke sleutel wordt alleen een digest opgeslagen, dus een sleutel kan hier noch uit het bestand worden teruggelezen. Een sleutel intrekken verwijdert zijn sectie uit de opslag en werkt vanaf het eerstvolgende verzoek.</value>
   </data>
@@ -15239,11 +15245,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>{0} instelling kon niet worden geschreven.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>{0} instellingen konden niet worden gelezen en zijn daarom op hun kaarten gemarkeerd als Niet gelezen; opslaan laat ze op de server zoals ze zijn. De eerste reden: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>{0} instellingen konden niet worden gelezen: {1}</value>
   </data>
   <data name="{0} settings could not be written." xml:space="preserve">
     <value>{0} instellingen konden niet worden geschreven.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>{0} instellingen op deze kaart konden niet worden gelezen en zijn daarom gemarkeerd als Niet gelezen; opslaan laat ze op de server zoals ze zijn.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>{0} spamuitzonderingen</value>

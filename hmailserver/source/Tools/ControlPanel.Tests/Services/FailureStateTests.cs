@@ -233,6 +233,61 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"catch \(Exception ex\)[^{]*\{[^}]*return new Scaffold\.InlineNotice\s*\{\s*Level = StatusLevel\.Warning", RegexOptions.Singleline), build);
       }
 
+      // ---- a card that lost settings says so -------------------------------------
+
+      /// <summary>
+      /// A setting whose value could not be read keeps its caption on its card with
+      /// "Not read" in place of its editor, by either road - a COM read that threw,
+      /// a REST group that does not answer its key - and the card says at its top
+      /// how many and that saving leaves them as they are. Before, the row was
+      /// skipped: a card that lost every row was a bare heading, and nothing said
+      /// which card had lost what.
+      /// </summary>
+      [Fact]
+      public void ACardThatLostSettings_MarksEachAndSaysHowMany()
+      {
+         string source = ReadView("ServerSettingsView.xaml.cs");
+         string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
+         Assert.True(build != null, "ServerSettingsView.xaml.cs no longer has BuildUi.");
+
+         // Both roads to an unread row count it and mark it before they go on.
+         Assert.Equal(2, Regex.Matches(build, @"failedReads_\+\+;\s*diag_ \?\?= .+?;\s*unread\+\+;\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);\s*continue;").Count);
+
+         // The card's own notice, one sentence per number.
+         Assert.Contains("else if (unread > 0)", build, StringComparison.Ordinal);
+         Assert.Contains("L(\"One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.\")", build, StringComparison.Ordinal);
+         Assert.Contains("F(\"{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.\", unread)", build, StringComparison.Ordinal);
+
+         // The row: the caption with no access key, the note, and the neutral pill.
+         string row = WithheldRowTests.MemberText(source, "private static Scaffold.FieldRow UnreadRow_(ComSetting setting)");
+         Assert.True(row != null, "ServerSettingsView.xaml.cs no longer has UnreadRow_.");
+         Assert.Contains("Level = StatusLevel.Normal", row, StringComparison.Ordinal);
+         Assert.Contains("Text = L(\"Not read\")", row, StringComparison.Ordinal);
+         Assert.Contains("MnemonicText.Escape(MnemonicText.Strip(", row, StringComparison.Ordinal);
+         Assert.Contains("Hint = setting.Blurb", row, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The page's sentence says where the unread settings are and what a save does
+      /// with them, one sentence per number, the reason last - where it was "29
+      /// setting(s) could not be read" with nothing to say which card or that Save
+      /// leaves them alone.
+      /// </summary>
+      [Fact]
+      public void ThePagesSentence_SaysWhereTheUnreadSettingsAreAndWhatSaveDoes()
+      {
+         string one = hMailServer.ControlPanel.Services.ServerSettingsPageStatus.ReadSentence(1, "the reason");
+         Assert.StartsWith("One setting could not be read", one, StringComparison.Ordinal);
+         Assert.Contains("marked Not read on its card", one, StringComparison.Ordinal);
+         Assert.EndsWith("Why: the reason", one, StringComparison.Ordinal);
+
+         string many = hMailServer.ControlPanel.Services.ServerSettingsPageStatus.ReadSentence(29, "the reason");
+         Assert.StartsWith("29 settings could not be read", many, StringComparison.Ordinal);
+         Assert.Contains("saving leaves them as they are on the server", many, StringComparison.Ordinal);
+         Assert.EndsWith("The first reason: the reason", many, StringComparison.Ordinal);
+         Assert.DoesNotContain("(s)", one + many, StringComparison.Ordinal);
+      }
+
       /// <summary>
       /// Every COM read the checks count as failed also records whether the link
       /// went. (A document that could not be parsed is caught by type, and is never

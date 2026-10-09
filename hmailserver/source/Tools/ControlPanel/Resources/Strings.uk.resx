@@ -7393,6 +7393,12 @@
   <data name="One point per {0}, from the {1}-day history the server keeps. Throughput is the change in the processed-messages total per minute." xml:space="preserve">
     <value>Одна точка на {0} з історії за {1} дн., яку зберігає сервер. Пропускна здатність — це зміна загальної кількості оброблених повідомлень за хвилину.</value>
   </data>
+  <data name="One setting could not be read, so it is marked Not read on its card and saving leaves it as it is on the server. Why: {0}" xml:space="preserve">
+    <value>Один параметр не вдалося прочитати, тому на своїй картці він позначений «Не прочитано», а під час збереження залишається на сервері без змін. Причина: {0}</value>
+  </data>
+  <data name="One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server." xml:space="preserve">
+    <value>Один параметр на цій картці не вдалося прочитати, тому він позначений «Не прочитано»; під час збереження він залишається на сервері без змін.</value>
+  </data>
   <data name="Only a digest of each key is stored, so a key cannot be read back from here or from the file. Revoking one removes its section from the store and takes effect on the very next request." xml:space="preserve">
     <value>Зберігається лише дайджест кожного ключа, тому ключ неможливо прочитати ані звідси, ані з файлу. Відкликання вилучає його розділ зі сховища й набуває чинності вже з наступного запиту.</value>
   </data>
@@ -15565,6 +15571,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} setting could not be written." xml:space="preserve">
     <value>Не вдалося записати параметрів: {0}.</value>
   </data>
+  <data name="{0} settings could not be read, so they are marked Not read on their cards and saving leaves them as they are on the server. The first reason: {1}" xml:space="preserve">
+    <value>Параметрів, які не вдалося прочитати: {0}. На своїх картках вони позначені «Не прочитано», а під час збереження залишаються на сервері без змін. Перша причина: {1}</value>
+  </data>
   <data name="{0} settings could not be read: {1}" xml:space="preserve">
     <value>Параметрів, які не вдалося прочитати: {0}. {1}</value>
   </data>
@@ -15576,6 +15585,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} settings could not be written.|few" xml:space="preserve">
     <value>Не вдалося записати параметрів: {0}.</value>
+  </data>
+  <data name="{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server." xml:space="preserve">
+    <value>Параметрів на цій картці, які не вдалося прочитати: {0}. Вони позначені «Не прочитано»; під час збереження вони залишаються на сервері без змін.</value>
   </data>
   <data name="{0} spam exemptions" xml:space="preserve">
     <value>Винятків антиспаму: {0}</value>
