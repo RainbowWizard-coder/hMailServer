@@ -113,7 +113,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Journaling and dual delivery"),
+            PageKey = "journaling",
             Subtitle = L("A copy of a domain's mail, or of one account's, sent to an address - as an envelope report with the message attached, or as the message itself. Nothing is copied until a rule exists here, and a rule is not the archive: it sends mail elsewhere rather than keeping files on this machine."),
             Actions = actions
          });

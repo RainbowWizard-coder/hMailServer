@@ -166,7 +166,7 @@ namespace hMailServer.ControlPanel.Views
 
          page.Children.Add(new PageHeader
          {
-            Title = L("DNS records"),
+            PageKey = "dnsrecords",
             Subtitle = L("The records this server needs published in each domain's DNS zone: type, host and value, ready to copy into your DNS provider's console, with a check for whether each one is really live. Checks use this machine's Windows resolver - the same one the DKIM rotation check uses."),
             Actions = actions
          });

@@ -105,7 +105,7 @@ namespace hMailServer.ControlPanel.Views
 
          page.Children.Add(new PageHeader
          {
-            Title = L("Setup checklist"),
+            PageKey = "externalsetup",
             Subtitle = L("What this server still needs, in the order a new installation meets it. Each item says whether it is done, the next one to do is marked, and the button beside it opens the page that does it. Where the answer cannot be read from here, the item says what to check instead of guessing."),
             Actions = refresh
          });

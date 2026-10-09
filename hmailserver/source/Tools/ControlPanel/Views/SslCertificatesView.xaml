@@ -18,7 +18,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader Title="{loc:L 'SSL certificates'}"
+        <scaffold:PageHeader PageKey="certs"
                              Subtitle="{loc:L 'Certificates available for TLS ports, with what this machine can verify about each: the files, the expiry date, and whether the key belongs to the certificate. With ACME enabled, Let\'s Encrypt certificates appear here automatically.'}" />
 
         <!-- The IP ranges shape: the list takes the height the parts under it

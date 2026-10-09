@@ -17,7 +17,7 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>Landing page shown after connecting.</summary>
    public class WelcomeView : UserControl, IPageLifecycle, IRefreshablePage
    {
-      private readonly PageHeader header_ = new() { Title = L("Welcome") };
+      private readonly PageHeader header_ = new() { PageKey = "welcome" };
 
       // The offer to be walked through the server. It is a notice rather than a
       // tour that starts itself: a first-run walk that seizes the screen of

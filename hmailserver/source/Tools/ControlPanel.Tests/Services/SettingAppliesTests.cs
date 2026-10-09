@@ -108,7 +108,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // The caption and the page, as the Ctrl+K palette finds the setting.
          Assert.Equal("Waiting for a reinitialise:", lines[0]);
-         Assert.Equal("Issue and renew certificates automatically, on the Certificates (ACME) page", lines[1]);
+         Assert.Equal("Issue and renew certificates automatically, on the Automatic certificates (ACME) page", lines[1]);
          Assert.Equal("Waiting for a service restart:", lines[2]);
          Assert.StartsWith(SettingApplies.DescribePending("RestApiPort"), lines[3], System.StringComparison.Ordinal);
          Assert.Contains(", on the API & monitoring page", lines[3], System.StringComparison.Ordinal);

@@ -1549,9 +1549,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Saldırgan yeniden bağlanmalara karşı önlem: bağlantısı kesilir kesilmez yeniden bağlanan bir ana bilgisayar bunu dakikada binlerce kez yapabilir; soketi açık tutmak, bu sunucuya bir iş parçacığına mal olmadan onu aralık başına tek bağlantıya düşürür. Bağlantı bir zamanlayıcı tarafından tutulur, dolayısıyla beklerken hiçbir kaynak tüketmez.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Spam önleme</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Spam önleme ayarları</value>
   </data>
@@ -1560,9 +1557,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Spam önleme ayarları (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Virüsten koruma</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Virüsten koruma ayarları</value>
@@ -2283,9 +2277,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Sertifikalar (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Tüm dosyalar (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Sertifikalar (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Bir dinleyicinin sunabileceği sertifikalar burada tutulur ve ACME bunları sizin için yenileyebilir.</value>
@@ -3805,9 +3796,6 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Adı verilen etki alanlarının postasını MX kaydını aramak yerine seçilen bir sunucuya teslim edin.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Belirli etki alanlarının postasını MX araması yerine belirlenmiş bir SMTP ana bilgisayarı üzerinden teslim edin.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Uzak → uzak teslim (_aktarma)</value>
@@ -5485,9 +5473,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="IP address" xml:space="preserve">
     <value>IP adresi</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>Greylisting gecikmelerinden muaf IP adresleri.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Yeniden denemeyecek gönderenler için greylisting gecikmesinden muaf IP adresleri.</value>
   </data>
@@ -6123,9 +6108,6 @@ Doğrulanan yükleyici güncelleştirme yardımcısına verilir: hizmet durur, y
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Herhangi bir etki alanının MX kayıtlarını arayın.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Bir etki alanının posta değiştirici kayıtlarını arayın - o etki alanına giden e-postanın nereye teslim edildiği.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Sunucuyu suçlamadan önce DNS'i denetlemek için bir etki alanının e-postasının nereye teslim edildiğini arayın.</value>
   </data>
@@ -6325,9 +6307,6 @@ Geçerli çiftle yapılan her Web Push aboneliği hemen çalışmayı bırakır 
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Örnek etki alanı oluştur (_D)</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Bu sunucunun barındırdığı etki alanlarını ve posta kutularını yönetin.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Ready to switch" xml:space="preserve">
     <value>Geçişe hazır</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Bağlanan IP adresine karşı denetlenen gerçek zamanlı engelleme listeleri.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Neden</value>
   </data>
@@ -10315,9 +10291,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Seçen _üyelere günlük özet gönder</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Sunucudaki her hesaba (veya bir joker karakterle eşleşenlere) bir ileti gönderin - bakım duyuruları için.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Uyarıları ve günlük özeti şuraya gönder</value>
   </data>
@@ -10386,9 +10359,6 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Spam korumasını tamamen atlayan gönderenler ve IP aralıkları.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Spam korumasını tamamen atlayan gönderenler veya IP aralıkları.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>_Gönderen etki alanı</value>
@@ -11903,6 +11873,9 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Etki alanı listesinde hiç etki alanı adı yok. Anahtarın her etki alanında etkili olması için kutuyu boş bırakın - yalnızca ayırıcılardan oluşan bir liste sessizce aynı anlama gelirdi, ki istediğiniz bu değil.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Bu sunucunun barındırdığı etki alanları; hesapları, diğer adları ve dağıtım listeleriyle birlikte.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>eDiscovery davaları, salt okunur: her davanın aramaları, tutmaları ve dışa aktarmaları ile denetim izinin onunla ilgili her satırı. Davalar Control Deck'te açılır, aranır, tutulur ve dışa aktarılır.</value>
@@ -13492,9 +13465,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Web hizmetleri ve otomatik yapılandırma</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Web hizmetleri ve istemci otomatik yapılandırması</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhook'lar</value>

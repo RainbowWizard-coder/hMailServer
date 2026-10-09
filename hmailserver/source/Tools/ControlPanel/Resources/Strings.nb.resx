@@ -1549,9 +1549,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Mot hamring: en vert som kobler til igjen i samme øyeblikk den blir kastet ut, kan gjøre det tusenvis av ganger i minuttet, og å holde socketen åpen bremser den til én tilkobling per intervall uten at det koster denne serveren en tråd. Tilkoblingen holdes av en tidtaker, så den bruker ingenting mens den venter.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Antispam</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Antispam-innstillinger</value>
   </data>
@@ -1560,9 +1557,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Antispam-innstillinger (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Antivirus</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Antivirus-innstillinger</value>
@@ -2283,9 +2277,6 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Sertifikater (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Alle filer (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Sertifikater (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Sertifikater som en lytter kan vise fram, ligger her, og ACME kan fornye dem for deg.</value>
@@ -3805,9 +3796,6 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Lever post for navngitte domener til en valgt server i stedet for å slå opp MX-oppføringen.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Lever post for bestemte domener gjennom en angitt SMTP-vert i stedet for MX-oppslag.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Lever ekstern → ekstern (rela_y)</value>
@@ -5485,9 +5473,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="IP address" xml:space="preserve">
     <value>IP-adresse</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>IP-adresser unntatt fra grålistingsforsinkelser.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-adresser unntatt fra grålistingsforsinkelsen, for avsendere som ikke vil prøve på nytt.</value>
   </data>
@@ -6123,9 +6108,6 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Slå opp MX-oppføringene for et hvilket som helst domene.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Slå opp mail exchanger-oppføringene for et domene - dit e-post til det domenet leveres.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Slå opp hvor e-post for et domene leveres, for å sjekke DNS før du skylder på serveren.</value>
   </data>
@@ -6325,9 +6307,6 @@ Hvert Web Push-abonnement under det nåværende paret slutter å virke med en ga
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Lag et prøve_domene</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Administrer domenene denne serveren huser og postboksene deres.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Ready to switch" xml:space="preserve">
     <value>Klar til å bytte</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Blokkeringslister i sanntid som sjekkes mot IP-adressen som kobler til.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Årsak</value>
   </data>
@@ -10315,9 +10291,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Send et da_glig sammendrag til medlemmene som velger det</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Send en melding til hver konto på serveren (eller de som treffer et jokertegn) - for vedlikeholdskunngjøringer.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Send alarmer og det daglige sammendraget til</value>
   </data>
@@ -10386,9 +10359,6 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Avsendere og IP-områder som går helt utenom spambeskyttelsen.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Avsendere eller IP-områder som går helt utenom spambeskyttelsen.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>_Avsenderdomene</value>
@@ -11903,6 +11873,9 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Domenelisten inneholder ingen domenenavn. La feltet stå tomt for å la nøkkelen virke på alle domener - en liste med skilletegn ville stille betydd det samme, som ikke er det du ba om.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Domenene denne serveren huser, med kontoene, aliasene og distribusjonslistene deres.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>eDiscovery-sakene, skrivebeskyttet: hver saks søk, sperringer og eksporter, og hver linje revisjonsloggen har om den. En sak åpnes, gjennomsøkes, sperres og eksporteres i Control Deck.</value>
@@ -13492,9 +13465,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Webtjenester og autokonfigurasjon</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Webtjenester og klientautokonfigurasjon</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooks</value>

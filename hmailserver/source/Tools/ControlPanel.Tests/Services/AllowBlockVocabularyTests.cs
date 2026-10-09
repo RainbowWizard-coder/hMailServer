@@ -40,14 +40,20 @@ namespace hMailServer.ControlPanel.Tests.Services
             Assert.Contains(old, page.Aliases);
       }
 
+      /// <summary>
+      /// Each list's heading is its navigation title: the page names its key, and
+      /// the header takes the map's title for it (PageHeader.PageKey; every page is
+      /// held to it by PageTitlesTests).
+      /// </summary>
       [Theory]
-      [InlineData("CollectionSpecs.cs", "Spam exemptions")]
-      [InlineData("CollectionSpecs.cs", "Greylisting exemptions")]
-      [InlineData("CollectionSpecs.cs", "DNS block lists (DNSBL)")]
-      [InlineData("DomainPolicyListView.cs", "Allowed and blocked domains")]
-      public void EachPagesHeadingIsItsNavigationTitle(string view, string title)
+      [InlineData("CollectionSpecs.cs", "spamwhitelist", "Spam exemptions")]
+      [InlineData("CollectionSpecs.cs", "greylistwhitelist", "Greylisting exemptions")]
+      [InlineData("CollectionSpecs.cs", "dnsbl", "DNS block lists (DNSBL)")]
+      [InlineData("DomainPolicyListView.cs", "domainpolicylist", "Allowed and blocked domains")]
+      public void EachPagesHeadingIsItsNavigationTitle(string view, string key, string title)
       {
-         Assert.Contains("Title = L(\"" + title + "\")", ReadSource(view), StringComparison.Ordinal);
+         Assert.Contains("PageKey = \"" + key + "\"", ReadSource(view), StringComparison.Ordinal);
+         Assert.Equal(title, NavigationMap.TitleOf(key));
       }
 
       [Fact]

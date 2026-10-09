@@ -17,8 +17,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader Title="{loc:L 'Routes'}"
-                             Subtitle="{loc:L 'Deliver mail for specific domains through a designated SMTP host instead of MX lookup.'}" />
+        <scaffold:PageHeader PageKey="routes" />
 
         <!-- The IP ranges shape: the list takes the height the add form leaves in
              the window, down to a floor of three rows, and below that the page

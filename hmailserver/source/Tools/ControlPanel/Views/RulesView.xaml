@@ -21,7 +21,7 @@
              dialog (ConfigureForRules), where the tab names the page. -->
         <!-- Titled as the navigation map names the page; "Global rules" is one of
              its aliases, and the page shows a domain's rules as well. -->
-        <scaffold:PageHeader x:Name="HeaderPanel" Title="{loc:L 'Rules'}"
+        <scaffold:PageHeader x:Name="HeaderPanel" PageKey="rules"
                              Subtitle="{loc:L 'Server-wide message rules, evaluated top to bottom.'}" />
 
         <!-- The list of rules and the criteria and actions under it take the

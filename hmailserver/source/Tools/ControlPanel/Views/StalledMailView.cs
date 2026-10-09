@@ -53,7 +53,7 @@ namespace hMailServer.ControlPanel.Views
 
          panel.Children.Add(new PageHeader
          {
-            Title = L("Diagnosing stalled mail"),
+            PageKey = "stalledmail",
             Subtitle = L("Mail is not moving, the service is running, nothing has crashed and the log seems to stop mid-transaction. The server is not silent about this any more: the answer is usually in one line of the log, and this page says which.")
          });
 

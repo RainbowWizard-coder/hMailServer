@@ -15,7 +15,7 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource AppPagePadding}">
         <StackPanel MaxWidth="760" HorizontalAlignment="Left">
-            <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Backup &amp; restore'}"
+            <scaffold:PageHeader x:Name="Header" PageKey="backup"
                                  Subtitle="{loc:L 'Back up domains, messages and settings to a folder; restore from a previous backup.'}" />
 
             <!-- A read that failed (Services/ReadFailure). What an action did is

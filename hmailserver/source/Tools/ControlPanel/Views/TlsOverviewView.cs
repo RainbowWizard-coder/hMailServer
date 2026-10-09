@@ -77,7 +77,7 @@ namespace hMailServer.ControlPanel.Views
 
          page.Children.Add(header_ = new PageHeader
          {
-            Title = L("Transport encryption overview"),
+            PageKey = "tlsoverview",
             Subtitle = L("What every listener protects, what it presents to prove who it is, and what can still be negotiated. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
             Actions = refresh
          });

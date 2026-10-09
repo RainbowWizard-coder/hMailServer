@@ -50,6 +50,12 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// domains. Each keeps its old title as an alias and its legacy path, which
       /// AllowBlockVocabularyTests pins.
       ///
+      /// And one by the owner's decision on page names (review finding F215): the
+      /// navigation map's title is the page's heading, and where the two said
+      /// different things the clearer won - Certificates (ACME) is Automatic
+      /// certificates (ACME), as its page was headed, with the old title an alias
+      /// and its legacy path kept (PageTitlesTests).
+      ///
       /// Fails against the unfixed code because NavigationMap does not exist
       /// there; from now on it fails whenever a title moves.
       /// </summary>
@@ -87,7 +93,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("ipranges", "IP ranges")]
       [InlineData("certs", "SSL certificates")]
       [InlineData("security", "Transport security")]
-      [InlineData("acme", "Certificates (ACME)")]
+      [InlineData("acme", "Automatic certificates (ACME)")]
       [InlineData("ports", "TCP/IP ports")]
       [InlineData("relays", "Incoming relays")]
       [InlineData("dns", "DNS resolver")]

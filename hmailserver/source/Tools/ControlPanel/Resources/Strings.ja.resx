@@ -1549,9 +1549,6 @@
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>連打対策です。切断された瞬間に再接続してくるホストは、1 分間に数千回も接続を試みることができます。ソケットを開いたまま保持すると、このサーバーのスレッドを消費せずに、その接続を間隔あたり 1 回まで遅くできます。接続はタイマーで保持されるため、待機中は何も消費しません。</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>スパム対策</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>スパム対策の設定</value>
   </data>
@@ -1560,9 +1557,6 @@
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>スパム対策の設定 (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>ウイルス対策</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>ウイルス対策の設定</value>
@@ -2283,9 +2277,6 @@
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>証明書 (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|すべてのファイル (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>証明書 (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>リスナーが提示できる証明書はここに保管され、ACME が更新を代行できます。</value>
@@ -3805,9 +3796,6 @@
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>指定したドメイン宛てのメールを、MX レコードを参照する代わりに選択したサーバーに配信します。</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>特定のドメイン宛てのメールを、MX 参照の代わりに指定した SMTP ホスト経由で配信します。</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>リモート → リモートに配信する (リレー)(_Y)</value>
@@ -5485,9 +5473,6 @@
   <data name="IP address" xml:space="preserve">
     <value>IP アドレス</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>グレイリスティングの遅延を免除する IP アドレス。</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>再試行しない送信者のために、グレイリスティングの遅延を免除する IP アドレス。</value>
   </data>
@@ -6123,9 +6108,6 @@
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>任意のドメインの MX レコードを参照します。</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>ドメインのメール エクスチェンジャー レコード (そのドメイン宛てのメールがどこに配信されるか) を参照します。</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>ドメイン宛てのメールがどこに配信されるかを参照し、サーバーを疑う前に DNS を確認します。</value>
   </data>
@@ -6325,9 +6307,6 @@
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>サンプルドメインを作成 (_D)</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>このサーバーがホストしているドメインとそのメールボックスを管理します。</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@
   <data name="Ready to switch" xml:space="preserve">
     <value>切り替え可能</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>接続元 IP アドレスと照合されるリアルタイム ブロック リスト。</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>理由</value>
   </data>
@@ -10315,9 +10291,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>選択したメンバーへ毎日ダイジェストを送信する(_Y)</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>サーバー上のすべてのアカウント (またはワイルドカードに一致するアカウント) にメッセージを送信します。メンテナンスの告知用です。</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>アラートと毎日のダイジェストの送信先</value>
   </data>
@@ -10386,9 +10359,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>スパム対策を完全にバイパスする送信者と IP 範囲。</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>スパム対策を完全にバイパスする送信者または IP 範囲。</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>送信ドメイン(_D)</value>
@@ -11903,6 +11873,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>ドメイン リストにドメイン名が含まれていません。キーをすべてのドメインに作用させるには、ボックスを空のままにしてください。区切り文字だけのリストは黙って同じ意味になりますが、それはあなたが求めたものではありません。</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>このサーバーがホストするドメインと、そのアカウント、エイリアス、配布リスト。</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>電子情報開示のケース (読み取り専用): 各ケースの検索、保留、エクスポートと、監査ログに記録されたそのケースのすべての行。ケースの作成、検索、保留、エクスポートは Control Deck で行います。</value>
@@ -13492,9 +13465,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Web サービスと自動設定</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Web サービスとクライアントの自動設定</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhook</value>

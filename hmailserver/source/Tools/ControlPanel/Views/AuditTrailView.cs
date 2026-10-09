@@ -253,7 +253,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Audit trail"),
+            PageKey = "audit",
             Subtitle = L("Every administrative change as one row in a hash chain: who made it, when, over which interface, from where, and with what authority. A setting's change can be put back from its row.")
          });
 

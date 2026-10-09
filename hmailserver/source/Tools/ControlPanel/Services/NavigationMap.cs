@@ -121,6 +121,14 @@ namespace hMailServer.ControlPanel.Services
    ///     invalidate all of it. Where a better name exists it is added as an
    ///     alias, which the palette searches, instead of replacing the title.
    ///
+   ///     The title here is also the page's own heading: PageHeader.PageKey
+   ///     takes it from this map, so the sidebar, the breadcrumb, the palette
+   ///     and the page say one name. Where a page and its navigation entry
+   ///     said two, the clearer of the pair is the title and the other an alias
+   ///     (the owner's decision of 9 October 2026; review finding F215) - so
+   ///     "Certificates (ACME)" is now "Automatic certificates (ACME)", as its
+   ///     page always said.
+   ///
    ///     Splitting a page is the one case that cannot obey that rule, because a
    ///     title naming two subjects cannot survive on a page that now holds one
    ///     of them. "Auto-ban &amp; SSL/TLS" is the only one so far, and the cost
@@ -505,7 +513,7 @@ namespace hMailServer.ControlPanel.Services
                // server administrator.
                Page("domains", N("Domains"),
                   N("Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection."),
-                  aliases: "Accounts|Users|Mailboxes|Add a user|Aliases|Distribution lists|Mailing list|Quota|Size limit|DKIM|External accounts|Domain aliases|Signatures|Forwarding",
+                  aliases: "Domains & accounts|Accounts|Users|Mailboxes|Add a user|Aliases|Distribution lists|Mailing list|Quota|Size limit|DKIM|External accounts|Domain aliases|Signatures|Forwarding",
                   // The suppression list is the other page a domain administrator
                   // may open, so it is this page's link for that role, the server
                   // administrator's pages being left out of it (RelatedOf).
@@ -588,7 +596,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("webservices", N("Web services & autoconfiguration"),
                   N("The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges."),
-                  aliases: "HTTP|Autodiscover|Autoconfig|Outlook setup|Thunderbird setup|Mobile setup|MTA-STS policy|Well-known|Web server",
+                  aliases: "Web services & client autoconfiguration|HTTP|Autodiscover|Autoconfig|Outlook setup|Thunderbird setup|Mobile setup|MTA-STS policy|Well-known|Web server",
                   seeAlso: "acme|security|api|webmail"),
 
                // The webmail's settings, and the other browser pages people sign in to
@@ -614,9 +622,9 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Certificate|SSL certificate|TLS certificate|PFX|PEM|Expiry|Renew|Install a certificate|Chain|Private key",
                   seeAlso: "acme|ports|security"),
 
-               Page("acme", N("Certificates (ACME)"),
+               Page("acme", N("Automatic certificates (ACME)"),
                   N("Issue and renew certificates automatically from Let's Encrypt or another ACME authority."),
-                  aliases: "ACME|Let's Encrypt|Letsencrypt|Automatic renewal|http-01|Certbot|Free certificate",
+                  aliases: "Certificates (ACME)|ACME|Let's Encrypt|Letsencrypt|Automatic renewal|http-01|Certbot|Free certificate",
                   seeAlso: "certs|webservices|ports"),
 
                // The TLS half of what used to be "Auto-ban & SSL/TLS". The title
@@ -687,7 +695,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("antispam", N("Anti-spam settings"),
                   N("Scores and thresholds, SPF, DKIM and DMARC checks, greylisting, and SpamAssassin."),
-                  aliases: "Spam filter|Stop spam|Score|Threshold|SPF|DKIM|DMARC|ARC|Greylisting|SpamAssassin|Junk mail|PTR|HELO check|Subject prefix",
+                  aliases: "Anti-spam|Spam filter|Stop spam|Score|Threshold|SPF|DKIM|DMARC|ARC|Greylisting|SpamAssassin|Junk mail|PTR|HELO check|Subject prefix",
                   seeAlso: "spamoverview|quarantine|dnsbl|surbl|spamwhitelist|greylistwhitelist"),
 
                // The overview is first in most of these lists on purpose: it is the
@@ -764,7 +772,7 @@ namespace hMailServer.ControlPanel.Services
 
                Page("antivirus", N("Anti-virus settings"),
                   N("ClamAV and external scanners, and what to do with a message that is found to be infected."),
-                  aliases: "Virus scanner|ClamAV|Malware|Infected mail|Scan attachments|External scanner",
+                  aliases: "Anti-virus|Virus scanner|ClamAV|Malware|Infected mail|Scan attachments|External scanner",
                   seeAlso: "virusoverview|blockedattachments"),
 
                Page("blockedattachments", N("Blocked attachments"),

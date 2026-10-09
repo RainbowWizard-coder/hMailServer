@@ -1561,9 +1561,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Ochrona przed dobijaniem się: host, który łączy się ponownie w tej samej chwili, w której został odrzucony, potrafi to robić tysiące razy na minutę, a przytrzymanie otwartego gniazda spowalnia go do jednego połączenia na interwał, nie kosztując tego serwera ani jednego wątku. Połączenie jest przytrzymywane przez licznik czasu, więc czekając, nie zużywa niczego.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Antyspam</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Ustawienia antyspamowe</value>
   </data>
@@ -1572,9 +1569,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Ustawienia antyspamowe (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Antywirus</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Ustawienia antywirusowe</value>
@@ -2307,9 +2301,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Certyfikaty (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Wszystkie pliki (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Certyfikaty (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Certyfikaty, które nasłuch może przedstawić, są przechowywane tutaj, a ACME może je odnawiać automatycznie.</value>
@@ -3851,9 +3842,6 @@ Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi pró
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Dostarczaj pocztę do wymienionych domen na wybrany serwer, zamiast wyszukiwać ich rekord MX.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Dostarczaj pocztę do określonych domen przez wyznaczony host SMTP, zamiast wyszukiwać rekord MX.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Dostarczaj zdalne → zdalne (przekaź_nik)</value>
@@ -5549,9 +5537,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="IP address" xml:space="preserve">
     <value>Adres IP</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>Adresy IP zwolnione z opóźnień greylistingu.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Adresy IP zwolnione z opóźnienia greylistingu, dla nadawców, którzy nie ponowią próby.</value>
   </data>
@@ -6187,9 +6172,6 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Wyszukaj rekordy MX dowolnej domeny.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Wyszukaj rekordy serwerów pocztowych (MX) domeny - miejsce, do którego dostarczana jest poczta do tej domeny.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Sprawdź, gdzie dostarczana jest poczta do domeny, aby zbadać DNS, zanim wina spadnie na serwer.</value>
   </data>
@@ -6392,9 +6374,6 @@ Każda subskrypcja Web Push utworzona z obecną parą natychmiast przestaje dzia
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Utwórz przykładową _domenę</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Zarządzaj domenami obsługiwanymi przez ten serwer i ich skrzynkami pocztowymi.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8920,9 +8899,6 @@ Do czasu wznowienia nie będą przyjmowane nowe połączenia ani dostarczana poc
   <data name="Ready to switch" xml:space="preserve">
     <value>Gotowy do przełączenia</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Listy blokowania w czasie rzeczywistym, sprawdzane względem adresu IP nawiązującego połączenie.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Powód</value>
   </data>
@@ -10436,9 +10412,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Wysyłaj codzienne podsumowanie do członków, którzy _je wybiorą</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Wyślij wiadomość do każdego konta na serwerze (lub do kont pasujących do maski) - do ogłoszeń serwisowych.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Wysyłaj alerty i dzienne podsumowanie do</value>
   </data>
@@ -10510,9 +10483,6 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Nadawcy i zakresy adresów IP, które całkowicie omijają ochronę antyspamową.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Nadawcy lub zakresy adresów IP, które całkowicie omijają ochronę antyspamową.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Domena _nadawcy</value>
@@ -12057,6 +12027,9 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Lista domen nie zawiera żadnych nazw domen. Aby klucz działał dla każdej domeny, należy pozostawić pole puste - lista samych separatorów po cichu znaczyłaby to samo, a nie o to poproszono.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Domeny obsługiwane przez ten serwer wraz z ich kontami, aliasami i listami dystrybucyjnymi.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>Sprawy eDiscovery, tylko do odczytu: wyszukiwania, blokady i eksporty każdej sprawy oraz każdy wiersz, który dziennik audytu o niej zawiera. Sprawę otwiera się, przeszukuje, blokuje i eksportuje w Control Deck.</value>
@@ -13661,9 +13634,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Usługi webowe i autokonfiguracja</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Usługi webowe i autokonfiguracja klientów</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooki</value>

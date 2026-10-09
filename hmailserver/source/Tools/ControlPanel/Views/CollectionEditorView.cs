@@ -97,6 +97,12 @@ namespace hMailServer.ControlPanel.Views
       public class CollectionSpec
       {
          public string Title;
+
+         // The navigation key of the page a spec is, for a list that is a page of
+         // its own ("surbl"): the page's header names it, and its title is the
+         // navigation map's (review finding F215). Null on a list embedded in a
+         // dialog's tab, which keeps a title of its own.
+         public string PageKey;
          public string Subtitle;
          public Func<dynamic> GetCollection;            // returns the COM collection (caller releases)
          public List<FieldSpec> Fields = new();
@@ -244,6 +250,8 @@ namespace hMailServer.ControlPanel.Views
       {
          spec_ = spec;
          embedded_ = embedded;
+         if (spec.PageKey != null)
+            spec.Title = L(NavigationMap.TitleOf(spec.PageKey));
          Build();
       }
 
@@ -349,7 +357,7 @@ namespace hMailServer.ControlPanel.Views
          {
             root.Children.Add(new PageHeader
             {
-               Title = spec_.Title,
+               PageKey = spec_.PageKey,
                Subtitle = spec_.Subtitle,
                Status = countBadge_,
                Actions = actions

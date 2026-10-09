@@ -425,7 +425,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Suppression list"),
+            PageKey = "suppressions",
             Subtitle = L("Addresses a domain no longer sends to because mail to them bounced for good, or because somebody put them here - with the counts behind each one. The list is per sending domain."),
             Actions = actions
          });

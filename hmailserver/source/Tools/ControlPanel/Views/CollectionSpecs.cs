@@ -46,7 +46,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView SurblServers() => new(new CollectionSpec
       {
-         Title = L("SURBL servers"),
+         PageKey = "surbl",
          Subtitle = L("Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score."),
          ItemNoun = L("SURBL server"),
          AddTitle = N("Add a SURBL server"),
@@ -79,8 +79,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView DnsBlackLists() => new(new CollectionSpec
       {
-         Title = L("DNS block lists (DNSBL)"),
-         Subtitle = L("Real-time block lists checked against the connecting IP address."),
+         PageKey = "dnsbl",
          ItemNoun = L("block list"),
          AddTitle = N("Add a DNS block list"),
          EditTitle = N("Edit the DNS block list"),
@@ -108,8 +107,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView SpamWhiteList() => new(new CollectionSpec
       {
-         Title = L("Spam exemptions"),
-         Subtitle = L("Senders or IP ranges that bypass spam protection entirely."),
+         PageKey = "spamwhitelist",
          ItemNoun = L("spam exemption"),
          AddTitle = N("Add a spam exemption"),
          EditTitle = N("Edit the spam exemption"),
@@ -130,7 +128,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView BlockedSenders() => new(new CollectionSpec
       {
-         Title = L("Blocked senders"),
+         PageKey = "blockedsenders",
          Subtitle = L("Envelope senders refused outright, or scored. An entry with an @ is one exact address; without one it is a whole domain including its subdomains. The default score of 100 crosses the delete threshold and refuses the message during the SMTP conversation. This matches the address the sender CLAIMS, so it stops a correspondent who keeps using one address - it is not an anti-spoofing tool, and stops nothing that rotates addresses."),
          ItemNoun = L("blocked sender"),
          AddTitle = N("Add a blocked sender"),
@@ -160,7 +158,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public static CollectionEditorView SenderList() => new(new CollectionSpec
       {
-         Title = L("Allow and block list"),
+         PageKey = "senderlist",
          Subtitle = L("Addresses and whole domains that every account wants, or does not. An allowed sender's mail skips the spam verdict; a blocked sender's is held in the quarantine where that is on, and marked as spam where it is not - never deleted. An account's own list is consulted first and its domain's next, so this list only decides for a recipient whose own lists say nothing. To refuse a sender for everyone during the SMTP conversation, whatever anybody's own list says, use Blocked senders."),
          ItemNoun = L("list entry"),
          AddTitle = N("Add a list entry"),
@@ -193,8 +191,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView GreyListWhiteList() => new(new CollectionSpec
       {
-         Title = L("Greylisting exemptions"),
-         Subtitle = L("IP addresses exempt from greylisting delays."),
+         PageKey = "greylistwhitelist",
          ItemNoun = L("IP address"),
          AddTitle = N("Add a greylisting exemption"),
          EditTitle = N("Edit the greylisting exemption"),
@@ -232,7 +229,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public static CollectionEditorView GreyListBypass() => new(new CollectionSpec
       {
-         Title = L("Greylisting bypass list"),
+         PageKey = "greylistbypass",
          Subtitle = L("Envelope domains and HELO suffixes let past greylisting when the message carries the authentication results the entry requires - SPF, DKIM, DMARC, any combination. A domain matched exactly, or a suffix with a leading dot such as .mail.example.com covering that name and every name under it. SPF is known at RCPT TO, so an entry requiring SPF alone decides there; DKIM and DMARC exist only after the message is in, so an entry requiring either lets the recipient through for now and the message is greylisted after DATA if the result is not a pass - and only while DKIM verification or DMARC is switched on, since otherwise the entry can never be satisfied. Unlike Bypass on SPF success, this is a privilege you grant to a named domain rather than a property of every SPF pass in the world."),
          ItemNoun = L("bypass entry"),
          AddTitle = N("Add a bypass entry"),
@@ -260,7 +257,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView BlockedAttachments() => new(new CollectionSpec
       {
-         Title = L("Blocked attachments"),
+         PageKey = "blockedattachments",
          // What the server does with a match (VirusScanner::BlockAttachments
          // replaces the part's content with the server message ATTACHMENT_REMOVED
          // and adds .txt to its name), for every message it delivers; whether it
@@ -336,7 +333,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public static UserControl Groups() => new GroupsPageView(new CollectionSpec
       {
-         Title = L("Groups"),
+         PageKey = "groups",
          Subtitle = L("Security groups used to grant shared-folder (IMAP ACL) permissions to several accounts at once. A group's permissions cover exactly the accounts on its member list - select a group and choose Members to edit that list."),
          ItemNoun = L("security group"),
          AddTitle = N("Add a security group"),
@@ -408,7 +405,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public static CollectionEditorView RemoteDomains() => new(new CollectionSpec
       {
-         Title = L("Remote domains"),
+         PageKey = "remotedomains",
          Subtitle = L("What this server does when it talks to a named remote domain: the TLS it demands of the connection in each direction, the largest message and the number of connections it will attempt, whether an automatic reply or a forward may go there, and whether a recipient is verified with the domain's own server before mail for it is accepted. A name may carry a wildcard - the most specific active entry governs a delivery. A TLS requirement here is added to whatever the domain publishes for itself: an MTA-STS or DANE policy is never weakened by an entry on this page. Recipient verification is for a domain this server is a backup MX for, and for nothing else."),
          ItemNoun = L("remote domain policy"),
          AddTitle = N("Add a remote domain policy"),
@@ -458,7 +455,7 @@ namespace hMailServer.ControlPanel.Views
 
       public static CollectionEditorView ServerMessages() => new(new CollectionSpec
       {
-         Title = L("Server messages"),
+         PageKey = "servermessages",
          Subtitle = L("The text templates the server returns to clients (greetings, bounce and error messages). These are a fixed set you can edit."),
          ItemNoun = L("server message"),
          EditTitle = N("Edit the server message"),
@@ -703,7 +700,7 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-         root.Children.Add(new Scaffold.PageHeader { Title = spec.Title, Subtitle = subtitle });
+         root.Children.Add(new Scaffold.PageHeader { PageKey = spec.PageKey, Subtitle = subtitle });
 
          Grid.SetRow(editor_, 1);
          root.Children.Add(editor_);

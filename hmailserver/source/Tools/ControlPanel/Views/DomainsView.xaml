@@ -63,8 +63,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader Title="{loc:L 'Domains &amp; accounts'}"
-                             Subtitle="{loc:L 'Manage the domains hosted by this server and their mailboxes.'}" />
+        <scaffold:PageHeader PageKey="domains"
+                             Subtitle="{loc:L 'The domains this server hosts, with their accounts, aliases and distribution lists.'}" />
 
         <!-- A read that failed: Critical, with Try again, in place of the empty
              state, which would say there are no domains, or no accounts

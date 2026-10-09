@@ -206,7 +206,8 @@ for ($i = 1; $i -lt $featureParts.Count; $i += 2) {
    $page = $featurePages[$section]
    if (-not $page) { continue }
 
-   foreach ($m in [regex]::Matches($body, 'Key = "([^"]+)"[^}]*?Label = (?:L\()?"((?:[^"\\]|\\.)*)"')) {
+   # \bKey, not Key: a section's header names its page as PageKey = "acme", which is no setting.
+   foreach ($m in [regex]::Matches($body, '\bKey = "([^"]+)"[^}]*?Label = (?:L\()?"((?:[^"\\]|\\.)*)"')) {
       Add-Entry $entries (ConvertFrom-CSharpLiteral $m.Groups[2].Value) $m.Groups[1].Value $page
    }
 }

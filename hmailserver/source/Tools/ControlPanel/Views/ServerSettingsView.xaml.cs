@@ -1861,7 +1861,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildProtocols()
       {
-         Header.Title = L("Protocols");
+         Header.PageKey = "protocols";
          Header.Subtitle = L("Which services this server runs, connection limits and greetings.");
 
          var services = Card(L("Services"),
@@ -2055,7 +2055,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildDelivery()
       {
-         Header.Title = L("Delivery of e-mail");
+         Header.PageKey = "delivery";
          Header.Subtitle = L("Outbound delivery behavior, retries and smart-host relaying.");
 
          var del = Card(L("Delivery of e-mail"),
@@ -2409,7 +2409,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildAntiSpam()
       {
-         Header.Title = L("Anti-spam");
+         Header.PageKey = "antispam";
          Header.Subtitle = L("Score-based spam filtering: SPF, DKIM, DMARC, host checks, greylisting and SpamAssassin.");
 
          var general = Card(L("Thresholds & actions"));
@@ -2820,7 +2820,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildAntiVirus()
       {
-         Header.Title = L("Anti-virus");
+         Header.PageKey = "antivirus";
          Header.Subtitle = L("Virus scanning and attachment blocking of received messages.");
 
          var general = Card(L("Action & notifications"));
@@ -2991,7 +2991,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildTls()
       {
-         Header.Title = L("SSL/TLS");
+         Header.PageKey = "tls";
          Header.Subtitle = L("Which TLS versions and ciphers this server negotiates, for its own listeners and for the connections it makes when delivering. Certificates are on the SSL certificates page; DANE and MTA-STS are on Transport security; brute-force lockout is on Auto-ban.");
 
          var ver = Card(L("Protocol versions"), L("TLS 1.2 and 1.3 are the recommended baseline; older versions exist only for legacy clients."));
@@ -3120,7 +3120,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void BuildAutoBan()
       {
-         Header.Title = L("Auto-ban");
+         Header.PageKey = "autoban";
          Header.Subtitle = L("Automatic lockout of an address that keeps failing to log on. The ban itself is an expiring IP range, so it is listed on the IP ranges page.");
 
          var ban = Card(L("Auto-ban"),
@@ -3435,7 +3435,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildLogging()
       {
-         Header.Title = L("Logging");
+         Header.PageKey = "logging";
          Header.Subtitle = L("What the server writes to its log files (viewable on the Live logs page).");
 
          // One tab holding the three cards: calling Tab() again would add a second
@@ -3900,7 +3900,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildPerformance()
       {
-         Header.Title = L("Performance");
+         Header.PageKey = "performance";
          Header.Subtitle = L("Thread pools, in-memory caches and message indexing.");
 
          var threads = Card(L("Threads"), L("Thread pool sizing. Defaults suit most installations; raise for very busy servers."));
@@ -4277,7 +4277,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void BuildAdvanced()
       {
-         Header.Title = L("Advanced");
+         Header.PageKey = "advanced";
          Header.Subtitle = L("Server-wide defaults, keeping copies of mail and the scripting engine.");
 
          var general = Card(L("General"),
@@ -4424,7 +4424,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void BuildWebmail()
       {
-         Header.Title = L("Webmail");
+         Header.PageKey = "webmail";
          Header.Subtitle = L("The pages people sign in to in a browser - the webmail, the self-service portal and the Control Deck: how they sign in, how long a session lasts, what people may do, OpenPGP, notifications and importing. Most of these are reached over the REST API, which also serves the webmail.");
 
          // ---- Sign-in -------------------------------------------------------
@@ -5038,7 +5038,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void BuildAdminAccess()
       {
-         Header.Title = L("Administrative access");
+         Header.PageKey = "adminaccess";
          Header.Subtitle = L("The credentials used to administer this server.");
 
          // Changed in a dialog of its own - the password in use now, the new one and

@@ -140,7 +140,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Event scripts"),
+            PageKey = "scripts",
             Subtitle = L("Edit the server event-handler script (OnAcceptMessage, OnDeliveryStart, OnHELO, ...). Saving writes the file and reloads the scripting engine. The engine's on/off switch and its language are on the Advanced page."),
             Actions = actions
          });

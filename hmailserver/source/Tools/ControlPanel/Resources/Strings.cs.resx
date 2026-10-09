@@ -1561,9 +1561,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Ochrana proti bušení: hostitel, který se znovu připojí v okamžiku, kdy je odpojen, se takto dokáže připojit několik tisíckrát za minutu, a podržení soketu otevřeného jej zpomalí na jedno připojení za interval, aniž by to tento server stálo vlákno. Připojení drží časovač, takže během čekání nic nespotřebovává.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Antispam</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Nastavení antispamu</value>
   </data>
@@ -1572,9 +1569,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Nastavení antispamu (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Antivirus</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Nastavení antiviru</value>
@@ -2307,9 +2301,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Certifikáty (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Všechny soubory (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Certifikáty (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Certifikáty, které může listener předkládat, jsou uložené zde, a ACME je za vás umí obnovovat.</value>
@@ -3851,9 +3842,6 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Doručovat poštu pro jmenované domény na zvolený server místo vyhledání jejich záznamu MX.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Doručovat poštu pro konkrétní domény přes určeného hostitele SMTP místo vyhledání MX.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Doručovat vzdálené → vzdálené (rela_y)</value>
@@ -5549,9 +5537,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="IP address" xml:space="preserve">
     <value>Adresa IP</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>Adresy IP vyjmuté ze zpoždění greylistingu.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Adresy IP vyjmuté ze zpoždění greylistingu, pro odesílatele, kteří to nezopakují.</value>
   </data>
@@ -6187,9 +6172,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Vyhledejte MX záznamy libovolné domény.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Vyhledejte záznamy o výměnících pošty pro doménu – tedy kam se doručuje e-mail pro tuto doménu.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Vyhledejte, kam se doručuje e-mail pro doménu, a zkontrolujte tak DNS dřív, než začnete vinit server.</value>
   </data>
@@ -6392,9 +6374,6 @@ Každý odběr Web Push vytvořený se současným párem okamžitě přestane f
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Vytvořit ukázkovou _doménu</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Spravujte domény hostované tímto serverem a jejich poštovní schránky.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8920,9 +8899,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Ready to switch" xml:space="preserve">
     <value>Připraveno k přepnutí</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Blokovací seznamy v reálném čase, proti kterým se kontroluje připojující se IP adresa.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Důvod</value>
   </data>
@@ -10436,9 +10412,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Posílat denní souhrn _členům, kteří si ho zvolí</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Odešlete zprávu na každý účet na serveru (nebo na ty, které odpovídají zástupnému vzoru) – pro oznámení o údržbě.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Posílat upozornění a denní souhrn na</value>
   </data>
@@ -10510,9 +10483,6 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Odesílatelé a IP rozsahy, které zcela obcházejí ochranu proti spamu.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Odesílatelé nebo IP rozsahy, které zcela obcházejí ochranu proti spamu.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Odesílající _doména</value>
@@ -12057,6 +12027,9 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Seznam domén neobsahuje žádný název domény. Nechte pole prázdné, aby klíč působil na každou doménu - seznam samých oddělovačů by potichu znamenal totéž, což není to, oč jste žádali.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Domény, které tento server hostuje, s jejich účty, aliasy a distribučními seznamy.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>Případy eDiscovery, jen pro čtení: hledání, blokace a exporty každého případu a každý řádek, který k němu auditní záznam obsahuje. Případ se otevírá, prohledává, blokuje a exportuje v Control Deck.</value>
@@ -13661,9 +13634,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Webové služby a autokonfigurace</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Webové služby a autokonfigurace klientů</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooky</value>

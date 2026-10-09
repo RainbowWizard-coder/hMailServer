@@ -288,7 +288,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Allowed and blocked domains"),
+            PageKey = "domainpolicylist",
             Subtitle = L("Sending organisations decided about by their domain rather than by the IP address of the week. Allowed: not greylisted and never refused on the spam score, while every test still runs and logs. Blocked: refused at MAIL FROM before greylisting, scoring or any lookup. Matched on the envelope sender's domain, the HELO name, or either; inbound unauthenticated sessions only.")
          });
 

@@ -386,7 +386,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Discovery"),
+            PageKey = "discovery",
             Subtitle = L("The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck."),
             Actions = refresh
          });

@@ -168,7 +168,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(statePill_, "ldap-state");
          page.Children.Add(new PageHeader
          {
-            Title = L("Directory authentication (LDAP)"),
+            PageKey = "ldap",
             Subtitle = L("Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart."),
             Status = statePill_,
             Actions = BuildActions_()

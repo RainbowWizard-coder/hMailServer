@@ -93,7 +93,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("REST API keys"),
+            PageKey = "apikeys",
             Subtitle = L("Credentials for the REST administration API that are not the administrator password: each one expires, can be limited to reading only, to particular domains and to particular source addresses, and can be revoked on its own. The server re-reads the key store on every request, so anything changed here is live at once - no service restart."),
             Actions = actions
          });

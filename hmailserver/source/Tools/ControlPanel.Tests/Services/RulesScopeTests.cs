@@ -23,7 +23,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheScopeList_IsCaptionedInTheFilters_AndThePageIsTitledRules()
       {
          string xaml = ReadControlPanelFile(Path.Join("Views", "RulesView.xaml"));
-         Assert.Contains("Title=\"{loc:L 'Rules'}\"", xaml, StringComparison.Ordinal);
+         // Titled by its navigation key, which gives it the map's title (PageTitlesTests).
+         Assert.Contains("PageKey=\"rules\"", xaml, StringComparison.Ordinal);
+         Assert.Equal("Rules", hMailServer.ControlPanel.Services.NavigationMap.TitleOf("rules"));
          Assert.DoesNotContain("'Global rules'", xaml, StringComparison.Ordinal);
 
          // Captioned, and wrapping with the actions as one: in the toolbar's filters

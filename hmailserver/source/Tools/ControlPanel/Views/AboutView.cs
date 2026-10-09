@@ -23,7 +23,7 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = new StackPanel { MaxWidth = 880, HorizontalAlignment = HorizontalAlignment.Left };
 
-         panel.Children.Add(new PageHeader { Title = L("About") });
+         panel.Children.Add(new PageHeader { PageKey = "about" });
 
          // ---- the program ------------------------------------------------------
          var inner = new StackPanel();

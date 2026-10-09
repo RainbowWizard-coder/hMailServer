@@ -1359,7 +1359,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Quarantine"),
+            PageKey = "quarantine",
             Subtitle = L("Messages the server would otherwise have refused, held so somebody can look. The sender was told each of these was accepted, so nothing will arrive again on its own: releasing one delivers it, and deleting one is final. The icons act on one message, on a group, or - in the header - on every checked message."),
             Actions = actions
          });

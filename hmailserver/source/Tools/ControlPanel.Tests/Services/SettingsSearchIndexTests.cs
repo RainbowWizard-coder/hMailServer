@@ -82,7 +82,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          var expected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
          string featureSource = File.ReadAllText(Path.Join(controlPanel, "Views", "FeatureSettingsView.xaml.cs"));
-         expected.UnionWith(Regex.Matches(featureSource, "Key = \"([^\"]+)\"[^}]*?Label = (?:L\\()?\"([^\"]*)\"")
+         expected.UnionWith(Regex.Matches(featureSource, "\\bKey = \"([^\"]+)\"[^}]*?Label = (?:L\\()?\"([^\"]*)\"")
             .Where(m => !string.IsNullOrWhiteSpace(m.Groups[2].Value))
             .Select(m => m.Groups[1].Value));
 

@@ -17,7 +17,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader Title="{loc:L 'IP ranges'}"
+        <scaffold:PageHeader PageKey="ipranges"
                              Subtitle="{loc:L 'Access control: which addresses may connect and what they are allowed to do. Higher priority wins.'}" />
 
         <!-- The list takes the height the parts under it leave in the window,

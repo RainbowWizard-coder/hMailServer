@@ -1561,9 +1561,6 @@ Control Panel может читать файлы сообщений только
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Защита от навязчивых переподключений: узел, переподключающийся в то же мгновение, как его отключили, способен делать это тысячи раз в минуту, а удержание сокета открытым замедляет его до одного подключения за интервал, не отнимая у этого сервера поток. Соединение удерживается таймером, поэтому в ожидании оно ничего не потребляет.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Антиспам</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Параметры антиспама</value>
   </data>
@@ -1572,9 +1569,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Параметры антиспама (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Антивирус</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Параметры антивируса</value>
@@ -2307,9 +2301,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Сертификаты (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Все файлы (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Сертификаты (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Сертификаты, которые может предъявлять прослушиватель, хранятся здесь, а ACME может обновлять их за вас.</value>
@@ -3851,9 +3842,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Доставлять почту для указанных доменов на выбранный сервер вместо поиска MX-записи этого домена.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Доставлять почту для определённых доменов через назначенный узел SMTP вместо поиска MX-записи.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Доставка: удалённый → удалённый (_ретрансляция)</value>
@@ -5549,9 +5537,6 @@ Control Panel может читать файлы сообщений только
   <data name="IP address" xml:space="preserve">
     <value>IP-адрес</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>IP-адреса, освобождённые от задержек серых списков.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-адреса, освобождённые от задержки серых списков, — для отправителей, которые не повторяют попытку.</value>
   </data>
@@ -6187,9 +6172,6 @@ Control Panel может читать файлы сообщений только
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Найти MX-записи для любого домена.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Найти записи почтовых обменников домена — куда доставляется почта для этого домена.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Узнайте, куда доставляется почта домена, чтобы проверить DNS, прежде чем винить сервер.</value>
   </data>
@@ -6392,9 +6374,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Создать образцовый домен (_D)</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Управление доменами, размещёнными на этом сервере, и их почтовыми ящиками.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8920,9 +8899,6 @@ Control Panel может читать файлы сообщений только
   <data name="Ready to switch" xml:space="preserve">
     <value>Готов к переключению</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Списки блокировки в реальном времени, по которым проверяется подключающийся IP-адрес.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Причина</value>
   </data>
@@ -10436,9 +10412,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Отправлять _ежедневный дайджест участникам, которые это выберут</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Отправьте сообщение всем учётным записям на сервере (или тем, что подходят под шаблон) — для объявлений об обслуживании.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Отправлять оповещения и ежедневную сводку на</value>
   </data>
@@ -10510,9 +10483,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Отправители и диапазоны IP, полностью обходящие защиту от спама.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Отправители или диапазоны IP, полностью обходящие защиту от спама.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Домен-_отправитель</value>
@@ -12057,6 +12027,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>В списке доменов нет ни одного имени домена. Оставьте поле пустым, чтобы ключ действовал на каждый домен - список из одних разделителей молча означал бы то же самое, а это не то, о чём вы просили.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Домены, размещённые на этом сервере, с их учётными записями, псевдонимами и списками рассылки.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>Дела eDiscovery, только для чтения: поиски, удержания и экспорты каждого дела и каждая строка журнала аудита о нём. В Control Deck дело открывают, выполняют по нему поиск, ставят удержания и делают экспорт.</value>
@@ -13661,9 +13634,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Веб-службы и автоконфигурация</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Веб-службы и автоконфигурация клиентов</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Веб-хуки</value>

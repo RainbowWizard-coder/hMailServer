@@ -2166,6 +2166,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Feedback tab's Reports your domains receive card are linked from the stalled-mail document and the complaints
   document those pages open.
 
+- **Fixed: Control Panel pages were headed with other names than the sidebar and the breadcrumb gave them.** The
+  breadcrumb read Anti-spam settings over a page titled "Anti-spam", Anti-virus settings over "Anti-virus", Domains
+  over "Domains & accounts", Certificates (ACME) over "Automatic certificates (ACME)" and Web services &
+  autoconfiguration over "Web services & client autoconfiguration", cut to "autoconfigu..." at 760 pixels with its
+  pill pushed under it; and the Domains page's subtitle spoke of "mailboxes" over a page of accounts. A page now names
+  its navigation key in its header (`PageHeader.PageKey`), which takes the page's title from the navigation map, so the
+  sidebar, the breadcrumb, the Ctrl+K palette, the help pane and the page say one name. Where a page and its entry had
+  said two, the clearer is the title and the other a search alias: "Certificates (ACME)" is now "Automatic
+  certificates (ACME)" in the sidebar as well, and the old title and its documented path still find the page. A page
+  with nothing more to say than its navigation description shows that description as its subtitle, in the same
+  words, where the DNS block lists, spam exemptions, greylisting exemptions, routes, MX query and server sendout pages
+  said it again in others; and the Domains page reads "The domains this server hosts, with their accounts, aliases and
+  distribution lists." `PageTitlesTests` holds every page MainWindow builds to naming its key, and no page header to a
+  title of its own (review findings F215, F025 and F080).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

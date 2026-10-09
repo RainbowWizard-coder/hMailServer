@@ -73,7 +73,7 @@ namespace hMailServer.ControlPanel.Views
 
          page.Children.Add(header_ = new PageHeader
          {
-            Title = L("Spam filtering overview"),
+            PageKey = "spamoverview",
             Subtitle = L("Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting."),
             Actions = refresh
          });

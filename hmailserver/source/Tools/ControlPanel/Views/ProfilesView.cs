@@ -508,7 +508,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Setting profiles"),
+            PageKey = "profiles",
             Subtitle = L("Each profile sets the settings one kind of server needs. Showing one lists every setting beside the value this server holds now; nothing changes until it is applied.")
          });
 

@@ -1985,7 +1985,7 @@ namespace hMailServer.ControlPanel.Views
          switch (section_)
          {
             case Section.Security:
-               Header.Title = L("Transport security");
+               Header.PageKey = "security";
                Header.Subtitle = L("Outbound mail authentication and encryption policies.");
                cards_.Add(new CardDef
                {
@@ -2217,7 +2217,7 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case Section.Automation:
-               Header.Title = L("Automatic certificates (ACME)");
+               Header.PageKey = "acme";
                Header.Subtitle = L("Built-in Let's Encrypt integration: certificates are issued, renewed, assigned to TLS ports and hot-reloaded automatically.");
                cards_.Add(new CardDef
                {
@@ -2250,7 +2250,7 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case Section.Integration:
-               Header.Title = L("API & monitoring");
+               Header.PageKey = "api";
                Header.Subtitle = L("REST administration API, Prometheus metrics and remote script management. The public web services listener (autoconfiguration, MTA-STS hosting) is on the Web services & autoconfiguration page; OAuth2 token authentication is on the Authentication page.");
                cards_.Add(new CardDef
                {
@@ -2640,7 +2640,7 @@ namespace hMailServer.ControlPanel.Views
             // nav key stays "hardening" and the old titles stay as search aliases,
             // so every existing link and bookmark still lands here.
             case Section.Hardening:
-               Header.Title = L("Server limits & expert settings");
+               Header.PageKey = "hardening";
                Header.Subtitle = L("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason.");
                cards_.Add(new CardDef
                {
@@ -2969,7 +2969,7 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case Section.Authentication:
-               Header.Title = L("Authentication");
+               Header.PageKey = "authentication";
                Header.Subtitle = L("How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered.");
                cards_.Add(new CardDef
                {
@@ -3076,7 +3076,7 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case Section.Dns:
-               Header.Title = L("DNS resolver");
+               Header.PageKey = "dns";
                Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups.");
                cards_.Add(new CardDef
                {
@@ -3114,7 +3114,7 @@ namespace hMailServer.ControlPanel.Views
                break;
 
             case Section.WebServices:
-               Header.Title = L("Web services & client autoconfiguration");
+               Header.PageKey = "webservices";
                Header.Subtitle = L("The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains.");
                cards_.Add(new CardDef
                {

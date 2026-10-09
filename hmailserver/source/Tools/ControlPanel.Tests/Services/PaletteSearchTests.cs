@@ -480,7 +480,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// Pages that tie on match quality are ordered by how often this
       /// administrator actually opens them. Typing the group name scores every
       /// page in the group identically except the one whose own title matched, so
-      /// "Certificates (ACME)" and "Transport security" tie exactly - and which of
+      /// "Automatic certificates (ACME)" and "Transport security" tie exactly - and which of
       /// them a given administrator wants is not something the text can tell us,
       /// but their history can.
       /// </summary>

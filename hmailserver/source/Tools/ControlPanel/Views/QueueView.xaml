@@ -23,7 +23,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Delivery queue'}"
+        <scaffold:PageHeader x:Name="Header" PageKey="queue"
                              Subtitle="{loc:L 'Messages waiting for delivery.'}">
             <scaffold:PageHeader.Actions>
                 <StackPanel Orientation="Horizontal">

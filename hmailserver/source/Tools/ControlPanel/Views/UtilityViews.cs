@@ -66,7 +66,7 @@ namespace hMailServer.ControlPanel.Views
 
          grid.Children.Add(new PageHeader
          {
-            Title = L("Incoming relays"),
+            PageKey = "relays",
             Subtitle = L("Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks."),
             Actions = del
          });
@@ -292,8 +292,7 @@ namespace hMailServer.ControlPanel.Views
 
          grid.Children.Add(new PageHeader
          {
-            Title = L("MX query"),
-            Subtitle = L("Look up the mail exchanger records for a domain - where e-mail to that domain is delivered.")
+            PageKey = "mxquery"
          });
 
          var inputRow = new Grid();
@@ -479,8 +478,7 @@ namespace hMailServer.ControlPanel.Views
 
          panel.Children.Add(new PageHeader
          {
-            Title = L("Server sendout"),
-            Subtitle = L("Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements.")
+            PageKey = "sendout"
          });
 
          var form = new StackPanel();
@@ -715,7 +713,7 @@ namespace hMailServer.ControlPanel.Views
 
          grid.Children.Add(new PageHeader
          {
-            Title = L("Diagnostics"),
+            PageKey = "diagnostics",
             Subtitle = L("Runs the server's built-in connectivity and configuration checks (outbound port 25, MX resolution, backup directory, IP configuration). The message-store consistency scan below is a separate read-only background task - the server runs it at start-up and hourly and records what it found in a recovery report.")
          });
 

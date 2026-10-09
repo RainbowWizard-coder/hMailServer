@@ -48,7 +48,7 @@ namespace hMailServer.ControlPanel.Views
          root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
          root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-         header_.Title = L("Public folders");
+         header_.PageKey = "publicfolders";
          header_.Subtitle = L("Shared IMAP folders that several accounts can access. Use the hierarchy delimiter to create sub-folders, and edit permissions to grant access.");
          System.Windows.Automation.AutomationProperties.SetName(list_, L("Public folders"));
 

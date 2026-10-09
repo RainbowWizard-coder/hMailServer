@@ -1549,9 +1549,6 @@
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>防连击：一台一被断开就立即重连的主机，每分钟可以重连数千次，而保持套接字打开可以把它压到每个间隔一次连接，同时不占用本服务器的线程。该连接由计时器持有，因此等待期间不消耗任何资源。</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>反垃圾邮件</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>反垃圾邮件设置</value>
   </data>
@@ -1560,9 +1557,6 @@
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>反垃圾邮件设置（SpamAssassin）</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>反病毒</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>反病毒设置</value>
@@ -2283,9 +2277,6 @@
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>证书 (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|所有文件 (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>证书（ACME）</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>监听器可以出示的证书保存在这里，ACME 可以为您续期。</value>
@@ -3805,9 +3796,6 @@
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>把发往指定域的邮件投递到选定的服务器，而不是查询其 MX 记录。</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>通过指定的 SMTP 主机投递发往特定域的邮件，而不是进行 MX 查询。</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>投递远程 → 远程（中继）(_Y)</value>
@@ -5485,9 +5473,6 @@
   <data name="IP address" xml:space="preserve">
     <value>IP 地址</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>免除灰名单延迟的 IP 地址。</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>免除灰名单延迟的 IP 地址，用于不会重试的发件方。</value>
   </data>
@@ -6123,9 +6108,6 @@
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>查询任意域的 MX 记录。</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>查询某个域的邮件交换记录 - 即发往该域的电子邮件投递到哪里。</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>查询某个域的电子邮件投递到哪里，以便在归咎于服务器之前先检查 DNS。</value>
   </data>
@@ -6325,9 +6307,6 @@
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>创建样例域 (_D)</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>管理本服务器托管的域及其邮箱。</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve（RFC 5804）</value>
@@ -8832,9 +8811,6 @@
   <data name="Ready to switch" xml:space="preserve">
     <value>可以切换</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>按连接方的 IP 地址进行检查的实时拦截列表。</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>原因</value>
   </data>
@@ -10315,9 +10291,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>向选择接收的成员发送每日摘要(_Y)</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>向服务器上的每个账户 (或匹配通配符的账户) 发送一封邮件 - 用于维护通告。</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>将警报和每日摘要发送到</value>
   </data>
@@ -10386,9 +10359,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>完全绕过垃圾邮件防护的发件人和 IP 范围。</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>完全绕过垃圾邮件防护的发件人或 IP 范围。</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>发送域(_D)</value>
@@ -11903,6 +11873,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>域列表中没有任何域名。请将此框留空以让密钥作用于所有域 - 只有分隔符的列表会悄悄地表示同样的意思，而那并不是您想要的。</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>本服务器托管的域，以及它们的账户、别名和分发列表。</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>电子取证案件（只读）：每个案件的搜索、保留和导出，以及审计记录中关于它的每一行。案件的新建、搜索、保留和导出都在 Control Deck 中进行。</value>
@@ -13492,9 +13465,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Web 服务和自动配置</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Web 服务和客户端自动配置</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhook</value>

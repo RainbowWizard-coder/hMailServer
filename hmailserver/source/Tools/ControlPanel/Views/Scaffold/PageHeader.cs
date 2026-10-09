@@ -18,7 +18,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
    /// are on the component itself, where its automation peer reports them.
    ///
    /// <code>
-   /// &lt;scaffold:PageHeader Title="{loc:L 'Dashboard'}" Subtitle="{loc:L '...'}"&gt;
+   /// &lt;scaffold:PageHeader PageKey="dashboard" Subtitle="{loc:L '...'}"&gt;
    ///    &lt;scaffold:PageHeader.Actions&gt;&lt;ui:Button .../&gt;&lt;/scaffold:PageHeader.Actions&gt;
    /// &lt;/scaffold:PageHeader&gt;
    /// </code>
@@ -34,7 +34,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          nameof(Title), typeof(string), typeof(PageHeader), new PropertyMetadata(null, OnTitleChanged, NullWhenEmpty));
 
       public static readonly DependencyProperty SubtitleProperty = DependencyProperty.Register(
-         nameof(Subtitle), typeof(string), typeof(PageHeader), new PropertyMetadata(null, OnSubtitleChanged, NullWhenEmpty));
+         nameof(Subtitle), typeof(string), typeof(PageHeader), new PropertyMetadata(null, OnSubtitleChanged, SubtitleOrDescription_));
 
       public static readonly DependencyProperty ActionsProperty = DependencyProperty.Register(
          nameof(Actions), typeof(object), typeof(PageHeader), new PropertyMetadata(null));
@@ -44,6 +44,9 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
       public static readonly DependencyProperty TourIdProperty = DependencyProperty.Register(
          nameof(TourId), typeof(string), typeof(PageHeader), new PropertyMetadata(null, OnTourIdChanged, NullWhenEmpty));
+
+      public static readonly DependencyProperty PageKeyProperty = DependencyProperty.Register(
+         nameof(PageKey), typeof(string), typeof(PageHeader), new PropertyMetadata(null, OnPageKeyChanged, NullWhenEmpty));
 
       /// <summary>
       /// Raised by the help button. It bubbles to the shell, which is the only
@@ -59,14 +62,24 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          AutomationProperties.SetHeadingLevel(this, AutomationHeadingLevel.Level1);
       }
 
-      /// <summary>The page title - the same words as its navigation entry.</summary>
+      /// <summary>
+      /// The page title - the same words as its navigation entry, which
+      /// <see cref="PageKey"/> sets. A page names its key and not its title.
+      /// </summary>
       public string Title
       {
          get => (string)GetValue(TitleProperty);
          set => SetValue(TitleProperty, value);
       }
 
-      /// <summary>One line under the title saying what the page shows or when it was last refreshed. Null hides the line.</summary>
+      /// <summary>
+      /// One line under the title saying what the page shows or when it was last
+      /// refreshed. Left unset on a page that names its <see cref="PageKey"/>, it
+      /// is the page's description in the navigation map - its tool tip in the
+      /// sidebar and its line in the palette - so that a page with nothing more
+      /// to say than that says it in the same words. Null hides the line on a
+      /// header with no key.
+      /// </summary>
       public string Subtitle
       {
          get => (string)GetValue(SubtitleProperty);
@@ -97,6 +110,22 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       {
          get => (string)GetValue(TourIdProperty);
          set => SetValue(TourIdProperty, value);
+      }
+
+      /// <summary>
+      /// The navigation key of the page this header heads ("antispam"). It gives
+      /// the header its title: the page's title in the navigation map, in the
+      /// reader's language, which is what the sidebar, the breadcrumb, the
+      /// palette and the help pane call the page. A page set its own title, and
+      /// eight said something else - "Anti-spam" under the breadcrumb's
+      /// "Anti-spam settings", "Domains &amp; accounts" under "Domains" (review
+      /// findings F215, F025 and F080). PageTitlesTests holds every page to
+      /// naming its key here.
+      /// </summary>
+      public string PageKey
+      {
+         get => (string)GetValue(PageKeyProperty);
+         set => SetValue(PageKeyProperty, value);
       }
 
       /// <summary>Raised when the reader presses the help button.</summary>
@@ -168,6 +197,24 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          var help = Part<Wpf.Ui.Controls.Button>("PART_Help");
          if (help != null)
             help.Visibility = string.IsNullOrEmpty(TourId) ? Visibility.Collapsed : Visibility.Visible;
+      }
+
+      private static void OnPageKeyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+      {
+         var header = (PageHeader)d;
+         if (e.NewValue is string key)
+            header.Title = L(Services.NavigationMap.TitleOf(key));
+         header.CoerceValue(SubtitleProperty);
+      }
+
+      /// <summary>The subtitle a page gave, or its navigation description where it gave none.</summary>
+      private static object SubtitleOrDescription_(DependencyObject d, object value)
+      {
+         if (NullWhenEmpty(d, value) is string subtitle)
+            return subtitle;
+
+         string purpose = Services.NavigationMap.Find(((PageHeader)d).PageKey)?.Purpose;
+         return string.IsNullOrEmpty(purpose) ? null : L(purpose);
       }
 
       private static void OnTitleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

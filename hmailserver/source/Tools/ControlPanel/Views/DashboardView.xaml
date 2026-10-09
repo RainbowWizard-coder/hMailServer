@@ -16,7 +16,7 @@
          for the surfaces, a StatusPill where a state is shown. -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource AppPagePadding}">
         <StackPanel>
-            <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Dashboard'}"
+            <scaffold:PageHeader x:Name="Header" PageKey="dashboard"
                                  Subtitle="{loc:L 'Live server statistics, refreshed every 2 seconds.'}" />
 
             <!-- A read of the statistics that failed, said once, at Critical when

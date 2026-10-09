@@ -314,7 +314,7 @@ namespace hMailServer.ControlPanel.Views
 
          root.Children.Add(new PageHeader
          {
-            Title = L("Message trace"),
+            PageKey = "messagetrace",
             Subtitle = L("What happened to a particular message. Search by any address - it matches senders and recipients - then follow one row to see every event for that message in order.")
          });
 

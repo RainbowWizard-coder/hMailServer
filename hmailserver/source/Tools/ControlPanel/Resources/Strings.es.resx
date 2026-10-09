@@ -1549,9 +1549,6 @@ Los detalles completos se escribieron en:
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Anti-martilleo: un host que se reconecta en el instante en que se le corta puede hacerlo miles de veces por minuto, y mantener el socket abierto lo frena a una conexión por intervalo sin costarle un hilo a este servidor. La conexión la sostiene un temporizador, así que no consume nada mientras espera.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Antispam</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Ajustes antispam</value>
   </data>
@@ -1560,9 +1557,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Ajustes antispam (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Antivirus</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Ajustes de antivirus</value>
@@ -2283,9 +2277,6 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Certificados (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Todos los archivos (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Certificados (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Aquí se guardan los certificados que un oyente puede presentar, y ACME puede renovarlos por usted.</value>
@@ -3805,9 +3796,6 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Entregar el correo de los dominios indicados a un servidor elegido en vez de buscar su registro MX.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Entregar el correo de dominios concretos a través de un host SMTP designado en vez de la búsqueda MX.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Entregar remoto → remoto (rel_é)</value>
@@ -5485,9 +5473,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="IP address" xml:space="preserve">
     <value>Dirección IP</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>Direcciones IP exentas de los retrasos de greylisting.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>Direcciones IP exentas del retraso de greylisting, para remitentes que no reintentarán.</value>
   </data>
@@ -6123,9 +6108,6 @@ El instalador verificado se entrega al ayudante de actualización: el servicio s
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Buscar los registros MX de cualquier dominio.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Buscar los registros de intercambiador de correo de un dominio - dónde se entrega el correo dirigido a ese dominio.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Buscar dónde se entrega el correo de un dominio, para comprobar el DNS antes de culpar al servidor.</value>
   </data>
@@ -6325,9 +6307,6 @@ Cada suscripción de Web Push hecha con el par actual deja de funcionar al momen
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Crear un _dominio de muestra</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Gestione los dominios alojados en este servidor y sus buzones.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="Ready to switch" xml:space="preserve">
     <value>Lista para el cambio</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Listas de bloqueo en tiempo real comprobadas contra la dirección IP que se conecta.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Motivo</value>
   </data>
@@ -10315,9 +10291,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Enviar _un resumen diario a los miembros que lo elijan</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Enviar un mensaje a todas las cuentas del servidor (o a las que coincidan con un comodín) - para avisos de mantenimiento.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Enviar las alertas y el resumen diario a</value>
   </data>
@@ -10386,9 +10359,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Remitentes y rangos de IP que eluden por completo la protección antispam.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Remitentes o rangos de IP que eluden por completo la protección antispam.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Dominio _remitente</value>
@@ -11903,6 +11873,9 @@ Seleccione la clave de arriba y cópiela a mano - no volverá a mostrarse.</valu
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>La lista de dominios no contiene ningún nombre de dominio. Deje la casilla vacía para que la clave actúe sobre todos los dominios - una lista de separadores significaría lo mismo en silencio, que no es lo que usted pidió.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Los dominios que aloja este servidor, con sus cuentas, alias y listas de distribución.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>Los casos de eDiscovery, de solo lectura: las búsquedas, retenciones y exportaciones de cada caso, y cada línea que el registro de auditoría guarda sobre él. Un caso se abre, se busca, se retiene y se exporta en el Control Deck.</value>
@@ -13492,9 +13465,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Servicios web y autoconfiguración</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Servicios web y autoconfiguración de clientes</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooks</value>

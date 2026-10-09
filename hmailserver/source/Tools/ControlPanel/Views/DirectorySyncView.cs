@@ -170,7 +170,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(statePill_, "dirsync-state-pill");
          page.Children.Add(new PageHeader
          {
-            Title = L("Directory synchronisation"),
+            PageKey = "directorysync",
             Subtitle = L("Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to."),
             Status = statePill_,
             Actions = BuildActions_()

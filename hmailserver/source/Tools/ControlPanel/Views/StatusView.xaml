@@ -13,7 +13,7 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource AppPagePadding}">
         <StackPanel>
-            <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Server status'}"
+            <scaffold:PageHeader x:Name="Header" PageKey="status"
                                  Subtitle="{loc:L 'Server, database and health overview.'}">
                 <scaffold:PageHeader.Actions>
                     <StackPanel Orientation="Horizontal">

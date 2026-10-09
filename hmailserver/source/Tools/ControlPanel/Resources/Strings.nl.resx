@@ -1549,9 +1549,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Anti-pounding: een host die direct na het verbreken opnieuw verbindt, kan dat duizenden keren per minuut doen, en de socket openhouden vertraagt hem tot één verbinding per interval zonder dat het deze server een thread kost. De verbinding wordt door een timer vastgehouden, dus die verbruikt niets terwijl hij wacht.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Antispam</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Antispaminstellingen</value>
   </data>
@@ -1560,9 +1557,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Antispaminstellingen (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Antivirus</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Antivirusinstellingen</value>
@@ -2283,9 +2277,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Certificaten (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Alle bestanden (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Certificaten (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Certificaten die een listener kan tonen, worden hier bewaard, en ACME kan ze voor u vernieuwen.</value>
@@ -3805,9 +3796,6 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Mail voor genoemde domeinen bezorgen bij een gekozen server in plaats van het MX-record ervan op te zoeken.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Mail voor bepaalde domeinen bezorgen via een aangewezen SMTP-host in plaats van via een MX-opzoeking.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Extern → extern bezorgen (rela_y)</value>
@@ -5485,9 +5473,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="IP address" xml:space="preserve">
     <value>IP-adres</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>IP-adressen die zijn vrijgesteld van greylistingvertragingen.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-adressen die zijn vrijgesteld van de greylistingvertraging, voor afzenders die niet opnieuw zullen proberen.</value>
   </data>
@@ -6123,9 +6108,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Zoek de MX-records van elk willekeurig domein op.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Zoek de mail-exchangerrecords van een domein op - waar e-mail naar dat domein wordt bezorgd.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Zoek op waar e-mail voor een domein wordt bezorgd, om DNS te controleren voordat u de server de schuld geeft.</value>
   </data>
@@ -6325,9 +6307,6 @@ Elk Web Push-abonnement onder het huidige paar werkt meteen niet meer, en iedere
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Voorbeeld_domein maken</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Beheer de domeinen die deze server host en hun postvakken.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Ready to switch" xml:space="preserve">
     <value>Klaar om over te stappen</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Realtime blokkeerlijsten die worden gecontroleerd tegen het verbindende IP-adres.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Reden</value>
   </data>
@@ -10315,9 +10291,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Een dagelijkse _samenvatting sturen naar de leden die dat kiezen</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Stuur een bericht naar elk account op de server (of naar de accounts die aan een jokerteken voldoen) - voor onderhoudsaankondigingen.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Waarschuwingen en het dagelijkse overzicht sturen naar</value>
   </data>
@@ -10386,9 +10359,6 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Afzenders en IP-bereiken die spambescherming volledig omzeilen.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Afzenders of IP-bereiken die spambescherming volledig omzeilen.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Verzendend _domein</value>
@@ -11903,6 +11873,9 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>De domeinlijst bevat geen domeinnamen. Laat het vak leeg om de sleutel op elk domein te laten werken - een lijst met alleen scheidingstekens zou stilzwijgend hetzelfde betekenen, en dat is niet wat u hebt gevraagd.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>De domeinen die deze server host, met hun accounts, aliassen en distributielijsten.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>De eDiscovery-zaken, alleen-lezen: de zoekopdrachten, bewaarplichten en exports van elke zaak, en elke regel die het auditlogboek erover bevat. Een zaak wordt geopend, doorzocht, onder bewaarplicht gesteld en geëxporteerd in het Control Deck.</value>
@@ -13492,9 +13465,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Webservices en autoconfiguratie</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Webservices en autoconfiguratie van clients</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooks</value>

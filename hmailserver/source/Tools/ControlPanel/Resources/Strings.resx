@@ -1549,9 +1549,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Anti-spam</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Anti-spam settings</value>
   </data>
@@ -1560,9 +1557,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Anti-spam settings (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Anti-virus</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Anti-virus settings</value>
@@ -2283,9 +2277,6 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Certificates (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Certificates a listener can present are kept here, and ACME can renew them for you.</value>
@@ -3805,9 +3796,6 @@ The sender was told it was accepted, so nothing will retry and there is no other
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Deliver mail for named domains to a chosen server instead of looking up its MX record.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Deliver mail for specific domains through a designated SMTP host instead of MX lookup.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Deliver remote → remote (rela_y)</value>
@@ -5485,9 +5473,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="IP address" xml:space="preserve">
     <value>IP address</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>IP addresses exempt from greylisting delays.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP addresses exempt from the greylisting delay, for senders that will not retry.</value>
   </data>
@@ -6123,9 +6108,6 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Look up the MX records for any domain.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Look up the mail exchanger records for a domain - where e-mail to that domain is delivered.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Look up where e-mail for a domain is delivered, to check DNS before blaming the server.</value>
   </data>
@@ -6325,9 +6307,6 @@ Every Web Push subscription made under the present pair stops working at once, a
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Make a sample _domain</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Manage the domains hosted by this server and their mailboxes.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@ No new connections will be accepted and no mail will be delivered until it is re
   <data name="Ready to switch" xml:space="preserve">
     <value>Ready to switch</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Real-time block lists checked against the connecting IP address.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Reason</value>
   </data>
@@ -10315,9 +10291,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Send a dail_y digest to the members who choose it</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Send alerts and the daily digest to</value>
   </data>
@@ -10386,9 +10359,6 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Senders and IP ranges that bypass spam protection entirely.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Senders or IP ranges that bypass spam protection entirely.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Sending _domain</value>
@@ -11903,6 +11873,9 @@ Select the key above and copy it by hand - it will not be shown again.</value>
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>The domains this server hosts, with their accounts, aliases and distribution lists.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck.</value>
@@ -13492,9 +13465,6 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Web services &amp; autoconfiguration</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Web services &amp; client autoconfiguration</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhooks</value>

@@ -1549,9 +1549,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Anti-pounding: a host that reconnects the instant it is dropped can do so thousands of times a minute, and holding the socket open slows it to one connection per interval without costing this server a thread. The connection is held by a timer, so it consumes nothing while it waits." xml:space="preserve">
     <value>Vasaroinnin esto: kone joka muodostaa yhteyden uudelleen heti kun se katkaistaan voi tehdä niin tuhansia kertoja minuutissa, ja soketin auki pitäminen hidastaa sen yhteen yhteyteen aikaväliä kohden viemättä tältä palvelimelta säiettä. Yhteyttä pitää ajastin, joten se ei kuluta mitään odottaessaan.</value>
   </data>
-  <data name="Anti-spam" xml:space="preserve">
-    <value>Roskapostisuojaus</value>
-  </data>
   <data name="Anti-spam settings" xml:space="preserve">
     <value>Roskapostisuojauksen asetukset</value>
   </data>
@@ -1560,9 +1557,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Anti-spam settings (SpamAssassin)" xml:space="preserve">
     <value>Roskapostisuojauksen asetukset (SpamAssassin)</value>
-  </data>
-  <data name="Anti-virus" xml:space="preserve">
-    <value>Virustorjunta</value>
   </data>
   <data name="Anti-virus settings" xml:space="preserve">
     <value>Virustorjunnan asetukset</value>
@@ -2283,9 +2277,6 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Certificates (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|All files (*.*)|*.*" xml:space="preserve">
     <value>Varmenteet (*.pem;*.crt;*.cer)|*.pem;*.crt;*.cer|Kaikki tiedostot (*.*)|*.*</value>
-  </data>
-  <data name="Certificates (ACME)" xml:space="preserve">
-    <value>Varmenteet (ACME)</value>
   </data>
   <data name="Certificates a listener can present are kept here, and ACME can renew them for you." xml:space="preserve">
     <value>Varmenteet, joita kuuntelija voi esittää, säilytetään täällä, ja ACME voi uusia ne puolestasi.</value>
@@ -3805,9 +3796,6 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   </data>
   <data name="Deliver mail for named domains to a chosen server instead of looking up its MX record." xml:space="preserve">
     <value>Toimita nimettyjen verkkotunnusten posti valitulle palvelimelle sen MX-tietueen hakemisen sijaan.</value>
-  </data>
-  <data name="Deliver mail for specific domains through a designated SMTP host instead of MX lookup." xml:space="preserve">
-    <value>Toimita tiettyjen verkkotunnusten posti nimetyn SMTP-koneen kautta MX-haun sijaan.</value>
   </data>
   <data name="Deliver remote → remote (rela_y)" xml:space="preserve">
     <value>Toimita etä → etä (_välitys)</value>
@@ -5485,9 +5473,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="IP address" xml:space="preserve">
     <value>IP-osoite</value>
   </data>
-  <data name="IP addresses exempt from greylisting delays." xml:space="preserve">
-    <value>IP-osoitteet, jotka on vapautettu harmaalistauksen viiveistä.</value>
-  </data>
   <data name="IP addresses exempt from the greylisting delay, for senders that will not retry." xml:space="preserve">
     <value>IP-osoitteet, jotka on vapautettu harmaalistauksen viiveestä, lähettäjille, jotka eivät yritä uudelleen.</value>
   </data>
@@ -6123,9 +6108,6 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Look up the MX records for any domain." xml:space="preserve">
     <value>Hae minkä tahansa verkkotunnuksen MX-tietueet.</value>
   </data>
-  <data name="Look up the mail exchanger records for a domain - where e-mail to that domain is delivered." xml:space="preserve">
-    <value>Hae verkkotunnuksen mail exchanger -tietueet - minne sähköposti tuolle verkkotunnukselle toimitetaan.</value>
-  </data>
   <data name="Look up where e-mail for a domain is delivered, to check DNS before blaming the server." xml:space="preserve">
     <value>Hae, minne verkkotunnuksen sähköposti toimitetaan, tarkistaaksesi DNS:n ennen palvelimen syyttämistä.</value>
   </data>
@@ -6325,9 +6307,6 @@ Jokainen nykyisellä parilla tehty Web Push -tilaus lakkaa toimimasta heti, ja j
   </data>
   <data name="Make a sample _domain" xml:space="preserve">
     <value>Luo näytetoimialue (_D)</value>
-  </data>
-  <data name="Manage the domains hosted by this server and their mailboxes." xml:space="preserve">
-    <value>Hallitse tämän palvelimen isännöimiä verkkotunnuksia ja niiden postilaatikoita.</value>
   </data>
   <data name="ManageSieve (RFC 5804)" xml:space="preserve">
     <value>ManageSieve (RFC 5804)</value>
@@ -8832,9 +8811,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Ready to switch" xml:space="preserve">
     <value>Valmis vaihtoon</value>
   </data>
-  <data name="Real-time block lists checked against the connecting IP address." xml:space="preserve">
-    <value>Reaaliaikaiset estolistat, joita vasten yhdistävä IP-osoite tarkistetaan.</value>
-  </data>
   <data name="Reason" xml:space="preserve">
     <value>Syy</value>
   </data>
@@ -10315,9 +10291,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Send a dail_y digest to the members who choose it" xml:space="preserve">
     <value>Lähetä päivittäinen kooste jäsenille, jotka valitsevat _sen</value>
   </data>
-  <data name="Send a message to every account on the server (or those matching a wildcard) - for maintenance announcements." xml:space="preserve">
-    <value>Lähetä viesti palvelimen jokaiselle tilille (tai jokerimerkkiin täsmääville) - huoltoilmoituksia varten.</value>
-  </data>
   <data name="Send alerts and the daily digest to" xml:space="preserve">
     <value>Lähetä hälytykset ja päivittäinen yhteenveto osoitteeseen</value>
   </data>
@@ -10386,9 +10359,6 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Senders and IP ranges that bypass spam protection entirely." xml:space="preserve">
     <value>Lähettäjät ja IP-alueet, jotka ohittavat roskapostisuojauksen kokonaan.</value>
-  </data>
-  <data name="Senders or IP ranges that bypass spam protection entirely." xml:space="preserve">
-    <value>Lähettäjät tai IP-alueet, jotka ohittavat roskapostisuojauksen kokonaan.</value>
   </data>
   <data name="Sending _domain" xml:space="preserve">
     <value>Lähettävä _verkkotunnus</value>
@@ -11903,6 +11873,9 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The domain list contains no domain names. Leave the box empty to let the key act on every domain - a list of separators would silently mean the same thing, which is not what you asked for." xml:space="preserve">
     <value>Verkkotunnusluettelossa ei ole yhtään verkkotunnusta. Jätä kenttä tyhjäksi, jotta avain vaikuttaa jokaiseen verkkotunnukseen - pelkistä erottimista koostuva luettelo tarkoittaisi hiljaa samaa, mikä ei ole se, mitä pyysit.</value>
+  </data>
+  <data name="The domains this server hosts, with their accounts, aliases and distribution lists." xml:space="preserve">
+    <value>Tämän palvelimen isännöimät verkkotunnukset tileineen, aliaksineen ja jakelulistoineen.</value>
   </data>
   <data name="The eDiscovery cases, read-only: each case's searches, holds and exports, and every line the audit trail holds for it. A case is opened, searched, held and exported in the Control Deck." xml:space="preserve">
     <value>eDiscovery-tapaukset vain luku -tilassa: kunkin tapauksen haut, säilytykset ja viennit sekä jokainen rivi, joka tarkastuslokissa on siitä. Tapaus avataan, haetaan, asetetaan säilytykseen ja viedään Control Deckissä.</value>
@@ -13492,9 +13465,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Web services &amp; autoconfiguration" xml:space="preserve">
     <value>Verkkopalvelut ja automaattinen määritys</value>
-  </data>
-  <data name="Web services &amp; client autoconfiguration" xml:space="preserve">
-    <value>Verkkopalvelut ja asiakkaiden automaattinen määritys</value>
   </data>
   <data name="Webhooks" xml:space="preserve">
     <value>Webhookit</value>

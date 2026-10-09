@@ -17,7 +17,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Live logs'}"
+        <scaffold:PageHeader x:Name="Header" PageKey="logs"
                              Subtitle="{loc:L 'The server log as it is written, read from the log folder on this computer.'}">
             <scaffold:PageHeader.Actions>
                 <StackPanel Orientation="Horizontal">
