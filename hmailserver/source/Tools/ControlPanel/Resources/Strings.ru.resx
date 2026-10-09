@@ -8437,11 +8437,17 @@ Control Panel может читать файлы сообщений только
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Интервал истечения срока записей, минуты</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Тип записи: MX.  Узел/имя</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Тип записи: MX. Узел/имя - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Тип записи: TXT.  Узел/имя</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Тип записи: MX. Узел/имя:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Тип записи: TXT. Узел/имя - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Тип записи: TXT. Узел/имя:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Записывает доступную для поиска строку о каждой доставке, каждом отказе и каждом помещении в карантин, чтобы на вопрос «что случилось с сообщением, которое Jane отправила в 14:20» можно было ответить поиском, а не разбором журналов. События те же самые, которые всегда видел журнал AWStats; теперь у них появилось место, где им можно задавать вопросы. По умолчанию выключено, поскольку сохраняются адреса отправителя и получателей, а это делает такую запись сведениями о том, кто с кем переписывается.</value>

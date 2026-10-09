@@ -479,7 +479,7 @@ namespace hMailServer.ControlPanel.Views
             // way to know whether there is one. The row's hint carries it, under
             // the editor and in its help text alike.
             string hint = !hasStored_ ? Blurb
-               : string.IsNullOrEmpty(Blurb) ? placeholder : placeholder + " " + Blurb;
+               : Sentences(placeholder, Blurb);
 
             if (!OfferGenerate)
             {

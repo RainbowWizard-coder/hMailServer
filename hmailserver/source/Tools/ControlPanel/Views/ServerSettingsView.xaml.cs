@@ -5239,7 +5239,7 @@ namespace hMailServer.ControlPanel.Views
          string readSentence = ServerSettingsPageStatus.ReadSentence(failedReads_, diag_);
          string environmentSentence = EnvironmentSettings.Notice(IniFeatureStore.EnvironmentManaged());
          if (!string.IsNullOrEmpty(readSentence))
-            ShowNotice_(string.IsNullOrEmpty(environmentSentence) ? readSentence : readSentence + " " + environmentSentence, StatusLevel.Critical);
+            ShowNotice_(Sentences(readSentence, environmentSentence), StatusLevel.Critical);
          else
             ShowNotice_(environmentSentence, StatusLevel.Information);
 
@@ -6106,7 +6106,7 @@ namespace hMailServer.ControlPanel.Views
          ShowState_(outcome);
          string saveSentence = ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), waiting);
          ShowNotice_(
-            firstFailure == null ? saveSentence : saveSentence + " " + firstFailure,
+            Sentences(saveSentence, firstFailure),
             ServerSettingsPageStatus.LevelFor(outcome));
 
          if (failed == 0)

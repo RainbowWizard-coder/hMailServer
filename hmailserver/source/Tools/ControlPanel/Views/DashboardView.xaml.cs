@@ -489,16 +489,17 @@ namespace hMailServer.ControlPanel.Views
          foreach (SetupItem item in checks.Items.Where(i => i.State == SetupItemState.ActionNeeded))
             AttentionItems.Children.Add(AttentionLine_(item, index++));
 
-         string note = "";
-         if (pendingDnsLookups > 0)
-            note = Plural(pendingDnsLookups,
-               "{0} DNS record is still being checked in the background; this summary will update.",
-               "{0} DNS records are still being checked in the background; this summary will update.");
-         if (checks.FailedReads > 0)
-            note += (note.Length > 0 ? " " : "")
-               + Plural(checks.FailedReads,
+         string note = Sentences(
+            pendingDnsLookups > 0
+               ? Plural(pendingDnsLookups,
+                  "{0} DNS record is still being checked in the background; this summary will update.",
+                  "{0} DNS records are still being checked in the background; this summary will update.")
+               : null,
+            checks.FailedReads > 0
+               ? Plural(checks.FailedReads,
                   "{0} value could not be read from the server, so this summary may be incomplete.",
-                  "{0} values could not be read from the server, so this summary may be incomplete.");
+                  "{0} values could not be read from the server, so this summary may be incomplete.")
+               : null);
 
          AttentionNote.Text = note;
          AttentionNote.Visibility = note.Length > 0 ? Visibility.Visible : Visibility.Collapsed;

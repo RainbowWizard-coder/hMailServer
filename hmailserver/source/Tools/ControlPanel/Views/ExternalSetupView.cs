@@ -215,12 +215,12 @@ namespace hMailServer.ControlPanel.Views
          summary_.Level = action > 0 ? StatusLevel.Warning
             : unknown > 0 ? StatusLevel.Information
             : StatusLevel.Good;
-         summary_.Text = F("{0} need action, {1} cannot be told from here, {2} done, {3} not needed.", action, unknown, done, unused)
-            + (next != null ? " " + F("Next step: {0}.", next.Title) : "");
+         summary_.Text = Sentences(F("{0} need action, {1} cannot be told from here, {2} done, {3} not needed.", action, unknown, done, unused),
+            next != null ? F("Next step: {0}.", next.Title) : null);
          summary_.Visibility = Visibility.Visible;
 
          // Two sentences; each is whole in the catalogue.
-         status_.Text = dnsNote.Length == 0 ? baseStatus_ : baseStatus_ + " " + dnsNote;
+         status_.Text = Sentences(baseStatus_, dnsNote);
       }
 
       private Card ItemCard(SetupItem item, int number, bool isNext)
@@ -275,7 +275,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(title,
             number.ToString(System.Globalization.CultureInfo.CurrentCulture) + ". "
             + (isNext ? L("Next step") + ". " : "")
-            + ExternalSetupChecks.StateWord(item.State) + ": " + item.Title + ". " + item.Purpose + " " + item.Action);
+            + ExternalSetupChecks.StateWord(item.State) + ": " + item.Title + ". " + Sentences(item.Purpose, item.Action));
          Grid.SetColumn(title, 2);
          header.Children.Add(title);
 

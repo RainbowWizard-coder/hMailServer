@@ -964,16 +964,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   fragment before a value - "MX — which server takes the mail for " and the domain, "Account - " and the address,
   "Add {0}" with a noun in it - and a paragraph added a sentence that began with a space to the one before it, so no
   translator could move the value or the verb: German read "... die Mail annimmt für example.com", Japanese "SURBL
-  サーバー を追加" and put a space after its 。. Each is one whole text now, with the value in its place: the account, domain, distribution list, route, members, recipients and permissions dialogs'
-  titles, the DNS records page's MX, SPF, MTA-STS and TLS-RPT cards (with one spaced hyphen in every card title),
-  the DKIM and DMARC findings, the update row with and without its date, the cache line with and without its cap, the
-  client certificate and HELO name warnings, a rule action's subject and route, and every Add and Edit dialog of the
-  list pages, which says what it adds ("Add a SURBL server", "Edit the security group"). Sentences that follow one
-  another are joined by `Loc.Sentences`, which puts no space after a full-width stop, and names of which any will do
-  by `Loc.JoinOr`; a failure and its reason are joined by one colon ("Search failed: ..."). Every new text is
-  translated in all seventeen languages. `build/check-localisation.py` refuses a marked text that begins with white
-  space, or ends with it after anything but the colon of a label, and `WholeTextsTests` holds the catalogue to the
-  same rule and every list page's dialogs to their whole titles.
+  サーバー を追加" and put a space after its 。. Each is one whole text now, with the value in its place: the account,
+  domain, distribution list, route, members, recipients and permissions dialogs' titles, the DNS records page's MX,
+  SPF, MTA-STS and TLS-RPT cards (with one spaced hyphen in every card title) and each record's type with its host
+  note ("Record type: MX. Host/Name - the domain itself ...:"), the DKIM and DMARC findings, the update row with and
+  without its date, the cache line with and without its cap, the client certificate and HELO name warnings, a rule
+  action's subject and route, and every Add and Edit dialog of the list pages, which says what it adds ("Add a SURBL
+  server", "Edit the security group"). Sentences that follow one another are joined by `Loc.Sentences`, which puts no
+  space after a full-width stop - among them the DNS records page's verdicts and what each found, its MTA-STS policy
+  note, the setup checklist's summary, the Dashboard's note, the quarantine's partial result, the install refusals,
+  the REST API's refusal of a credential and the settings pages' notices - and names of which any will do by
+  `Loc.JoinOr`; a failure and its reason are joined by one colon ("Search failed: ..."). Every new text is translated
+  in all seventeen languages. `build/check-localisation.py` refuses a marked text that begins with white space, or ends
+  with it after anything but the colon of a label, and a translated text joined to another with a space literal;
+  `WholeTextsTests` holds the catalogue to the same rule, no Japanese or Chinese text to a space after its 。, and
+  every list page's dialogs to their whole titles.
 
 - **Fixed: the overview pages promised rows that open a page, and the transport encryption overview showed 0.0.0.0 as
   an address.** The transport encryption, spam and virus overviews said that each row opens the page that owns the

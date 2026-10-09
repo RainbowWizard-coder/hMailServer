@@ -8359,11 +8359,17 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Record expiration interval, minutes</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Record type: MX.  Host/Name</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Record type: MX. Host/Name - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Record type: TXT.  Host/Name</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Record type: MX. Host/Name:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Record type: TXT. Host/Name - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Record type: TXT. Host/Name:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Records a queryable row for every delivery, refusal and quarantine, so "what happened to the message Jane sent at 14:20" can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom.</value>

@@ -880,7 +880,7 @@
     <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その「ディレクトリ」タブで Active Directory のオプションをオンにして、AD のユーザー名 (sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
-    <value>このドメインのアカウントは、ここに指定したドメインとのみメールをやり取りできます。指定ドメイン外の外部送信者は RCPT TO で拒否され、ここのアカウントは指定ドメイン、自分のドメイン、postmaster にのみ送信できます。このサーバーがホストする他のドメインも、指定しない限り外部として扱われます。バウンスは常に通ります。各アカウントは、自身のダイアログで制限または除外を指定しない限りこれに従います。空欄ならドメインは制限されません。 外部に届くこのドメインのエイリアスや配布リストはあなたのものであり、制限されたアカウントもそこへ送信できます。</value>
+    <value>このドメインのアカウントは、ここに指定したドメインとのみメールをやり取りできます。指定ドメイン外の外部送信者は RCPT TO で拒否され、ここのアカウントは指定ドメイン、自分のドメイン、postmaster にのみ送信できます。このサーバーがホストする他のドメインも、指定しない限り外部として扱われます。バウンスは常に通ります。各アカウントは、自身のダイアログで制限または除外を指定しない限りこれに従います。空欄ならドメインは制限されません。外部に届くこのドメインのエイリアスや配布リストはあなたのものであり、制限されたアカウントもそこへ送信できます。</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>アカウント: {0} 件。</value>
@@ -8359,11 +8359,17 @@
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>レコードの有効期限の間隔 (分)</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>レコードの種類: MX。  ホスト/名前</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>レコードの種類: MX。ホスト/名前 - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>レコードの種類: TXT。  ホスト/名前</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>レコードの種類: MX。ホスト/名前:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>レコードの種類: TXT。ホスト/名前 - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>レコードの種類: TXT。ホスト/名前:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>配信、拒否、検疫のすべてについて照会可能な行を記録するため、「Jane が 14:20 に送ったメッセージはどうなったか」に、ログを grep するのではなく検索で答えられるようになります。記録されるイベントは、AWStats のジャーナルが以前から見てきたものと同じです。これは、それらに問い合わせを受ける場所を与えるものです。既定では無効です。送信者と受信者のアドレスを保存するため、誰が誰とやり取りしているかの記録になるからです。</value>

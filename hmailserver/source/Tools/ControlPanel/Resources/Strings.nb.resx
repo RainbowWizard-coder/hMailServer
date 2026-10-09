@@ -8359,11 +8359,17 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Utløpsintervall for oppføringer, minutter</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Oppføringstype: MX.  Vert/Navn</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Oppføringstype: MX. Vert/Navn - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Oppføringstype: TXT.  Vert/Navn</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Oppføringstype: MX. Vert/Navn:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Oppføringstype: TXT. Vert/Navn - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Oppføringstype: TXT. Vert/Navn:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Registrerer en søkbar rad for hver levering, avvisning og karantene, så «hva skjedde med meldingen Jane sendte kl. 14:20» kan besvares ved å søke i stedet for å lete gjennom logger med grep. Hendelsene er de samme som AWStats-journalen alltid har sett; dette gir dem et sted å bli stilt spørsmål. Av som standard, fordi det lagrer avsender- og mottakeradresser - noe som gjør det til en oversikt over hvem som korresponderer med hvem.</value>

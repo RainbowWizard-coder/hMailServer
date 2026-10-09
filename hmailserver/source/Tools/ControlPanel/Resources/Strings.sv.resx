@@ -8359,11 +8359,17 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Utgångsintervall för poster, minuter</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Posttyp: MX.  Värd/Namn</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Posttyp: MX. Värd/Namn - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Posttyp: TXT.  Värd/Namn</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Posttyp: MX. Värd/Namn:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Posttyp: TXT. Värd/Namn - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Posttyp: TXT. Värd/Namn:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Registrerar en sökbar rad för varje leverans, avvisning och karantän, så att "vad hände med meddelandet Anna skickade 14:20" kan besvaras genom att söka i stället för att leta i loggar. Händelserna är desamma som AWStats-journalen alltid har sett; detta ger dem någonstans att bli tillfrågade. Av som standard, eftersom det lagrar avsändar- och mottagaradresser - vilket gör det till ett register över vem som korresponderar med vem.</value>

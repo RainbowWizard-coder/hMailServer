@@ -8359,11 +8359,17 @@ Kør dette, hvis klienter melder om meddelelser, der dukker op under det forkert
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Udløbsinterval for poster, minutter</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Posttype: MX.  Vært/navn</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Posttype: MX. Vært/navn - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Posttype: TXT.  Vært/navn</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Posttype: MX. Vært/navn:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Posttype: TXT. Vært/navn - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Posttype: TXT. Vært/navn:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Registrerer en søgbar række for hver levering, afvisning og karantæne, så "hvad skete der med den meddelelse, Jane sendte kl. 14:20" kan besvares ved at søge i stedet for at greppe i logfiler. Hændelserne er de samme, som AWStats-journalen altid har set; dette giver dem et sted at blive spurgt. Slået fra som standard, fordi det gemmer afsender- og modtageradresser - hvilket gør det til en fortegnelse over, hvem der korresponderer med hvem.</value>

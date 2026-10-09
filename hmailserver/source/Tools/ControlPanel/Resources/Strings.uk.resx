@@ -8437,11 +8437,17 @@
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Інтервал закінчення терміну дії записів, хвилин</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Тип запису: MX.  Вузол/Ім’я</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Тип запису: MX. Вузол/Ім’я - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Тип запису: TXT.  Вузол/Ім’я</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Тип запису: MX. Вузол/Ім’я:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Тип запису: TXT. Вузол/Ім’я - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Тип запису: TXT. Вузол/Ім’я:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Записує рядок із можливістю запиту для кожної доставки, відмови та карантину, тож на запитання «що сталося з повідомленням, яке Яна надіслала о 14:20» можна відповісти пошуком, а не перебиранням журналів. Події ті самі, які завжди бачив журнал AWStats; це дає їм місце, де їх можна розпитати. Типово вимкнено, бо зберігаються адреси відправників і отримувачів — а це робить його записом про те, хто з ким листується.</value>

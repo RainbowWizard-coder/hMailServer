@@ -8359,11 +8359,17 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Intervallo di scadenza dei record, minuti</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Tipo di record: MX.  Host/Nome</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Tipo di record: MX. Host/Nome - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Tipo di record: TXT.  Host/Nome</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Tipo di record: MX. Host/Nome:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Tipo di record: TXT. Host/Nome - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Tipo di record: TXT. Host/Nome:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Registra una riga interrogabile per ogni consegna, rifiuto e messa in quarantena, così che a "che fine ha fatto il messaggio che Jane ha inviato alle 14:20" si possa rispondere con una ricerca invece che spulciando i registri. Gli eventi sono gli stessi che il registro AWStats ha sempre visto; questo dà loro un posto dove poter essere interrogati. Disattivato per impostazione predefinita, perché memorizza gli indirizzi dei mittenti e dei destinatari - il che ne fa un registro di chi corrisponde con chi.</value>

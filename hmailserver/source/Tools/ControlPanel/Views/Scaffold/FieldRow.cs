@@ -133,11 +133,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          if (string.IsNullOrEmpty(AutomationProperties.GetName(editor)) && label.Length > 0)
             AutomationProperties.SetName(editor, AccessibleNames.Qualify(MnemonicText.Strip(label), ""));
 
-         string help = Hint ?? "";
-         if (Applies != null)
-            help = help.Length == 0 ? Applies : help + " " + Applies;
-         if (Error != null)
-            help = help.Length == 0 ? Error : help + " " + Error;
+         string help = Loc.Sentences(Hint, Applies, Error);
 
          AutomationProperties.SetHelpText(editor, help);
       }

@@ -143,6 +143,61 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(missing.Count == 0, string.Join(Environment.NewLine, missing));
       }
 
+      /// <summary>
+      /// The DNS records page's record type is one text with its note -
+      /// "Record type: MX. Host/Name - {0}:" - where it was L("Record type: MX.
+      /// Host/Name") + " — " + note + ":", whose two spaces after the stop
+      /// Japanese and Chinese copied as "MX。  ホスト/名前"; and no Japanese or
+      /// Chinese text has a space after its 。, as the domain dialog's
+      /// restriction hint had inside one paragraph (review finding F283, second
+      /// pass).
+      /// </summary>
+      [Fact]
+      public void NoJapaneseOrChineseTextHasASpaceAfterItsFullStop()
+      {
+         Dictionary<string, string> english = Catalogue(null);
+         foreach (string whole in new[] { "Record type: MX. Host/Name - {0}:", "Record type: TXT. Host/Name - {0}:", "Record type: TXT. Host/Name:" })
+            Assert.True(english.ContainsKey(whole), "The catalogue lacks '" + whole + "'.");
+         Assert.DoesNotContain(english.Keys, key => key.StartsWith("Record type: ", StringComparison.Ordinal) && key.Contains(".  ", StringComparison.Ordinal));
+
+         foreach (string tag in new[] { "ja", "zh-Hans" })
+         {
+            List<string> spaced = Catalogue(tag)
+               .Where(pair => pair.Value.Contains("。 ", StringComparison.Ordinal))
+               .Select(pair => tag + ": " + pair.Value)
+               .ToList();
+            Assert.True(spaced.Count == 0, "A space after 。: " + string.Join(" | ", spaced));
+         }
+      }
+
+      /// <summary>
+      /// A sentence the install refusal adds to its first is joined by
+      /// Sentences, so that in Japanese it follows the first sentence's 。 with
+      /// no space, where text += " " + F(...) put one there.
+      /// </summary>
+      [Fact]
+      public void ASentenceAddedToARefusalTakesNoSpaceAfterAJapaneseStop()
+      {
+         Dictionary<string, string> japanese = Catalogue("ja");
+         Loc.Use((text, culture) => japanese.TryGetValue(text, out string value) ? value : null, CultureInfo.GetCultureInfo("ja-JP"));
+         var finding = new InstallationPermissions.Finding
+         {
+            Failed = true,
+            Object = "D:\\hMailServer",
+            Principal = "NT AUTHORITY\\Authenticated Users",
+            Right = "write data / create files",
+            Inherited = true,
+            InheritedFrom = "D:\\",
+            Fix = "icacls \"D:\\hMailServer\" /inheritance:d"
+         };
+
+         string refusal = AdministratorUpdate.PermissionText(finding);
+
+         string inherited = string.Format(CultureInfo.InvariantCulture, japanese["The permission is inherited from {0}; the command stops the folder inheriting it."], "D:\\");
+         Assert.EndsWith("。" + inherited, refusal, StringComparison.Ordinal);
+         Assert.DoesNotContain("。 ", refusal, StringComparison.Ordinal);
+      }
+
       private static Dictionary<string, string> Catalogue(string tag)
          => ReadResx(Path.Join(ResourcesDirectory(), tag == null ? "Strings.resx" : "Strings." + tag + ".resx"));
 

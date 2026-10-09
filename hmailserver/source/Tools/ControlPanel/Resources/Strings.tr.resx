@@ -8359,11 +8359,17 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Kayıt süre sonu aralığı, dakika</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Kayıt türü: MX.  Ana bilgisayar/Ad</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Kayıt türü: MX. Ana bilgisayar/Ad - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Kayıt türü: TXT.  Ana bilgisayar/Ad</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Kayıt türü: MX. Ana bilgisayar/Ad:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Kayıt türü: TXT. Ana bilgisayar/Ad - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Kayıt türü: TXT. Ana bilgisayar/Ad:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Her teslim, ret ve karantina için sorgulanabilir bir satır kaydeder; böylece "Jane'in 14:20'de gönderdiği iletiye ne oldu" sorusu günlüklerde grep yapmak yerine arayarak yanıtlanabilir. Olaylar, AWStats günlüğünün her zaman gördüğü olayların aynısıdır; bu, onlara soru sorulabilecek bir yer verir. Varsayılan olarak kapalıdır, çünkü gönderen ve alıcı adreslerini saklar - bu da onu kimin kiminle yazıştığının kaydı yapar.</value>

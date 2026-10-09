@@ -8437,11 +8437,17 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Interval vypršení záznamů, minuty</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Typ záznamu: MX.  Hostitel/název</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Typ záznamu: MX. Hostitel/název - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Typ záznamu: TXT.  Hostitel/název</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Typ záznamu: MX. Hostitel/název:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Typ záznamu: TXT. Hostitel/název - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Typ záznamu: TXT. Hostitel/název:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Zaznamená dohledatelný řádek pro každé doručení, odmítnutí a karanténu, takže na otázku „co se stalo se zprávou, kterou Jana poslala ve 14:20“ lze odpovědět hledáním místo grepování logů. Události jsou tytéž, které odjakživa vidí žurnál AWStats; tohle jim dává místo, kde se na ně lze ptát. Ve výchozím nastavení vypnuto, protože ukládá adresy odesílatelů a příjemců – což z toho dělá záznam o tom, kdo si s kým píše.</value>

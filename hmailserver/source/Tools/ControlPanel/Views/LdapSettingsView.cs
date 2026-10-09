@@ -1046,7 +1046,7 @@ namespace hMailServer.ControlPanel.Views
          // Word first in the accessible name, so a screen reader hears the severity
          // even though the visible notice carries it as shape, colour and word.
          System.Windows.Automation.AutomationProperties.SetName(stateText_,
-            presentation.SeverityWord + ": " + headline + (detail.Length > 0 ? " " + detail : ""));
+            presentation.SeverityWord + ": " + Sentences(headline, detail));
 
          stateDetail_.Text = detail;
          stateDetail_.Visibility = detail.Length > 0 ? Visibility.Visible : Visibility.Collapsed;

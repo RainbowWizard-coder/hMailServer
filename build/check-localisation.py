@@ -62,7 +62,10 @@ What is checked
     L("MX - which server takes the mail for ") + domain, L(" (inactive)"),
     L(" and the policy verifies nothing.") - and its translator sees a piece
     of a sentence and cannot move the rest; F("... {0}", value) can be, and
-    whole sentences are joined by Loc.Sentences.
+    whole sentences are joined by Loc.Sentences. In a localised file no
+    translated text is joined to another with a space literal - said + " " +
+    F(...), L(...) + " " + reason, (n > 0 ? " " : "") + Plural(...) - since
+    Japanese and Chinese end a sentence with a full stop that needs none.
 
 Usage: python3 build/check-localisation.py [--write] [--inventory] [--self-test]
   --write      regenerate Strings.resx and bring every language catalogue up
@@ -757,6 +760,39 @@ def cs_counts_joined(src):
            for m in COUNT_JOINED.finditer(src)]
 
 
+# A translated text joined to another with a space literal: said + " " + F("Left where
+# they were: ..."), F("Windows could not start the install: {0}", reason) + " " +
+# L("Nothing was changed."), " " + F("Found: {0}") added to a verdict, or
+# (note.Length > 0 ? " " : "") + Plural(...). Japanese and Chinese end a sentence with
+# a full stop that carries its own room, and showed a space after it - "MX。 ホスト/名前"
+# on the DNS records page (review finding F283). Loc.Sentences joins whole sentences the
+# way each language does. A name joined to a number (protocol + " " + port) touches no
+# translated text and is not this.
+SPACE_JOINED_CALL = r"(?:Loc\.)?(?:L|F|Plural|PluralF)\("
+SPACE_BEFORE_CALL = re.compile(r'"\s"\s*\+\s*(?:\(\s*[^;()?"]*\?\s*)?' + SPACE_JOINED_CALL
+                               + r'|"\s"\s*:\s*""\s*\)\s*\+\s*' + SPACE_JOINED_CALL)
+TRANSLATING_CALL = re.compile(r"(?<![\w.])" + SPACE_JOINED_CALL)
+SPACE_AFTER_CALL = re.compile(r'(?:\s*\))*\s*\+\s*"\s"')
+
+
+def cs_space_joins(src):
+   """(line, code) for every translated text joined to another with a space literal."""
+   starts = [m.start() for m in SPACE_BEFORE_CALL.finditer(src)]
+   for m in TRANSLATING_CALL.finditer(src):
+      args = call_arguments(src, m.end())
+      if args and SPACE_AFTER_CALL.match(src, args[-1][0] + len(args[-1][1]) + 1):
+         starts.append(m.start())
+   found = []
+   for at in sorted(set(starts)):
+      begin = src.rfind("\n", 0, at) + 1
+      end = src.find("\n", at)
+      line = src[begin:len(src) if end < 0 else end]
+      if "// no-loc" in line or line.lstrip().startswith(("//", "*")):
+         continue
+      found.append((src.count("\n", 0, at) + 1, " ".join(line.split())))
+   return found
+
+
 # --- main -------------------------------------------------------------------------
 
 def mnemonic_key(caption):
@@ -973,6 +1009,30 @@ def self_test():
          print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a count joined to a text")
          failures += 1
 
+   joins = {
+      'Status_(level, said + " " + F("Left where they were: {0}. The first reason: {1}", failed, why));': True,
+      'return F("Windows could not start the install: {0}", reason) + " " + L("Nothing was changed.");': True,
+      'text += " " + F("The permission is inherited from {0}.", from);': True,
+      'return " " + (records.Count > 1 ? F("Found: {0} (and {1} more)", first, n) : F("Found: {0}", first));': True,
+      'note += (note.Length > 0 ? " " : "") + Plural(n, "{0} value was not read.", "{0} values were not read.");': True,
+      'x = y + (next != null ? " " + F("Next step: {0}.", title) : "");': True,
+      'Label((mx ? L("Record type: MX.") : L("Record type: TXT.")) + " " + note);': True,
+      'x = Text(L("Name"), value) + " " + rest;': False,
+      'Label(L("Record type: MX. Host/Name") + " " + note);': True,
+      'x = Loc.F("Saved at {0}.", when) + " " + rest;': True,
+      'policyNote.Text = Sentences(caveat, mxNote, extra);': False,
+      'Status_(level, Sentences(said, F("Left where they were: {0}.", failed)));': False,
+      'string label = ProtocolName(protocol) + " " + address + ":" + port;': False,
+      'line = L("Total") + ": " + count;': False,
+      'string id = L("x") + " " + y; // no-loc': False,
+      '// said + " " + F("Left where they were: {0}.", failed)': False,
+   }
+   for line, expected in joins.items():
+      found = bool(cs_space_joins(line + "\n"))
+      if found != expected:
+         print(f"FAIL: {line!r} is {'reported' if found else 'not reported'} as a translated text joined with a space")
+         failures += 1
+
    plurals = {
       # (source, the forms read): a form that is not a literal reads as None
       'Status_(Plural(rows.Count, "{0} message held.", "{0} messages held."));':
@@ -1152,6 +1212,11 @@ def main():
          for line, code in cs_counts_joined(read(path)):
             problems.append(f"{rel(path)}:{line}: a count joined to a text with a space: {code!r}; write the sentence "
                             f"whole for each form, Plural(n, \"{{0}} item\", \"{{0}} items\"), so that each language counts its own way")
+         if rel(path) in LOCALISED:
+            for line, code in cs_space_joins(read(path)):
+               problems.append(f"{rel(path)}:{line}: a translated text joined to another with a space literal: {code!r}; "
+                               f"join whole sentences with Sentences(a, b), which puts no space after a Japanese or "
+                               f"Chinese full stop, or write the text whole, F(\"... {{0}} ...\", value)")
          for line, code in cs_pair_choices(read(path)):
             problems.append(f"{rel(path)}:{line}: a count's forms written as a choice of two: {code!r}; Polish, Czech, "
                             f"Russian and Ukrainian say 2 and 5 apart, so write Plural(n, \"{{0}} item\", \"{{0}} items\")")

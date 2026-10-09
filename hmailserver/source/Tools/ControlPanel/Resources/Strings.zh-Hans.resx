@@ -880,7 +880,7 @@
     <value>标记为目录关联的账户。这一半功能已经存在于本界面中：打开“域”，编辑该账户，在其“目录”选项卡上勾选 Active Directory 选项并填写 AD 用户名 - 也就是 sAMAccountName，%u 携带的正是它。没有该标记的账户继续使用普通的 hMailServer 密码，永远不会访问目录。</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
-    <value>此域的账户只能与此处指定的域收发邮件：不在指定域中的外部发件人会在 RCPT TO 时被拒绝，此处的账户只能发送到指定的域、自己的域和 postmaster。此服务器托管的其他域除非指定，否则视为外部。退信始终可以送达。每个账户都遵循此设置，除非其自身的对话框设为受限或豁免；留空表示此域不受限制。 此域中通向外部的别名或分发列表由您掌管，受限账户可以向其发送。</value>
+    <value>此域的账户只能与此处指定的域收发邮件：不在指定域中的外部发件人会在 RCPT TO 时被拒绝，此处的账户只能发送到指定的域、自己的域和 postmaster。此服务器托管的其他域除非指定，否则视为外部。退信始终可以送达。每个账户都遵循此设置，除非其自身的对话框设为受限或豁免；留空表示此域不受限制。此域中通向外部的别名或分发列表由您掌管，受限账户可以向其发送。</value>
   </data>
   <data name="Accounts: {0}." xml:space="preserve">
     <value>账户：{0} 个。</value>
@@ -8359,11 +8359,17 @@
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>记录过期间隔，分钟</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>记录类型：MX。  主机/名称</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>记录类型：MX。主机/名称 - {0}：</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>记录类型：TXT。  主机/名称</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>记录类型：MX。主机/名称：</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>记录类型：TXT。主机/名称 - {0}：</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>记录类型：TXT。主机/名称：</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>为每一次投递、拒绝和隔离记录一行可查询的数据，这样“Jane 在 14:20 发的那封邮件到底怎么样了”就可以通过搜索来回答，而不必去 grep 日志。这些事件与 AWStats 日志一直以来看到的是同一批；此功能只是给它们一个可以被提问的地方。默认关闭，因为它会存储发件人和收件人地址 - 这就使它成为一份谁与谁通信的记录。</value>

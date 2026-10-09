@@ -256,7 +256,7 @@ namespace hMailServer.ControlPanel.Views
             return L("The administrator has a second factor, and the REST API asks for a one-time code with every request made with the password, which this page does not send. Read the cases in the Control Deck.");
 
          if (reply.Status == 401)
-            return L("The REST API refused the credential this Control Panel signed in with.") + (sentence.Length == 0 ? "" : " " + sentence);
+            return Sentences(L("The REST API refused the credential this Control Panel signed in with."), sentence);
 
          return sentence.Length == 0
             ? F("The REST API answered {0}.", reply.Status)

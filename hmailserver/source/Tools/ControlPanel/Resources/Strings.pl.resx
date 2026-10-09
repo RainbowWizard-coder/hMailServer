@@ -8437,11 +8437,17 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Interwał wygasania rekordów, w minutach</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Typ rekordu: MX.  Host/Nazwa</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Typ rekordu: MX. Host/Nazwa - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Typ rekordu: TXT.  Host/Nazwa</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Typ rekordu: MX. Host/Nazwa:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Typ rekordu: TXT. Host/Nazwa - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Typ rekordu: TXT. Host/Nazwa:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Zapisuje przeszukiwalny wiersz dla każdego dostarczenia, odmowy i skierowania do kwarantanny, dzięki czemu na pytanie „co się stało z wiadomością, którą Jane wysłała o 14:20” można odpowiedzieć wyszukiwaniem, a nie przeczesywaniem dzienników. Są to te same zdarzenia, które od zawsze widzi dziennik AWStats; tutaj zyskują miejsce, o które da się pytać. Domyślnie wyłączone, ponieważ przechowuje adresy nadawców i odbiorców - czyli zapis tego, kto z kim koresponduje.</value>

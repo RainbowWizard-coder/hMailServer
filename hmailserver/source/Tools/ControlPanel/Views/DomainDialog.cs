@@ -769,8 +769,7 @@ namespace hMailServer.ControlPanel.Views
          {
             var (level, word) = DkimRotationStatus.CheckPresentation(slot.Check.Status);
             string sentence = slot.Check.Checked.HasValue ? F("{0}, checked {1}.", word, DkimRotationStatus.When(slot.Check.Checked)) : word;
-            if (slot.Check.Detail.Length > 0)
-               sentence += " " + slot.Check.Detail;
+            sentence = Sentences(sentence, slot.Check.Detail);
 
             var notice = DialogFields.Notice();
             notice.Show(level, sentence);

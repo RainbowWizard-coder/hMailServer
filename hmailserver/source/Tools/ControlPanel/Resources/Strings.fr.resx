@@ -8359,11 +8359,17 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Intervalle d'expiration des enregistrements, minutes</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Type d'enregistrement : MX.  Hôte/Nom</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Type d'enregistrement : MX. Hôte/Nom - {0} :</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Type d'enregistrement : TXT.  Hôte/Nom</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Type d'enregistrement : MX. Hôte/Nom :</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Type d'enregistrement : TXT. Hôte/Nom - {0} :</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Type d'enregistrement : TXT. Hôte/Nom :</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Enregistre une ligne interrogeable pour chaque livraison, refus et mise en quarantaine, pour qu'à « qu'est-il arrivé au message que Jane a envoyé à 14:20 » on puisse répondre par une recherche plutôt qu'en grepant les journaux. Les événements sont les mêmes que ceux que le journal AWStats a toujours vus ; ceci leur donne un endroit où on puisse les interroger. Désactivé par défaut, parce qu'il stocke les adresses d'expéditeur et de destinataire - ce qui en fait un registre de qui correspond avec qui.</value>

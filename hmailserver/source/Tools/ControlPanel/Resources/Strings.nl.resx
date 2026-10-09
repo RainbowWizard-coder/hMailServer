@@ -8359,11 +8359,17 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Record expiration interval, minutes" xml:space="preserve">
     <value>Vervalinterval van records, minuten</value>
   </data>
-  <data name="Record type: MX.  Host/Name" xml:space="preserve">
-    <value>Recordtype: MX.  Host/naam</value>
+  <data name="Record type: MX. Host/Name - {0}:" xml:space="preserve">
+    <value>Recordtype: MX. Host/naam - {0}:</value>
   </data>
-  <data name="Record type: TXT.  Host/Name" xml:space="preserve">
-    <value>Recordtype: TXT.  Host/naam</value>
+  <data name="Record type: MX. Host/Name:" xml:space="preserve">
+    <value>Recordtype: MX. Host/naam:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name - {0}:" xml:space="preserve">
+    <value>Recordtype: TXT. Host/naam - {0}:</value>
+  </data>
+  <data name="Record type: TXT. Host/Name:" xml:space="preserve">
+    <value>Recordtype: TXT. Host/naam:</value>
   </data>
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Legt voor elke bezorging, weigering en quarantaine een doorzoekbare rij vast, zodat "wat is er gebeurd met het bericht dat Jane om 14:20 verstuurde" kan worden beantwoord door te zoeken in plaats van door logboeken te grepen. Het zijn dezelfde gebeurtenissen die het AWStats-journaal altijd al zag; dit geeft ze een plek waar ze bevraagd kunnen worden. Staat standaard uit, omdat het adressen van afzenders en ontvangers opslaat - wat het tot een register maakt van wie met wie correspondeert.</value>

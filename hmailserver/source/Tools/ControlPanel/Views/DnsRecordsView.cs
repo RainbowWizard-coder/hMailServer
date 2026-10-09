@@ -515,20 +515,20 @@ namespace hMailServer.ControlPanel.Views
                {
                   if (result.Records.Count > 0)
                      block.SetResult(StatusLevel.Warning, L("Not published"),
-                        PluralF(result.Records.Count,
+                        Sentences(PluralF(result.Records.Count,
                            "{0} TXT record exists at {1}, and it does not begin \"v=spf1\", so receivers see no SPF policy at all.",
                            "{0} TXT records exist at {1}, but none begins \"v=spf1\", so receivers see no SPF policy at all.",
-                           result.Records.Count, domainName) + DescribeFound(result.Records));
+                           result.Records.Count, domainName), DescribeFound(result.Records)));
                   else
                      block.SetResult(StatusLevel.Warning, L("Not published"), NotFoundAdvice(domainName));
                }
                else if (spf.Count > 1)
                {
                   block.SetResult(StatusLevel.Warning, L("Published, but duplicated"),
-                     PluralF(spf.Count,
+                     Sentences(PluralF(spf.Count,
                         "{0} record beginning \"v=spf1\" exists at {1} with others like it. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one.",
                         "{0} records beginning \"v=spf1\" exist at {1}. RFC 7208 makes that a permanent SPF error at every receiver - worse than no record. Merge them into one.",
-                        spf.Count, domainName) + DescribeFound(spf));
+                        spf.Count, domainName), DescribeFound(spf)));
                }
                else if (DnsTxtLookup.Matches(spf[0], suggested))
                {
@@ -749,7 +749,7 @@ namespace hMailServer.ControlPanel.Views
                      break;
                   case DnsTxtLookup.MatchStatus.FoundButDifferent:
                      block.SetResult(StatusLevel.Critical, L("Published, but wrong key"),
-                        F("What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above.", host) + DescribeFound(result.Records));
+                        Sentences(F("What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above.", host), DescribeFound(result.Records)));
                      break;
                   default:
                      SetLookupFailed(block, host, result.Error);
@@ -922,10 +922,10 @@ namespace hMailServer.ControlPanel.Views
                {
                   if (result.Records.Count > 0)
                      block.SetResult(StatusLevel.Warning, L("Not published"),
-                        PluralF(result.Records.Count,
+                        Sentences(PluralF(result.Records.Count,
                            "{0} TXT record exists at {1}, and it does not begin \"v=DMARC1\", so receivers - and this server's own DMARC check - see no policy.",
                            "{0} TXT records exist at {1}, but none begins \"v=DMARC1\", so receivers - and this server's own DMARC check - see no policy.",
-                           result.Records.Count, host) + DescribeFound(result.Records));
+                           result.Records.Count, host), DescribeFound(result.Records)));
                   else
                      block.SetResult(StatusLevel.Warning, L("Not published"), NotFoundAdvice(host));
                   return;
@@ -934,10 +934,10 @@ namespace hMailServer.ControlPanel.Views
                if (dmarc.Count > 1)
                {
                   block.SetResult(StatusLevel.Warning, L("Published, but duplicated"),
-                     PluralF(dmarc.Count,
+                     Sentences(PluralF(dmarc.Count,
                         "{0} record beginning \"v=DMARC1\" exists at {1} with others like it. Receivers treat multiple DMARC records as no policy at all - remove all but one.",
                         "{0} records beginning \"v=DMARC1\" exist at {1}. Receivers treat multiple DMARC records as no policy at all - remove all but one.",
-                        dmarc.Count, host) + DescribeFound(dmarc));
+                        dmarc.Count, host), DescribeFound(dmarc)));
                   return;
                }
 
@@ -1107,7 +1107,7 @@ namespace hMailServer.ControlPanel.Views
                body.Append("mx: ").Append(mx).Append("\r\n"); // no-loc
             body.Append("max_age: ").Append(maxAge).Append("\r\n");
             policyBox.Text = body.ToString();
-            policyNote.Text = caveat + " " + mxNote + (extra.Length > 0 ? " " + extra : "");
+            policyNote.Text = Sentences(caveat, mxNote, extra);
          }
 
          if (mxHosts != null)
@@ -1164,10 +1164,10 @@ namespace hMailServer.ControlPanel.Views
                {
                   if (result.Records.Count > 0)
                      block.SetResult(StatusLevel.Warning, L("Not published"),
-                        PluralF(result.Records.Count,
+                        Sentences(PluralF(result.Records.Count,
                            "{0} TXT record exists at {1}, and it does not begin \"v=STSv1\", so senders see no policy.",
                            "{0} TXT records exist at {1}, but none begins \"v=STSv1\", so senders see no policy.",
-                           result.Records.Count, host) + DescribeFound(result.Records));
+                           result.Records.Count, host), DescribeFound(result.Records)));
                   else
                      block.SetResult(StatusLevel.Warning, L("Not published"), NotFoundAdvice(host));
                   return;
@@ -1375,11 +1375,11 @@ namespace hMailServer.ControlPanel.Views
                {
                   if (result.Records.Count > 0)
                      block.SetResult(StatusLevel.Warning, L("Not published"),
-                        PluralF(result.Records.Count,
+                        Sentences(PluralF(result.Records.Count,
                            "{0} TXT record exists at {1}, and it does not begin \"v=TLSRPTv1\".",
                            "{0} TXT records exist at {1}, but none begins \"v=TLSRPTv1\".",
-                           result.Records.Count, host)
-                        + DescribeFound(result.Records));
+                           result.Records.Count, host),
+                           DescribeFound(result.Records)));
                   else
                      block.SetResult(StatusLevel.Warning, L("Not published"), NotFoundAdvice(host));
                   return;
@@ -1510,7 +1510,11 @@ namespace hMailServer.ControlPanel.Views
       {
          var block = new RecordBlock();
 
-         parent.Children.Add(Label((mx ? L("Record type: MX.  Host/Name") : L("Record type: TXT.  Host/Name")) + (hostNote != null ? " — " + hostNote : "") + ":"));
+         // Each label whole, the type, the host and the note in one text a language can order.
+         string typeLabel = hostNote != null
+            ? (mx ? F("Record type: MX. Host/Name - {0}:", hostNote) : F("Record type: TXT. Host/Name - {0}:", hostNote))
+            : (mx ? L("Record type: MX. Host/Name:") : L("Record type: TXT. Host/Name:"));
+         parent.Children.Add(Label(typeLabel));
 
          block.HostBox = ReadOnlyBox(0);
          block.HostBox.Text = host;
@@ -1651,8 +1655,8 @@ namespace hMailServer.ControlPanel.Views
          string first = records[0];
          if (first.Length > 160)
             first = first.Substring(0, 160) + "…";
-         // A sentence of its own after the verdict's.
-         return " " + (records.Count > 1 ? F("Found: {0} (and {1} more)", first, records.Count - 1) : F("Found: {0}", first));
+         // A sentence of its own, which the caller joins to the verdict's with Sentences.
+         return records.Count > 1 ? F("Found: {0} (and {1} more)", first, records.Count - 1) : F("Found: {0}", first);
       }
 
       /// <summary>Reads one tag from a semicolon-separated tag=value record

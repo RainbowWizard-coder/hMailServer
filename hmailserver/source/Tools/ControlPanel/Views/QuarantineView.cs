@@ -754,7 +754,7 @@ namespace hMailServer.ControlPanel.Views
 
          string why = answer.Results.FirstOrDefault(r => !r.Ok)?.Error ?? "";
          Status_(done == 0 ? StatusLevel.Critical : StatusLevel.Warning,
-            said + " " + F("Left where they were: {0}. The first reason: {1}", failed, why));
+            Sentences(said, F("Left where they were: {0}. The first reason: {1}", failed, why)));
       }
 
       // ------------------------------------------------ the headers and the preview

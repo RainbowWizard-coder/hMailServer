@@ -387,9 +387,7 @@ namespace hMailServer.ControlPanel.Views
             string text = F("Job {0} is {1} - folders: {2}, messages added: {3}, skipped as still in the mailbox: {4}, failed: {5}.",
                Number_(root, "job"), Text_(root, "state"), Number_(root, "folders"), Number_(root, "added"), Number_(root, "skipped"), Number_(root, "failed"));
 
-            string error = Text_(root, "error");
-            if (error.Length > 0)
-               text += " " + error;
+            text = Sentences(text, Text_(root, "error"));
 
             MailboxRestoreOutcome.Text = text;
          }

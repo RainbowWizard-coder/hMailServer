@@ -345,7 +345,7 @@ namespace hMailServer.ControlPanel.Services
          const int cancelled = 1223;
          if (error == cancelled)
             return L("The Windows prompt was declined, so nothing was installed and nothing on the server was changed.");
-         return F("Windows could not start the install: {0}", new System.ComponentModel.Win32Exception(error).Message.TrimEnd()) + " " + L("Nothing was changed.");
+         return Sentences(F("Windows could not start the install: {0}", new System.ComponentModel.Win32Exception(error).Message.TrimEnd()), L("Nothing was changed."));
       }
 
       /// <summary>
@@ -432,7 +432,7 @@ namespace hMailServer.ControlPanel.Services
          string text = F("Install update stopped before anything was changed: {0} can be changed by {1} ({2}). A program run from there as an administrator could be one that account put there. Remove that permission - from a Command Prompt run as administrator: {3} - and click Install update again.",
             finding.Object, finding.Principal, finding.Right, finding.Fix);
          if (finding.Inherited && !string.IsNullOrEmpty(finding.InheritedFrom))
-            text += " " + F("The permission is inherited from {0}; the command stops the folder inheriting it.", finding.InheritedFrom);
+            text = Sentences(text, F("The permission is inherited from {0}; the command stops the folder inheriting it.", finding.InheritedFrom));
          return text;
       }
 
