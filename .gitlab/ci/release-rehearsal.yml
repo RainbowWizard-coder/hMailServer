@@ -7,7 +7,7 @@
 # tests everything a tag's does, the release chain runs as far as it can without the
 # tag, and publishes nothing:
 #
-#   release-rehearsal         GitLab's shared runners: build/ci/release-chain.py collect
+#   release-rehearsal         linix (default:'s tag): build/ci/release-chain.py collect
 #                             --rehearse gathers every file a release carries under the
 #                             names it carries them and holds each to its build's sums
 #                             and its SBOM, as collect does for a tag - the version is
@@ -17,7 +17,7 @@
 #                             windows-packages-arm64's, as for a tag - then counts what
 #                             GitLab and Pages would take of it; then sbom --rehearse makes
 #                             the two installers' SBOMs and the provenance's statement.
-#   release-rehearsal-sign    the shared runners, in cosign's image (HM_COSIGN_IMAGE): every
+#   release-rehearsal-sign    linix, in cosign's image (HM_COSIGN_IMAGE): every
 #                             file signed with Sigstore, its .sigstore.json copy made, and
 #                             the provenance attested, each checked with cosign
 #                             (build/ci/release-sign.sh --rehearse). The certificate names

@@ -74,14 +74,16 @@
 # retried too, and so is a failure of GitLab's own (.gate-retry,
 # .gitlab/ci/gitlab-security.yml).
 #
-# Where they run: GitLab's shared runners, in Docker Hub's python:3.14-slim-trixie
-# pinned by digest, the image the checkers job runs in. They carry no tag, so neither
-# of the project's own runners takes them, and they need no secret: they read the
+# Where they run: on default:'s tags, [$HM_RUNNER] (.gitlab-ci.yml) - linix or server2
+# in a batch* branch's pipeline, GitLab's hosted runner in a merge request's, whose code
+# reaches no machine of the project's - in Docker Hub's python:3.14-slim-trixie pinned
+# by digest, the image the checkers job runs in. They need no secret: they read the
 # checkout, semgrep-sast's report, master from the project itself, and for the
 # dependency check OSV's export on Google Cloud Storage and api.osv.dev. A protected
 # branch's pipeline still hands the project's protected variables to every job in it,
 # these two among them. Each keeps GitHub out of the job itself (.no-github,
-# .gitlab/ci/no-github.yml), since a shared runner's configuration is GitLab's.
+# .gitlab/ci/no-github.yml): neither GitLab's runner's configuration nor the docker
+# runners' maps GitHub's hosts anywhere.
 #
 # Why the history (GIT_DEPTH 0): both compare the change's head with its base, and
 # change_base refuses a shallow clone, where a boundary could hide where the branch

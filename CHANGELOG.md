@@ -1287,6 +1287,29 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Neither scan reads a path under a directory named `build`, `bin`, `obj`, `target` or `packages`, which GitLab's rules
   leave out, in the old image as in the new: not this tree's `build/` (ContinuousIntegration.md, "Before a push: the
   secret scan").
+- **Every job of a pipeline for `master`, a `batch*` branch, a `v*` tag or a schedule runs on the project's own
+  runners, and none on GitLab's shared runners.** The namespace's compute minutes ran out on 9 October 2026, and
+  `batch46`'s pipeline could not start `semgrep-sast-gate` (`stuck_pending_no_matching_runners`, then
+  `ci_quota_exceeded`): a change gate that cannot run holds every landing. Forty jobs named no runner and ran there -
+  the checks, the three change gates, `secret_detection`, `pages` and `package-repos`, the release's `release`,
+  `release-sbom`, `release-sign` and `release-publish` and the rehearsal's two, the container image's jobs in cosign's
+  and regctl's images and `container_scanning`, the command-line packages' and the release channels' jobs,
+  `helm-chart-package` and `installer-smoke`. `.gitlab-ci.yml`'s `default:` now gives every job that names no runner
+  of its own, GitLab's templates' jobs among them, the tags `[$HM_RUNNER]`: `linix`, which linix and server2 carry,
+  in such a pipeline. A merge request's pipeline and an unprotected branch's still run their checks on GitLab's
+  hosted runner (`saas-linux-small-amd64`, which the workflow's rules set for them) and never on the project's
+  machines, which are registered for protected refs alone and take no code nobody here has reviewed: a fork's in
+  the fork, on the fork's minutes; Renovate's, one a maintainer runs here for a fork's merge request, and a fix by
+  an unprotected branch on the project's, so that while those are spent they fail before they start - a batch, the
+  pipeline every change lands on, needs none. `build/check-release-chain.py` fails when a job names no tags, a
+  variable other than `HM_RUNNER` or tags no runner of the project's carries alone, when `default:` or `HM_RUNNER`
+  changes or anything but a workflow rule sets it, and when the workflow's rules, tried for every kind of pipeline,
+  give a protected ref's pipeline GitLab's runner, give any other the project's, or make a job tagged for the
+  project's runners where they take nothing; its self-test breaks each in `.gitlab-ci.yml` and in an included file.
+  `build/ci/repo-hygiene.py`'s Token-Permissions judges a job on `default:`'s tags by the workflow's rules. Under
+  linix's limits `semgrep-sast` took 188 s over the batch and found what it finds on server2. The Sigstore
+  certificate of a release's signature now names the runner self-hosted, an extension nothing that verifies a
+  release reads (ContinuousIntegration.md, "Every job on the project's own runners").
 
 ### Documentation
 

@@ -11,8 +11,8 @@
                            is started by hand and allowed to fail (chocolatey-publish
                            follows chocolatey-release instead); no job asks for
                            id_tokens or secrets; each runs a script of
-                           build/ci/channels/ that is there; the jobs on GitLab's
-                           shared runners take .no-github first; HM_REGCTL_IMAGE is
+                           build/ci/channels/ that is there; every job in a docker
+                           image takes .no-github first; HM_REGCTL_IMAGE is
                            Docker Hub's regclient/regctl pinned by digest.
   the PKGBUILD             renders for a release (build/ci/channels/aur-publish.py):
                            the release's tarball from the package registry, one
@@ -43,8 +43,11 @@ CHANNELS = os.path.join("build", "ci", "channels")
 PUBLISH = ["channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build", "obs-publish",
            "chocolatey-release", "snap-upload"]
 FOLLOWS = {"chocolatey-publish": "chocolatey-release"}
-SHARED_RUNNERS = ["channels-check", "channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build",
-                  "obs-publish", "chocolatey-release"]
+# The jobs in a docker image, on linix or server2 (default:'s tags, or snap-upload's own
+# linix) - GitLab's shared runners until 9 October 2026 - none of whose runners maps
+# GitHub's hosts itself: each keeps GitHub out of itself (.gitlab/ci/no-github.yml).
+NO_GITHUB_JOBS = ["channels-check", "channels-verify", "registry-mirror", "aur-publish", "ppa-upload", "copr-build",
+                  "obs-publish", "chocolatey-release", "snap-upload"]
 PUBLISH_RULES = '''.channels-publish:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_SOURCE == "pipeline" || $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -123,14 +126,15 @@ def problems_of(root):
             if not os.path.isfile(os.path.join(root, CHANNELS, script)):
                 problems.append("%s runs build/ci/channels/%s, which is not there" % (name, script))
     arch_hosts = '    - "sed -i \'s/^hosts:.*/hosts: files dns/\' /etc/nsswitch.conf"'
-    for name in SHARED_RUNNERS:
+    for name in NO_GITHUB_JOBS:
         # The before_script's first command; or its second, after the one line that
         # makes Arch Linux's image read its hosts file first.
         parts = (blocks.get(name) or "").split("  before_script:\n", 1)
         steps = [l for l in parts[1].split("\n") if l.startswith("    - ")] if len(parts) == 2 else []
         first = [s for s in steps[:2] if s != arch_hosts]
         if not first or first[0] != "    - !reference [.no-github, before_script]":
-            problems.append("%s, on GitLab's shared runners, does not take .no-github first" % name)
+            problems.append("%s, in a docker image on a runner that maps no GitHub host, does not take .no-github "
+                            "first" % name)
     rf = load("release_files", os.path.join(root, CHANNELS, "release-files.py"))
     try:
         rf.pinned_image("regctl", {}, root)
@@ -191,9 +195,9 @@ def self_test():
          "obs-publsh.py, which is not there"),
         ("chocolatey-publish pressed by hand", CI, "  resource_group: chocolatey-publish\n",
          "  resource_group: chocolatey-publish\n  when: manual\n", "chocolatey-publish's rules"),
-        ("a shared-runner job without .no-github", CI,
+        ("a docker job without .no-github", CI,
          "  before_script:\n    - !reference [.no-github, before_script]\n  script:\n    - python3 build/ci/channels/obs-publish.py",
-         "  script:\n    - python3 build/ci/channels/obs-publish.py", "obs-publish, on GitLab's shared runners"),
+         "  script:\n    - python3 build/ci/channels/obs-publish.py", "obs-publish, in a docker image"),
         ("regctl by tag alone", CI, "regctl:%s@sha256:" % regctl, "regctl:%s-x@sha25:" % regctl, "pinned by digest"),
         ("the PKGBUILD from a git tag", names[3], 'source=("https://gitlab.com/api/v4/projects/86730559/packages/generic/'
          'hmailserver/${pkgver}/hmailserver-${pkgver}.tar.gz")', 'source=("git+${url}.git#tag=v${pkgver}")', "source="),

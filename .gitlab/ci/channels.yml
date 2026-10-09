@@ -59,8 +59,9 @@
 # cosign and regctl are taken out of their own images, pinned by digest, by
 # release-files.py: cosign from HM_COSIGN_IMAGE (gcr.io, .gitlab-ci.yml), regctl
 # from HM_REGCTL_IMAGE below (Docker Hub's regclient/regctl). Nothing comes from
-# GitHub; the jobs on GitLab's shared runners take .no-github first, and the ones on
-# the project's machines run behind their runners' own GitHub block.
+# GitHub; every job in an image of its own takes .no-github first - those on default:'s
+# tags since 9 October 2026 run on linix or server2, whose docker runners map no GitHub
+# host themselves - and chocolatey-publish runs behind bench150's hosts file.
 #
 # No job here holds a secret in this file. Every credential is a protected, masked
 # project variable, which a job reads from its environment and hands to its tool on

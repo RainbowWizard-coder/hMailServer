@@ -76,8 +76,9 @@ loads):
    `regctl` (0.11.6) are static binaries the script takes out of their images,
    pinned by digest: `HM_COSIGN_IMAGE` in `.gitlab-ci.yml` (gcr.io) and
    `HM_REGCTL_IMAGE` in `.gitlab/ci/channels.yml` (Docker Hub). Every manifest and
-   layer is held to its digest. Nothing is downloaded from GitHub, and the jobs on
-   GitLab's shared runners take `.no-github` first (`.gitlab/ci/no-github.yml`).
+   layer is held to its digest. Nothing is downloaded from GitHub, and every job here in
+   a Docker image takes `.no-github` first (`.gitlab/ci/no-github.yml`): no runner it runs on keeps GitHub
+   out for it.
 6. **No secret on a command line.** Each credential is a protected, masked project
    variable. The job reads it from its environment and hands it on standard input
    (`regctl registry login --pass-stdin`, `gpg --import` of the PPA's OpenPGP key into
@@ -292,7 +293,7 @@ Copr's builder verifies again, and the PPA uploads the verified file.
 Two jobs, because `cosign` has no Windows build outside GitHub and `choco` runs on
 Windows. Pressing `chocolatey-release` starts both.
 
-- `chocolatey-release` (a shared runner): `release-files.py verify
+- `chocolatey-release` (linix or server2): `release-files.py verify
   "hMailServer-{version}-x64.exe"`, the installer verified as above, and
   `verification.json` handed on.
 - `chocolatey-publish` (bench150, `build/ci/channels/chocolatey-publish.ps1`): the

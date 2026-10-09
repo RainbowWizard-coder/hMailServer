@@ -2,8 +2,8 @@
 # Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# GitLab's own security scanners, from the templates GitLab publishes, on GitLab's
-# shared runners: included from .gitlab-ci.yml.
+# GitLab's own security scanners, from the templates GitLab publishes, on the
+# project's own runners: included from .gitlab-ci.yml.
 #
 # What they add to the scans .gitlab-ci.yml already runs (static-analysis, semgrep,
 # dependency-scan and repo-hygiene, on linix, for a protected ref only):
@@ -86,9 +86,11 @@
 # would sit in every pipeline on master, and would need a pipeline to be started in
 # anyway.
 #
-# Where they run: GitLab's shared runners, never linix or bench150. Those two are
-# registered with run_untagged off and take only a job tagged for them, and these
-# jobs carry no tag.
+# Where they run: on default:'s tags, [$HM_RUNNER] (.gitlab-ci.yml) - linix or
+# server2, by the tag linix, in a pipeline for a protected ref that is not a merge
+# request's, and GitLab's hosted runner in a merge request's, whose code reaches no
+# machine of the project's. Until 9 October 2026 they carried no tag and ran on
+# GitLab's shared runners, whose compute minutes then ran out.
 #
 # The analyzer images are pinned by digest, as the other scans' images in
 # .gitlab-ci.yml are, rather than taken by the moving major tag the templates
@@ -193,7 +195,7 @@ semgrep-sast:
     # Portal.js (800 KB) three times, after which Semgrep skips the whole file: no
     # report had read that either (.gitlab/security-exceptions.yml, the two entries for
     # it). Measured on linix on 27 September 2026 over batch41, pinned to two CPUs as a
-    # shared runner has: the job took 84 s and read neither; with these two options it
+    # shared runner had: the job took 84 s and read neither; with these two options it
     # took 332 s, no rule gave up, and it read both. The analyzer passes on only
     # --max-memory, --max-target-bytes and --timeout, and skips any other with a
     # warning.
@@ -231,7 +233,7 @@ secret_detection:
   image: registry.gitlab.com/hmailserver/hmailserver/mirror/secrets:7.40.0-1f54871d97a7@sha256:1f54871d97a7d1ab311495408eb12e5217ef0633db115a27ca51f381f2fbe641
   needs: []
   # The whole history took under a minute on linix (2,214 commits, 720 MB of diffs);
-  # a shared runner's fetch of it is the rest.
+  # the runner's fetch of it is the rest.
   timeout: 30 minutes
   # A finding fails the pipeline (above); the template's allow_failure: true would
   # show it as a warning.

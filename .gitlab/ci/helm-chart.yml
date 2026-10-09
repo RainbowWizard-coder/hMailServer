@@ -5,7 +5,7 @@
 # The Helm chart as a file of the release: included from .gitlab-ci.yml
 # (hmailserver/docs/ContainerImage.md, "The Helm chart").
 #
-#   helm-chart-package  GitLab's shared runners, in Alpine's image with Alpine's helm:
+#   helm-chart-package  linix (default:'s tag), in Alpine's image with Alpine's helm:
 #                       the chart packaged at the release's version, with the
 #                       release's image named in it, and read back
 #                       (build/ci/helm-chart-package.sh). It leaves

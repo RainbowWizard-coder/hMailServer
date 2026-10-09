@@ -4,7 +4,20 @@
 
 # The checks GitLab runs on a push, on a merge request and on a release tag.
 #
-# On GitLab's shared runners, in every pipeline:
+# Every job runs on the project's own runners - bench150, linix's second entry
+# linix-systemd, and linix or server2, which share the tag linix - in every pipeline
+# for a protected ref that is not a merge request's: master, a batch* branch, a v* tag
+# and the schedules on master. None runs on GitLab's shared runners, whose compute
+# minutes ran out on 9 October 2026 and left batch46's change gate without a runner
+# (docs/ContinuousIntegration.md, "Every job on the project's own runners"). A job that
+# names no runner itself takes default:'s tags, [$HM_RUNNER]: linix (variables:,
+# below) in such a pipeline, and GitLab's hosted runner in any other - a merge
+# request's, an unprotected branch's - where its workflow rule says so, since the
+# project's runners, registered ref_protected, take nothing of that pipeline.
+# build/check-release-chain.py holds every job of the CI files to a runner of the
+# project's in the first and to one that takes it in the second.
+#
+# In every pipeline:
 #
 #   checkers    every build/check-*.py that needs nothing but Python and git, the
 #               self-tests, the generators' --check, and the two that rewrite a
@@ -22,9 +35,8 @@
 #                         units, when they change;
 #   package-templates     the winget and Chocolatey templates render, when they change.
 #
-# On the project's own runners - bench150, and linix or server2, which share the tag
-# linix - for a protected ref only - master, a batch* branch, a v* tag - and never
-# for a merge request:
+# And these, each on the runner it names, for a protected ref only - master, a batch*
+# branch, a v* tag - and never for a merge request:
 #
 #   linux-build   linix: the Linux server with clang, its tester programs, the
 #                 OpenPGP writer against GnuPG, and the .deb and the .rpm
@@ -81,10 +93,12 @@
 #
 # Any other schedule on master - the update feed's - runs pages alone.
 #
-# Why protected refs only: the two runners are registered ref_protected, so GitLab
-# gives them no job for anything else, and the rules below do not even create one.
-# A merge request - above all one from a fork - runs code nobody has reviewed, and
-# none of it reaches a machine of the project's (docs/ContinuousIntegration.md).
+# Why protected refs only: the runners are registered ref_protected, so GitLab gives
+# them no job for anything else; the rules below do not even create one of these jobs
+# for anything else, and the workflow's rules send every other job of such a pipeline
+# to GitLab's hosted runner. A merge request - above all one from a fork - runs code
+# nobody has reviewed, and none of it reaches a machine of the project's
+# (docs/ContinuousIntegration.md).
 #
 # What is still run by hand (CONTRIBUTING.md, "The checkers"): check-package-manifests.py
 # against a released installer, the PowerShell checks (check-schema-versions.ps1,
@@ -99,7 +113,7 @@
 
 # Jobs kept in files of their own under .gitlab/ci/, one line each.
 include:
-  # GitLab's SAST and secret detection, on the shared runners (the file says what they add).
+  # GitLab's SAST and secret detection, from GitLab's templates (the file says what they add).
   - local: .gitlab/ci/gitlab-security.yml
   - local: .gitlab/ci/container-image.yml
   # The Helm chart packaged as a file of the release (hmailserver/docs/ContainerImage.md).
@@ -168,17 +182,38 @@ stages:
 # merge request's pipeline while it has an open merge request, and its own branch
 # pipeline otherwise. A v* tag runs one; any other tag none. build/check-release-chain.py
 # holds the first rule to the gates' rules for a batch* branch.
+#
+# And the runner. A rule that makes a pipeline for a protected ref that is not a merge
+# request's leaves HM_RUNNER as variables: has it, linix, so that every job of it runs
+# on the project's runners. Every other rule that makes a pipeline - a merge request's,
+# a v* tag's or a branch's that is not protected - sets it to saas-linux-small-amd64,
+# the tag of GitLab's hosted small Linux runner: the project's runners, registered
+# ref_protected, take nothing of such a pipeline, and none of its code reaches them. So
+# a merge request's checks run on GitLab's runners - a fork's in the fork, on the
+# fork's minutes - and every pipeline of a protected ref that is not a merge request's
+# on the project's own. The rules are those before, each that makes a pipeline split in
+# two: for a protected ref, then for the rest. build/check-release-chain.py tries every
+# kind of pipeline against them, and build/ci/repo-hygiene.py reads them as the guard
+# of every job that takes default:'s tags (Token-Permissions).
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_PROJECT_ID == $CI_MERGE_REQUEST_PROJECT_ID && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^batch/ && $CI_MERGE_REQUEST_SOURCE_BRANCH_PROTECTED == "true"
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        HM_RUNNER: saas-linux-small-amd64
+    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
     - if: $CI_COMMIT_TAG =~ /^v/
+      variables:
+        HM_RUNNER: saas-linux-small-amd64
     - if: $CI_COMMIT_TAG
       when: never
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_COMMIT_REF_PROTECTED != "true"
       when: never
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"
     - if: $CI_COMMIT_BRANCH
+      variables:
+        HM_RUNNER: saas-linux-small-amd64
 
 default:
   # A newer push to the same branch makes this pipeline's answer moot. The two long
@@ -187,8 +222,19 @@ default:
   # nothing of the pipeline: a gate is not cut off half-way, and the pipeline that
   # started it keeps its answer.
   interruptible: true
+  # Where every job runs that names no runner of its own - GitLab's templates' jobs among
+  # them: HM_RUNNER, which is linix for a protected ref that is not a merge request's
+  # and GitLab's hosted runner for any other pipeline (variables: and workflow:).
+  tags: [$HM_RUNNER]
 
 variables:
+  # The runner of every job that names none of its own (default:, above): the tag
+  # linix, which linix and server2 carry. The workflow's rules set it to
+  # saas-linux-small-amd64, GitLab's hosted small Linux runner, for a merge request's
+  # pipeline and an unprotected ref's, and nothing else in the CI files sets it
+  # (build/check-release-chain.py). A project CI/CD variable of this name would stand
+  # above both: none is made.
+  HM_RUNNER: linix
   # None of the checks reads history; the sign-off job asks for all of it.
   GIT_DEPTH: "1"
   # The image release-sign runs cosign in: cosign's own, from Google's registry (never
@@ -207,10 +253,10 @@ variables:
 # "export" forge-export (.gitlab/ci/forge-export.yml), "security" secret_detection,
 # "scorecard" scorecard (.gitlab/ci/scorecard.yml) with pages and package-repos, which
 # publish its result,
-# and any other - the update feed's - pages (with package-repos). So every
-# job on the shared runners takes these rules, and .own-runners below begins with
-# the same refusal. It refuses a downstream pipeline too (source "pipeline"): none of
-# this project's jobs starts one - the release's feed is deployed in the tag's own
+# and any other - the update feed's - pages (with package-repos). So the checks
+# take these rules, and .own-runners below begins with the same refusal. It
+# refuses a downstream pipeline too (source "pipeline"): none of this project's
+# jobs starts one - the release's feed is deployed in the tag's own
 # pipeline (pages, below) - and one another project's trigger or a job token's call
 # of the trigger API started on master would run pages alone. A schedule is chosen
 # by its description and not by a variable because the project refuses pipeline
@@ -225,9 +271,9 @@ variables:
 
 checkers:
   stage: check
-  # The shared runners' Python and Node images, by the digest Docker Hub served for
-  # the tag on 26 September 2026 (docker pull on linix); Renovate moves tag and
-  # digest together (renovate.json, pinDigests).
+  # Docker Hub's Python and Node images, by the digest Docker Hub served for the tag
+  # on 26 September 2026 (docker pull on linix); Renovate moves tag and digest
+  # together (renovate.json, pinDigests).
   image: python:3.14-slim-trixie@sha256:51dafde81dbdb6ebde285137a295cf18a47ca95234fe388a343719cb97305b3d
   timeout: 20 minutes
   rules:
@@ -432,7 +478,7 @@ sign-off:
 # pipeline runs this job alone, the checks and the own runners' jobs each skipping a
 # pipeline whose source is a schedule (docs/ContinuousIntegration.md, "The update
 # feed", says how the schedule is made). Never for a merge request: a fork's code
-# must not publish the feed. On the shared runners, like the checks.
+# must not publish the feed. On linix's tag, like the checks (default:).
 #
 # In a v* tag's pipeline it waits for release-publish, so that the release is in the
 # feed it renders, and package-repos, which needs it, deploys the site from the tag's
@@ -479,8 +525,11 @@ pages:
 # linix and server2 (tags linux, docker, linix), linix's second entry linix-systemd
 # (tag linix-systemd) and bench150 (tags windows, bench, bench150) are project
 # runners registered ref_protected with run_untagged off, and a job reaches one only
-# by its tag. These rules keep every such job out of any pipeline that is not
-# for a protected ref, and out of every merge request pipeline whatever its source.
+# by its tag - every job of the CI files does, one that names none by default:'s
+# [$HM_RUNNER]. These rules keep a job that names one of them out of any pipeline
+# that is not for a protected ref, and out of every merge request pipeline whatever
+# its source; the jobs that take default:'s tags, the workflow sends to GitLab's
+# hosted runner there.
 # A scheduled pipeline runs the one job its description names (linux-fuzz and renovate
 # here, with rules of their own): it must not start the gates.
 #
@@ -991,7 +1040,8 @@ update-helper:
     - bash build/test-autoban-hook.sh
     # The only thing systemd-analyze objects to in a checkout is the two executables
     # the package would have installed; they are tolerated by name and nothing else is.
-    # GitLab's hosted runners check out with umask 0000, so every file is world-writable,
+    # A runner's checkout is made under umask 0000 - the docker executor's default on
+    # linix and server2, as on GitLab's hosted runners - so every file is world-writable,
     # which systemd-analyze reports; the package installs the units 0644 (CMake's
     # install(FILES) default), so the checkout's copies are given that mode first.
     - |
@@ -1612,8 +1662,8 @@ renovate:
 #                         package with its own SBOM;
 #   release-authenticode  bench150: the two installers and the PowerShell module signed
 #                         with Authenticode;
-#   release-sbom          GitLab's shared runners: each signed installer's own SBOM;
-#   release-sign          GitLab's shared runners: every file signed with Sigstore;
+#   release-sbom          linix's tag: each signed installer's own SBOM;
+#   release-sign          linix's tag: every file signed with Sigstore;
 #   release-verify        linix: every bundle checked with this commit's own server;
 #   release-publish       started by hand - after the installer smoke test of the signed
 #                         installer, run from the VMware host - uploads and creates the
@@ -1904,8 +1954,10 @@ release-sbom:
     paths:
       - release-sbom/
 
-# Sigstore, keyless, on GitLab's shared runners, in cosign's own image pinned by digest
-# (HM_COSIGN_IMAGE, above): nothing from GitHub. The certificate names
+# Sigstore, keyless, on linix's tag (default:), in cosign's own image pinned by digest
+# (HM_COSIGN_IMAGE, above): nothing from GitHub. Since 9 October 2026 Fulcio's
+# certificate says the runner was self-hosted (its Runner Environment extension,
+# 1.3.6.1.4.1.57264.1.11); no verifier of the project's reads that extension. The certificate names
 # https://gitlab.com/hmailserver/hmailserver//.gitlab-ci.yml@refs/tags/<tag>, the group's
 # path the project has been at since 29 September 2026; 6.3.5's named the first one,
 # https://gitlab.com/Progressiverobot/hmailserver//...

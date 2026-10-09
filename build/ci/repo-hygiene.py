@@ -34,7 +34,9 @@ counted as a pass):
                        secrets, or runs a CI script that handles CI_JOB_TOKEN or
                        another credential - judged by the rules each job runs by,
                        its own or those it extends, in .gitlab-ci.yml and the
-                       files it includes; no credential written in those files;
+                       files it includes, and for a job whose tags are default:'s
+                       [$HM_RUNNER] by the workflow's rules, which choose its
+                       runner; no credential written in those files;
                        CI_DEBUG_TRACE (which prints every variable into a public
                        job log) set nowhere. The project's job-token allowlist and
                        pipeline-variable settings are not public, and the check
@@ -59,7 +61,9 @@ over CI files made to break it - a condition whose protected-ref clause sits
 inside an OR, parentheses or a comment, rules the check could misread (a list at
 another indentation, inline, by an alias, behind a merge key), tags and extends
 written as block lists, id_tokens and the job token reached through a template,
-an include it cannot open - and Pinned-Dependencies' CI half over a CI file and
+an include it cannot open, default:'s [$HM_RUNNER] with a workflow that leaves a
+merge request's or an unprotected ref's pipeline on the project's runners - and
+Pinned-Dependencies' CI half over a CI file and
 the file it includes, with an image by tag, a service by tag and an unhashed pip
 install put in the included file; it fails if any is judged wrongly.
 
@@ -538,6 +542,12 @@ def is_pe(path):
 # files do not resolve, and an include it cannot open.
 
 PROTECTED = '$CI_COMMIT_REF_PROTECTED == "true"'
+# The variable default:'s tags name, which .gitlab-ci.yml's variables: set to linix and
+# a workflow rule sets to GitLab's hosted small Linux runner for a pipeline the
+# project's runners must take nothing of (docs/ContinuousIntegration.md, "Every job on
+# the project's own runners").
+RUNNER_VARIABLE = "HM_RUNNER"
+HOSTED_RUNNER = "saas-linux-small-amd64"
 NOT_A_MERGE_REQUEST = '$CI_PIPELINE_SOURCE != "merge_request_event"'
 A_MERGE_REQUEST = '$CI_PIPELINE_SOURCE == "merge_request_event"'
 A_SCHEDULE = '$CI_PIPELINE_SOURCE == "schedule"'
@@ -854,9 +864,10 @@ def scalar(first, continuation):
 
 
 def rule_of(item):
-    """One item of a rules list as {"if", "when", "narrowed", "unreadable"}."""
+    """One item of a rules list as {"if", "when", "narrowed", "runner", "unreadable"}:
+    runner is the HM_RUNNER its variables: set, or None."""
     keys = [l for l in item if l.strip() and not l.lstrip().startswith("#")]
-    rule = {"if": "", "when": "on_success", "narrowed": False, "unreadable": None}
+    rule = {"if": "", "when": "on_success", "narrowed": False, "runner": None, "unreadable": None}
     if not keys:
         rule["unreadable"] = "an empty rule"
         return rule
@@ -885,6 +896,15 @@ def rule_of(item):
             rule["narrowed"] = True
         elif key == "<<" or value.strip().startswith("*"):
             rule["unreadable"] = "%s:%s" % (key, value)
+        elif key == "variables":
+            if value.split("#", 1)[0].strip():
+                if RUNNER_VARIABLE in value:
+                    rule["unreadable"] = "variables: %s" % value.strip()
+                continue
+            for line in deeper:
+                m = re.match(r"""^\s*["']?%s["']?\s*:(.*)$""" % RUNNER_VARIABLE, line)
+                if m:
+                    rule["runner"] = scalar(m.group(1), [])
     return rule
 
 
@@ -970,13 +990,42 @@ def check_token_permissions(files):
     # 26 September 2026): linix with linux, docker and linix, bench150 with windows,
     # bench and bench150. A job asking for any of them can land on one.
     own = re.compile(r"\b(linix|linux|docker|bench150|bench|windows)\b|\$", re.I)
+    # default:'s tags, which a job that names none - itself or through extends - takes.
+    default_tags = values(jobs.get("default", ""), "tags")
+    # A job whose tags are [$HM_RUNNER] runs where the workflow's rules leave HM_RUNNER:
+    # on GitLab's hosted runner for a rule that sets it so - such a pipeline reaches no
+    # machine of the project's - and on the runner .gitlab-ci.yml's variables: name for
+    # every other rule that makes a pipeline, which must then ask for a protected ref
+    # and shut out a merge request, as a job's own rules must. A job that sets
+    # HM_RUNNER itself, or one of its templates, is judged by its own rules instead.
+    global_runner = values(jobs.get("variables", ""), RUNNER_VARIABLE)
+    global_runner = global_runner[0] if global_runner and len(global_runner) == 1 else None
+    workflow = rules_of("workflow")
+    if workflow is None:
+        workflow_why = "the workflow has no rules"
+    else:
+        project_rules = []
+        for rule in workflow:
+            rule = dict(rule)
+            if (rule.get("runner") or global_runner) == HOSTED_RUNNER:
+                # This pipeline's jobs of [$HM_RUNNER] go to GitLab's runner: none of
+                # them is made on the project's, as if the rule made no pipeline.
+                rule["when"] = "never"
+            project_rules.append(rule)
+        workflow_why = admits(project_rules)
+
+    def sets_runner(name):
+        return any(re.search(r"""(?:^|[\s{,])["']?%s["']?\s*:""" % RUNNER_VARIABLE,
+                             re.sub(r"(?m)(?:^|\s)#.*$", "", jobs.get(n, "")))
+                   for n in [name] + extends(name))
+
     guard = jobs.get(".own-runners", "")
     guard_ok = judged(".own-runners") is None and PROTECTED in guard
     if guard_ok:
         r.ok(".own-runners creates a job only for a protected ref, and never for a merge request")
     else:
         r.fail(".own-runners no longer demands a protected ref that is not a merge request's")
-    on_own, exposed, through_guard, unclear = [], [], 0, []
+    on_own, exposed, through_guard, through_workflow, unclear = [], [], 0, 0, []
     for name in real:
         # A job whose extends, key line or merge keys the check cannot follow may take
         # its tags and rules from anywhere: it is refused whatever its tags look like.
@@ -984,14 +1033,25 @@ def check_token_permissions(files):
         if problem:
             unclear.append("%s (%s)" % (name, problem))
             continue
-        tags = []
+        tags, named = [], False
         for n in [name] + extends(name):
             found = values(jobs.get(n, ""), "tags")
+            named = named or found is None or job_key(jobs.get(n, ""), "tags") is not None
             # Tags the check cannot read may be the project's own runners.
             tags += ["linix"] if found is None else found
+        if not named:
+            # Tags the check cannot read may be the project's own runners.
+            tags = ["linix"] if default_tags is None else default_tags
         if not any(own.search(t) for t in tags):
             continue
         on_own.append(name)
+        if tags == ["$" + RUNNER_VARIABLE] and not sets_runner(name):
+            if workflow_why:
+                exposed.append("%s (it runs where the workflow's rules leave %s, and %s)" % (
+                    name, RUNNER_VARIABLE, workflow_why))
+            else:
+                through_workflow += 1
+            continue
         why = judged(name)
         if why:
             exposed.append("%s (%s)" % (name, why))
@@ -1004,8 +1064,10 @@ def check_token_permissions(files):
                % "; ".join(exposed))
     else:
         r.ok("all %d jobs on linix or bench150 run only for a protected ref and never for a merge request:"
-             " %d by .own-runners, %d by rules of their own that ask the same" % (
-                 len(on_own), through_guard, len(on_own) - through_guard))
+             " %d by .own-runners, %d by rules of their own that ask the same, %d by the workflow's rules, which"
+             " give every other pipeline GitLab's hosted runner (%s)" % (
+                 len(on_own), through_guard, len(on_own) - through_guard - through_workflow, through_workflow,
+                 RUNNER_VARIABLE))
 
     def runners_of(name):
         """The jobs that run what a block holds: the job itself, every job that
@@ -1128,6 +1190,48 @@ def junit(results):
 
 
 # ---------------------------------------------------------------- the self-test
+
+# default:'s tags, the variable they name and the workflow that chooses it, as
+# .gitlab-ci.yml has them (a merge request's pipeline and an unprotected ref's on
+# GitLab's hosted runner), and a job that takes them and that every pipeline makes;
+# added to SELF_TEST_BASE by the cases below that read them.
+RUNNER_TEST_BASE = """
+default:
+  interruptible: true
+  tags: [$HM_RUNNER]
+
+variables:
+  HM_RUNNER: linix
+  GIT_DEPTH: "1"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^batch/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        HM_RUNNER: saas-linux-small-amd64
+    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"
+    - if: $CI_COMMIT_TAG =~ /^v/
+      variables:
+        HM_RUNNER: saas-linux-small-amd64
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"
+    - if: $CI_COMMIT_BRANCH
+      variables:
+        HM_RUNNER: saas-linux-small-amd64
+"""
+RUNNER_TEST_JOB = """
+probe:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+  script: [echo]
+"""
 
 # A CI file with the project's guard and one job behind it, which Token-Permissions
 # passes; each case below adds to it, and says whether the check must then fail.
@@ -1388,6 +1492,24 @@ probe:
     - !reference [.not-there, rules]
   script: [echo]
 """, True),
+    ("default:'s runner, which the workflow gives GitLab's for a merge request and an unprotected ref",
+     RUNNER_TEST_BASE + RUNNER_TEST_JOB, False),
+    ("default:'s runner, the workflow leaving a merge request on the project's",
+     RUNNER_TEST_BASE.replace('    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n      variables:\n'
+                              '        HM_RUNNER: saas-linux-small-amd64\n',
+                              '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n') + RUNNER_TEST_JOB, True),
+    ("default:'s runner, the workflow leaving an unprotected branch on the project's",
+     RUNNER_TEST_BASE.replace("    - if: $CI_COMMIT_BRANCH\n      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",
+                              "    - if: $CI_COMMIT_BRANCH\n") + RUNNER_TEST_JOB, True),
+    ("default:'s runner, the workflow's protected branch rule asking nothing of the ref",
+     RUNNER_TEST_BASE.replace('    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"\n',
+                              "    - if: $CI_COMMIT_BRANCH\n") + RUNNER_TEST_JOB, True),
+    ("default:'s runner, a job that sets it to linix itself",
+     RUNNER_TEST_BASE + RUNNER_TEST_JOB + "  variables:\n    HM_RUNNER: linix\n", True),
+    ("default: naming linix itself, a job that any pipeline makes",
+     RUNNER_TEST_BASE.replace("  tags: [$HM_RUNNER]\n", "  tags: [linix]\n") + RUNNER_TEST_JOB, True),
+    ("default:'s tags as an alias", RUNNER_TEST_BASE.replace("  tags: [$HM_RUNNER]\n", "  tags: *probe-tags\n")
+     + RUNNER_TEST_JOB, True),
 ]
 
 

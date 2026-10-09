@@ -345,8 +345,10 @@ Linux `hmailserver` binary and a database server; the script's header lists the 
 
 ## The checkers
 
-**What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request, on
-GitLab's shared runners. *checkers* (a Python image with git) runs every Python checker below except
+**What GitLab CI runs.** `.gitlab-ci.yml` runs on every push to a branch and on every merge request: on the
+project's own runners for `master`, a `batch*` branch and a `v*` tag, and on GitLab's hosted runners for a merge
+request and any other branch ([ContinuousIntegration.md](hmailserver/docs/ContinuousIntegration.md), "Every job on
+the project's own runners"). *checkers* (a Python image with git) runs every Python checker below except
 `check-package-manifests.py`, the `--self-test` modes (the release chain's, the release's security gate's, the
 secret scan's, repo-hygiene's and `build/perf/webmail-timing.py`'s among them), `add-license-headers.py --check`, every
 generator's `--check`, `generate-portal-languages.py` and `check-deck-parity.py` held to the files they write
@@ -841,15 +843,16 @@ rewrites. To sign off without remembering the flag, `git config alias.cs "commit
    own included ([GOVERNANCE.md](GOVERNANCE.md), "Review"). On GitLab's Free tier anyone with the Developer role
    can approve, but no rule can require an approval, and whether an author may approve their own is a setting of
    the paid tiers; so the landing script below holds the rule, and it never counts an author's approval.
-6. **The gate.** A merge request's own pipeline runs the shared runners' checks only, the change checks among
-   them, which must pass ([The checkers](#the-checkers)). A merge request from your fork runs that pipeline in your
-   fork, with your fork's CI files and on runners your fork's settings choose, so its result tells you how the change
-   fares and is not the gate: the gate is the pipeline of the `batch*` branch your commits land on, or one a maintainer
-   runs for your merge request in this project after reading its CI files ([SECURITY.md](SECURITY.md), "Every
-   change"). The builds and both suites
-   run on the project's machines for a `batch*` branch, which only a Maintainer can push: the maintainer puts
-   your commits on one - rebased onto the current `master`, your authorship and your `Signed-off-by` kept, or
-   squashed into one commit of yours that keeps them - with other changes ready to land.
+6. **The gate.** A merge request's own pipeline runs the checks only, the change checks among them, on GitLab's
+   hosted runners, and they must pass ([The checkers](#the-checkers)). A merge request from your fork runs that
+   pipeline in your fork, with your fork's CI files and on runners your fork's settings choose, so its result tells
+   you how the change fares and is not the gate: the gate is the pipeline of the `batch*` branch your commits land
+   on, or one a maintainer runs for your merge request in this project after reading its CI files
+   ([SECURITY.md](SECURITY.md), "Every change"), which runs on GitLab's hosted runners on the project's compute
+   minutes, and cannot run while those are spent. The builds and both suites run on the project's machines for a
+   `batch*` branch, which only a Maintainer can push: the maintainer puts your commits on one - rebased onto the
+   current `master`, your authorship and your `Signed-off-by` kept, or squashed into one commit of yours that keeps
+   them - with other changes ready to land.
 7. **Landing.** A `batch*` branch lands through a merge request of its own, by fast-forward, so history stays
    linear: `python3 build/land-via-mr.py batchN` checks that the batch is on top of `master`, adds no merge commit,
    is signed off throughout and holds no possible secret (`build/scan-secrets.py` over every commit it adds, which

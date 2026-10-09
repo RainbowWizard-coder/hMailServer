@@ -109,7 +109,7 @@ DTAG="$TAG-${SHORT:0:12}"
 docker run --rm -v "$LOGIN:$MOUNTED:ro" "$SKOPEO" copy --quiet --all --preserve-digests \
   --dest-authfile "$MOUNTED" "docker://$SRC@$DIGEST" "docker://$DST:$DTAG"
 
-# Read back, without credentials, as a shared runner pulls it: the copy's tag must name
+# Read back, without credentials, as a runner pulls it: the copy's tag must name
 # the same bytes.
 docker run --rm "$SKOPEO" inspect --raw "docker://$DST:$DTAG" > "$raw"
 copied="sha256:$(sha256sum "$raw" | cut -d' ' -f1)"

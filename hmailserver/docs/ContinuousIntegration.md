@@ -1,16 +1,23 @@
 Continuous integration
 ======================
 
-GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root). The
-cheap checks run on GitLab's shared runners, for every push and every merge
-request. The builds, both regression suites and everything else that needs a
-machine of the project's run on its own runners - linix and bench150, and since
-5 October 2026 server2 beside linix ([The runners](#the-runners)) - and only for
-the refs that only a maintainer can push. The owner decided this on 25 September
-2026, a week after GitHub suspended the project's account and its workflows with
-it. The same day, the rest of the old GitHub workflows were ported
-([From GitHub Actions to GitLab CI](#from-github-actions-to-gitlab-ci)), and a
-nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
+GitLab CI starts every pipeline (`.gitlab-ci.yml` at the repository root), and
+the jobs run on the project's own runners - linix and bench150, and since 5
+October 2026 server2 beside linix ([The runners](#the-runners)). The checks run
+for every push and every merge request; the builds, both regression suites and
+everything else that needs a machine of the project's run only for the refs that
+only a maintainer can push. The owner decided on GitLab CI with runners of the
+project's on 25 September 2026, a week after GitHub suspended the project's
+account and its workflows with it. The same day, the rest of the old GitHub
+workflows were ported ([From GitHub Actions to GitLab CI](#from-github-actions-to-gitlab-ci)),
+and a nightly fuzz pipeline was added ([The fuzz schedule](#the-fuzz-schedule)).
+Until 9 October 2026 the checks, the change gates and the release's signing and
+publishing jobs ran on GitLab's shared runners, on the namespace's compute
+minutes; those ran out that day, and since then every job of a pipeline for a
+protected ref that is not a merge request's runs on the project's runners, and
+only a merge request's pipeline and an unprotected branch's run their checks on
+GitLab's hosted runners, which the project's take nothing of ([Every job on the
+project's own runners](#every-job-on-the-projects-own-runners)).
 
 **The jobs have run since 26 September 2026.** The first pipeline, 2884863496
 on `master`, failed eleven of its jobs ([What the first pipeline found](#what-the-first-pipeline-found));
@@ -28,32 +35,35 @@ pipeline's own times are on its jobs' pages.
 What runs where
 ---------------
 
-*Runs on* names where GitLab sends a job: GitLab's shared runners, bench150, or
-the tag `linix`, which two runners carry since 5 October 2026, linix and
-server2, so that such a job runs on whichever of the two takes it first
-([The runners](#the-runners)). The other tables on this page name runners the
-same way.
+*Runs on* names where GitLab sends a job in a pipeline for a protected ref that is
+not a merge request's: bench150, linix's second entry `linix-systemd`, or the tag
+`linix`, which two runners carry since 5 October 2026, linix and server2, so that
+such a job runs on whichever of the two takes it first ([The runners](#the-runners)).
+A job that names no runner of its own takes `linix` from `default:`; in a merge
+request's pipeline and an unprotected branch's that is GitLab's hosted runner
+instead ([Every job on the project's own runners](#every-job-on-the-projects-own-runners)).
+The other tables on this page name runners the same way.
 
 | Job | Stage | Runs on | Runs for | What it does |
 |---|---|---|---|---|
-| `checkers` | check | GitLab's shared runners | every pipeline but a schedule's | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
-| `harnesses` | check | GitLab's shared runners | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
-| `sign-off` | check | GitLab's shared runners | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
-| `editorconfig` | check | GitLab's shared runners | every pipeline | Every text file against `.editorconfig`, and a negative control |
-| `chart-and-compose` | check | GitLab's shared runners | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
-| `update-helper` | check | GitLab's shared runners | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
-| `package-templates` | check | GitLab's shared runners | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
-| `roadmap` | check | GitLab's shared runners | a change to `Roadmap.md` | `build/check-roadmap.ps1` |
-| `cli-packages` | check | GitLab's shared runners | a change to the command-line clients or their packaging, and never a tag | `hmailserver-cli`'s sdist and wheel built twice and compared, held to the tree, `twine check`ed and installed alone (`.gitlab/ci/cli-packages.yml`; [CommandLinePackages.md](CommandLinePackages.md)) |
-| `cli-powershell` | check | GitLab's shared runners | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`), and the module's half of `build/check-cli.py` against its recorded server |
+| `checkers` | check | linix | every pipeline but a schedule's | Every Python checker, the self-tests, the generators' `--check` ([CONTRIBUTING.md](../../CONTRIBUTING.md), "The checkers") |
+| `harnesses` | check | linix | every pipeline but a schedule's | The Control Deck's and the webmail's script harnesses, and the S/MIME and OpenPGP checks |
+| `sign-off` | check | linix | every merge request, and a `batch*` branch | Every commit the merge request or the batch adds to `master` carries its author's `Signed-off-by` (`build/sign-off.py`; [Landing on master](#landing-on-master)) |
+| `editorconfig` | check | linix | every pipeline | Every text file against `.editorconfig`, and a negative control |
+| `chart-and-compose` | check | linix | a change to the Helm chart or the Compose file | The chart linted and rendered, the Compose file resolved |
+| `update-helper` | check | linix | a change to the update helper or the units | `build/test-hmailserver-update.sh` under dash, and `systemd-analyze verify` of the three units |
+| `package-templates` | check | linix | a change to the winget or Chocolatey templates | The templates render and agree, checked offline |
+| `roadmap` | check | linix | a change to `Roadmap.md` | `build/check-roadmap.ps1` |
+| `cli-packages` | check | linix | a change to the command-line clients or their packaging, and never a tag | `hmailserver-cli`'s sdist and wheel built twice and compared, held to the tree, `twine check`ed and installed alone (`.gitlab/ci/cli-packages.yml`; [CommandLinePackages.md](CommandLinePackages.md)) |
+| `cli-powershell` | check | linix | the same | The PowerShell module's manifest and PSScriptAnalyzer from the Gallery, under pwsh (`build/ci/cli-powershell.ps1`), and the module's half of `build/check-cli.py` against its recorded server |
 | `linux-build` | build | linix | a protected ref | The Linux server with clang, every `*-tests` program the CMake build makes, the OpenPGP writer against GnuPG, and the `.deb` and the `.rpm` (`build/ci/linux-build.sh`) |
 | `linux-build-gcc` | test | linix | `master` or a `batch*` branch; never a tag | The same server and tester programs built with GCC, the distribution's default compiler, and the testers and the OpenPGP round trip run; no packages (`.gitlab/ci/gcc.yml`; [The GCC build](#the-gcc-build)) |
 | `nix` | build | linix | `master` or a `batch*` branch; never a tag | The project's Nix flake: `flake.lock` held to releases.nixos.org, every output evaluated for both systems, `nix build .#hmailserver` with its tester programs, and the NixOS test under QEMU's TCG, since linix has no KVM (`.gitlab/ci/nix.yml`, `build/ci/nix.sh`; [Nix.md](Nix.md)) |
 | `alpine-package` | build | linix | `master` or a `batch*` branch; never a tag | The server built with musl by its APKBUILD and abuild on Alpine 3.24 from the source tarball, `check()` running its tester programs, and `apkbuild-lint` (`.gitlab/ci/alpine.yml`, `build/ci/alpine.sh`; [Alpine.md](Alpine.md)) |
 | `alpine-install` | test | linix | the same | Those packages installed in a clean Alpine container, the server started with `rc-service` against PostgreSQL, SMTP (with STARTTLS) and IMAP asked, then a reload and a stop |
 | `alpine-suite` | test | linix | the same | The whole of `LinuxRegressionTests` against the installed Alpine server, in Alpine, on PostgreSQL 18 |
-| `pages` | release | GitLab's shared runners | `master`, a `v*` tag after `release-publish`, a schedule on `master` | Renders the update feed from the project's releases into `public/`; it deploys nothing itself (`pages: false`, from `.gitlab/ci/package-repos.yml`) (see [The update feed](#the-update-feed)) |
-| `package-repos` | release | GitLab's shared runners | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and the project's OpenSSF Scorecard result when there is one ([OpenSSF Scorecard](#openssf-scorecard)), and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
+| `pages` | release | linix | `master`, a `v*` tag after `release-publish`, a schedule on `master` | Renders the update feed from the project's releases into `public/`; it deploys nothing itself (`pages: false`, from `.gitlab/ci/package-repos.yml`) (see [The update feed](#the-update-feed)) |
+| `package-repos` | release | linix | wherever `pages` runs, after it | Adds the signed apt and dnf repositories to `pages`' `public/`, or, without the signing key, nothing, and the project's OpenSSF Scorecard result when there is one ([OpenSSF Scorecard](#openssf-scorecard)), and GitLab Pages publishes the result at https://updates.progressiverobot.com ([PackageManagers.md](PackageManagers.md), "apt and dnf") |
 | `linux-suite` | test | linix | a protected ref | The whole of `LinuxRegressionTests` against that server on PostgreSQL 18 (`build/ci/linux-suite.sh`) |
 | `linux-cross` | test | linix | a protected ref | Every core translation unit compiled for AArch64 (`build/ci/linux-cross.sh`) |
 | `linux-sanitize` | test | linix | a protected ref | `snmp-tests` under AddressSanitizer; says SKIPPED and passes while the tree has no `HM_SANITIZE` (`build/ci/linux-sanitize.sh`) |
@@ -74,31 +84,31 @@ same way.
 | `ci-image-packages` | test | linix | the same | Copies the CI image's package database out, for `dependency-scan` |
 | `dependency-scan` | test | linix | the same | Trivy over the lock files and the CI image, OSV over the vendored libraries |
 | `repo-hygiene` | test | linix | a protected ref | The repository checks OpenSSF Scorecard ran, answered from GitLab and the tree |
-| `semgrep-sast` | test | GitLab's shared runners | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
-| `semgrep-sast-gate` | test | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
-| `mr-dependency-check` | check | GitLab's shared runners | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
-| `secret_detection` | test | GitLab's shared runners | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule - less what lies under a `build`, `bin`, `obj`, `target`, `packages`, `node_modules` or `bower_components` directory, which GitLab's rules leave out, so not the scripts under `build/` ([Before a push: the secret scan](#before-a-push-the-secret-scan)) - in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
+| `semgrep-sast` | test | linix | every change - a merge request, and a protected `batch*` branch - `master`, and a `v*` tag | GitLab's own SAST template: its Semgrep analyzer and rules over the C, C++, C#, Python and JavaScript - less what lies under a `build`, `dist`, `vendor` or `node_modules` directory, which the analyzer's template leaves out, so not the scripts under `build/` - with no baseline, in the project's copy of the analyzer's image; not `allow_failure`, and it keeps Semgrep's SARIF beside its report (`.gitlab/ci/gitlab-security.yml`) |
+| `semgrep-sast-gate` | test | linix | every change: a merge request, and a protected `batch*` branch | `semgrep-sast`'s report read by the release's rule, for the files the change touches from its base, or every file when it alters the scan: a Critical or High finding that `.gitlab/security-exceptions.yml`, as the base has it, does not accept fails it, and so does a baseline that grows or loses a reason, a suppression comment added, a narrowing of what a scan reads that does not land alone, a source file put out of the scan's reach, a changed file a rule gave up on, and a report that is not this pipeline's or that the tree commits (`build/ci/security-gate.py --merge-request auto`; [Change checks](#change-checks)) |
+| `mr-dependency-check` | check | linix | every change: a merge request, and a protected `batch*` branch | Every NuGet and PyPI version the change adds, looked up in OSV's own export of its ecosystem's advisories, and every native or vendored library pin it moves, asked of OSV by its upstream tag: a malicious package, or a Critical or High advisory, that neither the base's exceptions nor its VEX document accepts fails it (`build/ci/mr-dependency-check.py --base auto`) |
+| `secret_detection` | test | linix | `master`, a merge request, and the schedule described `security` | GitLab's own secret-detection template: a key, token or password in the commits the pipeline brings, or in the whole history for the `security` schedule - less what lies under a `build`, `bin`, `obj`, `target`, `packages`, `node_modules` or `bower_components` directory, which GitLab's rules leave out, so not the scripts under `build/` ([Before a push: the secret scan](#before-a-push-the-secret-scan)) - in the project's copy of the analyzer's image; a finding `.gitleaksignore` does not name fails it (`.gitlab/ci/gitlab-security.yml`) |
 | `windows-installer` | release | bench150 | a `v*` tag, after `windows-gate` | The x64 Windows installer, unsigned, built in the bench's checkout (`build/ci/windows-installer.ps1`; [The release](#the-release)); the ARM64 one is `windows-packages-arm64`'s ([PackagesWindows.md](PackagesWindows.md)) |
-| `release` | release | GitLab's shared runners | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the sixty files a release carries before the two installers' SBOMs, the PowerShell module's two unsigned among them (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
+| `release` | release | linix | a `v*` tag, started by hand | Checks the tag, the version stamp and the release settings, reads the four security scans' reports (`build/ci/security-gate.py`), collects the sixty files a release carries before the two installers' SBOMs, the PowerShell module's two unsigned among them (eight in 6.3.5), and counts what GitLab and Pages will take of it (`build/ci/release-chain.py collect`) |
 | `release-authenticode` | release | bench150 | a `v*` tag, after `release` | The two installers, x64 and ARM64, and the PowerShell module's manifest and script, Authenticode-signed through Azure Artifact Signing with the job's ID token (`build/ci/windows-authenticode.ps1`) |
-| `release-sbom` | release | GitLab's shared runners | a `v*` tag, after `release-authenticode` | Each signed installer's own SBOM, `<installer>.cdx.json`, and the statement of the release's SLSA provenance (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
-| `release-sign` | release | GitLab's shared runners | a `v*` tag, after `release-sbom` | Every file signed with Sigstore as this pipeline, each primary file's bundle copied to `<file>.sigstore.json`, and the provenance attested (`build/ci/release-sign.sh`) |
+| `release-sbom` | release | linix | a `v*` tag, after `release-authenticode` | Each signed installer's own SBOM, `<installer>.cdx.json`, and the statement of the release's SLSA provenance (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
+| `release-sign` | release | linix | a `v*` tag, after `release-sbom` | Every file signed with Sigstore as this pipeline, each primary file's bundle copied to `<file>.sigstore.json`, and the provenance attested (`build/ci/release-sign.sh`) |
 | `release-verify` | release | linix | a `v*` tag, after `release-sign` | Every bundle checked with this commit's `hmailserver --verify-update`, and the SBOMs, the copies and the provenance held to the files (`build/ci/release-verify.sh`) |
-| `release-publish` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
+| `release-publish` | release | linix | a `v*` tag, started by hand after `release-verify` | The files uploaded to the package registry and the GitLab release created (`build/ci/release-chain.py publish`) |
 | `release-packages` | test | linix | a `v*` tag or a `batch*` branch, where the package jobs run, after every package build it gathers and its install or test job | Every distribution release's `.deb` and `.rpm`, both AppImages, the source of the libraries linked into their runtime, the source of the libraries they carry in `usr/lib` and the source tarball, each held to its build's sums (the tarball to `build/check-source-tarball.py`) and each but the two sources files given its SBOM, for `release` and the rehearsal (`.gitlab/ci/release-packages.yml`, `build/ci/release-chain.py gather`; [What a release carries](#the-release)) |
-| `release-rehearsal`, `release-rehearsal-sign`, `release-rehearsal-verify` | release | GitLab's shared runners; the shared runners in cosign's image; linix | a protected `batch*` branch, where the package jobs run; never a tag, `master` or a merge request | The release rehearsed: collected, signed as the branch and verified, published nowhere (`.gitlab/ci/release-rehearsal.yml`; [The release rehearsal](#the-release-rehearsal)) |
-| `helm-chart-package` | build | GitLab's shared runners | a `v*` tag or a `batch*` branch | The Helm chart packaged at the release's version as `hmailserver-chart-<version>.tgz`, a file of the release (`.gitlab/ci/helm-chart.yml`, `build/ci/helm-chart-package.sh`; [ContainerImage.md](ContainerImage.md)) |
-| `container-image-deb` | release | GitLab's shared runners | a `v*` tag, started by hand after `release-publish`; refuses unless the project's variable `HM_PUBLISH_IMAGE` is `1` | The release's `.deb` of each architecture, amd64 and arm64, and their SBOMs taken from the published release and verified against their Sigstore bundles (`build/ci/container-image-deb.sh`; [The container image](#the-container-image)) |
+| `release-rehearsal`, `release-rehearsal-sign`, `release-rehearsal-verify` | release | linix; linix, in cosign's image; linix | a protected `batch*` branch, where the package jobs run; never a tag, `master` or a merge request | The release rehearsed: collected, signed as the branch and verified, published nowhere (`.gitlab/ci/release-rehearsal.yml`; [The release rehearsal](#the-release-rehearsal)) |
+| `helm-chart-package` | build | linix | a `v*` tag or a `batch*` branch | The Helm chart packaged at the release's version as `hmailserver-chart-<version>.tgz`, a file of the release (`.gitlab/ci/helm-chart.yml`, `build/ci/helm-chart-package.sh`; [ContainerImage.md](ContainerImage.md)) |
+| `container-image-deb` | release | linix | a `v*` tag, started by hand after `release-publish`; refuses unless the project's variable `HM_PUBLISH_IMAGE` is `1` | The release's `.deb` of each architecture, amd64 and arm64, and their SBOMs taken from the published release and verified against their Sigstore bundles (`build/ci/container-image-deb.sh`; [The container image](#the-container-image)) |
 | `container-image-amd64`, `container-image-arm64` | release | linix | a `v*` tag, after `container-image-deb`; refuse unless `HM_PUBLISH_IMAGE` is `1` | Each platform's image built with kaniko from its own architecture's `.deb` - the arm64 one under qemu-user - inspected as `linux-image` inspects its own, and kept for `container-image`, not pushed (`build/ci/linux-image.sh` with `HM_IMAGE_RELEASE=1`) |
-| `container-image` | release | GitLab's shared runners, in regctl's image | a `v*` tag, after both; refuses unless `HM_PUBLISH_IMAGE` is `1` | Both images, each held to what its job checked, joined under one index and pushed to the project's container registry: each image by its digest, the index with the release's tags (`build/ci/container-image-push.sh`) |
-| `container-image-artifacthub` | release | GitLab's shared runners, in regctl's image | a `v*` tag, after `container-image`; the default branch, by hand, allowed to fail; refuses unless `HM_PUBLISH_IMAGE` is `1` | Artifact Hub's metadata for the image's repository, the tree's `platform/packaging/docker/artifacthub-repo.yml`, pushed under the tag `artifacthub.io` and read back, when it holds the repository ID Artifact Hub gave, as it does since 6 October 2026; for a file without one, nothing. Nothing waits for it (`build/ci/container-image-artifacthub.sh`; [ContainerImage.md](ContainerImage.md), "Artifact Hub") |
+| `container-image` | release | linix, in regctl's image | a `v*` tag, after both; refuses unless `HM_PUBLISH_IMAGE` is `1` | Both images, each held to what its job checked, joined under one index and pushed to the project's container registry: each image by its digest, the index with the release's tags (`build/ci/container-image-push.sh`) |
+| `container-image-artifacthub` | release | linix, in regctl's image | a `v*` tag, after `container-image`; the default branch, by hand, allowed to fail; refuses unless `HM_PUBLISH_IMAGE` is `1` | Artifact Hub's metadata for the image's repository, the tree's `platform/packaging/docker/artifacthub-repo.yml`, pushed under the tag `artifacthub.io` and read back, when it holds the repository ID Artifact Hub gave, as it does since 6 October 2026; for a file without one, nothing. Nothing waits for it (`build/ci/container-image-artifacthub.sh`; [ContainerImage.md](ContainerImage.md), "Artifact Hub") |
 | `container-image-sbom` | release | linix | a `v*` tag, after `container-image` | Each platform's image's SBOM: Syft over it by its digest, with that architecture's `.deb`'s own SBOM added (`build/ci/container-image-sbom.sh`) |
-| `container-image-sign` | release | GitLab's shared runners | a `v*` tag, after `container-image-sbom` | The index and each platform's image signed by digest with Sigstore as this pipeline, each image's SBOM attested to it, and all of it verified (`build/ci/container-image-sign.sh`) |
-| `container_scanning`, `container_scanning_arm64` | release | GitLab's shared runners | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over each platform's pushed image, by its digest; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
+| `container-image-sign` | release | linix | a `v*` tag, after `container-image-sbom` | The index and each platform's image signed by digest with Sigstore as this pipeline, each image's SBOM attested to it, and all of it verified (`build/ci/container-image-sign.sh`) |
+| `container_scanning`, `container_scanning_arm64` | release | linix | a `v*` tag, after `container-image` | GitLab's own Container Scanning template over each platform's pushed image, by its digest; a finding does not fail the pipeline (`.gitlab/ci/container-image.yml`) |
 | `container-image-start`, `container-image-start-arm64` | release | linix | a `v*` tag, after `container-image` | Each platform's pushed image started beside PostgreSQL - the arm64 one under qemu-user - and asked for SMTP and the REST API (`build/ci/container-image-start-test.sh`) |
-| `pypi-publish` | release | GitLab's shared runners | `master`, started by hand | The release's `hmailserver-cli` to PyPI through a trusted publisher, with attestations; says "not configured" and passes until PyPI has the publisher, and fails once PyPI has the project and no publisher matches ([CommandLinePackages.md](CommandLinePackages.md)) |
-| `psgallery-publish` | release | GitLab's shared runners | `master`, started by hand | The release's `HmailServer` module to the PowerShell Gallery; says "not configured" and passes until `PSGALLERY_API_KEY` is set, and refuses a module with no Authenticode signature, which the release does not make yet |
-| `installer-smoke` | release | GitLab's shared runners | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
+| `pypi-publish` | release | linix | `master`, started by hand | The release's `hmailserver-cli` to PyPI through a trusted publisher, with attestations; says "not configured" and passes until PyPI has the publisher, and fails once PyPI has the project and no publisher matches ([CommandLinePackages.md](CommandLinePackages.md)) |
+| `psgallery-publish` | release | linix | `master`, started by hand | The release's `HmailServer` module to the PowerShell Gallery; says "not configured" and passes until `PSGALLERY_API_KEY` is set, and refuses a module with no Authenticode signature, which the release does not make yet |
+| `installer-smoke` | release | linix | a `batch*` branch or a `v*` tag, started by hand | A placeholder. It fails with a sentence saying that the installer smoke test runs from the VMware host ([The installer smoke test](#the-installer-smoke-test)) |
 | `renovate` | check | linix | the schedule described `renovate`, and nothing else | Renovate's dependency updates ([Dependency updates](#dependency-updates)) |
 | `forge-export` | check | linix | the pipeline schedule for `master` whose description is `export`, and nothing else | The issues, merge requests, labels, milestones, boards and releases as JSON and the wiki as a git bundle, and GitLab's project export when its token is set: what a push mirror does not carry, kept on linix and as an artifact for Developers only (`.gitlab/ci/forge-export.yml`, `build/ci/forge-export.py`; [Mirroring.md](Mirroring.md)) |
 | `scorecard` | check | linix | the schedule described `scorecard`, and nothing else | OpenSSF Scorecard 5.5.0 from cache.nixos.org over the project, its result kept for `package-repos` to publish with a badge; says "not configured" and passes until the owner's `GITLAB_AUTH_TOKEN` exists (`.gitlab/ci/scorecard.yml`, `build/ci/scorecard.sh`; [OpenSSF Scorecard](#openssf-scorecard)) |
@@ -137,10 +147,10 @@ Which pipeline runs what
 |---|---|---|
 | `master` | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `installer-smoke`, `sign-off`, `semgrep-sast-gate` and `mr-dependency-check` |
 | a `batch*` branch | the branch's | all of them but the release jobs, the jobs of a schedule of their own, `pages`, `package-repos` and `secret_detection`, with `installer-smoke` manual; the change checks among them, against `master` ([Change checks](#change-checks)), and the four security scans on linix unless the batch changes documentation alone from `master`: this is the gate a batch passes before it lands, and the pipeline its merge request is held to |
-| any other branch, no open merge request | the branch's | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
-| any other branch, with an open merge request | the merge request's | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, the change checks `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check`, `secret_detection`, and `sign-off` ([Change checks](#change-checks)) |
+| any other branch, no open merge request | the branch's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, and the four path-bound checks whose files changed |
+| any other branch, with an open merge request | the merge request's, on GitLab's hosted runner | `checkers`, `harnesses`, `editorconfig`, the path-bound checks whose files the merge request changes, the change checks `semgrep-sast`, `semgrep-sast-gate` and `mr-dependency-check`, `secret_detection`, and `sign-off` ([Change checks](#change-checks)) |
 | a merge request from a protected `batch*` branch of this project | none; the branch's own pipeline stands for it | as for the branch |
-| a merge request from `master`, or from another protected branch here that is not `batch*` | the merge request's, beside the branch's own | as for any other branch's merge request: the branch's pipeline runs no change gate |
+| a merge request from `master`, or from another protected branch here that is not `batch*` | the merge request's, beside the branch's own, on GitLab's hosted runner | as for any other branch's merge request: the branch's pipeline runs no change gate |
 | a merge request from a fork | the merge request's, run in the fork, with the fork's CI files and on runners the fork's owner chooses | as for any other branch's merge request; its result is not the gate: the change lands through a batch, or on a pipeline a maintainer runs for it here ([Change checks](#change-checks)) |
 | a `v*` tag | the tag's | all of them but the jobs of a schedule of their own, `secret_detection`, `sign-off`, `linux-build-gcc`, `semgrep-sast-gate` and `mr-dependency-check` (the commit's `master` pipeline ran `secret_detection`, and its batch `sign-off` and `linux-build-gcc`), with `release`, `release-publish` and `installer-smoke` manual, and `pages` and `package-repos` after `release-publish` ([The release](#the-release)). `semgrep-sast` runs, for the release job to read |
 | any other tag | none | |
@@ -180,8 +190,8 @@ of the tree (`README.md`, `CHANGELOG.md`, `Roadmap2.md` and the rest) or under
 `.gitlab/` (the issue and merge request templates). Every other Markdown file
 counts as code: `hmailserver/docs/*.md` is compiled into the server as its help
 pages (`HelpPagesData.cpp`) and read by both suites, and the READMEs further
-down are read by tests and packaging. The shared runners' checks still run for
-such a push. GitLab matches `rules:changes` paths with Ruby's `File.fnmatch`,
+down are read by tests and packaging. The checks, which name no runner of their
+own, still run for such a push. GitLab matches `rules:changes` paths with Ruby's `File.fnmatch`,
 which has no "all but", so the rule names what does count: `**/*[!d]`,
 `**/*[!m]d` and `**/*[!.]md` (every file whose name does not end in `.md`, but
 for the files called `d` and `md`, too short for them, which `**/d` and `**/md`
@@ -225,19 +235,25 @@ off and `locked`. GitLab gives them a job only when all three of these hold:
 
 1. the pipeline is for a protected ref: `master`, a `batch*` branch or a `v*`
    tag, which only the maintainers can push;
-2. the job names one of the runner's tags (`linix`, `bench150`);
+2. the job names one of the runner's tags (`linix`, `bench150`,
+   `linix-systemd`) - every job does, one that names none by `default:`'s
+   `[$HM_RUNNER]`, which is `linix` in such a pipeline alone;
 3. the job's `rules:` created it. `.own-runners` in the CI file creates its
    jobs only when `$CI_COMMIT_REF_PROTECTED` is `"true"` and the pipeline is not
    a merge request's, not the fuzz pipeline (which `linux-fuzz`'s own rule
-   also holds to a protected ref) and not a scheduled one.
+   also holds to a protected ref) and not a scheduled one. For a job that takes
+   `default:`'s tags, the workflow's rule that made the pipeline decides instead:
+   every rule that makes a merge request's pipeline, or an unprotected ref's,
+   sets `HM_RUNNER` to GitLab's hosted runner's tag.
 
 A merge request from a fork runs in the fork's context, on an unprotected ref,
 with code nobody here has reviewed. The code could build anything, and the
 machines hold things worth protecting: bench150's service runs as LocalSystem,
 linix has the lab network, and server2 runs services of the owner's. So a fork's
-merge request gets the shared runners' checks, the change checks and the
-sign-off check among them, and nothing else. The protection is
-kept in three places on purpose: the runners, the ref and the rules. Any one of
+merge request gets the checks, the change checks and the sign-off check among
+them, on GitLab's hosted runners - in the fork, on runners the fork's owner
+chooses - and nothing else. The protection is kept in four places on purpose:
+the runners, the ref, the rules and the workflow's choice of runner. Any one of
 them is enough. Relaxing one of them is not a reason to relax the others.
 
 The protected refs are project settings (Settings, Repository, Protected
@@ -245,6 +261,106 @@ branches and Protected tags): `master`, `batch*` and `v*`, with push and merge
 allowed to Maintainers. `master`'s push rule is to become *No one* once the
 batch that brings the change checks has landed through them ([Landing on
 master](#landing-on-master)).
+
+Every job on the project's own runners
+--------------------------------------
+
+Since 9 October 2026 no job of a pipeline for a protected ref that is not a merge
+request's runs on GitLab's shared runners. Until then forty jobs named no runner
+and ran there, on the namespace's compute minutes: the checks (`checkers`,
+`harnesses`, `sign-off`, `editorconfig` and the path-bound four), the change gates
+(`semgrep-sast`, `semgrep-sast-gate`, `mr-dependency-check`), `secret_detection`,
+`pages` and `package-repos`, `helm-chart-package`, the release's `release`,
+`release-sbom`, `release-sign` and `release-publish`, the rehearsal's
+`release-rehearsal` and `release-rehearsal-sign`, the container image's jobs in
+cosign's and regctl's images and `container_scanning`, the command-line packages'
+checks and publishers, the release channels' checks and publishers but
+`snap-upload` and `chocolatey-publish`, and `installer-smoke`. The minutes ran out
+on 9 October 2026: `batch46`'s pipeline 2931387790 could not start
+`semgrep-sast-gate` (`stuck_pending_no_matching_runners`, and once retried
+`ci_quota_exceeded`), and a change gate that cannot run holds every landing. The
+owner decided that the project's CI depends on no minutes of GitLab's.
+
+**How.** `.gitlab-ci.yml`'s `default:` names the tags `[$HM_RUNNER]`, which every
+job that names no runner of its own takes, GitLab's templates' jobs among them
+(`semgrep-sast`, `secret_detection`, `container_scanning`, and any analyzer a
+template would add). Its `variables:` set `HM_RUNNER` to `linix`, the tag linix
+and server2 carry. The jobs that need a machine of a kind name their own runner as
+before (`.linix`'s `linix`, `bench150`, `linix-systemd`). The workflow's rules
+choose the runner for each pipeline: every rule that makes a pipeline for a
+protected ref that is not a merge request's - `master`, a `batch*` branch, a `v*`
+tag, a schedule on `master` - leaves `HM_RUNNER` as it is, and every other rule
+that makes one - a merge request's, an unprotected branch's, a `v*` tag's that
+has lost its protection - sets it to `saas-linux-small-amd64`, the tag of
+GitLab's hosted small Linux runner. GitLab expands a variable in `tags:` as it
+creates the job, with the workflow's variables in force. The CI lint API's dry
+run of the CI files on 9 October 2026 gave each of the 117 jobs of a `batch46`
+pipeline, the 123 of `master`'s and the 103 of `v6.3.6`'s a tag of the project's
+(`linix`, `bench150` or `linix-systemd`), and each of the ten of a push to
+`renovate/docker`, an unprotected branch, `saas-linux-small-amd64`.
+
+**Why a merge request's pipeline still runs on GitLab's runners.** The project's
+runners are registered `ref_protected` (above): GitLab gives them no job of a
+pipeline for an unprotected ref, and a merge request's pipeline is one - a fork's
+always, Renovate's from its `renovate/*` branches, any from an unprotected branch
+here. (The project's setting *protected merge request pipelines* makes one
+protected only when both its branches are and the person may merge to the target;
+the workflow sends that one to GitLab's runners too, as `.own-runners` keeps
+every merge request off the project's machines.) A job tagged `linix` there would
+wait for a runner until GitLab failed it, so it runs on GitLab's hosted runner. A
+fork's pipeline runs in the fork, on the fork's own minutes. Renovate's merge
+requests, a pipeline a maintainer runs for a fork's merge request here and an
+unprotected branch's pipeline count against the project's, and while those are
+spent they fail with `ci_quota_exceeded`: none of them is what lands a change,
+which goes through a `batch*` branch, whose pipeline runs on the project's
+runners alone, and a Renovate merge request is folded into a batch ([Dependency
+updates](#dependency-updates)). Taking a merge request's pipeline onto the
+project's machines is the owner's decision: it needs a runner registered for
+unprotected refs, which would run code nobody here has reviewed (above), or
+Renovate's branches protected and a rule of its own.
+
+A fork's own protected branch - its `master`, in the fork's project - takes
+`linix` too, and no runner of the fork's carries it: that pipeline's jobs wait
+until GitLab fails them, as the jobs `.own-runners` makes there always have. A
+fork's feature branch and its merge request run on GitLab's hosted runner, on
+the fork's own minutes, and those are what a contributor's change is shown by.
+
+**What holds it.** `build/check-release-chain.py`, which `checkers` runs, fails
+when `default:` names other tags; when `variables:` set `HM_RUNNER` to anything but
+`linix`, when anything else in the CI files sets it but a workflow rule, or when
+a job says `inherit:`; when the workflow's rules, tried for every kind of pipeline
+(its ref protected or not, every `CI_PIPELINE_SOURCE`) and every way their other
+clauses can go, make a pipeline of a protected ref that is not a merge request's
+with `HM_RUNNER` anything but a tag of the project's, or any other pipeline with
+anything but `saas-linux-small-amd64`; and when a job that names its own tags names
+none, a variable other than `HM_RUNNER`, tags no runner of the project's carries,
+or none of `linix`, `linix-systemd` and `bench150` (a runner anywhere may carry
+`linux` or `docker`) - or names the project's and has rules that make it in a merge
+request's or an unprotected ref's pipeline, where it would wait for a runner that
+never takes it. It reads every CI file, the included ones too; its self-test
+breaks each of those in a copy, in `.gitlab-ci.yml` and in an included file, and
+each break is caught. GitLab's templates are not in the tree, so a job one of them
+adds is read only where a CI file here names it; any other takes `default:`'s tags
+unless its template names tags of its own, which none of the three included does:
+the CI lint API's dry run above lists every job a pipeline makes, the templates'
+with the rest, each with its tags. `build/ci/repo-hygiene.py`'s Token-Permissions reads
+`default:`'s tags as well, and judges a job that takes `[$HM_RUNNER]` by the
+workflow's rules ([The repository checks](#the-repository-checks-and-the-scorecard-checks-left-out)).
+
+**What changes.** linix and server2 take the forty jobs, each short ([How long
+each job takes](#how-long-each-job-takes)), in images pulled on first use and
+kept ([linix](#linix)). A project CI/CD variable called `HM_RUNNER` would stand
+above the file's, as any project variable stands above a job's own: none is
+made. Fulcio's certificate of each signature `release-sign`,
+`release-rehearsal-sign` and `container-image-sign` make names the runner
+self-hosted (its Runner Environment extension, 1.3.6.1.4.1.57264.1.11, said
+`gitlab-hosted` before); neither `SigstoreVerifier.cpp` nor a script of the
+release reads that extension, so a server installs such a release as before.
+`semgrep-sast`, the heaviest of the forty, was run over `batch46` on 9 October
+2026 in its image as each runner gives a job: with linix's limits (six CPUs and
+8 GB, the VM's sixteen processors in view) it took 188 s, with server2's (28 CPUs
+and 40 GB) 254 s, and each found the same 338 findings, with no rule giving up on
+a file.
 
 Change checks
 -------------
@@ -254,7 +370,7 @@ only on a pipeline that succeeded (*Pipelines must succeed*). Which pipeline tha
 is depends on where the change comes from. A merge request from Renovate or from
 any branch of the project that is not a protected `batch*` one runs a pipeline of
 its own, which never reaches the project's runners (above): what it must pass
-runs on GitLab's shared runners, holds no secret, and says in its own log what
+runs on GitLab's hosted runners, holds no secret, and says in its own log what
 held it. A maintainer's `batch*` branch is protected, and its merge request runs
 no pipeline of its own (the `workflow:` rules), so GitLab holds that merge
 request to the branch's pipeline for the same commit. A merge request from a
@@ -266,8 +382,9 @@ fork's CI files, on runners the fork's owner can choose: what it says is the
 fork's to report. Such a change lands through a batch, whose pipeline runs here,
 or on a pipeline a maintainer runs for the merge request in this project after
 reading its CI files; `build/land-via-mr.py` refuses a pipeline another project
-ran. The change checks run in each, on the shared runners
-(`.gitlab/ci/mr-checks.yml`, `.gitlab/ci/gitlab-security.yml` and one checker),
+ran. The change checks run in each - on linix or server2 in a batch's pipeline,
+on GitLab's hosted runner in a merge request's - (`.gitlab/ci/mr-checks.yml`,
+`.gitlab/ci/gitlab-security.yml` and one checker),
 and they hold the policy of [SECURITY.md](../../SECURITY.md), "Vulnerability
 management policy", "Every change". Beside the checks every pipeline runs, three
 hold a change on what it brings:
@@ -986,8 +1103,12 @@ Nothing then pushes to `master`, the owner included: no hand's `git push`, and
 no job (Renovate pushes `renovate/*` branches and opens merge requests; `pages`
 and `forge-export` push nothing). A fix that cannot wait - an exception before a
 release, a re-pinned analyzer - goes by a merge request from an unprotected
-branch, whose pipeline is the shared runners' checks and the change checks
-(about twenty minutes, estimated), and which the owner merges. Tags are not
+branch, whose pipeline is the checks and the change checks on GitLab's hosted
+runners (about twenty minutes, estimated), and which the owner merges. That
+pipeline runs on the project's compute minutes, which ran out on 9 October 2026:
+while they are spent, it fails before it starts (`ci_quota_exceeded`), and such a
+fix goes by a `batch*` branch, whose pipeline is the whole gate on the project's
+runners ([Every job on the project's own runners](#every-job-on-the-projects-own-runners)). Tags are not
 touched: the release tag is still the owner's to push. The owner can still
 unprotect `master`, or set the rule back to *Maintainers*: that is break-glass,
 and one used is said, with its reason, in the next release's notes.
@@ -1050,6 +1171,13 @@ What the host needs:
   Docker Hub, `registry.fedoraproject.org/fedora:44`, and
   `gcr.io/kaniko-project/executor:v1.24.0-debug`. If the runner's `config.toml`
   restricts images (`allowed_images`) or registries, these must be allowed.
+- The images of the jobs that take `default:`'s tags (since 9 October 2026), each
+  by digest, each pulled on first use: Docker Hub's `python:3.14-slim-trixie`,
+  `node:24-trixie-slim`, `alpine:3.24`, `ubuntu:26.04`, `debian:13`,
+  `archlinux:base` and `regclient/regctl:v0.11.6-alpine`, Microsoft's
+  `mcr.microsoft.com/dotnet/sdk:10.0`, `gcr.io/projectsigstore/cosign`, the
+  project's copies of GitLab's analyzers (`mirror/semgrep`, `mirror/secrets`) and
+  GitLab's `security-products/container-scanning:8`.
 - The runner's local cache, which carries the fuzz corpus from night to night
   (`cache:` in `linux-fuzz`). The docker executor keeps it in volumes on the
   host, one for each of the three places a job can run in, so a night's job
@@ -1087,7 +1215,8 @@ entry is - a project runner, `ref_protected`,
 tags, `linux`, `docker` and `linix`.
 
 **It shares the tag `linix`.** No job names server2 alone: every job tagged
-`linix` - each job of `.linix` and the others the tables above give to linix -
+`linix` - each job of `.linix`, every job that takes `default:`'s tags, and the
+others the tables above give to linix -
 goes to whichever of the two runners asks GitLab for it first with a place
 free, so *linix* in those tables names the tag, not the machine, and up to six
 such jobs run at once, three on each. A `resource_group` belongs to GitLab, not
@@ -1722,7 +1851,10 @@ Two things that would not cover were found on 28 September 2026:
   With a canary name at 0.0.0.0 alone, `curl -6` went to the name's real IPv6
   address; with `::` beside it, to `::`. The runner's entries want `::` too.
 
-And a job on GitLab's shared runners has no entries at all. So a job can take
+And a job on GitLab's hosted runners - a merge request's checks - has no entries
+at all, nor, while the entries above are still to be made, a job on linix or
+server2: neither runner's `config.toml` maps a GitHub host (read 9 October 2026;
+linix's `extra_hosts` holds one entry, for `archives.boost.io`). So a job can take
 the rule into itself: `.gitlab/ci/no-github.yml` defines `.no-github`, whose
 `before_script` adds the six hosts at 0.0.0.0 and at `::` to the job's own
 `/etc/hosts`, writes `hosts: files dns` where there is no `/etc/nsswitch.conf`,
@@ -1952,8 +2084,9 @@ Mending them turned up three small faults of the server's own, fixed as
 well: two that reading the static analysis's findings led to, and one the
 upgrade gate's new comparison found. What each was, and what fixes it:
 
-- `update-helper`: GitLab's shared runners check out with umask 0000, and
-  `systemd-analyze verify` refused the world-writable units. The job gives
+- `update-helper`: GitLab's shared runners, where the job ran until 9 October
+  2026, check out with umask 0000, as the docker runners of linix and server2
+  do, and `systemd-analyze verify` refused the world-writable units. The job gives
   the checkout's three units the mode the package installs them with, 0644.
 - `harnesses`: the portal harness took the first resize handle of the week
   view, which in UTC is another event's, and two more of its checks assumed
@@ -2338,13 +2471,13 @@ runbook.
 | Job | Where | What it does |
 |---|---|---|
 | `windows-installer` | bench150, in `C:\bench\hmailserver` under the gate lock, after `windows-gate` | Refuses a checkout with a change of its own to a tracked file, with a file git neither tracks nor ignores under `hmailserver\source` (an SDK-style project builds every source file below its folder, tracked or not), or with an untracked `Directory.Build.props`, `NuGet.Config` or kin that every build would read, in the checkout or above it; empties every folder the installer script takes whole from the checkout, and every tool's publish folder, of what git does not track; then builds the server, the tools and the Control Panel, fetches the .NET runtime and the third-party files (each against its pinned hash), refuses if a build changed a tracked file, runs ISCC, and requires the file to be `hMailServer-<version>-x64.exe` with the version resource `<version>.0` (`build/ci/windows-installer.ps1`). Automatic: it signs and sends nothing |
-| `release` | shared runners, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the x64 installer, `windows-installer`'s, and from 6.3.6 the ARM64 one, `windows-packages-arm64`'s, held to the `SHA256SUMS` that job wrote; the x86-64 `.deb` and `.rpm`, `linux-build`'s, and the generic AArch64 ones, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s (from 6.3.6), each with its own SBOM (`<package>.cdx.json`, which `linux-build` or the package's SBOM job made and which must describe the package, by SHA-256); from 6.3.6 every distribution release's `.deb` and `.rpm`, both AppImages and the source tarball, each with its SBOM, and the source of the libraries linked into the AppImages' runtime, which has none, as `release-packages` gathered them, and the Helm chart, `helm-chart-package`'s; the sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, `linux-build`'s `SHA256SUMS.txt` as it is with a line added for every other Linux file and the chart; and the tree's two SBOMs, checking every package, AppImage, the runtime's sources and the chart against the sums its build job wrote and the tarball with `build/check-source-tarball.py`; refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or an installer, its SBOM, a bundle, a bundle's `.sigstore.json` copy or the provenance at all, which only the jobs after it make; and last counts what GitLab and Pages will take of the release, refusing past a limit ([What a release carries](#the-release); `build/ci/release-chain.py collect`) |
+| `release` | linix, by hand, after every gate | Refuses unless the tag is an annotated tag that still points at the commit the pipeline built, that commit is on `master`, and the tag is signed by the one key `master`'s `.gitlab/allowed_signers` lists (fetched by name, never the tagged tree's copy; every tag is refused while that list holds more than one key), `Version.h` says the tag's version, the security scans of the commit finished and every finding they raised that `SECURITY.md`'s policy counts is in a baseline or accepted in `.gitlab/security-exceptions.yml` ([Before a release](#before-a-release-the-scans-hold-it)), `HM_COSIGN_IMAGE` is `gcr.io/projectsigstore/cosign` pinned by digest (checked as the job receives it, so a CI/CD variable of that name cannot put another image in `release-sign`) and the five Azure settings are set; then collects the x64 installer, `windows-installer`'s, and from 6.3.6 the ARM64 one, `windows-packages-arm64`'s, held to the `SHA256SUMS` that job wrote; the x86-64 `.deb` and `.rpm`, `linux-build`'s, and the generic AArch64 ones, `deb-ubuntu26.04-arm64`'s and `rpm-fedora44-aarch64`'s (from 6.3.6), each with its own SBOM (`<package>.cdx.json`, which `linux-build` or the package's SBOM job made and which must describe the package, by SHA-256); from 6.3.6 every distribution release's `.deb` and `.rpm`, both AppImages and the source tarball, each with its SBOM, and the source of the libraries linked into the AppImages' runtime, which has none, as `release-packages` gathered them, and the Helm chart, `helm-chart-package`'s; the sums as `hmailserver-linux-<version>-SHA256SUMS.txt`, `linux-build`'s `SHA256SUMS.txt` as it is with a line added for every other Linux file and the chart; and the tree's two SBOMs, checking every package, AppImage, the runtime's sources and the chart against the sums its build job wrote and the tarball with `build/check-source-tarball.py`; refuses when the package `hmailserver/<version>` already holds one of those files with other bytes, or an installer, its SBOM, a bundle, a bundle's `.sigstore.json` copy or the provenance at all, which only the jobs after it make; and last counts what GitLab and Pages will take of the release, refusing past a limit ([What a release carries](#the-release); `build/ci/release-chain.py collect`) |
 | `release-authenticode` | bench150 | Signs the x64 installer into `release-authenticode/`, and, when that is signed, the ARM64 one into `release-authenticode-arm64/`, and, when that is, the PowerShell module's `HmailServer.psd1` and `HmailServer.psm1` into `release-authenticode-module/`, each through Azure Artifact Signing, and requires a valid signature with an RFC 3161 timestamp on each, by the publisher, chain and code-signing use every installation's Control Panel is pinned to, and each module file to be its unsigned bytes with one signature block appended (`build/ci/windows-authenticode.ps1`, called once for each; `-Check` holds a downloaded file to the same) |
-| `release-sbom` | shared runners, in Python's image | Makes each installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json` and `hMailServer-<version>-arm64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list for that processor (both kept by `release` in `release-tools/`), the tools' lock files and that installer's script; refuses an installer Authenticode left unchanged, and a module file that is not collect's bytes with one signature block appended; then writes the statement of the release's SLSA v1 provenance, an in-toto statement naming all sixty-two files by their SHA-256, the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
-| `release-sign` | shared runners, in cosign's `gcr.io` image by digest | Requires each installer's SBOM and the provenance's statement to name that signed installer's SHA-256, and the statement each signed module file's, then signs all sixty-two files with Sigstore, checks each bundle's format and log entry and verifies it with cosign, copies each primary file's bundle to `<file>.sigstore.json` byte for byte, attests the statement with `cosign attest-blob` (a Rekor v1 dsse entry), and finds every file in it with `cosign verify-blob-attestation` (`build/ci/release-sign.sh`) |
+| `release-sbom` | linix, in Python's image | Makes each installer's own SBOM, `hMailServer-<version>-x64.exe.cdx.json` and `hMailServer-<version>-arm64.exe.cdx.json`, from the bytes Authenticode signed, with `linux-sbom`'s component list for that processor (both kept by `release` in `release-tools/`), the tools' lock files and that installer's script; refuses an installer Authenticode left unchanged, and a module file that is not collect's bytes with one signature block appended; then writes the statement of the release's SLSA v1 provenance, an in-toto statement naming all sixty-two files by their SHA-256, the commit and the pipeline, for `release-sign` (`build/ci/release-chain.py sbom`, `build/asset-sbom.py`) |
+| `release-sign` | linix, in cosign's `gcr.io` image by digest | Requires each installer's SBOM and the provenance's statement to name that signed installer's SHA-256, and the statement each signed module file's, then signs all sixty-two files with Sigstore, checks each bundle's format and log entry and verifies it with cosign, copies each primary file's bundle to `<file>.sigstore.json` byte for byte, attests the statement with `cosign attest-blob` (a Rekor v1 dsse entry), and finds every file in it with `cosign verify-blob-attestation` (`build/ci/release-sign.sh`) |
 | `release-verify` | linix | Checks every file with `hmailserver --verify-update`, built by `linux-build` from the same commit, requires the GitLab identity, refuses a copy with a byte added, holds each compiled file's and the tarball's SBOM to the file (`build/asset-sbom.py verify`), each `.sigstore.json` copy to its bundle and the provenance's statement to the files, the commit and the pipeline (`build/ci/release-chain.py check-provenance`), and writes the notes' verification section (`build/ci/release-verify.sh`) |
-| `release-publish` | shared runners, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 160 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (a Download table made from the release's files, then the version's section of `CHANGELOG.md` and the verification; [The release's notes and the order of its links](#the-release)) with a link per file named after it, the two Windows installers' made last so that GitLab lists them first, and requires the feed rendered from the API to give Windows servers on x64 and ARM64, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
-| `pages`, `package-repos` | shared runners, after `release-publish` | The update feed rendered from the releases with the new one in it, the apt and dnf repositories added, and the site deployed, in the tag's own pipeline ([The update feed](#the-update-feed)). Until 6.3.6 a trigger job, `update-feed`, was to start a pipeline on `master` for this; GitLab drops a multi-project trigger into the project that runs it (`invalid_bridge_trigger`), and 6.3.5's was |
+| `release-publish` | linix, by hand | Refuses a release that exists already, a compiled file whose SBOM is missing or describes other bytes, a `.sigstore.json` that is not its bundle, a provenance that does not name every file, a link GitLab would refuse, a site Pages or a server would not read whole, and, before it sends anything, a file name the generic package `hmailserver/<version>` holds with other bytes; uploads the 160 files there, except any it holds with the same bytes from a run that stopped part-way, reads them back and holds every record of each name to the SHA-256 that was signed, creates the release (a Download table made from the release's files, then the version's section of `CHANGELOG.md` and the verification; [The release's notes and the order of its links](#the-release)) with a link per file named after it, the two Windows installers' made last so that GitLab lists them first, and requires the feed rendered from the API to give Windows servers on x64 and ARM64, Debian and RPM servers on x86-64 and AArch64, and the AppImages their file and bundle (`build/ci/release-chain.py publish`) |
+| `pages`, `package-repos` | linix, after `release-publish` | The update feed rendered from the releases with the new one in it, the apt and dnf repositories added, and the site deployed, in the tag's own pipeline ([The update feed](#the-update-feed)). Until 6.3.6 a trigger job, `update-feed`, was to start a pipeline on `master` for this; GitLab drops a multi-project trigger into the project that runs it (`invalid_bridge_trigger`), and 6.3.5's was |
 
 **Why two buttons.** Nothing is signed or sent until a maintainer starts
 `release`, after every gate of the tag has passed. A manual job can be started
@@ -2578,7 +2711,7 @@ A protected `batch*` branch's pipeline builds and tests everything a tag's does,
 so it also rehearses the release, publishing nothing
 (`.gitlab/ci/release-rehearsal.yml`):
 
-- `release-rehearsal`, on the shared runners, runs `build/ci/release-chain.py
+- `release-rehearsal`, on linix, runs `build/ci/release-chain.py
   collect --rehearse`: every file the release carries, gathered under the names
   it carries them, each held to its build's sums and its SBOM as `collect` holds
   them for a tag, and the budget above counted for this release alone. The
@@ -2639,13 +2772,13 @@ so the first image is 6.3.6's.
 
 | Job | Where | What it does |
 |---|---|---|
-| `container-image-deb` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`); started by hand, and the tag's pipeline shows as blocked until it is | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Takes `hmailserver_<version>_amd64.deb` and `hmailserver_<version>_arm64.deb` and their SBOMs from the published release - not from `release-sign`'s artifact, which may have expired by then - and verifies each against its Sigstore bundle as this project's pipeline for the tag, at either of the project's two paths, with the project's id required at both (`build/ci/container-image-deb.sh`) |
+| `container-image-deb` | linix, in cosign's image (`HM_COSIGN_IMAGE`); started by hand, and the tag's pipeline shows as blocked until it is | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`. Takes `hmailserver_<version>_amd64.deb` and `hmailserver_<version>_arm64.deb` and their SBOMs from the published release - not from `release-sign`'s artifact, which may have expired by then - and verifies each against its Sigstore bundle as this project's pipeline for the tag, at either of the project's two paths, with the project's id required at both (`build/ci/container-image-deb.sh`) |
 | `container-image-amd64`, `container-image-arm64` | linix, in kaniko's image (`linux-image`'s, by reference) | Refuse, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and fail unless `$CI_REGISTRY_IMAGE` is the group's path. Each builds `platform/packaging/docker/Dockerfile` for its platform from the release's `.deb` of that architecture - the arm64 one under qemu-user - runs the same checks as `linux-image`, and keeps the image's tarball, its configuration and their SHA-256 for `container-image` (`build/ci/linux-image.sh`, `HM_IMAGE_RELEASE=1`, `HM_IMAGE_ARCH`). Neither pushes |
-| `container-image` | GitLab's shared runners, in regctl's image (`regclient/regctl:v0.11.6-alpine`, by digest) | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and pushes to `$CI_REGISTRY_IMAGE` only if it is the group's path, `registry.gitlab.com/hmailserver/hmailserver` (at any other it fails and pushes nothing), with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. It holds each tarball to its job's SHA-256, each image to its architecture and the release's version, and each manifest to the configuration its job checked; joins the two under one index, a Docker manifest list, and checks that it names exactly linux/amd64 and linux/arm64, each by its digest; and only then pushes: both images by digest, and the index under the tags `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.6` pushes `6.3.6`, `6.3` and `latest`, and `v6.3.6-rc1` pushes `6.3.6-rc1` alone. `:<major>.<minor>` and `:latest` only move forward: each is made where there is none, moved when the image it names says (its `org.opencontainers.image.version` label) that it is this version or an older one, compared number by number, and left, with a `NOT MOVED` line in the log and in `container-image/tags.txt`, when it is a newer one or its version cannot be read ([ContainerImage.md](ContainerImage.md), "Publishing"). No tag names anything but the index. It reads every tag it wrote back, and the index's two entries, and leaves a dotenv report naming the index and each image by digest (`build/ci/container-image-push.sh`) |
-| `container-image-artifacthub` | GitLab's shared runners, in the same regctl image; in the default branch's pipeline, started by hand and allowed to fail | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and pushes only to the group's path, only from a protected `v*` tag or the protected default branch. While `platform/packaging/docker/artifacthub-repo.yml` holds no repository ID it pushes nothing and passes; it refuses a file with anything but comments, blank lines and one `repositoryID: <a UUID>`. Then it pushes that file, byte for byte, under the tag `artifacthub.io` alone, in the shape Artifact Hub documents for `oras push` (an empty configuration of the type `application/vnd.cncf.artifacthub.config.v1+yaml`, the file as the one layer of the type `application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml`), and reads the manifest and the layer back. No job needs it, so a failure stops nothing of the image (`build/ci/container-image-artifacthub.sh`) |
+| `container-image` | linix, in regctl's image (`regclient/regctl:v0.11.6-alpine`, by digest) | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and pushes to `$CI_REGISTRY_IMAGE` only if it is the group's path, `registry.gitlab.com/hmailserver/hmailserver` (at any other it fails and pushes nothing), with the job's own `CI_REGISTRY_USER` and `CI_REGISTRY_PASSWORD`. It holds each tarball to its job's SHA-256, each image to its architecture and the release's version, and each manifest to the configuration its job checked; joins the two under one index, a Docker manifest list, and checks that it names exactly linux/amd64 and linux/arm64, each by its digest; and only then pushes: both images by digest, and the index under the tags `:<version>`, and for a version without a suffix `:<major>.<minor>` and `:latest` too: `v6.3.6` pushes `6.3.6`, `6.3` and `latest`, and `v6.3.6-rc1` pushes `6.3.6-rc1` alone. `:<major>.<minor>` and `:latest` only move forward: each is made where there is none, moved when the image it names says (its `org.opencontainers.image.version` label) that it is this version or an older one, compared number by number, and left, with a `NOT MOVED` line in the log and in `container-image/tags.txt`, when it is a newer one or its version cannot be read ([ContainerImage.md](ContainerImage.md), "Publishing"). No tag names anything but the index. It reads every tag it wrote back, and the index's two entries, and leaves a dotenv report naming the index and each image by digest (`build/ci/container-image-push.sh`) |
+| `container-image-artifacthub` | linix, in the same regctl image; in the default branch's pipeline, started by hand and allowed to fail | Refuses, exit 3, unless `HM_PUBLISH_IMAGE` is `1`, and pushes only to the group's path, only from a protected `v*` tag or the protected default branch. While `platform/packaging/docker/artifacthub-repo.yml` holds no repository ID it pushes nothing and passes; it refuses a file with anything but comments, blank lines and one `repositoryID: <a UUID>`. Then it pushes that file, byte for byte, under the tag `artifacthub.io` alone, in the shape Artifact Hub documents for `oras push` (an empty configuration of the type `application/vnd.cncf.artifacthub.config.v1+yaml`, the file as the one layer of the type `application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml`), and reads the manifest and the layer back. No job needs it, so a failure stops nothing of the image (`build/ci/container-image-artifacthub.sh`) |
 | `container-image-sbom` | linix, in the Linux CI image | For each platform, Syft reads that platform's pushed image from the registry by its digest, with the job's own registry credentials, and `build/asset-sbom.py image` adds what the release's `.deb` SBOM of that architecture names inside the binary and makes the image, by its digest and its platform (`--arch`), the document's subject; it refuses a `.deb` SBOM that does not describe the `.deb`, or that is another architecture's, and an image in which Syft finds no `hmailserver` package of that architecture (`build/ci/container-image-sbom.sh`) |
-| `container-image-sign` | GitLab's shared runners, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the index and each platform's image, each by its own digest, with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies each signature with that identity. Every tag names the index, so its one signature covers them; a client that pulls a tag then fetches its platform's image by that image's digest, which carries its own. The signatures are stored beside what they sign in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests each platform's SBOM to that platform's image (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies each attestation with the same identity (`build/ci/container-image-sign.sh`) |
-| `container_scanning`, `container_scanning_arm64` | GitLab's shared runners | GitLab's Container Scanning template, which the Free tier runs, over each platform's pushed image by its digest, with the analyzer pinned by digest: the first takes `CS_IMAGE`, the linux/amd64 image, from `container-image`'s dotenv report; the second extends it and sets `CS_IMAGE` to the linux/arm64 image in its shell, because a dotenv report's variables take precedence over a job's own. The analyzer reads the image's files and runs nothing, so the platform is no matter to it. Each is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
+| `container-image-sign` | linix, in cosign's image (`HM_COSIGN_IMAGE`) | Signs the index and each platform's image, each by its own digest, with Sigstore, keylessly, as the same pipeline identity the release's files carry, and verifies each signature with that identity. Every tag names the index, so its one signature covers them; a client that pulls a tag then fetches its platform's image by that image's digest, which carries its own. The signatures are stored beside what they sign in cosign's tag form, `sha256-<digest>.sig`, with Rekor v1 as the log. It then attests each platform's SBOM to that platform's image (`cosign attest --type cyclonedx`, stored as `sha256-<digest>.att`) and verifies each attestation with the same identity (`build/ci/container-image-sign.sh`) |
+| `container_scanning`, `container_scanning_arm64` | linix | GitLab's Container Scanning template, which the Free tier runs, over each platform's pushed image by its digest, with the analyzer pinned by digest: the first takes `CS_IMAGE`, the linux/amd64 image, from `container-image`'s dotenv report; the second extends it and sets `CS_IMAGE` to the linux/arm64 image in its shell, because a dotenv report's variables take precedence over a job's own. The analyzer reads the image's files and runs nothing, so the platform is no matter to it. Each is `allow_failure`, as the template makes it; its report is the job's artifact, for members with the Developer role or above, because the vulnerability report is GitLab Ultimate |
 | `container-image-start`, `container-image-start-arm64` | linix, in the Linux CI image | Each starts a platform's pushed image as a service beside PostgreSQL, on a network of the job's own, through its entrypoint, and asks it for SMTP on 25 (with STARTTLS) and for the REST API over TLS with the release's version: the first the index by its digest, which the runner resolves to linux/amd64, and the second the linux/arm64 image by its own digest, as a service of the platform linux/arm64 (`services:docker:platform`), which the runner runs under qemu-user (`build/ci/container-image-start-test.sh`, which also runs by hand against any image with `--docker`, and `HM_START_PLATFORM` for another platform) |
 
 In 6.3.6's tag pipeline 2914690858 server2 ran `container-image-amd64`,
@@ -3113,8 +3246,10 @@ rule in `renovate.json` says what to add when the supply-chain row pins it.
   a release that is pulled soon after publication is never offered. Security fixes
   do not wait.
 - **Few pipelines.** A Renovate branch is rebased only when it conflicts. Its
-  merge request runs `checkers`, `harnesses` and the change checks on the shared
-  runners, like any other, and `mr-dependency-check` holds one that brings a
+  merge request runs `checkers`, `harnesses` and the change checks on GitLab's
+  hosted runner, like any other, on the project's compute minutes - while those
+  are spent the pipeline fails before it starts, and the batch the change is
+  folded into runs them on the project's runners - and `mr-dependency-check` holds one that brings a
   version with a Critical or High advisory. A `renovate/*` branch is not protected, so no job of its reaches the
   project's runners.
 
@@ -3303,7 +3438,7 @@ measured times after the first pipelines.
 | `checkers` | 4 to 6 min | 20 min | Row 139 estimated about six minutes for the checks together, from their run time on a laptop |
 | `harnesses` | 2 to 3 min | 20 min | The same estimate |
 | `editorconfig` | 11 s by hand | 10 min | 3,938 files, and the package install |
-| `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on a shared runner: the .NET SDK image is about 1.3 GB |
+| `chart-and-compose`, `update-helper`, `package-templates`, `roadmap` | 1 to 30 s by hand | 5 to 10 min | Plus the image pull on first use: the .NET SDK image is about 1.3 GB |
 | `linux-build` | 12 min by hand | 1 h | The clang build took 695 s with six jobs; the testers, the OpenPGP round trip and the packages take seconds |
 | `linux-suite` | 2 to 2.5 h | 4 h | The whole suite took 75 to 90 minutes on GitHub's hosted runner on 16 September 2026, and it has grown since: the job took 2 h 7 min in the first GitLab pipeline, on 26 September 2026, before the 29 fixtures linked that day for the coverage programme, which took 20 minutes more in a run of their own on linix, against the instrumented server. The timeout was three hours until then; it is the runners' maximum now, so that a suite that grows every batch is not cut off |
 | `linux-cross` | 8 min by hand | 1 h | 750 translation units compiled for AArch64 with six jobs |
@@ -3323,8 +3458,8 @@ measured times after the first pipelines.
 | `ci-image-packages` | under a minute | 10 min | The copy takes a second; the rest is the job's start |
 | `dependency-scan` | 1 to 2 min | 30 min | The same, with one CPU: 15 to 17 s, the vulnerability database's download included |
 | `repo-hygiene` | 1 min | 10 min | The same, with one CPU: 14 to 37 s, the apt install included |
-| `semgrep-sast` | 5 to 10 min, estimated | 30 min | It passed in 96 s in `master`'s pipeline 2886389460 (27 September 2026), and counts against the namespace's compute minutes on GitLab's shared runners. By hand on linix on 27 September 2026, over batch41 in the job's image pinned to two CPUs as a shared runner has: 332 s, with the whole of every file read (84 s before `.gitlab/ci/gitlab-security.yml` gave a rule two minutes and lifted the size limit, when it read neither `RestApiServer.cpp` nor `Portal.js`) |
-| `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `535e9005c`. It counts against the namespace's compute minutes on GitLab's shared runners. Its scan of the whole history took under a minute on linix |
+| `semgrep-sast` | 5 to 10 min, estimated | 30 min | It passed in 96 s in `master`'s pipeline 2886389460 (27 September 2026), on a shared runner of GitLab's, as it ran until 9 October 2026. Over batch46 on 9 October 2026, in the job's image with linix's limits: 188 s; with server2's: 254 s. By hand on linix on 27 September 2026, over batch41 in the job's image pinned to two CPUs as a shared runner has: 332 s, with the whole of every file read (84 s before `.gitlab/ci/gitlab-security.yml` gave a rule two minutes and lifted the size limit, when it read neither `RestApiServer.cpp` nor `Portal.js`) |
+| `secret_detection` | 17 s in a pipeline | 30 min | In `master`'s pipeline 2886389460 (27 September 2026) it failed on twenty-four vetted test fixtures, which `.gitleaksignore` names since `535e9005c`, on a shared runner of GitLab's, as it ran until 9 October 2026. Its scan of the whole history took under a minute on linix |
 | `container-image-amd64`, `container-image-arm64` | 44 to 50 s and 162 to 217 s by hand | 30 min | As `linux-image` and `linux-image-arm64`, from the release's `.deb` files; each keeps a tarball of about 85 MB for `container-image` |
 | `container-image` | under a minute by hand | 30 min | Both tarballs imported, the index made and checked, and pushed to a registry standing in for GitLab's on linix on 29 September 2026; the push to `registry.gitlab.com` adds the upload of about 170 MB, and the job the download of both tarballs |
 | `container-image-sign`, `container_scanning`, `container_scanning_arm64` | not measured | 15 and 30 min | None has run in a pipeline. The analyzer's scan of Ubuntu 24.04 on linix, by hand, finished within two minutes of its start, its image's download included; its scan of each platform's image of 6.3.5, by digest, took 6 s once its image was there |
@@ -3558,8 +3693,9 @@ Two more come from GitLab's own templates (`.gitlab/ci/gitlab-security.yml`,
 included from `.gitlab-ci.yml`): `semgrep-sast`, GitLab's Semgrep analyzer and
 rules over every language of the tree, the server's C and C++ included, and
 `secret_detection`, which looks for a key, token or password in the commits a
-pipeline brings. They run on GitLab's shared runners, for `master` and a merge
-request; `semgrep-sast` for a protected `batch*` branch too, whose
+pipeline brings. They run for `master` and a merge request - on linix or server2,
+and in a merge request's pipeline on GitLab's hosted runner; `semgrep-sast` for a
+protected `batch*` branch too, whose
 `semgrep-sast-gate` reads its report, and for a `v*` tag, whose release job does.
 Their images are pinned by digest, each from the project's copy of GitLab's
 image ([Change checks](#change-checks)), since GitLab's registry stops serving a
@@ -3803,10 +3939,10 @@ test a text for a key's armour header, in `build/deck-script-test.js`,
 |---|---|---|---|
 | `codeql.yml`, C++ | CodeQL `security-extended` over the MSVC build of the server, on every push and pull request (40 to 54 minutes) | `static-analysis`: cppcheck, and clang-tidy with the Clang static analyser, over every translation unit the Linux build compiles | The Windows-only sources (the COM API, the service host, the ADO and SQL Server Compact backends, the registry) and the Windows arm of every `#ifdef`, which only an MSVC build compiles; CodeQL's interprocedural taint tracking. `build\analyze.ps1` (MSVC `/analyze`) still covers the Windows build by hand |
 | `codeql.yml`, C# | CodeQL `security-and-quality` over the Control Panel and the setup and migration tools | `semgrep`: Semgrep's open C#, Python, JavaScript and bash rules. It also reads the Python tools, the shell scripts, the webmail's scripts and the Control Deck's page, which CodeQL did not | CodeQL's type-aware queries and its quality queries |
-| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, on the shared runners, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
+| `dependency-review.yml` | Failed a pull request that added a dependency with a high or critical advisory, or a package flagged as malware | `dependency-scan`, fed by `ci-image-packages`: Trivy over the lock files and the CI image, OSV over the vendored libraries. It fails on a high or critical advisory that has a fixed version. And since 6.3.6, on every change, `mr-dependency-check`: every version a change adds, against OSV's export, a malicious package (OSV's `MAL-` records) counted as Critical, and every native or vendored library pin it moves, against OSV by upstream tag | GitHub's own malware advisories, where OSV has no `MAL-` record for the package |
 | Dependabot | Alerts, and a pull request for each advisory and each new version of an action | The alerts are `dependency-scan`'s | The update pull requests. A bot that opens merge requests (Renovate runs on GitLab) needs a bot account and a token, and that is a decision of its own |
 | `scorecard.yml` | OpenSSF Scorecard, published to the OpenSSF API and the README's badge | `repo-hygiene`: Branch-Protection, Signed-Releases, Security-Policy, Pinned-Dependencies, Binary-Artifacts and Token-Permissions, answered from GitLab's public API and the tree. And since 6.3.6 Scorecard itself, weekly, published on the project's own site with its badge ([OpenSSF Scorecard](#openssf-scorecard)) | The OpenSSF API's copy of the score, which takes results from GitHub's action alone, and the checks Scorecard cannot answer on GitLab |
-| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, on the shared runners for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
+| Secret scanning with push protection | Refused a push that carried a live secret | `secret_detection`, GitLab's free pipeline secret detection, for `master` and a merge request: it finds a secret after the push and fails the pipeline; the `security` schedule scans the whole history | The refusal. Push protection is a GitLab Ultimate feature |
 
 ### The jobs, and where each tool comes from
 
@@ -4124,12 +4260,19 @@ the files do not resolve, and an include that is not a local file or one of
 GitLab's templates. Tags and `extends` may be block lists. A job is on the
 project's runners when it asks for a tag that is a variable, or for any tag
 they are registered with (`linix`, `linux` and `docker` for linix and server2; `bench150`,
-`bench` and `windows` for bench150). `id_tokens`, `secrets` and a credential
+`bench` and `windows` for bench150); a job that names none takes `default:`'s. One
+whose tags are `default:`'s `[$HM_RUNNER]` is judged by the workflow's rules, which
+choose its runner (since 9 October 2026, [Every job on the project's own
+runners](#every-job-on-the-projects-own-runners)): a rule that sets `HM_RUNNER` to
+GitLab's hosted runner makes nothing for the project's, and every other rule that
+makes a pipeline must ask for a protected ref and shut out a merge request, as a
+job's own rules must; a job that sets `HM_RUNNER` itself is judged by its own.
+`id_tokens`, `secrets` and a credential
 in a template count for every job that extends it or takes a part of it by
 `!reference`. `python3 build/ci/repo-hygiene.py --self-test`, which the
-`checkers` job runs, holds the check to CI files made to pass it and to 23
-made to break it; the check as first rewritten (a4636e983) passed 22 of those
-23, and failed two of the eight that should pass. The runners are registered
+`checkers` job runs, holds the check to CI files made to pass it and to 30
+made to break it (23 at first); the check as first rewritten (a4636e983) passed
+22 of those 23, and failed two of the eight that should pass. The runners are registered
 for protected refs only (`access_level` `ref_protected`, read by a maintainer
 with `glab api runners/<id>`: linix and bench150 on 26 September 2026, and
 those two, `linix-systemd` and server2 on 6 October 2026), so none of that was
@@ -4407,10 +4550,10 @@ there. Making that change is one `rules:` line.
 Since 6.3.6 `linux-build-gcc` adds a second whole build to linix's share of a
 `master` or `batch*` pipeline, never of a tag's: 25.5 minutes in WSL at four
 jobs, and not yet measured on linix, whose job has six CPUs. `scorecard` takes
-a few minutes of linix once a week, in a pipeline of its own. The merge request
-checks run on GitLab's shared runners, as the other merge request jobs do, and
-count against the namespace's compute minutes the same way; the dependency check
-runs only when a lock file changed.
+a few minutes of linix once a week, in a pipeline of its own. The change checks
+run where the other checks do: on linix or server2 in a `batch*` branch's
+pipeline, and on GitLab's hosted runner, on the namespace's compute minutes, in a
+merge request's; the dependency check runs only when a lock file changed.
 
 What is still done by hand
 --------------------------

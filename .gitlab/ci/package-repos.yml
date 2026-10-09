@@ -23,7 +23,7 @@
 #
 # The tools are Debian 13's own packages - apt-utils (apt-ftparchive), dpkg-dev,
 # createrepo-c, gnupg - in Debian's image pinned by the digest of its amd64 manifest,
-# the one .gitlab/ci/packages-deb.yml pins. On the shared runners, like pages.
+# the one .gitlab/ci/packages-deb.yml pins. On linix (default:'s tag), like pages.
 pages:
   pages: false
 

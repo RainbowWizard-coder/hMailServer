@@ -11,8 +11,8 @@ where it comes from, why the build needs it and, for a file that is committed, i
 SHA-256. Until 18 September 2026 a GitHub workflow held the tree to it
 (verify-binary-provenance.yml, in the history at v6.3.3); nothing had since. This
 is that check, in Python, run by the checkers job of .gitlab-ci.yml in every
-pipeline - a merge request's included, on GitLab's shared runners, with no
-secret - since that job runs every build/check-*.py. It reads the files git
+pipeline - a merge request's included, with no secret - since that job runs
+every build/check-*.py. It reads the files git
 tracks (git ls-files), and fails when:
 
   UNLISTED  a tracked file is a binary the manifest does not list. A binary is a

@@ -308,6 +308,21 @@ refuses it. This checker holds them to each other. It fails when:
     container-image-deb.sh must refuse a cosign without verify-blob
     --new-bundle-format, which alone reads the bundle strictly enough for the shell
     reader's one certificate to be the one cosign verified.
+  * a job of the CI files can run on a runner that is not the project's in a pipeline
+    for a protected ref that is not a merge request's, or wait for a runner that never
+    takes it in any other (runner_problems; docs/ContinuousIntegration.md, "Every job
+    on the project's own runners"): .gitlab-ci.yml's default: must name the tags
+    [$HM_RUNNER], which every job that names none of its own takes - GitLab's
+    templates' jobs among them - and its variables: must set HM_RUNNER to linix, which
+    nothing else in the CI files may set but a workflow rule, and no job may say
+    inherit:; the workflow's rules, tried for every kind of pipeline and every way their
+    other clauses can go, must leave it linix for each pipeline they make of a
+    protected ref that is not a merge request's and set it to saas-linux-small-amd64,
+    GitLab's hosted runner, for each other one, which the project's runners -
+    registered ref_protected - take nothing of; and a job that names its own tags must
+    name a runner of the project's (every tag one runner's, one of them linix,
+    linix-systemd or bench150: not none, not GitLab's, not another variable), and then
+    its rules may make it in no pipeline of a merge request or an unprotected ref.
 
 Usage:
   python build/check-release-chain.py              the tree as it is
@@ -1228,8 +1243,8 @@ def check(texts, chain, feed):
     sbom_job = jobs["release-sbom"]
     if "python3 build/ci/release-chain.py sbom" not in sbom_job or not re.search(r"^      - release-sbom/\s*$", sbom_job, re.MULTILINE):
         problems.append("release-sbom does not run build/ci/release-chain.py sbom and keep release-sbom/")
-    if re.search(r"^  id_tokens:", sbom_job, re.MULTILINE) or re.search(r"^  tags:", sbom_job, re.MULTILINE):
-        problems.append("release-sbom holds an ID token or runs on the project's own runners: it signs nothing and needs neither")
+    if re.search(r"^  id_tokens:", sbom_job, re.MULTILINE):
+        problems.append("release-sbom holds an ID token: it signs nothing and needs none")
     if "sbom/native-dependencies-x64.json release-tools/" not in jobs["release"]:
         problems.append("release does not keep linux-sbom's component list in release-tools/, which release-sbom reads")
     for where, text in (("release", jobs["release"]), ("release-rehearsal", blocks(texts["rehearsal"]).get("release-rehearsal", ""))):
@@ -2272,6 +2287,9 @@ def check(texts, chain, feed):
     found, said = change_gate_problems(texts, jobs, security_jobs, chain.security_gate)
     problems.extend(found)
     notes.extend(said)
+    found, said = runner_problems(texts)
+    problems.extend(found)
+    notes.extend(said)
     return problems, notes
 
 
@@ -2623,6 +2641,533 @@ def ci_override_problems(texts):
                             "definition there of a job that holds a change could not be read here - include it from "
                             ".gitlab-ci.yml" % (path, other[0][:80]))
     return problems
+
+
+# ---------------------------------------------------------------- the runners
+#
+# Every job of the CI files runs on the project's own runners in a pipeline for a
+# protected ref that is not a merge request's (docs/ContinuousIntegration.md, "Every job
+# on the project's own runners"): GitLab's compute minutes ran out on 9 October 2026, and
+# batch46's pipeline 2931387790 could not start semgrep-sast-gate, the one blocking job
+# left on GitLab's shared runners (stuck_pending_no_matching_runners, then
+# ci_quota_exceeded). The runners as GitLab has them (glab api projects/86730559/runners,
+# runners/<id>; 9 October 2026): each a project runner, ref_protected, run_untagged off,
+# locked. A job reaches one only when every tag it names is one of that runner's; and one
+# of them must be a tag GitLab's hosted runners do not carry, which the runners' names
+# are (linux, docker and windows are generic words a runner anywhere may carry).
+PROJECT_RUNNERS = (("linix (56743206) and server2 (57072507)", ("linux", "docker", "linix")),
+                   ("linix-systemd (56932743)", ("linix-systemd",)),
+                   ("bench150 (56743216)", ("windows", "bench", "bench150")))
+PROJECT_ONLY_TAGS = ("linix", "linix-systemd", "bench150")
+# The jobs that name no runner of their own take default:'s tags, the one variable below:
+# linix in .gitlab-ci.yml's variables:, and GitLab's hosted small Linux runner's tag where
+# a workflow rule sets it - for every merge request's pipeline and every pipeline of an
+# unprotected ref, which the project's runners take nothing of (a fork's runs in the
+# fork, on the fork's runners).
+RUNNER_VARIABLE = "HM_RUNNER"
+DEFAULT_RUNNER = "linix"
+HOSTED_RUNNER = "saas-linux-small-amd64"
+# CI_PIPELINE_SOURCE's values (GitLab's predefined variables), and one for any other.
+PIPELINE_SOURCES = ("push", "web", "api", "trigger", "schedule", "pipeline", "parent_pipeline", "merge_request_event",
+                    "external", "external_pull_request_event", "chat", "webide", "ondemand_dast_scan",
+                    "security_orchestration_policy", "any-other")
+# The two variables a pipeline's kind is told by here: whether its ref is protected, and
+# whether it is a merge request's. Every other clause of a rules:if may be either.
+KIND_VARIABLES = ("CI_COMMIT_REF_PROTECTED", "CI_PIPELINE_SOURCE")
+# How many clauses of other kinds a rules list may have: each is tried both ways.
+MOST_OPEN_CLAUSES = 14
+
+CONDITION_TOKEN = re.compile(r"\s*(?:(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?)|(\"(?:[^\"\\\n]|\\.)*\"|'(?:[^'\\\n]|\\.)*')|"
+                             r"(/(?:[^/\\\n]|\\.)*/[a-z]*)|(==|!=|=~|!~|&&|\|\||\(|\))|(null)(?![A-Za-z0-9_]))")
+
+
+def condition_tree(expr):
+    """A rules:if expression as a tree: ("or", a, b), ("and", a, b), or ("clause", c),
+    where c is ("kind", variable, operator, value) for CI_COMMIT_REF_PROTECTED or
+    CI_PIPELINE_SOURCE held to a literal (or asked whether it is set, operator "set"),
+    which the pipeline's kind decides, and ("open", text) for any other clause, which may
+    be either. ValueError for what this does not read."""
+    tokens, i = [], 0
+    while i < len(expr):
+        if expr[i:].strip() == "":
+            break
+        m = CONDITION_TOKEN.match(expr, i)
+        if not m or m.end() == i:
+            raise ValueError("cannot read %r at %r" % (expr, expr[i:i + 20]))
+        var, string, regex, op, null = m.groups()
+        if var:
+            tokens.append(("var", var.strip("${}")))
+        elif string:
+            tokens.append(("str", re.sub(r"\\(.)", r"\1", string[1:-1])))
+        elif regex:
+            tokens.append(("re", regex))
+        elif null:
+            tokens.append(("null", None))
+        else:
+            tokens.append(("op", op))
+        i = m.end()
+    at = [0]
+
+    def peek():
+        return tokens[at[0]] if at[0] < len(tokens) else None
+
+    def take(kind=None):
+        if at[0] >= len(tokens):
+            raise ValueError("%r ends too soon" % expr)
+        token = tokens[at[0]]
+        if kind and token[0] != kind:
+            raise ValueError("%r: %r where %s was expected" % (expr, token, kind))
+        at[0] += 1
+        return token
+
+    def spelled(token):
+        kind, value = token
+        return {"var": "$%s" % value, "str": '"%s"' % value, "re": value, "null": "null"}[kind]
+
+    def clause():
+        token = take()
+        if token == ("op", "("):
+            tree = alternatives()
+            if take() != ("op", ")"):
+                raise ValueError("%r: unbalanced parentheses" % expr)
+            return tree
+        if token[0] == "op":
+            raise ValueError("%r: %s where a value was expected" % (expr, token[1]))
+        following = peek()
+        if following and following[0] == "op" and following[1] in ("==", "!=", "=~", "!~"):
+            op = take()[1]
+            other = take()
+            if other[0] == "op":
+                raise ValueError("%r: %s where a value was expected" % (expr, other[1]))
+            left, right = token, other
+            if right[0] == "var" and right[1] in KIND_VARIABLES and left[0] in ("str", "null") and op in ("==", "!="):
+                left, right = right, left
+            if left[0] == "var" and left[1] in KIND_VARIABLES and right[0] in ("str", "null", "re"):
+                if op in ("=~", "!~") and right[0] != "re":
+                    raise ValueError("%r: %s against %s" % (expr, op, spelled(right)))
+                return ("clause", ("kind", left[1], op, right[1]))
+            return ("clause", ("open", "%s %s %s" % (spelled(left), op, spelled(right))))
+        if token[0] == "var" and token[1] in KIND_VARIABLES:
+            return ("clause", ("kind", token[1], "set", None))
+        return ("clause", ("open", spelled(token)))
+
+    def conjunction():
+        tree = clause()
+        while peek() == ("op", "&&"):
+            take()
+            tree = ("and", tree, clause())
+        return tree
+
+    def alternatives():
+        tree = conjunction()
+        while peek() == ("op", "||"):
+            take()
+            tree = ("or", tree, conjunction())
+        return tree
+
+    if not tokens:
+        raise ValueError("an empty condition")
+    tree = alternatives()
+    if at[0] != len(tokens):
+        raise ValueError("%r: %r after the end" % (expr, tokens[at[0]]))
+    return tree
+
+
+def open_clauses(tree, found=None):
+    """The texts of a tree's open clauses, in order, each once."""
+    found = [] if found is None else found
+    if tree[0] in ("or", "and"):
+        open_clauses(tree[1], found)
+        open_clauses(tree[2], found)
+    elif tree[1][0] == "open" and tree[1][1] not in found:
+        found.append(tree[1][1])
+    return found
+
+
+def condition_holds(tree, kind, chosen):
+    """Whether a tree holds for a pipeline of kind ({variable: value}) with its open
+    clauses as chosen ({text: bool})."""
+    if tree[0] == "or":
+        return condition_holds(tree[1], kind, chosen) or condition_holds(tree[2], kind, chosen)
+    if tree[0] == "and":
+        return condition_holds(tree[1], kind, chosen) and condition_holds(tree[2], kind, chosen)
+    c = tree[1]
+    if c[0] == "open":
+        return chosen[c[1]]
+    _, variable, op, value = c
+    actual = kind.get(variable)
+    if op == "set":
+        return bool(actual)
+    if op in ("==", "!="):
+        same = actual is None if value is None else actual == value
+        return same if op == "==" else not same
+    body, flags = value[1:value.rindex("/")], value[value.rindex("/") + 1:]
+    found = actual is not None and re.search(body, actual, re.IGNORECASE if "i" in flags else 0) is not None
+    return found if op == "=~" else not found
+
+
+def yaml_scalar(text):
+    """A one-line YAML scalar's value: quoted, or plain with a comment cut off."""
+    text = text.strip()
+    if len(text) > 1 and text[0] == text[-1] == "'":
+        return text[1:-1].replace("''", "'")
+    if len(text) > 1 and text[0] == text[-1] == '"':
+        return re.sub(r"\\(.)", r"\1", text[1:-1])
+    return re.split(r"\s#", text, maxsplit=1)[0].strip()
+
+
+def parsed_rule(item, where):
+    """One item of a rules list (rule_items' text) as {"if": tree or None, "when",
+    "runner": the HM_RUNNER its variables set or None, "narrowed": whether it has
+    changes: or exists:, which may be either}. ValueError for what this does not read."""
+    lines = item.rstrip("\n").split("\n")
+    keys = [(lines[0], [])]
+    for line in lines[1:]:
+        if not line.strip():
+            continue
+        if re.match(r"^      [A-Za-z_]+:", line):
+            keys.append((line.strip(), []))
+        elif line.startswith("       "):
+            keys[-1][1].append(line.strip())
+        else:
+            raise ValueError("%s: a rule written as %r" % (where, line.strip()))
+    rule = {"if": None, "when": "on_success", "runner": None, "narrowed": False, "text": lines[0].strip()}
+    for first, deeper in keys:
+        key, _, value = first.partition(":")
+        key = key.strip()
+        if key == "if":
+            if not value.strip():
+                raise ValueError("%s: an if: this does not read" % where)
+            rule["if"] = condition_tree(" ".join([yaml_scalar(value)] + [yaml_scalar(d) for d in deeper]))
+        elif key == "when":
+            rule["when"] = yaml_scalar(value)
+        elif key in ("changes", "exists"):
+            rule["narrowed"] = True
+        elif key == "variables":
+            for line in deeper:
+                m = re.match(r"""^["']?%s["']?\s*:\s*(.+)$""" % RUNNER_VARIABLE, line)
+                if m:
+                    rule["runner"] = yaml_scalar(m.group(1))
+            if value.strip():
+                raise ValueError("%s: variables: written on one line" % where)
+        elif value.strip().startswith(("*", "&", "<<")) or key == "<<":
+            raise ValueError("%s: %s by an alias or a merge key" % (where, key))
+    return rule
+
+
+def rule_list(name, jobs, where, seen=None):
+    """The rules a block's rules: key holds, each !reference [X, rules] replaced by X's,
+    parsed; None when it has no rules: key. ValueError for what this does not read."""
+    seen = set() if seen is None else seen
+    text = jobs.get(name, "")
+    head = re.search(r"^  rules:(.*)$", text, re.MULTILINE)
+    if not head:
+        return None
+    if head.group(1).strip():
+        raise ValueError("%s's rules are written on one line (%s)" % (name, head.group(1).strip()[:40]))
+    body = re.search(r"^  rules:\s*\n(.*?)(?=^  [A-Za-z_]|\Z)", text, re.MULTILINE | re.DOTALL).group(1)
+    if body.strip() and not body.lstrip("\n").startswith("    - "):
+        raise ValueError("%s's rules are not a list indented four" % name)
+    rules = []
+    for item in re.split(r"^    - ", body, flags=re.MULTILINE)[1:]:
+        reference = re.match(r"^!reference \[\s*([^,\]\s]+)\s*,\s*rules\s*\]\s*$", item.strip())
+        if reference:
+            other = reference.group(1)
+            if other in seen or other not in jobs:
+                raise ValueError("%s takes !reference [%s, rules], which %s" % (
+                    name, other, "takes it back" if other in seen else "no CI file defines"))
+            found = rule_list(other, jobs, where, seen | {name})
+            if found is None:
+                raise ValueError("%s takes !reference [%s, rules], which has no rules" % (name, other))
+            rules += found
+        elif item.strip().startswith("!reference"):
+            raise ValueError("%s's rules take %s" % (name, item.strip()[:60]))
+        else:
+            rules.append(parsed_rule(item, "%s in %s" % (name, where)))
+    return rules
+
+
+def rules_decide(rules, kind, chosen, narrowed):
+    """The rule that decides for a pipeline of kind, its open clauses as chosen and each
+    rule's changes:/exists: as narrowed ({index: bool}): (index, rule), or None when none
+    matches."""
+    for index, rule in enumerate(rules):
+        if rule["if"] is not None and not condition_holds(rule["if"], kind, chosen):
+            continue
+        if rule["narrowed"] and not narrowed[index]:
+            continue
+        return index, rule
+    return None
+
+
+def pipeline_kinds():
+    """Every kind of pipeline, as its two variables, with whether the project's runners
+    may take its jobs: a protected ref's that is not a merge request's."""
+    for protected in ("true", "false"):
+        for source in PIPELINE_SOURCES:
+            yield ({"CI_COMMIT_REF_PROTECTED": protected, "CI_PIPELINE_SOURCE": source},
+                   protected == "true" and source != "merge_request_event")
+
+
+def ways(rules):
+    """Every way a rules list can go: (chosen, narrowed) for each choice of its open
+    clauses and its changes:/exists: rules. ValueError past MOST_OPEN_CLAUSES."""
+    clauses = []
+    for rule in rules:
+        if rule["if"] is not None:
+            open_clauses(rule["if"], clauses)
+    narrowing = [i for i, rule in enumerate(rules) if rule["narrowed"]]
+    if len(clauses) + len(narrowing) > MOST_OPEN_CLAUSES:
+        raise ValueError("%d clauses and changes: to try both ways, more than %d" % (
+            len(clauses) + len(narrowing), MOST_OPEN_CLAUSES))
+    for bits in range(2 ** (len(clauses) + len(narrowing))):
+        chosen = dict((c, bool(bits >> n & 1)) for n, c in enumerate(clauses))
+        narrowed = dict((i, bool(bits >> (len(clauses) + n) & 1)) for n, i in enumerate(narrowing))
+        yield chosen, narrowed
+
+
+def tag_values(block):
+    """The tags a block names, as a list; None when it has no tags: key. ValueError for a
+    form this does not read (an alias, a reference, a mapping)."""
+    head = re.search(r"^  tags:[ \t]*(.*?)[ \t]*$", block, re.MULTILINE)
+    if not head:
+        return None
+    inline = re.split(r"\s#", head.group(1), maxsplit=1)[0].strip()
+    if inline:
+        if inline.startswith("[") and inline.endswith("]") and "[" not in inline[1:]:
+            return [v.strip().strip("'\"") for v in inline[1:-1].split(",") if v.strip()]
+        raise ValueError("tags: %s" % inline[:40])
+    found = []
+    for line in block[head.end():].split("\n")[1:]:
+        if not line.strip():
+            continue
+        item = re.match(r"^    - (.+)$", line)
+        if not item:
+            break
+        value = yaml_scalar(item.group(1))
+        if value.startswith(("*", "&", "[", "{", "!")):
+            raise ValueError("tags: - %s" % value)
+        found.append(value)
+    return found
+
+
+def runner_problems(texts):
+    """([problem], [note]) for each job of the CI files that could run on a runner that is
+    not the project's, or wait for one that never takes it:
+
+      * .gitlab-ci.yml's default: must name the tags [$HM_RUNNER], which every job that
+        names none of its own - GitLab's templates' jobs among them - takes, and its
+        variables: must set HM_RUNNER to linix; nothing else in the CI files may set
+        HM_RUNNER but a workflow rule; no job may leave default:'s keys (inherit:);
+      * the workflow's rules, tried for every kind of pipeline and every way their other
+        clauses can go, must leave HM_RUNNER linix (or another tag of the project's
+        alone) for every pipeline they make of a protected ref that is not a merge
+        request's, and set it to GitLab's hosted runner's tag for every other one they
+        make, a merge request's or an unprotected ref's, which the project's runners -
+        registered ref_protected - take nothing of;
+      * a job that names its own tags must name a runner of the project's: every tag one
+        runner's, and one of them a tag only the project's carry (PROJECT_ONLY_TAGS) -
+        not none, not a variable but HM_RUNNER, not GitLab's - and then its rules may
+        create it in no pipeline the workflow makes for a merge request or an unprotected
+        ref, where it would wait for a runner that never takes it.
+    What this cannot read is a problem."""
+    problems, notes = [], []
+    every_ci = ci_files(texts)
+    ci_blocks = blocks(texts["ci"])
+    order = [p for p in sorted(every_ci) if p != ".gitlab-ci.yml"] + [".gitlab-ci.yml"]
+    definitions = {}
+    for path in order:
+        bodies = blocks(every_ci[path] or "")
+        for name in top_level_keys(every_ci[path]):
+            if name in RESERVED:
+                continue
+            if name not in bodies:
+                problems.append("%s in %s is not written as a block this reads (a value on the key's own line, or a quoted "
+                                "key): its runner cannot be told" % (name, path))
+                continue
+            definitions.setdefault(name, []).append((path, bodies[name]))
+    # One block per name, as templates are read (the last definition, .gitlab-ci.yml's
+    # over an include's); each definition's tags are read below.
+    jobs = dict((name, defs[-1][1]) for name, defs in definitions.items())
+
+    default = ci_blocks.get("default", "")
+    try:
+        default_tags = tag_values(default)
+    except ValueError as error:
+        default_tags = None
+        problems.append(".gitlab-ci.yml's default: names its tags in a form this does not read (%s)" % error)
+    wanted = ["$%s" % RUNNER_VARIABLE]
+    if default_tags != wanted:
+        problems.append(".gitlab-ci.yml's default: names %s, not tags: [$%s]: a job that names no runner of its own - "
+                        "GitLab's templates' among them - would run %s" % (
+                            "no tags" if default_tags is None else "the tags %s" % default_tags, RUNNER_VARIABLE,
+                            "on GitLab's shared runners, whose compute minutes ran out on 9 October 2026"
+                            if not default_tags else "where nothing here holds it"))
+    variables = ci_blocks.get("variables", "")
+    set_to = re.findall(r"""^  ["']?%s["']?[ \t]*:[ \t]*(.*?)[ \t]*$""" % RUNNER_VARIABLE, variables, re.MULTILINE)
+    global_runner = yaml_scalar(set_to[0]) if len(set_to) == 1 else None
+    if global_runner != DEFAULT_RUNNER:
+        problems.append(".gitlab-ci.yml's variables: %s %s: it must be %s, the tag linix and server2 carry, for every "
+                        "pipeline of a protected ref that is not a merge request's" % (
+                            "set" if set_to else "do not set", RUNNER_VARIABLE if not set_to else "%s to %r" % (
+                                RUNNER_VARIABLE, global_runner), DEFAULT_RUNNER))
+    for path in order:
+        top = None
+        for line in (every_ci[path] or "").replace("\r\n", "\n").split("\n"):
+            if line[:1] not in ("", " ", "\t", "#"):
+                top = line.split(":", 1)[0].strip().strip("'\"")
+            code = re.split(r"(?:^|\s)#", line, maxsplit=1)[0]
+            if not re.search(r"""(?:^|[\s{,\[])["']?%s["']?[ \t]*:""" % RUNNER_VARIABLE, code):
+                continue
+            allowed = path == ".gitlab-ci.yml" and ((top == "variables" and re.match(r"^  %s:" % RUNNER_VARIABLE, line)) or
+                                                    (top == "workflow" and re.match(r"^        %s:" % RUNNER_VARIABLE, line)))
+            if not allowed:
+                problems.append("%s sets %s in %s (%s): only .gitlab-ci.yml's variables: and a workflow rule may, or a "
+                                "job could take default:'s tags to a runner nothing here holds it to" % (
+                                    path, RUNNER_VARIABLE, top, line.strip()[:60]))
+    for name, defs in sorted(definitions.items()):
+        for path, body in defs:
+            if re.search(r"^  inherit:", body, re.MULTILINE):
+                problems.append("%s in %s says inherit:, which can leave default:'s tags behind: a job names its runner, "
+                                "or takes default:'s" % (name, path))
+            if re.search(r"^  extends:[ \t]*$", body, re.MULTILINE):
+                problems.append("%s in %s gives extends: as a block list, which this does not follow to the tags and rules "
+                                "it takes: extends: [a, b]" % (name, path))
+
+    # The workflow: which runner each pipeline it makes is given.
+    admitted_elsewhere = []
+    try:
+        workflow = rule_list("workflow", {"workflow": ci_blocks.get("workflow", "")}, ".gitlab-ci.yml")
+        if workflow is None:
+            raise ValueError("it has no rules")
+        if any(r["when"] not in ("always", "never") and r["when"] != "on_success" for r in workflow):
+            raise ValueError("a rule says when: %s" % [r["when"] for r in workflow if r["when"] not in ("always", "never", "on_success")][0])
+        wrong = {}
+        for kind, ours in pipeline_kinds():
+            for chosen, narrowed in ways(workflow):
+                decided = rules_decide(workflow, kind, chosen, narrowed)
+                if decided is None or decided[1]["when"] == "never":
+                    continue
+                index, rule = decided
+                runner = rule["runner"] or global_runner
+                if not ours and kind not in admitted_elsewhere:
+                    admitted_elsewhere.append(kind)
+                if ours and runner not in PROJECT_ONLY_TAGS:
+                    wrong.setdefault((index, True, runner), (rule, kind))
+                elif not ours and runner != HOSTED_RUNNER:
+                    wrong.setdefault((index, False, runner), (rule, kind))
+        for (index, ours, runner), (rule, kind) in sorted(wrong.items(), key=lambda item: (item[0][0], item[0][1], str(item[0][2]))):
+            if ours:
+                problems.append("the workflow's rule %d (%s) makes a pipeline for a protected ref that is not a merge "
+                                "request's (CI_PIPELINE_SOURCE %s, among others) with %s %r: its jobs that name no runner "
+                                "would go %s, where every job of such a pipeline runs on the project's own" % (
+                                    index + 1, rule["text"][:90], kind["CI_PIPELINE_SOURCE"], RUNNER_VARIABLE, runner,
+                                    "to GitLab's hosted runners" if runner == HOSTED_RUNNER else "where no runner of the project's is"))
+            else:
+                problems.append("the workflow's rule %d (%s) makes a pipeline %s (CI_COMMIT_REF_PROTECTED %s, "
+                                "CI_PIPELINE_SOURCE %s, among others) with %s %r: the project's runners, registered "
+                                "ref_protected, take nothing of it, so its jobs would wait for a runner until GitLab fails "
+                                "them; such a rule sets %s: %s, GitLab's hosted runner" % (
+                                    index + 1, rule["text"][:90],
+                                    "for a merge request" if kind["CI_PIPELINE_SOURCE"] == "merge_request_event" else
+                                    "for an unprotected ref", kind["CI_COMMIT_REF_PROTECTED"], kind["CI_PIPELINE_SOURCE"],
+                                    RUNNER_VARIABLE, runner, RUNNER_VARIABLE, HOSTED_RUNNER))
+    except ValueError as error:
+        problems.append(".gitlab-ci.yml's workflow: is not read here (%s): which runner its pipelines' jobs go to cannot "
+                        "be told" % error)
+
+    # The jobs.
+    chosen_runner, own = [], []
+    for name in sorted(definitions):
+        if name.startswith("."):
+            continue
+        where = " and ".join(sorted(set(path for path, _ in definitions[name])))
+        named = []
+        try:
+            for path, body in definitions[name]:
+                found = tag_values(body)
+                if found is not None:
+                    named.append((path, found))
+            if len(named) > 1:
+                problems.append("%s names its tags in %s: GitLab merges the definitions, and one runner is named once"
+                                % (name, " and ".join(path for path, _ in named)))
+                continue
+            tags = named[0][1] if named else None
+            if tags is None:
+                for current in template_order(name, jobs)[1:]:
+                    tags = tag_values(jobs[current])
+                    if tags is not None:
+                        break
+        except ValueError as error:
+            problems.append("%s in %s names its tags in a form this does not read (%s): its runner cannot be told"
+                            % (name, where, error))
+            continue
+        if tags is None:
+            tags = default_tags if default_tags is not None else []
+            if tags == wanted:
+                chosen_runner.append(name)
+                continue
+        if tags == wanted:
+            chosen_runner.append(name)
+            continue
+        if not tags:
+            problems.append("%s (%s) names no tags: GitLab's shared runners would take it, whose compute minutes ran out "
+                            "on 9 October 2026 - a job takes default:'s [$%s] or names a runner of the project's"
+                            % (name, where, RUNNER_VARIABLE))
+            continue
+        if any("$" in t for t in tags):
+            problems.append("%s (%s) names its tags %s by a variable other than %s alone: where it runs cannot be told"
+                            % (name, where, tags, RUNNER_VARIABLE))
+            continue
+        if not any(set(tags) <= set(carried) for _, carried in PROJECT_RUNNERS):
+            problems.append("%s (%s) names the tags %s, which no runner of the project's carries all of (%s): it would "
+                            "wait for a runner, or go to one that is not the project's" % (
+                                name, where, tags, "; ".join("%s: %s" % (who, ", ".join(c)) for who, c in PROJECT_RUNNERS)))
+            continue
+        if not set(tags) & set(PROJECT_ONLY_TAGS):
+            problems.append("%s (%s) names the tags %s, none of which only the project's runners carry: a runner that is "
+                            "not the project's may carry them too - it names one of %s" % (
+                                name, where, tags, ", ".join(PROJECT_ONLY_TAGS)))
+            continue
+        own.append(name)
+        try:
+            rules = None
+            for current in template_order(name, jobs):
+                rules = rule_list(current, jobs, where)
+                if rules is not None:
+                    break
+            if rules is None:
+                rules = [{"if": None, "when": "on_success", "runner": None, "narrowed": False, "text": "(no rules)"}]
+            stranded = None
+            for kind in admitted_elsewhere:
+                for chosen, narrowed in ways(rules):
+                    decided = rules_decide(rules, kind, chosen, narrowed)
+                    if decided is not None and decided[1]["when"] != "never":
+                        stranded = (kind, decided)
+                        break
+                if stranded:
+                    break
+        except ValueError as error:
+            problems.append("%s (%s) is tagged %s, for a runner of the project's, and its rules are not read here (%s): "
+                            "whether a merge request's or an unprotected ref's pipeline can make it cannot be told"
+                            % (name, where, tags, error))
+            continue
+        if stranded:
+            kind, (index, rule) = stranded
+            problems.append("%s (%s) is tagged %s, for a runner of the project's, and its rule %d (%s) makes it in a "
+                            "pipeline %s (CI_COMMIT_REF_PROTECTED %s, CI_PIPELINE_SOURCE %s) that the workflow makes: "
+                            "the project's runners, registered ref_protected, take nothing of that pipeline, so it would "
+                            "wait for a runner until GitLab fails it - a job tagged for them asks for a protected ref "
+                            "that is not a merge request's, or takes default:'s tags" % (
+                                name, where, tags, index + 1, rule["text"][:90],
+                                "for a merge request" if kind["CI_PIPELINE_SOURCE"] == "merge_request_event" else
+                                "for an unprotected ref", kind["CI_COMMIT_REF_PROTECTED"], kind["CI_PIPELINE_SOURCE"]))
+    templates = sorted(set(re.findall(r"^\s*-\s*template:\s*(\S+)", "\n".join(every_ci.values()), re.MULTILINE)))
+    notes.append("runners: %d job(s) take [$%s] (default: or their own) - %s for a protected ref that is not a merge "
+                 "request's, %s for any other pipeline - and %d name a runner of the project's and run only for such a "
+                 "ref; the jobs of GitLab's templates (%s) take default:'s" % (
+                     len(chosen_runner), RUNNER_VARIABLE, DEFAULT_RUNNER, HOSTED_RUNNER, len(own), ", ".join(templates)))
+    return problems, notes
 
 
 # What each Python script of build/land-via-mr.py's GATE_FILES runs before it imports
@@ -3810,6 +4355,106 @@ def self_test(chain, feed):
         overriding = [p for p in found if " is defined in " in p or " at its top level" in p or " includes what " in p]
         if (needle and not any(needle in p for p in found)) or (needle is None and overriding):
             failures.append("%s in %s is %s: %s" % (what, spare[-1], "caught" if needle else "let pass", overriding or found))
+    # Every job on the project's own runners for a protected ref that is not a merge
+    # request's, and on a runner that takes it in any other pipeline (runner_problems):
+    # the tree passes, and each way out below is caught - in .gitlab-ci.yml, or in an
+    # included file no key of FILES names.
+    found, _ = runner_problems(texts)
+    if found:
+        failures.append("the tree's jobs all run on the project's runners: %s" % found)
+    editorconfig = "    - apk add --no-cache -q editorconfig-checker\n"
+    channels = ".gitlab/ci/channels.yml"
+    for what, path, old, new, needle in (
+            ("default: without the runner", ".gitlab-ci.yml", "  tags: [$HM_RUNNER]\n", "", "default: names no tags"),
+            ("default: naming linix itself", ".gitlab-ci.yml", "  tags: [$HM_RUNNER]\n", "  tags: [linix]\n",
+             "not tags: [$HM_RUNNER]"),
+            ("HM_RUNNER GitLab's runner for every pipeline", ".gitlab-ci.yml", "  HM_RUNNER: linix\n",
+             "  HM_RUNNER: saas-linux-small-amd64\n", "it must be linix"),
+            ("HM_RUNNER set nowhere", ".gitlab-ci.yml", "  HM_RUNNER: linix\n", "", "do not set HM_RUNNER"),
+            ("a merge request's pipeline left on linix", ".gitlab-ci.yml",
+             '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n      variables:\n        HM_RUNNER: saas-linux-small-amd64\n',
+             '    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n', "makes a pipeline for a merge request"),
+            ("an unprotected branch's pipeline left on linix", ".gitlab-ci.yml",
+             "    - if: $CI_COMMIT_BRANCH\n      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",
+             "    - if: $CI_COMMIT_BRANCH\n", "makes a pipeline for an unprotected ref"),
+            ("an unprotected v* tag's pipeline left on linix", ".gitlab-ci.yml",
+             "    - if: $CI_COMMIT_TAG =~ /^v/\n      variables:\n        HM_RUNNER: saas-linux-small-amd64\n",
+             "    - if: $CI_COMMIT_TAG =~ /^v/\n", "makes a pipeline for an unprotected ref"),
+            ("a protected branch's pipeline sent to GitLab's runner", ".gitlab-ci.yml",
+             '    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"\n    - if: $CI_COMMIT_BRANCH\n',
+             "    - if: $CI_COMMIT_BRANCH\n", "would go to GitLab's hosted runners"),
+            ("a protected v* tag's pipeline sent to GitLab's runner", ".gitlab-ci.yml",
+             '    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n    - if: $CI_COMMIT_TAG =~ /^v/\n',
+             "    - if: $CI_COMMIT_TAG =~ /^v/\n", "would go to GitLab's hosted runners"),
+            ("a workflow rule this cannot read", ".gitlab-ci.yml", "workflow:\n  rules:\n",
+             'workflow:\n  rules:\n    - if: $CI_COMMIT_BRANCH = "x"\n      when: never\n', "workflow: is not read here"),
+            ("a job that sets HM_RUNNER itself", ".gitlab-ci.yml", editorconfig,
+             editorconfig + "  variables:\n    HM_RUNNER: saas-linux-small-amd64\n", "sets HM_RUNNER in editorconfig"),
+            ("a job that sets HM_RUNNER in a flow mapping", ".gitlab-ci.yml", editorconfig,
+             editorconfig + "  variables: {HM_RUNNER: saas-linux-small-amd64}\n", "sets HM_RUNNER in editorconfig"),
+            ("a job with no tags", ".gitlab-ci.yml", editorconfig, editorconfig + "  tags: []\n",
+             "editorconfig (.gitlab-ci.yml) names no tags"),
+            ("a job on GitLab's runner by name", ".gitlab-ci.yml", editorconfig,
+             editorconfig + "  tags: [saas-linux-small-amd64]\n", "which no runner of the project's carries all of"),
+            ("a job on a tag GitLab's runners could carry", ".gitlab-ci.yml", editorconfig, editorconfig + "  tags: [docker]\n",
+             "none of which only the project's runners carry"),
+            ("a job on a variable of its own", ".gitlab-ci.yml", editorconfig, editorconfig + "  tags: [$PROBE_RUNNER]\n",
+             "by a variable other than HM_RUNNER"),
+            ("a job on tags by an alias", ".gitlab-ci.yml", editorconfig, editorconfig + "  tags: *probe-tags\n",
+             "names its tags in a form this does not read"),
+            ("a job leaving default:", ".gitlab-ci.yml", editorconfig, editorconfig + "  inherit:\n    default: false\n",
+             "says inherit:"),
+            ("a check of every pipeline on linix's tag, merge requests' included", ".gitlab-ci.yml", editorconfig,
+             editorconfig + "  tags:\n    - docker\n    - linix\n", "makes it in a pipeline for a merge request"),
+            ("the project's jobs made for a merge request", ".gitlab-ci.yml",
+             '    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && $CI_COMMIT_REF_PROTECTED == "true"\n      changes:\n'
+             '        paths: &not-docs-only\n',
+             '    - if: $CI_COMMIT_REF_PROTECTED == "true" || $CI_PIPELINE_SOURCE == "merge_request_event"\n      changes:\n'
+             '        paths: &not-docs-only\n', "makes it in a pipeline for a merge request"),
+            ("the release's jobs made for an unprotected v* tag", ".gitlab-ci.yml",
+             '      when: never\n    - if: $CI_COMMIT_TAG =~ /^v/ && $CI_COMMIT_REF_PROTECTED == "true"\n\n# The installer',
+             '      when: never\n    - if: $CI_COMMIT_TAG =~ /^v/\n\n# The installer', "makes it in a pipeline for an unprotected ref"),
+            ("an included job with no tags", channels, "", "\nprobe-job:\n  tags: []\n  script: [echo]\n",
+             "probe-job (.gitlab/ci/channels.yml) names no tags"),
+            ("an included job on linix for every pipeline", channels, "", "\nprobe-job:\n  tags: [linix]\n  script: [echo]\n",
+             "probe-job (.gitlab/ci/channels.yml) is tagged ['linix']"),
+            ("a check put on linix by a second definition in an included file", channels, "", "\neditorconfig:\n  tags: [linix]\n",
+             "editorconfig (.gitlab-ci.yml and .gitlab/ci/channels.yml) is tagged ['linix']"),
+            ("an included job on extends as a block list", channels, "", "\nprobe-job:\n  extends:\n    - .linix\n  script: [echo]\n",
+             "gives extends: as a block list"),
+            ("a template of the project's jobs on a tag any runner may carry", ".gitlab-ci.yml",
+             ".linix:\n  extends: .own-runners\n  tags: [linix]\n", ".linix:\n  extends: .own-runners\n  tags: [docker]\n",
+             "linux-build (.gitlab-ci.yml) names the tags ['docker']"),
+            ("an included job on linix whose merge requests are sent to never only when a file changed", channels, "",
+             '\nprobe-job:\n  tags: [linix]\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n'
+             '      changes: [README.md]\n      when: never\n    - if: $CI_COMMIT_REF_PROTECTED == "true"\n  script: [echo]\n',
+             "probe-job (.gitlab/ci/channels.yml) is tagged ['linix'], for a runner of the project's, and its rule 2"),
+            ("an included job on linix whose merge requests are sent to never first", channels, "",
+             '\nprobe-job:\n  tags: [linix]\n  rules:\n    - if: $CI_PIPELINE_SOURCE == "merge_request_event"\n'
+             '      when: never\n    - if: $CI_COMMIT_REF_PROTECTED == "true"\n  script: [echo]\n', None),
+            ("an included job taking default:'s tags", channels, "", "\nprobe-job:\n  script: [echo]\n", None)):
+        copy = dict(texts)
+        if path == ".gitlab-ci.yml":
+            if old not in copy["ci"]:
+                failures.append("%s: the text to break is not in .gitlab-ci.yml (%r)" % (what, old))
+                continue
+            copy["ci"] = copy["ci"].replace(old, new, 1)
+        else:
+            if path not in copy["ci-includes"]:
+                failures.append("%s: %s is not in the tree" % (what, path))
+                continue
+            copy["ci-includes"] = dict(copy["ci-includes"], **{path: copy["ci-includes"][path] + new})
+        found, _ = runner_problems(copy)
+        if needle is None and any("probe-job" in p for p in found):
+            failures.append("%s is let pass: %s" % (what, [p for p in found if "probe-job" in p]))
+        elif needle is not None and not any(needle in p for p in found):
+            failures.append("%s is caught: %s" % (what, found))
+    copy = dict(texts, ci=texts["ci"].replace(editorconfig, editorconfig + "  tags: [$HM_RUNNER]\n", 1))
+    copy["ci-includes"] = dict(texts["ci-includes"], **{channels: texts["ci-includes"].get(channels, "") +
+                                                        "\neditorconfig:\n  tags: [$HM_RUNNER]\n"})
+    found, _ = runner_problems(copy)
+    if not any("editorconfig names its tags in" in p for p in found):
+        failures.append("a job naming its tags in two CI files is caught: %s" % found)
     # Each Python script of GATE_FILES keeps its own directory off sys.path before it
     # imports anything but os and sys.
     sources = gate_python_sources(landing)
@@ -3889,7 +4534,7 @@ def self_test(chain, feed):
            "release-packages can let release start")
     broken("the gathering job not made for a tag", "release-packages", "    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/\n",
            "    - if: $CI_COMMIT_BRANCH !~ /^batch/\n", "is not made for a v* tag and a batch* branch alone")
-    broken("the gathering job on the shared runners", "release-packages", "  extends: .linix\n", "  image: python:3\n",
+    broken("the gathering job off linix", "release-packages", "  extends: .linix\n", "  image: python:3\n",
            "does not run build/ci/release-chain.py gather on linix")
     broken("an AppImage left for a press on a tag", "packages-appimage",
            '    - if: $CI_COMMIT_TAG !~ /^v/ && $CI_COMMIT_BRANCH !~ /^batch/ && $CI_COMMIT_REF_PROTECTED == "true"\n      when: manual\n',

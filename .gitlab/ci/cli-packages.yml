@@ -4,8 +4,9 @@
 
 # The command-line clients as packages (hmailserver/docs/CommandLinePackages.md):
 # hmctl on PyPI as hmailserver-cli, and the HmailServer PowerShell module on the
-# PowerShell Gallery. Included from .gitlab-ci.yml. On GitLab's shared runners, none on
-# the project's own runners:
+# PowerShell Gallery. Included from .gitlab-ci.yml. On default:'s tags, [$HM_RUNNER]:
+# linix or server2 for a protected ref that is not a merge request's, GitLab's hosted
+# runner for any other pipeline:
 #
 #   cli-packages        a merge request's or a branch's pipeline, when the clients or
 #                       their packaging change: build's pinned tools installed with
@@ -82,7 +83,7 @@
 # (build/ci/repo-hygiene.py, Token-Permissions, holds every job with an ID token to
 # that).
 #
-# Images: the shared runners' Python image and Microsoft's .NET SDK image, whose pwsh is
+# Images: Docker Hub's Python image and Microsoft's .NET SDK image, whose pwsh is
 # the one package-templates and roadmap use, by the digests .gitlab-ci.yml pins
 # (Renovate moves tag and digest together).
 

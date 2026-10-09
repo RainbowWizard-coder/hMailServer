@@ -18,7 +18,7 @@
 # In every protected v* tag's pipeline, once release-publish has published the
 # release, a maintainer starts the first job by hand, and the rest follow it:
 #
-#   container-image-deb   GitLab's shared runners, in cosign's own image
+#   container-image-deb   linix (default:'s tag), in cosign's own image
 #                         (HM_COSIGN_IMAGE), BY HAND: the release's .deb of each
 #                         architecture, amd64 and arm64, and each .deb's SBOM taken
 #                         from the published release - not from release-sign's
@@ -32,7 +32,7 @@
 #                         arm64 one under qemu-user - checked as linux-image checks its
 #                         own, and kept, not pushed (build/ci/linux-image.sh with
 #                         HM_IMAGE_RELEASE=1);
-#   container-image       GitLab's shared runners, in regctl's image: both images,
+#   container-image       linix (default:'s tag), in regctl's image: both images,
 #                         each held to what its job checked, joined under one index
 #                         (a Docker manifest list) and pushed to the project's
 #                         container registry - each image by its digest, the index as
@@ -40,7 +40,7 @@
 #                         :<major>.<minor> and :latest too; a pre-release (v6.3.6-rc1)
 #                         never moves those two (build/ci/container-image-push.sh);
 #   container-image-artifacthub
-#                         GitLab's shared runners, in the same regctl image: Artifact
+#                         linix (default:'s tag), in the same regctl image: Artifact
 #                         Hub's metadata for the image's repository
 #                         (packaging/docker/artifacthub-repo.yml) pushed under the tag
 #                         artifacthub.io, when that file holds the repository ID
@@ -52,13 +52,13 @@
 #                         Syft's reading of the pushed image by its digest, with what
 #                         that architecture's .deb's own SBOM names inside the binary
 #                         added (build/ci/container-image-sbom.sh, build/asset-sbom.py);
-#   container-image-sign  GitLab's shared runners, in cosign's own image: the index
+#   container-image-sign  linix (default:'s tag), in cosign's own image: the index
 #                         and each platform's image signed by digest with Sigstore,
 #                         keylessly, as this pipeline, each image's SBOM attested to
 #                         it (predicate type cyclonedx) by the same identity, and all
 #                         of it verified (build/ci/container-image-sign.sh);
 #   container_scanning, container_scanning_arm64
-#                         GitLab's shared runners: GitLab's own Container Scanning
+#                         linix (default:'s tag): GitLab's own Container Scanning
 #                         template, free on every tier, over each platform's pushed
 #                         image by its digest. A finding does not fail the pipeline
 #                         (the template makes it allow_failure); its report is the
