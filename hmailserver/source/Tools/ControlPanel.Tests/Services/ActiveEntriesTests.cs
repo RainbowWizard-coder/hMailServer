@@ -133,6 +133,37 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count)", editor, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// One count, one wording: the spam overview's list rows and its pipeline
+      /// rows say "Active: 2 of 3" as the list pages' pill does, where they said
+      /// "2 active of 3" and "2 of 3 active", each translated on its own in
+      /// seventeen languages. Every catalogue's pipeline sentence holds its own
+      /// translation of the pill.
+      /// </summary>
+      [Fact]
+      public void TheSpamOverviewCountsActiveEntriesInThePillsWordsInEveryLanguage()
+      {
+         string overview = ReadSource("SpamOverviewView.cs");
+         Assert.Contains("ActiveEntries.PillText(active.Value, total)", overview, StringComparison.Ordinal);
+         Assert.DoesNotContain("active of {1}", overview, StringComparison.Ordinal);
+
+         Dictionary<string, string> english = ReadResx("Strings.resx");
+         Assert.False(english.ContainsKey("{0} active of {1}"), "The catalogue still holds \"{0} active of {1}\".");
+         Assert.False(english.ContainsKey("{0}. {1} of {2} active."), "The catalogue still holds \"{0}. {1} of {2} active.\".");
+
+         var unlike = new List<string>();
+         foreach (string path in Directory.GetFiles(ResourcesDirectory(), "Strings.*.resx"))
+         {
+            Dictionary<string, string> catalogue = ReadResx(Path.GetFileName(path));
+            string pill = catalogue["Active: {0} of {1}"].Replace("{1}", "{2}", StringComparison.Ordinal).Replace("{0}", "{1}", StringComparison.Ordinal);
+            string sentence = catalogue["{0}. Active: {1} of {2}."];
+            if (!sentence.Contains(pill, StringComparison.Ordinal))
+               unlike.Add(Path.GetFileName(path) + ": '" + sentence + "' does not hold '" + pill + "'");
+         }
+
+         Assert.True(unlike.Count == 0, string.Join(Environment.NewLine, unlike));
+      }
+
       [Fact]
       public void TheRefusalTextIsANounInGermanAndJapanese()
       {

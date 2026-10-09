@@ -14947,9 +14947,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Znaleziono {0} konta.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} aktywnych z {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Adresów na liście: {0}, pokazano {1} najnowszych. Wyszukaj, aby zawęzić.</value>
   </data>
@@ -15676,6 +15673,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, punktacja {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Aktywne: {1} z {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Przyjmowany jest wtedy każdy token, który dostawca tożsamości podpisze tym kluczem, w tym token wystawiony innej aplikacji - a to wystarczy, aby zalogować się jako ta skrzynka pocztowa, którą token wskazuje. Oba należy ustawić dokładnie na wartości, jakie dostawca umieszcza w swoich tokenach. Wartości pochodzą od dostawcy i dlatego znajdują się na tej liście.</value>
   </data>
@@ -15690,9 +15690,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. Skonfigurowano {1} wpis, ale nie jest aktywny, więc kontrola nie jest wykonywana.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. Aktywnych: {1} z {2}.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: rekord TXT pod {1}</value>

@@ -14947,9 +14947,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Знайдено {0} облікові записи.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} активних із {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Адрес у списку: {0}, показано {1} найновіших. Скористайтеся пошуком, щоб звузити список.</value>
   </data>
@@ -15676,6 +15673,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, оцінка {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Активно: {1} з {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Тоді приймається будь-який токен, який провайдер ідентифікації підписує цим ключем, зокрема виданий іншій програмі, — а цього достатньо, щоб увійти як будь-яка поштова скринька, яку той токен називає. Задайте обидва точними значеннями, які провайдер вміщує у свої токени. Значення надходять від провайдера, тому вони й у цьому списку.</value>
   </data>
@@ -15690,9 +15690,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. Налаштовано {1} запис, але він не активний, тому перевірка не виконується.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} з {2} активних.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: запис TXT для {1}</value>

@@ -14747,9 +14747,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} kontoer funnet.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} aktive av {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresse listet, de {1} nyeste vises. Søk for å avgrense.</value>
   </data>
@@ -15311,6 +15308,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, poengsum {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Aktive: {1} av {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Ethvert token identitetsleverandøren signerer med denne nøkkelen, godtas da, inkludert ett den utstedte til en annen applikasjon - som er nok til å logge på som den postboksen tokenet navngir. Sett begge til nøyaktig de verdiene leverandøren legger i tokenene sine. Verdiene kommer fra leverandøren, som er grunnen til at de står på denne listen.</value>
   </data>
@@ -15322,9 +15322,6 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} oppføring er konfigurert, men ikke aktiv, så kontrollen kjører ikke.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} av {2} aktive.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: TXT-oppføring på {1}</value>

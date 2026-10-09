@@ -14747,9 +14747,6 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} konti fundet.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} aktive af {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adresse på listen, de {1} nyeste vises. Søg for at indsnævre dem.</value>
   </data>
@@ -15311,6 +15308,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Aktive: {1} af {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Ethvert token, som identitetsudbyderen signerer med denne nøgle, accepteres så, også et, den har udstedt til et andet program - hvilket er nok til at logge på som den postkasse, det token nævner. Sæt begge til de nøjagtige værdier, udbyderen lægger i sine tokens. Værdierne kommer fra udbyderen, og derfor står de på denne liste.</value>
   </data>
@@ -15322,9 +15322,6 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} post er konfigureret, men ikke aktiv, så kontrollen kører ikke.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} af {2} aktive.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: TXT-post ved {1}</value>

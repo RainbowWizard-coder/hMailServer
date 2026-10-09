@@ -14747,9 +14747,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} konton hittade.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} aktiva av {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adress listad, de {1} senaste visas. Sök för att begränsa dem.</value>
   </data>
@@ -15311,6 +15308,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, poäng {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Aktiva: {1} av {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Varje token identitetsleverantören signerar med den här nyckeln godtas då, inklusive en den utfärdat till en annan applikation - vilket räcker för att logga in som vilken brevlåda den token än namnger. Sätt båda till exakt de värden leverantören lägger i sina token. Värdena kommer från leverantören, vilket är varför de finns på den här listan.</value>
   </data>
@@ -15322,9 +15322,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} post är konfigurerad men inte aktiv, så kontrollen körs inte.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} av {2} aktiva.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: TXT-post vid {1}</value>

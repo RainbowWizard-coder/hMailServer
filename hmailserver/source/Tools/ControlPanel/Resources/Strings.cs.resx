@@ -14947,9 +14947,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} accounts found.|few" xml:space="preserve">
     <value>Nalezeny {0} účty.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} aktivních z {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>Na seznamu je {0} adresa, zobrazeno {1} nejnovějších. Vyhledáváním je zúžíte.</value>
   </data>
@@ -15676,6 +15673,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, skóre {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Aktivní: {1} z {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Jakýkoli token, který poskytovatel identity tímto klíčem podepíše, je pak přijat, včetně tokenu vydaného jiné aplikaci – což stačí k přihlášení jako kterákoli poštovní schránka, kterou token uvádí. Nastavte obě hodnoty přesně na ty, které poskytovatel vkládá do svých tokenů. Hodnoty pocházejí od poskytovatele, a proto jsou na tomto seznamu.</value>
   </data>
@@ -15690,9 +15690,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} položka je nakonfigurována, ale není aktivní, takže kontrola neběží.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} z {2} aktivních.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: záznam TXT na {1}</value>

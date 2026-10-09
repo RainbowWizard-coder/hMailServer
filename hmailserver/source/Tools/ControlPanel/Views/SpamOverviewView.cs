@@ -532,8 +532,9 @@ namespace hMailServer.ControlPanel.Views
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+         // The list pages' own words for the same count: "Active: 2 of 3".
          string count = active != null
-            ? F("{0} active of {1}", active.Value, total)
+            ? ActiveEntries.PillText(active.Value, total)
             : Plural(total, "{0} entry", "{0} entries");
 
          var text = new TextBlock { Text = name + " — " + count, VerticalAlignment = VerticalAlignment.Center };

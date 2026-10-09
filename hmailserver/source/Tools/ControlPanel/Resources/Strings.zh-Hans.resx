@@ -14747,9 +14747,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0} accounts found." xml:space="preserve">
     <value>找到 {0} 个账户。</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{1} 个中有 {0} 个处于活动状态</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>列表中有 {0} 个地址，显示最近的 {1} 个。可通过搜索缩小范围。</value>
   </data>
@@ -15311,6 +15308,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}，{1}，分数 {2}。{3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}。已启用：{1}/{2}。</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}。这样一来，身份提供方用此密钥签名的任何令牌都会被接受，包括它签发给另一个应用程序的令牌 - 而那已经足以让人以该令牌所指的任意邮箱身份登录。请把两者都设置为提供方写进其令牌中的确切值。这些值来自提供方，这也正是它们出现在此列表中的原因。</value>
   </data>
@@ -15322,9 +15322,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}。已配置 {1} 个条目，但它未处于活动状态，因此该检查不会运行。</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}。{2} 个中有 {1} 个处于活动状态。</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}：{1} 处的 TXT 记录</value>

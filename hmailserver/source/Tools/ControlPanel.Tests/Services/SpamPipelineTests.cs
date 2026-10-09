@@ -450,7 +450,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(surbl.Enabled);
          Assert.Null(surbl.Score);
          Assert.Equal("per list entry", surbl.ScoreText);
-         Assert.Contains("1 of 2 active", surbl.Detail, StringComparison.Ordinal);
+         Assert.EndsWith(". Active: 1 of 2.", surbl.Detail, StringComparison.Ordinal);
       }
 
       /// <summary>

@@ -674,7 +674,8 @@ namespace hMailServer.ControlPanel.Services
             return PluralF(total, "{0}. {1} entry is configured but not active, so the check does not run.",
                "{0}. {1} entries are configured, none active, so the check does not run.", what, total);
 
-         return F("{0}. {1} of {2} active.", what, active, total);
+         // The list pages' words for the count, "Active: 2 of 3" (ActiveEntries).
+         return F("{0}. Active: {1} of {2}.", what, active, total);
       }
 
       /// <summary>"a, b and c" - the notes are sentences, so they need the "and".</summary>

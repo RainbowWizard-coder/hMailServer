@@ -14747,9 +14747,6 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} Konten gefunden.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} von {1} aktiv</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} Adresse gelistet, die {1} neuesten werden angezeigt. Suchen Sie, um sie einzugrenzen.</value>
   </data>
@@ -15311,6 +15308,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, Bewertung {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Aktiv: {1} von {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Jedes Token, das der Identitätsanbieter mit diesem Schlüssel signiert, wird dann akzeptiert, auch eines, das er für eine andere Anwendung ausgestellt hat - und das genügt, um sich als das Postfach anzumelden, das dieses Token nennt. Setzen Sie beide genau auf die Werte, die der Anbieter in seine Tokens schreibt. Die Werte kommen vom Anbieter, deshalb stehen sie auf dieser Liste.</value>
   </data>
@@ -15322,9 +15322,6 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} Eintrag ist konfiguriert, aber nicht aktiv, die Prüfung läuft also nicht.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} von {2} aktiv.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: TXT-Eintrag unter {1}</value>

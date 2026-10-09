@@ -14747,9 +14747,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} accounts gevonden.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} van {1} actief</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} adres op de lijst, de {1} nieuwste worden getoond. Zoek om ze te beperken.</value>
   </data>
@@ -15311,6 +15308,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Actief: {1} van {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Elk token dat de identiteitsprovider met deze sleutel ondertekent, wordt dan geaccepteerd, ook een token dat aan een andere toepassing is uitgegeven - genoeg om zich aan te melden als het postvak dat dat token noemt. Stel beide in op precies de waarden die de provider in zijn tokens zet. De waarden komen van de provider, en daarom staan ze op deze lijst.</value>
   </data>
@@ -15322,9 +15322,6 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} vermelding is geconfigureerd maar niet actief, dus de controle draait niet.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} van {2} actief.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: TXT-record op {1}</value>

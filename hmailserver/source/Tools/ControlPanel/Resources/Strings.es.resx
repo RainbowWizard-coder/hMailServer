@@ -14747,9 +14747,6 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="{0} accounts found." xml:space="preserve">
     <value>{0} cuentas encontradas.</value>
   </data>
-  <data name="{0} active of {1}" xml:space="preserve">
-    <value>{0} activos de {1}</value>
-  </data>
   <data name="{0} address listed, showing the {1} most recent. Search to narrow them." xml:space="preserve">
     <value>{0} dirección en la lista; se muestran las {1} más recientes. Busque para acotarlas.</value>
   </data>
@@ -15311,6 +15308,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puntuación {2}. {3}</value>
   </data>
+  <data name="{0}. Active: {1} of {2}." xml:space="preserve">
+    <value>{0}. Activos: {1} de {2}.</value>
+  </data>
   <data name="{0}. Any token the identity provider signs with this key is then accepted, including one it issued to a different application - which is enough to log in as whichever mailbox that token names. Set both to the exact values the provider puts in its tokens. The values come from the provider, which is why they are on this list." xml:space="preserve">
     <value>{0}. Entonces se acepta cualquier token que el proveedor de identidad firme con esta clave, incluido uno que haya emitido para otra aplicación - lo que basta para iniciar sesión como el buzón que ese token nombre. Ponga en ambos los valores exactos que el proveedor pone en sus tokens. Los valores vienen del proveedor, y por eso están en esta lista.</value>
   </data>
@@ -15322,9 +15322,6 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="{0}. {1} entry is configured but not active, so the check does not run." xml:space="preserve">
     <value>{0}. {1} entrada está configurada, pero no activa, así que la comprobación no se ejecuta.</value>
-  </data>
-  <data name="{0}. {1} of {2} active." xml:space="preserve">
-    <value>{0}. {1} de {2} activos.</value>
   </data>
   <data name="{0}: TXT record at {1}" xml:space="preserve">
     <value>{0}: registro TXT en {1}</value>
