@@ -118,6 +118,29 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("MessageBox.Show(F(\"Could not save", save, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The two directory pages scroll as the feature settings pages of their group
+      /// do: the page padding is the scroller's Padding, as FeatureSettingsView.xaml
+      /// has it, with nothing more inside. It was the scroller's Margin, with twelve
+      /// pixels of the page's own inside it, which kept the scroll bar some
+      /// twenty-four pixels in from the window's edge and ended Save changes and the
+      /// cards twelve pixels further left than on every other page of the group.
+      /// </summary>
+      [Theory]
+      [InlineData("Views/LdapSettingsView.cs", "public LdapSettingsView()")]
+      [InlineData("Views/DirectorySyncView.cs", "public DirectorySyncView()")]
+      public void TheDirectoryPages_ScrollAsTheFeatureSettingsPagesDo(string file, string constructor)
+      {
+         string markup = ReadControlPanelFile("Views/FeatureSettingsView.xaml");
+         Assert.Contains("<ScrollViewer VerticalScrollBarVisibility=\"Auto\" Padding=\"{StaticResource AppPagePadding}\">", markup, StringComparison.Ordinal);
+
+         string built = WithheldRowTests.MemberText(ReadControlPanelFile(file), constructor);
+         Assert.True(built != null, file + ": " + constructor + " is gone.");
+         Assert.Contains("scroll.SetResourceReference(PaddingProperty, \"AppPagePadding\")", built, StringComparison.Ordinal);
+         Assert.DoesNotContain("scroll.SetResourceReference(MarginProperty", built, StringComparison.Ordinal);
+         Assert.Contains("var page = new StackPanel();", built, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void DirectorySynchronisation_SaysWhenItCouldNotWrite_AndWhenTheScheduleWaits()
       {

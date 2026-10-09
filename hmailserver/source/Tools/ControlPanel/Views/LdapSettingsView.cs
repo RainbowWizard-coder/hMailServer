@@ -148,8 +148,12 @@ namespace hMailServer.ControlPanel.Views
          // The page scrolls whole, header and all, as the feature settings pages do:
          // Reload and Save changes in the header's actions, the pill beside the title,
          // and under the header the notice that says where the page stands and the
-         // line that names the file - then the cards.
-         var page = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
+         // line that names the file - then the cards. The page padding is the
+         // scroller's own, as FeatureSettingsView.xaml's is, so the scroll bar sits
+         // at the window's edge and the header's actions end where theirs do; it was
+         // the scroller's margin, with twelve pixels more inside, which put both
+         // twelve pixels further in than on every other page of the group.
+         var page = new StackPanel();
 
          System.Windows.Automation.AutomationProperties.SetAutomationId(statePill_, "ldap-state");
          page.Children.Add(new PageHeader
@@ -181,7 +185,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(cards);
 
          var scroll = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-         scroll.SetResourceReference(MarginProperty, "AppPagePadding");
+         scroll.SetResourceReference(PaddingProperty, "AppPagePadding");
          Content = scroll;
 
          WireLiveState_();
