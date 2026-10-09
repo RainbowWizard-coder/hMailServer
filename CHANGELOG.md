@@ -1705,8 +1705,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   longer asks for "the current 6-digit code" and accepts any six characters: it says that turning the factor off
   removes the code requirement for this tool, scripts and the REST API, its button is Turn off the second factor, and
   Enter is Close. After an enrolment the server refused there is no code box keeping the keyboard beside a Confirm
-  that cannot be pressed, the box takes digits only, typed or pasted, and the recovery text names the [Security]
-  section of hMailServer.ini, the editor run as administrator and the service restart, as the server's own text does.
+  that cannot be pressed, the box takes digits only, typed or pasted - a space typed is held off, and a code pasted as
+  authenticator apps copy it, "123 456", keeps its six digits - and the recovery text names the [Security] section of
+  hMailServer.ini, the editor run as administrator and the service restart, as the server's own text does.
 
 - **Fixed: Live logs could stream the wrong file, went silent at midnight and put every problem in the grey
   subtitle.** The page took the newest file matching hmailserver_*.log, which is as often the AWStats, backup or

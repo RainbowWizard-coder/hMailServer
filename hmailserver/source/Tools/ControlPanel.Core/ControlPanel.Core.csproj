@@ -37,6 +37,9 @@
     <!-- How long ago something was, in catalogued words: the quarantine's held
          times and the message-store consistency card's scan. -->
     <Compile Include="..\ControlPanel\Services\AgeWords.cs" />
+    <!-- What the server-enforced second factor's code box takes, typed or pasted,
+         and the code it checks: digits alone. -->
+    <Compile Include="..\ControlPanel\Services\VerificationCode.cs" />
     <!-- How much time a chart covers, in words: one of a unit is a sentence of its
          own. No WPF, so the tests hold every count's words. -->
     <Compile Include="..\ControlPanel\Services\ChartWindowWords.cs" />

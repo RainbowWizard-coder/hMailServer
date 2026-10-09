@@ -4,10 +4,10 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using QRCoder;
 using hMailServer.ControlPanel.Services;
@@ -94,21 +94,26 @@ namespace hMailServer.ControlPanel.Views
          close_.Click += (s, e) => Close();
 
          // A verification code is digits, and the box takes nothing else - typed or
-         // pasted - so that a stray letter is not what "does not match" is about. A
-         // pasted code keeps its digits: authenticator apps copy "123 456".
-         code_.PreviewTextInput += (s, e) => e.Handled = !IsDigits_(e.Text);
+         // pasted - so that a stray letter is not what "does not match" is about
+         // (Services/VerificationCode). The space bar never raises PreviewTextInput,
+         // which a TextBox handles itself, so it is held off as a key: a code typed as
+         // the authenticator shows it, "123 456", went in as "123 45". A pasted code
+         // keeps its digits: authenticator apps copy "123 456".
+         code_.PreviewTextInput += (s, e) => e.Handled = !VerificationCode.IsTyped(e.Text);
+         code_.PreviewKeyDown += (s, e) =>
+         {
+            if (e.Key == Key.Space)
+               e.Handled = true;
+         };
          DataObject.AddPastingHandler(code_, (s, e) =>
          {
             string pasted = e.DataObject.GetDataPresent(DataFormats.UnicodeText) ? (string)e.DataObject.GetData(DataFormats.UnicodeText) ?? "" : "";
             e.CancelCommand();
-            if (pasted.Any(c => !char.IsAsciiDigit(c) && !char.IsWhiteSpace(c)))
+            string code = VerificationCode.FromPaste(pasted, code_.MaxLength);
+            if (code == null)
                return;
 
-            string digits = new string(pasted.Where(char.IsAsciiDigit).ToArray());
-            if (digits.Length == 0)
-               return;
-
-            code_.Text = digits.Length > code_.MaxLength ? digits.Substring(0, code_.MaxLength) : digits;
+            code_.Text = code;
             code_.CaretIndex = code_.Text.Length;
          });
 
@@ -120,10 +125,6 @@ namespace hMailServer.ControlPanel.Views
          Closing += (s, e) => RollBackIfUnconfirmed();
          Loaded += (s, e) => FocusForState_();
       }
-
-      /// <summary>Whether a text is one or more digits and nothing else.</summary>
-      private static bool IsDigits_(string text)
-         => !string.IsNullOrEmpty(text) && text.All(char.IsAsciiDigit);
 
       /// <summary>
       /// The keyboard where the state wants it: in the code box while there is an
@@ -225,7 +226,8 @@ namespace hMailServer.ControlPanel.Views
          codeRow_.Error = null;
          notice_.Hide();
 
-         string entered = (code_.Text ?? "").Trim();
+         // The box's digits, whatever else came to be in it.
+         string entered = VerificationCode.Digits(code_.Text);
 
          try
          {
