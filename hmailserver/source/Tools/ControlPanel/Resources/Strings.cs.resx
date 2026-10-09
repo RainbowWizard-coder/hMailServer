@@ -6727,8 +6727,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>V této doméně zatím nejsou žádné účty.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Výrazu {0} neodpovídá žádný aktivní účet v aktivní doméně, takže by zprávu nikdo nedostal.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Výrazu „{0}“ neodpovídá žádný aktivní účet v aktivní doméně, takže by zprávu nikdo nedostal.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Žádná aktivní doména, takže zatím není co zveřejnit.</value>
@@ -9983,14 +9983,14 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Send webhook events" xml:space="preserve">
     <value>Odesílat události webhooků</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Odeslat „{0}“ všem aktivním účtům, které odpovídají výrazu {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Odeslat „{0}“ všem aktivním účtům, které odpovídají výrazu „{1}“?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Odeslat „{0}“ jedinému aktivnímu účtu, který odpovídá výrazu {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Odeslat „{0}“ jedinému aktivnímu účtu, který odpovídá výrazu „{1}“?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Odeslat „{0}“ aktivním účtům, které odpovídají výrazu {2} (počet: {1})?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Odeslat „{0}“ aktivním účtům, které odpovídají výrazu „{2}“ (počet: {1})?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Odesílatel</value>

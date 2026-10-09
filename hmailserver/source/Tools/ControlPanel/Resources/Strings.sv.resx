@@ -6664,8 +6664,8 @@ Inget som redan finns där tas bort.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Inga konton i den här domänen än.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Inget aktivt konto i en aktiv domän matchar {0}, så ingen skulle få meddelandet.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Inget aktivt konto i en aktiv domän matchar ”{0}”, så ingen skulle få meddelandet.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Ingen aktiv domän, så det finns inget att publicera ännu.</value>
@@ -9875,14 +9875,14 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Send webhook events" xml:space="preserve">
     <value>Skicka webhook-händelser</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Skicka ”{0}” till alla aktiva konton som matchar {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Skicka ”{0}” till alla aktiva konton som matchar ”{1}”?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Skicka ”{0}” till det enda aktiva kontot som matchar {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Skicka ”{0}” till det enda aktiva kontot som matchar ”{1}”?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Skicka ”{0}” till de {1} aktiva konton som matchar {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Skicka ”{0}” till de {1} aktiva konton som matchar ”{2}”?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Avsändare</value>

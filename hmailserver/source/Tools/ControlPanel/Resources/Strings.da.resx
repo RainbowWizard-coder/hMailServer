@@ -6664,8 +6664,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Der er endnu ingen konti i dette domæne.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Ingen aktiv konto i et aktivt domæne matcher {0}, så ingen ville modtage meddelelsen.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Ingen aktiv konto i et aktivt domæne matcher »{0}«, så ingen ville modtage meddelelsen.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Intet aktivt domæne, så der er endnu intet at offentliggøre.</value>
@@ -9875,14 +9875,14 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Send webhook events" xml:space="preserve">
     <value>Send webhook-hændelser</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Send »{0}« til alle aktive konti, der matcher {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Send »{0}« til alle aktive konti, der matcher »{1}«?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Send »{0}« til den ene aktive konto, der matcher {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Send »{0}« til den ene aktive konto, der matcher »{1}«?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Send »{0}« til de {1} aktive konti, der matcher {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Send »{0}« til de {1} aktive konti, der matcher »{2}«?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Afsender</value>

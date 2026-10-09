@@ -6664,8 +6664,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Tässä verkkotunnuksessa ei ole vielä tilejä.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Mikään aktiivisen verkkotunnuksen aktiivinen tili ei vastaa lauseketta {0}, joten kukaan ei saisi viestiä.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Mikään aktiivisen verkkotunnuksen aktiivinen tili ei vastaa lauseketta ”{0}”, joten kukaan ei saisi viestiä.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Ei aktiivista verkkotunnusta, joten julkaistavaa ei vielä ole.</value>
@@ -9875,14 +9875,14 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Send webhook events" xml:space="preserve">
     <value>Lähetä webhook-tapahtumia</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Lähetetäänkö ”{0}” kaikille aktiivisille tileille, jotka vastaavat lauseketta {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” kaikille aktiivisille tileille, jotka vastaavat lauseketta ”{1}”?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Lähetetäänkö ”{0}” ainoalle aktiiviselle tilille, joka vastaa lauseketta {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” ainoalle aktiiviselle tilille, joka vastaa lauseketta ”{1}”?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Lähetetäänkö ”{0}” niille {1} aktiiviselle tilille, jotka vastaavat lauseketta {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Lähetetäänkö ”{0}” niille {1} aktiiviselle tilille, jotka vastaavat lauseketta ”{2}”?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Lähettäjä</value>

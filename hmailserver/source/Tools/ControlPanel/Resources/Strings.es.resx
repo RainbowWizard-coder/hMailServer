@@ -6664,8 +6664,8 @@ No se elimina nada de lo que ya está.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Todavía no hay cuentas en este dominio.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Ninguna cuenta activa de un dominio activo coincide con {0}, así que nadie recibiría el mensaje.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Ninguna cuenta activa de un dominio activo coincide con «{0}», así que nadie recibiría el mensaje.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>No hay ningún dominio activo, así que aún no hay nada que publicar.</value>
@@ -9875,14 +9875,14 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Send webhook events" xml:space="preserve">
     <value>Enviar eventos de webhook</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>¿Enviar «{0}» a todas las cuentas activas que coincidan con {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>¿Enviar «{0}» a todas las cuentas activas que coincidan con «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>¿Enviar «{0}» a la única cuenta activa que coincide con {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>¿Enviar «{0}» a la única cuenta activa que coincide con «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>¿Enviar «{0}» a las {1} cuentas activas que coinciden con {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>¿Enviar «{0}» a las {1} cuentas activas que coinciden con «{2}»?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Remitente</value>

@@ -6664,8 +6664,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Bu etki alanında henüz hesap yok.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Etkin bir etki alanında {0} ile eşleşen etkin bir hesap yok; bu yüzden iletiyi kimse almaz.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Etkin bir etki alanında “{0}” ile eşleşen etkin bir hesap yok; bu yüzden iletiyi kimse almaz.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Etkin alan adı yok; bu yüzden henüz yayımlanacak bir şey yok.</value>
@@ -9875,14 +9875,14 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Send webhook events" xml:space="preserve">
     <value>Webhook olayları gönder</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>“{0}”, {1} ile eşleşen tüm etkin hesaplara gönderilsin mi?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>“{0}”, “{1}” ile eşleşen tüm etkin hesaplara gönderilsin mi?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>“{0}”, {1} ile eşleşen tek etkin hesaba gönderilsin mi?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>“{0}”, “{1}” ile eşleşen tek etkin hesaba gönderilsin mi?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>“{0}”, {2} ile eşleşen {1} etkin hesaba gönderilsin mi?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>“{0}”, “{2}” ile eşleşen {1} etkin hesaba gönderilsin mi?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Gönderen</value>

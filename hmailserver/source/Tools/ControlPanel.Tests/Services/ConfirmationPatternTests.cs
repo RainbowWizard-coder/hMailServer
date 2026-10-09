@@ -245,7 +245,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       internal static string ReadControlPanelFile(string relative) => File.ReadAllText(ControlPanelFile(relative));
 
-      private static string ControlPanelFile(string relative)
+      internal static string ControlPanelFile(string relative)
       {
          var directory = new DirectoryInfo(AppContext.BaseDirectory);
          while (directory != null)

@@ -6727,8 +6727,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>W tej domenie nie ma jeszcze kont.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Żadne aktywne konto w aktywnej domenie nie pasuje do {0}, więc nikt nie otrzymałby wiadomości.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Żadne aktywne konto w aktywnej domenie nie pasuje do „{0}”, więc nikt nie otrzymałby wiadomości.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Brak aktywnej domeny, więc nie ma jeszcze nic do opublikowania.</value>
@@ -9983,14 +9983,14 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Send webhook events" xml:space="preserve">
     <value>Wysyłaj zdarzenia webhook</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Wysłać „{0}” do wszystkich aktywnych kont pasujących do {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Wysłać „{0}” do wszystkich aktywnych kont pasujących do „{1}”?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Wysłać „{0}” do jedynego aktywnego konta pasującego do {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Wysłać „{0}” do jedynego aktywnego konta pasującego do „{1}”?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Wysłać „{0}” do aktywnych kont pasujących do {2} (liczba: {1})?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Wysłać „{0}” do aktywnych kont pasujących do „{2}” (liczba: {1})?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Nadawca</value>

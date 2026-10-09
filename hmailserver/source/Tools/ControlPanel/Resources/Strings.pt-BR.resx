@@ -6664,8 +6664,8 @@ Nada do que já está lá é removido.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Ainda não há contas neste domínio.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Nenhuma conta ativa de um domínio ativo corresponde a {0}, então ninguém receberia a mensagem.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Nenhuma conta ativa de um domínio ativo corresponde a “{0}”, então ninguém receberia a mensagem.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Nenhum domínio ativo, então ainda não há nada a publicar.</value>
@@ -9875,14 +9875,14 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Send webhook events" xml:space="preserve">
     <value>Enviar eventos de webhook</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Enviar “{0}” para todas as contas ativas que correspondem a {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Enviar “{0}” para todas as contas ativas que correspondem a “{1}”?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Enviar “{0}” para a única conta ativa que corresponde a {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Enviar “{0}” para a única conta ativa que corresponde a “{1}”?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Enviar “{0}” para as {1} contas ativas que correspondem a {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Enviar “{0}” para as {1} contas ativas que correspondem a “{2}”?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Remetente</value>

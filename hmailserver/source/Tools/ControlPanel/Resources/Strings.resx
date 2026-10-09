@@ -6664,8 +6664,8 @@ Nothing already there is removed.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>No accounts in this domain yet.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>No active account in an active domain matches {0}, so nobody would receive the message.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>No active account in an active domain matches “{0}”, so nobody would receive the message.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>No active domain, so there is nothing to publish yet.</value>
@@ -9875,14 +9875,14 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Send webhook events" xml:space="preserve">
     <value>Send webhook events</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Send “{0}” to every active account matching {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Send “{0}” to every active account matching “{1}”?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Send “{0}” to the one active account matching {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Send “{0}” to the one active account matching “{1}”?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Send “{0}” to the {1} active accounts matching {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Send “{0}” to the {1} active accounts matching “{2}”?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Sender</value>

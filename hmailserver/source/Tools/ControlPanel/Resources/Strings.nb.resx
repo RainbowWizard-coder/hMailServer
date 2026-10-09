@@ -6664,8 +6664,8 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Ingen kontoer i dette domenet ennå.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Ingen aktiv konto i et aktivt domene samsvarer med {0}, så ingen ville fått meldingen.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Ingen aktiv konto i et aktivt domene samsvarer med «{0}», så ingen ville fått meldingen.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Ingen aktive domener, så det er ingenting å publisere ennå.</value>
@@ -9875,14 +9875,14 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Send webhook events" xml:space="preserve">
     <value>Send webhook-hendelser</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Sende «{0}» til alle aktive kontoer som samsvarer med {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Sende «{0}» til alle aktive kontoer som samsvarer med «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Sende «{0}» til den ene aktive kontoen som samsvarer med {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Sende «{0}» til den ene aktive kontoen som samsvarer med «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Sende «{0}» til de {1} aktive kontoene som samsvarer med {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Sende «{0}» til de {1} aktive kontoene som samsvarer med «{2}»?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Avsender</value>

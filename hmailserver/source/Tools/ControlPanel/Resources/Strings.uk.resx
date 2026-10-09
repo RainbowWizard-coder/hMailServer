@@ -6727,8 +6727,8 @@
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>У цьому домені ще немає облікових записів.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Жоден активний обліковий запис в активному домені не відповідає {0}, тож повідомлення ніхто не отримав би.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Жоден активний обліковий запис в активному домені не відповідає «{0}», тож повідомлення ніхто не отримав би.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Немає активного домену, тому публікувати поки нічого.</value>
@@ -9983,14 +9983,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Send webhook events" xml:space="preserve">
     <value>Надсилати події вебхуків</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Надіслати «{0}» усім активним обліковим записам, що відповідають {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Надіслати «{0}» усім активним обліковим записам, що відповідають «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Надіслати «{0}» єдиному активному обліковому запису, що відповідає {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Надіслати «{0}» єдиному активному обліковому запису, що відповідає «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Надіслати «{0}» активним обліковим записам, що відповідають {2} (кількість: {1})?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Надіслати «{0}» активним обліковим записам, що відповідають «{2}» (кількість: {1})?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Відправник</value>

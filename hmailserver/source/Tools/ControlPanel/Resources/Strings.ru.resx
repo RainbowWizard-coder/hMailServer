@@ -6727,8 +6727,8 @@ Control Panel может читать файлы сообщений только
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>В этом домене пока нет учётных записей.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Ни одна активная учётная запись в активном домене не соответствует {0}, поэтому сообщение никто не получил бы.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Ни одна активная учётная запись в активном домене не соответствует «{0}», поэтому сообщение никто не получил бы.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Нет активного домена, поэтому публиковать пока нечего.</value>
@@ -9983,14 +9983,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Send webhook events" xml:space="preserve">
     <value>Отправлять события веб-хуков</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Отправить «{0}» всем активным учётным записям, соответствующим {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Отправить «{0}» всем активным учётным записям, соответствующим «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Отправить «{0}» единственной активной учётной записи, соответствующей {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Отправить «{0}» единственной активной учётной записи, соответствующей «{1}»?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Отправить «{0}» активным учётным записям, соответствующим {2} (количество: {1})?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Отправить «{0}» активным учётным записям, соответствующим «{2}» (количество: {1})?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Отправитель</value>

@@ -6664,8 +6664,8 @@
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>此域中还没有账户。</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>没有任何活动域中的活动账户与 {0} 匹配，因此没有人会收到该邮件。</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>没有任何活动域中的活动账户与“{0}”匹配，因此没有人会收到该邮件。</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>没有活动的域，因此暂时没有什么可发布。</value>
@@ -9875,14 +9875,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Send webhook events" xml:space="preserve">
     <value>发送 Webhook 事件</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>是否将“{0}”发送给与 {1} 匹配的所有活动账户？</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>是否将“{0}”发送给与“{1}”匹配的所有活动账户？</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>是否将“{0}”发送给与 {1} 匹配的唯一一个活动账户？</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>是否将“{0}”发送给与“{1}”匹配的唯一一个活动账户？</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>是否将“{0}”发送给与 {2} 匹配的 {1} 个活动账户？</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>是否将“{0}”发送给与“{2}”匹配的 {1} 个活动账户？</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>发件人</value>

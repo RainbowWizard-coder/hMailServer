@@ -6664,8 +6664,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Nog geen accounts in dit domein.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Geen actief account in een actief domein komt overeen met {0}, dus niemand zou het bericht ontvangen.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Geen actief account in een actief domein komt overeen met ‘{0}’, dus niemand zou het bericht ontvangen.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Geen actief domein, dus er valt nog niets te publiceren.</value>
@@ -9875,14 +9875,14 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Send webhook events" xml:space="preserve">
     <value>Webhook-gebeurtenissen versturen</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>‘{0}’ verzenden naar elk actief account dat overeenkomt met {1}?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>‘{0}’ verzenden naar elk actief account dat overeenkomt met ‘{1}’?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>‘{0}’ verzenden naar het ene actieve account dat overeenkomt met {1}?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>‘{0}’ verzenden naar het ene actieve account dat overeenkomt met ‘{1}’?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>‘{0}’ verzenden naar de {1} actieve accounts die overeenkomen met {2}?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>‘{0}’ verzenden naar de {1} actieve accounts die overeenkomen met ‘{2}’?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Afzender</value>

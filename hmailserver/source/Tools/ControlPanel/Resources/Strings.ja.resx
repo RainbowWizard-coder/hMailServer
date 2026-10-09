@@ -6664,8 +6664,8 @@
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>このドメインにはまだアカウントがありません。</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>{0} に一致する、有効なドメインの有効なアカウントはありません。メッセージを受け取る人はいません。</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>「{0}」に一致する、有効なドメインの有効なアカウントはありません。メッセージを受け取る人はいません。</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>有効なドメインがないため、公開するものはまだありません。</value>
@@ -9875,14 +9875,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Send webhook events" xml:space="preserve">
     <value>Webhook イベントを送る</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>「{0}」を {1} に一致するすべての有効なアカウントに送信しますか?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>「{0}」を「{1}」に一致するすべての有効なアカウントに送信しますか?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>「{0}」を {1} に一致する唯一の有効なアカウントに送信しますか?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>「{0}」を「{1}」に一致する唯一の有効なアカウントに送信しますか?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>「{0}」を {2} に一致する {1} 件の有効なアカウントに送信しますか?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>「{0}」を「{2}」に一致する {1} 件の有効なアカウントに送信しますか?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>送信者</value>

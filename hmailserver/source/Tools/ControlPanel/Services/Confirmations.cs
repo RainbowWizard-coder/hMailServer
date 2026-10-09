@@ -157,20 +157,23 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The server sendout, with how many active accounts in active domains match the
-      /// wildcard (Services/SendoutAudience; null when they could not be counted).
+      /// wildcard (Services/SendoutAudience; null when they could not be counted). The
+      /// wildcard is quoted as the subject is, so that it is plain where it ends: a ?
+      /// in it stands for any one character, and left bare it ran into the question's
+      /// own mark - "matching *?".
       /// </summary>
       public static string Sendout(string subject, int? recipients, string wildcard)
       {
          if (recipients == null)
-            return F("Send “{0}” to every active account matching {1}?", subject, wildcard);
+            return F("Send “{0}” to every active account matching “{1}”?", subject, wildcard);
 
          return recipients.Value == 1
-            ? F("Send “{0}” to the one active account matching {1}?", subject, wildcard)
-            : F("Send “{0}” to the {1} active accounts matching {2}?", subject, recipients.Value, wildcard);
+            ? F("Send “{0}” to the one active account matching “{1}”?", subject, wildcard)
+            : F("Send “{0}” to the {1} active accounts matching “{2}”?", subject, recipients.Value, wildcard);
       }
 
       public static string SendoutToNobody(string wildcard)
-         => F("No active account in an active domain matches {0}, so nobody would receive the message.", wildcard);
+         => F("No active account in an active domain matches “{0}”, so nobody would receive the message.", wildcard);
 
       // ---- Account two-factor (F200) ---------------------------------------------------
 

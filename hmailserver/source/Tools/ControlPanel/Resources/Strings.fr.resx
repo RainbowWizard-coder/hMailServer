@@ -6664,8 +6664,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="No accounts in this domain yet." xml:space="preserve">
     <value>Aucun compte dans ce domaine pour l'instant.</value>
   </data>
-  <data name="No active account in an active domain matches {0}, so nobody would receive the message." xml:space="preserve">
-    <value>Aucun compte actif d'un domaine actif ne correspond à {0} ; personne ne recevrait donc le message.</value>
+  <data name="No active account in an active domain matches “{0}”, so nobody would receive the message." xml:space="preserve">
+    <value>Aucun compte actif d'un domaine actif ne correspond à « {0} » ; personne ne recevrait donc le message.</value>
   </data>
   <data name="No active domain, so there is nothing to publish yet." xml:space="preserve">
     <value>Aucun domaine actif ; il n'y a donc encore rien à publier.</value>
@@ -9875,14 +9875,14 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Send webhook events" xml:space="preserve">
     <value>Envoyer les événements webhook</value>
   </data>
-  <data name="Send “{0}” to every active account matching {1}?" xml:space="preserve">
-    <value>Envoyer « {0} » à chaque compte actif correspondant à {1} ?</value>
+  <data name="Send “{0}” to every active account matching “{1}”?" xml:space="preserve">
+    <value>Envoyer « {0} » à chaque compte actif correspondant à « {1} » ?</value>
   </data>
-  <data name="Send “{0}” to the one active account matching {1}?" xml:space="preserve">
-    <value>Envoyer « {0} » au seul compte actif correspondant à {1} ?</value>
+  <data name="Send “{0}” to the one active account matching “{1}”?" xml:space="preserve">
+    <value>Envoyer « {0} » au seul compte actif correspondant à « {1} » ?</value>
   </data>
-  <data name="Send “{0}” to the {1} active accounts matching {2}?" xml:space="preserve">
-    <value>Envoyer « {0} » aux {1} comptes actifs correspondant à {2} ?</value>
+  <data name="Send “{0}” to the {1} active accounts matching “{2}”?" xml:space="preserve">
+    <value>Envoyer « {0} » aux {1} comptes actifs correspondant à « {2} » ?</value>
   </data>
   <data name="Sender" xml:space="preserve">
     <value>Expéditeur</value>

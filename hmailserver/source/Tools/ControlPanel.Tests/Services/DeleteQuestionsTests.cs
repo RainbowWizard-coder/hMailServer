@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -214,6 +215,58 @@ namespace hMailServer.ControlPanel.Tests.Services
          });
          Assert.Contains("the 12 active accounts", many, StringComparison.Ordinal);
          Assert.Contains("*@example.com", Confirmations.SendoutToNobody("*@example.com"), StringComparison.Ordinal);
+
+         // Quoted as the subject is: a ? in a wildcard stands for any one character,
+         // and "matching *?" ran the pattern into the question's own mark.
+         Assert.All(new[] { uncounted, one, many }, text =>
+            Assert.EndsWith("matching “*@example.com”?", text, StringComparison.Ordinal));
+         Assert.Contains("matches “*@example.com”,", Confirmations.SendoutToNobody("*@example.com"), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Every language quotes the sendout's wildcard with the marks its own question
+      /// quotes the subject with, so that no translation leaves it bare against the
+      /// question's mark.
+      /// </summary>
+      [Fact]
+      public void TheSendoutsWildcard_IsQuoted_AsEachLanguageQuotesTheSubject()
+      {
+         (string Key, string Wildcard)[] questions =
+         {
+            ("Send “{0}” to every active account matching “{1}”?", "{1}"),
+            ("Send “{0}” to the one active account matching “{1}”?", "{1}"),
+            ("Send “{0}” to the {1} active accounts matching “{2}”?", "{2}"),
+            ("No active account in an active domain matches “{0}”, so nobody would receive the message.", "{0}"),
+         };
+
+         string resources = Path.GetDirectoryName(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         int catalogues = 0;
+         foreach (string path in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         {
+            string tag = Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length);
+            var catalogue = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+
+            // The subject's marks, from the first question: the character either side
+            // of {0}, with the space French sets inside its guillemets.
+            Assert.True(catalogue.TryGetValue(questions[0].Key, out string first) && first.Length > 0, tag + " does not translate the sendout question.");
+            int at = first.IndexOf("{0}", StringComparison.Ordinal);
+            Assert.True(at > 0 && at + 3 < first.Length, tag + ": the subject is not quoted in \"" + first + "\".");
+            string opening = first.Substring(first[at - 1] == ' ' ? at - 2 : at - 1, first[at - 1] == ' ' ? 2 : 1);
+            string closing = first.Substring(at + 3, first[at + 3] == ' ' ? 2 : 1);
+            Assert.False(char.IsLetterOrDigit(opening.Trim()[0]) || char.IsLetterOrDigit(closing.Trim()[0]), tag + ": the subject is not quoted in \"" + first + "\".");
+
+            foreach ((string key, string wildcard) in questions)
+            {
+               Assert.True(catalogue.TryGetValue(key, out string value) && value.Length > 0, tag + " does not translate \"" + key + "\".");
+               Assert.True(value.Contains(opening + wildcard + closing, StringComparison.Ordinal),
+                  tag + ": the wildcard " + wildcard + " is not quoted " + opening + "…" + closing + " in \"" + value + "\".");
+            }
+
+            catalogues++;
+         }
+
+         Assert.Equal(17, catalogues);
       }
 
       // The server's own cases for StringParser::WildcardMatch, which the sendout's
