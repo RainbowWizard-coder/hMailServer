@@ -7064,7 +7064,7 @@ Nichts, was schon dort ist, wird entfernt.</value>
     <value>Es ist kein Zeitplan konfiguriert, es wird also nie eine Sicherung von selbst laufen. Sicherungen geschehen nur, wenn jemand auf „Sicherung jetzt starten" klickt.</value>
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
-    <value>Es ist keine Suchbasis gesetzt (Verzeichnisauthentifizierung (LDAP), Der Verzeichniseintrag des Benutzers wird gesucht).</value>
+    <value>Es ist keine Suchbasis gesetzt (Verzeichnisauthentifizierung (LDAP), Abschnitt „Der Verzeichniseintrag des Benutzers wird gesucht").</value>
   </data>
   <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
     <value>Es wird kein zweiter Faktor erzwungen - das Administratorpasswort allein meldet an.</value>
