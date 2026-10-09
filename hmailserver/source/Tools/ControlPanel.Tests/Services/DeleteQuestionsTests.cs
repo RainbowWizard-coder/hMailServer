@@ -419,6 +419,22 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// Each sweep's question is captioned with its page's name - the window's title
+      /// and the name a screen reader gives the question - where the quarantine's
+      /// borrowed the caption of the delete of one message, "Delete quarantined
+      /// message", for a delete of every expired one.
+      /// </summary>
+      [Theory]
+      [InlineData("QuarantineView.cs", "Confirmations.DeleteExpiredQuarantine(days), L(\"Quarantine\"), L(\"_Delete\"), destructive: true")]
+      [InlineData("MessageTraceView.cs", "Confirmations.DeleteExpiredTrace(days), L(\"Message trace\"), L(\"_Delete\"), destructive: true")]
+      public void EachSweepsQuestion_IsCaptionedWithItsPage(string file, string call)
+      {
+         string sweep = WithheldRowTests.MemberText(ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", file)), "private void SweepExpired()");
+         Assert.True(sweep != null, file + ": SweepExpired is gone.");
+         Assert.Contains(call, sweep, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AGroupsOrTheCheckedMessagesRelease_AsksFirst_WithCancelOnEnter()
       {

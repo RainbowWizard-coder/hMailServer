@@ -1196,7 +1196,10 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (!MessageBox.Confirm(Confirmations.DeleteExpiredQuarantine(days), L("Delete quarantined message"), L("_Delete"), destructive: true))
+         // Captioned with the page's name, as the message trace's sweep is: the window's
+         // title, and the name a screen reader gives the question, said "Delete
+         // quarantined message" of a delete of every expired one.
+         if (!MessageBox.Confirm(Confirmations.DeleteExpiredQuarantine(days), L("Quarantine"), L("_Delete"), destructive: true))
             return;
 
          try
