@@ -102,8 +102,10 @@ namespace hMailServer.ControlPanel.Views
       private Button removeExpired_;
 
       // Why the selected message was held, under the list (review finding F261):
-      // the row's tool tip was the one place it was said, which no keyboard or
-      // screen reader reaches. A polite live region, said as the selection moves.
+      // the row's tool tip was the one place it was said, which no keyboard
+      // reaches. For the eye alone: a screen reader hears the reason in the row's
+      // accessible name as the selection moves, and a live region here said it a
+      // second time on every move.
       private readonly TextBlock why_ = new() { TextWrapping = TextWrapping.Wrap };
       private readonly Card whyCard_ = new() { Visibility = Visibility.Collapsed };
 
@@ -1331,7 +1333,6 @@ namespace hMailServer.ControlPanel.Views
 
          // Why the selected message was held, under the list.
          why_.SetResourceReference(StyleProperty, "TextBody");
-         AutomationProperties.SetLiveSetting(why_, System.Windows.Automation.AutomationLiveSetting.Polite);
          AutomationProperties.SetAutomationId(whyCard_, "quarantine-why");
          whyCard_.Content = why_;
          whyCard_.SetResourceReference(MarginProperty, "AppCardGap");
@@ -1380,7 +1381,6 @@ namespace hMailServer.ControlPanel.Views
          {
             why_.Text = row.HeldBecause;
             whyCard_.Visibility = Visibility.Visible;
-            Announce.Request(why_);
          }
          else
          {

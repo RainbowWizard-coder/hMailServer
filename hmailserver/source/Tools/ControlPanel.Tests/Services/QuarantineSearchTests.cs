@@ -116,12 +116,15 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string view = ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
 
-         // Why, for the selected message, under the list and announced.
+         // Why, for the selected message, under the list - and said once to a screen
+         // reader, in the row's accessible name: the strip is no live region, which
+         // announced the reason a second time on every move of the selection.
          Assert.Contains("parts.Children.Add(whyCard_);", view, StringComparison.Ordinal);
          string why = WithheldRowTests.MemberText(view, "private void ShowWhy_()");
          Assert.True(why != null, "QuarantineView.ShowWhy_ is gone.");
          Assert.Contains("why_.Text = row.HeldBecause;", why, StringComparison.Ordinal);
-         Assert.Contains("Announce.Request(why_);", why, StringComparison.Ordinal);
+         Assert.DoesNotContain("Announce.Request(why", view, StringComparison.Ordinal);
+         Assert.DoesNotContain("SetLiveSetting(why", view, StringComparison.Ordinal);
 
          // The search, and what it says when it finds nothing among a partial list.
          Assert.Contains("review_.SetFilter(search_.SearchText);", view, StringComparison.Ordinal);

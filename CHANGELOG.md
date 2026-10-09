@@ -1767,14 +1767,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 
 - **Fixed: why a quarantined message was held was only in a hover tool tip, and nothing could search the held
   messages.** Keyboard and screen-reader users never got the reason, and the row's accessible name left it out. The
-  reason of the selected message is now said under the list, as it is selected, and is part of the row's accessible
-  name; a search above the list finds held messages by sender, recipients, subject or reason, says when it finds none,
-  and, where the server listed only its most recent, that it looked at those. Held is how long ago the message was
-  held where the server's clock is this computer's, and the reader's date and time where it is not, the whole time in
-  the tool tip marked as the server's, where it was the database's raw string in every language. Sender is twice and
-  Recipients one and a half times as wide as the HELO name, which is left out where the window is narrower than the
-  sidebar's threshold, and Held and Score are as wide as their widest word, so that the addresses are no longer cut
-  while Subject has room to spare, and Subject is no longer cut to a few letters.
+  reason of the selected message is now shown under the list and is part of the row's accessible name, which a screen
+  reader says once as the selection moves; a search above the list finds held messages by sender, recipients, subject
+  or reason, says when it finds none, and, where the server listed only its most recent, that it looked at those. Held
+  is how long ago the message was held where the server's clock is this computer's, and the reader's date and time
+  where it is not, the whole time in the tool tip marked as the server's, where it was the database's raw string in
+  every language. Sender is twice and Recipients one and a half times as wide as the HELO name, which is left out
+  where the window is narrower than the sidebar's threshold, and Held and Score are as wide as their widest word, so
+  that the addresses are no longer cut while Subject has room to spare, and Subject is no longer cut to a few letters.
 
 - **Fixed: the spam filtering overview's structure was flat, its scores unlabelled, and it left out the external
   filtering engine.** The card titles and the two phase headings were one size and weight, with no heading level on
