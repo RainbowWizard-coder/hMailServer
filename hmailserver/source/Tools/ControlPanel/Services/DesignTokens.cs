@@ -540,12 +540,14 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// A link's colour at rest and under the pointer, as 0xAARRGGBB: the About
-      /// page's, the help pane's document list and every link inside a help
-      /// document. A link took WPF's own colour, the system's #0066CC, which is
-      /// 2.5:1 on the dark card, and turned red under the pointer, the danger
-      /// colour. These clear 4.5:1 on the page, a card, a dialog and a hovered or
-      /// selected row in their theme, under the pointer as well. Under High
-      /// Contrast a link is the system's own link colour, HotTrack.
+      /// page's, the help pane's document list, every link inside a help
+      /// document and the sign-in page's link button. A link took WPF's own
+      /// colour, the system's #0066CC, which is 2.5:1 on the dark card, and
+      /// turned red under the pointer, the danger colour; the link button took
+      /// WPF-UI's, a shade of the Windows accent. These clear 4.5:1 on the page,
+      /// a card, a dialog and a hovered or selected row in their theme, under
+      /// the pointer as well. Under High Contrast a link is the system's own link
+      /// colour, HotTrack.
       /// </summary>
       public readonly struct LinkArgb
       {
@@ -574,6 +576,14 @@ namespace hMailServer.ControlPanel.Services
                return new LinkArgb(0xFF6CB6FF, 0xFF9CCFFF);
          }
       }
+
+      /// <summary>
+      /// Whether WPF-UI's link button - the sign-in page's "Set up two-factor
+      /// authentication…" - takes the link colours in this theme, in place of the
+      /// theme's own, which are shades of the Windows accent: not under High
+      /// Contrast, whose link colours are the user's.
+      /// </summary>
+      public static bool LinkButtonFor(ChartTheme theme) => theme != ChartTheme.HighContrast;
 
       /// <summary>
       /// A text field's border at rest, as 0xAARRGGBB: its bottom edge, and the

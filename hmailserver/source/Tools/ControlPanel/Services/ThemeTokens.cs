@@ -326,12 +326,35 @@ namespace hMailServer.ControlPanel.Services
          Publish("AppOnDangerSolidBrush", FromArgb(dangerSolid.Text));
 
          // A link's colour at rest and under the pointer (DesignTokens.Link),
-         // which App.xaml's Hyperlink style gives every link in place of WPF's
-         // own: the system's #0066CC, 2.5:1 on the dark card, and red under the
-         // pointer. Under High Contrast it is HotTrack, the system's link colour.
+         // which App.xaml's Hyperlink style gives every Hyperlink in place of
+         // WPF's own: the system's #0066CC, 2.5:1 on the dark card, and red
+         // under the pointer. Under High Contrast it is HotTrack, the system's
+         // link colour.
          DesignTokens.LinkArgb link = DesignTokens.Link(CurrentChartTheme, CurrentSystemColors);
          Publish("AppLinkBrush", FromArgb(link.Rest));
          Publish("AppLinkHoverBrush", FromArgb(link.Hover));
+
+         // WPF-UI's link button - the sign-in page's "Set up two-factor
+         // authentication…", the first link an administrator sees - draws its
+         // words in the theme's own keys, shades of the Windows accent
+         // (SystemAccentColorSecondary in the light theme, Tertiary in the
+         // dark), so that it followed the user's accent where every other link
+         // is the brand's. Set on the application's own dictionary, the link
+         // colours shadow the theme's at rest, under the pointer and pressed;
+         // under High Contrast the keys are taken away again, handing the
+         // theme its own.
+         if (DesignTokens.LinkButtonFor(CurrentChartTheme))
+         {
+            Publish("HyperlinkButtonForeground", FromArgb(link.Rest));
+            Publish("HyperlinkButtonForegroundPointerOver", FromArgb(link.Hover));
+            Publish("HyperlinkButtonForegroundPressed", FromArgb(link.Hover));
+         }
+         else
+         {
+            Application.Current?.Resources.Remove("HyperlinkButtonForeground");
+            Application.Current?.Resources.Remove("HyperlinkButtonForegroundPointerOver");
+            Application.Current?.Resources.Remove("HyperlinkButtonForegroundPressed");
+         }
 
          // A text field's border at rest (DesignTokens.TextFieldStroke): the
          // theme's own key, which the text box, password box and number box draw

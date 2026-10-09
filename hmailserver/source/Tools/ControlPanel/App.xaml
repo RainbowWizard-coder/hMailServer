@@ -519,14 +519,16 @@
                 <Setter Property="BorderThickness" Value="1" />
             </Style>
 
-            <!-- Every link - the About page's, the help pane's list of documents,
-                 a link inside a help document - in the link colour
+            <!-- Every Hyperlink - the About page's, the help pane's list of
+                 documents, a link inside a help document - in the link colour
                  (DesignTokens.Link), underlined, a shade further from the surface
                  under the pointer, and the disabled text colour when it cannot be
                  followed. WPF's own drew the system's #0066CC, 2.5:1 on the dark
                  card, and turned it red under the pointer, the danger colour. A
                  Hyperlink is not a TextBlock: an implicit style on it reaches the
-                 links and nothing in a control template. -->
+                 links and nothing in a control template. WPF-UI's link button,
+                 the sign-in page's, is not a Hyperlink: it takes the same colours
+                 through the theme's own keys, which ThemeTokens republishes. -->
             <Style TargetType="Hyperlink">
                 <Setter Property="Foreground" Value="{DynamicResource AppLinkBrush}" />
                 <Setter Property="TextDecorations" Value="Underline" />

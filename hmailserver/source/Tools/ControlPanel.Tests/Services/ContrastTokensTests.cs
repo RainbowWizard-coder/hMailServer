@@ -549,6 +549,72 @@ namespace hMailServer.ControlPanel.Tests.Services
          }
       }
 
+      /// <summary>
+      /// WPF-UI's link button - the sign-in page's "Set up two-factor
+      /// authentication..." - takes the link colours too: its theme draws its words
+      /// in HyperlinkButtonForeground, ...PointerOver and ...Pressed, shades of
+      /// the Windows accent, which the implicit Hyperlink style does not reach, so
+      /// that until 9 October 2026 the first link an administrator sees followed
+      /// the user's accent (#005494 on a light card with Windows' default blue)
+      /// while every other link was #0B5CB5. ThemeTokens shadows the three keys
+      /// with the link colours, and takes them away under High Contrast; no link
+      /// button and no style for one sets a colour that would outrank them. Its
+      /// fill under the pointer is the theme's subtle fill, the "hovered row" the
+      /// link colours are measured on.
+      /// </summary>
+      [Fact]
+      public void TheLinkButtonTakesTheLinkColourInPlaceOfTheWindowsAccent()
+      {
+         Assert.True(DesignTokens.LinkButtonFor(ChartTheme.Light));
+         Assert.True(DesignTokens.LinkButtonFor(ChartTheme.Dark));
+         Assert.False(DesignTokens.LinkButtonFor(ChartTheme.HighContrast));
+
+         string themeTokens = ReadControlPanelFile(Path.Join("Services", "ThemeTokens.cs"));
+         string controlPanel = FindControlPanelDirectory();
+         if (themeTokens == null || controlPanel == null)
+            return;
+
+         Assert.Contains("if (DesignTokens.LinkButtonFor(CurrentChartTheme))", themeTokens, StringComparison.Ordinal);
+         foreach ((string key, string colour) in new[]
+         {
+            ("HyperlinkButtonForeground", "link.Rest"),
+            ("HyperlinkButtonForegroundPointerOver", "link.Hover"),
+            ("HyperlinkButtonForegroundPressed", "link.Hover"),
+         })
+         {
+            Assert.Contains("Publish(\"" + key + "\", FromArgb(" + colour + "));", themeTokens, StringComparison.Ordinal);
+            Assert.Contains("Resources.Remove(\"" + key + "\");", themeTokens, StringComparison.Ordinal);
+         }
+
+         int buttons = 0;
+         var offenders = new List<string>();
+         foreach (string path in Directory.EnumerateFiles(controlPanel, "*.xaml", SearchOption.AllDirectories))
+         {
+            string relative = Path.GetRelativePath(controlPanel, path);
+            if (relative.StartsWith("bin" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                relative.StartsWith("obj" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+               continue;
+
+            XDocument document = XDocument.Parse(File.ReadAllText(path));
+            foreach (XElement button in document.Descendants().Where(e => e.Name.LocalName == "HyperlinkButton"))
+            {
+               buttons++;
+               if (button.Attribute("Foreground") != null || button.Elements().Any(e => e.Name.LocalName == "HyperlinkButton.Foreground"))
+                  offenders.Add(relative + ": a link button with a Foreground of its own");
+            }
+
+            foreach (XElement style in document.Descendants(Wpf + "Style"))
+            {
+               if (((string)style.Attribute("TargetType") ?? string.Empty).Contains("HyperlinkButton", StringComparison.Ordinal) &&
+                   style.Descendants(Wpf + "Setter").Any(s => (string)s.Attribute("Property") == "Foreground"))
+                  offenders.Add(relative + ": a link button style that sets Foreground");
+            }
+         }
+
+         Assert.True(buttons > 0, "No view draws a link button any more; this test has nothing left to hold.");
+         Assert.True(offenders.Count == 0, "These link buttons outrank the link colour:\n" + string.Join("\n", offenders));
+      }
+
       // ---- helpers ---------------------------------------------------------------
 
       private static readonly XNamespace Wpf = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";

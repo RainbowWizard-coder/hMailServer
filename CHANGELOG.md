@@ -1341,13 +1341,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   picker, which had the buttons' border and no bottom edge at all, takes the text fields' border.
 
 - **Fixed: links in the Control Panel were WPF's own blue, 2.5:1 on the dark theme's card, and turned red under the
-  pointer.** The links on the About page, the help pane's list of documents and every link inside a help document set
-  no colour of their own, so they took the system's #0066CC in both themes - legible on the light theme, under the
-  floor on the dark one - and WPF's own red when pointed at, the colour the Control Panel keeps for failures. Every
-  link now takes the link colour of the design tokens, #0B5CB5 in the light theme and #6CB6FF in the dark, 4.5:1 or
-  more on the page, a card, a dialog and a hovered or selected row; it stays underlined, takes a shade further from
-  its surface under the pointer, and the disabled text colour when it cannot be followed. Under High Contrast a link
-  is the system's own link colour.
+  pointer, and the sign-in page's link followed the Windows accent.** The links on the About page, the help pane's
+  list of documents and every link inside a help document set no colour of their own, so they took the system's
+  #0066CC in both themes - legible on the light theme, under the floor on the dark one - and WPF's own red when
+  pointed at, the colour the Control Panel keeps for failures; the sign-in page's "Set up two-factor
+  authentication…", the first link an administrator sees, took a shade of the user's Windows accent instead, held to
+  no contrast floor: #005494 on the light card and #A6D8FF on the dark one with Windows' default blue. Every link now
+  takes the link colour of the design tokens, #0B5CB5 in the light theme and #6CB6FF in the dark, 4.5:1 or more on
+  the page, a card, a dialog and a hovered or selected row, and a shade further from its surface under the pointer;
+  the About page's and the help's links stay underlined and take the disabled text colour when they cannot be
+  followed. Under High Contrast the links take the system's own colours.
 
 - **Fixed: after a change of theme the Control Panel's quarantine page kept the old theme's green and red on its
   action buttons, and every refused field its old red ring.** The page gave its row template the shared success and
