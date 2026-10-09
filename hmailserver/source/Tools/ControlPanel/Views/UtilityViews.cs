@@ -486,8 +486,11 @@ namespace hMailServer.ControlPanel.Views
       {
          // Each press starts with no outcome on the page: a warning that the wildcard
          // reached nobody, or the last sendout's result, would otherwise stand under a
-         // form that may no longer say it, through a question cancelled.
+         // form that may no longer say it, through a question cancelled - and so does
+         // the message field's refusal, which a press that stopped at the From address
+         // or the subject left beside the message typed since.
          status_.Visibility = Visibility.Collapsed;
+         bodyRow_.Error = null;
 
          if (fromAddress_.Text.Trim().Length == 0 || subject_.Text.Trim().Length == 0)
          {
@@ -497,7 +500,6 @@ namespace hMailServer.ControlPanel.Views
 
          // An empty message is refused on its field: it would reach every matching
          // account with nothing in it (review finding F184).
-         bodyRow_.Error = null;
          if (!SendoutAudience.HasBody(body_.Text))
          {
             bodyRow_.Error = L("Write the message first: an empty one is not sent.");

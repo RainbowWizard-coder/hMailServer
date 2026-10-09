@@ -382,6 +382,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("return;", send.Substring(0, clears), StringComparison.Ordinal);
          Assert.True(clears < send.IndexOf("Confirmations.SendoutToNobody(", StringComparison.Ordinal), "SendoutView.Send hides its outcome only after the warning.");
          Assert.True(clears < send.IndexOf("MessageBox.Confirm(", StringComparison.Ordinal), "SendoutView.Send hides its outcome only after the question.");
+
+         // The message field's refusal too, before any return: a press that stopped at
+         // the From address or the subject left "Write the message first" beside the
+         // message typed since.
+         int clearsField = send.IndexOf("bodyRow_.Error = null;", StringComparison.Ordinal);
+         Assert.True(clearsField >= 0, "SendoutView.Send does not clear the message field's refusal.");
+         Assert.DoesNotContain("return;", send.Substring(0, clearsField), StringComparison.Ordinal);
       }
 
       [Theory]
