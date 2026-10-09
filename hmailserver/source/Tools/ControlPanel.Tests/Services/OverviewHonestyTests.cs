@@ -48,15 +48,21 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("192.0.2.7", TlsPosture.ListenerAddress("192.0.2.7"));
       }
 
+      /// <summary>
+      /// No overview says that a row opens a page. The transport encryption and virus
+      /// overviews open a page from the button at each section's foot; the spam
+      /// overview's rows each carry a link named for their page (review finding
+      /// F264), and it says that the link opens it.
+      /// </summary>
       [Theory]
-      [InlineData("TlsOverviewView.cs")]
-      [InlineData("SpamOverviewView.cs")]
-      [InlineData("VirusOverviewView.cs")]
-      public void NoOverviewPromisesRowsThatOpenAPage(string view)
+      [InlineData("TlsOverviewView.cs", "each section has a button to the page that owns its settings.")]
+      [InlineData("SpamOverviewView.cs", "the link in each row opens the page that owns its setting.")]
+      [InlineData("VirusOverviewView.cs", "each section has a button to the page that owns its settings.")]
+      public void NoOverviewPromisesRowsThatOpenAPage(string view, string says)
       {
          string source = ReadSource(view);
          Assert.DoesNotContain("each row opens", source, StringComparison.Ordinal);
-         Assert.Contains("each section has a button to the page that owns its settings.", source, StringComparison.Ordinal);
+         Assert.Contains(says, source, StringComparison.Ordinal);
       }
 
       private static Dictionary<string, string> ReadResx(string path)

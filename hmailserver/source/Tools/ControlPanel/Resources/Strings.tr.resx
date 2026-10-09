@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(sunucunun Windows bilgisayar adı)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, en yüksek {0}</value>
   </data>
@@ -1199,6 +1202,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>SAML ile Control Deck'te yönetici olarak oturum açan adresler (virgülle ayrılmış)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Ekler</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>İletilen postalara ARC mühürleri ekler; böylece aşağı akıştaki sunucular özgün kimlik doğrulama sonuçlarına güvenebilir (RFC 8617). Mühürleme, ileten etki alanının DKIM seçicisini ve özel anahtarını ödünç alır; bu nedenle DKIM imzalaması yapılandırılmış en az bir barındırılan etki alanı gerekir - bu olmadan anahtar etkin görünür ama hiçbir şey mühürlenmez ve bunu söyleyen yalnızca bir hata ayıklama günlüğü satırı olur. Kurulum kontrol listesi sayfası etki alanlarınızı bunun için denetler.</value>
@@ -4084,6 +4090,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>İlk gecikme dolmadan yapılan her yeniden deneme gecikmeyi o andan itibaren yeniden başlatır; böylece kuyruktan değil zamanlayıcıyla yeniden deneyen bir gönderen pencereye asla ulaşamaz. Varsayılan olarak kapalı: bir kez fazla hızlı yeniden deneyen iyi huylu bir sunucu bu açıkken biraz daha geciktirilir.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Her spam denetimi sunucunun çalıştırdığı sırayla, puana ne eklediği ve toplamın iletiye ne yaptığı. Burada hiçbir şey düzenlenemez: her satırdaki bağlantı, ayarının sahibi olan sayfayı açar.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Eylem_i düzenle…</value>
   </data>
@@ -4630,6 +4639,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Sunucusu burada adlandırılan dış hesaplar, yukarıdaki aynı belirteç uç noktasından alınan bir taşıyıcı belirteçle oturum açar; diğer her dış hesap USER/PASS kullanmayı sürdürür. Microsoft 365'ten parolayla toplamak 2022'den beri mümkün değil.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Dış filtreleme motoru</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Dış filtreleme motoru (rspamd ve HTTP konuşan diğer her şey)</value>
   </data>
@@ -4974,9 +4986,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Greylisting kaydı süre sonu ve SpamAssassin taşıma-kopyalama tercihi</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Greylisting ayarları…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Greylisting üçlüleri temizlendi.</value>
@@ -6427,6 +6436,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>{0} KB'den büyük iletiler gövde gerektiren her denetimi (SURBL, DKIM, DMARC ve SpamAssassin) atlar. Bağlantı denetimleri yine çalışır ve ileti teslim edilir.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>{0} KB'den büyük iletiler gövde gerektiren her denetimi (SURBL, DKIM, DMARC, SpamAssassin ve dış filtreleme motoru) atlar. Bağlantı denetimleri yine çalışır ve ileti teslim edilir.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>{0} boyutundan büyük iletiler taranmaz. Reddedilmez, teslim edilir ve bu olduğunda günlüğe hiçbir şey yazılmaz — bu yüzden bu sınır olağan çalışmada görünmezdir. 0 "sınır yok" demektir ve boşluğu kapatan ayar odur.</value>
   </data>
@@ -6930,6 +6942,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Bu portta şifreleme yok. Diğer sunuculardan gelen posta zaten olağan olarak şifresizdir, ama bu port AUTH de kabul eder ve onu kullanan bir istemci parolasını düz metin olarak gönderir.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Yapılandırılmış bir motor yok, bu nedenle hiçbir ileti gönderilmiyor.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Girdi yok; bu nedenle hiçbir alan adı, postasının taşıdığı kimlik doğrulama sonuçları için greylisting'den muaf tutulmaz.</value>
@@ -10259,6 +10274,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>İletiyi, nokta doldurmalı DATA yerine sayılı parçalar hâlinde gönderir. Aynı zamanda ikili bir iletiyi yeniden yazmadan ileriye taşıyan şey de budur: BINARYMIME olarak kabul edilmiş bir ileti, ancak hem bunu hem de BINARYMIME'ı sunan bir sunucuya geldiği hâliyle aktarılabilir.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>İletiyi {0} adresindeki motora gönderir ve verdiği puanı ekler; reject yanıtı {1} ekler.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Alıcının adresini User: başlığı olarak gönderir; böylece spamd o posta kutusunun kendi tercihlerini uygular - sanal kullanıcılı bir spamd'nin (%u veya %d ile --virtual-config-dir) beklediği biçim. Tarama alıcı başına değil, ileti başına bir kez çalışır; bu yüzden birden çok kişiye giden bir ileti hiçbirinin tercihleriyle taranamaz ve bunun yerine yukarıdaki profili kullanır.</value>
   </data>
@@ -10743,6 +10761,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Gerçek Zamanlı Engelleme Listeleri. Gövdesindeki bağlantılar bu ana bilgisayarlara çözümlenen iletiler spam puanı kazanır.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Spam denetimi</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Spam silme eşiği (puan)</value>
@@ -12438,6 +12459,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Toplam açık uçludur, çünkü bir liste girdisi veya SpamAssassin'in kendi puanı herhangi bir büyüklükte olabilir.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Toplam açık uçludur, çünkü bir liste girdisi, SpamAssassin'in kendi puanı veya dış motorun puanı herhangi bir büyüklükte olabilir.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Taşıma güvenliği yapılandırması okunamadı.</value>
@@ -14551,6 +14575,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="add a user" xml:space="preserve">
     <value>kullanıcı ekle</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>bir şey eklemez</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>diğer ad</value>
   </data>
@@ -15104,12 +15131,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="pattern" xml:space="preserve">
     <value>desen</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>girdi başına</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>liste girdisi başına</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>diğer sunuculara tls'nin zorunlu olduğunu kanıtla</value>
   </data>
@@ -15314,8 +15335,14 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>yükseltme istemi iptal edildi.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>motorun puanı</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>girdi yok (SearchBase'i ya da UserDnTemplate'i denetleyin)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>girdinin puanı</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>dosya sertifika olarak ayrıştırılamadı.</value>
@@ -16186,6 +16213,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — çıkış kodu {1} virüslü demektir</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>aramaların %{0} kadarı bellekten yanıtlandı, {2} KB'nin {1} KB'si kullanılıyor; üst sınıra ulaşıldığı için girdiler bellekten atılıyor.</value>

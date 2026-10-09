@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(ім’я комп’ютера Windows, на якому працює сервер)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, пік {0}</value>
   </data>
@@ -1205,6 +1208,9 @@
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Адреси, що входять до Control Deck як адміністратор через SAML (через кому)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Додає</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Додає печатки ARC до пересланої пошти, щоб сервери далі за ланцюжком могли довіряти початковим результатам автентифікації (RFC 8617). Запечатування позичає селектор DKIM і закритий ключ домену, який пересилає пошту, тому потребує принаймні одного обслуговуваного домену з налаштованим підписуванням DKIM — без цього перемикач показує «увімкнено», але нічого не запечатує, і сказати про це може лише рядок у журналі налагодження. Сторінка «Контрольний список налаштування» перевіряє ваші домени саме на це.</value>
@@ -4120,6 +4126,9 @@
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Кожна повторна спроба до закінчення початкової затримки запускає затримку знову з цієї миті, тож відправник, який повторює за таймером, а не з черги, ніколи не досягає вікна. Типово вимкнено: доброчесний сервер, який один раз повторив надто швидко, з цим параметром затримується трохи довше.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Кожна перевірка на спам у порядку, в якому сервер її виконує, що вона додає до оцінки і що загальна сума робить із повідомленням. Тут нічого не можна редагувати: посилання в кожному рядку відкриває сторінку, якій належить її параметр.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Редагувати д_ію…</value>
   </data>
@@ -4684,6 +4693,9 @@
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Зовнішні облікові записи, чий сервер названо тут, входять за bearer-токеном з тієї самої кінцевої точки токена вище; всі інші зовнішні облікові записи зберігають USER/PASS. Збирання з Microsoft 365 за паролем неможливе з 2022 року.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Зовнішній рушій фільтрації</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Зовнішній рушій фільтрації (rspamd і все інше, що говорить HTTP)</value>
   </data>
@@ -5028,9 +5040,6 @@
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Закінчення терміну записів сірого списку та переміщення чи копіювання для SpamAssassin</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Параметри сірого списку…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Трійки сірого списку очищено.</value>
@@ -6487,6 +6496,9 @@
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Повідомлення, більші за {0} КБ, пропускають кожну перевірку, якій потрібне тіло (SURBL, DKIM, DMARC і SpamAssassin). Перевірки підключення все одно виконуються, і повідомлення доставляється.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>Повідомлення, більші за {0} КБ, пропускають кожну перевірку, якій потрібне тіло (SURBL, DKIM, DMARC, SpamAssassin і зовнішній рушій фільтрації). Перевірки підключення все одно виконуються, і повідомлення доставляється.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Повідомлення, більші за {0}, не скануються. Вони доставляються, а не відхиляються, і в журнал при цьому нічого не записується — тож за звичайної роботи цього обмеження не видно. 0 означає «без обмеження» і є тим значенням, яке закриває прогалину.</value>
   </data>
@@ -6993,6 +7005,9 @@
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>На цьому порту шифрування недоступне. Вхідна пошта з інших серверів зазвичай і так незашифрована, але цей порт також приймає AUTH, і клієнт, який ним користується, надсилає пароль відкритим текстом.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Рушій не налаштовано, тож повідомлення нікуди не надсилаються.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Немає записів, тому жоден домен не пропускається повз greylisting через результати автентифікації його пошти.</value>
@@ -10367,6 +10382,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>Надсилає повідомлення підрахованими блоками, а не через DATA з крапковим екрануванням. Саме воно й переносить двійкове повідомлення далі, не переписуючи його: повідомлення, прийняте як BINARYMIME, можна ретранслювати таким, як воно надійшло, лише до сервера, який пропонує і це, і BINARYMIME.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>Надсилає повідомлення рушію за адресою {0} і додає оцінку, яку він повертає; відповідь reject додає {1}.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Надсилає адресу отримувача як заголовок User:, щоб spamd застосував власні налаштування цієї скриньки - саме цього очікує spamd з віртуальними користувачами (--virtual-config-dir з %u або %d). Сканування виконується один раз на повідомлення, а не на кожного отримувача, тому повідомлення кільком людям не може бути проскановане за налаштуваннями жодного з них і використовує профіль вище.</value>
   </data>
@@ -10856,6 +10874,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Списки блокування URI спаму в реальному часі. Повідомлення, посилання в тілі яких розв'язуються на ці вузли, отримують оцінку спаму.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Перевірка</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Поріг видалення спаму (оцінка)</value>
@@ -12584,6 +12605,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Загальна сума не має верхньої межі, бо запис у списку чи власна оцінка SpamAssassin може бути будь-якого розміру.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Загальна сума не має верхньої межі, бо запис у списку, власна оцінка SpamAssassin чи оцінка зовнішнього рушія може бути будь-якого розміру.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не вдалося прочитати конфігурацію транспортної безпеки.</value>
@@ -14709,6 +14733,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="add a user" xml:space="preserve">
     <value>додати користувача</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>нічого не додає</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>псевдонім</value>
   </data>
@@ -15277,12 +15304,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="pattern" xml:space="preserve">
     <value>шаблон</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>на запис</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>на запис списку</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>довести іншим серверам, що TLS обов’язковий</value>
   </data>
@@ -15487,8 +15508,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>запит на підвищення прав скасовано.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>оцінка рушія</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>запис не існує (перевірте SearchBase або UserDnTemplate)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>оцінка запису</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>файл не вдалося розібрати як сертифікат.</value>
@@ -16551,6 +16578,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — код виходу {1} означає зараження</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% пошуків відповіли з пам’яті, використано {1} КБ з {2} КБ — досягнуто межі, тому записи витісняються.</value>

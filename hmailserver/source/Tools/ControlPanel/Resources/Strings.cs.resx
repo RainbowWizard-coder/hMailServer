@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(název počítače serveru ve Windows)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, maximum {0}</value>
   </data>
@@ -1205,6 +1208,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adresy, které se přihlašují do Control Deck jako správce přes SAML (oddělené čárkami)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Přidává</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Přidává pečeti ARC k přeposlané poště, aby navazující servery mohly důvěřovat původním výsledkům ověření (RFC 8617). Pečetění si vypůjčuje DKIM selektor a soukromý klíč přeposílající domény, takže vyžaduje alespoň jednu hostovanou doménu s nastaveným podepisováním DKIM – bez toho přepínač hlásí, že je zapnuto, a nepečetí nic, přičemž to oznámí jen jedním ladicím řádkem v logu. Stránka Kontrolní seznam nastavení vaše domény kvůli tomu kontroluje.</value>
@@ -4120,6 +4126,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Každý pokus před uplynutím počátečního zpoždění spustí zpoždění znovu od toho okamžiku, takže odesílatel, který opakuje podle časovače místo z fronty, okno nikdy nedosáhne. Výchozí vypnuto: slušný server, který jednou zkusí znovu příliš rychle, je se zapnutím zdržen o něco déle.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Každá kontrola spamu v pořadí, v jakém ji server spouští, co přidá ke skóre a co celkový součet udělá se zprávou. Nic zde nelze upravit: odkaz v každém řádku otevře stránku, které jeho nastavení patří.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Uprav_it akci…</value>
   </data>
@@ -4684,6 +4693,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Externí účty, jejichž server je zde uveden, se přihlašují bearer tokenem ze stejného endpointu tokenu výše; každý jiný externí účet zůstává u USER/PASS. Stahování z Microsoft 365 heslem není od roku 2022 možné.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Externí filtrovací engine</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Externí filtrovací engine (rspamd a cokoli dalšího, co mluví HTTP)</value>
   </data>
@@ -5028,9 +5040,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Vypršení záznamů greylistingu a přesun vs. kopie pro SpamAssassin</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Nastavení greylistingu…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Trojice greylistingu vymazány.</value>
@@ -6487,6 +6496,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Zprávy větší než {0} KB přeskakují každou kontrolu, která potřebuje tělo zprávy (SURBL, DKIM, DMARC a SpamAssassin). Kontroly připojení stále běží a zpráva se doručí.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>Zprávy větší než {0} KB přeskakují každou kontrolu, která potřebuje tělo zprávy (SURBL, DKIM, DMARC, SpamAssassin a externí filtrovací engine). Kontroly připojení stále běží a zpráva se doručí.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Zprávy větší než {0} se nekontrolují. Doručí se, neodmítnou, a když k tomu dojde, nezapíše se nic do logu — tento limit je tedy při běžném provozu neviditelný. 0 znamená „bez omezení“ a je to nastavení, které tuto mezeru zavírá.</value>
   </data>
@@ -6993,6 +7005,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Na tomto portu není k dispozici žádné šifrování. Příchozí pošta z jiných serverů beztak obvykle šifrovaná není, ale tento port přijímá i AUTH a klient, který jej použije, posílá své heslo v otevřeném textu.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Není nastaven žádný engine, takže se žádná zpráva nikam neposílá.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Žádné položky, takže žádná doména není propuštěna přes greylisting kvůli výsledkům ověření, které její pošta nese.</value>
@@ -10367,6 +10382,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>Odesílá zprávu jako počítané bloky místo jako DATA s vkládáním teček. Je to zároveň to, co posílá binární zprávu dál bez přepisování: zprávu přijatou jako BINARYMIME lze relayovat tak, jak přišla, jen na server, který nabízí toto i BINARYMIME.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>Odešle zprávu enginu na adrese {0} a přičte skóre, které vrátí; odpověď reject přidá {1}.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Odesílá adresu příjemce jako hlavičku User:, takže spamd uplatní vlastní předvolby dané poštovní schránky – přesně to, co očekává spamd v režimu virtuálních uživatelů (--virtual-config-dir s %u nebo %d). Kontrola probíhá jednou na zprávu, ne jednou na příjemce, takže zprávu pro několik lidí nelze zkontrolovat pod předvolbami žádného z nich a použije se místo toho profil uvedený výše.</value>
   </data>
@@ -10856,6 +10874,9 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Zprávy, jejichž odkazy v těle se na těchto hostitelích najdou, získají spamové skóre.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Kontrola spamu</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Práh pro smazání spamu (skóre)</value>
@@ -12584,6 +12605,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Celkový součet není nijak omezen, protože položka seznamu nebo vlastní skóre SpamAssassinu může mít libovolnou velikost.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Celkový součet není nijak omezen, protože položka seznamu, vlastní skóre SpamAssassinu nebo skóre externího enginu může mít libovolnou velikost.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfiguraci transportního zabezpečení nešlo přečíst.</value>
@@ -14709,6 +14733,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="add a user" xml:space="preserve">
     <value>přidat uživatele</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>nepřidává nic</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
@@ -15277,12 +15304,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="pattern" xml:space="preserve">
     <value>vzor</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>na položku</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>na položku seznamu</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>prokázat jiným serverům, že je vyžadováno tls</value>
   </data>
@@ -15487,8 +15508,14 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>výzva ke zvýšení oprávnění byla zrušena.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>skóre enginu</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>položka neexistuje (zkontrolujte SearchBase nebo UserDnTemplate)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>skóre položky</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>soubor se nepodařilo přečíst jako certifikát.</value>
@@ -16551,6 +16578,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — návratový kód {1} znamená nakaženou</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % vyhledání zodpovězeno z paměti, využito {1} KB z {2} KB – je na svém limitu, takže se položky vyřazují.</value>

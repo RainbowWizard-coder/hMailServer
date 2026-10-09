@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(serverens Windows-maskinnavn)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, topp {0}</value>
   </data>
@@ -1199,6 +1202,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adresser som logger på Control Deck som administrator via SAML (kommaseparert)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Legger til</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Legger ARC-forseglinger på videresendt e-post slik at servere lenger ned i kjeden kan stole på de opprinnelige autentiseringsresultatene (RFC 8617). Forseglingen låner DKIM-selektoren og den private nøkkelen til domenet som videresender, så den krever minst ett driftet domene med DKIM-signering satt opp - uten det står bryteren som påslått og forsegler ingenting, med bare en linje i feilsøkingsloggen som sier fra. Siden Sjekkliste for oppsett kontrollerer domenene dine for dette.</value>
@@ -4084,6 +4090,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Hvert nytt forsøk før startforsinkelsen har gått, starter forsinkelsen på nytt fra det øyeblikket, så en avsender som prøver på nytt etter en tidtaker i stedet for fra en kø, når aldri vinduet. Av som standard: en veloppdragen server som én gang prøver på nytt for raskt, forsinkes litt lenger med dette på.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Hver spamkontroll i rekkefølgen serveren kjører den, hva den legger til poengsummen, og hva totalen gjør med en melding. Ingenting her kan redigeres: lenken i hver rad åpner siden som eier innstillingen.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Rediger handl_ing…</value>
   </data>
@@ -4630,6 +4639,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Eksterne kontoer der serveren er navngitt her, logger på med et bearer-token fra det samme tokenendepunktet ovenfor; alle andre eksterne kontoer beholder USER/PASS. Å hente fra Microsoft 365 med passord har ikke vært mulig siden 2022.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Ekstern filtreringsmotor</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Ekstern filtreringsmotor (rspamd og alt annet som snakker HTTP)</value>
   </data>
@@ -4974,9 +4986,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Utløp av grålistingsoppføringer, og flytt-versus-kopier for SpamAssassin</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Grålistingsinnstillinger…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Grålistingstripler tømt.</value>
@@ -6427,6 +6436,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Meldinger større enn {0} KB hopper over hver kontroll som trenger meldingskroppen (SURBL, DKIM, DMARC og SpamAssassin). Tilkoblingskontrollene kjører fortsatt, og meldingen leveres.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>Meldinger større enn {0} KB hopper over hver kontroll som trenger meldingskroppen (SURBL, DKIM, DMARC, SpamAssassin og den eksterne filtreringsmotoren). Tilkoblingskontrollene kjører fortsatt, og meldingen leveres.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Meldinger større enn {0} skannes ikke. De leveres, ikke avvises, og ingenting skrives til loggen når det skjer — så denne grensen er usynlig i normal drift. 0 betyr «ingen grense» og er innstillingen som lukker hullet.</value>
   </data>
@@ -6930,6 +6942,9 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Ingen kryptering er tilgjengelig på denne porten. Inngående post fra andre servere er normalt ukryptert uansett, men denne porten godtar også AUTH, og en klient som bruker den sender passordet sitt i klartekst.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Ingen motor er konfigurert, så ingen melding sendes til en.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Ingen oppføringer, så ingen domener slippes forbi grålisting på grunn av autentiseringsresultatene e-posten deres har.</value>
@@ -10259,6 +10274,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>Sender meldingen som opptalte biter i stedet for punktutfylt DATA. Det er også det som bærer en binær melding videre uten å skrive den om: en melding som er godtatt som BINARYMIME, kan bare videresendes slik den kom, til en server som tilbyr både dette og BINARYMIME.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>Sender meldingen til motoren på {0} og legger til poengsummen den svarer; svaret reject legger til {1}.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Sender mottakerens adresse som User:-headeren, slik at spamd bruker den postboksens egne preferanser - formen en virtual-user-spamd (--virtual-config-dir med %u eller %d) forventer. En skanning kjører én gang per melding, ikke én gang per mottaker, så en melding til flere personer kan ikke skannes under noen av deres preferanser og bruker profilen ovenfor i stedet.</value>
   </data>
@@ -10743,6 +10761,9 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Meldinger der lenkene i meldingskroppen slås opp til disse vertene, får spampoeng.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Spamkontroll</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Sletteterskel for spam (poeng)</value>
@@ -12438,6 +12459,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Totalen har ingen øvre grense, fordi en listeoppføring eller SpamAssassins egen poengsum kan være hvor stor som helst.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Totalen har ingen øvre grense, fordi en listeoppføring, SpamAssassins egen poengsum eller den eksterne motorens kan være hvor stor som helst.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Konfigurasjonen for transportsikkerhet kunne ikke leses.</value>
@@ -14551,6 +14575,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="add a user" xml:space="preserve">
     <value>legg til en bruker</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>legger ikke til noe</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
@@ -15104,12 +15131,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="pattern" xml:space="preserve">
     <value>mønster</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>per oppføring</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>per listeoppføring</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>bevis for andre servere at tls kreves</value>
   </data>
@@ -15314,8 +15335,14 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>forespørselen om forhøyede rettigheter ble avbrutt.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>motorens poengsum</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>oppføringen finnes ikke (sjekk SearchBase, eller UserDnTemplate)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>oppføringens poengsum</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>filen kunne ikke parses som et sertifikat.</value>
@@ -16186,6 +16213,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — avslutningskode {1} betyr infisert</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % av oppslagene besvart fra minnet, med {1} KB av {2} KB - ved maksgrensen, så oppføringer kastes ut.</value>

@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(nazwa komputera serwera w systemie Windows)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, szczyt {0}</value>
   </data>
@@ -1205,6 +1208,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adresy logujące się do Control Deck jako administrator przez SAML (rozdzielone przecinkami)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Dodaje</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Dodaje pieczęcie ARC do przekazywanej poczty, aby serwery położone dalej mogły zaufać oryginalnym wynikom uwierzytelniania (RFC 8617). Pieczętowanie pożycza selektor DKIM i klucz prywatny domeny przekazującej, wymaga więc co najmniej jednej obsługiwanej domeny ze skonfigurowanym podpisywaniem DKIM - bez tego przełącznik pokazuje stan włączony i nie pieczętuje niczego, informując o tym jedynie wierszem w dzienniku diagnostycznym. Strona Lista kontrolna konfiguracji sprawdza pod tym kątem domeny tego serwera.</value>
@@ -4120,6 +4126,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Każde ponowienie przed upływem opóźnienia początkowego zaczyna opóźnienie od nowa od tej chwili, więc nadawca ponawiający według zegara zamiast z kolejki nigdy nie dociera do okna. Domyślnie wyłączone: dobrze zachowujący się serwer, który raz ponowi zbyt szybko, jest z tym włączonym opóźniany nieco dłużej.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Każda kontrola antyspamowa w kolejności, w jakiej wykonuje ją serwer, co dodaje do punktacji i co suma robi z wiadomością. Tutaj niczego nie można edytować: odnośnik w każdym wierszu otwiera stronę, do której należy jego ustawienie.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Ed_ytuj akcję…</value>
   </data>
@@ -4684,6 +4693,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Konta zewnętrzne, których serwer jest tu wymieniony, logują się tokenem bearer z tego samego punktu końcowego tokenów powyżej; wszystkie pozostałe konta zewnętrzne zachowują USER/PASS. Pobieranie z Microsoft 365 przy użyciu hasła nie jest możliwe od 2022 roku.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Zewnętrzny silnik filtrujący</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Zewnętrzny silnik filtrujący (rspamd i wszystko inne, co mówi po HTTP)</value>
   </data>
@@ -5028,9 +5040,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Wygasanie wpisów greylistingu oraz przenoszenie zamiast kopiowania w SpamAssassin</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Ustawienia greylistingu…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Wyczyszczono trójki greylistingu.</value>
@@ -6487,6 +6496,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Wiadomości większe niż {0} KB pomijają każdą kontrolę wymagającą treści (SURBL, DKIM, DMARC i SpamAssassin). Kontrole połączenia nadal działają, a wiadomość jest dostarczana.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>Wiadomości większe niż {0} KB pomijają każdą kontrolę wymagającą treści (SURBL, DKIM, DMARC, SpamAssassin i zewnętrzny silnik filtrujący). Kontrole połączenia nadal działają, a wiadomość jest dostarczana.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Wiadomości większe niż {0} nie są skanowane. Są dostarczane, a nie odrzucane, i nic nie jest przy tym zapisywane w dzienniku — ten limit jest więc w normalnej pracy niewidoczny. 0 oznacza „brak ograniczenia” i jest ustawieniem, które zamyka tę lukę.</value>
   </data>
@@ -6993,6 +7005,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Na tym porcie nie jest dostępne żadne szyfrowanie. Poczta przychodząca z innych serwerów i tak zwykle nie jest szyfrowana, ale ten port przyjmuje także AUTH, a klient, który z niego korzysta, wysyła swoje hasło jawnym tekstem.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Nie skonfigurowano żadnego silnika, więc żadna wiadomość nie jest do niego wysyłana.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Brak wpisów, więc żadna domena nie jest przepuszczana obok greylistingu ze względu na wyniki uwierzytelniania, które niesie jej poczta.</value>
@@ -10367,6 +10382,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>Wysyła wiadomość jako porcje o podanej długości zamiast polecenia DATA z wstawianiem kropek. To także sposób na przekazanie dalej wiadomości binarnej bez przepisywania jej: wiadomość przyjęta jako BINARYMIME może zostać przekazana w postaci, w jakiej dotarła, wyłącznie do serwera, który oferuje zarówno to, jak i BINARYMIME.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>Wysyła wiadomość do silnika pod adresem {0} i dodaje zwróconą punktację; odpowiedź reject dodaje {1}.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Wysyła adres odbiorcy jako nagłówek User:, dzięki czemu spamd stosuje własne preferencje tej skrzynki pocztowej - w postaci, jakiej oczekuje spamd z użytkownikami wirtualnymi (--virtual-config-dir z %u lub %d). Skanowanie odbywa się raz na wiadomość, a nie raz na odbiorcę, więc wiadomości skierowanej do kilku osób nie da się przeskanować według preferencji którejkolwiek z nich i używa ona profilu powyżej.</value>
   </data>
@@ -10856,6 +10874,9 @@ Uruchomić ją ponownie teraz?</value>
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Wiadomości, których odnośniki w treści rozwiązują się na tych hostach, otrzymują punkty spamowe.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Kontrola</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Próg usuwania spamu (punktacja)</value>
@@ -12584,6 +12605,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Suma nie ma górnej granicy, ponieważ wpis listy lub własna punktacja SpamAssassin może mieć dowolną wartość.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Suma nie ma górnej granicy, ponieważ wpis listy, własna punktacja SpamAssassin lub punktacja zewnętrznego silnika może mieć dowolną wartość.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Nie udało się odczytać konfiguracji bezpieczeństwa transportu.</value>
@@ -14709,6 +14733,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="add a user" xml:space="preserve">
     <value>dodaj użytkownika</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>nic nie dodaje</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
@@ -15277,12 +15304,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="pattern" xml:space="preserve">
     <value>wzorzec</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>na wpis</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>na wpis listy</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>udowodnij innym serwerom, że TLS jest wymagany</value>
   </data>
@@ -15487,8 +15508,14 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>monit o podniesienie uprawnień został anulowany.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>punktacja silnika</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>wpis nie istnieje (należy sprawdzić SearchBase lub UserDnTemplate)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>punktacja wpisu</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>nie udało się odczytać pliku jako certyfikatu.</value>
@@ -16551,6 +16578,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — kod wyjścia {1} oznacza infekcję</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% wyszukiwań obsłużono z pamięci, przy zużyciu {1} KB z {2} KB - na granicy limitu, więc wpisy są usuwane.</value>

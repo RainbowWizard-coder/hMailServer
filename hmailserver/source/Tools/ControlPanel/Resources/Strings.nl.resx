@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(de Windows-computernaam van de server)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, piek {0}</value>
   </data>
@@ -1199,6 +1202,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Adressen die zich via SAML bij het Control Deck aanmelden als beheerder (door komma's gescheiden)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Voegt toe</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Voegt ARC-zegels toe aan doorgestuurde mail zodat servers verderop de oorspronkelijke authenticatieresultaten kunnen vertrouwen (RFC 8617). Verzegeling leent de DKIM-selector en privésleutel van het doorsturende domein, dus het vereist minstens één gehost domein met DKIM-ondertekening geconfigureerd - zonder dat leest de schakelaar als ingeschakeld en verzegelt hij niets, met alleen een debuglogregel die dat zegt. De pagina Configuratiechecklist controleert uw domeinen hierop.</value>
@@ -4084,6 +4090,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Elke nieuwe poging voordat de initiële vertraging is verstreken, start de vertraging opnieuw vanaf dat moment, zodat een afzender die op een timer in plaats van vanuit een wachtrij opnieuw probeert het venster nooit bereikt. Standaard uit: een nette server die één keer te snel opnieuw probeert, wordt hiermee iets langer opgehouden.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Elke spamcontrole in de volgorde waarin de server ze uitvoert, wat ze aan de score toevoegt en wat het totaal met een bericht doet. Hier kan niets worden bewerkt: de koppeling in elke rij opent de pagina waar de instelling thuishoort.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>Actie be_werken…</value>
   </data>
@@ -4630,6 +4639,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Externe accounts waarvan de server hier is genoemd melden zich aan met een bearertoken van hetzelfde tokeneindpunt hierboven; elk ander extern account houdt USER/PASS. Ophalen bij Microsoft 365 met een wachtwoord is sinds 2022 niet meer mogelijk.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Externe filterengine</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Externe filterengine (rspamd en alles wat verder HTTP spreekt)</value>
   </data>
@@ -4974,9 +4986,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Het verlopen van greylistingrecords, en verplaatsen versus kopiëren bij SpamAssassin</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Greylistinginstellingen…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Greylistingtriplets gewist.</value>
@@ -6427,6 +6436,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Berichten groter dan {0} KB slaan elke controle over die de berichttekst nodig heeft (SURBL, DKIM, DMARC en SpamAssassin). De verbindingscontroles draaien nog wel, en het bericht wordt bezorgd.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>Berichten groter dan {0} KB slaan elke controle over die de berichttekst nodig heeft (SURBL, DKIM, DMARC, SpamAssassin en de externe filterengine). De verbindingscontroles draaien nog wel, en het bericht wordt bezorgd.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Berichten groter dan {0} worden niet gescand. Ze worden bezorgd, niet geweigerd, en er wordt niets naar het logboek geschreven wanneer dat gebeurt — deze limiet is dus onzichtbaar bij normaal gebruik. 0 betekent "geen limiet" en is de instelling die het gat dichtzet.</value>
   </data>
@@ -6930,6 +6942,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>Op deze poort is geen versleuteling beschikbaar. Inkomende mail van andere servers is toch al meestal onversleuteld, maar deze poort accepteert ook AUTH, en een client die dat gebruikt, stuurt zijn wachtwoord in klare tekst.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Er is geen engine ingesteld, dus er wordt geen bericht naartoe gestuurd.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Geen vermeldingen, dus geen enkel domein wordt langs greylisting gelaten op grond van de authenticatieresultaten van zijn mail.</value>
@@ -10259,6 +10274,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>Verstuurt het bericht als getelde brokken in plaats van als DATA met punt-stuffing. Het is ook wat een binair bericht verderop draagt zonder het te herschrijven: een bericht dat als BINARYMIME is geaccepteerd, kan alleen zoals het aankwam worden doorgestuurd naar een server die zowel dit als BINARYMIME aanbiedt.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>Stuurt het bericht naar de engine op {0} en telt de score op die die terugstuurt; het antwoord reject voegt {1} toe.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Stuurt het adres van de ontvanger als de User:-header, zodat spamd de eigen voorkeuren van dat postvak toepast - de vorm die een spamd met virtuele gebruikers (--virtual-config-dir met %u of %d) verwacht. Een scan draait één keer per bericht, niet één keer per ontvanger, dus een bericht aan meerdere mensen kan niet onder de voorkeuren van een van hen worden gescand en gebruikt in plaats daarvan het profiel hierboven.</value>
   </data>
@@ -10743,6 +10761,9 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Berichten waarvan de links in de berichttekst op deze hosts oplossen, krijgen spamscore.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Spamcontrole</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Verwijderdrempel voor spam (score)</value>
@@ -12438,6 +12459,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Het totaal is onbegrensd, omdat een lijstvermelding of de eigen score van SpamAssassin elke grootte kan hebben.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Het totaal is onbegrensd, omdat een lijstvermelding, de eigen score van SpamAssassin of die van de externe engine elke grootte kan hebben.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>De configuratie voor transportbeveiliging kon niet worden gelezen.</value>
@@ -14551,6 +14575,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="add a user" xml:space="preserve">
     <value>een gebruiker toevoegen</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>voegt niets toe</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>alias</value>
   </data>
@@ -15104,12 +15131,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="pattern" xml:space="preserve">
     <value>patroon</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>per vermelding</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>per lijstvermelding</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>andere servers bewijzen dat TLS vereist is</value>
   </data>
@@ -15314,8 +15335,14 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>de vraag om verhoogde rechten is geannuleerd.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>de score van de engine</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>de vermelding bestaat niet (controleer SearchBase of UserDnTemplate)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>de score van de vermelding</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>het bestand kon niet als certificaat worden gelezen.</value>
@@ -16186,6 +16213,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — afsluitcode {1} betekent geïnfecteerd</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0}% van de opzoekingen uit het geheugen beantwoord, met {1} KB van {2} KB in gebruik - op het maximum, dus vermeldingen worden verwijderd.</value>

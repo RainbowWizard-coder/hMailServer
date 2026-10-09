@@ -74,7 +74,7 @@ namespace hMailServer.ControlPanel.Views
          page.Children.Add(header_ = new PageHeader
          {
             Title = L("Spam filtering overview"),
-            Subtitle = L("Every check in the order the server runs them, and what the score they add does to the message. Nothing on this page can be edited - each section has a button to the page that owns its settings."),
+            Subtitle = L("Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting."),
             Actions = refresh
          });
 
@@ -204,6 +204,14 @@ namespace hMailServer.ControlPanel.Views
                config.DomainPolicyListEntries = CountDomainPolicyRows((string)antiSpam.DomainPolicyList);
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: an older server has no domain white and black list, and the row then reads 0 entries. */ }
+
+            // The external filtering engine is two [Settings] keys, read as the
+            // Anti-spam settings page reads them: over COM, from hMailServer.ini
+            // where the server does not answer.
+            var ini = new IniFeatureStore();
+            config.FilterHookUrl = Read(config, nameof(config.FilterHookUrl), () => ini.Read("FilterHookUrl", "")) ?? "";
+            config.FilterHookRejectScore = Read(config, nameof(config.FilterHookRejectScore),
+               () => int.Parse(ini.Read("FilterHookRejectScore", "100"), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture));
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
@@ -381,6 +389,9 @@ namespace hMailServer.ControlPanel.Views
          content = new StackPanel();
          var card = new Card { Title = title, Content = content };
          card.SetResourceReference(MarginProperty, "AppCardGap");
+         // Each section is a level-2 heading under the page's title, so a screen
+         // reader can move between them; the phases inside the checks are level 3.
+         System.Windows.Automation.AutomationProperties.SetHeadingLevel(card, System.Windows.Automation.AutomationHeadingLevel.Level2);
          return card;
       }
 
@@ -426,15 +437,20 @@ namespace hMailServer.ControlPanel.Views
 
          foreach (SpamCheckPhase phase in new[] { SpamCheckPhase.BeforeTheBody, SpamCheckPhase.AfterTheBody })
          {
+            // The phase as an overline: small, strong and secondary, under the
+            // card's title, where it was the card title's own size and weight and
+            // the three read as one level (review finding F264).
             var phaseHeading = new TextBlock
             {
                Text = phase == SpamCheckPhase.BeforeTheBody
                   ? L("At RCPT TO, before the body is transferred — a refusal here is a 550")
                   : L("After the body has been received — a refusal here is a 554"),
-               Margin = new Thickness(0, 12, 0, 8)
+               TextWrapping = TextWrapping.Wrap,
+               FontWeight = FontWeights.SemiBold,
+               Margin = new Thickness(0, 12, 0, 4)
             };
-            phaseHeading.SetResourceReference(StyleProperty, "TextBodyStrong");
-            System.Windows.Automation.AutomationProperties.SetHeadingLevel(phaseHeading, System.Windows.Automation.AutomationHeadingLevel.Level2);
+            phaseHeading.SetResourceReference(StyleProperty, "TextCaption");
+            System.Windows.Automation.AutomationProperties.SetHeadingLevel(phaseHeading, System.Windows.Automation.AutomationHeadingLevel.Level3);
             content.Children.Add(phaseHeading);
 
             var grid = new Grid();
@@ -444,7 +460,13 @@ namespace hMailServer.ControlPanel.Views
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                       // score
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });                       // link
 
-            int row = 0;
+            // A header row names the columns: the check, its state, what it adds.
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            AddColumnHeader(grid, 1, L("Spam check"), TextAlignment.Left);
+            AddColumnHeader(grid, 2, L("State"), TextAlignment.Left);
+            AddColumnHeader(grid, 3, L("Adds"), TextAlignment.Right);
+
+            int row = 1;
             foreach (SpamCheck check in SpamPipeline.Checks(config).Where(c => c.Phase == phase))
             {
                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -526,7 +548,8 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(score, 3);
          grid.Children.Add(score);
 
-         FrameworkElement link = PageLink(check.Page, L("Settings…"),
+         // The link names the page it opens, where every row's read "Settings…".
+         FrameworkElement link = PageLink(check.Page, F("{0} →", L(NavigationMap.TitleOf(check.Page))),
             F("Open {0}, which owns the {1} settings", L(NavigationMap.TitleOf(check.Page)), check.Name));
          link.Margin = new Thickness(0, 4, 0, 4);
          link.VerticalAlignment = VerticalAlignment.Top;
@@ -535,12 +558,28 @@ namespace hMailServer.ControlPanel.Views
          grid.Children.Add(link);
       }
 
+      /// <summary>One caption over a column of the checks' grid.</summary>
+      private static void AddColumnHeader(Grid grid, int column, string text, TextAlignment alignment)
+      {
+         var header = new TextBlock
+         {
+            Text = text,
+            TextAlignment = alignment,
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, column == 3 ? 14 : 12, 2)
+         };
+         header.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         Grid.SetRow(header, 0);
+         Grid.SetColumn(header, column);
+         grid.Children.Add(header);
+      }
+
       private Card GreylistingCard(SpamPipelineConfig config)
       {
          Card card = Section(L("Greylisting"), out StackPanel content);
 
          content.Children.Add(Paragraph(SpamPipeline.GreylistingSummary(config), Typography.Body));
-         content.Children.Add(PageLink("antispam", L("Greylisting settings…"),
+         content.Children.Add(PageLink("antispam", F("{0} →", L(NavigationMap.TitleOf("antispam"))),
             L("Open Anti-spam settings, which owns the greylisting settings")));
 
          return card;
@@ -563,22 +602,25 @@ namespace hMailServer.ControlPanel.Views
 
       private FrameworkElement ListRow(string name, int? active, int total, string page)
       {
-         var row = new Grid { Margin = new Thickness(0, 4, 0, 4) };
-         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         // The list's name is the link, its count beside it: the row's "Open…" sat
+         // some 600 pixels from the name it opened (review finding F264).
+         var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
          // The list pages' own words for the same count: "Active: 2 of 3".
          string count = active != null
             ? ActiveEntries.PillText(active.Value, total)
             : Plural(total, "{0} entry", "{0} entries");
 
-         var text = new TextBlock { Text = name + " — " + count, VerticalAlignment = VerticalAlignment.Center };
-         text.SetResourceReference(StyleProperty, "TextBody");
-         row.Children.Add(text);
-
-         FrameworkElement link = PageLink(page, L("Open…"), F("Open {0}", L(NavigationMap.TitleOf(page))));
-         Grid.SetColumn(link, 1);
+         FrameworkElement link = PageLink(page, F("{0} →", name), F("Open {0}", L(NavigationMap.TitleOf(page))));
+         link.HorizontalAlignment = HorizontalAlignment.Left;
          row.Children.Add(link);
+
+         var text = new TextBlock { Text = count, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+         text.SetResourceReference(StyleProperty, "TextBody");
+         Grid.SetColumn(text, 1);
+         row.Children.Add(text);
 
          return row;
       }

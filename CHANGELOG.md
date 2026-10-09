@@ -1772,6 +1772,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   sidebar's threshold, and Held and Score are as wide as their widest word, so that the addresses are no longer cut
   while Subject has room to spare, and Subject is no longer cut to a few letters.
 
+- **Fixed: the spam filtering overview's structure was flat, its scores unlabelled, and it left out the external
+  filtering engine.** The card titles and the two phase headings were one size and weight, with no heading level on
+  the cards; each row ended in an unlabelled "2", "per entry" or "-"; every row's link read "Settings…" and the lists
+  card's "Open…" sat some 600 pixels from its label; and with an external engine attached (rspamd, FilterHookUrl) the
+  list of checks left it out, so the overview could state a highest total of 12 that the engine's own score made
+  false. The cards are level-2 headings and the phases small strong overlines under them at level 3, over a header row
+  - Spam check, State, Adds - in which a score reads "+2", "the entry's score" or "adds nothing"; each link names the
+  page it opens, and a list's name is its link with its count beside it; the external filtering engine is the eleventh
+  check, after SpamAssassin, adding the engine's score or the reject score, so that with it on the total is open-ended
+  and the size limit's note names it among the checks that need the body; and the subtitle reads "Each spam check in
+  the order the server runs it, what it adds to the score, and what the total does to a message."
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

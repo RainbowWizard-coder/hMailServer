@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(имя компьютера Windows, на котором работает сервер)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>, пик {0}</value>
   </data>
@@ -1205,6 +1208,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>Адреса, входящие в Control Deck как администратор через SAML (через запятую)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>Добавляет</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>Добавляет печати ARC к пересылаемой почте, чтобы серверы дальше по цепочке могли доверять исходным результатам аутентификации (RFC 8617). Запечатывание заимствует селектор DKIM и закрытый ключ пересылающего домена, поэтому нужен хотя бы один размещённый домен с настроенным подписыванием DKIM — без него переключатель выглядит включённым, но не запечатывает ничего, сообщая об этом лишь строкой отладочного журнала. Страница «Контрольный список настройки» проверяет ваши домены на этот счёт.</value>
@@ -4120,6 +4126,9 @@ Control Panel может читать файлы сообщений только
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Каждая повторная попытка до истечения начальной задержки запускает задержку заново с этого момента, поэтому отправитель, повторяющий по таймеру, а не из очереди, никогда не достигает окна. По умолчанию выключено: добропорядочный сервер, один раз повторивший слишком быстро, с этим параметром задерживается чуть дольше.</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>Каждая проверка на спам в том порядке, в каком её выполняет сервер, что она добавляет к оценке и что итог делает с сообщением. Здесь ничего нельзя изменить: ссылка в каждой строке открывает страницу, которой принадлежит её параметр.</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>И_зменить действие…</value>
   </data>
@@ -4684,6 +4693,9 @@ Control Panel может читать файлы сообщений только
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>Внешние учётные записи, сервер которых указан здесь, входят с токеном-носителем, полученным от той же конечной точки токенов выше; все остальные внешние учётные записи продолжают использовать USER/PASS. Сбор почты из Microsoft 365 по паролю невозможен с 2022 года.</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>Внешний движок фильтрации</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>Внешний движок фильтрации (rspamd и всё прочее, что говорит по HTTP)</value>
   </data>
@@ -5028,9 +5040,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Срок действия записей серых списков и выбор между перемещением и копированием для SpamAssassin</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>Параметры серых списков…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>Тройки серых списков очищены.</value>
@@ -6487,6 +6496,9 @@ Control Panel может читать файлы сообщений только
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>Сообщения крупнее {0} КБ пропускают все проверки, которым нужно тело письма (SURBL, DKIM, DMARC и SpamAssassin). Проверки подключения при этом выполняются, и сообщение доставляется.</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>Сообщения крупнее {0} КБ пропускают все проверки, которым нужно тело письма (SURBL, DKIM, DMARC, SpamAssassin и внешний движок фильтрации). Проверки подключения при этом выполняются, и сообщение доставляется.</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>Сообщения крупнее {0} не проверяются. Они доставляются, а не отклоняются, и в журнал при этом ничего не пишется, поэтому в обычной работе этот предел незаметен. 0 означает «без ограничения» и именно это значение закрывает брешь.</value>
   </data>
@@ -6993,6 +7005,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>На этом порту шифрование недоступно. Входящая почта с других серверов и так обычно не шифруется, но этот порт принимает ещё и AUTH, и использующий его клиент отправляет свой пароль открытым текстом.</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>Движок не настроен, поэтому сообщения никуда не отправляются.</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>Нет записей, поэтому ни один домен не пропускается в обход greylisting из-за результатов проверки подлинности его почты.</value>
@@ -10367,6 +10382,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>Отправляет сообщение порциями с заранее указанной длиной, а не командой DATA с экранированием точек. Именно это и переносит двоичное сообщение дальше, не переписывая его: сообщение, принятое как BINARYMIME, может быть ретранслировано в том виде, в каком пришло, только на сервер, который предлагает и это, и BINARYMIME.</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>Отправляет сообщение движку по адресу {0} и добавляет возвращённую им оценку; ответ reject добавляет {1}.</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>Передаёт адрес получателя в заголовке User:, чтобы spamd применял собственные настройки этого почтового ящика, — именно такой вид ожидает spamd в режиме виртуальных пользователей (--virtual-config-dir с %u или %d). Сканирование выполняется один раз на сообщение, а не один раз на получателя, поэтому сообщение, адресованное нескольким людям, невозможно проверить с настройками кого-то одного из них, и оно проверяется по профилю, указанному выше.</value>
   </data>
@@ -10856,6 +10874,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists. Сообщения, ссылки в теле которых разрешаются на этих узлах, получают оценку спама.</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>Проверка</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>Порог удаления спама (оценка)</value>
@@ -12584,6 +12605,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>Итог ничем не ограничен сверху, поскольку запись списка или собственная оценка SpamAssassin может быть любой величины.</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>Итог ничем не ограничен сверху, поскольку запись списка, собственная оценка SpamAssassin или оценка внешнего движка может быть любой величины.</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>Не удалось прочитать конфигурацию транспортной безопасности.</value>
@@ -14709,6 +14733,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="add a user" xml:space="preserve">
     <value>добавить пользователя</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>ничего не добавляет</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>псевдоним</value>
   </data>
@@ -15277,12 +15304,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="pattern" xml:space="preserve">
     <value>шаблон</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>на запись</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>на запись списка</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>доказать другим серверам, что TLS обязателен</value>
   </data>
@@ -15487,8 +15508,14 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>запрос на повышение прав отменён.</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>оценка движка</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>запись не существует (проверьте SearchBase или UserDnTemplate)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>оценка записи</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>файл не удалось разобрать как сертификат.</value>
@@ -16551,6 +16578,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — код выхода {1} означает заражение</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>{0} % обращений обслужено из памяти, использовано {1} КБ из {2} КБ — достигнут предел, поэтому записи вытесняются.</value>

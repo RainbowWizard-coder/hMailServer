@@ -92,10 +92,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          IReadOnlyList<SpamCheck> checks = SpamPipeline.Checks(Defaults());
 
          Assert.Equal(
-            new[] { "blockedsenders", "dnsbl", "helo", "ptr", "mx", "spf", "surbl", "dkim", "dmarc", "spamassassin" },
+            new[] { "blockedsenders", "dnsbl", "helo", "ptr", "mx", "spf", "surbl", "dkim", "dmarc", "spamassassin", "filterhook" },
             checks.Select(c => c.Key));
 
-         Assert.Equal(Enumerable.Range(1, 10), checks.Select(c => c.Order));
+         Assert.Equal(Enumerable.Range(1, 11), checks.Select(c => c.Order));
       }
 
       /// <summary>
@@ -449,7 +449,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          Assert.True(surbl.Enabled);
          Assert.Null(surbl.Score);
-         Assert.Equal("per list entry", surbl.ScoreText);
+         Assert.Equal("the entry's score", surbl.ScoreText);
          Assert.EndsWith(". Active: 1 of 2.", surbl.Detail, StringComparison.Ordinal);
       }
 

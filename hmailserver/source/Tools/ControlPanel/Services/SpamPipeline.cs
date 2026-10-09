@@ -182,6 +182,15 @@ namespace hMailServer.ControlPanel.Services
       public int SpamAssassinScore { get; set; }
       public string SpamAssassinHost { get; set; }
 
+      /// <summary>
+      /// The external filtering engine (FilterHookUrl, empty for none) - rspamd or
+      /// anything else that answers the hook's HTTP request - and the score an
+      /// answer of reject adds (FilterHookRejectScore). SpamTestRunner runs it
+      /// last, after SpamAssassin, and it adds the score the engine answers.
+      /// </summary>
+      public string FilterHookUrl { get; set; } = "";
+      public int FilterHookRejectScore { get; set; }
+
       // The two list-driven checks have no switch of their own.
       public int ActiveDnsBlackLists { get; set; }
       public int TotalDnsBlackLists { get; set; }
@@ -298,7 +307,10 @@ namespace hMailServer.ControlPanel.Services
       };
 
       /// <summary>
-      /// The ten scoring checks, in the order SpamTestRunner runs them.
+      /// The eleven scoring checks, in the order SpamTestRunner runs them: the
+      /// external filtering engine is the last (SpamTestRunner::LoadSpamTests), and
+      /// the page left it out, so that with rspamd attached the highest total it
+      /// stated was false (review finding F264).
       ///
       /// Greylisting is deliberately not one of them: it defers a message instead
       /// of scoring it, and folding a deferral into a score table would be the same
@@ -326,7 +338,7 @@ namespace hMailServer.ControlPanel.Services
             // match ends the run before any DNS lookup happens.
             new SpamCheck("blockedsenders", 1, L("Blocked senders"), SpamCheckPhase.BeforeTheBody,
                config.BlockedSenderCount > 0, null,
-               config.BlockedSenderCount > 0 ? L("per entry") : "-",
+               config.BlockedSenderCount > 0 ? L("the entry's score") : L("adds nothing"),
                config.BlockedSenderCount > 0
                   ? Plural(config.BlockedSenderCount,
                      "Matches the envelope sender against {0} blocked address or domain; the score comes from the entry that matched.",
@@ -336,7 +348,7 @@ namespace hMailServer.ControlPanel.Services
 
             new SpamCheck("dnsbl", 2, L("DNS block lists (DNSBL)"), SpamCheckPhase.BeforeTheBody,
                config.ActiveDnsBlackLists > 0, null,
-               config.ActiveDnsBlackLists > 0 ? L("per list entry") : "-",
+               config.ActiveDnsBlackLists > 0 ? L("the entry's score") : L("adds nothing"),
                DescribeList(L("Looks up the connecting address on each active block list; the score comes from the entry that matched"),
                   config.ActiveDnsBlackLists, config.TotalDnsBlackLists),
                "dnsbl", Unread(nameof(config.ActiveDnsBlackLists), nameof(config.TotalDnsBlackLists))),
@@ -364,7 +376,7 @@ namespace hMailServer.ControlPanel.Services
             // 6-9: SpamTest::PostTransmission, run once the body has arrived.
             new SpamCheck("surbl", 7, L("SURBL servers"), SpamCheckPhase.AfterTheBody,
                config.ActiveSurblServers > 0, null,
-               config.ActiveSurblServers > 0 ? L("per list entry") : "-",
+               config.ActiveSurblServers > 0 ? L("the entry's score") : L("adds nothing"),
                DescribeList(L("Looks up the domains of links found in the body on each active SURBL server"),
                   config.ActiveSurblServers, config.TotalSurblServers),
                "surbl", Unread(nameof(config.ActiveSurblServers), nameof(config.TotalSurblServers))),
@@ -384,7 +396,19 @@ namespace hMailServer.ControlPanel.Services
                config.SpamAssassinMergesScore ? (int?) null : config.SpamAssassinScore,
                config.SpamAssassinMergesScore ? L("SpamAssassin's own score") : Score(config.SpamAssassinScore),
                F("Scores only when SpamAssassin itself tags the message (X-Spam-Status: Yes). {0}", (config.SpamAssassinMergesScore ? L("Merging is on, so its own numeric score is added - which can be any size.") : L("Merging is off, so the fixed score is used however sure SpamAssassin was."))),
-               "antispam", Unread(nameof(config.SpamAssassinEnabled), nameof(config.SpamAssassinMergesScore), nameof(config.SpamAssassinScore)))
+               "antispam", Unread(nameof(config.SpamAssassinEnabled), nameof(config.SpamAssassinMergesScore), nameof(config.SpamAssassinScore))),
+
+            // 11: SpamTestFilterHook, after SpamAssassin. It adds the engine's own
+            // score, rounded, or FilterHookRejectScore for an answer of reject -
+            // and, with FilterHookFailClosed on, for no answer - so its score can
+            // be any size, as a merging SpamAssassin's can.
+            new SpamCheck("filterhook", 11, L("External filtering engine"), SpamCheckPhase.AfterTheBody,
+               !string.IsNullOrWhiteSpace(config.FilterHookUrl), null,
+               string.IsNullOrWhiteSpace(config.FilterHookUrl) ? L("adds nothing") : L("the engine's score"),
+               string.IsNullOrWhiteSpace(config.FilterHookUrl)
+                  ? L("No engine is configured, so no message is sent to one.")
+                  : F("Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}.", config.FilterHookUrl, config.FilterHookRejectScore),
+               "antispam", Unread(nameof(config.FilterHookUrl), nameof(config.FilterHookRejectScore)))
          };
 
          return checks;
@@ -562,7 +586,7 @@ namespace hMailServer.ControlPanel.Services
 
          return ceiling != null
             ? F("With the checks currently enabled the highest total reachable is {0}.", ceiling.Value)
-            : L("The total is open-ended, because a list entry or SpamAssassin's own score can be any size.");
+            : L("The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size.");
       }
 
       /// <summary>
@@ -714,8 +738,12 @@ namespace hMailServer.ControlPanel.Services
          }
          else if (config.MaxScanKilobytes > 0)
          {
+            // The external engine is a check that needs the body as well, and
+            // SpamProtection::RunPostTransmissionTests skips it with the others.
             notes.Add(new SpamPipelineNote(StatusLevel.Information,
-               F("Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered.", config.MaxScanKilobytes)));
+               string.IsNullOrWhiteSpace(config.FilterHookUrl)
+                  ? F("Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered.", config.MaxScanKilobytes)
+                  : F("Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered.", config.MaxScanKilobytes)));
          }
          else
          {
@@ -742,7 +770,15 @@ namespace hMailServer.ControlPanel.Services
          return Notes(config).Aggregate(StatusLevel.Normal, (worst, note) => note.Level > worst ? note.Level : worst);
       }
 
-      private static string Score(int score) => score.ToString();
+      /// <summary>
+      /// What a check adds to the score, as the Adds column says it: "+2", "adds
+      /// nothing" for 0, a negative score as it is. The bare number - "2", or "-"
+      /// for nothing - stood unlabelled at the end of each row.
+      /// </summary>
+      private static string Score(int score)
+         => score > 0 ? F("+{0}", score)
+            : score == 0 ? L("adds nothing")
+            : score.ToString(System.Globalization.CultureInfo.CurrentCulture);
 
       private static string DescribeList(string what, int active, int total)
       {

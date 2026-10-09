@@ -84,6 +84,9 @@
   <data name="(the server's Windows computer name)" xml:space="preserve">
     <value>(サーバーの Windows コンピューター名)</value>
   </data>
+  <data name="+{0}" xml:space="preserve">
+    <value>+{0}</value>
+  </data>
   <data name=", peak {0}" xml:space="preserve">
     <value>、ピーク {0}</value>
   </data>
@@ -1199,6 +1202,9 @@
   </data>
   <data name="Addresses that sign in to the Control Deck as the administrator through SAML (comma separated)" xml:space="preserve">
     <value>SAML で Control Deck に管理者としてサインインするアドレス (コンマ区切り)</value>
+  </data>
+  <data name="Adds" xml:space="preserve">
+    <value>加算</value>
   </data>
   <data name="Adds ARC seals to forwarded mail so downstream servers can trust original authentication results (RFC 8617). Sealing borrows the forwarding domain's DKIM selector and private key, so it needs at least one hosted domain with DKIM signing configured - without that the switch reads enabled and seals nothing, with only a debug log line to say so. The Setup checklist page checks your domains for this." xml:space="preserve">
     <value>転送メールに ARC シールを付けて、下流のサーバーが元の認証結果を信頼できるようにします (RFC 8617)。シールの付与は転送元ドメインの DKIM セレクターと秘密鍵を借りるため、DKIM 署名を設定したホスト済みドメインが少なくとも 1 つ必要です。それがないと、スイッチは有効と表示されるのに何もシールされず、その旨はデバッグ ログの 1 行にしか現れません。「セットアップ チェックリスト」ページが、この点についてドメインを確認します。</value>
@@ -4084,6 +4090,9 @@
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>初期遅延が過ぎる前の再試行のたびに、その時点から遅延をやり直すため、キューからではなくタイマーで再試行する送信者はウィンドウに達しません。既定はオフ: 一度だけ早く再試行してしまう行儀のよいサーバーは、オンにすると少し長く待たされます。</value>
   </data>
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+    <value>各スパム チェックをサーバーが実行する順に、スコアに加える値と、合計がメッセージに何をもたらすかを示します。ここでは何も編集できません。各行のリンクは、その設定を持つページを開きます。</value>
+  </data>
   <data name="Ed_it action…" xml:space="preserve">
     <value>アクションを編集(_I)…</value>
   </data>
@@ -4630,6 +4639,9 @@
   <data name="External accounts whose server is named here log in with a bearer token from the same token endpoint above; every other external account keeps USER/PASS. Collecting from Microsoft 365 with a password has not been possible since 2022." xml:space="preserve">
     <value>ここにサーバーが指定されている外部アカウントは、上と同じトークン エンドポイントから得たベアラー トークンでログインします。それ以外の外部アカウントは USER/PASS のままです。パスワードで Microsoft 365 から収集することは 2022 年以降できなくなっています。</value>
   </data>
+  <data name="External filtering engine" xml:space="preserve">
+    <value>外部フィルタリング エンジン</value>
+  </data>
   <data name="External filtering engine (rspamd and anything else that speaks HTTP)" xml:space="preserve">
     <value>外部フィルタリング エンジン (rspamd、およびその他の HTTP を話すもの)</value>
   </data>
@@ -4974,9 +4986,6 @@
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>グレイリスティング レコードの有効期限と、SpamAssassin の移動/コピー</value>
-  </data>
-  <data name="Greylisting settings…" xml:space="preserve">
-    <value>グレイリスティングの設定…</value>
   </data>
   <data name="Greylisting triplets cleared." xml:space="preserve">
     <value>グレイリスティングのトリプレットをクリアしました。</value>
@@ -6427,6 +6436,9 @@
   <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC and SpamAssassin). The connection checks still run, and the message is delivered." xml:space="preserve">
     <value>{0} KB より大きいメッセージは、本文を必要とするすべてのチェック (SURBL、DKIM、DMARC、SpamAssassin) をスキップします。接続チェックは引き続き実行され、メッセージは配信されます。</value>
   </data>
+  <data name="Messages larger than {0} KB skip every check that needs the body (SURBL, DKIM, DMARC, SpamAssassin and the external filtering engine). The connection checks still run, and the message is delivered." xml:space="preserve">
+    <value>{0} KB より大きいメッセージは、本文を必要とするすべてのチェック (SURBL、DKIM、DMARC、SpamAssassin、外部フィルタリング エンジン) をスキップします。接続チェックは引き続き実行され、メッセージは配信されます。</value>
+  </data>
   <data name="Messages larger than {0} are not scanned. They are delivered, not refused, and nothing is written to the log when it happens — so this limit is invisible in normal operation. 0 means &quot;no limit&quot; and is the setting that closes the gap." xml:space="preserve">
     <value>{0} より大きいメッセージはスキャンされません。拒否されるのではなく配信され、その際ログには何も書かれません — そのため、この制限は通常の運用では見えません。0 は「無制限」を意味し、この隙間を閉じる設定です。</value>
   </data>
@@ -6930,6 +6942,9 @@
   </data>
   <data name="No encryption is available on this port. Inbound mail from other servers is normally unencrypted anyway, but this port also accepts AUTH, and a client using it sends its password in the clear." xml:space="preserve">
     <value>このポートでは暗号化が利用できません。ほかのサーバーからの受信メールはもともと暗号化されていないのが普通ですが、このポートは AUTH も受け付けるため、それを使うクライアントはパスワードを平文で送信します。</value>
+  </data>
+  <data name="No engine is configured, so no message is sent to one." xml:space="preserve">
+    <value>エンジンが構成されていないため、メッセージは送信されません。</value>
   </data>
   <data name="No entries, so no domain is let past greylisting for the authentication results its mail carries." xml:space="preserve">
     <value>エントリがないため、メールに付いた認証結果を理由にグレイリスティングを免除されるドメインはありません。</value>
@@ -10259,6 +10274,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sends the message as counted chunks rather than dot-stuffed DATA. It is also what carries a binary message onward without rewriting it: a message accepted as BINARYMIME can only be relayed as it arrived to a server that offers both this and BINARYMIME." xml:space="preserve">
     <value>メッセージを、ドット スタッフィングされた DATA ではなく、バイト数を数えたチャンクとして送信します。バイナリのメッセージを書き換えずにそのまま先へ運ぶのもこれです。BINARYMIME として受け入れたメッセージを到着したままの形で中継できるのは、これと BINARYMIME の両方を提供するサーバーに対してだけです。</value>
   </data>
+  <data name="Sends the message to the engine at {0} and adds the score it answers; an answer of reject adds {1}." xml:space="preserve">
+    <value>{0} のエンジンにメッセージを送り、返されたスコアを加えます。reject という応答では {1} を加えます。</value>
+  </data>
   <data name="Sends the recipient's address as the User: header, so spamd applies that mailbox's own preferences - the shape a virtual-user spamd (--virtual-config-dir with %u or %d) expects. A scan runs once per message, not once per recipient, so a message to several people cannot be scanned under any one of their preferences and uses the profile above instead." xml:space="preserve">
     <value>受信者のアドレスを User: ヘッダーとして送信し、spamd がそのメールボックス固有の設定を適用するようにします。仮想ユーザー spamd (--virtual-config-dir と %u または %d) が期待する形式です。スキャンは受信者ごとではなくメッセージごとに 1 回実行されるため、複数人宛てのメッセージは誰か 1 人の設定ではスキャンできず、代わりに上のプロファイルを使います。</value>
   </data>
@@ -10743,6 +10761,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Spam URI Realtime Block Lists. Messages whose body links resolve on these hosts gain spam score." xml:space="preserve">
     <value>Spam URI Realtime Block Lists。本文内のリンクがこれらのホストに解決されるメッセージにはスパム スコアが加算されます。</value>
+  </data>
+  <data name="Spam check" xml:space="preserve">
+    <value>スパム チェック</value>
   </data>
   <data name="Spam delete threshold (score)" xml:space="preserve">
     <value>スパム削除しきい値 (スコア)</value>
@@ -12438,6 +12459,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The total is open-ended, because a list entry or SpamAssassin's own score can be any size." xml:space="preserve">
     <value>合計に上限はありません。リストの項目や SpamAssassin 自身のスコアは任意の大きさになり得るためです。</value>
+  </data>
+  <data name="The total is open-ended, because a list entry, SpamAssassin's own score or the external engine's can be any size." xml:space="preserve">
+    <value>合計に上限はありません。リストの項目、SpamAssassin 自身のスコア、外部エンジンのスコアは任意の大きさになり得るためです。</value>
   </data>
   <data name="The transport security configuration could not be read." xml:space="preserve">
     <value>トランスポート セキュリティの設定を読み取れませんでした。</value>
@@ -14551,6 +14575,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="add a user" xml:space="preserve">
     <value>ユーザーを追加する</value>
   </data>
+  <data name="adds nothing" xml:space="preserve">
+    <value>加算なし</value>
+  </data>
   <data name="alias" xml:space="preserve">
     <value>エイリアス</value>
   </data>
@@ -15104,12 +15131,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="pattern" xml:space="preserve">
     <value>パターン</value>
   </data>
-  <data name="per entry" xml:space="preserve">
-    <value>エントリごと</value>
-  </data>
-  <data name="per list entry" xml:space="preserve">
-    <value>リストのエントリごと</value>
-  </data>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>ほかのサーバーに TLS が必須だと示す</value>
   </data>
@@ -15314,8 +15335,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the elevation prompt was cancelled." xml:space="preserve">
     <value>昇格の確認がキャンセルされました。</value>
   </data>
+  <data name="the engine's score" xml:space="preserve">
+    <value>エンジンのスコア</value>
+  </data>
   <data name="the entry does not exist (check SearchBase, or UserDnTemplate)" xml:space="preserve">
     <value>エントリが存在しません (SearchBase または UserDnTemplate を確認してください)</value>
+  </data>
+  <data name="the entry's score" xml:space="preserve">
+    <value>項目のスコア</value>
   </data>
   <data name="the file could not be parsed as a certificate." xml:space="preserve">
     <value>そのファイルを証明書として解析できませんでした。</value>
@@ -16186,6 +16213,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} — exit code {1} means infected" xml:space="preserve">
     <value>{0} — 終了コード {1} は感染を意味します</value>
+  </data>
+  <data name="{0} →" xml:space="preserve">
+    <value>{0} →</value>
   </data>
   <data name="{0}% of lookups answered from memory, using {1} KB of {2} KB - at its cap, so entries are being evicted." xml:space="preserve">
     <value>参照の {0}% がメモリから応答されており、{2} KB のうち {1} KB を使用しています。上限に達しているため、エントリが破棄されています。</value>
