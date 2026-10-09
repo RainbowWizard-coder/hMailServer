@@ -1072,6 +1072,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the server registers as it starts, where it said that a change to the schedule needs a restart after every save;
   and it now notices when hMailServer.ini refused a write, which it reported as saved.
 
+- **Fixed: the lists on the domain and account dialogs' tabs saved as they were edited, under a dialog whose Cancel
+  suggested nothing had been.** Adding, editing or deleting a domain alias or an entry of the domain's allow and
+  block list, an external account or one of the account's rules writes it to the server at once, and pressing Cancel
+  afterwards keeps it and discards the rest of the dialog; the Levels tab says its changes are written at once, not
+  with the dialog's Save, and these four tabs said nothing. Each now says under its hint - the Rules tab where the
+  page's header would be - "Changes here are saved as you make them, not with the dialog's Save, so Cancel does not
+  undo them." A test holds every list built for a dialog's tab to saying so.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

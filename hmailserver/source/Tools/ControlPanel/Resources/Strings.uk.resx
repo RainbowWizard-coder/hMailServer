@@ -2251,6 +2251,9 @@
   <data name="Change the language" xml:space="preserve">
     <value>Змінити мову</value>
   </data>
+  <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
+    <value>Зміни тут зберігаються одразу, щойно ви їх вносите, а не кнопкою «Зберегти» діалогу, тож «Скасувати» їх не скасовує.</value>
+  </data>
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Змінює те, що відбувається на порозі видалення. Якщо вимкнено, повідомлення з оцінкою понад цей поріг відхиляється під час SMTP-діалогу кодом 550, і відправникові про це повідомляють. Якщо ввімкнено, воно натомість приймається з кодом 250 й утримується для перегляду — відправник вважає, що повідомлення доставлено, і не повторює спроби, а саме це дає змогу виправити хибне спрацювання, не надсилаючи відмову на зворотну адресу, яка, найімовірніше, підроблена; це також означає, що черга перегляду стає єдиним місцем, де це повідомлення існує. Стосується перевірок, які виконуються після отримання тіла повідомлення; висновок, зроблений раніше (IP-адреса підключення зі списку блокування DNS, хибний HELO), не має повідомлення, яке можна утримати, і залишається відмовою.</value>
   </data>

@@ -48,7 +48,20 @@ namespace hMailServer.ControlPanel.Views
          rulesProvider_ = rulesProvider;
          serverLevel_ = serverLevel;
          if (embedded && HeaderPanel != null)
+         {
             HeaderPanel.Visibility = Visibility.Collapsed;
+
+            // On the account dialog's Rules tab, whose Save and Cancel do not reach
+            // the rules: each is written as it is made, and the tab says so where the
+            // page's header was (review finding F196).
+            if (HeaderPanel.Parent is Grid root)
+            {
+               System.Windows.Controls.TextBlock note = CollectionEditorView.SavedAsMadeNote();
+               note.Margin = new Thickness(0, 0, 0, 8);
+               Grid.SetRow(note, 0);
+               root.Children.Add(note);
+            }
+         }
       }
 
       private dynamic OpenRules() => rulesProvider_();

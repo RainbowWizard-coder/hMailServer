@@ -416,6 +416,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Title = L("Allow and block list"),
          Subtitle = F("Addresses and whole domains that the accounts of {0} want, or do not. Consulted after an account's own list and before the server's.", domainName),
+         SavesAsMadeInDialog = true,
          ItemNoun = L("list entry"),
          AddTitle = N("Add a list entry"),
          EditTitle = N("Edit the list entry"),
@@ -442,6 +443,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Title = L("Domain aliases"),
          Subtitle = F("Alternative domain names treated as this domain. Mail sent to user@alias is delivered to user@{0}.", domainName),
+         SavesAsMadeInDialog = true,
          ItemNoun = L("alias"),
          AddTitle = N("Add a domain alias"),
          EditTitle = N("Edit the domain alias"),
@@ -466,6 +468,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Title = L("External accounts"),
          Subtitle = L("POP3 or IMAP mailboxes hMailServer collects mail from on behalf of this account. Connection security and port go together: SSL/TLS on 995 (POP3) or 993 (IMAP), STARTTLS on 110 or 143."),
+         SavesAsMadeInDialog = true,
          ItemNoun = L("external account"),
          AddTitle = N("Add an external account"),
          EditTitle = N("Edit the external account"),
@@ -543,6 +546,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Title = L("Rules"),
          Subtitle = L("Per-account rules. You can add, rename, enable/disable and delete rules here; matching criteria and actions are managed on the server."),
+         SavesAsMadeInDialog = true,
          ItemNoun = L("rule"),
          AddTitle = N("Add a rule"),
          EditTitle = N("Edit the rule"),

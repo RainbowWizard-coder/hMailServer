@@ -2233,6 +2233,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Change the language" xml:space="preserve">
     <value>Sprache ändern</value>
   </data>
+  <data name="Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them." xml:space="preserve">
+    <value>Änderungen hier werden gespeichert, sobald Sie sie vornehmen, nicht mit dem Speichern des Dialogs; Abbrechen macht sie also nicht rückgängig.</value>
+  </data>
   <data name="Changes what happens at the delete threshold. Off, a message over it is refused during the SMTP conversation with a 550 and the sender is told. On, it is accepted with a 250 and held for review instead - the sender believes it was delivered and will not retry, which is what makes a false positive recoverable without bouncing to a return path that is probably forged, and also means the review queue becomes the only place that message exists. Applies to checks that run after the message body has been received; a verdict reached before that (a connecting IP on a DNS block list, a bad HELO) has no message to hold and stays a refusal." xml:space="preserve">
     <value>Ändert, was an der Löschschwelle geschieht. Aus: eine Nachricht darüber wird während des SMTP-Dialogs mit einer 550 abgelehnt und der Absender erfährt es. Ein: sie wird mit einer 250 angenommen und stattdessen zur Prüfung zurückgehalten - der Absender glaubt, sie sei zugestellt, und wiederholt nicht, was einen Fehlalarm wiederherstellbar macht, ohne an einen wahrscheinlich gefälschten Rückweg zurückzuschicken, und auch bedeutet, dass die Prüfwarteschlange der einzige Ort wird, an dem diese Nachricht existiert. Gilt für Prüfungen, die nach dem Empfang des Nachrichtentexts laufen; ein Urteil davor (eine verbindende IP auf einer DNS-Sperrliste, ein schlechtes HELO) hat keine Nachricht zum Zurückhalten und bleibt eine Ablehnung.</value>
   </data>

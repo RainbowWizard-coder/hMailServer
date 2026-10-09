@@ -138,6 +138,12 @@ namespace hMailServer.ControlPanel.Views
          // count its own way (Russian puts the noun first, "Групп безопасности: 3").
          public string CountOne = N("1 item");
          public string CountMany = N("{0} items");
+
+         // The editor sits on a tab of a dialog whose Save and Cancel do not reach
+         // it: Add, Edit and Delete write to the server as they are pressed, and a
+         // Cancel afterwards keeps them. Said under the hint (SavedAsMadeNote), as
+         // the Levels tab says it of its own Save (review findings F196 and F108).
+         public bool SavesAsMadeInDialog;
       }
 
       internal sealed class Row
@@ -198,6 +204,24 @@ namespace hMailServer.ControlPanel.Views
       public void OnEnter() => Reload();
       public void OnLeave() { }
 
+      /// <summary>
+      /// The line a dialog's tab carries when what is on it is written as it is made -
+      /// an embedded list's Add, Edit and Delete, the account's rules - so that Cancel
+      /// is not read as undoing it. One sentence for every such tab, in the caption
+      /// style of the hint above it.
+      /// </summary>
+      public static TextBlock SavedAsMadeNote()
+      {
+         var note = new TextBlock
+         {
+            Text = L("Changes here are saved as you make them, not with the dialog's Save, so Cancel does not undo them."),
+            TextWrapping = TextWrapping.Wrap
+         };
+         note.SetResourceReference(StyleProperty, "TextCaption");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(note, "saved-as-made");
+         return note;
+      }
+
       /// <summary>Loads (or reloads) the collection. Used when embedded in a dialog.</summary>
       public void Refresh() => Reload();
 
@@ -252,12 +276,24 @@ namespace hMailServer.ControlPanel.Views
          // above a toolbar that carries the count and the same actions.
          if (embedded_)
          {
+            var head = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
             if (!string.IsNullOrEmpty(spec_.Subtitle))
             {
-               var hint = new TextBlock { Text = spec_.Subtitle, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) };
+               var hint = new TextBlock { Text = spec_.Subtitle, TextWrapping = TextWrapping.Wrap };
                hint.SetResourceReference(StyleProperty, "TextCaption");
-               root.Children.Add(hint);
+               head.Children.Add(hint);
             }
+
+            if (spec_.SavesAsMadeInDialog)
+            {
+               TextBlock note = SavedAsMadeNote();
+               if (head.Children.Count > 0)
+                  note.Margin = new Thickness(0, DesignTokens.Space.Xs, 0, 0);
+               head.Children.Add(note);
+            }
+
+            if (head.Children.Count > 0)
+               root.Children.Add(head);
 
             var toolbar = new Toolbar { ShowSearch = false, Filters = countBadge_, Actions = actions };
             Grid.SetRow(toolbar, 1);
