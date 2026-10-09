@@ -326,9 +326,22 @@ namespace hMailServer.ControlPanel.Services
          return config.MaxScanKilobytes > 0 || config.Action == VirusAction.StripAttachments ? StatusLevel.Warning : StatusLevel.Good;
       }
 
-      /// <summary>The page the verdict's action opens - where the scanners are - when it has something to put right.</summary>
-      public static string VerdictPage(VirusPipelineConfig config)
-         => VerdictLevel(config) >= StatusLevel.Warning ? NotesPage : null;
+      /// <summary>
+      /// Whether the notes say what the verdict says: at the Warning level and
+      /// above - no scanner that can run, a larger message delivered unscanned,
+      /// an infected one delivered with its attachments stripped - a note at the
+      /// verdict's level says it, with the page that puts it right. The overview
+      /// then draws the verdict as the card's lead sentence, at no level and with
+      /// no action - it still says what happens to every message, "scanned by
+      /// one scanner", which no note does - and those notes are the only notices
+      /// at the Warning level and above, as the count beside the title counts
+      /// them: as a notice of its own the verdict stood above the notes that said
+      /// it, at their level and with the same Open Anti-virus settings, one
+      /// notice more than the count. A verdict that is Good, or that cannot be
+      /// said, has no note to say it and is the notice.
+      /// </summary>
+      public static bool NotesSayTheVerdict(VirusPipelineConfig config)
+         => VerdictLevel(config) >= StatusLevel.Warning;
 
       /// <summary>
       /// One sentence answering "what will happen to an infected message", written

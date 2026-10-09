@@ -29,9 +29,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string code = ReadView(file);
 
-         // The verdict, at its level, with its page.
+         // The verdict, at its level.
          Assert.Contains("OverviewNotices.Notice(" + pipeline + ".VerdictLevel(config), " + pipeline + ".Verdict(config),", code, StringComparison.Ordinal);
-         Assert.Contains(pipeline + ".VerdictPage(config)", code, StringComparison.Ordinal);
 
          // The problems under it, each with its page; the rest at the foot.
          Assert.Contains("List<" + note + "> problems = OverviewNotices.Problems(notes, n => n.Level);", code, StringComparison.Ordinal);
@@ -48,19 +47,57 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// The transport encryption verdict is not said again above the notes that
-      /// say it listener by listener: "POP3 110 has no encryption available..."
-      /// and "POP3 on port 110 has no encryption available..." were two Critical
-      /// notices, one more than the count beside the title.
+      /// No overview says its verdict again, as a notice at its level, above the
+      /// notes that say it: on transport encryption "POP3 110 has no encryption
+      /// available..." stood above "POP3 on port 110 has no encryption
+      /// available...", on virus scanning "Messages up to 10,240 KB (10 MB) are
+      /// scanned by one scanner; anything larger is delivered without being
+      /// scanned at all..." above the two Warnings that say it, and on spam
+      /// filtering "Nothing at all happens on score: both thresholds are 0..."
+      /// above "Both thresholds are 0, so no score can mark or refuse
+      /// anything...", each with the same button and one notice more than the
+      /// count beside the title. The pipelines hold NotesSayTheVerdict to a note
+      /// at the verdict's level; this holds each page to drawing the verdict's
+      /// notice only where it is false, and the spam and virus verdicts, which
+      /// still say what becomes of every message, to the card's lead sentence
+      /// where it is true.
       /// </summary>
-      [Fact]
-      public void TheTransportEncryptionVerdict_IsNotSaidTwice()
+      [Theory]
+      [InlineData("TlsOverviewView.cs", "TlsPosture", "tls")]
+      [InlineData("SpamOverviewView.cs", "SpamPipeline", "spam")]
+      [InlineData("VirusOverviewView.cs", "VirusPipeline", "virus")]
+      public void TheVerdict_IsNotSaidTwice(string file, string pipeline, string key)
       {
-         string code = ReadView("TlsOverviewView.cs");
-         int guard = code.IndexOf("if (!TlsPosture.NotesSayTheVerdict(config))", StringComparison.Ordinal);
-         int verdict = code.IndexOf("OverviewNotices.Notice(TlsPosture.VerdictLevel(config), TlsPosture.Verdict(config),", StringComparison.Ordinal);
+         string code = ReadView(file);
+         string notice = "OverviewNotices.Notice(" + pipeline + ".VerdictLevel(config), " + pipeline + ".Verdict(config),";
+         int guard = code.IndexOf("if (!" + pipeline + ".NotesSayTheVerdict(config))", StringComparison.Ordinal);
+         int verdict = code.IndexOf(notice, StringComparison.Ordinal);
          Assert.True(guard >= 0, "The verdict is shown whatever the notes say.");
          Assert.True(verdict > guard && verdict - guard < 120, "The verdict's notice is not the one the guard keeps out.");
+         Assert.Equal(verdict, code.LastIndexOf(notice, StringComparison.Ordinal));
+
+         if (pipeline == "TlsPosture")
+            return;
+
+         int lead = code.IndexOf("content.Children.Add(OverviewNotices.Lead(" + pipeline + ".Verdict(config), \"" + key + "-overview-verdict\"));", StringComparison.Ordinal);
+         int otherwise = code.IndexOf("else", verdict, StringComparison.Ordinal);
+         Assert.True(otherwise > verdict && lead > otherwise && lead - otherwise < 80, "Where the notes say the verdict it is not the card's lead sentence.");
+      }
+
+      /// <summary>
+      /// The lead sentence is body text, at no level and with no action: the
+      /// notices at the Warning level and above are the problems counted beside
+      /// the title.
+      /// </summary>
+      [Fact]
+      public void TheLeadSentence_IsBodyText_AtNoLevel()
+      {
+         string helper = ReadView("OverviewNotices.cs");
+         string lead = helper.Substring(helper.IndexOf("public static System.Windows.Controls.TextBlock Lead(string text, string automationId)", StringComparison.Ordinal));
+         lead = lead.Substring(0, lead.IndexOf("return lead;", StringComparison.Ordinal));
+         Assert.Contains("\"TextBody\"", lead, StringComparison.Ordinal);
+         Assert.DoesNotContain("Level", lead, StringComparison.Ordinal);
+         Assert.DoesNotContain("NoticeActions", lead, StringComparison.Ordinal);
       }
 
       [Fact]

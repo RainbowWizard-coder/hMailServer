@@ -394,16 +394,23 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The verdict as a notice at its level, with the page that owns the
-      /// scanners when it has something to put right; then every problem, worst
-      /// first, each with the page that puts it right.
+      /// The verdict, then every problem, worst first, each with the page that
+      /// puts it right. A verdict that is Good, or that cannot be said, is a
+      /// notice at its level; one at the Warning level or above is said by the
+      /// notes at its level, and is the card's lead sentence, at no level and
+      /// with no action - it still says how many scanners examine a message and
+      /// what becomes of an infected one - so that it is not said twice and the
+      /// notices at the Warning level and above are the problems the count beside
+      /// the title counts.
       /// </summary>
       private static Card VerdictCard(VirusPipelineConfig config, IReadOnlyList<VirusPipelineNote> problems)
       {
          Card card = Section(L("What happens to an infected message"), out StackPanel content);
 
-         content.Children.Add(OverviewNotices.Notice(VirusPipeline.VerdictLevel(config), VirusPipeline.Verdict(config),
-            VirusPipeline.VerdictPage(config), "virus-overview-verdict"));
+         if (!VirusPipeline.NotesSayTheVerdict(config))
+            content.Children.Add(OverviewNotices.Notice(VirusPipeline.VerdictLevel(config), VirusPipeline.Verdict(config), null, "virus-overview-verdict"));
+         else
+            content.Children.Add(OverviewNotices.Lead(VirusPipeline.Verdict(config), "virus-overview-verdict"));
 
          foreach (VirusPipelineNote problem in problems)
             content.Children.Add(OverviewNotices.Notice(problem.Level, problem.Text, problem.Page, "virus-overview-problem"));

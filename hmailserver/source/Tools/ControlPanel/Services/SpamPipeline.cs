@@ -417,9 +417,20 @@ namespace hMailServer.ControlPanel.Services
          return marks ? StatusLevel.Good : StatusLevel.Warning;
       }
 
-      /// <summary>The page the verdict's action opens - where the thresholds are - when it has something to put right.</summary>
-      public static string VerdictPage(SpamPipelineConfig config)
-         => VerdictLevel(config) >= StatusLevel.Warning ? NotesPage : null;
+      /// <summary>
+      /// Whether the notes say what the verdict says: at the Warning level and
+      /// above - nothing ever marked, nothing done on score at all, a delete
+      /// threshold that leaves nothing to mark - a note at the verdict's level
+      /// says it, with the page that puts it right. The overview then draws the
+      /// verdict as the card's lead sentence, at no level and with no action, and
+      /// those notes are the only notices at the Warning level and above, as the
+      /// count beside the title counts them: as a notice of its own the verdict
+      /// stood above the note that said it, at its level and with the same Open
+      /// Anti-spam settings, one notice more than the count. A verdict that is
+      /// Good, or that cannot be said, has no note to say it and is the notice.
+      /// </summary>
+      public static bool NotesSayTheVerdict(SpamPipelineConfig config)
+         => VerdictLevel(config) >= StatusLevel.Warning;
 
       /// <summary>
       /// The state a check's row shows, as a level and a word: Not read and Off

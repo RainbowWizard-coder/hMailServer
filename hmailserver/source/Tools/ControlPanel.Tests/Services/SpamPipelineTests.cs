@@ -675,19 +675,20 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// The verdict is shown at the level of what it says - it was plain body
-      /// text - with Anti-spam settings as its action when it has something to
-      /// put right.
+      /// text - where no note says it: at the Warning level and above the notes
+      /// say it, each with Anti-spam settings as its action, and the verdict is
+      /// the card's lead sentence.
       /// </summary>
       [Fact]
       public void TheVerdict_HasTheLevelOfWhatItSays()
       {
          SpamPipelineConfig config = Defaults();
          Assert.Equal(StatusLevel.Good, SpamPipeline.VerdictLevel(config));
-         Assert.Null(SpamPipeline.VerdictPage(config));
+         Assert.False(SpamPipeline.NotesSayTheVerdict(config));
 
          config.MarkThreshold = 0;
          Assert.Equal(StatusLevel.Warning, SpamPipeline.VerdictLevel(config));
-         Assert.Equal("antispam", SpamPipeline.VerdictPage(config));
+         Assert.True(SpamPipeline.NotesSayTheVerdict(config));
 
          config.DeleteThreshold = 0;
          Assert.Equal(StatusLevel.Critical, SpamPipeline.VerdictLevel(config));
@@ -698,13 +699,19 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          config.Unread.Add(nameof(config.MarkThreshold));
          Assert.Equal(StatusLevel.Information, SpamPipeline.VerdictLevel(config));
-         Assert.Null(SpamPipeline.VerdictPage(config));
+         Assert.False(SpamPipeline.NotesSayTheVerdict(config));
+         Assert.False(SpamPipeline.NotesSayTheVerdict(null));
       }
 
       /// <summary>
       /// A verdict at Warning or above is always said by a note at its level, so
       /// that the count of problems beside the title - the notes at Warning and
-      /// above - is never "No problems found" beside it.
+      /// above - is never "No problems found" beside it, and the overview draws
+      /// no notice of the verdict's own at that level (NotesSayTheVerdict), which
+      /// said the problem a second time with the same button: "Nothing at all
+      /// happens on score: both thresholds are 0..." stood above "Both thresholds
+      /// are 0, so no score can mark or refuse anything...", both Critical, beside
+      /// "2 problems" and three notices at the Warning level and above.
       /// </summary>
       [Theory]
       [InlineData(0, 20)]
@@ -720,6 +727,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          config.DeleteThreshold = delete;
 
          StatusLevel verdict = SpamPipeline.VerdictLevel(config);
+         Assert.Equal(verdict >= StatusLevel.Warning, SpamPipeline.NotesSayTheVerdict(config));
          if (verdict >= StatusLevel.Warning)
             Assert.Contains(SpamPipeline.Notes(config), n => n.Level >= verdict);
       }

@@ -380,16 +380,21 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// The verdict as a notice at its level, with the page that owns the
-      /// thresholds when it has something to put right; then every problem, worst
-      /// first, each with the page that puts it right.
+      /// The verdict, then every problem, worst first, each with the page that
+      /// puts it right. A verdict that is Good, or that cannot be said, is a
+      /// notice at its level; one at the Warning level or above is said by a note
+      /// at its level, and is the card's lead sentence, at no level and with no
+      /// action, so that it is not said twice and the notices at the Warning level
+      /// and above are the problems the count beside the title counts.
       /// </summary>
       private static Card VerdictCard(SpamPipelineConfig config, IReadOnlyList<SpamPipelineNote> problems)
       {
          Card card = Section(L("What happens to a message"), out StackPanel content);
 
-         content.Children.Add(OverviewNotices.Notice(SpamPipeline.VerdictLevel(config), SpamPipeline.Verdict(config),
-            SpamPipeline.VerdictPage(config), "spam-overview-verdict"));
+         if (!SpamPipeline.NotesSayTheVerdict(config))
+            content.Children.Add(OverviewNotices.Notice(SpamPipeline.VerdictLevel(config), SpamPipeline.Verdict(config), null, "spam-overview-verdict"));
+         else
+            content.Children.Add(OverviewNotices.Lead(SpamPipeline.Verdict(config), "spam-overview-verdict"));
 
          foreach (SpamPipelineNote problem in problems)
             content.Children.Add(OverviewNotices.Notice(problem.Level, problem.Text, problem.Page, "spam-overview-problem"));

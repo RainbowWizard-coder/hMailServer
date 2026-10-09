@@ -564,19 +564,22 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// <summary>
       /// The verdict is shown at the level of what it says: "No message is scanned
       /// for viruses... Everything is delivered as it arrives." was plain body text.
+      /// At the Warning level and above the notes say it, each with the page that
+      /// puts it right, and the verdict is the card's lead sentence.
       /// </summary>
       [Fact]
       public void TheVerdict_HasTheLevelOfWhatItSays()
       {
          Assert.Equal(StatusLevel.Critical, VirusPipeline.VerdictLevel(Defaults()));
-         Assert.Equal("antivirus", VirusPipeline.VerdictPage(Defaults()));
+         Assert.True(VirusPipeline.NotesSayTheVerdict(Defaults()));
 
          VirusPipelineConfig scanning = Scanning();
          Assert.Equal(StatusLevel.Good, VirusPipeline.VerdictLevel(scanning));
-         Assert.Null(VirusPipeline.VerdictPage(scanning));
+         Assert.False(VirusPipeline.NotesSayTheVerdict(scanning));
 
          scanning.MaxScanKilobytes = 10240;
          Assert.Equal(StatusLevel.Warning, VirusPipeline.VerdictLevel(scanning));
+         Assert.True(VirusPipeline.NotesSayTheVerdict(scanning));
 
          scanning.MaxScanKilobytes = 0;
          scanning.Action = VirusAction.StripAttachments;
@@ -584,12 +587,19 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          scanning.Unread.Add(nameof(scanning.Action));
          Assert.Equal(StatusLevel.Information, VirusPipeline.VerdictLevel(scanning));
+         Assert.False(VirusPipeline.NotesSayTheVerdict(scanning));
+         Assert.False(VirusPipeline.NotesSayTheVerdict(null));
       }
 
       /// <summary>
       /// A verdict at Warning or above is always said by a note at its level, so
       /// that the count of problems beside the title - the notes at Warning and
-      /// above - is never "No problems found" beside it.
+      /// above - is never "No problems found" beside it, and the overview draws
+      /// no notice of the verdict's own at that level (NotesSayTheVerdict):
+      /// "Messages up to 10,240 KB (10 MB) are scanned by one scanner; anything
+      /// larger is delivered without being scanned at all..." was a third Warning,
+      /// with the same Open Anti-virus settings, above the two notes that say it,
+      /// beside "2 problems".
       /// </summary>
       [Fact]
       public void AVerdictAtWarningOrAbove_IsSaidByANoteAtItsLevel()
@@ -615,6 +625,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          foreach (VirusPipelineConfig config in configs)
          {
             StatusLevel verdict = VirusPipeline.VerdictLevel(config);
+            Assert.Equal(verdict >= StatusLevel.Warning, VirusPipeline.NotesSayTheVerdict(config));
             if (verdict >= StatusLevel.Warning)
                Assert.Contains(VirusPipeline.Notes(config), n => n.Level >= verdict);
          }

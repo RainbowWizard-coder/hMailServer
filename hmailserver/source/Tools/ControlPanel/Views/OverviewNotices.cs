@@ -14,8 +14,9 @@ namespace hMailServer.ControlPanel.Views
    /// <summary>
    /// What the three read-only overviews - transport encryption, spam filtering,
    /// virus scanning - share in saying where a server stands: the verdict as a
-   /// notice at its level, the problems right under it, each with the page that
-   /// puts it right, and their count beside the page's title.
+   /// notice at its level where no note says it, the problems right under it,
+   /// each with the page that puts it right, and their count beside the page's
+   /// title.
    ///
    /// The verdict was plain body text with no level, and the Critical and Warning
    /// notes were the last card, several screens down, with no way to the page
@@ -37,6 +38,21 @@ namespace hMailServer.ControlPanel.Views
          };
          System.Windows.Automation.AutomationProperties.SetAutomationId(notice, automationId);
          return notice;
+      }
+
+      /// <summary>
+      /// The verdict where the notes under it say it at its level: the card's
+      /// lead sentence in body text, at no level and with no action, so that the
+      /// only notices at the Warning level and above are the problems the count
+      /// beside the title counts. It still says what the notes do not - how a
+      /// message is scored and what becomes of it, how many scanners examine it.
+      /// </summary>
+      public static System.Windows.Controls.TextBlock Lead(string text, string automationId)
+      {
+         var lead = new System.Windows.Controls.TextBlock { Text = text, Margin = new Thickness(0, 0, 0, 8) };
+         lead.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(lead, automationId);
+         return lead;
       }
 
       /// <summary>
