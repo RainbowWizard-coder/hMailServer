@@ -14148,6 +14148,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Ваші домени перебувають у цьому списку. Відкривши домен, ви отримаєте його облікові записи, псевдоніми та списки розсилки.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Ваша роль не може відкрити сторінку {0}.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Лише ваша: примітки немає ні в списку каталогу, ні у вебпошті, ні в картках, які синхронізує телефон.</value>
   </data>

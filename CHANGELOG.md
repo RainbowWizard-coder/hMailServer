@@ -2129,6 +2129,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   About is now the Related link of another, and each pair the navigation map puts side by side lists the other among
   its first three, which a test holds.
 
+- **Fixed: a domain administrator was offered Related links to pages the role cannot open, and pressing one did
+  nothing.** The Domains page linked Public folders, Groups and Rules, which need the server administrator and which
+  the sidebar hides from that role; the breadcrumb drew them from the navigation map without asking, and opening a
+  page the role's tree leaves out found no row and returned without a word - from a Related link, a palette result,
+  a Welcome tile or a tour step alike. The Related links are now only the pages the signed-in role may open, by the
+  same rule the sidebar is built by - a domain administrator's two pages, Domains and the Suppression list, lead to
+  each other - and a jump to a page the role cannot open says so: "Your role cannot open Rules."
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -13976,6 +13976,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>您的域都在这个列表里。打开其中一个，就能看到它的账户、别名和分发列表。</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>当前角色无法打开 {0}。</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>只属于你：备注不会出现在通讯录列表、网页邮件或手机同步的名片中。</value>
   </data>

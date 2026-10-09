@@ -135,6 +135,17 @@ namespace hMailServer.ControlPanel
          relatedMore_.Content = shown > 0 ? F("More ({0})", hidden) : F("Related pages ({0})", hidden);
       }
 
+      /// <summary>
+      /// What the signed-in credential may open, for the Related links: the
+      /// session's permissions, or null - every page - for a credential the
+      /// server did not describe, as the tree is built (VisibleRoots_).
+      /// </summary>
+      private static Func<string, bool> SessionMayUse_()
+      {
+         ServerSession session = ServerSession.Current;
+         return session == null || session.Permissions == null ? null : session.May;
+      }
+
       /// <summary>The links that do not fit, as a menu under the drop-down, each opening its page.</summary>
       private void ShowMoreRelated_()
       {

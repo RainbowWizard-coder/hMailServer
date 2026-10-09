@@ -13976,6 +13976,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Dina domäner finns i den här listan. Öppnar du en får du dess konton, alias och distributionslistor.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Din roll kan inte öppna {0}.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Bara din: noteringen finns inte i kataloglistan, inte i webbposten och inte i korten som en telefon synkroniserar.</value>
   </data>

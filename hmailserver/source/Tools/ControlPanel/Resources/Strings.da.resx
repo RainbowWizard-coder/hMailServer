@@ -13976,6 +13976,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Dine domæner ligger på denne liste. Åbner du et, får du dets konti, aliasser og distributionslister.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Din rolle kan ikke åbne {0}.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Kun din: noten står ikke i adressebogens liste, ikke i webmailen og ikke i de kort, en telefon synkroniserer.</value>
   </data>

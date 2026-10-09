@@ -13976,6 +13976,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Sus dominios están en esta lista. Al abrir uno obtiene sus cuentas, alias y listas de distribución.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Su rol no puede abrir {0}.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Solo tuya: la nota no está en el listado del directorio, ni en el webmail, ni en las tarjetas que sincroniza un teléfono.</value>
   </data>

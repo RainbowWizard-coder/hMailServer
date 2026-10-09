@@ -13976,6 +13976,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Verkkotunnuksesi ovat tässä luettelossa. Avaamalla yhden saat sen tilit, aliakset ja jakelulistat.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Roolisi ei voi avata sivua {0}.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Vain sinun: muistiinpano ei ole hakemistoluettelossa, ei webmailissa eikä korteissa, jotka puhelin synkronoi.</value>
   </data>

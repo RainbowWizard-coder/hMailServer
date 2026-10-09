@@ -14148,6 +14148,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Domeny znajdują się na tej liście. Otwarcie jednej daje dostęp do jej kont, aliasów i list dystrybucyjnych.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Twoja rola nie może otworzyć strony {0}.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Tylko twoja: notatki nie ma na liście katalogu, nie ma jej w poczcie WWW ani w wizytówkach, które synchronizuje telefon.</value>
   </data>

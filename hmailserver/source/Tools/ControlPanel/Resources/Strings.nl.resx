@@ -13976,6 +13976,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>Uw domeinen staan in deze lijst. Als u er een opent, krijgt u de accounts, aliassen en distributielijsten ervan.</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>Uw rol kan {0} niet openen.</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>Alleen van u: de notitie staat niet in de adresboeklijst, niet in de webmail en niet in de kaarten die een telefoon synchroniseert.</value>
   </data>

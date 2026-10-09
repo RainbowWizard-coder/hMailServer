@@ -13976,6 +13976,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Your domains live in this list. Opening one gives you its accounts, aliases and distribution lists." xml:space="preserve">
     <value>ドメインはこの一覧にあります。開くと、そのアカウント、エイリアス、配布リストが表示されます。</value>
   </data>
+  <data name="Your role cannot open {0}." xml:space="preserve">
+    <value>現在のロールでは {0} を開けません。</value>
+  </data>
   <data name="Yours alone: the note is not in the directory listing, not in the webmail and not in the cards a phone syncs." xml:space="preserve">
     <value>あなただけのものです。メモはディレクトリの一覧にも、ウェブメールにも、携帯電話が同期するカードにも載りません。</value>
   </data>

@@ -193,6 +193,28 @@ namespace hMailServer.ControlPanel.Services
          return new NavNode(null, node.Title, node.Purpose, node.Aliases, node.SeeAlso, children, node.Icon);
       }
 
+      /// <summary>
+      /// The pages <paramref name="key"/>'s Related links lead to, in its list's
+      /// order: those that exist and that <paramref name="mayUse"/> lets the
+      /// signed-in credential open - every one for a null <paramref name="mayUse"/>,
+      /// a credential the server did not describe. A domain administrator's
+      /// Domains page offered Public folders, Groups and Rules, pages the role
+      /// cannot open and the sidebar hides, and a press on one did nothing
+      /// (review finding F079). The same rule as <see cref="VisibleRoots"/>: what
+      /// is DRAWN, never what is ALLOWED.
+      /// </summary>
+      public static IReadOnlyList<NavNode> RelatedOf(string key, Func<string, bool> mayUse)
+      {
+         NavNode page = Find(key);
+         if (page == null)
+            return Array.Empty<NavNode>();
+
+         return page.SeeAlso
+            .Select(Find)
+            .Where(target => target != null && (mayUse == null || mayUse(target.Needs)))
+            .ToList();
+      }
+
       /// <summary>The page with this navigation key, or null.</summary>
       public static NavNode Find(string key)
          => key != null && byKey_.TryGetValue(key, out NavNode node) ? node : null;
@@ -484,7 +506,10 @@ namespace hMailServer.ControlPanel.Services
                Page("domains", N("Domains"),
                   N("Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection."),
                   aliases: "Accounts|Users|Mailboxes|Add a user|Aliases|Distribution lists|Mailing list|Quota|Size limit|DKIM|External accounts|Domain aliases|Signatures|Forwarding",
-                  seeAlso: "publicfolders|groups|rules|sendout",
+                  // The suppression list is the other page a domain administrator
+                  // may open, so it is this page's link for that role, the server
+                  // administrator's pages being left out of it (RelatedOf).
+                  seeAlso: "publicfolders|groups|rules|suppressions|sendout",
                   needs: "administer_domain"),
 
                Page("groups", N("Groups"),
@@ -863,7 +888,7 @@ namespace hMailServer.ControlPanel.Services
                Page("suppressions", N("Suppression list"),
                   N("Addresses a domain no longer sends to because mail to them bounced - visible, and removable by hand."),
                   aliases: "Bounces|Hard bounce|Dead addresses|Suppression|Bounce list|Why is mail to this address refused|Stop sending to an address",
-                  seeAlso: "messagetrace|queue|delivery",
+                  seeAlso: "messagetrace|queue|delivery|domains",
                   needs: "administer_domain"),
 
                // Who changed what: every administrative change as one row of a hash

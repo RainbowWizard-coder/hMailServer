@@ -753,6 +753,13 @@ namespace hMailServer.ControlPanel
             ShowGroupOf_(leaf);
             return;
          }
+
+         // A page of the map that this role's tree leaves out: said, where the
+         // link, the palette row, the Welcome tile or the tour step that asked
+         // for it did nothing at all (review finding F079).
+         NavNode withheld = NavigationMap.Find(key);
+         if (withheld != null && connected_)
+            Services.Toast.Info(F("Your role cannot open {0}.", L(withheld.Title)), L("Control Panel"));
       }
 
       private void Search_Click(object sender, RoutedEventArgs e) => ShowPalette();
@@ -845,7 +852,8 @@ namespace hMailServer.ControlPanel
          // As many as fit beside the trail, in the map's order, and the rest in a
          // drop-down (MainWindow.Related.cs, review finding F271): the first three
          // alone were drawn, whatever the room.
-         BuildRelated_(NavigationMap.Find(key).SeeAlso.Select(NavigationMap.Find).Where(target => target != null));
+         // Only the pages the session's role may open (review finding F079).
+         BuildRelated_(NavigationMap.RelatedOf(key, SessionMayUse_()));
       }
 
       /// <summary>
