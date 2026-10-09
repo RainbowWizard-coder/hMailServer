@@ -184,6 +184,7 @@ namespace hMailServer.ControlPanel
          };
          WireShellKeys_();
          WireHistory_();
+         WireHelpTabs_();
 
          // Opened again by hMailServer.Updater after an administrator's install of an
          // update (docs/ServiceAccount.md, "The live update"): sign in with the
@@ -1259,9 +1260,10 @@ namespace hMailServer.ControlPanel
          UpdateBreadcrumb(key);
          UpdateRail_(key);
 
-         // The help follows the page, when it is open.
+         // The help follows the page and its tab, when it is open
+         // (MainWindow.HelpTabs.cs).
          if (helpOpen_)
-            HelpPanel.ShowPage(key);
+            ShowHelpForNewPage_(key);
 
          // Only pages the user chose. OnConnected navigates to the dashboard on every
          // launch, so counting that visit made "Most used" report the dashboard at the
@@ -1713,7 +1715,7 @@ namespace hMailServer.ControlPanel
          HelpColumn.Width = new GridLength(Math.Max(260, Math.Min(760, helpWidth_)));
          HelpSplitter.Visibility = Visibility.Visible;
          HelpPanel.Visibility = Visibility.Visible;
-         HelpPanel.ShowPage(currentPage_);
+         ShowHelpForPage_();
          SaveHelpPreference_();
       }
 

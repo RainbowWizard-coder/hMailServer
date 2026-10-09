@@ -7135,6 +7135,9 @@
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>グループはまだありません。グループは複数のアカウントに同じフォルダー権限を一度に与えます。どのアカウントかは [メンバー] で選びます。</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>このページを扱うガイドはまだありません。すべてのドキュメントを以下に示します。</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>送信者、受信者、件名、理由に「{0}」を含む保留中のメッセージはありません。</value>
   </data>

@@ -214,6 +214,24 @@ namespace hMailServer.ControlPanel.Services
 
       private static bool IsBlank(string line) => string.IsNullOrWhiteSpace(line);
       private static bool IsListStart(string line) => Bullet.IsMatch(line) || Numbered.IsMatch(line);
+
+      /// <summary>
+      /// Whether a list that starts on this line ends the paragraph above it: a
+      /// bulleted one does, and a numbered one only when it starts at 1, as
+      /// CommonMark has it - so that a line of prose that wraps to begin with a
+      /// number and a full stop, "0. A silent installation's move then waits",
+      /// stays in its paragraph. It became a list starting at 0, which a
+      /// FlowDocument cannot number, and the help pane threw on ServiceAccount.md
+      /// and SourcePackages.md.
+      /// </summary>
+      private static bool StartsListInParagraph(string line)
+      {
+         if (Bullet.IsMatch(line))
+            return true;
+
+         Match numbered = Numbered.Match(line);
+         return numbered.Success && numbered.Groups[2].Value == "1";
+      }
       private static bool IsTableRow(string line) => line.IndexOf('|') >= 0;
       private static int Lead(string line) => LeadingSpaces.Match(line).Length;
 
@@ -397,7 +415,7 @@ namespace hMailServer.ControlPanel.Services
                   i++;
                   break;
                }
-               if (text.Count > 0 && (Fence.IsMatch(candidate) || Atx.IsMatch(candidate) || IsListStart(candidate) || Quote.IsMatch(candidate) || Rule.IsMatch(candidate)))
+               if (text.Count > 0 && (Fence.IsMatch(candidate) || Atx.IsMatch(candidate) || StartsListInParagraph(candidate) || Quote.IsMatch(candidate) || Rule.IsMatch(candidate)))
                   break;
                if (text.Count > 0 && IsTableRow(candidate) && i + 1 < n && IsTableRow(lines[i + 1]) && TableDelimiter.IsMatch(lines[i + 1]))
                   break;

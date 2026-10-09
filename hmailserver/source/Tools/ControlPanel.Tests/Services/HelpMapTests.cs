@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -46,6 +47,168 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(doc.Substring(0, doc.Length - 3), target.Name);
       }
 
+      /// <summary>
+      /// The pages review finding F270 (with F015 and F078) found opening a
+      /// document about something else open one about themselves, or say that
+      /// none covers them yet - never the unrelated one.
+      /// </summary>
+      [Theory]
+      [InlineData("domains", "DomainsAndAccounts.md", null)]
+      [InlineData("publicfolders", "PublicFoldersAndGroups.md", null)]
+      [InlineData("groups", "PublicFoldersAndGroups.md", "Groups")]
+      [InlineData("certs", "SecureDefaults.md", "The certificate")]
+      [InlineData("acme", "SecureDefaults.md", "The certificate")]
+      [InlineData("tlsoverview", "SecureDefaults.md", "What a new installation starts with")]
+      [InlineData("greylistwhitelist", "Greylisting.md", "What greylisting does")]
+      [InlineData("hardening", "DiagnosingStalledMail.md", "Settings that bound each stage")]
+      [InlineData("adminaccess", "SecretsAtRest.md", "The administrator password")]
+      [InlineData("externalsetup", "SetupChecklist.md", null)]
+      public void APageTheReviewFoundMismatched_OpensADocumentAboutIt(string key, string doc, string heading)
+      {
+         HelpTarget target = HelpMap.For(key);
+         Assert.True(target.IsGuide, key + " has no guide.");
+         Assert.Equal(doc, target.Doc);
+         Assert.Equal(heading, target.Heading);
+      }
+
+      [Theory]
+      [InlineData("sendout")]
+      [InlineData("dnsbl")]
+      [InlineData("surbl")]
+      [InlineData("spamoverview")]
+      [InlineData("ipranges")]
+      [InlineData("ldap")]
+      [InlineData("directorysync")]
+      [InlineData("webservices")]
+      [InlineData("tls")]
+      [InlineData("security")]
+      [InlineData("virusoverview")]
+      [InlineData("relays")]
+      [InlineData("messagetrace")]
+      public void APageNoDocumentIsAbout_HasNoGuide(string key)
+      {
+         HelpTarget target = HelpMap.For(key);
+         Assert.NotNull(target);
+         Assert.False(target.IsGuide);
+         Assert.Null(target.Doc);
+         Assert.Null(target.Name);
+      }
+
+      /// <summary>The documents the review found opened from the wrong pages are no unrelated page's help.</summary>
+      [Theory]
+      [InlineData("Backup.md", "backup")]
+      [InlineData("DomainTransforms.md", "")]
+      [InlineData("CountryBlocking.md", "")]
+      [InlineData("Directory.md", "")]
+      [InlineData("Calendar.md", "")]
+      [InlineData("DistributionLists.md", "")]
+      [InlineData("ReputationWatch.md", "")]
+      [InlineData("SealedMail.md", "")]
+      [InlineData("ServiceAccount.md", "")]
+      [InlineData("FollowConnection.md", "")]
+      public void ADocumentAboutSomethingElse_IsNoLongerAnUnrelatedPagesHelp(string doc, string pages)
+      {
+         string[] expected = pages.Length == 0 ? Array.Empty<string>() : pages.Split(',');
+         string[] mapped = HelpMap.Pages.Where(p => p.Value.Doc == doc).Select(p => p.Key).OrderBy(k => k, StringComparer.Ordinal).ToArray();
+         Assert.Equal(expected, mapped);
+      }
+
+      /// <summary>A tab with a document of its own opens it; the page's other tabs keep the page's.</summary>
+      [Theory]
+      [InlineData("logging", "SNMP", "Snmp.md")]
+      [InlineData("logging", "Audit trail", "AlertsAndAuditTrail.md")]
+      [InlineData("logging", "Logging", "Syslog.md")]
+      [InlineData("logging", null, "Syslog.md")]
+      [InlineData("antispam", "Greylisting", "Greylisting.md")]
+      [InlineData("antispam", "Spam traps", "SpamTraps.md")]
+      [InlineData("antivirus", "Sandbox", "Sandbox.md")]
+      [InlineData("autoban", "Countries", "CountryBlocking.md")]
+      [InlineData("autoban", "Compromised accounts", "CompromisedAccounts.md")]
+      [InlineData("autoban", "Auto-ban", "AutoBan.md")]
+      [InlineData("performance", "Message store", "MessageStore.md")]
+      [InlineData("webmail", "Encryption", "OpenPGP.md")]
+      [InlineData("webmail", "Sign-in", "PasskeysAndSingleSignOn.md")]
+      public void ATab_OpensItsOwnDocumentOrThePages(string key, string tab, string doc)
+      {
+         Assert.Equal(doc, HelpMap.For(key, tab).Doc);
+      }
+
+      [Fact]
+      public void ATabNoDocumentIsAbout_HasNoGuide_AndTabsOfAPageAreListed()
+      {
+         Assert.False(HelpMap.For("webmail", "Notifications").IsGuide);
+         Assert.False(HelpMap.For("adminaccess", "Two-factor").IsGuide);
+         Assert.Null(HelpMap.For("no-such-page", "SNMP"));
+         Assert.Contains("SNMP", HelpMap.TabsOf("logging"));
+         Assert.Empty(HelpMap.TabsOf("domains"));
+         Assert.Empty(HelpMap.TabsOf(null));
+      }
+
+      /// <summary>
+      /// Every tab entry names a tab its page builds: a settings page of
+      /// ServerSettingsView whose section's builder makes a tab of that English
+      /// header (Tab(L("SNMP"))), as build/check-help-map.py reads them.
+      /// </summary>
+      [Fact]
+      public void EveryTabEntry_NamesATabItsPageBuilds()
+      {
+         string controlPanel = FindControlPanel();
+         string shell = File.ReadAllText(Path.Combine(controlPanel, "MainWindow.xaml.cs"));
+         string view = File.ReadAllText(Path.Combine(controlPanel, "Views", "ServerSettingsView.xaml.cs"));
+
+         var sections = Regex.Matches(shell, @"pageFactories_\[""(\w+)""\]\s*=\s*\(\)\s*=>\s*new ServerSettingsView\(ServerSettingsView\.Section\.(\w+)\)")
+            .ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value, StringComparer.OrdinalIgnoreCase);
+         var builders = Regex.Matches(view, @"case Section\.(\w+):\s*(Build\w+)\(\);")
+            .ToDictionary(m => m.Groups[1].Value, m => m.Groups[2].Value);
+
+         var broken = new List<string>();
+         foreach (string entry in HelpMap.Tabs.Keys)
+         {
+            string page = entry.Substring(0, entry.IndexOf('#'));
+            string tab = entry.Substring(entry.IndexOf('#') + 1);
+            if (NavigationMap.Find(page) == null || !sections.TryGetValue(page, out string section) || !builders.TryGetValue(section, out string builder))
+            {
+               broken.Add(entry + " (no settings page)");
+               continue;
+            }
+
+            int start = view.IndexOf("private void " + builder + "()", StringComparison.Ordinal);
+            int end = view.IndexOf("private void Build", start + 1, StringComparison.Ordinal);
+            string body = view.Substring(start, (end < 0 ? view.Length : end) - start);
+            if (!body.Contains("Tab(L(\"" + tab + "\"))", StringComparison.Ordinal))
+               broken.Add(entry + " (" + builder + " builds no such tab)");
+         }
+
+         Assert.True(broken.Count == 0, "Tab entries for tabs that are not built: " + string.Join(", ", broken));
+      }
+
+      /// <summary>
+      /// The pane shows a page with no guide as its title, its purpose and a
+      /// sentence saying so, over every document; and the window tells it the
+      /// tab as well as the page, again as the page's tab strip changes tab.
+      /// </summary>
+      [Fact]
+      public void ThePaneSaysWhenThereIsNoGuide_AndFollowsTheTab()
+      {
+         string controlPanel = FindControlPanel();
+         string pane = File.ReadAllText(Path.Combine(controlPanel, "Views", "HelpPane.cs"));
+         Assert.Contains("public void ShowPage(string navigationKey, string tab)", pane, StringComparison.Ordinal);
+         Assert.Contains("HelpMap.For(navigationKey, tab)", pane, StringComparison.Ordinal);
+         Assert.Contains("if (!target.IsGuide)", pane, StringComparison.Ordinal);
+         Assert.Contains("L(\"No guide covers this page yet. Every document is listed below.\")", pane, StringComparison.Ordinal);
+         Assert.Contains("L(page.Purpose)", pane, StringComparison.Ordinal);
+
+         string tabs = File.ReadAllText(Path.Combine(controlPanel, "MainWindow.HelpTabs.cs"));
+         Assert.Contains("Selector.SelectionChangedEvent", tabs, StringComparison.Ordinal);
+         Assert.Contains("e.OriginalSource is TabControl", tabs, StringComparison.Ordinal);
+         Assert.Contains("HelpPanel.ShowPage(currentPage_, HelpTabOf_(currentPage_));", tabs, StringComparison.Ordinal);
+
+         string shell = File.ReadAllText(Path.Combine(controlPanel, "MainWindow.xaml.cs"));
+         Assert.Contains("WireHelpTabs_();", shell, StringComparison.Ordinal);
+         Assert.Contains("ShowHelpForNewPage_(key);", shell, StringComparison.Ordinal);
+         Assert.DoesNotContain("HelpPanel.ShowPage(key)", shell, StringComparison.Ordinal);
+      }
+
       [Fact]
       public void AKeyThatIsNotAPageHasNoHelp()
       {
@@ -57,8 +220,11 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void EveryEntryNamesADocumentThatExistsAndAHeadingItHas()
       {
          string docs = FindDocs();
-         foreach (KeyValuePair<string, HelpTarget> entry in HelpMap.Pages)
+         foreach (KeyValuePair<string, HelpTarget> entry in HelpMap.Pages.Concat(HelpMap.Tabs))
          {
+            if (!entry.Value.IsGuide)
+               continue;
+
             string path = Path.Combine(docs, entry.Value.Doc);
             Assert.True(File.Exists(path), entry.Key + " names " + entry.Value.Doc + ", which is not in " + docs);
 
@@ -74,7 +240,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AReferenceOnlyDocumentExistsAndIsMappedByNoPage()
       {
          string docs = FindDocs();
-         var named = HelpMap.Pages.Values.Select(t => t.Doc).ToHashSet(StringComparer.Ordinal);
+         var named = HelpMap.Pages.Values.Concat(HelpMap.Tabs.Values).Where(t => t.IsGuide).Select(t => t.Doc).ToHashSet(StringComparer.Ordinal);
          foreach (string doc in HelpMap.ReferenceOnly)
          {
             Assert.True(File.Exists(Path.Combine(docs, doc)), doc + " is listed as reference-only but is not a document");
@@ -132,6 +298,18 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheWikiBaseUrlIsKeptOnlyWhenItIsAWebAddress(string value, string expected)
       {
          Assert.Equal(expected, HelpPages.WikiBaseUrlOrEmpty(value));
+      }
+
+      private static string FindControlPanel()
+      {
+         for (var at = new DirectoryInfo(AppContext.BaseDirectory); at != null; at = at.Parent)
+         {
+            string candidate = Path.Combine(at.FullName, "ControlPanel");
+            if (Directory.Exists(Path.Combine(candidate, "Views")))
+               return candidate;
+         }
+
+         throw new DirectoryNotFoundException("the Control Panel's sources are not above " + AppContext.BaseDirectory);
       }
 
       private static string FindDocs()

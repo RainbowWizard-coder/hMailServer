@@ -7208,6 +7208,9 @@ Control Panel может читать файлы сообщений только
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Групп пока нет. Группа даёт нескольким учётным записям одинаковые права на папки сразу, а кнопка «Участники» выбирает, каким.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Руководства по этой странице пока нет. Все документы перечислены ниже.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Ни в одном задержанном сообщении нет «{0}» в отправителе, получателях, теме или причине.</value>
   </data>

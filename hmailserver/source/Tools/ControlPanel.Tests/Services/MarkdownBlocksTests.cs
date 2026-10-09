@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using hMailServer.ControlPanel.Services;
@@ -174,6 +175,43 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal(10, MarkdownBlocks.IndexOfHeading(blocks, "Not in the archive"));
          Assert.Equal(-1, MarkdownBlocks.IndexOfHeading(blocks, "A heading that is not there"));
          Assert.Equal(-1, MarkdownBlocks.IndexOfHeading(blocks, null));
+      }
+
+      /// <summary>
+      /// A line of prose that wraps to begin with a number and a full stop stays
+      /// in its paragraph: a numbered list ends a paragraph only when it starts at
+      /// 1, as CommonMark has it. ServiceAccount.md's "... and Yes is a / 0. A
+      /// silent installation's move then waits" was read as a list starting at 0,
+      /// which the help pane's FlowDocument refused, and the pane threw.
+      /// </summary>
+      [Fact]
+      public void ANumberThatWrapsToTheStartOfALine_StaysInItsParagraph()
+      {
+         IReadOnlyList<MdBlock> wrapped = MarkdownBlocks.Parse("With --confirm the question names it, and Yes is a\n0. A silent installation's move then waits.\n");
+         var paragraph = Assert.IsType<MdParagraph>(Assert.Single(wrapped));
+         Assert.Contains("is a 0. A silent", paragraph.Text, StringComparison.Ordinal);
+
+         IReadOnlyList<MdBlock> interrupted = MarkdownBlocks.Parse("The steps:\n1. First\n2. Second\n");
+         Assert.IsType<MdParagraph>(interrupted[0]);
+         Assert.Equal(2, Assert.IsType<MdList>(interrupted[1]).Items.Count);
+
+         IReadOnlyList<MdBlock> bullets = MarkdownBlocks.Parse("The parts:\n- one\n- two\n");
+         Assert.IsType<MdList>(bullets[1]);
+
+         // After a blank line a list may start anywhere, 0 included.
+         IReadOnlyList<MdBlock> fromZero = MarkdownBlocks.Parse("Text.\n\n0. Zero\n1. One\n");
+         Assert.Equal(0, Assert.IsType<MdList>(fromZero[1]).Start);
+
+         // And every document of the set parses without a list the pane cannot number
+         // from inside a paragraph's text.
+         foreach (string name in HelpPages.Names)
+         {
+            foreach (MdBlock block in MarkdownBlocks.Parse(HelpPages.Read(name)))
+            {
+               if (block is MdList list && list.Ordered && list.Start < 1)
+                  Assert.Fail(name + ".md has a numbered list starting at " + list.Start + " on line " + (list.Line + 1) + ".");
+            }
+         }
       }
    }
 }

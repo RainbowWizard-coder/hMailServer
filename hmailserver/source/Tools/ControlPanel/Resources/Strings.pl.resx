@@ -7208,6 +7208,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Brak jeszcze grup. Grupa nadaje kilku kontom naraz te same uprawnienia do folderów, a Członkowie wybiera, którym.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Żaden przewodnik nie opisuje jeszcze tej strony. Wszystkie dokumenty są wymienione poniżej.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Żadna wstrzymana wiadomość nie zawiera „{0}” w nadawcy, odbiorcach, temacie ani powodzie.</value>
   </data>

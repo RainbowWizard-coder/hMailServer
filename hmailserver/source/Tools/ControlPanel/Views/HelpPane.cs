@@ -47,6 +47,10 @@ namespace hMailServer.ControlPanel.Views
       private readonly Button closeButton_;
 
       private string shown_;
+
+      // The page whose "no guide" the pane shows, or null; so that a page that has
+      // none is not drawn again as its tabs change.
+      private string noGuideFor_;
       private IReadOnlyDictionary<string, Block> headingBlocks_ = new Dictionary<string, Block>();
 
       /// <summary>
@@ -169,16 +173,59 @@ namespace hMailServer.ControlPanel.Views
       /// the heading the map names. A key the map does not know shows the list
       /// of every document, which is the most a pane can do for it.
       /// </summary>
-      public void ShowPage(string navigationKey)
+      public void ShowPage(string navigationKey) => ShowPage(navigationKey, null);
+
+      /// <summary>
+      /// The help for a page on one of its tabs, by the tab's English header: the
+      /// tab's document where the map has one (HelpMap.Tabs), the page's
+      /// otherwise. A page no document is about says so beside its purpose and the
+      /// list of every document, rather than open one about something else.
+      /// </summary>
+      public void ShowPage(string navigationKey, string tab)
       {
-         HelpTarget target = HelpMap.For(navigationKey);
+         HelpTarget target = HelpMap.For(navigationKey, tab);
          if (target == null)
          {
             ShowAll();
             return;
          }
 
+         if (!target.IsGuide)
+         {
+            ShowNoGuide_(navigationKey);
+            return;
+         }
+
          ShowDocument(target.Name, target.Heading);
+      }
+
+      /// <summary>
+      /// A page with no guide of its own: its title, what it is for, that no
+      /// document covers it yet, and every document by its title, each a link
+      /// that opens it here (review finding F270).
+      /// </summary>
+      private void ShowNoGuide_(string navigationKey)
+      {
+         if (shown_ == null && string.Equals(noGuideFor_, navigationKey, StringComparison.OrdinalIgnoreCase))
+            return;
+
+         NavNode page = NavigationMap.Find(navigationKey);
+         shown_ = null;
+         noGuideFor_ = navigationKey;
+         headings_.Children.Clear();
+         headingBlocks_ = new Dictionary<string, Block>();
+         search_.Text = "";
+         title_.Text = page == null ? L("Help") : L(page.Title);
+         UpdateWikiLink_();
+
+         var intro = new List<Block>();
+         if (page != null && !string.IsNullOrEmpty(page.Purpose))
+            intro.Add(new Paragraph(new Run(L(page.Purpose))) { Margin = new Thickness(0, 0, 0, 8) });
+         var none = new Paragraph(new Run(L("No guide covers this page yet. Every document is listed below."))) { Margin = new Thickness(0, 0, 0, 14) };
+         none.SetResourceReference(TextElement.ForegroundProperty, "TextFillColorSecondaryBrush");
+         intro.Add(none);
+         viewer_.Document = DocumentList_(intro);
+         ScrollToHeading_(null);
       }
 
       /// <summary>
@@ -189,6 +236,7 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public void ShowDocument(string name, string heading)
       {
+         noGuideFor_ = null;
          string spelled = HelpPages.Find(name);
          if (spelled == null)
          {
@@ -230,14 +278,28 @@ namespace hMailServer.ControlPanel.Views
       public void ShowAll()
       {
          shown_ = null;
+         noGuideFor_ = null;
          headings_.Children.Clear();
          headingBlocks_ = new Dictionary<string, Block>();
          search_.Text = "";
          title_.Text = L("All documentation");
          UpdateWikiLink_();
+         viewer_.Document = DocumentList_(null);
+         ScrollToHeading_(null);
+      }
 
-         var document = new FlowDocument { FontFamily = new System.Windows.Media.FontFamily(Typography.UiFontFamily), FontSize = Typography.Body, PagePadding = new Thickness(0) };
+      /// <summary>
+      /// A document listing every document by its title and file name, each title
+      /// a link that opens it here, after the <paramref name="before"/> blocks.
+      /// </summary>
+      private FlowDocument DocumentList_(IEnumerable<Block> before)
+      {
+         // Ragged right, as a document the pane renders is (MarkdownFlow): a
+         // FlowDocument justifies by default, which spread a long title's words.
+         var document = new FlowDocument { FontFamily = new System.Windows.Media.FontFamily(Typography.UiFontFamily), FontSize = Typography.Body, PagePadding = new Thickness(0), TextAlignment = TextAlignment.Left };
          document.SetResourceReference(FlowDocument.ForegroundProperty, "TextFillColorPrimaryBrush");
+         foreach (Block block in before ?? Array.Empty<Block>())
+            document.Blocks.Add(block);
          foreach (string name in HelpPages.Names)
          {
             var link = new Hyperlink(new Run(HelpPages.TitleOf(name))) { ToolTip = name + ".md" };
@@ -251,7 +313,7 @@ namespace hMailServer.ControlPanel.Views
             paragraph.Inlines.Add(file);
             document.Blocks.Add(paragraph);
          }
-         viewer_.Document = document;
+         return document;
       }
 
       /// <summary>
@@ -287,8 +349,11 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (viewer_.Document != null)
-            viewer_.Document.ContentStart.Paragraph?.BringIntoView();
+         // The top: the document's first block. ContentStart.Paragraph, which this
+         // asked, is null before the first block, so a document opened after another
+         // kept the other's place - the middle of the SNMP document when the
+         // Logging page's SNMP tab was chosen after a long page's help.
+         viewer_.Document?.Blocks.FirstBlock?.BringIntoView();
       }
 
       /// <summary>

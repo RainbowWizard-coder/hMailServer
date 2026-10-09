@@ -99,7 +99,9 @@ namespace hMailServer.ControlPanel.Services
                   var flowList = new List
                   {
                      MarkerStyle = list.Ordered ? TextMarkerStyle.Decimal : depth % 2 == 0 ? TextMarkerStyle.Disc : TextMarkerStyle.Circle,
-                     StartIndex = list.Ordered ? list.Start : 1,
+                     // A FlowDocument numbers from 1 at the least; a list that
+                     // starts at 0 is numbered from 1 rather than not shown.
+                     StartIndex = list.Ordered ? Math.Max(1, list.Start) : 1,
                      Margin = new Thickness(0, 0, 0, 10),
                      MarkerOffset = 8
                   };

@@ -7135,6 +7135,9 @@
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>还没有组。组可一次为多个账户授予相同的文件夹权限，由“成员”选择哪些账户。</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>尚无涵盖此页面的指南。下面列出了所有文档。</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>没有任何暂留邮件的发件人、收件人、主题或原因中包含“{0}”。</value>
   </data>

@@ -2137,6 +2137,30 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   same rule the sidebar is built by - a domain administrator's two pages, Domains and the Suppression list, lead to
   each other - and a jump to a page the role cannot open says so: "Your role cannot open Rules."
 
+- **Fixed: F1 opened a document about something else on some twenty pages, and the help ignored the page's tab.**
+  Each page was mapped to "the nearest" document: Domains opened the domain's tagging and disclaimer, Groups and
+  Public folders what a backup carries, IP ranges country blocking, the five certificate and TLS pages one remote
+  domain's outbound TLS, LDAP the webmail's OpenID Connect and Directory synchronisation the people directory, Web
+  services the calendar, Server sendout the distribution lists, the block lists this server's own reputation watch,
+  SURBL, the spam overview and the anti-spam settings the SMTP policy, the spam exemptions the allow and block
+  list, the virus pages what an encrypted message gets, Server limits the service account, and the Logging page's
+  four tabs all the syslog document. Two documents are new - Domains and accounts (adding a domain, an account, an
+  alias and a list, what a switched-off domain or account still does, and every tab of the domain's and the
+  account's dialogs) and Public folders and groups (folders and sub-folders, the access-control list and its eleven
+  rights, groups and their members) - and the pages open a document about themselves: the certificates and ACME the
+  certificate a new installation makes, the transport encryption overview what it starts with, the greylisting
+  exemptions what greylisting does, Server limits the settings that bound each stage, Administrative access how the
+  administrator password is kept. A page no document covers yet says so beside its title and purpose, over the list
+  of every document, rather than open one about something else. A tab with a document of its own opens it while it
+  is the tab showing - Logging's SNMP, Audit trail and Alerts & webhooks, the anti-spam settings' Sender auth, Host
+  checks, Greylisting and Spam traps, the anti-virus settings' Sandbox, Auto-ban's Countries and Compromised accounts,
+  Performance's Message store, Advanced's Scripting and Migrations, Delivery of e-mail's Feedback, Reputation and
+  Mailing lists, and four of the Webmail page's - and the help follows the tab as it changes. A document the pane
+  opens after another starts at its top, where it kept the other's place, and two documents whose prose wraps to put
+  "0." at the start of a line - Service account and Source packages - no longer stop the pane, which read the line as
+  a list numbered from 0 and could not draw it. build/check-help-map.py holds every tab entry to a tab its page
+  builds, and fails a document listed as reference-only whose title or name is a tab's or a card's heading.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -7135,6 +7135,9 @@ Nichts, was schon dort ist, wird entfernt.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Noch keine Gruppen. Eine Gruppe gibt mehreren Konten auf einmal dieselben Ordnerberechtigungen, und Mitglieder legt fest, welchen.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Für diese Seite gibt es noch keine Anleitung. Alle Dokumente sind unten aufgeführt.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Keine zurückgehaltene Nachricht enthält „{0}“ in Absender, Empfängern, Betreff oder Grund.</value>
   </data>

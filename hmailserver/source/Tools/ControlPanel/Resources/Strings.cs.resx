@@ -7208,6 +7208,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Zatím žádné skupiny. Skupina dává několika účtům najednou stejná oprávnění ke složkám a tlačítko Členové určuje kterým.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Tuto stránku zatím nepopisuje žádný návod. Všechny dokumenty jsou uvedeny níže.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Žádná zadržená zpráva nemá „{0}“ v odesílateli, příjemcích, předmětu ani v důvodu.</value>
   </data>

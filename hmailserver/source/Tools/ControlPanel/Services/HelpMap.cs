@@ -22,11 +22,21 @@ namespace hMailServer.ControlPanel.Services
          Heading = heading;
       }
 
-      /// <summary>The document's file name, extension included: "Backup.md".</summary>
+      /// <summary>
+      /// A page no document is about: the pane shows the page's purpose, says
+      /// that it has no guide yet and lists every document, rather than open a
+      /// document about something else (review finding F270).
+      /// </summary>
+      public static readonly HelpTarget NoGuide = new HelpTarget(null);
+
+      /// <summary>Whether a document is about the page; false for <see cref="NoGuide"/>.</summary>
+      public bool IsGuide => Doc != null;
+
+      /// <summary>The document's file name, extension included: "Backup.md"; null for <see cref="NoGuide"/>.</summary>
       public string Doc { get; }
 
       /// <summary>The document's name without the extension: what the routes and the wiki take.</summary>
-      public string Name => Doc.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ? Doc.Substring(0, Doc.Length - 3) : Doc;
+      public string Name => Doc == null ? null : Doc.EndsWith(".md", StringComparison.OrdinalIgnoreCase) ? Doc.Substring(0, Doc.Length - 3) : Doc;
 
       /// <summary>The heading to open on, or null for the top of the document.</summary>
       public string Heading { get; }
@@ -41,12 +51,20 @@ namespace hMailServer.ControlPanel.Services
    /// it to the navigation. The Deck's HELP_MAP (WebAdmin/index.html) and the
    /// webmail's (Portal.js) are the same table for their pages.
    ///
-   /// A page whose subject has no document of its own is mapped to the nearest
-   /// one - an entry that named nothing would be a pane that opens on nothing -
-   /// and when a document is written for it, its entry is the one line that
-   /// changes. The documents no page of any surface maps to are listed in
-   /// <see cref="ReferenceOnly"/>, which the checker reads: a document that is
-   /// in neither is a document the help cannot reach, and that fails the check.
+   /// A page whose subject has no document of its own is mapped to
+   /// <see cref="HelpTarget.NoGuide"/>, and the pane says so beside the page's
+   /// purpose and the list of every document; it was mapped to "the nearest"
+   /// document until October 2026, which on some twenty pages was a document
+   /// about something else - the groups and public folders opened what a backup
+   /// carries, the certificates the remote domains' outbound TLS, LDAP the
+   /// webmail's OpenID Connect (review finding F270). When a document is written
+   /// for such a page its entry is the one line that changes. A page whose tabs
+   /// have documents of their own maps them in <see cref="Tabs"/>, by the tab's
+   /// English header, and the pane follows the tab. The documents no page of any
+   /// surface maps to are listed in <see cref="ReferenceOnly"/>, which the checker
+   /// reads: a document that is in neither is a document the help cannot reach,
+   /// and that fails the check - and so does one listed there whose title or
+   /// name is a tab's or a card's heading, which belongs to that tab.
    /// </summary>
    public static class HelpMap
    {
@@ -61,7 +79,9 @@ namespace hMailServer.ControlPanel.Services
             ["status"] = new HelpTarget("DiagnosingStalledMail.md", "First: which half is stuck?"),
             ["queue"] = new HelpTarget("DiagnosingStalledMail.md", "Delivering: the message is accepted but never leaves"),
             ["stalledmail"] = new HelpTarget("DiagnosingStalledMail.md"),
-            ["messagetrace"] = new HelpTarget("FollowConnection.md"),
+            // FollowConnection.md is the Control Deck's live view of one session's
+            // log lines, not the trace of a message.
+            ["messagetrace"] = HelpTarget.NoGuide,
             ["suppressions"] = new HelpTarget("BounceSuppression.md", "Looking at the list, and changing it"),
             ["journaling"] = new HelpTarget("Journaling.md", "Where it is edited"),
             ["audit"] = new HelpTarget("AlertsAndAuditTrail.md", "The audit trail"),
@@ -69,71 +89,128 @@ namespace hMailServer.ControlPanel.Services
             ["logs"] = new HelpTarget("DiagnosingStalledMail.md", "Turn on debug logging first"),
             ["diagnostics"] = new HelpTarget("DiagnosingStalledMail.md", "What to include in a report"),
             ["mxquery"] = new HelpTarget("DiagnosingStalledMail.md", "Delivering: the message is accepted but never leaves"),
-            ["externalsetup"] = new HelpTarget("SetupChecklist.md", "The document"),
-            ["dnsrecords"] = new HelpTarget("SetupChecklist.md", "The document"),
+            // The checklist itself, not "The document", which is the JSON the route answers.
+            ["externalsetup"] = new HelpTarget("SetupChecklist.md"),
+            ["dnsrecords"] = new HelpTarget("SetupChecklist.md"),
             ["logging"] = new HelpTarget("Syslog.md"),
             ["api"] = new HelpTarget("CommandLine.md", "Credentials"),
             ["apikeys"] = new HelpTarget("CommandLine.md", "Credentials"),
 
             // Domains and accounts.
-            ["domains"] = new HelpTarget("DomainTransforms.md"),
-            ["publicfolders"] = new HelpTarget("Backup.md", "In the archive"),
-            ["groups"] = new HelpTarget("Backup.md", "In the archive"),
+            ["domains"] = new HelpTarget("DomainsAndAccounts.md"),
+            ["publicfolders"] = new HelpTarget("PublicFoldersAndGroups.md"),
+            ["groups"] = new HelpTarget("PublicFoldersAndGroups.md", "Groups"),
             ["roles"] = new HelpTarget("Roles.md", "Giving somebody a role"),
 
-            // Mail flow.
-            ["delivery"] = new HelpTarget("SmtpPolicy.md"),
+            // Mail flow. The delivery page's own guides are by tab (Tabs).
+            ["delivery"] = HelpTarget.NoGuide,
             ["routes"] = new HelpTarget("RemoteDomains.md", "A policy is not a route"),
             ["remotedomains"] = new HelpTarget("RemoteDomains.md"),
-            ["relays"] = new HelpTarget("SmtpPolicy.md"),
+            ["relays"] = HelpTarget.NoGuide,
             ["rules"] = new HelpTarget("MailFlowRules.md"),
-            ["servermessages"] = new HelpTarget("BounceSuppression.md", "Delivery reports"),
-            ["sendout"] = new HelpTarget("DistributionLists.md"),
+            ["servermessages"] = HelpTarget.NoGuide,
+            ["sendout"] = HelpTarget.NoGuide,
 
-            // Spam and virus filtering.
-            ["spamoverview"] = new HelpTarget("SmtpPolicy.md"),
+            // Spam and virus filtering. SmtpPolicy.md, which the overview, the
+            // anti-spam settings and SURBL opened, never mentions SURBL and is the
+            // policy the score cannot express; ReputationWatch.md, which the block
+            // lists opened, watches this server's own listing, in a syntax the
+            // page does not take; SealedMail.md, which the virus pages opened, is
+            // what an encrypted message gets.
+            ["spamoverview"] = HelpTarget.NoGuide,
             ["quarantine"] = new HelpTarget("SenderListsAndDigests.md", "Reviewing the quarantine"),
-            ["antispam"] = new HelpTarget("SmtpPolicy.md"),
-            ["surbl"] = new HelpTarget("SmtpPolicy.md"),
-            ["dnsbl"] = new HelpTarget("ReputationWatch.md", "Which lists"),
-            ["spamwhitelist"] = new HelpTarget("SenderListsAndDigests.md", "The list"),
-            ["blockedsenders"] = new HelpTarget("SenderListsAndDigests.md", "The list"),
+            ["antispam"] = HelpTarget.NoGuide,
+            ["surbl"] = HelpTarget.NoGuide,
+            ["dnsbl"] = HelpTarget.NoGuide,
+            ["spamwhitelist"] = HelpTarget.NoGuide,
+            ["blockedsenders"] = HelpTarget.NoGuide,
             ["senderlist"] = new HelpTarget("SenderListsAndDigests.md", "The list"),
-            ["greylistwhitelist"] = new HelpTarget("Greylisting.md", "The bypass list (#284)"),
+            ["greylistwhitelist"] = new HelpTarget("Greylisting.md", "What greylisting does"),
             ["greylistbypass"] = new HelpTarget("Greylisting.md", "The bypass list (#284)"),
             ["domainpolicylist"] = new HelpTarget("SmtpPolicy.md", "The domain white and black list (#285)"),
-            ["virusoverview"] = new HelpTarget("SealedMail.md", "The virus scanner"),
-            ["antivirus"] = new HelpTarget("SealedMail.md", "The virus scanner"),
-            ["blockedattachments"] = new HelpTarget("SealedMail.md", "The blocked-attachment list"),
+            ["virusoverview"] = HelpTarget.NoGuide,
+            ["antivirus"] = HelpTarget.NoGuide,
+            ["blockedattachments"] = HelpTarget.NoGuide,
 
-            // Listeners, TLS and certificates.
-            ["protocols"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
+            // Listeners, TLS and certificates. RemoteDomains.md's Outbound TLS,
+            // which all five TLS pages opened, is one remote domain's policy.
+            ["protocols"] = HelpTarget.NoGuide,
             ["ports"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
-            ["webservices"] = new HelpTarget("Calendar.md"),
+            ["webservices"] = HelpTarget.NoGuide,
             ["webmail"] = new HelpTarget("PasskeysAndSingleSignOn.md"),
-            ["dns"] = new HelpTarget("DiagnosingStalledMail.md", "Delivering: the message is accepted but never leaves"),
-            ["certs"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),
-            ["acme"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),
-            ["tlsoverview"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),
-            ["tls"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),
-            ["security"] = new HelpTarget("RemoteDomains.md", "Outbound TLS"),
+            ["dns"] = HelpTarget.NoGuide,
+            ["certs"] = new HelpTarget("SecureDefaults.md", "The certificate"),
+            ["acme"] = new HelpTarget("SecureDefaults.md", "The certificate"),
+            ["tlsoverview"] = new HelpTarget("SecureDefaults.md", "What a new installation starts with"),
+            ["tls"] = HelpTarget.NoGuide,
+            ["security"] = HelpTarget.NoGuide,
 
-            // Authentication and access.
+            // Authentication and access. Directory.md is the organisation's
+            // address list, not LDAP; CountryBlocking.md is the auto-ban page's
+            // Countries tab, not the IP ranges.
             ["authentication"] = new HelpTarget("PasskeysAndSingleSignOn.md"),
-            ["ldap"] = new HelpTarget("PasskeysAndSingleSignOn.md", "Single sign-on (OpenID Connect)"),
-            ["directorysync"] = new HelpTarget("Directory.md"),
-            ["adminaccess"] = new HelpTarget("Roles.md"),
+            ["ldap"] = HelpTarget.NoGuide,
+            ["directorysync"] = HelpTarget.NoGuide,
+            ["adminaccess"] = new HelpTarget("SecretsAtRest.md", "The administrator password"),
             ["autoban"] = new HelpTarget("AutoBan.md"),
-            ["ipranges"] = new HelpTarget("CountryBlocking.md"),
+            ["ipranges"] = HelpTarget.NoGuide,
 
-            // The server itself.
+            // The server itself. The stage timeouts DiagnosingStalledMail.md
+            // tabulates are on Server limits, where ServiceAccount.md opened.
             ["profiles"] = new HelpTarget("Profiles.md"),
             ["backup"] = new HelpTarget("Backup.md"),
-            ["performance"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
-            ["advanced"] = new HelpTarget("ChangedFromStock.md"),
+            ["performance"] = HelpTarget.NoGuide,
+            ["advanced"] = HelpTarget.NoGuide,
             ["scripts"] = new HelpTarget("EventScripts.md", "Which language, where"),
-            ["hardening"] = new HelpTarget("ServiceAccount.md"),
+            ["hardening"] = new HelpTarget("DiagnosingStalledMail.md", "Settings that bound each stage"),
             ["about"] = new HelpTarget("Upgrading.md"),
+         });
+
+      /// <summary>
+      /// The tabs of a page that have documents of their own, keyed
+      /// "page#Tab" by the page's navigation key and the tab's English header, as
+      /// the page builds it (Tab(L("SNMP")) on the Logging page): the pane opens
+      /// the tab's document while the tab is the one showing, and the page's own
+      /// entry on its other tabs. A tab whose subject the page's entry does not
+      /// cover, and no document does, is <see cref="HelpTarget.NoGuide"/> here.
+      /// build/check-help-map.py and HelpMapTests hold every entry to a tab its
+      /// page builds.
+      /// </summary>
+      public static readonly IReadOnlyDictionary<string, HelpTarget> Tabs =
+         new ReadOnlyDictionary<string, HelpTarget>(new Dictionary<string, HelpTarget>(StringComparer.OrdinalIgnoreCase)
+         {
+            ["delivery#Delivery"] = new HelpTarget("BounceSuppression.md", "Turning it on"),
+            ["delivery#Rules"] = new HelpTarget("MailFlowRules.md"),
+            ["delivery#Feedback"] = new HelpTarget("Complaints.md"),
+            ["delivery#Reputation"] = new HelpTarget("ReputationWatch.md"),
+            ["delivery#Mailing lists"] = new HelpTarget("MailingLists.md"),
+
+            ["antispam#Sender auth"] = new HelpTarget("SmtpPolicy.md", "SPF's other results (#286)"),
+            ["antispam#Host checks"] = new HelpTarget("SmtpPolicy.md"),
+            ["antispam#Greylisting"] = new HelpTarget("Greylisting.md", "What greylisting does"),
+            ["antispam#Spam traps"] = new HelpTarget("SpamTraps.md"),
+
+            ["antivirus#Sandbox"] = new HelpTarget("Sandbox.md"),
+
+            ["autoban#Countries"] = new HelpTarget("CountryBlocking.md"),
+            ["autoban#Compromised accounts"] = new HelpTarget("CompromisedAccounts.md"),
+
+            ["logging#Audit trail"] = new HelpTarget("AlertsAndAuditTrail.md", "The audit trail"),
+            ["logging#Alerts & webhooks"] = new HelpTarget("AlertsAndAuditTrail.md", "Alerts"),
+            ["logging#SNMP"] = new HelpTarget("Snmp.md"),
+
+            ["performance#Message store"] = new HelpTarget("MessageStore.md"),
+
+            ["advanced#Scripting"] = new HelpTarget("EventScripts.md", "The engine"),
+            ["advanced#Migrations"] = new HelpTarget("Migration.md"),
+
+            ["webmail#Browser sessions"] = new HelpTarget("DevicesAndSessions.md", "The session policies"),
+            ["webmail#What people may do"] = new HelpTarget("Directory.md", "The two switches"),
+            ["webmail#Encryption"] = new HelpTarget("OpenPGP.md"),
+            ["webmail#Notifications"] = HelpTarget.NoGuide,
+            ["webmail#Import"] = new HelpTarget("Migration.md", "From the webmail, by the person moving"),
+
+            ["adminaccess#Two-factor"] = HelpTarget.NoGuide,
          });
 
       /// <summary>
@@ -151,7 +228,6 @@ namespace hMailServer.ControlPanel.Services
          "BrandLogos.md",
          "Channels.md",
          "CommandLinePackages.md",
-         "Complaints.md",
          "ContainerImage.md",
          "ContinuousIntegration.md",
          "ControlPanelDesign.md",
@@ -161,6 +237,7 @@ namespace hMailServer.ControlPanel.Services
          "EncryptionAtRest.md",
          "EnvironmentConfiguration.md",
          "EvidencePack.md",
+         "FollowConnection.md",
          "Fuzzing.md",
          "Help.md",
          "HighAvailabilityRunbook.md",
@@ -168,9 +245,7 @@ namespace hMailServer.ControlPanel.Services
          "IpWarmup.md",
          "LiveUpdateKinds.md",
          "MailboxMove.md",
-         "MailingLists.md",
          "MessageRecall.md",
-         "MessageStore.md",
          "MigratingDatabaseBackend.md",
          "Mirroring.md",
          "Nix.md",
@@ -193,11 +268,11 @@ namespace hMailServer.ControlPanel.Services
          "RestrictedDelivery.md",
          "RoomsAndEquipment.md",
          "SampleDomain.md",
-         "Sandbox.md",
          "Scim.md",
-         "SecretsAtRest.md",
+         "SealedMail.md",
          "SendAs.md",
          "SendApi.md",
+         "ServiceAccount.md",
          "SettingLevels.md",
          "SettingsApply.md",
          "SharedAddressBooks.md",
@@ -205,7 +280,6 @@ namespace hMailServer.ControlPanel.Services
          "SmimeAuthority.md",
          "Snap.md",
          "TestLab.md",
-         "Snmp.md",
          "SourcePackages.md",
          "SourceTarball.md",
          "ThirdPartyBinaries.md",
@@ -218,5 +292,33 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The help for a page, or null for a key that is not a page.</summary>
       public static HelpTarget For(string key)
          => key != null && Pages.TryGetValue(key, out HelpTarget target) ? target : null;
+
+      /// <summary>
+      /// The help for a page on one of its tabs, by the tab's English header: the
+      /// tab's own entry where it has one, else the page's; null for a key that is
+      /// not a page.
+      /// </summary>
+      public static HelpTarget For(string key, string tab)
+      {
+         if (key != null && !string.IsNullOrEmpty(tab) && Tabs.TryGetValue(key + "#" + tab, out HelpTarget onTab))
+            return onTab;
+         return For(key);
+      }
+
+      /// <summary>The English headers of the page's tabs that have entries of their own, in the table's order.</summary>
+      public static IReadOnlyList<string> TabsOf(string key)
+      {
+         var tabs = new List<string>();
+         if (string.IsNullOrEmpty(key))
+            return tabs;
+
+         string prefix = key + "#";
+         foreach (string entry in Tabs.Keys)
+         {
+            if (entry.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+               tabs.Add(entry.Substring(prefix.Length));
+         }
+         return tabs;
+      }
    }
 }

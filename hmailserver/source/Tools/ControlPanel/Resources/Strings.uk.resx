@@ -7208,6 +7208,9 @@
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Груп ще немає. Група надає кільком обліковим записам однакові дозволи на папки одразу, а кнопка «Учасники» вибирає, яким.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Посібника щодо цієї сторінки ще немає. Усі документи наведено нижче.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Жодне утримане повідомлення не містить «{0}» у відправнику, одержувачах, темі чи причині.</value>
   </data>

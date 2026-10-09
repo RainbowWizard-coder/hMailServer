@@ -7135,6 +7135,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Henüz grup yok. Bir grup birkaç hesaba aynı klasör izinlerini tek seferde verir; hangilerine verileceğini Üyeler seçer.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Bu sayfayı anlatan bir kılavuz henüz yok. Tüm belgeler aşağıda listelenmiştir.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Gönderen, alıcılar, konu veya nedeninde "{0}" geçen bekletilen ileti yok.</value>
   </data>

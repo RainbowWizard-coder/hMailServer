@@ -7135,6 +7135,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Ei vielä ryhmiä. Ryhmä antaa usealle tilille kerralla samat kansio-oikeudet, ja Jäsenet valitsee, mille.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Tästä sivusta ei ole vielä ohjetta. Kaikki asiakirjat on lueteltu alla.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Missään pidätetyssä viestissä ei ole merkkijonoa "{0}" lähettäjässä, vastaanottajissa, aiheessa tai syyssä.</value>
   </data>

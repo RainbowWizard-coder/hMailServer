@@ -7135,6 +7135,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No groups yet. A group gives several accounts the same folder permissions at once, and Members chooses which." xml:space="preserve">
     <value>Ingen grupper endnu. En gruppe giver flere konti de samme mappetilladelser på én gang, og Medlemmer vælger hvilke.</value>
   </data>
+  <data name="No guide covers this page yet. Every document is listed below." xml:space="preserve">
+    <value>Ingen vejledning dækker denne side endnu. Alle dokumenter står nedenfor.</value>
+  </data>
   <data name="No held message has &quot;{0}&quot; in its sender, recipients, subject or reason." xml:space="preserve">
     <value>Ingen tilbageholdt meddelelse har "{0}" i afsender, modtagere, emne eller årsag.</value>
   </data>

@@ -70,13 +70,24 @@ document and an optional heading:
 | Webmail | `HELP_MAP` in `Common/Util/Portal.js` | every route head the router distinguishes (`f` for a folder, `m` for a message, `compose`, `search`, `settings`, ...) |
 
 The heading, where one is named, is a level-one or level-two heading of the
-document, and the pane scrolls to it. A page whose subject has no document
-of its own - the TCP/IP ports, the certificates, the groups - is mapped to
-the nearest one, because an entry that names nothing would be a pane that
-opens on nothing; when a document is written for such a page, its entry is
-the one line that changes. The documents no page maps to are listed as
-reference-only in `HelpMap.cs` and are reachable from every pane's *All
-documentation* list, as every document is.
+document, and the pane scrolls to it. A Control Panel page whose subject has no
+document of its own maps to `HelpTarget.NoGuide`, and its pane shows the page's
+title and purpose, says that no guide covers the page yet, and lists every
+document; when a document is written for such a page, its entry is the one line
+that changes. Until October 2026 such a page was mapped to "the nearest"
+document, which on some twenty pages was one about something else - the groups
+and public folders opened what a backup carries, the five certificate and TLS
+pages one remote domain's outbound TLS, LDAP the webmail's OpenID Connect, the
+virus pages what an encrypted message gets.
+
+A Control Panel page's tabs can have documents of their own: `HelpMap.Tabs`,
+keyed `page#Tab` by the navigation key and the tab's English header as the page
+builds it (`logging#SNMP` is `Snmp.md`). While the help is open it follows the
+tab as well as the page, the tab's document while that tab is the one showing
+and the page's on the others; a tab whose subject the page's document does not
+cover, and no document does, is `NoGuide` there. The documents no page maps to
+are listed as reference-only in `HelpMap.cs` and are reachable from every pane's
+*All documentation* list, as every document is.
 
 The checker
 -----------
@@ -86,9 +97,19 @@ documents: every page of each surface has an entry, every entry names a
 document that exists, every heading named is in that document (by the same
 parser the generator lists headings with), and no document is unreachable
 from every surface without being listed as reference-only - and nothing
-listed as reference-only is mapped. `--self-test` is its negative control:
-the same check over a copy of the maps with an entry naming a heading that
-is not there, and another naming a document that is not, which must fail.
+listed as reference-only is mapped. A tab's entry names a page of the Control
+Panel and a tab that page builds, read from `ServerSettingsView`'s builder for
+the page's section. And a reference-only document whose title or name is the
+heading of a tab or a card of a Control Panel page fails: it is that page's help,
+which the pane cannot reach from it, and its tab is mapped to it instead - but
+for a document whose name only looks like a heading (`NOT_THE_PAGES`: the
+project's repository mirror is not the server's), and one that the document of
+the tab holding its card links (`REACHED_FROM`: account recovery, from the
+webmail's sign-in document), which the checker holds to being mapped and to
+carrying the link. `--self-test` is its negative control: the same check over a
+copy of the maps with an entry naming a heading that is not there, another naming
+a document that is not, a tab entry naming a tab its page does not build, and a
+reference-only document named as a tab is named, each of which must fail.
 GitLab CI's checkers job runs both, beside `generate-help-pages.py --check`.
 
 The panes
@@ -119,7 +140,8 @@ dashboard poll, a save, a message opened from the list - moves nothing.
   pane's width and whether it is open are kept in
   `HKCU\Software\hMailServer\ControlPanel` under `HelpPaneWidth` and
   `HelpPaneOpen`, beside the window bounds, the palette's history and the
-  tour record. `Services/MarkdownBlocks.cs` is the parser (compiled into
+  tour record. The pane follows the page's tab as well as the page
+  (`MainWindow.HelpTabs.cs`). `Services/MarkdownBlocks.cs` is the parser (compiled into
   `ControlPanel.Core` and tested without WPF), `Services/MarkdownFlow.cs`
   the rendering into a `FlowDocument`, `Services/HelpPages.cs` the embedded
   copy, `Views/HelpPane.cs` the pane.
@@ -171,7 +193,8 @@ What is thinner than the row asks
 * There is no search across all documents in the pane - only within the open
   one. The Ctrl+K palette still finds pages by their purpose sentence, and
   *All documentation* lists every document by its title.
-* A page with no document of its own opens the nearest one, said above.
+* Some twenty Control Panel pages have no document of their own yet, and say so
+  in the pane, said above.
 * The first-run walk gains no stop for the help button; the button is in the
   command bar of every page, where the walk's later stops already point.
 
@@ -189,10 +212,11 @@ What is tested
   allowed, and a value that is not a URL is refused on both doors with
   nothing changed.
 * `ControlPanel.Tests`: the markdown parser over a fixed document (headings
-  of both kinds, a list, a code block, a table, a link), the map's lookup for
-  three pages and its coverage of every navigation page, the pane's
-  heading scroll target, the embedded copy against the directory (the
-  names, the two exclusions, the bytes) and the wiki URL rule.
+  of both kinds, a list, a code block, a table, a link) and over every document
+  of the set, the map's lookup for pages and for tabs, its coverage of every
+  navigation page, every tab entry against the tabs its page builds, the pages
+  with no guide, the pane's heading scroll target, the embedded copy against the
+  directory (the names, the two exclusions, the bytes) and the wiki URL rule.
 * `build/deck-script-test.js` and `build/portal-script-test.js`: the button,
   the fetch path, the rendering of a heading and a list, and the map lookup
   for three views.
