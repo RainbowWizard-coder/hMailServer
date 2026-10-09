@@ -6925,6 +6925,9 @@ Inget som redan finns där tas bort.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Inget meddelande skannas efter virus. Bilageblockering tar fortfarande bort {0} filnamnsmönster, men inget undersöker innehållet i ett meddelande.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Inga meddelanden listade än. Lista meddelandena i arkivet läser dem från arkivet och kontot som anges ovan.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Inga namn, så ingen adress skonas från en spärr för sitt omvända namn.</value>
   </data>

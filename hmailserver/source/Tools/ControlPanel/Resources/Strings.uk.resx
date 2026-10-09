@@ -6991,6 +6991,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.|few" xml:space="preserve">
     <value>Жодне повідомлення не сканується на віруси. Блокування вкладень і далі вилучає вкладення за {0} шаблонами імен файлів, але вміст повідомлення ніщо не перевіряє.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Повідомлення ще не показано. «Показати повідомлення архіву» читає їх з архіву та для облікового запису, зазначених вище.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Немає імен, тому жодна адреса не уникає бану через своє зворотне ім'я.</value>
   </data>

@@ -6925,6 +6925,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Ingen meddelelse scannes for virus. Blokering af vedhæftede filer fjerner stadig {0} filnavnsmønstre, men intet undersøger indholdet af en meddelelse.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Ingen beskeder vist endnu. Vis beskederne i arkivet læser dem fra arkivet og kontoen, der er angivet ovenfor.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Ingen navne, så ingen adresse skånes for en blokering på grund af sit omvendte navn.</value>
   </data>

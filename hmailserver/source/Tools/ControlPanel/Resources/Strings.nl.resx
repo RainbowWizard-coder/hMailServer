@@ -6925,6 +6925,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Geen enkel bericht wordt op virussen gescand. Bijlageblokkering verwijdert nog steeds {0} bestandsnaampatronen, maar niets onderzoekt de inhoud van een bericht.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Nog geen berichten getoond. Berichten in het archief tonen leest ze uit het archief en voor het account die hierboven zijn genoemd.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Geen namen, dus geen enkel adres wordt op grond van zijn omgekeerde naam voor een ban gespaard.</value>
   </data>

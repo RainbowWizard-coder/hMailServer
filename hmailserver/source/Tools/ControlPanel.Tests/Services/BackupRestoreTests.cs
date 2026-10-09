@@ -281,8 +281,15 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string forget = WithheldRowTests.MemberText(code, "private void ForgetArchivedMessages_()");
          Assert.True(forget != null, "BackupView.ForgetArchivedMessages_ is gone.");
-         foreach (string line in new[] { "listedArchive_ = null;", "listedAddress_ = null;", "ArchivedMessageGrid.ItemsSource = null;", "ArchivedMessagesEmpty.Visibility = Visibility.Collapsed;", "ArchivedMessagesNote.Visibility = Visibility.Collapsed;", "MessageOutcome.Visibility = Visibility.Collapsed;" })
+         foreach (string line in new[] { "listedArchive_ = null;", "listedAddress_ = null;", "ArchivedMessageGrid.ItemsSource = null;", "ArchivedMessagesNote.Visibility = Visibility.Collapsed;", "MessageOutcome.Visibility = Visibility.Collapsed;" })
             Assert.Contains(line, forget, StringComparison.Ordinal);
+
+         // With nothing listed, before a listing and after one goes, the grid's place
+         // says so and what lists them, where it was a blank under the headers.
+         Assert.Contains("StatusText.Show(ArchivedMessagesEmpty, null, 0, null, L(\"No messages listed yet. List the messages in the archive reads them from the archive and the account named above.\"));", forget, StringComparison.Ordinal);
+         string constructor = WithheldRowTests.MemberText(code, "public BackupView()");
+         Assert.True(constructor != null, "BackupView's constructor is gone.");
+         Assert.Contains("ForgetArchivedMessages_();", constructor, StringComparison.Ordinal);
 
          string list = WithheldRowTests.MemberText(code, "private void ListArchivedMessages_Click(object sender, RoutedEventArgs e)");
          Assert.True(list != null, "BackupView.ListArchivedMessages_Click is gone.");

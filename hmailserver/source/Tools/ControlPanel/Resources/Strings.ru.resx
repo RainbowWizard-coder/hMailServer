@@ -6991,6 +6991,9 @@ Control Panel может читать файлы сообщений только
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.|few" xml:space="preserve">
     <value>Ни одно сообщение не проверяется на вирусы. Блокировка вложений всё ещё удаляет вложения по {0} шаблонам имён файлов, но содержимое сообщений не исследует ничто.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Сообщения ещё не показаны. «Показать сообщения архива» читает их из архива и для учётной записи, указанных выше.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Нет имён, поэтому ни один адрес не избавлен от бана по своему обратному имени.</value>
   </data>

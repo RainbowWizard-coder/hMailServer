@@ -1559,9 +1559,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the mailbox restore's archive, and the whole restore names the archive it takes. The account's messages in an
   archive are a grid to choose from, and Put the message back acts on the one chosen, from the archive and for the
   account it was listed from, and asks about it by its subject, folder and date where it asked about "message 1042";
-  another archive or account named above clears the listing. Connected to another machine, the archive card says it
-  cannot list that machine's folder and the browse buttons are off, with a tool tip saying to type the path as the
-  server sees it; the no-passphrase notice is a Warning.
+  another archive or account named above clears the listing, and the grid says, while nothing is listed, what lists
+  the messages. Connected to another machine, the archive card says it cannot list that machine's folder and the
+  browse buttons are off, with a tool tip saying to type the path as the server sees it; the no-passphrase notice is
+  a Warning.
 
 - **Fixed: verifying a domain on the Control Panel's DNS records page took seven Check clicks, and Copy said nothing.**
   Each card - MX, SPF, DKIM, DMARC, the MTA-STS record and its policy, TLS-RPT - had its own Check and its own

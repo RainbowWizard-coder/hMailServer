@@ -6925,6 +6925,9 @@ Nada do que já está lá é removido.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>Nenhuma mensagem é verificada contra vírus. O bloqueio de anexos ainda está removendo {0} padrões de nome de arquivo, mas nada examina o conteúdo de uma mensagem.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Nenhuma mensagem listada ainda. Listar as mensagens do arquivo as lê do arquivo e da conta indicados acima.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Nenhum nome, então nenhum endereço é poupado de um banimento pelo nome reverso.</value>
   </data>

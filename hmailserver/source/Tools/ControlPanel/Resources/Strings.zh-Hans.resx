@@ -6925,6 +6925,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>没有任何邮件被扫描病毒。附件拦截仍在按 {0} 条文件名模式剥除附件，但没有任何东西检查邮件的内容。</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>尚未列出任何邮件。“列出存档中的邮件”会从上面指定的存档和账户中读取邮件。</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>没有名称，因此不会有地址因其反向名称而免于封禁。</value>
   </data>

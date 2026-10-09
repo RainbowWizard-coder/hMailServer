@@ -6991,6 +6991,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message.|few" xml:space="preserve">
     <value>Žádná zpráva se nekontroluje na viry. Blokování příloh sice stále odstraňuje přílohy podle {0} vzorů názvů souborů, ale obsah zpráv nikdo nezkoumá.</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>Zatím nejsou vypsány žádné zprávy. Vypsat zprávy v archivu je načte z archivu a účtu uvedených výše.</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>Žádné názvy, takže žádná adresa není ušetřena zákazu kvůli svému reverznímu názvu.</value>
   </data>

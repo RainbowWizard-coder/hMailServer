@@ -6925,6 +6925,9 @@
   <data name="No message is scanned for viruses. Attachment blocking is still stripping {0} file-name patterns, but nothing examines the contents of a message." xml:space="preserve">
     <value>ウイルス スキャンされるメッセージはありません。添付ファイルのブロックは引き続き {0} 件のファイル名パターンを取り除いていますが、メッセージの中身を調べるものは何もありません。</value>
   </data>
+  <data name="No messages listed yet. List the messages in the archive reads them from the archive and the account named above." xml:space="preserve">
+    <value>まだメッセージは一覧表示されていません。[アーカイブ内のメッセージを一覧表示] で、上で指定したアーカイブとアカウントからメッセージを読み取ります。</value>
+  </data>
   <data name="No names, so no address is spared from a ban by its reverse name." xml:space="preserve">
     <value>名前がないため、逆引き名を理由に BAN を免れるアドレスはありません。</value>
   </data>

@@ -53,6 +53,9 @@ namespace hMailServer.ControlPanel.Views
 
          // Put the message back acts on the message chosen in the list.
          SelectionGate.Bind(ArchivedMessageGrid, PutMessageBackButton);
+
+         // Nothing is listed until List the messages in the archive reads them.
+         ForgetArchivedMessages_();
       }
 
       public void OnEnter()
@@ -563,12 +566,17 @@ namespace hMailServer.ControlPanel.Views
             ForgetArchivedMessages_();
       }
 
+      /// <summary>
+      /// The message card with nothing listed - before a listing, and once the one
+      /// there was goes - says so in the grid's place and what lists them, where the
+      /// grid was a blank under its headers.
+      /// </summary>
       private void ForgetArchivedMessages_()
       {
          listedArchive_ = null;
          listedAddress_ = null;
          ArchivedMessageGrid.ItemsSource = null;
-         ArchivedMessagesEmpty.Visibility = Visibility.Collapsed;
+         StatusText.Show(ArchivedMessagesEmpty, null, 0, null, L("No messages listed yet. List the messages in the archive reads them from the archive and the account named above."));
          ArchivedMessagesNote.Visibility = Visibility.Collapsed;
          MessageOutcome.Visibility = Visibility.Collapsed;
       }
