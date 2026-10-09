@@ -87,6 +87,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -1136,9 +1137,11 @@ namespace HM
          // stopping - is reset, not ended: an orderly close there is an end of
          // stream a client may read as the end of the answer, and a reset is
          // an error no client mistakes for one. What was still to be sent is
-         // let go at once rather than sent after the close.
+         // let go at once rather than sent after the close. A socket that will not
+         // take the option is closed in order below: there is nothing else to do
+         // with it, so its error is let go too.
          if (response_started_)
-            socket_.set_option(boost::asio::socket_base::linger(true, 0), ignored);
+            std::ignore = socket_.set_option(boost::asio::socket_base::linger(true, 0), ignored);
 
          socket_.close(ignored);
 
@@ -1710,7 +1713,10 @@ namespace HM
                throw std::logic_error("HttpServerTester: the listener's port could not be read back.");
          }
 
-         ~HttpTesterServer()
+         // May throw: a Stop that fails at the end of a case that passed fails the
+         // case. While a failure of the case's own is on its way out, a second
+         // one ends the process, as it did when this was noexcept.
+         ~HttpTesterServer() noexcept(false)
          {
             server_->Stop();
          }
@@ -1774,8 +1780,9 @@ namespace HM
                if (!done)
                {
                   timed_out = true;
-                  boost::system::error_code ignored;
-                  socket_.close(ignored);
+                  // The close ends the read still waiting; one that fails throws,
+                  // and fails the case, where the run below would wait on.
+                  socket_.close();
                   io_.restart();
                   io_.run();
                   return;
@@ -1949,7 +1956,7 @@ namespace HM
    {
       // Larger than the socket buffers on both sides can hold, so the
       // server's write stalls for as long as the client does not read.
-      const std::string body = HttpTesterBody(16 * 1024 * 1024);
+      const std::string body = HttpTesterBody(size_t{16} * 1024 * 1024);
 
       HttpLimits limits = HttpTesterLimits();
       limits.large_response_bytes = 0;
