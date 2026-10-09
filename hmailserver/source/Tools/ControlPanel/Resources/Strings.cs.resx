@@ -543,8 +543,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Odesílateli obálky každé nakažené zprávy se odešle upozornění. Odesílatelé virů tuto adresu téměř bez výjimky falšují, takže to většinou doručuje poštu lidem, kteří nic neposlali — což je backscatter, a právě kvůli němu se server dostane na blokační seznam.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Jednorázový kód vyžadovaný navíc k heslu správce, ověřovaný SERVEREM – platí tedy pro každého klienta těchto přihlašovacích údajů: pro tento Control Panel, pro skripty používající COM API i pro REST API (které kód čte z hlavičky X-hMailServer-OTP). Tajný klíč je uložen na serveru v hMailServer.ini, chráněn vazbou na tento počítač. Samotné heslo správce tím ztrácí cenu. Klíč pro nastavení bezpečně uschovejte: pokud se ověřovací aplikace ztratí, obnovu provede místní správce vymazáním AdministratorTotpSecret z hMailServer.ini.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>Jednorázový kód vyžadovaný navíc k heslu správce, ověřovaný SERVEREM – platí tedy pro každého klienta těchto přihlašovacích údajů: pro tento Control Panel, pro skripty používající COM API i pro REST API (které kód čte z hlavičky X-hMailServer-OTP). Tajný klíč je uložen na serveru v hMailServer.ini, chráněn vazbou na tento počítač. Samotné heslo správce tím ztrácí cenu. Klíč pro nastavení bezpečně uschovejte: pokud se ověřovací aplikace ztratí, místní správce odstraní AdministratorTotpSecret z oddílu [Security] souboru hMailServer.ini v editoru spuštěném jako správce a restartuje službu hMailServer.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Pro '{0}' je již uloženo přístupové heslo. Uložení jej nahradí – staré už odsud nelze obnovit. Nahradit?</value>
@@ -639,14 +639,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>Druhý faktor pro správce - jednorázový kód vedle hesla</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>Na přihlašovacích údajích správce je vynucen druhý faktor, a to u každého klienta.</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>Druhý faktor je zaregistrován. Každé přihlášení pomocí přihlašovacích údajů správce – tímto nástrojem, přes COM API i přes REST API – vyžaduje kód. Chcete-li jej vypnout, zadejte aktuální kód.</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>Druhý faktor je zaregistrován. Vlastní heslo tohoto účtu už do poštovních klientů nepřihlásí – to zvládnou jen jeho hesla aplikací. Odebrání druhého faktoru je obnoví.</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>Druhý faktor je zaregistrován: každé přihlášení pomocí přihlašovacích údajů správce - tímto nástrojem, přes COM API i přes REST API - vyžaduje kód. Jeho vypnutím tento požadavek zmizí a k přihlášení bude opět stačit samotné heslo správce.</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>Tajný klíč je nastaven — ponechte prázdné, chcete-li jej zachovat</value>
@@ -1122,8 +1119,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add the first _domain…" xml:space="preserve">
     <value>Přidat první _doménu…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Přidejte klíč níže do ověřovací aplikace a potvrďte jej kódem. Po registraci samotné heslo správce nepřihlásí – kód budou vyžadovat i COM API a REST API. Klíč uschovejte na bezpečném místě: pokud o ověřovací aplikaci přijdete, musí obnovu provést místní správce vymazáním AdministratorTotpSecret z hMailServer.ini.</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>Přidejte klíč níže do ověřovací aplikace a potvrďte jej kódem. Po registraci samotné heslo správce nepřihlásí – kód budou vyžadovat i COM API a REST API. Klíč uschovejte na bezpečném místě: pokud o ověřovací aplikaci přijdete, musí místní správce odstranit AdministratorTotpSecret z oddílu [Security] souboru hMailServer.ini v editoru spuštěném jako správce a restartovat službu hMailServer.</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>Přidat na seznam blokovaných</value>
@@ -2724,12 +2721,6 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>Dvoufaktorové ověřování jen pro Control Panel je vypnuté.</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>Dvoufaktorové ověřování jen pro Control Panel je zapnuté.</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Zkopírováno</value>
@@ -4342,9 +4333,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Nejdřív zadejte cestu k clamscan.exe.</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>Zadejte aktuální 6místný kód pro vypnutí druhého faktoru.</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
   </data>
@@ -4512,6 +4500,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>Každý server, kterému tento server doručuje, se dozví název hostitele tohoto serveru a porovná ho s DNS: s adresou tohoto názvu a se záznamem PTR adresy, ze které pošta přišla. Název, který nesouhlasí, se poště počítá k tíži.</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>Každé přihlášení pomocí přihlašovacích údajů správce vyžaduje kód: v tomto Control Panelu, ve skriptech používajících COM API i v REST API.</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Každá kontrola spamu v pořadí, v jakém je server spouští, co každá přidává ke skóre a co pak to skóre udělá se zprávou.</value>
@@ -7152,9 +7143,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>Není nastavena báze hledání (Ověřování proti adresáři (LDAP), Hledání položky uživatele v adresáři).</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>Není vynucen žádný druhý faktor – přihlásí samotné heslo správce.</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Žádný druhý faktor. Jeho zaregistrování okamžitě znemožní, aby heslo tohoto účtu fungovalo v poštovních klientech, protože IMAP, POP3 ani SMTP nemají kam zadat kód – nastavte nejprve heslo aplikace na kartě Hesla aplikací, jinak poštovní schránka zmlkne.</value>
@@ -10499,11 +10487,11 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Nastavte životnost obnovení relace a rotaci klíčů pro tickety, které omezují, jak dlouho zůstane zachycené tajemství pro obnovení relace použitelné.</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>Nastavit nebo vypnout dvoufaktorové ověření jen pro Control Panel…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Nastavit dvoufaktorové ověření jen pro Control Panel…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>Nastavit nebo vypnout druhý faktor vynucený serverem…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>Nastavit druhý faktor vynucený serverem…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Nastavení tohoto serveru</value>
@@ -11437,6 +11425,9 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>Správce má druhý faktor a REST API žádá jeho jednorázový kód, než odpoví. Otevřete stránku znovu a budete požádáni o kód.</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>K přihlášení stačí samotné heslo správce, zde, ve skriptech i přes REST API.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Heslo správce a dvoufaktorové ověření najdete na stránce Přístup pro správu.</value>
@@ -12623,6 +12614,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>Zavírají naslouchací službu, důvěřují rozsahu adres, vypínají filtr nebo kontrolu, nebo zkracují dobu uchování dat. Co kratší lhůta smaže, vrácení nastavení nevrátí.</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>Tento Control Panel si při přihlašování z tohoto počítače po hesle vyžádá vlastní kód.</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>Tento Control Panel na tomto počítači žádný vlastní kód nevyžaduje.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Tento Control Panel se zavře, jakmile se pomocník spustí, aby instalátor mohl nahradit jeho soubory; za minutu jej znovu otevřete a uvidíte výsledek.</value>
   </data>
@@ -12928,6 +12925,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>Zase _vypnout</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Vypnout dvoufaktorové ověření jen pro Control Panel…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>Vypnout druhý faktor vynucený serverem…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>Zapněte BATV, aby šlo vrácenou zprávu ke zprávě, kterou tento server nikdy neposlal, rozeznat od skutečné.</value>
@@ -13553,6 +13556,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>Nepodařilo se přečíst, zda některý rozsah IP vyžaduje pro ověření TLS.</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>Ze serveru se nepodařilo zjistit, zda je zapnutý.</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Zda se dotazy smějí zodpovídat z cache resolveru DNS Windows. Vypnuto - každý dotaz jde do sítě. Ignorováno, když je výše nastaven přepisující server DNS — ty dotazy systémovou cache vždy obcházejí, protože její odpovědi by pocházely od špatného resolveru.</value>
   </data>
@@ -13999,9 +14005,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>P_opis</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>_Vypnout druhý faktor</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Vypnout dvoufaktorové ověřování</value>
@@ -14509,6 +14512,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Komu</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>_Vypnout druhý faktor</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Zapnout ladicí logování nyní</value>

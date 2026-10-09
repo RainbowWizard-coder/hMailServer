@@ -543,8 +543,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Powiadomienie jest wysyłane do nadawcy koperty każdej zainfekowanej wiadomości. Nadawcy wirusów niemal bez wyjątku fałszują ten adres, więc w praktyce dostarcza to pocztę osobom, które niczego nie wysłały — czyli backscatter, a to właśnie wprowadza serwer na listę blokad.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Kod jednorazowy wymagany dodatkowo obok hasła administratora, sprawdzany przez SERWER - obowiązuje więc każdego klienta korzystającego z tego poświadczenia: ten Control Panel, skrypty używające COM API oraz REST API (które odczytuje kod z nagłówka X-hMailServer-OTP). Sekret jest przechowywany na serwerze, w hMailServer.ini, chroniony na poziomie komputera. Sprawia, że samo hasło administratora jest bezwartościowe. Klucz konfiguracyjny należy zachować w bezpiecznym miejscu: w razie utraty aplikacji uwierzytelniającej odzyskanie dostępu polega na usunięciu AdministratorTotpSecret z hMailServer.ini przez lokalnego administratora.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>Kod jednorazowy wymagany dodatkowo obok hasła administratora, sprawdzany przez SERWER - obowiązuje więc każdego klienta korzystającego z tego poświadczenia: ten Control Panel, skrypty używające COM API oraz REST API (które odczytuje kod z nagłówka X-hMailServer-OTP). Sekret jest przechowywany na serwerze, w hMailServer.ini, chroniony na poziomie komputera. Sprawia, że samo hasło administratora jest bezwartościowe. Klucz konfiguracyjny należy zachować w bezpiecznym miejscu: w razie utraty aplikacji uwierzytelniającej lokalny administrator usuwa AdministratorTotpSecret z sekcji [Security] pliku hMailServer.ini w edytorze uruchomionym jako administrator i ponownie uruchamia usługę hMailServer.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Dla „{0}” jest już zapisane hasło klucza. Zapisanie zastąpi je - starego nie da się stąd odzyskać. Zastąpić je?</value>
@@ -639,14 +639,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>Drugi składnik dla administratora - kod jednorazowy obok hasła</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>Drugi składnik jest wymuszony na poświadczeniu administratora, u każdego klienta.</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>Drugi składnik jest zarejestrowany. Każde logowanie poświadczeniem administratora - to narzędzie, COM API i REST API - wymaga kodu. Aby go wyłączyć, wpisz aktualny kod.</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>Drugi składnik jest zarejestrowany. Własne hasło tego konta nie loguje już do klientów pocztowych - robią to tylko jego hasła aplikacji. Usunięcie drugiego składnika przywraca je.</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>Drugi składnik jest zarejestrowany: każde logowanie poświadczeniem administratora - to narzędzie, COM API i REST API - wymaga kodu. Wyłączenie go usuwa ten wymóg i do zalogowania znów wystarczy samo hasło administratora.</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>Sekret jest skonfigurowany — pozostaw puste, aby go zachować</value>
@@ -1122,8 +1119,8 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add the first _domain…" xml:space="preserve">
     <value>Dodaj _pierwszą domenę…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Dodaj poniższy klucz do aplikacji uwierzytelniającej, a następnie potwierdź kodem. Po rejestracji samo hasło administratora nie zaloguje - COM API i REST API również będą wymagać kodu. Klucz należy przechowywać w bezpiecznym miejscu: w razie utraty aplikacji uwierzytelniającej lokalny administrator musi usunąć AdministratorTotpSecret z hMailServer.ini, aby odzyskać dostęp.</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>Dodaj poniższy klucz do aplikacji uwierzytelniającej, a następnie potwierdź kodem. Po rejestracji samo hasło administratora nie zaloguje - COM API i REST API również będą wymagać kodu. Klucz należy przechowywać w bezpiecznym miejscu: w razie utraty aplikacji uwierzytelniającej lokalny administrator musi usunąć AdministratorTotpSecret z sekcji [Security] pliku hMailServer.ini w edytorze uruchomionym jako administrator i ponownie uruchomić usługę hMailServer.</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>Dodaj do listy blokowanych</value>
@@ -2724,12 +2721,6 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>Uwierzytelnianie dwuskładnikowe działające wyłącznie w Control Panel jest wyłączone.</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>Uwierzytelnianie dwuskładnikowe działające wyłącznie w Control Panel jest włączone.</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Skopiowano</value>
@@ -4342,9 +4333,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Najpierw należy podać ścieżkę do clamscan.exe.</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>Wpisz aktualny 6-cyfrowy kod, aby wyłączyć drugi składnik.</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Należy podać wygaśnięcie w formacie YYYY-MM-DD HH:MM:SS.</value>
   </data>
@@ -4512,6 +4500,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>Każdy serwer, do którego ten serwer dostarcza pocztę, otrzymuje nazwę hosta tego serwera i porównuje ją z DNS: z adresem tej nazwy oraz z rekordem PTR adresu, z którego przyszła poczta. Nazwa, która się nie zgadza, działa na niekorzyść poczty.</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>Każde logowanie poświadczeniem administratora wymaga kodu: w tym Control Panel, w skryptach używających COM API i w REST API.</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Wszystkie kontrole antyspamowe w kolejności, w jakiej wykonuje je serwer, to, ile każda dodaje do punktacji, oraz to, co ta punktacja robi następnie z wiadomością.</value>
@@ -7152,9 +7143,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>Nie ustawiono bazy wyszukiwania (Uwierzytelnianie katalogowe (LDAP), Odnajdywanie wpisu użytkownika w katalogu).</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>Nie jest wymuszany żaden drugi składnik - samo hasło administratora wystarcza do zalogowania.</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Brak drugiego składnika. Jego zarejestrowanie natychmiast unieruchamia hasło tego konta w klientach pocztowych, ponieważ IMAP, POP3 i SMTP nie mają gdzie przyjąć kodu - należy najpierw utworzyć hasło aplikacji na karcie Hasła aplikacji, bo inaczej skrzynka pocztowa zamilknie.</value>
@@ -10499,11 +10487,11 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Ustaw czas życia wznawiania i rotację kluczy biletów, które ograniczają, jak długo przechwycony sekret wznawiania pozostaje użyteczny.</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>Skonfiguruj lub wyłącz uwierzytelnianie dwuskładnikowe działające tylko w aplikacji Control Panel…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Skonfiguruj uwierzytelnianie dwuskładnikowe działające tylko w aplikacji Control Panel…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>Skonfiguruj lub wyłącz drugi składnik wymuszany przez serwer…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>Skonfiguruj drugi składnik wymuszany przez serwer…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Konfiguracja tego serwera</value>
@@ -11437,6 +11425,9 @@ Następna wiadomość na ten adres zostanie wysłana, a adres wróci na listę d
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>Administrator ma drugi składnik, a REST API prosi o jego kod jednorazowy, zanim odpowie. Otwórz stronę ponownie, aby zostać poproszonym o kod.</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>Do zalogowania wystarcza samo hasło administratora, tutaj, w skryptach i przez REST API.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Hasło administratora i uwierzytelnianie dwuskładnikowe znajdują się na stronie Dostęp administracyjny.</value>
@@ -12623,6 +12614,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>Zamykają nasłuchiwanie, ufają zakresowi adresów, wyłączają filtr lub kontrolę albo skracają czas przechowywania danych. Tego, co usunie krótszy okres, przywrócenie ustawień nie odzyska.</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>Ten Control Panel po haśle prosi o własny kod, gdy loguje się z tego komputera.</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>Ten Control Panel nie prosi na tym komputerze o żaden własny kod.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Ten Control Panel zamyka się, gdy tylko pomocnik zostanie uruchomiony, aby instalator mógł zastąpić jego pliki; otwórz go ponownie za minutę, aby zobaczyć wynik.</value>
   </data>
@@ -12928,6 +12925,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>Wyłącz _ponownie</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Wyłącz uwierzytelnianie dwuskładnikowe działające tylko w aplikacji Control Panel…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>Wyłącz drugi składnik wymuszany przez serwer…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>Włącz BATV, aby zwrot dotyczący wiadomości, której ten serwer nigdy nie wysłał, dało się odróżnić od prawdziwego.</value>
@@ -13553,6 +13556,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>Nie udało się odczytać, czy któryś zakres adresów IP wymaga TLS do uwierzytelniania.</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>Nie udało się odczytać z serwera, czy jest włączony.</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Czy zapytania mogą być odpowiadane z pamięci podręcznej resolwera DNS Windows. Wyłączone - każde zapytanie idzie do sieci. Ignorowane, gdy powyżej ustawiono nadpisujący serwer DNS — tamte zapytania zawsze omijają systemową pamięć podręczną, bo jej odpowiedzi pochodziłyby z niewłaściwego resolwera.</value>
   </data>
@@ -13999,9 +14005,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Opis</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>_Wyłącz drugi składnik</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Wyłącz uwierzytelnianie dwuskładnikowe</value>
@@ -14509,6 +14512,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Do</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>_Wyłącz drugi składnik</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Włącz teraz dziennik diagnostyczny</value>

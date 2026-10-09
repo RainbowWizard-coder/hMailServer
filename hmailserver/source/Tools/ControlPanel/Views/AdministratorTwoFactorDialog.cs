@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -67,6 +68,8 @@ namespace hMailServer.ControlPanel.Views
       private readonly Wpf.Ui.Controls.Button action_ =
          new() { Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
 
+      private readonly Wpf.Ui.Controls.Button close_ = new() { Content = L("Close"), MinWidth = 88 };
+
       // The base32 secret the server just handed back, taken from the otpauth URI.
       // Null except while an enrolment is committed-but-unconfirmed.
       private string pendingSecret_;
@@ -88,16 +91,41 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(codeRow_);
 
          action_.Click += (s, e) => Apply();
-         var close = new Wpf.Ui.Controls.Button { Content = L("Close"), MinWidth = 88 };
-         close.Click += (s, e) => Close();
+         close_.Click += (s, e) => Close();
 
-         UseFrame(L("Second factor on the administrator credential"), body, action_, close, width: 560);
+         // A verification code is digits, and the box takes nothing else - typed or
+         // pasted - so that a stray letter is not what "does not match" is about.
+         code_.PreviewTextInput += (s, e) => e.Handled = !IsDigits_(e.Text);
+         DataObject.AddPastingHandler(code_, (s, e) =>
+         {
+            if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText) || !IsDigits_(((string)e.DataObject.GetData(DataFormats.UnicodeText) ?? "").Trim()))
+               e.CancelCommand();
+         });
+
+         UseFrame(L("Second factor on the administrator credential"), body, action_, close_, width: 560);
          RefreshState();
 
          // A dialog closed with an enrolment still unconfirmed rolls it back, so a
          // half-finished setup never becomes the lock on the next sign-in.
          Closing += (s, e) => RollBackIfUnconfirmed();
-         Loaded += (s, e) => code_.Focus();
+         Loaded += (s, e) => FocusForState_();
+      }
+
+      /// <summary>Whether a text is one or more digits and nothing else.</summary>
+      private static bool IsDigits_(string text)
+         => !string.IsNullOrEmpty(text) && text.All(char.IsAsciiDigit);
+
+      /// <summary>
+      /// The keyboard where the state wants it: in the code box while there is an
+      /// enrolment to confirm, and on Close otherwise - while the factor is on, Close
+      /// is what Enter does, and after a failed enrolment there is no code to type.
+      /// </summary>
+      private void FocusForState_()
+      {
+         if (codeRow_.Visibility == Visibility.Visible)
+            code_.Focus();
+         else
+            close_.Focus();
       }
 
       private bool IsEnrolled()
@@ -116,20 +144,36 @@ namespace hMailServer.ControlPanel.Views
       {
          if (IsEnrolled() && pendingSecret_ == null)
          {
-            status_.Text = L("A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off.");
+            // The server keeps the secret and has nothing that checks a code
+            // against it, so a code typed here would prove nothing: the dialog
+            // says what turning it off does instead of asking for one, and Enter
+            // is Close (review finding F240).
+            status_.Text = L("A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again.");
             enrolPanel_.Visibility = Visibility.Collapsed;
-            action_.Content = L("_Disable second factor");
+            codeRow_.Visibility = Visibility.Collapsed;
+            action_.Content = L("_Turn off the second factor");
+            action_.Appearance = Wpf.Ui.Controls.ControlAppearance.Danger;
+            action_.IsDefault = false;
+            close_.IsDefault = true;
          }
          else
          {
-            status_.Text = L("Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover.");
+            status_.Text = L("Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service.");
             EnsureEnrolled();
+
+            // An enrolment the server refused leaves nothing to confirm: no code
+            // box, where the box stayed and kept the keyboard beside a Confirm
+            // that could not be pressed.
+            codeRow_.Visibility = pendingSecret_ != null ? Visibility.Visible : Visibility.Collapsed;
             action_.Content = L("Confirm and _enable");
+            action_.Appearance = Wpf.Ui.Controls.ControlAppearance.Primary;
+            close_.IsDefault = false;
+            action_.IsDefault = true;
          }
 
          code_.Text = "";
          codeRow_.Error = null;
-         code_.Focus();
+         FocusForState_();
       }
 
       // Asks the server to enrol (which generates and commits the secret) and shows
@@ -177,17 +221,9 @@ namespace hMailServer.ControlPanel.Views
          {
             if (IsEnrolled() && pendingSecret_ == null)
             {
-               // Disabling. The server holds the secret and this tool cannot read
-               // it back, so there is nothing here to verify the code against: the
-               // disable is gated on a plausible-looking code only, and the code is
-               // the user's own assurance that they still control the factor.
-               // Losing the authenticator is the ini-file recovery path named above.
-               if (entered.Length != 6)
-               {
-                  DialogFields.ShowError(codeRow_, L("Enter the current 6-digit code to turn the second factor off."));
-                  return;
-               }
-
+               // Turning it off. The server holds the secret and this tool cannot
+               // read it back, so there is no code to check: the dialog says what
+               // the button does, and Close is the default (RefreshState).
                ServerSession.Current.Application.Settings.DisableAdministratorTOTP();
                RefreshState();
                notice_.Show(StatusLevel.Good, L("The second factor has been removed. The administrator password alone signs in again."));

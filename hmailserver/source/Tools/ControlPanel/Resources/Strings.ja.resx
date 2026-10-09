@@ -540,8 +540,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>感染したメッセージすべてについて、そのエンベロープ送信者に通知が送られます。ウイルスの送信者はほぼ例外なくそのアドレスを詐称するため、この通知は結局、何も送っていない人にメールを届けることになります。これがバックスキャッターであり、サーバーがブロック リストに載る原因です。</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>管理者パスワードに加えて必要になるワンタイム コードで、サーバー側で検証されます。そのため、この資格情報を使うすべてのクライアント、つまりこのコントロールパネル、COM API を使うスクリプト、および REST API (X-hMailServer-OTP ヘッダーからコードを読み取ります) に適用されます。シークレットはサーバー上の hMailServer.ini に、コンピューター単位で保護された形で保存されます。これにより、管理者パスワードだけでは何の役にも立たなくなります。セットアップ キーは安全に保管してください。認証アプリを失った場合は、ローカルの管理者が hMailServer.ini から AdministratorTotpSecret を削除して復旧します。</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>管理者パスワードに加えて必要になるワンタイム コードで、サーバー側で検証されます。そのため、この資格情報を使うすべてのクライアント、つまりこのコントロールパネル、COM API を使うスクリプト、および REST API (X-hMailServer-OTP ヘッダーからコードを読み取ります) に適用されます。シークレットはサーバー上の hMailServer.ini に、コンピューター単位で保護された形で保存されます。これにより、管理者パスワードだけでは何の役にも立たなくなります。セットアップ キーは安全に保管してください。認証アプリを失った場合は、ローカルの管理者が、管理者として実行したエディターで hMailServer.ini の [Security] セクションから AdministratorTotpSecret を削除し、hMailServer サービスを再起動します。</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>'{0}' のパスフレーズはすでに保存されています。保存すると置き換えられ、古いパスフレーズはここからは復元できません。置き換えますか?</value>
@@ -633,14 +633,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>管理者の第二要素 - パスワードに併用するワンタイムコード</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>管理者の資格情報には、すべてのクライアントで第 2 要素が強制されます。</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>第 2 要素が登録されています。管理者の資格情報でサインインするたびに、このツール、COM API、REST API のいずれでもコードが必要です。無効にするには、現在のコードを入力してください。</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>第 2 要素が登録されています。このアカウント自身のパスワードではメール クライアントにサインインできなくなり、アプリ パスワードのみが使えます。第 2 要素を削除すると元に戻ります。</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>第 2 要素が登録されています。管理者の資格情報でサインインするたびに、このツール、COM API、REST API のいずれでもコードが必要です。無効にするとこの要件はなくなり、再び管理者パスワードだけでサインインできるようになります。</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>シークレットは設定済みです — そのままにする場合は空欄のままにしてください</value>
@@ -1116,8 +1113,8 @@
   <data name="Add the first _domain…" xml:space="preserve">
     <value>最初のドメインを追加(_D)…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>下のキーを認証アプリに追加し、コードで確認してください。登録が済むと、管理者パスワードだけではサインインできなくなり、COM API と REST API でもコードが必要になります。キーは安全な場所に保管してください。認証アプリを失った場合は、ローカルの管理者が hMailServer.ini から AdministratorTotpSecret を削除して復旧する必要があります。</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>下のキーを認証アプリに追加し、コードで確認してください。登録が済むと、管理者パスワードだけではサインインできなくなり、COM API と REST API でもコードが必要になります。キーは安全な場所に保管してください。認証アプリを失った場合は、ローカルの管理者が、管理者として実行したエディターで hMailServer.ini の [Security] セクションから AdministratorTotpSecret を削除し、hMailServer サービスを再起動する必要があります。</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>抑止リストに追加</value>
@@ -2706,12 +2703,6 @@
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>コントロールパネル</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>コントロールパネルのみの 2 要素認証はオフです。</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>コントロールパネルのみの 2 要素認証はオンです。</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>コピーしました</value>
@@ -4306,9 +4297,6 @@
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>先に clamscan.exe のパスを入力してください。</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>第 2 要素をオフにするには、現在の 6 桁のコードを入力してください。</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>有効期限を YYYY-MM-DD HH:MM:SS の形式で入力してください。</value>
   </data>
@@ -4467,6 +4455,9 @@
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>このサーバーの配信先となるすべてのサーバーには、このサーバーのホスト名が伝えられ、配信先はそれを DNS と比較します。比較するのは、その名前のアドレスと、メールの送信元アドレスの PTR レコードです。一致しない名前は、そのメールにとって不利に働きます。</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>管理者の資格情報でのサインインには、毎回コードが必要です。このコントロールパネル、COM API を使うスクリプト、REST API のすべてが対象です。</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>サーバーが実行する順に並べたすべてのスパム チェック、それぞれがスコアに加える値、そしてそのスコアがメッセージに何をもたらすか。</value>
@@ -7083,9 +7074,6 @@
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>検索ベースが設定されていません (ディレクトリ認証 (LDAP)、ユーザーのディレクトリ エントリの検索)。</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>第 2 要素は強制されていません。管理者パスワードだけでサインインできます。</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>第 2 要素はありません。登録すると、このアカウントのパスワードは直ちにメール クライアントで使えなくなります。IMAP、POP3、SMTP にはコードを入力する場所がないからです。先にアプリ パスワード タブでアプリ パスワードを設定してください。さもないとメールボックスは沈黙します。</value>
@@ -10391,11 +10379,11 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>再開の有効期間とチケット鍵のローテーションを設定します。これらは、捕捉された再開シークレットが有用であり続ける期間を制限します。</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>コントロールパネルのみの 2 要素認証を設定または無効化…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>コントロールパネルのみの 2 要素認証を設定…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>サーバーが強制する第 2 要素を設定または無効化…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>サーバーが強制する第 2 要素を設定…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>このサーバーのセットアップ</value>
@@ -11321,6 +11309,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>管理者には 2 つ目の要素があり、REST API は応答する前にそのワンタイム コードを求めます。コードの入力を求められるように、ページを開き直してください。</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>ここでも、スクリプトでも、REST API でも、管理者パスワードだけでサインインできます。</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理者パスワードと 2 要素認証は管理者アクセス ページにあります。</value>
@@ -12474,6 +12465,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>これらはリスナーを閉じる、アドレス範囲を信頼する、フィルターやチェックをオフにする、またはデータの保持期間を短くします。短くなった期間で削除されたものは、設定を元に戻しても戻りません。</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>このコンピューターからサインインするとき、このコントロールパネルはパスワードの後に独自のコードを求めます。</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>このコンピューターでは、このコントロールパネルは独自のコードを求めません。</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>インストーラーがファイルを置き換えられるように、ヘルパーが起動するとすぐにこのコントロールパネルは閉じます。結果を確認するには、1 分ほど後にもう一度開いてください。</value>
   </data>
@@ -12776,6 +12773,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>再びオフにする(_O)</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>コントロールパネルのみの 2 要素認証を無効化…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>サーバーが強制する第 2 要素を無効化…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>BATV をオンにすると、このサーバーが送信していないメッセージへのバウンスを本物のバウンスと区別できます。</value>
@@ -13398,6 +13401,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>認証に TLS を必須とする IP 範囲があるかどうかを読み取れませんでした。</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>オンかどうかをサーバーから読み取れませんでした。</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>検索を Windows DNS リゾルバー キャッシュから応答してよいかどうか。オフの場合、すべての検索がネットワークに行きます。上で上書き DNS サーバーが設定されている場合は無視されます — それらの検索は常にシステム キャッシュをバイパスします。キャッシュの応答は誤ったリゾルバーからのものになるためです。</value>
   </data>
@@ -13841,9 +13847,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Description" xml:space="preserve">
     <value>説明(_D)</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>第 2 要素を無効にする(_D)</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>2 要素認証を無効にする(_D)</value>
@@ -14351,6 +14354,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_To" xml:space="preserve">
     <value>宛先(_T)</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>第 2 要素を無効にする(_T)</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>今すぐデバッグ ログを有効にする(_T)</value>

@@ -540,8 +540,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Der sendes en besked til konvolutafsenderen af hver inficeret meddelelse. Virusafsendere forfalsker næsten uden undtagelse den adresse, så dette leverer for det meste post til folk, der ikke har sendt noget — hvilket er backscatter, og det er sådan, en server ender på en blokeringsliste.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>En engangskode, der kræves ud over administratoradgangskoden, og som kontrolleres af SERVEREN – så den gælder for hver klient, der bruger disse legitimationsoplysninger: dette Control Panel, scripts, der bruger COM-API'et, og REST-API'et (som læser koden fra en X-hMailServer-OTP-header). Hemmeligheden gemmes på serveren, i hMailServer.ini, maskinbeskyttet. Den gør administratoradgangskoden værdiløs i sig selv. Opbevar opsætningsnøglen sikkert: hvis godkendelsesappen mistes, fjerner en lokal administrator AdministratorTotpSecret fra hMailServer.ini for at komme ind igen.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>En engangskode, der kræves ud over administratoradgangskoden, og som kontrolleres af SERVEREN – så den gælder for hver klient, der bruger disse legitimationsoplysninger: dette Control Panel, scripts, der bruger COM-API'et, og REST-API'et (som læser koden fra en X-hMailServer-OTP-header). Hemmeligheden gemmes på serveren, i hMailServer.ini, maskinbeskyttet. Den gør administratoradgangskoden værdiløs i sig selv. Opbevar opsætningsnøglen sikkert: hvis godkendelsesappen mistes, sletter en lokal administrator AdministratorTotpSecret fra afsnittet [Security] i hMailServer.ini med en editor, der køres som administrator, og genstarter tjenesten hMailServer.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Der er allerede gemt en adgangssætning for '{0}'. Hvis du gemmer, erstattes den – den gamle kan ikke gendannes herfra. Vil du erstatte den?</value>
@@ -633,14 +633,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>En anden faktor for administratoren - en engangskode ved siden af adgangskoden</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>Der håndhæves en anden faktor på administratorens legitimationsoplysninger, på alle klienter.</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>Der er tilmeldt en anden faktor. Hver pålogning med administratorens legitimationsoplysninger – dette værktøj, COM-API'et og REST-API'et – kræver en kode. Indtast en aktuel kode for at slå den fra.</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>Der er tilmeldt en anden faktor. Denne kontos egen adgangskode logger ikke længere på i mailklienter – det gør kun dens app-adgangskoder. Fjernes den anden faktor, virker den igen.</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>Der er tilmeldt en anden faktor: hver pålogning med administratorens legitimationsoplysninger - dette værktøj, COM-API'et og REST-API'et - kræver en kode. Slås den fra, fjernes det krav, og administratoradgangskoden alene logger på igen.</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>Der er konfigureret en hemmelighed — lad feltet stå tomt for at beholde den</value>
@@ -1116,8 +1113,8 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add the first _domain…" xml:space="preserve">
     <value>Tilføj det første _domæne…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Føj nøglen nedenfor til en godkendelsesapp, og bekræft derefter med en kode. Når den først er tilmeldt, kan administratoradgangskoden alene ikke logge på – COM-API'et og REST-API'et kræver også en kode. Opbevar nøglen et sikkert sted: hvis du mister godkendelsesappen, skal en lokal administrator fjerne AdministratorTotpSecret fra hMailServer.ini for at komme ind igen.</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>Føj nøglen nedenfor til en godkendelsesapp, og bekræft derefter med en kode. Når den først er tilmeldt, kan administratoradgangskoden alene ikke logge på – COM-API'et og REST-API'et kræver også en kode. Opbevar nøglen et sikkert sted: hvis du mister godkendelsesappen, skal en lokal administrator slette AdministratorTotpSecret fra afsnittet [Security] i hMailServer.ini med en editor, der køres som administrator, og genstarte tjenesten hMailServer.</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>Føj til spærrelisten</value>
@@ -2706,12 +2703,6 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>Tofaktorgodkendelse kun for Control Panel er slået fra.</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>Tofaktorgodkendelse kun for Control Panel er slået til.</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Kopieret</value>
@@ -4306,9 +4297,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Indtast først stien til clamscan.exe.</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>Indtast den aktuelle 6-cifrede kode for at slå den anden faktor fra.</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Indtast udløbet som YYYY-MM-DD HH:MM:SS.</value>
   </data>
@@ -4467,6 +4455,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>Hver server, denne server leverer til, får oplyst dens værtsnavn og sammenligner det med DNS: navnets adresse og PTR-posten for den adresse, posten kom fra. Et navn, der ikke stemmer overens, tæller imod posten.</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>Hver pålogning med administratorens legitimationsoplysninger kræver en kode: dette Control Panel, scripts, der bruger COM-API'et, og REST-API'et.</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Hver spamkontrol i den rækkefølge, serveren kører dem, hvad hver især lægger til scoren, og hvad den score derefter gør ved meddelelsen.</value>
@@ -7083,9 +7074,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>Der er ikke sat nogen søgebase (Katalogodkendelse (LDAP), Finder brugerens katalogpost).</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>Ingen anden faktor håndhæves - administratoradgangskoden alene logger på.</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Ingen anden faktor. Tilmeldes en, holder denne kontos adgangskode med det samme op med at virke i mailklienter, fordi IMAP, POP3 og SMTP ingen steder har at indtaste en kode - opret først en app-adgangskode på fanen App-adgangskoder, ellers bliver postkassen tavs.</value>
@@ -10391,11 +10379,11 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Sæt genoptagelseslevetiden og rotationen af ticketnøgler, som begrænser, hvor længe en opsnappet genoptagelseshemmelighed forbliver nyttig.</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>Opsæt eller slå tofaktorgodkendelse kun for Control Panel fra…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Opsæt tofaktorgodkendelse kun for Control Panel…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>Opsæt eller slå den serverhåndhævede anden faktor fra…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>Opsæt den serverhåndhævede anden faktor…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Opsæt denne server</value>
@@ -11321,6 +11309,9 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>Administratoren har en anden faktor, og REST-API'et beder om dens engangskode, før det svarer. Åbn siden igen for at blive bedt om koden.</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>Administratoradgangskoden alene logger på, her, i scripts og over REST-API'et.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Administratoradgangskoden og tofaktorgodkendelse er på siden Administrativ adgang.</value>
@@ -12474,6 +12465,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>De lukker en lytter, stoler på et adresseområde, slår et filter eller en kontrol fra eller forkorter, hvor længe data gemmes. Hvad et kortere vindue sletter, bringer en tilbagesætning af indstillingerne ikke tilbage.</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>Dette Control Panel beder om sin egen kode efter adgangskoden, når det logger på fra denne computer.</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>Dette Control Panel beder ikke om nogen kode af sin egen på denne computer.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Dette Control Panel lukker, så snart hjælperen er startet, så installationsprogrammet kan erstatte dets filer; åbn det igen om et minut for at se resultatet.</value>
   </data>
@@ -12776,6 +12773,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>Slå det _fra igen</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Slå tofaktorgodkendelse kun for Control Panel fra…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>Slå den serverhåndhævede anden faktor fra…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>Slå BATV til, så en afvisning for en meddelelse, denne server aldrig sendte, kan skelnes fra en ægte.</value>
@@ -13398,6 +13401,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>Det kunne ikke læses, om et IP-interval kræver TLS til godkendelse.</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>Om den er slået til, kunne ikke læses fra serveren.</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Om opslag må besvares fra Windows' DNS-resolvercache. Slået fra går hvert opslag til netværket. Ignoreres, når en tilsidesættende DNS-server er sat ovenfor — de opslag går altid uden om systemcachen, fordi dens svar ville komme fra den forkerte resolver.</value>
   </data>
@@ -13841,9 +13847,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Beskrivelse</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>_Deaktivér anden faktor</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Deaktivér tofaktorgodkendelse</value>
@@ -14351,6 +14354,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Til</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>_Slå anden faktor fra</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Slå fejlsøgningslogføring til nu</value>

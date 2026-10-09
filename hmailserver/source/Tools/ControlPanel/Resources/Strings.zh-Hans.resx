@@ -540,8 +540,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>会向每一封受感染邮件的信封发件人发送通知。病毒发送方几乎无一例外地伪造该地址，因此这多半只是把邮件投递给什么都没发过的人 — 这就是反向散射，也正是让服务器进入拦截列表的原因。</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>除管理员密码之外还需要的一次性验证码，由服务器校验 - 因此它适用于该凭据的每一个客户端：本控制面板、使用 COM API 的脚本，以及 REST API（后者从 X-hMailServer-OTP 标头读取验证码）。该机密存储在服务器上的 hMailServer.ini 中，受计算机级保护。它使管理员密码本身不再足以登录。请妥善保管设置密钥：如果身份验证器丢失，需要由本地管理员从 hMailServer.ini 中清除 AdministratorTotpSecret 来恢复。</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>除管理员密码之外还需要的一次性验证码，由服务器校验 - 因此它适用于该凭据的每一个客户端：本控制面板、使用 COM API 的脚本，以及 REST API（后者从 X-hMailServer-OTP 标头读取验证码）。该机密存储在服务器上的 hMailServer.ini 中，受计算机级保护。它使管理员密码本身不再足以登录。请妥善保管设置密钥：如果身份验证器丢失，由本地管理员用以管理员身份运行的编辑器从 hMailServer.ini 的 [Security] 节中删除 AdministratorTotpSecret，然后重新启动 hMailServer 服务。</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>'{0}' 已存储了一个密码短语。保存会将其替换 - 旧的密码短语无法从此处恢复。是否替换？</value>
@@ -633,14 +633,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>管理员的第二因素 - 密码之外的一次性代码</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>已在管理员凭据上、对每一个客户端强制启用第二重验证。</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>已注册第二重验证。使用管理员凭据的每一次登录 - 本工具、COM API 和 REST API - 都需要验证码。请输入一个当前的验证码以将其关闭。</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>已注册第二重验证。此账户自身的密码不再能登录邮件客户端 - 只有它的应用密码可以。删除第二重验证会恢复原状。</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>已注册第二重验证：使用管理员凭据的每一次登录 - 本工具、COM API 和 REST API - 都需要验证码。将其关闭会取消这一要求，仅凭管理员密码即可再次登录。</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>已配置机密 — 留空则保持不变</value>
@@ -1116,8 +1113,8 @@
   <data name="Add the first _domain…" xml:space="preserve">
     <value>添加第一个域(_D)…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>把下面的密钥添加到身份验证器应用，然后用一个验证码确认。注册完成之后，仅凭管理员密码将无法登录 - COM API 和 REST API 同样需要验证码。请把该密钥保存在安全的地方：如果您丢失了身份验证器，必须由本地管理员从 hMailServer.ini 中清除 AdministratorTotpSecret 才能恢复。</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>把下面的密钥添加到身份验证器应用，然后用一个验证码确认。注册完成之后，仅凭管理员密码将无法登录 - COM API 和 REST API 同样需要验证码。请把该密钥保存在安全的地方：如果您丢失了身份验证器，必须由本地管理员用以管理员身份运行的编辑器从 hMailServer.ini 的 [Security] 节中删除 AdministratorTotpSecret，然后重新启动 hMailServer 服务。</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>添加到抑制列表</value>
@@ -2706,12 +2703,6 @@
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>控制面板</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>仅控制面板的双因素身份验证已关闭。</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>仅控制面板的双因素身份验证已打开。</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>已复制</value>
@@ -4306,9 +4297,6 @@
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>请先输入 clamscan.exe 的路径。</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>输入当前的 6 位代码以关闭第二重验证。</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>请以 YYYY-MM-DD HH:MM:SS 格式输入到期时间。</value>
   </data>
@@ -4467,6 +4455,9 @@
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>本服务器投递到的每台服务器都会得知本服务器的主机名，并将其与 DNS 比对：该名称的地址，以及邮件来源地址的 PTR 记录。不相符的名称会对该邮件不利。</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>使用管理员凭据的每一次登录都需要验证码：本控制面板、使用 COM API 的脚本以及 REST API。</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>每项垃圾邮件检查按服务器运行它们的顺序列出，每项给分数加多少，以及该分数随后会对邮件产生什么影响。</value>
@@ -7083,9 +7074,6 @@
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>未设置搜索基准（目录身份验证（LDAP），查找用户的目录条目）。</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>未强制使用第二重验证 - 仅凭管理员密码即可登录。</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>没有第二重验证。注册一个会立即让此账户的密码在邮件客户端中失效，因为 IMAP、POP3 和 SMTP 没有地方输入代码 - 请先在“应用密码”选项卡上设置一个应用密码，否则邮箱会陷入沉寂。</value>
@@ -10391,11 +10379,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>设置恢复有效期和票据密钥轮换，它们限制被截获的恢复机密能有效多久。</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>设置或关闭仅控制面板的双因素身份验证…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>设置仅控制面板的双因素身份验证…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>设置或关闭服务器强制的第二因素…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>设置服务器强制的第二因素…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>设置此服务器</value>
@@ -11321,6 +11309,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>管理员设置了第二因素，REST API 在应答前要求输入其一次性代码。请重新打开页面，以便系统要求你输入代码。</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>仅凭管理员密码即可登录：在这里、在脚本中以及通过 REST API。</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>管理员密码和双因素身份验证在“管理访问权限”页。</value>
@@ -12474,6 +12465,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>它们会关闭侦听器、信任某个地址范围、关闭某个过滤器或检查，或缩短数据的保留时间。较短期限删除的内容，恢复设置也无法找回。</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>从这台计算机登录时，本控制面板会在密码之后要求输入它自己的验证码。</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>在这台计算机上，本控制面板不要求输入它自己的验证码。</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>为了让安装程序能够替换其文件，此控制面板会在助手启动后立即关闭；一分钟后请重新打开以查看结果。</value>
   </data>
@@ -12776,6 +12773,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>重新关闭(_O)</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>关闭仅控制面板的双因素身份验证…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>关闭服务器强制的第二因素…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>开启 BATV，以便把本服务器从未发送过的邮件的退信与真实退信区分开。</value>
@@ -13398,6 +13401,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>无法读取是否有 IP 范围要求身份验证使用 TLS。</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>无法从服务器读取它是否已打开。</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>查询是否可以由 Windows DNS 解析器缓存应答。关闭时，每次查询都走网络。在上面设置了覆盖 DNS 服务器时会被忽略 — 那些查询总是绕过系统缓存，因为缓存的应答会来自错误的解析器。</value>
   </data>
@@ -13841,9 +13847,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Description" xml:space="preserve">
     <value>说明(_D)</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>禁用第二因素(_D)</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>禁用双因素身份验证(_D)</value>
@@ -14351,6 +14354,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_To" xml:space="preserve">
     <value>收件人(_T)</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>关闭第二因素(_T)</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>立即开启调试日志(_T)</value>

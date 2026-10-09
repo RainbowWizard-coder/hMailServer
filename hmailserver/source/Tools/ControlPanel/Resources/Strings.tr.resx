@@ -540,8 +540,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Virüslü her iletinin zarf göndericisine bir bildirim gönderilir. Virüs gönderenler bu adresi neredeyse istisnasız sahte yazar; dolayısıyla bu, çoğunlukla hiçbir şey göndermemiş kişilere posta teslim eder — bu da geri saçılmadır (backscatter) ve bir sunucuyu engelleme listesine sokan şey tam olarak budur.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Yönetici parolasına ek olarak istenen ve SUNUCU tarafından denetlenen tek kullanımlık kod - dolayısıyla bu kimlik bilgisinin her istemcisi için geçerlidir: bu Denetim Masası, COM API'sini kullanan betikler ve kodu bir X-hMailServer-OTP başlığından okuyan REST API. Gizli anahtar sunucuda, hMailServer.ini içinde, makineye bağlı korumayla saklanır. Bu, yönetici parolasını tek başına değersiz kılar. Kurulum anahtarını güvende tutun: kimlik doğrulayıcı kaybolursa, kurtarmak için yerel bir yönetici hMailServer.ini dosyasından AdministratorTotpSecret değerini temizler.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>Yönetici parolasına ek olarak istenen ve SUNUCU tarafından denetlenen tek kullanımlık kod - dolayısıyla bu kimlik bilgisinin her istemcisi için geçerlidir: bu Denetim Masası, COM API'sini kullanan betikler ve kodu bir X-hMailServer-OTP başlığından okuyan REST API. Gizli anahtar sunucuda, hMailServer.ini içinde, makineye bağlı korumayla saklanır. Bu, yönetici parolasını tek başına değersiz kılar. Kurulum anahtarını güvende tutun: kimlik doğrulayıcı kaybolursa yerel bir yönetici, yönetici olarak çalıştırılan bir düzenleyiciyle hMailServer.ini dosyasının [Security] bölümünden AdministratorTotpSecret değerini siler ve hMailServer hizmetini yeniden başlatır.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>'{0}' için zaten bir parola ifadesi saklanıyor. Kaydetmek onun yerine yenisini koyar - eskisi buradan kurtarılamaz. Değiştirilsin mi?</value>
@@ -633,14 +633,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>Yönetici için ikinci bir faktör - parolanın yanında tek kullanımlık bir kod</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>Yönetici kimlik bilgisi için her istemcide ikinci faktör zorunlu tutuluyor.</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>İkinci faktör kaydedilmiş. Yönetici kimlik bilgisiyle yapılan her oturum açma - bu araç, COM API'si ve REST API - bir kod gerektirir. Kapatmak için geçerli bir kod girin.</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>İkinci faktör kaydedilmiş. Bu hesabın kendi parolası artık posta istemcilerinde oturum açmaz - yalnızca uygulama parolaları açar. İkinci faktörün kaldırılması bunu geri getirir.</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>İkinci etken kaydedilmiş: yönetici kimlik bilgisiyle yapılan her oturum açma - bu araç, COM API'si ve REST API - bir kod gerektirir. Kapatmak bu gereksinimi kaldırır ve yönetici parolası yeniden tek başına oturum açar.</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>Bir gizli anahtar yapılandırılmış — korumak için boş bırakın</value>
@@ -1116,8 +1113,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add the first _domain…" xml:space="preserve">
     <value>İ_lk alan adını ekle…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Aşağıdaki anahtarı bir kimlik doğrulayıcı uygulamaya ekleyin, sonra bir kodla onaylayın. Kayıt tamamlandığında yönetici parolası tek başına oturum açmaz - COM API'si ve REST API de bir kod isteyecektir. Anahtarı güvenli bir yerde saklayın: kimlik doğrulayıcıyı kaybederseniz, kurtarmak için yerel bir yöneticinin hMailServer.ini dosyasından AdministratorTotpSecret değerini temizlemesi gerekir.</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>Aşağıdaki anahtarı bir kimlik doğrulayıcı uygulamaya ekleyin, sonra bir kodla onaylayın. Kayıt tamamlandığında yönetici parolası tek başına oturum açmaz - COM API'si ve REST API de bir kod isteyecektir. Anahtarı güvenli bir yerde saklayın: kimlik doğrulayıcıyı kaybederseniz yerel bir yöneticinin, yönetici olarak çalıştırılan bir düzenleyiciyle hMailServer.ini dosyasının [Security] bölümünden AdministratorTotpSecret değerini silmesi ve hMailServer hizmetini yeniden başlatması gerekir.</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>Engelleme listesine ekle</value>
@@ -2706,12 +2703,6 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Denetim Masası</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>Yalnızca Denetim Masası için iki etkenli kimlik doğrulama kapalı.</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>Yalnızca Denetim Masası için iki etkenli kimlik doğrulama açık.</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Kopyalandı</value>
@@ -4306,9 +4297,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Önce clamscan.exe yolunu girin.</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>İkinci etkeni kapatmak için geçerli 6 haneli kodu girin.</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Süre sonunu YYYY-MM-DD HH:MM:SS olarak girin.</value>
   </data>
@@ -4467,6 +4455,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>Bu sunucunun teslim ettiği her sunucuya onun ana bilgisayar adı bildirilir ve o sunucu bu adı DNS ile karşılaştırır: adın adresiyle ve postanın geldiği adresin PTR kaydıyla. Uyuşmayan bir ad postanın aleyhine sayılır.</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>Yönetici kimlik bilgisiyle yapılan her oturum açma bir kod gerektirir: bu Denetim Masası, COM API'sini kullanan betikler ve REST API.</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Sunucunun çalıştırdığı sırayla her spam denetimi, her birinin puana ne eklediği ve o puanın sonra iletiye ne yaptığı.</value>
@@ -7083,9 +7074,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>Arama tabanı ayarlanmamış (Dizin kimlik doğrulaması (LDAP), Kullanıcının dizin girdisi bulunuyor).</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>İkinci etken zorunlu değil - yönetici parolası tek başına oturum açar.</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>İkinci etken yok. Bir tane kaydetmek bu hesabın parolasının posta istemcilerinde çalışmasını hemen durdurur, çünkü IMAP, POP3 ve SMTP'de kod girilecek bir yer yoktur - önce Uygulama parolaları sekmesinde bir uygulama parolası kurun, yoksa posta kutusu susar.</value>
@@ -10391,11 +10379,11 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Yakalanan bir sürdürme gizli anahtarının ne kadar süre kullanışlı kalacağını sınırlayan sürdürme ömrünü ve bilet anahtarı döndürmesini ayarlayın.</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>Yalnızca Denetim Masası için iki etkenli kimlik doğrulamayı kur veya kapat…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Yalnızca Denetim Masası için iki etkenli kimlik doğrulamayı kur…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>Sunucu tarafından zorunlu kılınan ikinci etkeni kur veya kapat…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>Sunucu tarafından zorunlu kılınan ikinci etkeni kur…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Bu sunucuyu kurun</value>
@@ -11321,6 +11309,9 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>Yöneticinin ikinci bir etkeni var ve REST API yanıt vermeden önce tek kullanımlık kodunu istiyor. Kodun sorulması için sayfayı yeniden açın.</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>Yönetici parolası burada, betiklerde ve REST API üzerinden tek başına oturum açar.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Yönetici parolası ve iki etkenli kimlik doğrulama Yönetimsel erişim sayfasındadır.</value>
@@ -12474,6 +12465,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>Bir dinleyiciyi kapatır, bir adres aralığına güvenir, bir filtreyi ya da denetimi kapatır veya verilerin ne kadar saklanacağını kısaltırlar. Daha kısa bir sürenin sildiğini, ayarları geri almak geri getirmez.</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>Bu Denetim Masası, bu bilgisayardan oturum açarken paroladan sonra kendi kodunu ister.</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>Bu Denetim Masası bu bilgisayarda kendine ait bir kod istemez.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Yükleyicinin dosyalarını değiştirebilmesi için bu Denetim Masası, yardımcı başlatılır başlatılmaz kapanır; sonucu görmek için bir dakika sonra yeniden açın.</value>
   </data>
@@ -12776,6 +12773,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>Yeniden _kapat</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Yalnızca Denetim Masası için iki etkenli kimlik doğrulamayı kapat…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>Sunucu tarafından zorunlu kılınan ikinci etkeni kapat…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>Bu sunucunun hiç göndermediği bir ileti için gelen bir geri dönmenin gerçek olandan ayırt edilebilmesi için BATV'yi açın.</value>
@@ -13398,6 +13401,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>Bir IP aralığının kimlik doğrulama için TLS gerektirip gerektirmediği okunamadı.</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>Açık olup olmadığı sunucudan okunamadı.</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Aramaların Windows DNS çözümleyici önbelleğinden yanıtlanıp yanıtlanamayacağı. Kapalıyken her arama ağa gider. Yukarıda geçersiz kılan bir DNS sunucusu ayarlandığında yok sayılır — o aramalar sistem önbelleğini her zaman atlar, çünkü önbelleğin yanıtları yanlış çözümleyiciden gelirdi.</value>
   </data>
@@ -13841,9 +13847,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Açıklama</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>İkinci etkeni _devre dışı bırak</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>İki etkenli kimlik doğrulamayı _devre dışı bırak</value>
@@ -14351,6 +14354,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_To" xml:space="preserve">
     <value>Ki_me</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>İkinci etkeni ka_pat</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>Hata ayıklama günlüklemesini şimdi _aç</value>

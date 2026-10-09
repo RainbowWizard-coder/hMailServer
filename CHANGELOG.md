@@ -1695,6 +1695,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and rules, and the subtitle says what the server does with a match, replacing the attachment with a short note
   before the message is delivered, where it said the wildcards were stripped from incoming messages.
 
+- **Fixed: the Administrative access page's Two-factor tab never said whether either second factor was on, and turning
+  the server's factor off asked for a code nothing checked.** Both cards offered "Set up or turn off …" and said the
+  state only after the dialog had been opened and closed, as a line of green or red under the button, so a factor
+  legitimately off read as a failure. Each card now starts with a pill and a sentence - On, or Off at Warning for the
+  factor the server enforces and at Normal for this tool's own - read when the tab is built and again after the dialog
+  closes, and its button says what it will do, Set up or Turn off; a state that cannot be read says Not read and the
+  button waits for Reload. The server keeps the secret and has nothing that checks a code against it, so the dialog no
+  longer asks for "the current 6-digit code" and accepts any six characters: it says that turning the factor off
+  removes the code requirement for this tool, scripts and the REST API, its button is Turn off the second factor, and
+  Enter is Close. After an enrolment the server refused there is no code box keeping the keyboard beside a Confirm
+  that cannot be pressed, the box takes digits only, typed or pasted, and the recovery text names the [Security]
+  section of hMailServer.ini, the editor run as administrator and the service restart, as the server's own text does.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

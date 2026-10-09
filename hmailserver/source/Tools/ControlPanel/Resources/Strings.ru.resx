@@ -543,8 +543,8 @@
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Уведомление отправляется отправителю конверта каждого заражённого сообщения. Рассылатели вирусов почти без исключения подделывают этот адрес, поэтому в основном письма получают люди, которые ничего не отправляли, — это обратное рассеяние, именно оно и приводит сервер в список блокировки.</value>
   </data>
-  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Одноразовый код, требуемый в дополнение к паролю администратора и проверяемый СЕРВЕРОМ, — поэтому он действует для каждого клиента этих учётных данных: для этого Control Panel, для сценариев, использующих COM API, и для REST API (который читает код из заголовка X-hMailServer-OTP). Секрет хранится на сервере, в hMailServer.ini, под защитой машины. Он делает пароль администратора сам по себе бесполезным. Храните ключ настройки в надёжном месте: если аутентификатор потерян, локальный администратор удаляет AdministratorTotpSecret из hMailServer.ini, чтобы восстановить доступ.</value>
+  <data name="A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service." xml:space="preserve">
+    <value>Одноразовый код, требуемый в дополнение к паролю администратора и проверяемый СЕРВЕРОМ, — поэтому он действует для каждого клиента этих учётных данных: для этого Control Panel, для сценариев, использующих COM API, и для REST API (который читает код из заголовка X-hMailServer-OTP). Секрет хранится на сервере, в hMailServer.ini, под защитой машины. Он делает пароль администратора сам по себе бесполезным. Храните ключ настройки в надёжном месте: если аутентификатор потерян, локальный администратор удаляет AdministratorTotpSecret из раздела [Security] файла hMailServer.ini в редакторе, запущенном от имени администратора, и перезапускает службу hMailServer.</value>
   </data>
   <data name="A passphrase is already stored for '{0}'. Saving replaces it - the old one cannot be recovered from here. Replace it?" xml:space="preserve">
     <value>Для «{0}» уже сохранена парольная фраза. Сохранение заменит её — прежнюю отсюда восстановить нельзя. Заменить?</value>
@@ -639,14 +639,11 @@
   <data name="A second factor for the administrator - a one-time code beside the password" xml:space="preserve">
     <value>Второй фактор для администратора - одноразовый код рядом с паролем</value>
   </data>
-  <data name="A second factor is enforced on the administrator credential, on every client." xml:space="preserve">
-    <value>Для учётных данных администратора второй фактор обязателен на каждом клиенте.</value>
-  </data>
-  <data name="A second factor is enrolled. Every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Enter a current code to turn it off." xml:space="preserve">
-    <value>Второй фактор зарегистрирован. Каждый вход с учётными данными администратора — этот инструмент, COM API и REST API — требует кода. Чтобы отключить его, введите текущий код.</value>
-  </data>
   <data name="A second factor is enrolled. This account's own password no longer signs in to mail clients - only its app passwords do. Removing the second factor restores it." xml:space="preserve">
     <value>Второй фактор зарегистрирован. Собственный пароль этой учётной записи больше не позволяет входить в почтовые клиенты — это делают только её пароли приложений. Удаление второго фактора возвращает прежнее поведение.</value>
+  </data>
+  <data name="A second factor is enrolled: every sign-in with the administrator credential - this tool, the COM API and the REST API - needs a code. Turning it off removes that requirement, and the administrator password alone signs in again." xml:space="preserve">
+    <value>Второй фактор зарегистрирован: каждый вход с учётными данными администратора - этот инструмент, COM API и REST API - требует кода. Его отключение снимает это требование, и для входа снова достаточно одного пароля администратора.</value>
   </data>
   <data name="A secret is configured — leave blank to keep it" xml:space="preserve">
     <value>Секрет настроен — оставьте поле пустым, чтобы сохранить его</value>
@@ -1122,8 +1119,8 @@ Control Panel может читать файлы сообщений только
   <data name="Add the first _domain…" xml:space="preserve">
     <value>Добавить _первый домен…</value>
   </data>
-  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must clear AdministratorTotpSecret from hMailServer.ini to recover." xml:space="preserve">
-    <value>Добавьте приведённый ниже ключ в приложение-аутентификатор, затем подтвердите его кодом. После регистрации пароль администратора сам по себе не даст войти — код понадобится и COM API, и REST API. Храните ключ в надёжном месте: если аутентификатор потерян, локальный администратор должен удалить AdministratorTotpSecret из hMailServer.ini, чтобы восстановить доступ.</value>
+  <data name="Add the key below to an authenticator app, then confirm with a code. Once enrolled, the administrator password alone will not sign in - the COM API and REST API will need a code too. Keep the key somewhere safe: if you lose the authenticator, a local administrator must delete AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restart the hMailServer service." xml:space="preserve">
+    <value>Добавьте приведённый ниже ключ в приложение-аутентификатор, затем подтвердите его кодом. После регистрации пароль администратора сам по себе не даст войти — код понадобится и COM API, и REST API. Храните ключ в надёжном месте: если аутентификатор потерян, локальный администратор должен удалить AdministratorTotpSecret из раздела [Security] файла hMailServer.ini в редакторе, запущенном от имени администратора, и перезапустить службу hMailServer.</value>
   </data>
   <data name="Add to the suppression list" xml:space="preserve">
     <value>Добавить в список подавления</value>
@@ -2724,12 +2721,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Control Panel" xml:space="preserve">
     <value>Control Panel</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is off." xml:space="preserve">
-    <value>Двухфакторная аутентификация только для Control Panel выключена.</value>
-  </data>
-  <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
-    <value>Двухфакторная аутентификация только для Control Panel включена.</value>
   </data>
   <data name="Copied" xml:space="preserve">
     <value>Скопировано</value>
@@ -4342,9 +4333,6 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Сначала укажите путь к clamscan.exe.</value>
   </data>
-  <data name="Enter the current 6-digit code to turn the second factor off." xml:space="preserve">
-    <value>Введите текущий 6-значный код, чтобы отключить второй фактор.</value>
-  </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введите срок истечения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС.</value>
   </data>
@@ -4512,6 +4500,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Every server this one delivers to is told its host name and compares it with DNS: the name's address, and the PTR record of the address the mail came from. A name that does not match counts against the mail." xml:space="preserve">
     <value>Каждому серверу, которому этот сервер доставляет почту, сообщается имя узла этого сервера, и тот сверяет его с DNS: с адресом этого имени и с записью PTR адреса, с которого пришла почта. Имя, которое не совпадает, засчитывается не в пользу почты.</value>
+  </data>
+  <data name="Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API." xml:space="preserve">
+    <value>Каждый вход с учётными данными администратора требует кода: в этом Control Panel, в сценариях, использующих COM API, и в REST API.</value>
   </data>
   <data name="Every spam check in the order the server runs them, what each adds to the score, and what that score then does to the message." xml:space="preserve">
     <value>Все проверки на спам в том порядке, в каком их выполняет сервер, что каждая из них добавляет к оценке и что затем эта оценка делает с сообщением.</value>
@@ -7152,9 +7143,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No search base is set (Directory authentication (LDAP), Finding the user's directory entry)." xml:space="preserve">
     <value>Не задана база поиска («Аутентификация через каталог (LDAP)», «Поиск записи пользователя в каталоге»).</value>
-  </data>
-  <data name="No second factor is enforced - the administrator password alone signs in." xml:space="preserve">
-    <value>Второй фактор не требуется — для входа достаточно одного пароля администратора.</value>
   </data>
   <data name="No second factor. Enrolling one stops this account's password working in mail clients immediately, because IMAP, POP3 and SMTP have nowhere to enter a code - set up an app password on the App passwords tab first, or the mailbox will go quiet." xml:space="preserve">
     <value>Второго фактора нет. Как только вы его подключите, пароль этой учётной записи сразу перестанет работать в почтовых клиентах, потому что в IMAP, POP3 и SMTP код вводить негде: сначала создайте пароль приложения на вкладке «Пароли приложений», иначе почтовый ящик замолчит.</value>
@@ -10499,11 +10487,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Set the resumption lifetime and ticket-key rotation, which bound how long a captured resumption secret stays useful." xml:space="preserve">
     <value>Задайте время жизни возобновления и ротацию ключа билетов — они ограничивают срок, в течение которого перехваченный секрет возобновления остаётся полезным.</value>
   </data>
-  <data name="Set up or turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
-    <value>Настроить или отключить двухфакторную аутентификацию только для Control Panel…</value>
+  <data name="Set up Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Настроить двухфакторную аутентификацию только для Control Panel…</value>
   </data>
-  <data name="Set up or turn off the server-enforced second factor…" xml:space="preserve">
-    <value>Настроить или отключить второй фактор, обеспечиваемый сервером…</value>
+  <data name="Set up the server-enforced second factor…" xml:space="preserve">
+    <value>Настроить второй фактор, обеспечиваемый сервером…</value>
   </data>
   <data name="Set up this server" xml:space="preserve">
     <value>Настройка этого сервера</value>
@@ -11437,6 +11425,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The administrator has a second factor, and the REST API asks for its one-time code before it answers. Open the page again to be asked for the code." xml:space="preserve">
     <value>У администратора есть второй фактор, и REST API запрашивает его одноразовый код, прежде чем ответить. Откройте страницу снова, чтобы вас попросили ввести код.</value>
+  </data>
+  <data name="The administrator password alone signs in, here, in scripts and over the REST API." xml:space="preserve">
+    <value>Для входа достаточно одного пароля администратора: здесь, в сценариях и через REST API.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
     <value>Пароль администратора и двухфакторная аутентификация находятся на странице «Административный доступ».</value>
@@ -12623,6 +12614,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="They close a listener, trust an address range, turn a filter or a check off, or shorten how long data is kept. What a shorter window deletes, putting the settings back does not bring back." xml:space="preserve">
     <value>Они закрывают прослушивающую службу, доверяют диапазону адресов, отключают фильтр или проверку либо сокращают срок хранения данных. То, что удалит более короткий срок, возврат настроек не восстановит.</value>
   </data>
+  <data name="This Control Panel asks for a code of its own after the password when it signs in from this computer." xml:space="preserve">
+    <value>Этот Control Panel после пароля запрашивает собственный код при входе с этого компьютера.</value>
+  </data>
+  <data name="This Control Panel asks for no code of its own on this computer." xml:space="preserve">
+    <value>Этот Control Panel не запрашивает собственного кода на этом компьютере.</value>
+  </data>
   <data name="This Control Panel closes as soon as the helper has started, so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Этот Control Panel закроется, как только запустится вспомогательная программа, чтобы установщик мог заменить его файлы; откройте его снова через минуту, чтобы увидеть итог.</value>
   </data>
@@ -12928,6 +12925,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Turn it _off again" xml:space="preserve">
     <value>Выключить _обратно</value>
+  </data>
+  <data name="Turn off Control-Panel-only two-factor authentication…" xml:space="preserve">
+    <value>Отключить двухфакторную аутентификацию только для Control Panel…</value>
+  </data>
+  <data name="Turn off the server-enforced second factor…" xml:space="preserve">
+    <value>Отключить второй фактор, обеспечиваемый сервером…</value>
   </data>
   <data name="Turn on BATV so a bounce for a message this server never sent can be told apart from a real one." xml:space="preserve">
     <value>Включите BATV, чтобы возврат для сообщения, которое этот сервер никогда не отправлял, можно было отличить от настоящего.</value>
@@ -13553,6 +13556,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Whether an IP range requires TLS for authentication could not be read." xml:space="preserve">
     <value>Не удалось прочитать, требует ли какой-либо диапазон IP TLS для аутентификации.</value>
   </data>
+  <data name="Whether it is on could not be read from the server." xml:space="preserve">
+    <value>Не удалось прочитать с сервера, включён ли он.</value>
+  </data>
   <data name="Whether lookups may be answered from the Windows DNS resolver cache. Off, every lookup goes to the network. Ignored when an override DNS server is set above — those lookups always bypass the system cache, because its answers would come from the wrong resolver." xml:space="preserve">
     <value>Могут ли запросы отвечаться из кеша резолвера DNS Windows. Выключено - каждый запрос уходит в сеть. Игнорируется, когда выше задан переопределяющий DNS-сервер — те запросы всегда обходят системный кеш, потому что его ответы приходили бы от не того резолвера.</value>
   </data>
@@ -13999,9 +14005,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Description" xml:space="preserve">
     <value>_Описание</value>
-  </data>
-  <data name="_Disable second factor" xml:space="preserve">
-    <value>_Отключить второй фактор</value>
   </data>
   <data name="_Disable two-factor authentication" xml:space="preserve">
     <value>_Отключить двухфакторную аутентификацию</value>
@@ -14509,6 +14512,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_To" xml:space="preserve">
     <value>_Кому</value>
+  </data>
+  <data name="_Turn off the second factor" xml:space="preserve">
+    <value>_Отключить второй фактор</value>
   </data>
   <data name="_Turn on debug logging now" xml:space="preserve">
     <value>_Включить отладочное журналирование сейчас</value>

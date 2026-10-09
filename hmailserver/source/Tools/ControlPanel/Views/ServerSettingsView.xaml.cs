@@ -5161,37 +5161,36 @@ namespace hMailServer.ControlPanel.Views
          // The one the server enforces, first because it is the one that matters:
          // it protects the credential itself on every surface, not just this tool.
          var serverTwoFactor = Card(L("Second factor on the administrator credential (recommended)"),
-            L("A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator clears AdministratorTotpSecret from hMailServer.ini to recover."));
-         serverTwoFactor.Settings.Add(new ComAction
+            L("A one-time code required in addition to the administrator password, checked by the SERVER - so it applies to every client of that credential: this Control Panel, scripts using the COM API, and the REST API (which reads the code from an X-hMailServer-OTP header). The secret is stored on the server, in hMailServer.ini, machine-protected. It makes the administrator password worthless on its own. Keep the setup key safe: if the authenticator is lost, a local administrator deletes AdministratorTotpSecret from the [Security] section of hMailServer.ini, with an editor run as administrator, and restarts the hMailServer service."));
+
+         // Each card says whether its factor is on, as a pill and a sentence, with
+         // the button worded by the state (review finding F240). Off is a Warning
+         // for the factor the server enforces - the full-authority credential then
+         // signs in on its password alone - and Normal for this tool's own, which
+         // the card itself calls the weaker, older option.
+         serverTwoFactor.Settings.Add(new TwoFactorStateRow
          {
-            ButtonText = L("Set up or turn off the server-enforced second factor…"),
-            // A factor that is off is a legitimate state, said as Information
-            // and not in the danger red of a failure.
-            Outcome = () =>
-            {
-               new AdministratorTwoFactorDialog(Application.Current?.MainWindow).ShowDialog();
-               bool on = false;
-               try { on = (bool)ServerSession.Current.Application.AdministratorTOTPEnabled; }
-               catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Leave the summary reading "off" if the state cannot be read back. */ }
-               return on
-                  ? (StatusLevel.Good, L("A second factor is enforced on the administrator credential, on every client."))
-                  : (StatusLevel.Information, L("No second factor is enforced - the administrator password alone signs in."));
-            }
+            ReadOn = () => (bool)ServerSession.Current.Application.AdministratorTOTPEnabled,
+            OffLevel = StatusLevel.Warning,
+            OnSentence = L("Every sign-in with the administrator credential needs a code: this Control Panel, scripts using the COM API and the REST API."),
+            OffSentence = L("The administrator password alone signs in, here, in scripts and over the REST API."),
+            SetUpCaption = L("Set up the server-enforced second factor…"),
+            TurnOffCaption = L("Turn off the server-enforced second factor…"),
+            Open = () => new AdministratorTwoFactorDialog(Application.Current?.MainWindow).ShowDialog()
          });
          Tab(L("Two-factor")).Cards.Add(serverTwoFactor);
 
          var twoFactor = Card(L("Two-factor for this Control Panel only"),
             L("An older, weaker option: a one-time code asked for after the password when signing in to THIS Control Panel, checked by the tool itself after the server has already accepted the password. The secret is stored per machine under HKLM, so enabling or disabling it needs local administrator rights, and it does nothing for the REST API or for scripts using the COM API. Prefer the server-enforced factor above; this one remains for existing setups."));
-         twoFactor.Settings.Add(new ComAction
+         twoFactor.Settings.Add(new TwoFactorStateRow
          {
-            ButtonText = L("Set up or turn off Control-Panel-only two-factor authentication…"),
-            Outcome = () =>
-            {
-               new TotpSetupDialog(Application.Current?.MainWindow).ShowDialog();
-               return TotpManager.IsConfigured()
-                  ? (StatusLevel.Good, L("Control-Panel-only two-factor authentication is on."))
-                  : (StatusLevel.Information, L("Control-Panel-only two-factor authentication is off."));
-            }
+            ReadOn = TotpManager.IsConfigured,
+            OffLevel = StatusLevel.Normal,
+            OnSentence = L("This Control Panel asks for a code of its own after the password when it signs in from this computer."),
+            OffSentence = L("This Control Panel asks for no code of its own on this computer."),
+            SetUpCaption = L("Set up Control-Panel-only two-factor authentication…"),
+            TurnOffCaption = L("Turn off Control-Panel-only two-factor authentication…"),
+            Open = () => new TotpSetupDialog(Application.Current?.MainWindow).ShowDialog()
          });
          Tab(L("Two-factor")).Cards.Add(twoFactor);
       }
