@@ -233,6 +233,46 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"catch \(Exception ex\)[^{]*\{[^}]*return new Scaffold\.InlineNotice\s*\{\s*Level = StatusLevel\.Warning", RegexOptions.Singleline), build);
       }
 
+      /// <summary>
+      /// DescribeComError's sentence is written to follow a prefix that says what
+      /// failed - "the connection to the hMailServer service was lost ...", "the
+      /// server answered something this Control Panel could not read (...)" - so a
+      /// place that shows it says what failed first. Six places that had shown the
+      /// runtime's text bare showed the sentence bare once routed, opening in lower
+      /// case and naming nothing: a message box, a dialog's notice, the Welcome
+      /// page's warning, and "The mailbox could not be moved. the connection ...".
+      /// </summary>
+      [Theory]
+      [InlineData("AdministratorTwoFactorDialog.cs", "F(\"Could not start the enrolment: {0}\", ServerSession.DescribeComError(ex))")]
+      [InlineData("AdministratorTwoFactorDialog.cs", "F(\"Could not change the second factor: {0}\", ServerSession.DescribeComError(ex))")]
+      [InlineData("IPRangesView.xaml.cs", "F(\"Could not restore the default IP ranges: {0}\", ServerSession.DescribeComError(ex))")]
+      [InlineData("TcpIpPortsView.xaml.cs", "F(\"Could not restore the default TCP/IP ports: {0}\", ServerSession.DescribeComError(ex))")]
+      [InlineData("MailboxMoveDialog.cs", "F(\"The mailbox could not be moved: {0}\", ServerSession.DescribeComError(fatalCheck))")]
+      [InlineData("WelcomeView.cs", "F(\"Could not make the sample domain: {0}\", failure)")]
+      [InlineData("WelcomeView.cs", "F(\"Could not remove the sample domain: {0}\", failure)")]
+      public void ARoutedFailure_SaysWhatFailedBeforeItsReason(string file, string call)
+      {
+         Assert.Contains(call, ReadView(file), StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// No message box or dialog notice shows DescribeComError's sentence as the
+      /// whole of what it says.
+      /// </summary>
+      [Fact]
+      public void NoMessageBoxOrDialogNotice_ShowsTheReasonAlone()
+      {
+         var bare = new Regex(@"(MessageBox\.Show|Dialogs\.Warn|notice_\.Show\(StatusLevel\.\w+,)\s*\(?\s*ServerSession\.DescribeComError\(");
+         string views = Path.GetDirectoryName(ControlPanelPath(Path.Join("Views", "DashboardView.xaml.cs")));
+         var found = Directory.GetFiles(views, "*.cs")
+            .SelectMany(path => File.ReadAllLines(path).Select((line, i) => (Path.GetFileName(path), i + 1, line)))
+            .Where(t => bare.IsMatch(t.line))
+            .Select(t => t.Item1 + ":" + t.Item2 + ": " + t.line.Trim())
+            .ToList();
+         Assert.True(found.Count == 0, "These show a failure's reason with nothing to say what failed:\n" + string.Join("\n", found));
+         Assert.DoesNotContain("Dialogs.Warn(failure, ", ReadView("WelcomeView.cs"), StringComparison.Ordinal);
+      }
+
       // ---- a card that lost settings says so -------------------------------------
 
       /// <summary>

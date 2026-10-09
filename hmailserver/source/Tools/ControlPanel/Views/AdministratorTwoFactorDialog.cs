@@ -160,7 +160,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            notice_.Show(StatusLevel.Critical, F("Could not start the enrolment: {0}", ServerSession.DescribeComError(ex)));
             enrolPanel_.Visibility = Visibility.Collapsed;
             action_.IsEnabled = false;
          }
@@ -210,7 +210,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, ServerSession.DescribeComError(ex));
+            notice_.Show(StatusLevel.Critical, F("Could not change the second factor: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 

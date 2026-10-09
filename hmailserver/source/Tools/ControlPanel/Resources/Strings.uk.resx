@@ -2776,6 +2776,9 @@
   <data name="Could not change the role: " xml:space="preserve">
     <value>Не вдалося змінити роль: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Не вдалося змінити другий фактор: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Не вдалося скопіювати: </value>
   </data>
@@ -2899,6 +2902,9 @@
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Не вдалося завантажити цю сторінку: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Не вдалося створити зразковий домен: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Не вдалося перемістити дію: {0}</value>
   </data>
@@ -3015,8 +3021,17 @@
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Не вдалося вилучити отримувача: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Не вдалося вилучити зразковий домен: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Не вдалося перезапустити службу: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Не вдалося відновити типові діапазони IP: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Не вдалося відновити типові порти TCP/IP: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Не вдалося повторно запустити доставку: {0}</value>
@@ -3062,6 +3077,9 @@
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Не вдалося запустити резервне копіювання: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Не вдалося почати реєстрацію: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Не вдалося запустити відновлення скриньки: {0}</value>
@@ -11591,8 +11609,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Типово адреса зворотної петлі та приватні мережі. Якщо очистити, ваша власна мережа оцінюватиметься як будь-яка інша, що суворий список дозволених відхилить — зокрема вебпошту й Control Deck.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Не вдалося перенести скриньку. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Не вдалося перенести скриньку: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Скринька, її листи й усе, що прив'язане до облікового запису, переїжджають разом із нею: правила, фільтри, теки та права на них, паролі застосунків, другий чинник, контакти, календарі, налаштування, історія паролів, списки відправників, членство у групах і роль.</value>

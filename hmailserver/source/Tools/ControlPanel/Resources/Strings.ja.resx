@@ -2758,6 +2758,9 @@
   <data name="Could not change the role: " xml:space="preserve">
     <value>ロールを変更できませんでした: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>第 2 要素を変更できませんでした: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>コピーできませんでした: </value>
   </data>
@@ -2881,6 +2884,9 @@
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>このページを読み込めませんでした: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>サンプルドメインを作成できませんでした: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>アクションを移動できませんでした: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>受信者を削除できませんでした: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>サンプルドメインを削除できませんでした: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>サービスを再起動できませんでした: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>既定の IP 範囲に戻せませんでした: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>既定の TCP/IP ポートに戻せませんでした: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>配信を再トリガーできませんでした: {0}</value>
@@ -3044,6 +3059,9 @@
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>バックアップを開始できませんでした: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>登録を開始できませんでした: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>メールボックスの復元を開始できませんでした: {0}</value>
@@ -11445,8 +11463,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>既定はループバックとプライベート ネットワークです。消去すると自分のネットワークもほかと同じように判定され、厳格な許可リストはそれ (ウェブメールと Control Deck を含む) を拒否します。</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>メールボックスを移動できませんでした。{0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>メールボックスを移動できませんでした: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>メールボックス、そのメッセージ、アカウントに紐づくすべてが一緒に移動します。ルール、フィルター、フォルダーとその権限、アプリパスワード、二要素、連絡先、カレンダー、設定、パスワード履歴、送信者リスト、グループのメンバーシップ、ロール。</value>

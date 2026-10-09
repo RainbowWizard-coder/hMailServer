@@ -2758,6 +2758,9 @@
   <data name="Could not change the role: " xml:space="preserve">
     <value>无法更改角色： </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>无法更改第二因素：{0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>无法复制： </value>
   </data>
@@ -2881,6 +2884,9 @@
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>无法加载此页：{0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>无法创建样例域：{0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>无法移动该操作：{0}</value>
   </data>
@@ -2997,8 +3003,17 @@
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>无法移除该收件人：{0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>无法移除样例域：{0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>无法重启服务：{0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>无法恢复默认 IP 范围：{0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>无法恢复默认 TCP/IP 端口：{0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>无法重新触发投递：{0}</value>
@@ -3044,6 +3059,9 @@
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>无法开始备份：{0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>无法开始注册：{0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>无法开始恢复邮箱: {0}</value>
@@ -11445,8 +11463,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>默认是环回地址和专用网络。清除后，你自己的网络会像其他网络一样被判断，严格的允许列表会拒绝它，包括网页邮箱和 Control Deck。</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>无法迁移此邮箱。{0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>无法迁移此邮箱：{0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>邮箱、它的邮件以及一切以账户为键的内容都会随之迁移：规则、过滤器、文件夹及其权限、应用密码、第二因素、联系人、日历、首选项、密码历史、发件人列表、组成员身份和角色。</value>

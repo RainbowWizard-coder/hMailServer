@@ -2758,6 +2758,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not change the role: " xml:space="preserve">
     <value>Kon de rol niet wijzigen: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Kon de tweede factor niet wijzigen: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kon niet kopiëren: </value>
   </data>
@@ -2881,6 +2884,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Kon deze pagina niet laden: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Kon het voorbeelddomein niet maken: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Kon de actie niet verplaatsen: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Kon de ontvanger niet verwijderen: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Kon het voorbeelddomein niet verwijderen: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Kon de service niet opnieuw starten: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Kon de standaard-IP-bereiken niet herstellen: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Kon de standaard-TCP/IP-poorten niet herstellen: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Kon de bezorging niet opnieuw activeren: {0}</value>
@@ -3044,6 +3059,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kon de back-up niet starten: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Kon de inschrijving niet starten: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Het herstel van de mailbox kon niet worden gestart: {0}</value>
@@ -11445,8 +11463,8 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Standaard het loopbackadres en de privénetwerken. Leegmaken laat uw eigen netwerk beoordelen als ieder ander, wat een strenge toegestaan-lijst zal weigeren - de webmail en het Control Deck inbegrepen.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>De postbus kon niet worden verplaatst. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>De postbus kon niet worden verplaatst: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>De postbus, haar berichten en alles wat aan het account hangt verhuizen mee: regels, filters, mappen en hun rechten, toepassingswachtwoorden, tweede factor, contacten, agenda's, voorkeuren, wachtwoordgeschiedenis, afzenderlijsten, groepslidmaatschappen en haar rol.</value>

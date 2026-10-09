@@ -443,9 +443,9 @@ namespace hMailServer.ControlPanel.Views
       /// Settings.TCPIPPorts.SetDefault() over COM: every configured port is replaced
       /// with SMTP 25 + 587, POP3 110 and IMAP 143, no connection security. The COM
       /// call exists since the classic Administrator; this button went missing when
-      /// that tool was retired. The failure text from the server is shown verbatim -
-      /// it is written for exactly this situation (the old ports are gone even when
-      /// writing the new ones failed).
+      /// that tool was retired. The failure text from the server is shown verbatim,
+      /// after a prefix that says what failed - it is written for exactly this
+      /// situation (the old ports are gone even when writing the new ones failed).
       /// </summary>
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
@@ -463,7 +463,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(ServerSession.DescribeComError(ex), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(F("Could not restore the default TCP/IP ports: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {

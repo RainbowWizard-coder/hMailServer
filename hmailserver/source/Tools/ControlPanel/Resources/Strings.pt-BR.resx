@@ -2758,6 +2758,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Could not change the role: " xml:space="preserve">
     <value>Não foi possível alterar a função: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Não foi possível alterar o segundo fator: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Não foi possível copiar: </value>
   </data>
@@ -2881,6 +2884,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Não foi possível carregar esta página: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Não foi possível criar o domínio de amostra: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Não foi possível mover a ação: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Não foi possível remover o destinatário: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Não foi possível remover o domínio de amostra: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Não foi possível reiniciar o serviço: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Não foi possível restaurar as faixas de IP padrão: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Não foi possível restaurar as portas TCP/IP padrão: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Não foi possível disparar a entrega novamente: {0}</value>
@@ -3044,6 +3059,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Não foi possível iniciar o backup: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Não foi possível iniciar o cadastro: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Não foi possível iniciar a restauração da caixa de correio: {0}</value>
@@ -11445,8 +11463,8 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>O endereço de loopback e as redes privadas por padrão. Esvaziar isto faz sua própria rede ser avaliada como qualquer outra, o que uma lista de permissão rígida vai recusar - o webmail e o Control Deck inclusive.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Não foi possível mover a caixa postal. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Não foi possível mover a caixa postal: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>A caixa postal, suas mensagens e tudo o que está ligado à conta vão junto: regras, filtros, pastas e suas permissões, senhas de aplicativo, segundo fator, contatos, calendários, preferências, histórico de senhas, listas de remetentes, participações em grupos e sua função.</value>

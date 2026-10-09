@@ -366,9 +366,14 @@ namespace hMailServer.ControlPanel.Views
          sampleBusy_ = false;
          sampleAction_.IsEnabled = true;
 
+         // The server's refusal, or what went wrong, after a prefix that says which
+         // of the two failed: DescribeComError's sentence is written to follow one.
          if (failure != null)
          {
-            Dialogs.Warn(failure, L("Control Panel"));
+            Dialogs.Warn(removing
+                  ? F("Could not remove the sample domain: {0}", failure)
+                  : F("Could not make the sample domain: {0}", failure),
+               L("Control Panel"));
             LoadSample_();
             return;
          }

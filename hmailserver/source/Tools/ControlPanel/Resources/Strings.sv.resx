@@ -2758,6 +2758,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not change the role: " xml:space="preserve">
     <value>Kunde inte ändra rollen: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Kunde inte ändra den andra faktorn: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kunde inte kopiera: </value>
   </data>
@@ -2881,6 +2884,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Kunde inte läsa in den här sidan: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Kunde inte skapa provdomänen: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Kunde inte flytta åtgärden: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Kunde inte ta bort mottagaren: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Kunde inte ta bort provdomänen: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Kunde inte starta om tjänsten: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Kunde inte återställa standard-IP-intervallen: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Kunde inte återställa standard-TCP/IP-portarna: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Kunde inte starta om leveransen: {0}</value>
@@ -3044,6 +3059,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Kunde inte starta säkerhetskopieringen: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Kunde inte starta registreringen: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Återställningen av brevlådan kunde inte startas: {0}</value>
@@ -11445,8 +11463,8 @@ kunde inte läsas in. Meddelandet har troligen levererats och finns inte längre
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Loopback-adressen och de privata näten som standard. Om du tömmer den bedöms ditt eget nät som alla andras, vilket en sträng tillåtlista avvisar - webbmejlen och Control Deck inräknade.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Brevlådan kunde inte flyttas. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Brevlådan kunde inte flyttas: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Brevlådan, dess meddelanden och allt som hänger på kontot flyttar med: regler, filter, mappar och deras behörigheter, programlösenord, andra faktorn, kontakter, kalendrar, inställningar, lösenordshistorik, avsändarlistor, gruppmedlemskap och dess roll.</value>

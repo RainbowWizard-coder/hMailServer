@@ -1155,10 +1155,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the Control Panel could not read - a number that was not one, a document that was not JSON, a value of another
   type - is "the server answered something this Control Panel could not read", and a member the server does not
   have is "the server has no such setting or action - it may be older than this Control Panel", each with the
-  runtime's text in brackets. The shared failure notice keeps the exception's type, HRESULT and text in its tool tip,
-  and a statistic the server could not give is a Warning notice in place of the figure. The catches whose try is
-  local - a file, the registry, a browser, an HTTPS fetch or an LDAP probe from this machine - keep their own text,
-  and `FailureStateTests` names each with its reason, so that a new catch showing a failure's raw text fails it.
+  runtime's text in brackets. Each sentence follows a prefix that says what failed, so the places that had shown the
+  runtime's text alone - Restore defaults on IP ranges and on TCP/IP ports, the administrator's second-factor dialog,
+  the mailbox move and the sample domain on Welcome - now say first what could not be done, as in "Could not restore
+  the default TCP/IP ports: " and the reason. The shared failure notice keeps the exception's type, HRESULT and text in
+  its tool tip, and a statistic the server could not give is a Warning notice in place of the figure. The catches whose
+  try is local - a file, the registry, a browser, an HTTPS fetch or an LDAP probe from this machine - keep their own
+  text, and `FailureStateTests` names each with its reason, so that a new catch showing a failure's raw text fails it,
+  and holds a message box or a dialog's notice to saying what failed before the reason.
 - **Fixed: a settings card whose settings could not be read showed only its heading, and nothing said which card
   had lost what.** On the delivery, protocols, webmail, SSL/TLS, auto-ban, advanced, performance, anti-spam and
   anti-virus pages, a setting the server would not give was skipped - correctly, since no default is ever saved - but

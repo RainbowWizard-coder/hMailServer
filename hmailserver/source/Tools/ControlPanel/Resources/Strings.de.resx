@@ -2758,6 +2758,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Could not change the role: " xml:space="preserve">
     <value>Die Rolle konnte nicht geändert werden: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Der zweite Faktor konnte nicht geändert werden: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kopieren nicht möglich: </value>
   </data>
@@ -2881,6 +2884,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Diese Seite konnte nicht geladen werden: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Die Beispieldomäne konnte nicht angelegt werden: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Die Aktion konnte nicht verschoben werden: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Der Empfänger konnte nicht entfernt werden: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Die Beispieldomäne konnte nicht entfernt werden: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Der Dienst konnte nicht neu gestartet werden: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Die Standard-IP-Bereiche konnten nicht wiederhergestellt werden: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Die Standard-TCP/IP-Ports konnten nicht wiederhergestellt werden: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Die Zustellung konnte nicht erneut angestoßen werden: {0}</value>
@@ -3044,6 +3059,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Die Sicherung konnte nicht gestartet werden: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Die Einrichtung konnte nicht gestartet werden: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Die Wiederherstellung des Postfachs konnte nicht gestartet werden: {0}</value>
@@ -11445,8 +11463,8 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Standardmäßig die Loopback-Adresse und die privaten Netze. Leert man es, wird Ihr eigenes Netz wie jedes andere bewertet, was eine strenge Erlaubt-Liste ablehnt - das Webmail und das Control Deck eingeschlossen.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Das Postfach konnte nicht verschoben werden. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Das Postfach konnte nicht verschoben werden: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Das Postfach, seine Nachrichten und alles, was am Konto hängt, zieht mit um: Regeln, Filter, Ordner und ihre Berechtigungen, Anwendungskennwörter, zweiter Faktor, Kontakte, Kalender, Einstellungen, Kennwortverlauf, Absenderlisten, Gruppenmitgliedschaften und die Rolle.</value>

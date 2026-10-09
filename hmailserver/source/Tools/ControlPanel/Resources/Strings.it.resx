@@ -2758,6 +2758,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not change the role: " xml:space="preserve">
     <value>Impossibile modificare il ruolo: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Impossibile modificare il secondo fattore: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Impossibile copiare: </value>
   </data>
@@ -2881,6 +2884,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Impossibile caricare questa pagina: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Impossibile creare il dominio di esempio: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Impossibile spostare l'azione: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Impossibile rimuovere il destinatario: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Impossibile rimuovere il dominio di esempio: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Impossibile riavviare il servizio: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Impossibile ripristinare gli intervalli IP predefiniti: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Impossibile ripristinare le porte TCP/IP predefinite: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Impossibile rilanciare la consegna: {0}</value>
@@ -3044,6 +3059,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Impossibile avviare il backup: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Impossibile avviare la registrazione: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Impossibile avviare il ripristino della casella: {0}</value>
@@ -11445,8 +11463,8 @@ non ha potuto essere caricato. Il messaggio è probabilmente già stato consegna
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>L'indirizzo di loopback e le reti private per impostazione predefinita. Svuotarlo fa valutare la tua rete come qualsiasi altra, cosa che una lista di consentiti rigida rifiuterà - webmail e Control Deck compresi.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Non è stato possibile spostare la casella. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Non è stato possibile spostare la casella: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>La casella, i suoi messaggi e tutto ciò che è legato all'account si spostano con essa: regole, filtri, cartelle e relative autorizzazioni, password applicative, secondo fattore, contatti, calendari, preferenze, cronologia delle password, elenchi mittenti, appartenenze ai gruppi e il ruolo.</value>

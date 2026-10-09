@@ -2776,6 +2776,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not change the role: " xml:space="preserve">
     <value>Nie udało się zmienić roli: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Nie udało się zmienić drugiego składnika: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Nie udało się skopiować: </value>
   </data>
@@ -2899,6 +2902,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Nie udało się wczytać tej strony: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Nie udało się utworzyć przykładowej domeny: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Nie udało się przenieść akcji: {0}</value>
   </data>
@@ -3015,8 +3021,17 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Nie udało się usunąć odbiorcy: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Nie udało się usunąć przykładowej domeny: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Nie udało się ponownie uruchomić usługi: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Nie udało się przywrócić domyślnych zakresów adresów IP: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Nie udało się przywrócić domyślnych portów TCP/IP: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Nie udało się ponownie wyzwolić dostarczania: {0}</value>
@@ -3062,6 +3077,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Nie udało się rozpocząć kopii zapasowej: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Nie udało się rozpocząć rejestracji: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Nie udało się rozpocząć przywracania skrzynki: {0}</value>
@@ -11591,8 +11609,8 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Domyślnie adres pętli zwrotnej i sieci prywatne. Opróżnienie sprawia, że twoja sieć jest oceniana jak każda inna, co surowa lista dozwolonych odrzuci - łącznie z pocztą w przeglądarce i Control Deck.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Nie udało się przenieść skrzynki. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Nie udało się przenieść skrzynki: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Skrzynka, jej wiadomości i wszystko, co jest powiązane z kontem, przenoszą się razem z nią: reguły, filtry, foldery i ich uprawnienia, hasła aplikacji, drugi składnik, kontakty, kalendarze, preferencje, historia haseł, listy nadawców, członkostwa w grupach i rola.</value>

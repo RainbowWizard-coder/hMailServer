@@ -493,9 +493,9 @@ namespace hMailServer.ControlPanel.Views
       /// the standard two - "My computer" (127.0.0.1, priority 30) and "Internet"
       /// (0.0.0.0-255.255.255.255, priority 10). Another classic-Administrator action
       /// that lost its button when that tool was retired. The server's failure text
-      /// is shown verbatim; it explains that the old ranges are gone even when
-      /// writing the new ones failed, which is the state an administrator most needs
-      /// to know about.
+      /// is shown verbatim after a prefix that says what failed; it explains that the
+      /// old ranges are gone even when writing the new ones failed, which is the
+      /// state an administrator most needs to know about.
       /// </summary>
       private void RestoreDefaults_Click(object sender, RoutedEventArgs e)
       {
@@ -511,7 +511,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(ServerSession.DescribeComError(ex), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(F("Could not restore the default IP ranges: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {

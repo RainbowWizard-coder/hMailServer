@@ -2758,6 +2758,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not change the role: " xml:space="preserve">
     <value>Could not change the role: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Could not change the second factor: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Could not copy: </value>
   </data>
@@ -2881,6 +2884,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Could not load this page: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Could not make the sample domain: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Could not move the action: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Could not remove the recipient: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Could not remove the sample domain: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Could not restart the service: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Could not restore the default IP ranges: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Could not restore the default TCP/IP ports: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Could not retrigger delivery: {0}</value>
@@ -3044,6 +3059,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Could not start the backup: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Could not start the enrolment: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Could not start the mailbox restore: {0}</value>
@@ -11445,8 +11463,8 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>The mailbox could not be moved. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>The mailbox could not be moved: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role.</value>

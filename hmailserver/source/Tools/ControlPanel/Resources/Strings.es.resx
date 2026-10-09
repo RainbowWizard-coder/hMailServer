@@ -2758,6 +2758,9 @@ Los detalles completos se escribieron en:
   <data name="Could not change the role: " xml:space="preserve">
     <value>No se pudo cambiar el rol: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>No se pudo cambiar el segundo factor: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>No se pudo copiar: </value>
   </data>
@@ -2881,6 +2884,9 @@ Los detalles completos se escribieron en:
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>No se pudo cargar esta página: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>No se pudo crear el dominio de muestra: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>No se pudo mover la acción: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Los detalles completos se escribieron en:
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>No se pudo quitar el destinatario: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>No se pudo eliminar el dominio de muestra: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>No se pudo reiniciar el servicio: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>No se pudieron restaurar los rangos de IP por defecto: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>No se pudieron restaurar los puertos TCP/IP por defecto: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>No se pudo relanzar la entrega: {0}</value>
@@ -3044,6 +3059,9 @@ Los detalles completos se escribieron en:
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>No se pudo iniciar la copia: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>No se pudo iniciar la inscripción: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>No se pudo iniciar la restauración del buzón: {0}</value>
@@ -11445,8 +11463,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>La dirección de bucle invertido y las redes privadas por defecto. Vaciarlo hace que su propia red se evalúe como cualquier otra, lo que una lista de permitidos estricta rechazará - el webmail y el Control Deck incluidos.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>No se pudo mover el buzón. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>No se pudo mover el buzón: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>El buzón, sus mensajes y todo lo que cuelga de la cuenta se mueven con él: reglas, filtros, carpetas y sus permisos, contraseñas de aplicación, segundo factor, contactos, calendarios, preferencias, historial de contraseñas, listas de remitentes, pertenencia a grupos y su rol.</value>

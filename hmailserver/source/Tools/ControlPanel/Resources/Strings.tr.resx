@@ -2758,6 +2758,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not change the role: " xml:space="preserve">
     <value>Rol değiştirilemedi: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>İkinci etken değiştirilemedi: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Kopyalanamadı: </value>
   </data>
@@ -2881,6 +2884,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Bu sayfa yüklenemedi: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Örnek etki alanı oluşturulamadı: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Eylem taşınamadı: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Alıcı kaldırılamadı: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Örnek etki alanı kaldırılamadı: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Hizmet yeniden başlatılamadı: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Varsayılan IP aralıkları geri yüklenemedi: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Varsayılan TCP/IP portları geri yüklenemedi: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Teslim yeniden tetiklenemedi: {0}</value>
@@ -3044,6 +3059,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Yedekleme başlatılamadı: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Kayıt başlatılamadı: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Posta kutusu geri yükleme başlatılamadı: {0}</value>
@@ -11445,8 +11463,8 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Varsayılan, geri döngü adresi ve özel ağlardır. Temizlemek kendi ağınızın diğerleri gibi değerlendirilmesine yol açar ve katı bir izin listesi onu - web postası ve Control Deck dahil - reddeder.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Posta kutusu taşınamadı. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Posta kutusu taşınamadı: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Posta kutusu, iletileri ve hesaba bağlı olan her şey onunla birlikte taşınır: kurallar, süzgeçler, klasörler ve izinleri, uygulama parolaları, ikinci etken, kişiler, takvimler, tercihler, parola geçmişi, gönderen listeleri, grup üyelikleri ve rolü.</value>

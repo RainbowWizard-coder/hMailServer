@@ -2776,6 +2776,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not change the role: " xml:space="preserve">
     <value>Не удалось изменить роль: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Не удалось изменить второй фактор: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Не удалось скопировать: </value>
   </data>
@@ -2899,6 +2902,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Не удалось загрузить эту страницу: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Не удалось создать образцовый домен: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Не удалось переместить действие: {0}</value>
   </data>
@@ -3015,8 +3021,17 @@ Control Panel может читать файлы сообщений только
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Не удалось удалить получателя: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Не удалось удалить образцовый домен: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Не удалось перезапустить службу: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Не удалось восстановить диапазоны IP по умолчанию: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Не удалось восстановить порты TCP/IP по умолчанию: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Не удалось заново запустить доставку: {0}</value>
@@ -3062,6 +3077,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Не удалось запустить резервное копирование: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Не удалось начать регистрацию: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Не удалось запустить восстановление ящика: {0}</value>
@@ -11591,8 +11609,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>По умолчанию адрес обратной петли и частные сети. Если очистить, ваша собственная сеть будет оцениваться как любая другая, что строгий список разрешённых отклонит — включая веб-почту и Control Deck.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Не удалось перенести ящик. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Не удалось перенести ящик: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Ящик, его письма и всё, что привязано к учётной записи, переезжают вместе с ним: правила, фильтры, папки и права на них, пароли приложений, второй фактор, контакты, календари, настройки, история паролей, списки отправителей, членство в группах и роль.</value>

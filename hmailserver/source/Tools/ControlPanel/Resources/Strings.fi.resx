@@ -2758,6 +2758,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not change the role: " xml:space="preserve">
     <value>Roolia ei voitu muuttaa: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Toista tunnistustekijää ei voitu muuttaa: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Ei voitu kopioida: </value>
   </data>
@@ -2881,6 +2884,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Tätä sivua ei voitu ladata: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Näytetoimialuetta ei voitu luoda: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Toimintoa ei voitu siirtää: {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Vastaanottajaa ei voitu poistaa: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Näytetoimialuetta ei voitu poistaa: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Palvelua ei voitu käynnistää uudelleen: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>IP-alueiden oletuksia ei voitu palauttaa: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>TCP/IP-porttien oletuksia ei voitu palauttaa: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Toimitusta ei voitu käynnistää uudelleen: {0}</value>
@@ -3044,6 +3059,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Varmuuskopiointia ei voitu aloittaa: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Rekisteröintiä ei voitu aloittaa: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Postilaatikon palautusta ei voitu aloittaa: {0}</value>
@@ -11445,8 +11463,8 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Oletuksena silmukkaosoite ja yksityiset verkot. Sen tyhjentäminen saa oman verkkosi arvioiduksi kuten kenen tahansa muun, minkä tiukka sallittujen luettelo hylkää - verkkoposti ja Control Deck mukaan lukien.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Postilaatikkoa ei voitu siirtää. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Postilaatikkoa ei voitu siirtää: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Postilaatikko, sen viestit ja kaikki tiliin sidottu siirtyvät mukana: säännöt, suodattimet, kansiot ja niiden oikeudet, sovellussalasanat, toinen tekijä, yhteystiedot, kalenterit, asetukset, salasanahistoria, lähettäjäluettelot, ryhmäjäsenyydet ja rooli.</value>

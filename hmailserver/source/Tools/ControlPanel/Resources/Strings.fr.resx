@@ -2758,6 +2758,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not change the role: " xml:space="preserve">
     <value>Impossible de modifier le rôle : </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Impossible de modifier le second facteur : {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Impossible de copier : </value>
   </data>
@@ -2881,6 +2884,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Impossible de charger cette page : {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Impossible de créer le domaine d'exemple : {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Impossible de déplacer l'action : {0}</value>
   </data>
@@ -2997,8 +3003,17 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Impossible de retirer le destinataire : {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Impossible de supprimer le domaine d'exemple : {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Impossible de redémarrer le service : {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Impossible de rétablir les plages IP par défaut : {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Impossible de rétablir les ports TCP/IP par défaut : {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Impossible de relancer la livraison : {0}</value>
@@ -3044,6 +3059,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Impossible de démarrer la sauvegarde : {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Impossible de commencer l'enrôlement : {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Impossible de lancer la restauration de la boîte aux lettres : {0}</value>
@@ -11445,8 +11463,8 @@ n'a pas pu être chargé. Le message a probablement été livré et n'est plus d
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>L'adresse de bouclage et les réseaux privés par défaut. Le vider fait évaluer votre propre réseau comme n'importe quel autre, ce qu'une liste d'autorisation stricte refusera - webmail et Control Deck compris.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>La boîte aux lettres n'a pas pu être déplacée. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>La boîte aux lettres n'a pas pu être déplacée : {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>La boîte aux lettres, ses messages et tout ce qui tient au compte la suivent : ses règles, ses filtres, ses dossiers et leurs permissions, les mots de passe d'application, le second facteur, les contacts, les calendriers, les préférences, l'historique des mots de passe, les listes d'expéditeurs, les appartenances aux groupes et son rôle.</value>

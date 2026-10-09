@@ -2776,6 +2776,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not change the role: " xml:space="preserve">
     <value>Nepodařilo se změnit roli: </value>
   </data>
+  <data name="Could not change the second factor: {0}" xml:space="preserve">
+    <value>Nepodařilo se změnit druhý faktor: {0}</value>
+  </data>
   <data name="Could not copy: " xml:space="preserve">
     <value>Nepodařilo se zkopírovat: </value>
   </data>
@@ -2899,6 +2902,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not load this page: {0}" xml:space="preserve">
     <value>Nepodařilo se načíst tuto stránku: {0}</value>
   </data>
+  <data name="Could not make the sample domain: {0}" xml:space="preserve">
+    <value>Nepodařilo se vytvořit ukázkovou doménu: {0}</value>
+  </data>
   <data name="Could not move the action: {0}" xml:space="preserve">
     <value>Nepodařilo se přesunout akci: {0}</value>
   </data>
@@ -3015,8 +3021,17 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not remove the recipient: {0}" xml:space="preserve">
     <value>Nepodařilo se odebrat příjemce: {0}</value>
   </data>
+  <data name="Could not remove the sample domain: {0}" xml:space="preserve">
+    <value>Nepodařilo se odstranit ukázkovou doménu: {0}</value>
+  </data>
   <data name="Could not restart the service: {0}" xml:space="preserve">
     <value>Nepodařilo se restartovat službu: {0}</value>
+  </data>
+  <data name="Could not restore the default IP ranges: {0}" xml:space="preserve">
+    <value>Nepodařilo se obnovit výchozí rozsahy IP: {0}</value>
+  </data>
+  <data name="Could not restore the default TCP/IP ports: {0}" xml:space="preserve">
+    <value>Nepodařilo se obnovit výchozí porty TCP/IP: {0}</value>
   </data>
   <data name="Could not retrigger delivery: {0}" xml:space="preserve">
     <value>Nepodařilo se znovu spustit doručení: {0}</value>
@@ -3062,6 +3077,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   </data>
   <data name="Could not start the backup: {0}" xml:space="preserve">
     <value>Nepodařilo se spustit zálohu: {0}</value>
+  </data>
+  <data name="Could not start the enrolment: {0}" xml:space="preserve">
+    <value>Nepodařilo se zahájit registraci: {0}</value>
   </data>
   <data name="Could not start the mailbox restore: {0}" xml:space="preserve">
     <value>Obnovu schránky se nepodařilo spustit: {0}</value>
@@ -11591,8 +11609,8 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Výchozí je adresa zpětné smyčky a soukromé sítě. Vyprázdnění způsobí, že vaše vlastní síť se posuzuje jako kterákoli jiná, což přísný seznam povolených odmítne - včetně webové pošty a Control Deck.</value>
   </data>
-  <data name="The mailbox could not be moved. {0}" xml:space="preserve">
-    <value>Schránku se nepodařilo přesunout. {0}</value>
+  <data name="The mailbox could not be moved: {0}" xml:space="preserve">
+    <value>Schránku se nepodařilo přesunout: {0}</value>
   </data>
   <data name="The mailbox, its messages and everything keyed on the account go with it: its rules, filters, folders and their permissions, application passwords, second factor, contacts, calendars, preferences, password history, sender lists, group memberships and its role." xml:space="preserve">
     <value>Schránka, její zprávy a vše, co je vázáno na účet, se přesune s ní: pravidla, filtry, složky a jejich oprávnění, aplikační hesla, druhý faktor, kontakty, kalendáře, předvolby, historie hesel, seznamy odesílatelů, členství ve skupinách i role.</value>
