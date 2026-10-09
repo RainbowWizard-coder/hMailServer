@@ -431,10 +431,6 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
-      /// Everything about this configuration that an administrator would want told
-      /// to them rather than left to be discovered from a log.
-      /// </summary>
-      /// <summary>
       /// What becomes of a message when no scanner can answer - delivered as though
       /// clean, the shipped default, or held and returned (AVFailAction 1) - and why
       /// the page reports whether a scanner can run.
@@ -446,6 +442,10 @@ namespace hMailServer.ControlPanel.Services
             ? L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on.")
             : L("A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is treated exactly as if it had been examined and found clean. That is why this page reports whether each scanner can run rather than whether it is switched on.");
 
+      /// <summary>
+      /// Everything about this configuration that an administrator would want told
+      /// to them rather than left to be discovered from a log.
+      /// </summary>
       public static IReadOnlyList<VirusPipelineNote> Notes(VirusPipelineConfig config)
       {
          var notes = new List<VirusPipelineNote>();

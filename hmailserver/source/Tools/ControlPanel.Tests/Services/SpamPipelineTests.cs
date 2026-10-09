@@ -122,11 +122,6 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// A mark threshold of 0 reads as "mark everything" and means the opposite.
-      /// This is the one that costs an administrator the most: they turn on the
-      /// checks, watch the score in the log, and no message is ever marked.
-      /// </summary>
-      /// <summary>
       /// The server tests the delete threshold before the mark, so thresholds that
       /// are equal - or a delete below the mark - refuse whatever would have been
       /// marked, and the verdict must not say a message is marked and delivered.
@@ -146,6 +141,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.StartsWith("A message scoring " + delete + " or more is refused", verdict);
       }
 
+      /// <summary>
+      /// A mark threshold of 0 reads as "mark everything" and means the opposite.
+      /// This is the one that costs an administrator the most: they turn on the
+      /// checks, watch the score in the log, and no message is ever marked.
+      /// </summary>
       [Fact]
       public void AZeroMarkThreshold_IsCalledOutAsMarkingNothing()
       {

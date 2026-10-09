@@ -1275,20 +1275,6 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// A setting the server stores and never reads - see
-      /// <see cref="SettingClaims"/> for how one is established, and
-      /// WorkerThreadPriority for the one this exists for.
-      ///
-      /// The value is shown and cannot be changed. Both halves are deliberate. An
-      /// editable control is the failure being fixed: an administrator raises a
-      /// number, saves, gets no error, and believes something happened. Removing
-      /// the row instead would hide a value somebody may well have set years ago
-      /// and be relying on, and would leave them with no way to find out that it
-      /// never did anything. The row also stays in the generated search index, so
-      /// Ctrl+K still finds the setting by name and lands the reader on the note
-      /// that explains it, rather than on nothing at all.
-      /// </summary>
-      /// <summary>
       /// A notice among a card's rows: something true of the rows around it that
       /// is neither a setting nor a value, at its level - the built-in database's
       /// one connection beside the pool size it overrides. Writes nothing.
@@ -1312,6 +1298,20 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>
+      /// A setting the server stores and never reads - see
+      /// <see cref="SettingClaims"/> for how one is established, and
+      /// WorkerThreadPriority for the one this exists for.
+      ///
+      /// The value is shown and cannot be changed. Both halves are deliberate. An
+      /// editable control is the failure being fixed: an administrator raises a
+      /// number, saves, gets no error, and believes something happened. Removing
+      /// the row instead would hide a value somebody may well have set years ago
+      /// and be relying on, and would leave them with no way to find out that it
+      /// never did anything. The row also stays in the generated search index, so
+      /// Ctrl+K still finds the setting by name and lands the reader on the note
+      /// that explains it, rather than on nothing at all.
+      /// </summary>
       private class ComInert : ComSetting, INotPersisted
       {
          protected override FrameworkElement BuildEditor(object value)
