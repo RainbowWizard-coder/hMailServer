@@ -972,6 +972,13 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
+               // A lost link is the page's to say, once, at Critical, as it is for
+               // every setting the page could not read: the figure is marked Not
+               // read, as they are, and not given a Warning of its own about the
+               // same event.
+               if (ComErrorText.IsTransportFailure(ex))
+                  return NotReadFigure_(ex);
+
                // A figure the server could not give is a Warning notice, with its
                // mark and word and the runtime's code in the tool tip, where it was
                // a line of body text standing in the figure's place - a JSON
@@ -992,6 +999,23 @@ namespace hMailServer.ControlPanel.Views
             };
             Describe(line, Path);
             return line;
+         }
+
+         /// <summary>
+         /// The neutral "Not read" pill an unread setting carries (UnreadRow_), in
+         /// the figure's place, with the runtime's code in its tool tip.
+         /// </summary>
+         private static FrameworkElement NotReadFigure_(Exception ex)
+         {
+            var pill = new Scaffold.StatusPill
+            {
+               Level = StatusLevel.Normal,
+               Text = L("Not read"),
+               HorizontalAlignment = HorizontalAlignment.Left,
+               ToolTip = ComErrorText.TechnicalDetail(ex)
+            };
+            System.Windows.Automation.AutomationProperties.SetAutomationId(pill, "setting-not-read");
+            return pill;
          }
 
          /// <summary>Nothing to read back: this row edits nothing.</summary>
@@ -1581,6 +1605,11 @@ namespace hMailServer.ControlPanel.Views
       private List<TabDef> tabs_;
       private string diag_;
       private int failedReads_;
+
+      // Whether a read BuildUi counted failed because the link to the service went:
+      // the page then says it once, at Critical, as the shell's pill and every other
+      // page say a lost link, and no card repeats it (ComErrorText.LevelFor).
+      private bool linkLost_;
       private Action afterBuildUi_;
 
       // The rows BuildUi built an editor for this time. A row whose value could not
@@ -5110,6 +5139,7 @@ namespace hMailServer.ControlPanel.Views
          SettingsTabs.Items.Clear();
          diag_ = null;
          failedReads_ = 0;
+         linkLost_ = false;
          built_.Clear();
          building_ = true;
 
@@ -5118,6 +5148,11 @@ namespace hMailServer.ControlPanel.Views
          // The settings this page reaches over the REST API, read group by group
          // before any editor is built, so that no editor is filled with a default.
          LoadRestGroups_();
+
+         // The cards that lost settings, with how many: each says so once the page
+         // knows whether the link went, which a later card's read may be the first
+         // to find.
+         var unreadCards = new List<(StackPanel Fields, int Unread)>();
 
          foreach (TabDef tab in tabs_)
          {
@@ -5209,6 +5244,7 @@ namespace hMailServer.ControlPanel.Views
                      {
                         failedReads_++;
                         diag_ ??= ServerSession.DescribeComError(ex);
+                        linkLost_ |= ServerSession.IsTransportFailure(ex);
                         unread++;
                         fields.Children.Add(lastRow = UnreadRow_(setting));
                         continue;   // value could not be read: no editor, and Save leaves it alone
@@ -5237,14 +5273,7 @@ namespace hMailServer.ControlPanel.Views
                }
                else if (unread > 0)
                {
-                  fields.Children.Insert(0, new Scaffold.InlineNotice
-                  {
-                     Level = StatusLevel.Warning,
-                     Text = unread == 1
-                        ? L("One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.")
-                        : F("{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.", unread),
-                     Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
-                  });
+                  unreadCards.Add((fields, unread));
                }
 
                // The card is the surface; the section inside it is the heading, the
@@ -5276,6 +5305,26 @@ namespace hMailServer.ControlPanel.Views
             SettingsTabs.Items.Add(new TabItem { Header = tab.Header, Content = scroll });
          }
 
+         // Each card that lost settings says how many at its top, as a Warning: the
+         // server answered and could not give them, and the page says the same of
+         // the page at the same level. When the link to the service went, the page
+         // says that once, at Critical, and the rows say Not read: a Warning on every
+         // card would repeat the one event at another level.
+         if (!linkLost_)
+         {
+            foreach ((StackPanel fields, int unread) in unreadCards)
+            {
+               fields.Children.Insert(0, new Scaffold.InlineNotice
+               {
+                  Level = StatusLevel.Warning,
+                  Text = unread == 1
+                     ? L("One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.")
+                     : F("{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.", unread),
+                  Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md)
+               });
+            }
+         }
+
          if (SettingsTabs.Items.Count > 0)
             SettingsTabs.SelectedIndex = 0;
 
@@ -5288,7 +5337,9 @@ namespace hMailServer.ControlPanel.Views
          // A page that read cleanly has nothing to say - no pill, no notice. One
          // that could not read some of its values says how many and why, and says
          // it at the top of the page rather than on a line under the fold of a
-         // long tab, where it was before.
+         // long tab, where it was before - at the level of the cause: Critical when
+         // the link to the service went, a Warning when the server answered and
+         // could not give them, the rule of the setup checklist and DNS records.
          ShowState_(ServerSettingsPageState.Clean);
 
          // And the settings the server's environment sets, every one by its
@@ -5297,7 +5348,7 @@ namespace hMailServer.ControlPanel.Views
          string readSentence = ServerSettingsPageStatus.ReadSentence(failedReads_, diag_);
          string environmentSentence = EnvironmentSettings.Notice(IniFeatureStore.EnvironmentManaged());
          if (!string.IsNullOrEmpty(readSentence))
-            ShowNotice_(Sentences(readSentence, environmentSentence), StatusLevel.Critical);
+            ShowNotice_(Sentences(readSentence, environmentSentence), ComErrorText.LevelFor(linkLost_));
          else
             ShowNotice_(environmentSentence, StatusLevel.Information);
 

@@ -250,8 +250,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
          Assert.True(build != null, "ServerSettingsView.xaml.cs no longer has BuildUi.");
 
-         // Both roads to an unread row count it and mark it before they go on.
-         Assert.Equal(2, Regex.Matches(build, @"failedReads_\+\+;\s*diag_ \?\?= .+?;\s*unread\+\+;\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);\s*continue;").Count);
+         // Both roads to an unread row count it and mark it before they go on; the
+         // COM read also records whether the link went.
+         Assert.Equal(2, Regex.Matches(build, @"failedReads_\+\+;\s*diag_ \?\?= .+?;\s*(?:linkLost_ \|= ServerSession\.IsTransportFailure\(ex\);\s*)?unread\+\+;\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);\s*continue;").Count);
 
          // The card's own notice, one sentence per number.
          Assert.Contains("else if (unread > 0)", build, StringComparison.Ordinal);
@@ -265,6 +266,49 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Text = L(\"Not read\")", row, StringComparison.Ordinal);
          Assert.Contains("MnemonicText.Escape(MnemonicText.Strip(", row, StringComparison.Ordinal);
          Assert.Contains("Hint = setting.Blurb", row, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// One event, one level, on the pages ServerSettingsView builds. A server that
+      /// answered but could not give some settings is a Warning at the top of the
+      /// page and on each card that lost them; a lost link is said once, at the top,
+      /// at Critical, and no card repeats it. Before, the page said the unread
+      /// settings at Critical whatever the cause, over a Warning on each card below
+      /// it about the very same settings - on the anti-spam page a Warning on every
+      /// card of six tabs under the lost link's Critical.
+      /// </summary>
+      [Fact]
+      public void TheSettingsPages_SayUnreadSettingsAtTheLevelOfTheirCause()
+      {
+         string source = ReadView("ServerSettingsView.xaml.cs");
+         string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
+         Assert.True(build != null, "ServerSettingsView.xaml.cs no longer has BuildUi.");
+
+         // Counted afresh each build.
+         Assert.Matches(new Regex(@"failedReads_ = 0;\s*linkLost_ = false;"), build);
+
+         // The page's sentence at the cause's level, never at a fixed Critical.
+         Assert.Contains("ShowNotice_(string.IsNullOrEmpty(environmentSentence) ? readSentence : readSentence + \" \" + environmentSentence, ComErrorText.LevelFor(linkLost_));", build, StringComparison.Ordinal);
+         Assert.DoesNotContain("readSentence + \" \" + environmentSentence, StatusLevel.", build, StringComparison.Ordinal);
+
+         // The cards' counts are said after every card has been read, and only when
+         // the link held: a later card's read may be the first to find it gone.
+         int lastTab = build.IndexOf("SettingsTabs.Items.Add(", StringComparison.Ordinal);
+         int guard = build.IndexOf("if (!linkLost_)", StringComparison.Ordinal);
+         int cardSentence = build.IndexOf("L(\"One setting on this card could not be read", StringComparison.Ordinal);
+         Assert.True(lastTab >= 0 && lastTab < guard && guard < cardSentence,
+            "A card says how many of its settings could not be read before the page knows whether the link went, or whatever the cause.");
+         Assert.Contains("unreadCards.Add((fields, unread));", build, StringComparison.Ordinal);
+
+         // A figure that could not be read over a lost link is marked Not read, as the
+         // settings are, rather than given a Warning of its own about the same event.
+         string stat = source.Substring(source.IndexOf("private class ComStat", StringComparison.Ordinal));
+         string statBuild = WithheldRowTests.MemberText(stat, "protected override FrameworkElement BuildEditor(object value)");
+         Assert.Matches(new Regex(@"catch \(Exception ex\)[^{]*\{\s*(?://[^\n]*\n\s*)*if \(ComErrorText\.IsTransportFailure\(ex\)\)\s*return NotReadFigure_\(ex\);"), statBuild);
+         string figure = WithheldRowTests.MemberText(stat, "private static FrameworkElement NotReadFigure_(Exception ex)");
+         Assert.True(figure != null, "ComStat no longer has NotReadFigure_.");
+         Assert.Contains("Level = StatusLevel.Normal", figure, StringComparison.Ordinal);
+         Assert.Contains("Text = L(\"Not read\")", figure, StringComparison.Ordinal);
       }
 
       /// <summary>
@@ -372,17 +416,18 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// Every COM read the checks count as failed also records whether the link
-      /// went. (A document that could not be parsed is caught by type, and is never
-      /// a lost link.)
+      /// Every COM read the checks and the settings pages count as failed also
+      /// records whether the link went. (A document that could not be parsed is
+      /// caught by type, and is never a lost link.)
       /// </summary>
       [Theory]
       [InlineData("Services/ExternalSetupChecks.cs")]
       [InlineData("Views/DnsRecordsView.cs")]
+      [InlineData("Views/ServerSettingsView.xaml.cs")]
       public void EveryCountedComFailure_RecordsWhetherTheLinkWent(string file)
       {
          string source = ReadControlPanelFile(file);
-         const string counts = @"catch \(Exception ex\) when \(!ExceptionPolicy\.IsFatal\(ex\)\)\s*\{\s*failedReads_\+\+;\s*firstError_ \?\?= ServerSession\.DescribeComError\(ex\);";
+         const string counts = @"catch \(Exception ex\) when \(!ExceptionPolicy\.IsFatal\(ex\)\)\s*\{\s*failedReads_\+\+;\s*(?:firstError_|diag_) \?\?= ServerSession\.DescribeComError\(ex\);";
          int counted = Regex.Matches(source, counts).Count;
          int recorded = Regex.Matches(source, counts + @"\s*linkLost_ \|= ServerSession\.IsTransportFailure\(ex\);").Count;
          Assert.True(counted > 0, file + " counts no failed COM read any more.");
