@@ -190,6 +190,18 @@ namespace hMailServer.ControlPanel.Views
       // domains, read in one call, so there is nothing to ask the server for.
       private void Present_()
       {
+         // A search over a list that could not be read runs the read again rather
+         // than the filter: filtering nothing showed "The list is empty, and an
+         // empty list changes nothing" under the notice that says the list could
+         // not be read, which is the one claim that notice is there to withhold
+         // (Services/ReadFailure). A read that works comes back here with the
+         // failure cleared.
+         if (ReadFailure.IsShown(status_))
+         {
+            Reload();
+            return;
+         }
+
          string search = toolbar_.SearchText?.Trim() ?? "";
          var shown = new List<EntryView>();
 

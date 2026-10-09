@@ -105,9 +105,13 @@ namespace hMailServer.ControlPanel.Views
             // Save settings and Start backup now live - neither of which is a fact
             // this page has: the editors are cleared and the card disabled until a
             // read works, and the notice says what happened, with Try again
-            // (Services/ReadFailure).
+            // (Services/ReadFailure). The two hMailServer.ini boxes go too: with
+            // the link lost, what they hold is the file's copy or the default -
+            // BackupVerifyRestore's is on - and a default drawn as a setting is
+            // the same claim, under the same notice.
             DestinationBox.Text = "";
             CheckDomains.IsChecked = CheckMessages.IsChecked = CheckSettings.IsChecked = CheckCompress.IsChecked = false;
+            CheckMessagesDbOnly.IsChecked = CheckVerifyRestore.IsChecked = false;
             encryptionPassphraseSet_ = false;
             CheckEncrypt.IsChecked = false;
             PassphraseBox.Password = "";

@@ -225,6 +225,68 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The domain white and black list filters its rows on Enter in the search
+      /// box, and filtering nothing showed "The list is empty, and an empty list
+      /// changes nothing" under the notice that said the list could not be read.
+      /// A search while the failure is shown reads again instead, before anything
+      /// is presented.
+      /// </summary>
+      [Fact]
+      public void TheDomainPolicyList_ReadsAgainRatherThanFilteringAListItCouldNotRead()
+      {
+         string present = WithheldRowTests.MemberText(ReadView("DomainPolicyListView.cs"), "private void Present_()");
+         Assert.True(present != null, "DomainPolicyListView.Present_ is gone.");
+
+         int asks = present.IndexOf("ReadFailure.IsShown(status_)", StringComparison.Ordinal);
+         int shows = present.IndexOf("StatusText.Show(", StringComparison.Ordinal);
+         Assert.True(asks >= 0, "DomainPolicyListView.Present_ filters a list that could not be read, and shows its empty state under the failure.");
+         Assert.True(shows > asks, "DomainPolicyListView.Present_ shows the empty state before it asks whether the read failed.");
+         Assert.True(present.IndexOf("Reload();", StringComparison.Ordinal) > asks && present.IndexOf("Reload();", StringComparison.Ordinal) < shows,
+            "DomainPolicyListView.Present_ does not read again when the failure is shown.");
+      }
+
+      /// <summary>
+      /// The journaling page's list, empty state and row actions sit in a card;
+      /// hiding the three and leaving the card put a bare strip between the
+      /// failure notice and the form. The card goes with its contents and comes
+      /// back with a read that works.
+      /// </summary>
+      [Fact]
+      public void TheJournalingPage_HidesTheListCardWithTheList_WhenTheReadFails()
+      {
+         string source = ReadView("JournalingView.cs");
+         string unread = WithheldRowTests.MemberText(source, "private void Unread_(string prefix, string why)");
+         string reload = WithheldRowTests.MemberText(source, "private void Reload_()");
+         Assert.True(unread != null && reload != null, "JournalingView.Unread_ or Reload_ is gone.");
+
+         Assert.True(unread.Contains("listCard_.Visibility = Visibility.Collapsed;", StringComparison.Ordinal),
+            "JournalingView.Unread_ leaves the list's card on the page with nothing in it.");
+         Assert.True(reload.Contains("listCard_.Visibility = Visibility.Visible;", StringComparison.Ordinal)
+                     && reload.IndexOf("ReadFailure.Clear(", StringComparison.Ordinal) < reload.IndexOf("listCard_.Visibility = Visibility.Visible;", StringComparison.Ordinal),
+            "JournalingView.Reload_ does not bring the list's card back after a read that works.");
+      }
+
+      /// <summary>
+      /// The backup page's two hMailServer.ini boxes - metadata only, verify each
+      /// backup - are read before the settings object is opened, and the catch
+      /// cleared every other box but left them: with the link lost they hold the
+      /// file's copy or the default, and BackupVerifyRestore's default is on, so
+      /// "Verify each backup…" stayed ticked under "could not read the backup
+      /// settings". The catch clears them with the rest.
+      /// </summary>
+      [Fact]
+      public void TheBackupPage_ClearsItsIniBoxesToo_WhenTheReadFails()
+      {
+         string enter = WithheldRowTests.MemberText(ReadView("BackupView.xaml.cs"), "public void OnEnter()");
+         Assert.True(enter != null, "BackupView.OnEnter is gone.");
+
+         int caught = enter.IndexOf("catch (Exception ex)", StringComparison.Ordinal);
+         Assert.True(caught >= 0, "BackupView.OnEnter no longer catches a failed read.");
+         Assert.True(enter.IndexOf("CheckMessagesDbOnly.IsChecked = CheckVerifyRestore.IsChecked = false;", StringComparison.Ordinal) > caught,
+            "BackupView.OnEnter leaves the two hMailServer.ini boxes as they were when the backup settings could not be read.");
+      }
+
+      /// <summary>
       /// The Try again button is on some twenty pages, and no letter is free of a
       /// collision on every one of them - in English T is Require TLS for auth, Add
       /// action, Take the role away, Restore settings and Test connection - so its

@@ -79,6 +79,11 @@ namespace hMailServer.ControlPanel.Views
       // Add the rule waits for a read that works.
       private Wpf.Ui.Controls.Button add_;
 
+      // The card that holds the list, its empty state and the actions on the
+      // chosen rule: hidden with them while a read has failed, since a bare card
+      // under the failure notice is an element with nothing in it.
+      private Card listCard_;
+
       // The actions on the rule chosen in the list, shown while there is a list.
       private readonly StackPanel chosen_ = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 10, 0, 0) };
       private readonly EmptyState empty_ = new()
@@ -139,7 +144,8 @@ namespace hMailServer.ControlPanel.Views
          listed.Children.Add(rules_);
          listed.Children.Add(empty_);
          listed.Children.Add(chosen_);
-         cards.Children.Add(new Card { Content = listed });
+         listCard_ = new Card { Content = listed };
+         cards.Children.Add(listCard_);
 
          scope_.Items.Add(L("Domain"));
          scope_.Items.Add(L("Account"));
@@ -288,6 +294,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ReadFailure.Clear(readNotice_, add_);
+         listCard_.Visibility = Visibility.Visible;
          rules_.ItemsSource = rows;
          rules_.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
          chosen_.Visibility = rules_.Visibility;
@@ -297,15 +304,16 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// A read that failed: neither the rows of the last read nor "No journaling
-      /// rules." is a fact this page has now, so both go, the notice above the
-      /// list says what happened, with Try again, and Add the rule waits for a
-      /// read that works (Services/ReadFailure).
+      /// rules." is a fact this page has now, so both go, with the card that held
+      /// them, the notice above says what happened, with Try again, and Add the
+      /// rule waits for a read that works (Services/ReadFailure).
       /// </summary>
       private void Unread_(string prefix, string why)
       {
          ReadFailure.Show(readNotice_, empty_, rules_, prefix, why, Reload_, add_);
          rules_.Visibility = Visibility.Collapsed;
          chosen_.Visibility = Visibility.Collapsed;
+         listCard_.Visibility = Visibility.Collapsed;
       }
 
       private static string Text_(JsonElement item, string name)
