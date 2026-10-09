@@ -3037,7 +3037,10 @@ namespace hMailServer.ControlPanel.Views
          if (store_.FallbackCause != null)
          {
             readFromFile_ = store_.FallbackCause;
-            readFromFileNotice_ = F("The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers.",
+            // The reason last: DescribeComError's sentences are written to end a
+            // message, and one ends in the runtime's text in brackets with no full
+            // stop, so a sentence after it ran on from it.
+            readFromFileNotice_ = F("The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}",
                ServerSession.DescribeComError(readFromFile_));
             SayReadFromFile_();
             return;

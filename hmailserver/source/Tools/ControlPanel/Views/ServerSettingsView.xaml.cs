@@ -5369,10 +5369,13 @@ namespace hMailServer.ControlPanel.Views
          // And the settings the server's environment sets, every one by its
          // variable: a field is marked where this program can tie it to its setting,
          // and this sentence names them all, so none of them is a surprise at save.
+         // It goes before the read's sentence, whose reason is last and may end in
+         // the runtime's text in brackets with no full stop, which a sentence after
+         // it ran on from.
          string readSentence = ServerSettingsPageStatus.ReadSentence(failedReads_, diag_);
          string environmentSentence = EnvironmentSettings.Notice(IniFeatureStore.EnvironmentManaged());
          if (!string.IsNullOrEmpty(readSentence))
-            ShowNotice_(Sentences(readSentence, environmentSentence), ComErrorText.LevelFor(linkLost_));
+            ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_));
          else
             ShowNotice_(environmentSentence, StatusLevel.Information);
 

@@ -10275,8 +10275,17 @@ Starta om den nu?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Mjuka studsar inom fönstret innan en medlem inte längre får post (1 till 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>Vissa värden kunde inte läsas: {0} Avsnitten nedan kan vara ofullständiga.</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Vissa värden kunde inte läsas, så korten nedan kan vara ofullständiga. Den första orsaken: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Vissa värden kunde inte läsas, så korten nedan kan vara ofullständiga. Varför: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Vissa värden kunde inte läsas, så avsnitten nedan kan vara ofullständiga. Den första orsaken: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Vissa värden kunde inte läsas, så avsnitten nedan kan vara ofullständiga. Varför: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Någon gissar lösenord</value>
@@ -11768,8 +11777,8 @@ Lägg till det ändå?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Servern kan upptäcka en ny utgåva, verifiera den mot utgåvans egen Sigstore-signatur och installera den - med ett klick på statussidan, eller på egen hand inom ett fönster du anger. Av tills du slår på kontrollen; kontrollen skickar inget annat än förfrågan.</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>Servern kunde inte tillfrågas om de här inställningarna: {0} Sidan visar värdena i hMailServer.ini på den här datorn, som kan skilja sig från det servern kör med, och inget kan sparas förrän servern svarar.</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>Servern kunde inte tillfrågas om de här inställningarna, så sidan visar värdena i hMailServer.ini på den här datorn, som kan skilja sig från det servern kör med, och inget kan sparas förrän servern svarar. Varför: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Servern köade inte utskicket. Kontrollera adressjokern och hMailServers fellogg.</value>

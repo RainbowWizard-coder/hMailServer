@@ -584,7 +584,7 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   some values cannot be read, each snapshot records which (`Unread` on `SpamPipelineConfig`, `VirusPipelineConfig` and
   `TlsPostureConfig`), the check or scanner they feed shows a neutral *Not read* pill with no score rather than Off, the
   verdict sentence and every note that follows from an unread value are left out and say so instead, and the warning
-  above the cards reads "Some values could not be read: ... The sections below may be incomplete." - below, since the
+  above the cards reads "Some values could not be read, so the sections below may be incomplete. ..." - below, since the
   notice is above the sections it describes, where the virus and transport overviews pointed at "the rows above". The
   pipeline tests hold an unread check to neither on nor off, an unread threshold to no verdict and no threshold note,
   an unread scanner to no "cannot run" and no "nothing examines incoming mail", and unread listeners, versions and
@@ -1148,21 +1148,26 @@ prompt. Found by the project's own review (work item 78; CVE requested).
 - **Fixed: the Control Panel showed raw exception text and HRESULTs where other pages gave a sentence.** "Could not
   evaluate all warnings: The RPC server is unavailable. (Exception from HRESULT: 0x800706BA)" stood at the foot of
   Server status, the same text on the delivery queue, Diagnosing stalled mail, Backup & restore and Event scripts, a
-  message box said "Could not save: " and whatever the runtime said, and Performance showed a JSON parser's position
-  as a statistic. Every catch of a call to the server - eighty-eight of them, in thirty-two files - now goes
-  through `ServerSession.DescribeComError`, which says a lost link in words, notices it and has the session repair
-  it, and now also says what a failure that is not the server's own words is (`Services/ComErrorText`): an answer
-  the Control Panel could not read - a number that was not one, a document that was not JSON, a value of another
-  type - is "the server answered something this Control Panel could not read", and a member the server does not
-  have is "the server has no such setting or action - it may be older than this Control Panel", each with the
-  runtime's text in brackets. Each sentence follows a prefix that says what failed, so the places that had shown the
-  runtime's text alone - Restore defaults on IP ranges and on TCP/IP ports, the administrator's second-factor dialog,
-  the mailbox move and the sample domain on Welcome - now say first what could not be done, as in "Could not restore
-  the default TCP/IP ports: " and the reason. The shared failure notice keeps the exception's type, HRESULT and text in
-  its tool tip, and a statistic the server could not give is a Warning notice in place of the figure. The catches whose
-  try is local - a file, the registry, a browser, an HTTPS fetch or an LDAP probe from this machine - keep their own
-  text, and `FailureStateTests` names each with its reason, so that a new catch showing a failure's raw text fails it,
-  and holds a message box or a dialog's notice to saying what failed before the reason.
+  message box said "Could not save: " and whatever the runtime said, and Performance showed a JSON parser's position as
+  a statistic. Every catch of a call to the server - eighty-eight of them, in thirty-two files - now goes through
+  `ServerSession.DescribeComError`, which says a lost link in words, notices it and has the session repair it, and now
+  also says what a failure that is not the server's own words is (`Services/ComErrorText`): an answer the Control Panel
+  could not read - a number that was not one, a document that was not JSON, a value of another type - is "the server
+  answered something this Control Panel could not read", and a member the server does not have is "the server has no
+  such setting or action - it may be older than this Control Panel", each with the runtime's text in brackets. Each
+  sentence follows a prefix that says what failed, so the places that had shown the runtime's text alone - Restore
+  defaults on IP ranges and on TCP/IP ports, the administrator's second-factor dialog, the mailbox move and the sample
+  domain on Welcome - now say first what could not be done, as in "Could not restore the default TCP/IP ports: " and the
+  reason. The reason is also said last, since a sentence after the runtime's text in brackets ran on from it with no
+  full stop between: the hMailServer.ini pages' notice read "... older than this Control Panel (Unknown name.) The page
+  shows the values in hMailServer.ini ...", the settings pages put the server's environment after it, and DNS records
+  and the spam, virus and transport overviews put that the cards or sections below may be incomplete after it; each now
+  says what follows from the failure first and then "Why:" or "The first reason:" and the reason. The shared failure
+  notice keeps the exception's type, HRESULT and text in its tool tip, and a statistic the server could not give is a
+  Warning notice in place of the figure. The catches whose try is local - a file, the registry, a browser, an HTTPS
+  fetch or an LDAP probe from this machine - keep their own text, and `FailureStateTests` names each with its reason, so
+  that a new catch showing a failure's raw text fails it, and holds a message box or a dialog's notice to saying what
+  failed before the reason, and every sentence the Control Panel formats a reason into to saying nothing after it.
 - **Fixed: a settings card whose settings could not be read showed only its heading, and nothing said which card
   had lost what.** On the delivery, protocols, webmail, SSL/TLS, auto-ban, advanced, performance, anti-spam and
   anti-virus pages, a setting the server would not give was skipped - correctly, since no default is ever saved - but

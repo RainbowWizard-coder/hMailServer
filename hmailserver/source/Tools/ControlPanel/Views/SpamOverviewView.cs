@@ -347,10 +347,14 @@ namespace hMailServer.ControlPanel.Views
          // Some values could not be read: their rows say "Not read" and the
          // verdicts and notes that depend on them are left out, and this says so
          // above the sections it is about.
+         // The reason last, where a sentence after it ran on from the runtime's text
+         // in brackets that it may end with.
          readFailure_.Level = StatusLevel.Warning;
          readFailure_.Text = failedReads_ == 0
             ? null
-            : F("Some values could not be read: {0} The sections below may be incomplete.", firstError_);
+            : failedReads_ == 1
+               ? F("Some values could not be read, so the sections below may be incomplete. Why: {0}", firstError_)
+               : F("Some values could not be read, so the sections below may be incomplete. The first reason: {0}", firstError_);
          readFailure_.Visibility = failedReads_ == 0 ? Visibility.Collapsed : Visibility.Visible;
       }
 

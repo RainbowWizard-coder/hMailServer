@@ -10275,8 +10275,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>メンバーへの送信をやめるまでの、ウィンドウ内の一時的なバウンス数 (1 から 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>一部の値を読み取れませんでした: {0} 以下のセクションは不完全な場合があります。</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>一部の値を読み取れなかったため、下のカードは不完全な可能性があります。最初の理由: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>一部の値を読み取れなかったため、下のカードは不完全な可能性があります。理由: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>一部の値を読み取れなかったため、以下のセクションは不完全な場合があります。最初の理由: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>一部の値を読み取れなかったため、以下のセクションは不完全な場合があります。理由: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>誰かがパスワードを推測しています</value>
@@ -11768,8 +11777,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、ステータス ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>これらの設定をサーバーに問い合わせられませんでした: {0} このページには、このコンピューターの hMailServer.ini の値を表示しています。サーバーが実際に使っている値と異なる場合があり、サーバーが応答するまで何も保存できません。</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>これらの設定をサーバーに問い合わせられなかったため、このページには、このコンピューターの hMailServer.ini の値を表示しています。サーバーが実際に使っている値と異なる場合があり、サーバーが応答するまで何も保存できません。理由: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>サーバーは一斉送信をキューに入れませんでした。アドレスのワイルドカードと hMailServer のエラー ログを確認してください。</value>

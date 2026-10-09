@@ -10275,8 +10275,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>成员不再收到邮件前窗口内的软退信数（1 到 100）</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>部分值无法读取：{0} 下面的各节可能不完整。</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>部分值无法读取，因此下面的卡片可能不完整。第一个原因：{0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>部分值无法读取，因此下面的卡片可能不完整。原因：{0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>部分值无法读取，因此下面的各节可能不完整。第一个原因：{0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>部分值无法读取，因此下面的各节可能不完整。原因：{0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>有人在猜测密码</value>
@@ -11768,8 +11777,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>无法向服务器查询这些设置：{0} 此页面显示的是此计算机上 hMailServer.ini 中的值，可能与服务器实际运行的值不同，在服务器响应之前无法保存任何内容。</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>无法向服务器查询这些设置，因此此页面显示的是此计算机上 hMailServer.ini 中的值，可能与服务器实际运行的值不同，在服务器响应之前无法保存任何内容。原因：{0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>服务器没有将群发排入队列。请检查地址通配符和 hMailServer 错误日志。</value>

@@ -98,7 +98,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The build takes the cause, puts it in words once and says it.
          Match fallBack = Regex.Match(build, @"if \(store_\.FallbackCause != null\)\s*\{(.*?)return;", RegexOptions.Singleline);
          Assert.True(fallBack.Success, "BuildUi has no fall-back branch.");
-         Assert.Matches(new Regex(@"^\s*readFromFile_ = store_\.FallbackCause;\s*readFromFileNotice_ = F\(.*ServerSession\.DescribeComError\(readFromFile_\)\);\s*SayReadFromFile_\(\);\s*$", RegexOptions.Singleline), fallBack.Groups[1].Value);
+         Assert.Matches(new Regex(@"^\s*readFromFile_ = store_\.FallbackCause;\s*(?://[^\n]*\s*)*readFromFileNotice_ = F\(.*ServerSession\.DescribeComError\(readFromFile_\)\);\s*SayReadFromFile_\(\);\s*$", RegexOptions.Singleline), fallBack.Groups[1].Value);
 
          // The pill and the notice are in the state the cause makes, at that state's
          // level, which is the cause's: one lost link, one level, on every page and in

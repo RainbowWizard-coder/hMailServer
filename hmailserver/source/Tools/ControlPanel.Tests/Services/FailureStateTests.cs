@@ -276,6 +276,106 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("Dialogs.Warn(failure, ", ReadView("WelcomeView.cs"), StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// A failure's reason, as DescribeComError puts it, is the last thing a
+      /// sentence says. Its sentences are written to end a message, and the ones for
+      /// an older server and an unreadable answer end in the runtime's text in
+      /// brackets with no full stop, so a sentence written after the reason ran on
+      /// from it: "... older than this Control Panel (Unknown name.) The page shows
+      /// the values in hMailServer.ini ..." on the hMailServer.ini pages, and the same
+      /// on the notices of DNS records and the spam, virus and transport overviews
+      /// and before the settings pages' sentence about the server's environment.
+      /// Held for every template the Control Panel formats a reason into, directly or
+      /// from a field or variable the file gives a reason to.
+      /// </summary>
+      [Fact]
+      public void NoSentence_FollowsAFailuresReason()
+      {
+         string root = Path.GetDirectoryName(Path.GetDirectoryName(ControlPanelPath(Path.Join("Views", "DashboardView.xaml.cs"))));
+         var holders = new Regex(@"\b(\w+)\s*\??\?=\s*(?:ServerSession\.)?DescribeComError\(");
+         var formats = new Regex(@"\bF\(\s*""((?:[^""\\]|\\.)*)""\s*,");
+         var offenders = new System.Collections.Generic.List<string>();
+
+         foreach (string path in Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories))
+         {
+            string relative = Path.GetRelativePath(root, path);
+            if (relative.StartsWith("bin", StringComparison.Ordinal) || relative.StartsWith("obj", StringComparison.Ordinal))
+               continue;
+
+            string source = File.ReadAllText(path);
+            var reasons = holders.Matches(source).Select(m => m.Groups[1].Value).ToHashSet(StringComparer.Ordinal);
+
+            foreach (Match format in formats.Matches(source))
+            {
+               string template = format.Groups[1].Value;
+               var arguments = ArgumentsFrom(source, format.Index + format.Length);
+               for (int i = 0; i < arguments.Count; i++)
+               {
+                  string argument = Regex.Replace(arguments[i], @"\s*\?\?\s*""""\s*$", "");
+                  if (!argument.Contains("DescribeComError(", StringComparison.Ordinal) && !reasons.Contains(argument))
+                     continue;
+
+                  string placeholder = "{" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}";
+                  int at = template.IndexOf(placeholder, StringComparison.Ordinal);
+                  if (at >= 0 && template.Substring(at + placeholder.Length).Trim().Length > 0)
+                     offenders.Add(relative + ": \"" + template + "\" puts text after " + argument);
+               }
+            }
+         }
+
+         Assert.True(offenders.Count == 0, "A sentence follows a failure's reason, which may end without a full stop:\n" + string.Join("\n", offenders));
+
+         // The settings pages put the environment's sentence before the read's, whose
+         // reason is last.
+         string build = WithheldRowTests.MemberText(ReadView("ServerSettingsView.xaml.cs"), "private void BuildUi()");
+         Assert.Contains("environmentSentence + \" \" + readSentence", build, StringComparison.Ordinal);
+         Assert.DoesNotContain("readSentence + \" \"", build, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The arguments of a call, from just after its first argument's comma to its
+      /// closing bracket, split at the commas outside brackets and literals.
+      /// </summary>
+      private static System.Collections.Generic.List<string> ArgumentsFrom(string source, int start)
+      {
+         var arguments = new System.Collections.Generic.List<string>();
+         var current = new System.Text.StringBuilder();
+         int depth = 0;
+         for (int i = start; i < source.Length; i++)
+         {
+            char c = source[i];
+            if (c == '"' || c == '\'')
+            {
+               int end = i + 1;
+               while (end < source.Length && source[end] != c)
+                  end += source[end] == '\\' ? 2 : 1;
+               current.Append(source, i, Math.Min(end + 1, source.Length) - i);
+               i = end;
+               continue;
+            }
+
+            if (c == '(' || c == '[' || c == '{')
+               depth++;
+            else if (c == ')' || c == ']' || c == '}')
+            {
+               if (depth == 0)
+                  break;
+               depth--;
+            }
+            else if (c == ',' && depth == 0)
+            {
+               arguments.Add(current.ToString().Trim());
+               current.Clear();
+               continue;
+            }
+
+            current.Append(c);
+         }
+
+         arguments.Add(current.ToString().Trim());
+         return arguments;
+      }
+
       // ---- a card that lost settings says so -------------------------------------
 
       /// <summary>
@@ -366,8 +466,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"failedReads_ = 0;\s*linkLost_ = false;"), build);
 
          // The page's sentence at the cause's level, never at a fixed Critical.
-         Assert.Contains("ShowNotice_(string.IsNullOrEmpty(environmentSentence) ? readSentence : readSentence + \" \" + environmentSentence, ComErrorText.LevelFor(linkLost_));", build, StringComparison.Ordinal);
-         Assert.DoesNotContain("readSentence + \" \" + environmentSentence, StatusLevel.", build, StringComparison.Ordinal);
+         Assert.Contains("ShowNotice_(string.IsNullOrEmpty(environmentSentence) ? readSentence : environmentSentence + \" \" + readSentence, ComErrorText.LevelFor(linkLost_));", build, StringComparison.Ordinal);
+         Assert.DoesNotContain("readSentence, StatusLevel.", build, StringComparison.Ordinal);
 
          // The cards' counts are said after every card has been read, and only when
          // the link held: a later card's read may be the first to find it gone.

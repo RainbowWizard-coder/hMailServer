@@ -10388,8 +10388,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Временные отказы в окне, после которых участник перестаёт получать почту (от 1 до 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>Некоторые значения не удалось прочитать: {0} Разделы ниже могут быть неполными.</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Некоторые значения не удалось прочитать, поэтому карточки ниже могут быть неполными. Первая причина: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Некоторые значения не удалось прочитать, поэтому карточки ниже могут быть неполными. Причина: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Некоторые значения не удалось прочитать, поэтому разделы ниже могут быть неполными. Первая причина: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Некоторые значения не удалось прочитать, поэтому разделы ниже могут быть неполными. Причина: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Кто-то подбирает пароли</value>
@@ -11914,8 +11923,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер может заметить новый выпуск, проверить его по собственной подписи Sigstore этого выпуска и установить его — по щелчку на странице «Состояние» или самостоятельно внутри заданного вами окна. Выключено, пока вы не включите проверку; проверка не отправляет ничего, кроме самого запроса.</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>Не удалось запросить у сервера эти параметры: {0} На странице показаны значения из hMailServer.ini на этом компьютере, которые могут отличаться от тех, с которыми работает сервер, и ничего нельзя сохранить, пока сервер не ответит.</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>Не удалось запросить у сервера эти параметры, поэтому на странице показаны значения из hMailServer.ini на этом компьютере, которые могут отличаться от тех, с которыми работает сервер, и ничего нельзя сохранить, пока сервер не ответит. Причина: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Сервер не поставил рассылку в очередь. Проверьте шаблон адреса и журнал ошибок hMailServer.</value>

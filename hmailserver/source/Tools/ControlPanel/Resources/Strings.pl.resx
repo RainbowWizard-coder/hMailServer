@@ -10388,8 +10388,17 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Zwroty tymczasowe w oknie, zanim członek przestanie dostawać pocztę (od 1 do 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>Nie udało się odczytać niektórych wartości: {0} Poniższe sekcje mogą być niekompletne.</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać niektórych wartości, dlatego karty poniżej mogą być niepełne. Pierwszy powód: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać niektórych wartości, dlatego karty poniżej mogą być niepełne. Powód: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać niektórych wartości, dlatego poniższe sekcje mogą być niekompletne. Pierwszy powód: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Nie udało się odczytać niektórych wartości, dlatego poniższe sekcje mogą być niekompletne. Powód: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Ktoś zgaduje hasła</value>
@@ -11914,8 +11923,8 @@ Dodać mimo to?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Serwer potrafi zauważyć nowe wydanie, zweryfikować je względem własnego podpisu Sigstore tego wydania i zainstalować je - po kliknięciu na stronie Stan albo samodzielnie w wyznaczonym oknie. Wyłączone, dopóki sprawdzanie nie zostanie włączone; sprawdzanie nie wysyła niczego poza samym żądaniem.</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>Nie udało się zapytać serwera o te ustawienia: {0} Strona pokazuje wartości z hMailServer.ini na tym komputerze, które mogą różnić się od tych, z którymi działa serwer, i nic nie da się zapisać, dopóki serwer nie odpowie.</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>Nie udało się zapytać serwera o te ustawienia, dlatego strona pokazuje wartości z hMailServer.ini na tym komputerze, które mogą różnić się od tych, z którymi działa serwer, i nic nie da się zapisać, dopóki serwer nie odpowie. Powód: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Serwer nie umieścił wysyłki w kolejce. Należy sprawdzić symbol wieloznaczny w adresie oraz dziennik błędów hMailServer.</value>

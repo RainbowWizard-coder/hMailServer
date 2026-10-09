@@ -10388,8 +10388,17 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Тимчасові відмови у вікні, після яких учасник перестає отримувати пошту (від 1 до 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>Деякі значення не вдалося прочитати: {0} Розділи нижче можуть бути неповними.</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Деякі значення не вдалося прочитати, тому картки нижче можуть бути неповними. Перша причина: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Деякі значення не вдалося прочитати, тому картки нижче можуть бути неповними. Причина: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Деякі значення не вдалося прочитати, тому розділи нижче можуть бути неповними. Перша причина: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Деякі значення не вдалося прочитати, тому розділи нижче можуть бути неповними. Причина: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Хтось підбирає паролі</value>
@@ -11914,8 +11923,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його — клацанням на сторінці «Стан» або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>Не вдалося запитати в сервера ці параметри: {0} Сторінка показує значення з hMailServer.ini на цьому комп’ютері, які можуть відрізнятися від тих, з якими працює сервер, і нічого не можна зберегти, доки сервер не відповість.</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>Не вдалося запитати в сервера ці параметри, тому сторінка показує значення з hMailServer.ini на цьому комп’ютері, які можуть відрізнятися від тих, з якими працює сервер, і нічого не можна зберегти, доки сервер не відповість. Причина: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Сервер не поставив розсилання в чергу. Перевірте шаблон адреси та журнал помилок hMailServer.</value>

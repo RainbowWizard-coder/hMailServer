@@ -10275,8 +10275,17 @@ Genstart den nu?</value>
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Bløde returmails inden for vinduet, før et medlem ikke længere får post (1 til 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>Nogle værdier kunne ikke læses: {0} Afsnittene nedenfor kan være ufuldstændige.</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Nogle værdier kunne ikke læses, så kortene nedenfor kan være ufuldstændige. Den første årsag: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Nogle værdier kunne ikke læses, så kortene nedenfor kan være ufuldstændige. Hvorfor: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>Nogle værdier kunne ikke læses, så afsnittene nedenfor kan være ufuldstændige. Den første årsag: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>Nogle værdier kunne ikke læses, så afsnittene nedenfor kan være ufuldstændige. Hvorfor: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Nogen gætter adgangskoder</value>
@@ -11768,8 +11777,8 @@ Tilføj alligevel?</value>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Serveren kan opdage en ny udgivelse, verificere den mod udgivelsens egen Sigstore-signatur og installere den – med et klik på statussiden eller på egen hånd inden for et vindue, du angiver. Slået fra, indtil du slår kontrollen til; kontrollen sender intet andet end forespørgslen.</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>Serveren kunne ikke spørges om disse indstillinger: {0} Siden viser værdierne i hMailServer.ini på denne computer, som kan afvige fra det, serveren kører med, og intet kan gemmes, før serveren svarer.</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>Serveren kunne ikke spørges om disse indstillinger, så siden viser værdierne i hMailServer.ini på denne computer, som kan afvige fra det, serveren kører med, og intet kan gemmes, før serveren svarer. Hvorfor: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Serveren satte ikke udsendelsen i kø. Kontrollér adressejokertegnet og hMailServers fejllog.</value>

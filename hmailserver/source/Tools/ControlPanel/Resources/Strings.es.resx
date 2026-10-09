@@ -10275,8 +10275,17 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Soft bounces within the window before a member is no longer sent mail (1 to 100)" xml:space="preserve">
     <value>Rebotes temporales dentro de la ventana antes de que un miembro deje de recibir correo (1 a 100)</value>
   </data>
-  <data name="Some values could not be read: {0} The sections below may be incomplete." xml:space="preserve">
-    <value>No se pudieron leer algunos valores: {0} Las secciones siguientes pueden estar incompletas.</value>
+  <data name="Some values could not be read, so the cards below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>No se pudieron leer algunos valores, así que las tarjetas de abajo pueden estar incompletas. El primer motivo: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the cards below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>No se pudieron leer algunos valores, así que las tarjetas de abajo pueden estar incompletas. Motivo: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. The first reason: {0}" xml:space="preserve">
+    <value>No se pudieron leer algunos valores, así que las secciones siguientes pueden estar incompletas. El primer motivo: {0}</value>
+  </data>
+  <data name="Some values could not be read, so the sections below may be incomplete. Why: {0}" xml:space="preserve">
+    <value>No se pudieron leer algunos valores, así que las secciones siguientes pueden estar incompletas. Motivo: {0}</value>
   </data>
   <data name="Someone is guessing passwords" xml:space="preserve">
     <value>Alguien está adivinando contraseñas</value>
@@ -11768,8 +11777,8 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>El servidor puede detectar una nueva versión, verificarla contra la firma Sigstore de la propia versión e instalarla - con un clic en la página Estado, o por su cuenta dentro de una ventana que usted defina. Desactivado hasta que active la comprobación; la comprobación no envía nada más que la petición.</value>
   </data>
-  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
-    <value>No se pudo preguntar al servidor por estos ajustes: {0} La página muestra los valores de hMailServer.ini en este equipo, que pueden diferir de los que usa el servidor, y no se puede guardar nada hasta que el servidor responda.</value>
+  <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
+    <value>No se pudo preguntar al servidor por estos ajustes, así que la página muestra los valores de hMailServer.ini en este equipo, que pueden diferir de los que usa el servidor, y no se puede guardar nada hasta que el servidor responda. Motivo: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>El servidor no puso el envío en cola. Revise el comodín de dirección y el registro de errores de hMailServer.</value>
