@@ -474,6 +474,38 @@
                 <Setter Property="SelectionUnit" Value="FullRow" />
             </Style>
 
+            <!-- Every WPF-UI button, as WPF-UI draws it, but for the filled Danger
+                 appearance - a confirmation's destructive choice, Start restore -
+                 which takes its colours from the design tokens: WPF-UI fills it
+                 with its own #F44336 in both themes and leaves the theme's primary
+                 text on it, white in the dark theme, 3.7:1. AppDangerSolidBrush
+                 and its hover and pressed shades carry AppOnDangerSolidBrush at
+                 4.5:1 or more (DesignTokens.DangerSolid; ContrastTokensTests).
+                 Style triggers, because WPF-UI sets the appearance's colours in
+                 its template's triggers, which a style trigger outranks and a
+                 style setter does not; and the disabled state again after it,
+                 since the same rank lets the Danger trigger's words outrank the
+                 template's disabled grey. Implicit, so that a button keeps
+                 Appearance="Danger" and nothing else, wherever it is built. -->
+            <Style TargetType="{x:Type ui:Button}" BasedOn="{StaticResource DefaultUiButtonStyle}">
+                <Style.Triggers>
+                    <Trigger Property="Appearance" Value="Danger">
+                        <Setter Property="Background" Value="{DynamicResource AppDangerSolidBrush}" />
+                        <Setter Property="MouseOverBackground" Value="{DynamicResource AppDangerSolidHoverBrush}" />
+                        <Setter Property="PressedBackground" Value="{DynamicResource AppDangerSolidPressedBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource AppOnDangerSolidBrush}" />
+                        <Setter Property="PressedForeground" Value="{DynamicResource AppOnDangerSolidBrush}" />
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="Appearance" Value="Danger" />
+                            <Condition Property="IsEnabled" Value="False" />
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundDisabled}" />
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- A secondary button whose action destroys something - Delete,
                  Delete selected - with its words in the danger colour while it
                  can be pressed. A style setter, not a local Foreground: the

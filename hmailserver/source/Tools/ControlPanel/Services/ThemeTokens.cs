@@ -312,6 +312,16 @@ namespace hMailServer.ControlPanel.Services
          Publish("AppSelectionFillBrush", FromArgb(selection.Fill));
          Publish("AppSelectionOutlineBrush", FromArgb(selection.Outline));
 
+         // The filled destructive button (DesignTokens.DangerSolid): the fill at
+         // rest, under the pointer and pressed, and its words, which App.xaml's
+         // button style gives every Appearance="Danger" in place of WPF-UI's own
+         // #F44336, whose white words in the dark theme measured 3.7:1.
+         DesignTokens.DangerSolidArgb dangerSolid = DesignTokens.DangerSolid(CurrentChartTheme, CurrentSystemColors);
+         Publish("AppDangerSolidBrush", FromArgb(dangerSolid.Fill));
+         Publish("AppDangerSolidHoverBrush", FromArgb(dangerSolid.Hover));
+         Publish("AppDangerSolidPressedBrush", FromArgb(dangerSolid.Pressed));
+         Publish("AppOnDangerSolidBrush", FromArgb(dangerSolid.Text));
+
          Publish("LogDefaultBrush", logDefault);
          Publish("LogSmtpBrush", logSmtp);
          Publish("LogImapBrush", logImap);

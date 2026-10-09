@@ -141,4 +141,13 @@
     <SolidColorBrush x:Key="AppNeutralFillBrush" Color="#3A4048" />
     <SolidColorBrush x:Key="AppNeutralFillTextBrush" Color="#D1D9E0" />
     <Thickness x:Key="AppStatusFillBorderThickness">0</Thickness>
+
+    <!-- The filled destructive button (DesignTokens.DangerSolid), which App.xaml's
+         button style gives every Appearance="Danger": the fill at rest, under the
+         pointer and pressed, and the words on it. Dark values here, the theme's
+         from ThemeTokens. -->
+    <SolidColorBrush x:Key="AppDangerSolidBrush" Color="#F85149" />
+    <SolidColorBrush x:Key="AppDangerSolidHoverBrush" Color="#FA6B64" />
+    <SolidColorBrush x:Key="AppDangerSolidPressedBrush" Color="#E5534B" />
+    <SolidColorBrush x:Key="AppOnDangerSolidBrush" Color="#1B1B1B" />
 </ResourceDictionary>

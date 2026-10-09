@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using hMailServer.ControlPanel.Services;
 using Xunit;
 
@@ -229,7 +230,102 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("critical.FillTextBrushKey", fieldRow, StringComparison.Ordinal);
       }
 
+      // ---- The filled destructive button (F182) ---------------------------------
+
+      /// <summary>
+      /// The filled Danger button's words clear 4.5:1 on its fill at rest, under
+      /// the pointer and pressed. WPF-UI's own was #F44336 in both themes with
+      /// the theme's primary text on it: white, 3.7:1, in the dark theme.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(LightAndDark))]
+      public void TheFilledDangerButtonsWordsClearFourPointFiveToOneInEveryState(ChartTheme theme)
+      {
+         DesignTokens.DangerSolidArgb danger = DesignTokens.DangerSolid(theme, ChartSystemColors.Fallback);
+         Assert.Equal(0xFFu, danger.Text >> 24);
+
+         foreach ((string state, uint fill) in new[] { ("at rest", danger.Fill), ("under the pointer", danger.Hover), ("pressed", danger.Pressed) })
+         {
+            Assert.Equal(0xFFu, fill >> 24);
+            double ratio = ChartPalette.ContrastRatio(danger.Text, fill);
+            Assert.True(ratio >= 4.5, $"{theme}: the Danger button's words are {ratio:F2}:1 on its fill {state}, under 4.5:1.");
+         }
+
+         // At rest it is the palette's own danger colour, filled.
+         Assert.Equal(DesignTokens.Status(theme, ChartSystemColors.Fallback).Danger, danger.Fill);
+      }
+
+      /// <summary>Under High Contrast the button is the window text with the window colour on it, in every state.</summary>
+      [Fact]
+      public void UnderHighContrastTheFilledDangerButtonIsTheWindowTextWithTheWindowOnIt()
+      {
+         var system = new ChartSystemColors(0xFF112233, 0xFFEEDDCC, 0xFF445566, 0xFF778899, 0xFFAABBCC);
+         DesignTokens.DangerSolidArgb danger = DesignTokens.DangerSolid(ChartTheme.HighContrast, system);
+
+         Assert.Equal(system.WindowText, danger.Fill);
+         Assert.Equal(system.WindowText, danger.Hover);
+         Assert.Equal(system.WindowText, danger.Pressed);
+         Assert.Equal(system.Window, danger.Text);
+      }
+
+      /// <summary>
+      /// App.xaml gives the Danger appearance the tokens through an implicit
+      /// style on WPF-UI's button, based on WPF-UI's own: style triggers, which
+      /// outrank the template triggers WPF-UI sets #F44336 in, and the disabled
+      /// words again after them. ThemeTokens publishes the four brushes, and
+      /// Tokens.xaml declares them with the dark values.
+      /// </summary>
+      [Fact]
+      public void TheDangerAppearanceTakesItsColoursFromTheTokens()
+      {
+         string app = ReadControlPanelFile("App.xaml");
+         string themeTokens = ReadControlPanelFile(Path.Join("Services", "ThemeTokens.cs"));
+         string tokensXaml = ReadControlPanelFile(Path.Join("Views", "Scaffold", "Tokens.xaml"));
+         if (app == null || themeTokens == null || tokensXaml == null)
+            return;
+
+         XElement style = XDocument.Parse(app).Root.Descendants(Wpf + "Style")
+            .Single(s => (string)s.Attribute("TargetType") == "{x:Type ui:Button}" && s.Attribute(X + "Key") == null);
+         Assert.Equal("{StaticResource DefaultUiButtonStyle}", (string)style.Attribute("BasedOn"));
+
+         XElement danger = style.Element(Wpf + "Style.Triggers").Elements(Wpf + "Trigger")
+            .Single(t => (string)t.Attribute("Property") == "Appearance" && (string)t.Attribute("Value") == "Danger");
+         var setters = danger.Elements(Wpf + "Setter").ToDictionary(s => (string)s.Attribute("Property"), s => (string)s.Attribute("Value"));
+         Assert.Equal("{DynamicResource AppDangerSolidBrush}", setters["Background"]);
+         Assert.Equal("{DynamicResource AppDangerSolidHoverBrush}", setters["MouseOverBackground"]);
+         Assert.Equal("{DynamicResource AppDangerSolidPressedBrush}", setters["PressedBackground"]);
+         Assert.Equal("{DynamicResource AppOnDangerSolidBrush}", setters["Foreground"]);
+
+         XElement disabled = style.Element(Wpf + "Style.Triggers").Elements(Wpf + "MultiTrigger").Single();
+         Assert.Contains(disabled.Descendants(Wpf + "Condition"), c => (string)c.Attribute("Property") == "IsEnabled" && (string)c.Attribute("Value") == "False");
+         Assert.Equal("{DynamicResource ButtonForegroundDisabled}",
+            (string)disabled.Elements(Wpf + "Setter").Single(s => (string)s.Attribute("Property") == "Foreground").Attribute("Value"));
+
+         DesignTokens.DangerSolidArgb dark = DesignTokens.DangerSolid(ChartTheme.Dark, ChartSystemColors.Fallback);
+         foreach ((string key, uint colour) in new[]
+         {
+            ("AppDangerSolidBrush", dark.Fill), ("AppDangerSolidHoverBrush", dark.Hover),
+            ("AppDangerSolidPressedBrush", dark.Pressed), ("AppOnDangerSolidBrush", dark.Text)
+         })
+         {
+            Assert.Contains("Publish(\"" + key + "\"", themeTokens, StringComparison.Ordinal);
+            Assert.Equal(colour.ToString("X8"), DeclaredColour(tokensXaml, key));
+         }
+      }
+
       // ---- helpers ---------------------------------------------------------------
+
+      private static readonly XNamespace Wpf = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+      private static readonly XNamespace X = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+      /// <summary>A brush's colour as Tokens.xaml declares it, as AARRGGBB.</summary>
+      private static string DeclaredColour(string tokensXaml, string key)
+      {
+         Match match = Regex.Match(tokensXaml, "x:Key=\"" + key + "\" Color=\"#([0-9A-Fa-f]+)\"");
+         Assert.True(match.Success, key + " is not a brush in Tokens.xaml.");
+         string hex = match.Groups[1].Value.ToUpperInvariant();
+         return hex.Length == 6 ? "FF" + hex : hex;
+      }
 
       /// <summary>A colour laid over a surface at its own alpha, as the screen composites it.</summary>
       internal static uint Over(uint colour, uint surface)

@@ -487,5 +487,50 @@ namespace hMailServer.ControlPanel.Services
                return new LogArgb(0xFF9DA7B0, 0xFF3FB950, 0xFFBC8CFF, 0xFFD29922, 0xFF58A6FF, 0xFFFF7B72);
          }
       }
+
+      /// <summary>
+      /// A filled destructive button - a confirmation's destructive choice,
+      /// Start restore, every <c>Appearance="Danger"</c> - as 0xAARRGGBB: the fill
+      /// at rest, under the pointer and pressed, and the words on it. WPF-UI drew
+      /// it in its own #F44336 in both themes with the theme's primary text on it,
+      /// which is white in the dark theme and measured 3.7:1; these are the
+      /// danger colour of the palette filled, white words on the light theme's
+      /// and near-black on the dark theme's, each pair 4.5:1 or more in every
+      /// state. Under High Contrast the button is the window text with the window
+      /// colour on it, both the user's, and is the same in every state.
+      /// </summary>
+      public readonly struct DangerSolidArgb
+      {
+         public DangerSolidArgb(uint fill, uint hover, uint pressed, uint text)
+         {
+            Fill = fill;
+            Hover = hover;
+            Pressed = pressed;
+            Text = text;
+         }
+
+         public uint Fill { get; }
+         public uint Hover { get; }
+         public uint Pressed { get; }
+
+         /// <summary>The words on the fill, in every state.</summary>
+         public uint Text { get; }
+      }
+
+      /// <summary>The filled destructive button for a theme (<see cref="DangerSolidArgb"/>).</summary>
+      public static DangerSolidArgb DangerSolid(ChartTheme theme, ChartSystemColors system)
+      {
+         switch (theme)
+         {
+            case ChartTheme.HighContrast:
+               return new DangerSolidArgb(system.WindowText, system.WindowText, system.WindowText, system.Window);
+
+            case ChartTheme.Light:
+               return new DangerSolidArgb(StatusPalette.LightDanger, 0xFFB91C28, 0xFFA40E26, 0xFFFFFFFF);
+
+            default:
+               return new DangerSolidArgb(StatusPalette.DarkDanger, 0xFFFA6B64, 0xFFE5534B, 0xFF1B1B1B);
+         }
+      }
    }
 }

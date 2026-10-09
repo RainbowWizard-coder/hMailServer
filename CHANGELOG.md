@@ -1318,6 +1318,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   line clears 4.5:1 on the card and under the pointer. The log's palette is measured with the design tokens now, and
   the Control Panel's tests hold every pair to its floor and fail a page that colours a word with a status colour.
 
+- **Fixed: the Control Panel's filled red buttons drew white words at 3.7:1 in the dark theme.** The destructive
+  choice in every confirmation, *Start restore*, *Restore the mailbox* and every other button with the Danger
+  appearance was filled with WPF-UI's own #F44336 in both themes, a colour none of the design's tokens named, and
+  kept the theme's ordinary text colour on it: near-black in the light theme, white in the dark one. The Danger
+  appearance now takes its colours from the design tokens, the palette's own danger red filled, with white words in
+  the light theme and near-black ones in the dark theme, and a deeper or lighter shade under the pointer and pressed,
+  every one 4.5:1 or more; under High Contrast it is the window text with the window colour on it. One style gives it
+  to every such button, so a button needs only its appearance, and the Control Panel's tests measure every state.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
