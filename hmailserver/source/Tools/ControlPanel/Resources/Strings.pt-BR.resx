@@ -2259,11 +2259,17 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Arquivo de certificado para o novo certificado</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Certificado não lido</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Pasta de saída dos certificados (vazio = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>A validação de certificado foi DESATIVADA para este teste, conforme VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Certificado: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certificados</value>
@@ -12498,6 +12504,9 @@ Nenhuma mensagem é excluída e nenhuma conta é removida. Continuar?</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Se existem registros TLSA, e se a sua zona está assinada com DNSSEC, só pode ser visto no DNS. Se você nunca configurou DNSSEC para a zona, nenhum registro TLSA validará.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Não foi possível ler se há um certificado atribuído, então não é possível dizer se este ouvinte inicia.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Não foi possível ler se uma mensagem que nenhum verificador pôde examinar é retida ou entregue.</value>

@@ -2259,11 +2259,17 @@ Control Panel может читать файлы сообщений только
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Файл сертификата для нового сертификата</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Сертификат не прочитан</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Папка для выпущенных сертификатов (пусто — Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Проверка сертификата для этого теста была ОТКЛЮЧЕНА, в соответствии с VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Сертификат: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Сертификаты</value>
@@ -12498,6 +12504,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Существуют ли записи TLSA и подписана ли ваша зона DNSSEC, можно увидеть только в DNS. Если вы никогда не настраивали DNSSEC для зоны, ни одна запись TLSA проверку не пройдёт.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Не удалось прочитать, назначен ли сертификат, поэтому нельзя сказать, запускается ли этот прослушиватель.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Не удалось прочитать, задерживается или доставляется сообщение, которое не смог проверить ни один сканер.</value>

@@ -496,7 +496,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   an unread scanner to no "cannot run" and no "nothing examines incoming mail", and unread listeners, versions and
   ranges to none of the notes that follow from them. With a check unread, the spam overview's verdict card says that
   the highest total reachable cannot be said, where it said the total was open-ended - a statement about a
-  configuration it never saw.
+  configuration it never saw. With the certificates unread but the ports read, the transport overview marks each TLS
+  listener *Not read*, where it resolved every port's certificate against the empty collection and judged each one
+  *Will not start* at Critical, with "N listeners configured for TLS but cannot serve it" and a Critical note per
+  port, beside a certificates card saying they could not be read; its "Certificate: name" line is translated too.
 - **Fixed: the quarantine page's empty state said quarantining was switched off whether it was or not.** With nothing
   held, the page always said "Nothing is held. Quarantining is switched off - turn it on under Anti-spam settings",
   under a warning glyph, and never read the switch: a server whose quarantine is on and merely empty was told it was

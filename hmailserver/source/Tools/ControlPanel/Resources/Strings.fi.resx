@@ -2259,11 +2259,17 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Uuden varmenteen varmennetiedosto</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Varmennetta ei luettu</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Varmenteiden tuloskansio (tyhjä = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Varmenteen tarkistus oli POIS KÄYTÖSTÄ tässä testissä, asetuksen VerifyCertificate=0 mukaisesti. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Varmenne: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Varmenteet</value>
@@ -12498,6 +12504,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Sen, onko TLSA-tietueita olemassa ja onko vyöhykkeesi DNSSEC-allekirjoitettu, näkee vain DNS:stä. Jos et ole koskaan määrittänyt DNSSEC:tä vyöhykkeelle, yksikään TLSA-tietue ei kelpaa.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Ei voitu lukea, onko varmenne määritetty, joten ei voida sanoa, käynnistyykö tämä kuuntelija.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Ei voitu lukea, pidätetäänkö vai toimitetaanko viesti, jota yksikään skanneri ei voinut tutkia.</value>

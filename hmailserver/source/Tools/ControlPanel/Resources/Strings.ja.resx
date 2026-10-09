@@ -2259,11 +2259,17 @@
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>新しい証明書の証明書ファイル</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>証明書は未読み取り</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>証明書の出力フォルダー (空 = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>このテストでは証明書の検証は無効でした。VerifyCertificate=0 に合わせています。 </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>証明書: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>証明書</value>
@@ -12498,6 +12504,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>TLSA レコードが存在するかどうか、ゾーンが DNSSEC で署名されているかどうかは DNS でしか確認できません。ゾーンに DNSSEC を設定したことがなければ、TLSA レコードは検証されません。</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>証明書が割り当てられているかどうかを読み取れなかったため、このリスナーが起動するかどうかは判断できません。</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>どのスキャナーも検査できなかったメッセージを保留するか配信するかを読み取れませんでした。</value>

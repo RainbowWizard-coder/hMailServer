@@ -287,6 +287,26 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// The transport encryption overview resolves each port's certificate id
+      /// against the certificates it has read; with the certificates unread the
+      /// collection is empty, every TLS listener came back with no certificate,
+      /// and TlsPosture judged each one "Will not start" at Critical while the
+      /// certificates card said they could not be read. The listener pass marks
+      /// the certificate as not read instead, and TlsPosture says so of it
+      /// (TlsPostureTests.UnreadCertificates_AreNotNoCertificate).
+      /// </summary>
+      [Fact]
+      public void TheTransportOverview_MarksAListenerWhoseCertificateWasNotRead()
+      {
+         string read = WithheldRowTests.MemberText(ReadView("TlsOverviewView.cs"), "private void ReadListeners(TlsPostureConfig config, dynamic settings)");
+         Assert.True(read != null, "TlsOverviewView.ReadListeners is gone.");
+         Assert.True(read.Contains("config.WasRead(nameof(config.Certificates))", StringComparison.Ordinal),
+            "TlsOverviewView.ReadListeners never asks whether the certificates were read, so an unread collection is \"no certificate\".");
+         Assert.True(read.Contains("CertificateUnread = !certificatesRead", StringComparison.Ordinal),
+            "TlsOverviewView.ReadListeners does not mark a listener whose certificate could not be read.");
+      }
+
+      /// <summary>
       /// The Try again button is on some twenty pages, and no letter is free of a
       /// collision on every one of them - in English T is Require TLS for auth, Add
       /// action, Take the role away, Restore settings and Test connection - so its

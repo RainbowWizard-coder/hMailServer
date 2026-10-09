@@ -2259,11 +2259,17 @@
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Файл для нового сертифіката</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Сертифікат не прочитано</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Папка для збереження сертифікатів (порожньо = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Перевірку сертифіката для цього тесту БУЛО ВИМКНЕНО відповідно до VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Сертифікат: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Сертифікати</value>
@@ -12498,6 +12504,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Чи існують записи TLSA і чи підписана ваша зона DNSSEC, можна побачити лише в DNS. Якщо ви ніколи не налаштовували DNSSEC для зони, жоден запис TLSA перевірку не пройде.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Не вдалося прочитати, чи призначено сертифікат, тому неможливо сказати, чи запускається цей слухач.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Не вдалося прочитати, затримується чи доставляється повідомлення, яке не зміг перевірити жоден сканер.</value>

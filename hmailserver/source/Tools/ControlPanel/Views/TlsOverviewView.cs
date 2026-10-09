@@ -277,20 +277,28 @@ namespace hMailServer.ControlPanel.Views
                   int certificateId = (int)port.SSLCertificateID;
                   var security = (TlsListenerSecurity)(int)port.ConnectionSecurity;
 
+                  // The certificates could not be read: the id resolves against an
+                  // empty collection, and an empty name would say "none assigned",
+                  // which is the Will-not-start verdict at Critical, of a lookup
+                  // that never happened. The listener says the certificate was not
+                  // read instead.
+                  bool certificatesRead = config.WasRead(nameof(config.Certificates));
+
                   var listener = new TlsListener
                   {
                      Protocol = protocolName,
                      Address = (string)port.Address ?? "",
                      Port = (int)port.PortNumber,
                      Security = security,
-                     CertificateName = CertificateNameFor(config, certificateId)
+                     CertificateName = certificatesRead ? CertificateNameFor(config, certificateId) : "",
+                     CertificateUnread = !certificatesRead
                   };
 
                   // Marked here, by id, rather than by matching names afterwards:
                   // nothing stops two certificates sharing a name, and "is anything
                   // using this certificate" is the difference between an expired
                   // certificate being critical and being tidy-up.
-                  if (security != TlsListenerSecurity.None)
+                  if (security != TlsListenerSecurity.None && certificatesRead)
                      MarkInUse(config, certificateId);
 
                   config.Listeners.Add(listener);
@@ -509,9 +517,10 @@ namespace hMailServer.ControlPanel.Views
 
          var certificate = new TextBlock
          {
-            Text = string.IsNullOrWhiteSpace(listener.CertificateName)
-               ? (listener.Security == TlsListenerSecurity.None ? L("No certificate needed") : L("No certificate assigned"))
-               : "Certificate: " + listener.CertificateName,
+            Text = listener.Security == TlsListenerSecurity.None ? L("No certificate needed")
+               : listener.CertificateUnread ? L("Certificate not read")
+               : string.IsNullOrWhiteSpace(listener.CertificateName) ? L("No certificate assigned")
+               : F("Certificate: {0}", listener.CertificateName),
             TextWrapping = TextWrapping.Wrap
          };
          certificate.SetResourceReference(StyleProperty, "TextCaptionTertiary");

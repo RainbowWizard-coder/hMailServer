@@ -2259,11 +2259,17 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Plik certyfikatu dla nowego certyfikatu</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Certyfikat nieodczytany</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Folder wyjściowy certyfikatów (puste = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Weryfikacja certyfikatu była dla tego testu WYŁĄCZONA, zgodnie z VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Certyfikat: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certyfikaty</value>
@@ -12498,6 +12504,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>To, czy istnieją rekordy TLSA i czy strefa jest podpisana DNSSEC, widać tylko w DNS. Jeśli nigdy nie skonfigurowano DNSSEC dla strefy, żaden rekord TLSA nie przejdzie walidacji.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Nie udało się odczytać, czy przypisano certyfikat, więc nie można powiedzieć, czy ten nasłuch się uruchamia.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Nie udało się odczytać, czy wiadomość, której żaden skaner nie mógł sprawdzić, jest wstrzymywana, czy doręczana.</value>

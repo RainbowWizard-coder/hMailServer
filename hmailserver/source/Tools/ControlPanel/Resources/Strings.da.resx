@@ -2259,11 +2259,17 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Certifikatfil til det nye certifikat</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Certifikat ikke læst</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Outputmappe til certifikater (tom = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Certifikatvalidering var DEAKTIVERET for denne test, svarende til VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Certifikat: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certifikater</value>
@@ -12498,6 +12504,9 @@ Ingen meddelelse slettes, og ingen konto fjernes. Fortsæt?</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Om TLSA-poster findes, og om din zone er DNSSEC-signeret, kan kun ses i DNS. Hvis du aldrig har sat DNSSEC op for zonen, vil ingen TLSA-post validere.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Det kunne ikke læses, om et certifikat er tildelt, så det kan ikke siges, om denne lytter starter.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Det kunne ikke læses, om en meddelelse, som ingen scanner kunne undersøge, tilbageholdes eller leveres.</value>

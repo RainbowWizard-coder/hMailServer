@@ -2259,11 +2259,17 @@
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>新证书的证书文件</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>证书未读取</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>证书输出文件夹（留空 = Data\ACME）</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>此次测试已禁用证书验证，与 VerifyCertificate=0 一致。 </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>证书：{0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>证书</value>
@@ -12498,6 +12504,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>是否存在 TLSA 记录以及您的区域是否经过 DNSSEC 签名，只能在 DNS 中看到。如果您从未为该区域设置过 DNSSEC，任何 TLSA 记录都不会通过验证。</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>无法读取是否已分配证书，因此无法判断此监听器能否启动。</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>无法读取没有任何扫描器能够检查的邮件是被暂留还是投递。</value>

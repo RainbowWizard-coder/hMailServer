@@ -403,6 +403,44 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("could not be read", TlsPosture.Verdict(config));
       }
 
+      /// <summary>
+      /// The certificates could not be read but the ports could: each port's
+      /// certificate id resolves against an empty collection, and an empty name is
+      /// the "Will not start" verdict at Critical - "N listeners are configured for
+      /// TLS but cannot serve it", a Critical note per port - while the certificates
+      /// card on the same page says the certificates could not be read. A listener
+      /// whose certificate was not read says so, at no level, and nothing that
+      /// follows from "no certificate" is said of it.
+      /// </summary>
+      [Fact]
+      public void UnreadCertificates_AreNotNoCertificate()
+      {
+         TlsPostureConfig config = Healthy();
+         config.Certificates = new List<TlsCertificate>();
+         config.Unread.Add(nameof(config.Certificates));
+         foreach (TlsListener listener in config.Listeners)
+         {
+            listener.CertificateName = "";
+            listener.CertificateUnread = true;
+         }
+
+         IReadOnlyList<TlsListenerVerdict> verdicts = TlsPosture.Listeners(config);
+         Assert.DoesNotContain(verdicts, v => v.Word == "Will not start");
+
+         TlsListenerVerdict imaps = VerdictFor(config, 993);
+         Assert.Equal(StatusLevel.Normal, imaps.Level);
+         Assert.Equal("Not read", imaps.Word);
+         Assert.Contains("could not be read", imaps.Detail);
+
+         Assert.DoesNotContain("cannot serve it", TlsPosture.Verdict(config));
+         Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Level == StatusLevel.Critical);
+         Assert.DoesNotContain(TlsPosture.Notes(config), n => n.Text.Contains("does not come up"));
+
+         // ... and a listener that was read with its certificate is judged as before.
+         TlsPostureConfig read = Healthy();
+         Assert.Equal("Encrypted", VerdictFor(read, 993).Word);
+      }
+
       [Fact]
       public void UnreadVersions_AreNotNoVersions()
       {

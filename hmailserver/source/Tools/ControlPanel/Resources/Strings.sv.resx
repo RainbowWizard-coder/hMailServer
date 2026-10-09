@@ -2259,11 +2259,17 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Certifikatfil för det nya certifikatet</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Certifikat inte läst</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Utdatamapp för certifikat (tomt = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Certifikatvalidering var AVSTÄNGD för det här testet, i enlighet med VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Certifikat: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certifikat</value>
@@ -12498,6 +12504,9 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Om TLSA-poster finns, och om din zon är DNSSEC-signerad, kan bara ses i DNS. Om du aldrig satt upp DNSSEC för zonen kommer ingen TLSA-post att validera.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Om ett certifikat är tilldelat kunde inte läsas, så det går inte att säga om den här lyssnaren startar.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Det gick inte att läsa om ett meddelande som ingen skanner kunde granska hålls kvar eller levereras.</value>

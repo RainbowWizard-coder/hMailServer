@@ -2259,11 +2259,17 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Sertifikatfil for det nye sertifikatet</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Sertifikat ikke lest</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Utdatamappe for sertifikater (tom = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Sertifikatvalidering var DEAKTIVERT for denne testen, i samsvar med VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Sertifikat: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Sertifikater</value>
@@ -12498,6 +12504,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Om TLSA-oppføringer finnes, og om sonen din er DNSSEC-signert, kan bare ses i DNS. Hvis du aldri har satt opp DNSSEC for sonen, vil ingen TLSA-oppføring validere.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Om et sertifikat er tildelt, kunne ikke leses, så det kan ikke sies om denne lytteren starter.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Det kunne ikke leses om en melding ingen skanner kunne undersøke, holdes tilbake eller leveres.</value>

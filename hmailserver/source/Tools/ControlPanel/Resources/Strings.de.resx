@@ -2259,11 +2259,17 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Zertifikatdatei für das neue Zertifikat</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Zertifikat nicht gelesen</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Ausgabeordner für Zertifikate (leer = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Die Zertifikatsprüfung war für diesen Test DEAKTIVIERT, entsprechend VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Zertifikat: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Zertifikate</value>
@@ -12498,6 +12504,9 @@ Es wird keine Nachricht gelöscht und kein Konto entfernt. Fortfahren?</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Ob TLSA-Einträge existieren und ob Ihre Zone DNSSEC-signiert ist, lässt sich nur im DNS sehen. Wenn Sie für die Zone nie DNSSEC eingerichtet haben, wird kein TLSA-Eintrag als gültig geprüft.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Ob ein Zertifikat zugewiesen ist, konnte nicht gelesen werden, ob dieser Listener startet, lässt sich also nicht sagen.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Ob eine Nachricht, die kein Scanner prüfen konnte, zurückgehalten oder zugestellt wird, konnte nicht gelesen werden.</value>

@@ -40,6 +40,15 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>The name of the assigned certificate, or empty when none is assigned.</summary>
       public string CertificateName { get; set; } = "";
+
+      /// <summary>
+      /// Whether the certificates could not be read, so that an empty
+      /// <see cref="CertificateName"/> says nothing: the port refers to a
+      /// certificate by id, and the collection the id is resolved against was
+      /// never seen. A TLS listener with no certificate does not start, and that
+      /// verdict must not be drawn from a lookup that never happened.
+      /// </summary>
+      public bool CertificateUnread { get; set; }
    }
 
    /// <summary>A certificate as the SSL certificates page has already inspected it.</summary>
@@ -209,6 +218,16 @@ namespace hMailServer.ControlPanel.Services
 
       private static TlsListenerVerdict VerdictFor(TlsListener listener, TlsPostureConfig config)
       {
+         // The certificates could not be read, so whether this listener has one is
+         // not known - and with none it would not start. Neither verdict is given:
+         // the row says the certificate was not read, at no level, as the spam and
+         // virus overviews say of a check they could not read.
+         if (WantsTls(listener.Security) && listener.CertificateUnread)
+         {
+            return new TlsListenerVerdict(listener, StatusLevel.Normal, L("Not read"),
+               L("Whether a certificate is assigned could not be read, so whether this listener starts cannot be said."));
+         }
+
          // A TLS port with no certificate does not fall back to plaintext - it does
          // not come up. SslContextInitializer::InitServer reports HM5113 at High and
          // returns false, TCPServer::Run gives up, and the port simply is not there.

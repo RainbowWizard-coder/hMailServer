@@ -2259,11 +2259,17 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Soubor certifikátu pro nový certifikát</value>
   </data>
+  <data name="Certificate not read" xml:space="preserve">
+    <value>Certifikát nepřečten</value>
+  </data>
   <data name="Certificate output folder (empty = Data\ACME)" xml:space="preserve">
     <value>Výstupní složka certifikátů (prázdné = Data\ACME)</value>
   </data>
   <data name="Certificate validation was DISABLED for this test, matching VerifyCertificate=0. " xml:space="preserve">
     <value>Ověřování certifikátu bylo pro tento test VYPNUTO, což odpovídá VerifyCertificate=0. </value>
+  </data>
+  <data name="Certificate: {0}" xml:space="preserve">
+    <value>Certifikát: {0}</value>
   </data>
   <data name="Certificates" xml:space="preserve">
     <value>Certifikáty</value>
@@ -12498,6 +12504,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Whether TLSA records exist, and whether your zone is DNSSEC-signed, can only be seen in DNS. If you have never set up DNSSEC for the zone, no TLSA record will validate." xml:space="preserve">
     <value>Zda záznamy TLSA existují a zda je vaše zóna podepsaná DNSSEC, je vidět jen v DNS. Pokud jste DNSSEC pro zónu nikdy nenastavili, žádný záznam TLSA se neověří.</value>
+  </data>
+  <data name="Whether a certificate is assigned could not be read, so whether this listener starts cannot be said." xml:space="preserve">
+    <value>Nepodařilo se přečíst, zda je přiřazen certifikát, takže nelze říci, zda se tento listener spustí.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Nepodařilo se přečíst, zda je zpráva, kterou žádný skener nemohl prověřit, zadržena nebo doručena.</value>
