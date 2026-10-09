@@ -3899,6 +3899,21 @@ L'expéditeur a été informé qu'il était accepté, donc rien ne réessaiera e
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>L'authentification par annuaire est désactivée.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>L'authentification par annuaire est activée ici, mais Nom d'hôte du serveur d'annuaire et Base de recherche sont vides. Tant que les deux ne sont pas définis, le serveur ne tente aucune connexion par l'annuaire, et les comptes liés à l'annuaire continuent de se connecter par la connexion Windows, qui ne fonctionne que sur un ordinateur joint au domaine.
+
+Enregistrer quand même ?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>L'authentification par annuaire est activée ici, mais Nom d'hôte du serveur d'annuaire est vide. Tant qu'il n'est pas défini, le serveur ne tente aucune connexion par l'annuaire, et les comptes liés à l'annuaire continuent de se connecter par la connexion Windows, qui ne fonctionne que sur un ordinateur joint au domaine.
+
+Enregistrer quand même ?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>L'authentification par annuaire est activée ici, mais Base de recherche est vide, et un bind simple sans modèle de DN utilisateur cherche sous elle. Tant qu'elle n'est pas définie, le serveur ne tente aucune connexion par l'annuaire, et les comptes liés à l'annuaire continuent de se connecter par la connexion Windows, qui ne fonctionne que sur un ordinateur joint au domaine.
+
+Enregistrer quand même ?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Fiche d'annuaire</value>
   </data>

@@ -1959,6 +1959,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   on a line of its own above the buttons where they wrap, and asks "Create the account with this weak password
   anyway?" before it creates an account with a weak one, Cancel the answer Enter gives.
 
+- **Fixed: Directory authentication saved an incomplete configuration switched on without a question.** With "Use
+  LDAP directory authentication" ticked and the host name or the search base empty, Save wrote the section, which the
+  server reads within two seconds and then tries no directory sign-in at all, directory-linked accounts going on
+  through Windows logon, which works only on a computer joined to the domain - though the card at the top of the page
+  said what was missing. Save now asks first, naming the empty fields by their captions and saying what happens
+  meanwhile, with Save anyway and Cancel, Cancel the answer Enter gives; a section saved switched off is filled in at
+  leisure, as before.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

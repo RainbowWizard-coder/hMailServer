@@ -3899,6 +3899,21 @@ Avsändaren fick veta att det accepterades, så inget kommer att försöka igen 
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Katalogautentisering är avstängd.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogautentisering är påslagen här, men Katalogserverns värdnamn och Sökbas är tomma. Tills båda är angivna försöker servern ingen inloggning via katalogen, och katalogkopplade konton fortsätter att logga in genom Windows-inloggning, som bara fungerar på en dator som är ansluten till domänen.
+
+Spara ändå?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogautentisering är påslagen här, men Katalogserverns värdnamn är tomt. Tills det är angivet försöker servern ingen inloggning via katalogen, och katalogkopplade konton fortsätter att logga in genom Windows-inloggning, som bara fungerar på en dator som är ansluten till domänen.
+
+Spara ändå?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogautentisering är påslagen här, men Sökbas är tom, och en enkel bindning utan användarens DN-mall söker under den. Tills den är angiven försöker servern ingen inloggning via katalogen, och katalogkopplade konton fortsätter att logga in genom Windows-inloggning, som bara fungerar på en dator som är ansluten till domänen.
+
+Spara ändå?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Post i katalogen</value>
   </data>

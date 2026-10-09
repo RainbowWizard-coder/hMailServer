@@ -3899,6 +3899,21 @@ The sender was told it was accepted, so nothing will retry and there is no other
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Directory authentication is switched off.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.
+
+Save it anyway?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.
+
+Save it anyway?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.
+
+Save it anyway?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Directory entry</value>
   </data>

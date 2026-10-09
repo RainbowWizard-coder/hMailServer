@@ -3945,6 +3945,21 @@ Control Panel может читать файлы сообщений только
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Аутентификация через каталог выключена.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Аутентификация через каталог здесь включена, но Имя узла сервера каталога и База поиска пусты. Пока оба значения не заданы, сервер не пытается выполнять вход через каталог, а учётные записи, связанные с каталогом, продолжают входить через вход Windows, который работает только на компьютере, присоединённом к домену.
+
+Всё равно сохранить?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Аутентификация через каталог здесь включена, но Имя узла сервера каталога пусто. Пока оно не задано, сервер не пытается выполнять вход через каталог, а учётные записи, связанные с каталогом, продолжают входить через вход Windows, который работает только на компьютере, присоединённом к домену.
+
+Всё равно сохранить?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Аутентификация через каталог здесь включена, но База поиска пуста, а простая привязка без шаблона DN пользователя выполняет поиск под ней. Пока она не задана, сервер не пытается выполнять вход через каталог, а учётные записи, связанные с каталогом, продолжают входить через вход Windows, который работает только на компьютере, присоединённом к домену.
+
+Всё равно сохранить?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Запись в каталоге</value>
   </data>

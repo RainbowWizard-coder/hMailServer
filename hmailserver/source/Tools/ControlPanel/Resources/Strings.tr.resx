@@ -3899,6 +3899,21 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Dizin kimlik doğrulaması kapalı.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Dizin kimlik doğrulaması burada açık, ancak Dizin sunucusu ana bilgisayar adı ve Arama tabanı boş. İkisi de ayarlanana kadar sunucu dizin üzerinden hiçbir oturum açma denemez ve dizine bağlı hesaplar, yalnızca etki alanına katılmış bir bilgisayarda çalışan Windows oturum açması üzerinden oturum açmaya devam eder.
+
+Yine de kaydedilsin mi?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Dizin kimlik doğrulaması burada açık, ancak Dizin sunucusu ana bilgisayar adı boş. Ayarlanana kadar sunucu dizin üzerinden hiçbir oturum açma denemez ve dizine bağlı hesaplar, yalnızca etki alanına katılmış bir bilgisayarda çalışan Windows oturum açması üzerinden oturum açmaya devam eder.
+
+Yine de kaydedilsin mi?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Dizin kimlik doğrulaması burada açık, ancak Arama tabanı boş ve kullanıcı DN şablonu olmayan bir basit bağlama onun altında arama yapar. Ayarlanana kadar sunucu dizin üzerinden hiçbir oturum açma denemez ve dizine bağlı hesaplar, yalnızca etki alanına katılmış bir bilgisayarda çalışan Windows oturum açması üzerinden oturum açmaya devam eder.
+
+Yine de kaydedilsin mi?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Rehber kaydı</value>
   </data>

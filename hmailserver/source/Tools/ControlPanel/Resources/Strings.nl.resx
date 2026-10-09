@@ -3899,6 +3899,21 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Directoryauthenticatie staat uit.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Directoryauthenticatie staat hier aan, maar Hostnaam van de directoryserver en Zoekbasis zijn leeg. Zolang ze niet allebei zijn ingesteld, probeert de server geen aanmelding via de directory, en directorygekoppelde accounts blijven zich aanmelden via Windows-aanmelding, wat alleen werkt op een computer die lid is van het domein.
+
+Toch opslaan?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Directoryauthenticatie staat hier aan, maar Hostnaam van de directoryserver is leeg. Zolang die niet is ingesteld, probeert de server geen aanmelding via de directory, en directorygekoppelde accounts blijven zich aanmelden via Windows-aanmelding, wat alleen werkt op een computer die lid is van het domein.
+
+Toch opslaan?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Directoryauthenticatie staat hier aan, maar Zoekbasis is leeg, en een simple bind zonder sjabloon voor gebruikers-DN zoekt eronder. Zolang die niet is ingesteld, probeert de server geen aanmelding via de directory, en directorygekoppelde accounts blijven zich aanmelden via Windows-aanmelding, wat alleen werkt op een computer die lid is van het domein.
+
+Toch opslaan?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Vermelding in het adresboek</value>
   </data>

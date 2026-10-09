@@ -3899,6 +3899,21 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Hakemistotodennus on pois päältä.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Hakemistotodennus on tässä päällä, mutta Hakemistopalvelimen konenimi ja Hakujuuri ovat tyhjiä. Ennen kuin molemmat on asetettu, palvelin ei yritä kirjautumista hakemiston kautta, ja hakemistoon liitetyt tilit kirjautuvat edelleen Windows-kirjautumisen kautta, joka toimii vain toimialueeseen liitetyssä tietokoneessa.
+
+Tallennetaanko silti?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Hakemistotodennus on tässä päällä, mutta Hakemistopalvelimen konenimi on tyhjä. Ennen kuin se on asetettu, palvelin ei yritä kirjautumista hakemiston kautta, ja hakemistoon liitetyt tilit kirjautuvat edelleen Windows-kirjautumisen kautta, joka toimii vain toimialueeseen liitetyssä tietokoneessa.
+
+Tallennetaanko silti?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Hakemistotodennus on tässä päällä, mutta Hakujuuri on tyhjä, ja yksinkertainen sidonta ilman käyttäjän DN-mallia hakee sen alta. Ennen kuin se on asetettu, palvelin ei yritä kirjautumista hakemiston kautta, ja hakemistoon liitetyt tilit kirjautuvat edelleen Windows-kirjautumisen kautta, joka toimii vain toimialueeseen liitetyssä tietokoneessa.
+
+Tallennetaanko silti?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Hakemistotiedot</value>
   </data>

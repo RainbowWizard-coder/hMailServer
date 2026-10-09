@@ -3899,6 +3899,21 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>La autenticación por directorio está desactivada.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>La autenticación por directorio está activada aquí, pero Nombre de host del servidor de directorio y Base de búsqueda están vacíos. Hasta que ambos estén definidos, el servidor no intenta ningún inicio de sesión por directorio, y las cuentas vinculadas al directorio siguen iniciando sesión mediante el inicio de sesión de Windows, que solo funciona en un equipo unido al dominio.
+
+¿Guardar de todos modos?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>La autenticación por directorio está activada aquí, pero Nombre de host del servidor de directorio está vacío. Hasta que esté definido, el servidor no intenta ningún inicio de sesión por directorio, y las cuentas vinculadas al directorio siguen iniciando sesión mediante el inicio de sesión de Windows, que solo funciona en un equipo unido al dominio.
+
+¿Guardar de todos modos?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>La autenticación por directorio está activada aquí, pero Base de búsqueda está vacía, y un bind simple sin plantilla de DN de usuario busca bajo ella. Hasta que esté definida, el servidor no intenta ningún inicio de sesión por directorio, y las cuentas vinculadas al directorio siguen iniciando sesión mediante el inicio de sesión de Windows, que solo funciona en un equipo unido al dominio.
+
+¿Guardar de todos modos?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Ficha del directorio</value>
   </data>

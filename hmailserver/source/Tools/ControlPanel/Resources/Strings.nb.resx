@@ -3899,6 +3899,21 @@ Avsenderen fikk beskjed om at den ble godtatt, så ingenting vil prøve på nytt
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Katalogautentisering er slått av.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogautentisering er slått på her, men Katalogserverens vertsnavn og Søkebase er tomme. Til begge er angitt, forsøker serveren ingen pålogging via katalogen, og katalogkoblede kontoer fortsetter å logge på gjennom Windows-pålogging, som bare fungerer på en datamaskin som er tilknyttet domenet.
+
+Vil du lagre likevel?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogautentisering er slått på her, men Katalogserverens vertsnavn er tomt. Til det er angitt, forsøker serveren ingen pålogging via katalogen, og katalogkoblede kontoer fortsetter å logge på gjennom Windows-pålogging, som bare fungerer på en datamaskin som er tilknyttet domenet.
+
+Vil du lagre likevel?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogautentisering er slått på her, men Søkebase er tom, og en simple bind uten bruker-DN-mal søker under den. Til den er angitt, forsøker serveren ingen pålogging via katalogen, og katalogkoblede kontoer fortsetter å logge på gjennom Windows-pålogging, som bare fungerer på en datamaskin som er tilknyttet domenet.
+
+Vil du lagre likevel?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Oppføring i katalogen</value>
   </data>

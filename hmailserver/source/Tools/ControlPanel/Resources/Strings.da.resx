@@ -3899,6 +3899,21 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Katalogodkendelse er slået fra.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogodkendelse er slået til her, men Katalogserverens værtsnavn og Søgebase er tomme. Indtil begge er angivet, forsøger serveren ingen katalogpålogning, og katalogtilknyttede konti bliver ved med at logge på gennem Windows-pålogning, som kun virker på en computer, der er meldt ind i domænet.
+
+Vil du gemme alligevel?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogodkendelse er slået til her, men Katalogserverens værtsnavn er tomt. Indtil det er angivet, forsøger serveren ingen katalogpålogning, og katalogtilknyttede konti bliver ved med at logge på gennem Windows-pålogning, som kun virker på en computer, der er meldt ind i domænet.
+
+Vil du gemme alligevel?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Katalogodkendelse er slået til her, men Søgebase er tom, og en simple bind uden bruger-DN-skabelon søger under den. Indtil den er angivet, forsøger serveren ingen katalogpålogning, og katalogtilknyttede konti bliver ved med at logge på gennem Windows-pålogning, som kun virker på en computer, der er meldt ind i domænet.
+
+Vil du gemme alligevel?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Post i adressebogen</value>
   </data>

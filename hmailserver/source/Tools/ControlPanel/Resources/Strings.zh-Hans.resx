@@ -3899,6 +3899,21 @@
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>目录身份验证已关闭。</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>此处已打开目录身份验证，但目录服务器主机名和搜索基准为空。在两者都设置之前，服务器不会尝试通过目录登录，关联目录的账户继续通过 Windows 登录进行登录，而 Windows 登录只在加入了域的计算机上有效。
+
+是否仍要保存？</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>此处已打开目录身份验证，但目录服务器主机名为空。在设置之前，服务器不会尝试通过目录登录，关联目录的账户继续通过 Windows 登录进行登录，而 Windows 登录只在加入了域的计算机上有效。
+
+是否仍要保存？</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>此处已打开目录身份验证，但搜索基准为空，而没有用户 DN 模板的简单绑定会在其下搜索。在设置之前，服务器不会尝试通过目录登录，关联目录的账户继续通过 Windows 登录进行登录，而 Windows 登录只在加入了域的计算机上有效。
+
+是否仍要保存？</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>通讯录资料</value>
   </data>

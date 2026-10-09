@@ -3899,6 +3899,21 @@ O remetente foi informado de que ela foi aceita, então nada tentará de novo e 
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>A autenticação de diretório está desligada.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>A autenticação de diretório está ligada aqui, mas Nome do host do servidor de diretório e Base de busca estão vazios. Até que ambos sejam definidos, o servidor não tenta nenhum login pelo diretório, e as contas vinculadas ao diretório continuam entrando pelo login do Windows, que só funciona em um computador ingressado no domínio.
+
+Salvar mesmo assim?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>A autenticação de diretório está ligada aqui, mas Nome do host do servidor de diretório está vazio. Até que seja definido, o servidor não tenta nenhum login pelo diretório, e as contas vinculadas ao diretório continuam entrando pelo login do Windows, que só funciona em um computador ingressado no domínio.
+
+Salvar mesmo assim?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>A autenticação de diretório está ligada aqui, mas Base de busca está vazia, e um bind simples sem modelo de DN de usuário busca abaixo dela. Até que seja definida, o servidor não tenta nenhum login pelo diretório, e as contas vinculadas ao diretório continuam entrando pelo login do Windows, que só funciona em um computador ingressado no domínio.
+
+Salvar mesmo assim?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Ficha no diretório</value>
   </data>

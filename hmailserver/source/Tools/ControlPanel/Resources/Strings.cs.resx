@@ -3945,6 +3945,21 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Ověřování proti adresáři je vypnuté.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Ověřování proti adresáři je zde zapnuté, ale Název hostitele adresářového serveru a Báze hledání jsou prázdné. Dokud nebudou obě nastavené, server se o přihlášení přes adresář nepokouší a účty propojené s adresářem se dál přihlašují přes přihlášení Windows, které funguje jen na počítači připojeném do domény.
+
+Přesto uložit?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Ověřování proti adresáři je zde zapnuté, ale Název hostitele adresářového serveru je prázdný. Dokud nebude nastavený, server se o přihlášení přes adresář nepokouší a účty propojené s adresářem se dál přihlašují přes přihlášení Windows, které funguje jen na počítači připojeném do domény.
+
+Přesto uložit?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Ověřování proti adresáři je zde zapnuté, ale Báze hledání je prázdná, a jednoduchý bind bez šablony DN uživatele pod ní hledá. Dokud nebude nastavená, server se o přihlášení přes adresář nepokouší a účty propojené s adresářem se dál přihlašují přes přihlášení Windows, které funguje jen na počítači připojeném do domény.
+
+Přesto uložit?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Záznam v adresáři</value>
   </data>

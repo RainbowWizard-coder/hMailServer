@@ -3945,6 +3945,21 @@
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Автентифікацію через каталог вимкнено.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Автентифікацію через каталог тут увімкнено, але Ім'я вузла сервера каталогу і База пошуку порожні. Доки обидва не задано, сервер не намагається виконати вхід через каталог, а пов’язані з каталогом облікові записи й далі входять через вхід Windows, який працює лише на комп’ютері, приєднаному до домену.
+
+Все одно зберегти?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Автентифікацію через каталог тут увімкнено, але Ім'я вузла сервера каталогу порожнє. Доки його не задано, сервер не намагається виконати вхід через каталог, а пов’язані з каталогом облікові записи й далі входять через вхід Windows, який працює лише на комп’ютері, приєднаному до домену.
+
+Все одно зберегти?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Автентифікацію через каталог тут увімкнено, але База пошуку порожня, а проста прив'язка без шаблону DN користувача шукає під нею. Доки її не задано, сервер не намагається виконати вхід через каталог, а пов’язані з каталогом облікові записи й далі входять через вхід Windows, який працює лише на комп’ютері, приєднаному до домену.
+
+Все одно зберегти?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Запис у каталозі</value>
   </data>

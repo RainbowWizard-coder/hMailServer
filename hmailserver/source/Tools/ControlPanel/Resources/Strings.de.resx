@@ -3899,6 +3899,21 @@ Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt un
   <data name="Directory authentication is switched off." xml:space="preserve">
     <value>Die Verzeichnisauthentifizierung ist ausgeschaltet.</value>
   </data>
+  <data name="Directory authentication is switched on here, but Directory server host name and Search base are empty. Until both are set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Die Verzeichnisauthentifizierung ist hier eingeschaltet, aber Hostname des Verzeichnisservers und Suchbasis sind leer. Solange nicht beide gesetzt sind, versucht der Server keine Anmeldung über das Verzeichnis, und verzeichnisgebundene Konten melden sich weiter über die Windows-Anmeldung an, die nur auf einem Computer funktioniert, der der Domäne beigetreten ist.
+
+Trotzdem speichern?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Directory server host name is empty. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Die Verzeichnisauthentifizierung ist hier eingeschaltet, aber Hostname des Verzeichnisservers ist leer. Solange er nicht gesetzt ist, versucht der Server keine Anmeldung über das Verzeichnis, und verzeichnisgebundene Konten melden sich weiter über die Windows-Anmeldung an, die nur auf einem Computer funktioniert, der der Domäne beigetreten ist.
+
+Trotzdem speichern?</value>
+  </data>
+  <data name="Directory authentication is switched on here, but Search base is empty, and a simple bind without a user DN template searches under it. Until it is set, the server tries no directory sign-in, and directory-linked accounts go on signing in through Windows logon, which works only on a computer joined to the domain.&#10;&#10;Save it anyway?" xml:space="preserve">
+    <value>Die Verzeichnisauthentifizierung ist hier eingeschaltet, aber Suchbasis ist leer, und ein Simple Bind ohne Benutzer-DN-Vorlage sucht unter ihr. Solange sie nicht gesetzt ist, versucht der Server keine Anmeldung über das Verzeichnis, und verzeichnisgebundene Konten melden sich weiter über die Windows-Anmeldung an, die nur auf einem Computer funktioniert, der der Domäne beigetreten ist.
+
+Trotzdem speichern?</value>
+  </data>
   <data name="Directory entry" xml:space="preserve">
     <value>Verzeichniseintrag</value>
   </data>

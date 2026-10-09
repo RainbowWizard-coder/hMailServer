@@ -131,9 +131,11 @@
 
   <!-- What the forms ask of their fields before they save, and what they ask
        first (T2.4, part 2): a rule's criterion - its header name, its value, and
-       the comparisons a number offers (review finding F227). -->
+       the comparisons a number offers (review finding F227); and the question before
+       directory authentication is saved switched on with what it needs missing (F130). -->
   <ItemGroup>
     <Compile Include="..\ControlPanel\Services\RuleCriterionInput.cs" />
+    <Compile Include="..\ControlPanel\Services\LdapIncompleteSave.cs" />
   </ItemGroup>
 
   <!-- The operator documentation, embedded straight from the repository as

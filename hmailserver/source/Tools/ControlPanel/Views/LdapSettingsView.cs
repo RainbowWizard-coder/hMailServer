@@ -875,6 +875,18 @@ namespace hMailServer.ControlPanel.Views
             return false;
          }
 
+         // Switched on with the host name or the search base missing, the server tries
+         // no directory sign-in once it reads the section, two seconds from now: asked
+         // first, Cancel the answer Enter gives (review finding F130). The state card
+         // above says the same as the page is edited; this is the moment it matters.
+         Snapshot config = CollectSnapshot_();
+         bool serverMissing = config.Server.Length == 0;
+         bool searchBaseMissing = config.UsesSearch() && config.SearchBase.Length == 0;
+         if (LdapIncompleteSave.AsksFirst(config.Enabled, serverMissing, searchBaseMissing) &&
+             !MessageBox.Confirm(LdapIncompleteSave.Question(serverMissing, searchBaseMissing), L("Control Panel"), L("_Save anyway"),
+                cancelByDefault: true, level: StatusLevel.Warning))
+            return false;
+
          try
          {
             IniWrite_("Enabled", enabled_.IsChecked is true ? "1" : "0");
