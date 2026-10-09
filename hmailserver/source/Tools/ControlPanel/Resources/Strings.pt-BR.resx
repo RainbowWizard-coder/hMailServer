@@ -4065,7 +4065,7 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Cada retentativa antes de o atraso inicial passar reinicia o atraso a partir daquele momento, então um remetente que retenta por temporizador em vez de por fila nunca alcança a janela. Desligado por padrão: um servidor bem-comportado que retenta uma vez rápido demais é atrasado um pouco mais com isso ligado.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Cada verificação de spam na ordem em que o servidor a executa, o que ela soma à pontuação e o que o total faz com uma mensagem. Nada aqui pode ser editado: o link de cada linha abre a página dona da sua configuração.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

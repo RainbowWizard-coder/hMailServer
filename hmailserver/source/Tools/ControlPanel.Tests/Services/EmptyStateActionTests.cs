@@ -192,7 +192,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(reload != null, "ApiKeysView.Reload_ is gone.");
          Assert.Contains("summary_.Visibility = keys.Count == 0 ? Visibility.Collapsed : Visibility.Visible;", reload, StringComparison.Ordinal);
          Assert.DoesNotContain("L(\"No keys yet.\")", code, StringComparison.Ordinal);
-         Assert.Single(Regex.Matches(code, Regex.Escape("L(\"No API keys exist.")));
+         Assert.Single(Regex.Matches(code, Regex.Escape("L(\"No API keys yet, so every REST request")));
       }
 
       /// <summary>The lists in dialogs and on the Auto-ban page: an empty state in the list's place, shown only after a read that worked.</summary>

@@ -501,7 +501,7 @@ namespace hMailServer.ControlPanel.Views
       {
          string notRunning = ListenerProbe.ReinitialiseQuestionWhenNotRunning(ReadServerState_());
          if (notRunning != null
-             && MessageBox.Show(notRunning, L("Control Panel"), MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+             && !MessageBox.Confirm(notRunning, L("Control Panel"), L("Reinitialise _now"), cancelByDefault: true, decline: L("_Later")))
          {
             Reload();
             return;

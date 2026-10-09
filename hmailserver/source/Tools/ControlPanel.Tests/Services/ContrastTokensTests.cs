@@ -148,9 +148,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.All(setters, property => Assert.Contains(property, new[] { "Padding", "MinHeight", "Margin", "BorderThickness" }));
          Assert.Empty(style.Elements(Wpf + "Style.Triggers"));
 
-         // A line's words take its colour and nothing behind them.
-         XElement line = list.Element(Wpf + "ListBox.ItemTemplate").Descendants(Wpf + "TextBlock").Single();
-         Assert.Null(line.Attribute("Background"));
+         // A line's words - each of its columns - take its colour and nothing behind them.
+         XElement[] columns = list.Element(Wpf + "ListBox.ItemTemplate").Descendants(Wpf + "TextBlock").ToArray();
+         Assert.NotEmpty(columns);
+         Assert.All(columns, column => Assert.Null(column.Attribute("Background")));
       }
 
       /// <summary>

@@ -68,8 +68,9 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void TheEditor_ReadsTheSwitchWithTheList_AndHidesTheNoticeWhenTheReadFails()
       {
          string editor = ReadControlPanelFile(Path.Join("Views", "CollectionEditorView.cs"));
-         string reload = WithheldRowTests.MemberText(editor, "private void Reload()");
-         Assert.True(reload != null, "CollectionEditorView.Reload is gone.");
+         // The read is Load_, which Reload and the list's own acts call (review finding F208).
+         string reload = WithheldRowTests.MemberText(editor, "private void Load_(int selectId, int selectIndex, bool focus)");
+         Assert.True(reload != null, "CollectionEditorView.Load_ is gone.");
 
          // Inside the read's own try, so a link lost between the list and the
          // switch is one failure, said once by the read's Critical notice.

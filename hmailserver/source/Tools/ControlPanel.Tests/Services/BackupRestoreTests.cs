@@ -151,7 +151,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string put = WithheldRowTests.MemberText(Read("BackupView.xaml.cs"), "private void RestoreArchivedMessage_Click(object sender, RoutedEventArgs e)");
          Assert.True(put != null, "BackupView.RestoreArchivedMessage_Click is gone.");
-         Assert.Contains("MessageBox.Show(BackupRestoreReport.PutBackQuestion(selected, listedAddress_), ", put, StringComparison.Ordinal);
+         Assert.Contains("MessageBox.Confirm(BackupRestoreReport.PutBackQuestion(selected, listedAddress_), ", put, StringComparison.Ordinal);
       }
 
       // ---- the page -----------------------------------------------------------------------

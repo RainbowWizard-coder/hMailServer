@@ -152,7 +152,7 @@ namespace hMailServer.ControlPanel.Views
                dynamic p = perms.Item[i];
                ids_.Add((int)p.ID);
                int type = (int)p.PermissionType;
-               subjects_.Add((type, type switch { 0 => SafeAccount(p), 1 => SafeGroupName(p), _ => "" }));
+               subjects_.Add((type, type switch { 0 => SafeAccount(p), 1 => (string)SafeGroupName(p) ?? F("(group #{0})", (int)p.PermissionGroupID), _ => "" }));
                list_.Items.Add(Describe(p));
                ServerSession.Release(p);
             }
@@ -190,12 +190,6 @@ namespace hMailServer.ControlPanel.Views
       {
          try { dynamic a = p.Account; string addr = (string)a.Address; ServerSession.Release(a); return addr; }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return F("(account #{0})", (int)p.PermissionAccountID); }
-      }
-
-      private static string SafeGroupName(dynamic p)
-      {
-         try { dynamic g = p.Group; string n = (string)g.Name; ServerSession.Release(g); return n; }
-         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { return F("(group #{0})", (int)p.PermissionGroupID); }
       }
 
       private static string SafeGroup(dynamic p)

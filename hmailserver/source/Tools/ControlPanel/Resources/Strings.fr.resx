@@ -4065,7 +4065,7 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Chaque réessai avant la fin du délai initial relance le délai à partir de ce moment, de sorte qu'un expéditeur qui réessaie sur minuterie plutôt que depuis une file n'atteint jamais la fenêtre. Désactivé par défaut : un serveur bien élevé qui réessaie une fois trop vite est retardé un peu plus longtemps quand c'est activé.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Chaque vérification anti-spam dans l'ordre où le serveur l'exécute, ce qu'elle ajoute au score et ce que le total fait d'un message. Rien n'est modifiable ici : le lien de chaque ligne ouvre la page qui possède son réglage.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

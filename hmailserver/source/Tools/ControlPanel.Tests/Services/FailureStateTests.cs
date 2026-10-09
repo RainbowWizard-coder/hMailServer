@@ -150,12 +150,14 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          ("AccountDialog.cs", "Could not read the photo", "a local image file"),
          ("ConnectView.xaml.cs", "Fail_(ex.Message)", "the sign-in page's own reporting"),
-         ("DirectorySyncView.cs", "L(\"Could not save: \") + ex.Message", "hMailServer.ini on this machine"),
+         ("BackupView.xaml.cs", "could not be read from this machine", "the backup destination's folder, listed on this machine"),
+         ("DirectorySyncView.cs", "saveState_.Refuse(F(\"Could not save: {0}\", ex.Message))", "hMailServer.ini on this machine"),
          ("DnsRecordsView.cs", "ex.InnerException != null ? ex.InnerException.Message", "an HTTPS fetch from this machine"),
          ("DnsRecordsView.cs", "The fetch itself failed", "an HTTPS fetch from this machine"),
+         ("DnsRecordsView.cs", "The check itself failed", "a lookup through this machine's resolver"),
          ("DomainDialog.cs", "Could not generate the DKIM key", "a key made and written on this machine"),
          ("DomainPolicyListView.cs", "The server's answer could not be read", "already a sentence about an unreadable answer"),
-         ("LdapSettingsView.cs", "MessageBox.Show(F(\"Could not save: {0}\", ex.Message)", "hMailServer.ini on this machine"),
+         ("LdapSettingsView.cs", "saveState_.Refuse(F(\"Could not save: {0}\", ex.Message))", "hMailServer.ini on this machine"),
          ("LdapSettingsView.cs", "The test itself failed unexpectedly", "an LDAP probe from this machine"),
          ("MessageViewerDialog.cs", "Could not read the message file", "a local message file"),
          ("ScriptsView.cs", "F(\"Could not read the file: {0}\", ex.Message)", "a local script file"),
@@ -230,7 +232,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string settings = ReadView("ServerSettingsView.xaml.cs");
          int stat = settings.IndexOf("private class ComStat", StringComparison.Ordinal);
          string build = WithheldRowTests.MemberText(settings.Substring(stat), "protected override FrameworkElement BuildEditor(object value)");
-         Assert.Matches(new Regex(@"catch \(Exception ex\)[^{]*\{[^}]*return new Scaffold\.InlineNotice\s*\{\s*Level = StatusLevel\.Warning", RegexOptions.Singleline), build);
+         Assert.Matches(new Regex(@"catch \(Exception ex\)[^{]*\{[^}]*(?:return|var notice =) new Scaffold\.InlineNotice\s*\{\s*Level = StatusLevel\.Warning", RegexOptions.Singleline), build);
       }
 
       /// <summary>
@@ -328,7 +330,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The settings pages put the environment's sentence before the read's, whose
          // reason is last.
          string build = WithheldRowTests.MemberText(ReadView("ServerSettingsView.xaml.cs"), "private void BuildUi()");
-         Assert.Contains("environmentSentence + \" \" + readSentence", build, StringComparison.Ordinal);
+         Assert.Contains("Sentences(environmentSentence, readSentence)", build, StringComparison.Ordinal);
          Assert.DoesNotContain("readSentence + \" \"", build, StringComparison.Ordinal);
       }
 
@@ -401,7 +403,8 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The card's own notice, one sentence per number.
          Assert.Contains("else if (unread > 0)", build, StringComparison.Ordinal);
          Assert.Contains("L(\"One setting on this card could not be read, so it is marked Not read; saving leaves it as it is on the server.\")", build, StringComparison.Ordinal);
-         Assert.Contains("F(\"{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.\", unread)", build, StringComparison.Ordinal);
+         Assert.Contains("Plural(unread,", build, StringComparison.Ordinal);
+         Assert.Contains("\"{0} settings on this card could not be read, so they are marked Not read; saving leaves them as they are on the server.\")", build, StringComparison.Ordinal);
 
          // The row: the caption with no access key, the note, and the neutral pill.
          string row = WithheldRowTests.MemberText(source, "private static Scaffold.FieldRow UnreadRow_(ComSetting setting)");
@@ -466,7 +469,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Matches(new Regex(@"failedReads_ = 0;\s*linkLost_ = false;"), build);
 
          // The page's sentence at the cause's level, never at a fixed Critical.
-         Assert.Contains("ShowNotice_(string.IsNullOrEmpty(environmentSentence) ? readSentence : environmentSentence + \" \" + readSentence, ComErrorText.LevelFor(linkLost_));", build, StringComparison.Ordinal);
+         Assert.Contains("ShowNotice_(Sentences(environmentSentence, readSentence), ComErrorText.LevelFor(linkLost_));", build, StringComparison.Ordinal);
          Assert.DoesNotContain("readSentence, StatusLevel.", build, StringComparison.Ordinal);
 
          // The cards' counts are said after every card has been read, and only when
@@ -554,7 +557,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(tabLoop >= 0 && tabLoop < declared && declared < cardLoop, "The REST reason is not kept per tab.");
 
          string notice = WithheldRowTests.MemberText(source, "private static Scaffold.InlineNotice RestTabNotice_(string reason)");
-         Assert.Contains("L(\"These settings are read through the REST API, which this session cannot use.\") + \" \" + reason", notice, StringComparison.Ordinal);
+         Assert.Contains("Sentences(L(\"These settings are read through the REST API, which this session cannot use.\"), reason)", notice, StringComparison.Ordinal);
          Assert.Contains("L(\"_Open API & monitoring\")", notice, StringComparison.Ordinal);
          Assert.Contains("NavigateTo(\"api\")", notice, StringComparison.Ordinal);
       }

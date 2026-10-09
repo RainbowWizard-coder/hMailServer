@@ -4111,7 +4111,7 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Každý pokus před uplynutím počátečního zpoždění spustí zpoždění znovu od toho okamžiku, takže odesílatel, který opakuje podle časovače místo z fronty, okno nikdy nedosáhne. Výchozí vypnuto: slušný server, který jednou zkusí znovu příliš rychle, je se zapnutím zdržen o něco déle.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Každá kontrola spamu v pořadí, v jakém ji server spouští, co přidá ke skóre a co celkový součet udělá se zprávou. Nic zde nelze upravit: odkaz v každém řádku otevře stránku, které jeho nastavení patří.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

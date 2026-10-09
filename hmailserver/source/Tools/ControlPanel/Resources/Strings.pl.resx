@@ -4111,7 +4111,7 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Każde ponowienie przed upływem opóźnienia początkowego zaczyna opóźnienie od nowa od tej chwili, więc nadawca ponawiający według zegara zamiast z kolejki nigdy nie dociera do okna. Domyślnie wyłączone: dobrze zachowujący się serwer, który raz ponowi zbyt szybko, jest z tym włączonym opóźniany nieco dłużej.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Każda kontrola antyspamowa w kolejności, w jakiej wykonuje ją serwer, co dodaje do punktacji i co suma robi z wiadomością. Tutaj niczego nie można edytować: odnośnik w każdym wierszu otwiera stronę, do której należy jego ustawienie.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

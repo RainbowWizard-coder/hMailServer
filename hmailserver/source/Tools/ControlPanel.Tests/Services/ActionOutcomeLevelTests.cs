@@ -68,8 +68,6 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("Enter the clamscan.exe path first.", 1)]
       [InlineData("Enter the scanner command first.", 1)]
       [InlineData("ClamWin was not found in the standard install locations.", 1)]
-      [InlineData("Control-Panel-only two-factor authentication is off.", 1)]
-      [InlineData("No second factor is enforced - the administrator password alone signs in.", 1)]
       [InlineData("No log folder could be read from hMailServer.INI on this machine.", 1)]
       public void HintsAndLegitimateOffs_AreInformation(string english, int times)
       {

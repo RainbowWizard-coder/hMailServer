@@ -4065,7 +4065,7 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>İlk gecikme dolmadan yapılan her yeniden deneme gecikmeyi o andan itibaren yeniden başlatır; böylece kuyruktan değil zamanlayıcıyla yeniden deneyen bir gönderen pencereye asla ulaşamaz. Varsayılan olarak kapalı: bir kez fazla hızlı yeniden deneyen iyi huylu bir sunucu bu açıkken biraz daha geciktirilir.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Her spam denetimi sunucunun çalıştırdığı sırayla, puana ne eklediği ve toplamın iletiye ne yaptığı. Burada hiçbir şey düzenlenemez: her satırdaki bağlantı, ayarının sahibi olan sayfayı açar.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

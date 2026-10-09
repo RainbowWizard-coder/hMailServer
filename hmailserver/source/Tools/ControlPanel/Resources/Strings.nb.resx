@@ -4065,7 +4065,7 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Hvert nytt forsøk før startforsinkelsen har gått, starter forsinkelsen på nytt fra det øyeblikket, så en avsender som prøver på nytt etter en tidtaker i stedet for fra en kø, når aldri vinduet. Av som standard: en veloppdragen server som én gang prøver på nytt for raskt, forsinkes litt lenger med dette på.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Hver spamkontroll i rekkefølgen serveren kjører den, hva den legger til poengsummen, og hva totalen gjør med en melding. Ingenting her kan redigeres: lenken i hver rad åpner siden som eier innstillingen.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

@@ -51,7 +51,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("L(\"Full authority\") : L(\"Read-only\")", code, StringComparison.Ordinal);
          Assert.DoesNotContain(": \"read-only\"", code, StringComparison.Ordinal);
          Assert.Contains("PlaceholderText = L(\"For example 10.0.0.5 or 10.0.0.0/24\")", code, StringComparison.Ordinal);
-         Assert.Contains("L(\"Source address or range it may be used from (optional)\")", code, StringComparison.Ordinal);
+         Assert.Contains("L(\"_Source address or range it may be used from (optional)\")", code, StringComparison.Ordinal);
          Assert.DoesNotContain("10.0.0.5, or 10.0.0.0/24", code, StringComparison.Ordinal);
       }
 
@@ -60,8 +60,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          string code = Source();
          Assert.DoesNotContain("No API keys exist.", code, StringComparison.Ordinal);
-         Assert.Contains("empty_.Action = createFirst;", code, StringComparison.Ordinal);
-         Assert.Contains("summary_.Visibility = Visibility.Collapsed;", code, StringComparison.Ordinal);
+         Assert.Contains("empty_.Action = first;", code, StringComparison.Ordinal);
+         Assert.Contains("summary_.Visibility = keys.Count == 0 ? Visibility.Collapsed : Visibility.Visible;", code, StringComparison.Ordinal);
       }
 
       private static string KeyRow()

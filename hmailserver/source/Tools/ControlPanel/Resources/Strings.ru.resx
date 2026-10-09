@@ -4111,7 +4111,7 @@ Control Panel может читать файлы сообщений только
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Каждая повторная попытка до истечения начальной задержки запускает задержку заново с этого момента, поэтому отправитель, повторяющий по таймеру, а не из очереди, никогда не достигает окна. По умолчанию выключено: добропорядочный сервер, один раз повторивший слишком быстро, с этим параметром задерживается чуть дольше.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Каждая проверка на спам в том порядке, в каком её выполняет сервер, что она добавляет к оценке и что итог делает с сообщением. Здесь ничего нельзя изменить: ссылка в каждой строке открывает страницу, которой принадлежит её параметр.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

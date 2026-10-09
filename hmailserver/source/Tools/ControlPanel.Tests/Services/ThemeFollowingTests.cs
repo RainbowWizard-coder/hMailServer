@@ -78,7 +78,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          if (source == null)
             return;
 
-         string iconButton = WithheldRowTests.MemberText(source, "private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, string colourKey, bool filled, string tipPath)");
+         string iconButton = WithheldRowTests.MemberText(source, "private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, string colourKey, bool filled, string tipPath, string keyTipPath = null, string key = null)");
          Assert.True(iconButton != null, "QuarantineView.IconButton_ no longer takes its colour as a resource key.");
          Assert.Contains("icon.SetResourceReference(IconElement.ForegroundProperty, colourKey)", iconButton, StringComparison.Ordinal);
          Assert.DoesNotContain("ForegroundProperty, colour)", iconButton, StringComparison.Ordinal);

@@ -4065,7 +4065,7 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Ogni nuovo tentativo prima che sia trascorso il ritardo iniziale fa ripartire il ritardo da quel momento, così un mittente che ritenta con un timer anziché da una coda non raggiunge mai la finestra. Disattivato per impostazione predefinita: un server ben educato che ritenta una volta troppo in fretta viene ritardato un po' di più con questa opzione attiva.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Ogni controllo antispam nell'ordine in cui il server lo esegue, cosa aggiunge al punteggio e cosa fa il totale a un messaggio. Qui non si può modificare nulla: il collegamento di ogni riga apre la pagina proprietaria della sua impostazione.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

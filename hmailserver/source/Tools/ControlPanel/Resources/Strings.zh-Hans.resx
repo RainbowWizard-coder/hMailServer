@@ -4065,7 +4065,7 @@
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>初始延迟结束前的每次重试都会从那一刻起重新开始延迟，因此按定时器而非从队列重试的发件人永远到不了窗口。默认关闭：开启后，偶尔一次重试过快的守规矩的服务器会被多延迟一会儿。</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>每项垃圾邮件检查按服务器运行它的顺序列出，以及它给分数加上多少、总分会对邮件产生什么影响。这里不能编辑任何内容：每一行中的链接都会打开拥有其设置的页面。</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

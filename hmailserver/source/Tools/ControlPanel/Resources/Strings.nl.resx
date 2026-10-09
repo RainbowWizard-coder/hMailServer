@@ -4065,7 +4065,7 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Elke nieuwe poging voordat de initiële vertraging is verstreken, start de vertraging opnieuw vanaf dat moment, zodat een afzender die op een timer in plaats van vanuit een wachtrij opnieuw probeert het venster nooit bereikt. Standaard uit: een nette server die één keer te snel opnieuw probeert, wordt hiermee iets langer opgehouden.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Elke spamcontrole in de volgorde waarin de server ze uitvoert, wat ze aan de score toevoegt en wat het totaal met een bericht doet. Hier kan niets worden bewerkt: de koppeling in elke rij opent de pagina waar de instelling thuishoort.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

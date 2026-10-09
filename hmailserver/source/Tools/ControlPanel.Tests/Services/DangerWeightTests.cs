@@ -33,6 +33,13 @@ namespace hMailServer.ControlPanel.Tests.Services
          [Path.Join("Views", "Dialogs.cs")] = "a confirmation's destructive answer",
          [Path.Join("Views", "BackupView.xaml")] = "Start restore and Restore the mailbox, the restore itself",
          [Path.Join("Views", "QuarantineListDialog.cs")] = "Blacklist and delete, the dialog's own answer",
+         [Path.Join("Views", "AdministratorTwoFactorDialog.cs")] = "Turn off the second factor, the dialog's own answer",
+         // Where the appearance itself is drawn from the design tokens: the implicit
+         // button style and the tokens it reads.
+         ["App.xaml"] = "the implicit style that draws the Danger appearance",
+         [Path.Join("Views", "Scaffold", "Tokens.xaml")] = "the Danger appearance's tokens",
+         [Path.Join("Services", "DesignTokens.cs")] = "the Danger appearance's tokens",
+         [Path.Join("Services", "ThemeTokens.cs")] = "the Danger appearance's tokens, published on a theme change",
       };
 
       [Fact]

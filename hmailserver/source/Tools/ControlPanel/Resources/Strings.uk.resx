@@ -4111,7 +4111,7 @@
   <data name="Each retry before the initial delay has passed starts the delay again from that moment, so a sender that retries on a timer rather than from a queue never reaches the window. Off by default: a well-behaved server that retries once too quickly is delayed a little longer with it on." xml:space="preserve">
     <value>Кожна повторна спроба до закінчення початкової затримки запускає затримку знову з цієї миті, тож відправник, який повторює за таймером, а не з черги, ніколи не досягає вікна. Типово вимкнено: доброчесний сервер, який один раз повторив надто швидко, з цим параметром затримується трохи довше.</value>
   </data>
-  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: the link in each row opens the page that owns its setting." xml:space="preserve">
+  <data name="Each spam check in the order the server runs it, what it adds to the score, and what the total does to a message. Nothing here can be edited: each row's link opens the page that owns its setting." xml:space="preserve">
     <value>Кожна перевірка на спам у порядку, в якому сервер її виконує, що вона додає до оцінки і що загальна сума робить із повідомленням. Тут нічого не можна редагувати: посилання в кожному рядку відкриває сторінку, якій належить її параметр.</value>
   </data>
   <data name="Ed_it action…" xml:space="preserve">

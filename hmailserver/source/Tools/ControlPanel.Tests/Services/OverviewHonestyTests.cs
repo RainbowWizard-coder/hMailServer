@@ -56,7 +56,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// </summary>
       [Theory]
       [InlineData("TlsOverviewView.cs", "each section has a button to the page that owns its settings.")]
-      [InlineData("SpamOverviewView.cs", "the link in each row opens the page that owns its setting.")]
+      [InlineData("SpamOverviewView.cs", "each row's link opens the page that owns its setting.")]
       [InlineData("VirusOverviewView.cs", "each section has a button to the page that owns its settings.")]
       public void NoOverviewPromisesRowsThatOpenAPage(string view, string says)
       {
