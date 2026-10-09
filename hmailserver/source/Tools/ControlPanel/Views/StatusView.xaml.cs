@@ -380,7 +380,7 @@ namespace hMailServer.ControlPanel.Views
             case ServerStateStopped_:
                // The glyph swaps with the verb - a "Resume" button wearing a
                // pause icon says two things at once, and one of them is wrong.
-               PauseButton.Content = L("_Resume");
+               PauseButton.Content = L("R_esume");
                PauseButtonIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.Play24;
                PauseButton.IsEnabled = true;
                break;

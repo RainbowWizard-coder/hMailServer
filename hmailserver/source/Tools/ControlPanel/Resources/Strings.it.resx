@@ -771,6 +771,9 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>Registro compatibile con AWStats</value>
   </data>
+  <data name="A_ccount to add" xml:space="preserve">
+    <value>Account _da aggiungere</value>
+  </data>
   <data name="A_ction" xml:space="preserve">
     <value>A_zione</value>
   </data>
@@ -861,9 +864,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Account recovery" xml:space="preserve">
     <value>Recupero dell'account</value>
   </data>
-  <data name="Account to add" xml:space="preserve">
-    <value>Account da aggiungere</value>
-  </data>
   <data name="Account to add to the group" xml:space="preserve">
     <value>Account da aggiungere al gruppo</value>
   </data>
@@ -911,9 +911,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Active" xml:space="preserve">
     <value>Attivo</value>
-  </data>
-  <data name="Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
-    <value>Dominio Active Directory (per i domini sincronizzati con AD; facoltativo)</value>
   </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory non è disponibile su questa macchina: {0}</value>
@@ -1122,6 +1119,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Aggiungi alla lista di soppressione di {0}</value>
   </data>
+  <data name="Add_ress" xml:space="preserve">
+    <value>_Indirizzo</value>
+  </data>
   <data name="Added" xml:space="preserve">
     <value>Aggiunto</value>
   </data>
@@ -1244,6 +1244,9 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   </data>
   <data name="Alerts sent one at a time in an hour, at most" xml:space="preserve">
     <value>Avvisi inviati uno alla volta in un'ora, al massimo</value>
+  </data>
+  <data name="Alias addr_ess" xml:space="preserve">
+    <value>I_ndirizzo alias</value>
   </data>
   <data name="Alias address" xml:space="preserve">
     <value>Indirizzo alias</value>
@@ -1627,9 +1630,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Cartella di archivio (vuoto = archiviazione disattivata)</value>
   </data>
-  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
-    <value>Archivio nella destinazione di backup (_nome o percorso)</value>
-  </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir è una copia grezza di ogni messaggio che passa per il server, e finora nulla ne rimuoveva mai nulla - quindi su un server impegnato è una directory che cresce soltanto, e l'amministratore che lo scopre è quello a cui si è riempito il disco. Questo la pota. 0 conserva tutto, ed è l'impostazione predefinita di proposito: un archivio di solito viene conservato per un motivo legale o contrattuale, e un server che iniziasse a cancellarne all'aggiornamento distruggerebbe esattamente ciò che gli è stato detto di conservare. La scansione rimuove solo file .eml, quindi qualunque altra cosa tu conservi nell'archivio viene lasciata in pace, e viene eseguita all'avvio e ogni dodici ore dopo.</value>
   </data>
@@ -1813,8 +1813,11 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="BATV signing secret" xml:space="preserve">
     <value>Segreto di firma BATV</value>
   </data>
-  <data name="B_rowse…" xml:space="preserve">
-    <value>S_foglia…</value>
+  <data name="B_ind address" xml:space="preserve">
+    <value>Indirizzo di _binding</value>
+  </data>
+  <data name="B_ody canonicalization" xml:space="preserve">
+    <value>Ca_nonicalizzazione del corpo</value>
   </data>
   <data name="Back" xml:space="preserve">
     <value>Indietro</value>
@@ -1941,9 +1944,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Bind address" xml:space="preserve">
     <value>Indirizzo di binding</value>
-  </data>
-  <data name="Bind address (0.0.0.0)" xml:space="preserve">
-    <value>Indirizzo di binding (0.0.0.0)</value>
   </data>
   <data name="Bind outbound connections to IP (empty = any)" xml:space="preserve">
     <value>Associa le connessioni in uscita all'IP (vuoto = qualsiasi)</value>
@@ -2202,9 +2202,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Certificate file" xml:space="preserve">
     <value>File del certificato</value>
-  </data>
-  <data name="Certificate file (PEM)" xml:space="preserve">
-    <value>File del certificato (PEM)</value>
   </data>
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>File del certificato per il nuovo certificato</value>
@@ -2671,9 +2668,6 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>L'autenticazione a due fattori solo per il Control Panel è attiva.</value>
   </data>
-  <data name="Cop_y" xml:space="preserve">
-    <value>C_opia</value>
-  </data>
   <data name="Copied." xml:space="preserve">
     <value>Copiato.</value>
   </data>
@@ -3123,6 +3117,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Country blocking" xml:space="preserve">
     <value>Blocco per paese</value>
   </data>
+  <data name="Cr_eate" xml:space="preserve">
+    <value>Cre_a</value>
+  </data>
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Barriera di durabilità in caso di crash e una scansione di integrità facoltativa per l'archivio dei messaggi su disco. I valori predefiniti conservano il comportamento precedente; attivare fsync aggiunge un piccolo costo per messaggio.</value>
   </data>
@@ -3299,6 +3296,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="D_epartment" xml:space="preserve">
     <value>_Reparto</value>
+  </data>
+  <data name="D_omain" xml:space="preserve">
+    <value>Domi_nio</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>Ora del backup g_iornaliero (HH:MM a 24 ore, vuoto = disattivato)</value>
@@ -3680,6 +3680,9 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Eliminare un dominio elimina gli account che contiene. Controlla prima se ci sono alias e liste che puntano a esso.</value>
   </data>
+  <data name="Deli_vers to" xml:space="preserve">
+    <value>Cons_egna a</value>
+  </data>
   <data name="Deliver _local → local" xml:space="preserve">
     <value>Consegna _locale → locale</value>
   </data>
@@ -3725,9 +3728,6 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Consegna: il messaggio viene accettato ma non parte mai</value>
   </data>
-  <data name="Delivers to" xml:space="preserve">
-    <value>Consegna a</value>
-  </data>
   <data name="Delivery" xml:space="preserve">
     <value>Consegna</value>
   </data>
@@ -3756,7 +3756,7 @@ Al mittente è stato detto che era stato accettato, quindi nulla riproverà e no
     <value>Descrizione</value>
   </data>
   <data name="Destination _folder (on the server)" xml:space="preserve">
-    <value>_Cartella di destinazione (sul server)</value>
+    <value>C_artella di destinazione (sul server)</value>
   </data>
   <data name="Detail" xml:space="preserve">
     <value>Dettaglio</value>
@@ -3874,17 +3874,17 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Do not send messages larger than (KB; 0 = no limit)" xml:space="preserve">
     <value>Non inviare messaggi più grandi di (KB; 0 = nessun limite)</value>
   </data>
+  <data name="Do_main" xml:space="preserve">
+    <value>D_ominio</value>
+  </data>
+  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
+    <value>_Dominio (es. partner.com)</value>
+  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Non corrisponde al certificato</value>
   </data>
   <data name="Domain" xml:space="preserve">
     <value>Dominio</value>
-  </data>
-  <data name="Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>Dominio (es. gmail.com)</value>
-  </data>
-  <data name="Domain (e.g. partner.com)" xml:space="preserve">
-    <value>Dominio (es. partner.com)</value>
   </data>
   <data name="Domain - {0}" xml:space="preserve">
     <value>Dominio - {0}</value>
@@ -3928,9 +3928,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Dominio, o .suffisso</value>
   </data>
-  <data name="Domain:" xml:space="preserve">
-    <value>Dominio:</value>
-  </data>
   <data name="Domains" xml:space="preserve">
     <value>Domini</value>
   </data>
@@ -3939,9 +3936,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domini e suffissi HELO che superano il greylisting solo quando il messaggio supera SPF, DKIM o DMARC come richiede la voce.</value>
-  </data>
-  <data name="Domains it may act on (optional)" xml:space="preserve">
-    <value>Domini su cui può agire (facoltativo)</value>
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domini, account, alias e liste di distribuzione, e per ogni account le password, gli inoltri e le cartelle.</value>
@@ -3983,7 +3977,7 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
     <value>ID _esterno (l'ID di questa persona presso il provider di identità; vuoto = nessuno)</value>
   </data>
   <data name="E_xternal to local" xml:space="preserve">
-    <value>Da e_sterno a locale</value>
+    <value>_Da esterno a locale</value>
   </data>
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Ogni cartella IMAP tiene un contatore per il prossimo UID di messaggio che emetterà. Se quel contatore resta indietro rispetto ai messaggi già presenti nella cartella - cosa che un database ripristinato o modificato a mano può provocare - la cartella emette un UID che ha già usato, e un client che tiene in cache per UID mostra un messaggio dove dovrebbe essercene un altro. Questo porta ogni contatore fino all'UID più alto che la sua cartella contiene davvero. Non ne abbassa mai uno, quindi non può causare il guasto che ripara.</value>
@@ -4249,8 +4243,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Indica una parte di un nome e premi Cerca, oppure cerca con la casella vuota per elencare tutti gli utenti.</value>
   </data>
-  <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
-    <value>Inserisci il codice a 6 cifre della tua app di autenticazione:</value>
+  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
+    <value>_Inserisci il codice a 6 cifre della tua app di autenticazione:</value>
   </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Indicare l'indirizzo dell'account di cui ripristinare la casella.</value>
@@ -4780,17 +4774,14 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Mittente (in_dirizzo)</value>
   </data>
-  <data name="From address" xml:space="preserve">
-    <value>Indirizzo del mittente</value>
+  <data name="From _name" xml:space="preserve">
+    <value>_Nome del mittente</value>
   </data>
   <data name="From address and subject are required." xml:space="preserve">
     <value>L'indirizzo del mittente e l'oggetto sono obbligatori.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>From viene incluso automaticamente ogni volta che questo elenco non è vuoto - un secondo From: anteposto è proprio l'attacco per cui esiste l'oversigning. I nomi devono essere ASCII stampabile senza due punti; un nome non valido viene scartato con una voce nel registro errori, e un valore più lungo di 256 caratteri viene ignorato del tutto, anch'esso con una voce di errore, perché h= deve stare su una sola riga non ripiegata.</value>
-  </data>
-  <data name="From name" xml:space="preserve">
-    <value>Nome del mittente</value>
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Proxy di frontend (protocollo PROXY e XCLIENT)</value>
@@ -5182,9 +5173,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="How the password is proved" xml:space="preserve">
     <value>Come viene dimostrata la password</value>
   </data>
-  <data name="How the selected member is sent a managed list's mail" xml:space="preserve">
-    <value>Come il membro selezionato riceve la posta di una lista gestita</value>
-  </data>
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Come il server decide che mail.example.com ed example.com appartengono alla stessa organizzazione, che è ciò che confronta l'allineamento rilassato predefinito di DMARC. La vecchia risposta era la Public Suffix List - un file con le regole di delega di ogni registro, compilato nel programma e aggiornato al momento della compilazione. DMARCbis l'ha sostituita con una risalita del DNS che chiede a ogni livello se è un confine organizzativo, così il proprietario di un dominio può dichiarare dov'è il proprio confine invece di fare istanza a un elenco. Disattivarlo fa ripiegare sull'elenco compilato, che è anche ciò che accade per ogni singola ricerca che la risalita non riesce a completare perché il DNS non era disponibile - un'interruzione del resolver non deve trasformare in silenzio l'allineamento rilassato in allineamento stretto. Costa fino a otto query DNS per dominio, messe in cache per cinque minuti.</value>
   </data>
@@ -5505,6 +5493,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journaling e consegna doppia</value>
   </data>
+  <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
+    <value>Passphrase della _chiave (solo per una chiave cifrata)</value>
+  </data>
   <data name="Keep" xml:space="preserve">
     <value>Mantieni</value>
   </data>
@@ -5565,9 +5556,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Key material is present for the algorithms allowed, and both the issuer and the audience are checked, so a token has to have been minted by your provider for this server specifically. The mailbox it names still has to exist as a local account - a valid token for an address this server does not host is refused." xml:space="preserve">
     <value>Il materiale crittografico è presente per gli algoritmi consentiti, e vengono verificati sia l'emittente sia l'audience, quindi un token deve essere stato emesso dal proprio provider specificamente per questo server. La casella che il token indica deve comunque esistere come account locale - un token valido per un indirizzo che questo server non ospita viene rifiutato.</value>
   </data>
-  <data name="Key passphrase (only for an encrypted key)" xml:space="preserve">
-    <value>Passphrase della chiave (solo per una chiave cifrata)</value>
-  </data>
   <data name="Key prefix (empty = none)" xml:space="preserve">
     <value>Prefisso delle chiavi (vuoto = nessuno)</value>
   </data>
@@ -5601,8 +5589,8 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="LDAPS is the default. A number in the INI that is not one of these three is read as LDAPS, so a typo cannot silently weaken the transport - and whatever this is set to, a password is never sent over an unprotected connection unless that is explicitly allowed below." xml:space="preserve">
     <value>LDAPS è l'impostazione predefinita. Un numero nell'INI che non sia uno di questi tre viene letto come LDAPS, così un errore di battitura non può indebolire silenziosamente il trasporto - e qualunque sia il valore impostato qui, una password non viene mai inviata su una connessione non protetta a meno che ciò non sia esplicitamente consentito qui sotto.</value>
   </data>
-  <data name="Label" xml:space="preserve">
-    <value>Etichetta</value>
+  <data name="L_ist address" xml:space="preserve">
+    <value>Indi_rizzo della lista</value>
   </data>
   <data name="Language" xml:space="preserve">
     <value>Lingua</value>
@@ -5790,6 +5778,9 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>In tempo reale, dal server in esecuzione. Il tasso di successo è la quota di ricerche risolte dalla memoria dall'ultimo azzeramento dei contatori - che avviene al riavvio del servizio, quando una cache viene disattivata e quando il suo TTL viene modificato, quindi un tasso rilevato subito dopo uno di questi eventi descrive un campione molto breve. Una ricerca di qualcosa che non esiste conta come mancato successo e non memorizza nulla, quindi un server sondato per indirizzi che non ospita mostra un tasso basso senza che ci sia nulla di sbagliato nella cache.</value>
   </data>
+  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
+    <value>IP inf_eriore (es. 10.0.0.0)</value>
+  </data>
   <data name="Loaded from disk." xml:space="preserve">
     <value>Caricato da disco.</value>
   </data>
@@ -5900,9 +5891,6 @@ Il programma di installazione verificato viene passato all'helper di aggiornamen
   </data>
   <data name="Lower IP" xml:space="preserve">
     <value>IP inferiore</value>
-  </data>
-  <data name="Lower IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>IP inferiore (es. 10.0.0.0)</value>
   </data>
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Abbassare le soglie di contrassegno ed eliminazione, oppure attivare più controlli.</value>
@@ -6256,14 +6244,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Merging is on, so its own numeric score is added - which can be any size." xml:space="preserve">
     <value>L'unione è attiva, quindi viene sommato il suo punteggio numerico - che può avere qualsiasi dimensione.</value>
   </data>
-  <data name="Message" xml:space="preserve">
-    <value>Messaggio</value>
-  </data>
   <data name="Message ID" xml:space="preserve">
     <value>ID del messaggio</value>
-  </data>
-  <data name="Message _id, from the listing" xml:space="preserve">
-    <value>Id del messaggio, dall'ele_nco</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Archiviazione dei messaggi</value>
@@ -6276,6 +6258,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Messaggio per i mitt_enti locali (vuoto = come sopra)</value>
+  </data>
+  <data name="Message i_d, from the listing" xml:space="preserve">
+    <value>Id del messaggio, dall'ele_nco</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Indicizzazione dei messaggi</value>
@@ -6446,7 +6431,7 @@ Nulla di ciò che è già presente viene rimosso.</value>
     <value>Mirroring</value>
   </data>
   <data name="Mo_ve or rename..." xml:space="preserve">
-    <value>_Sposta o rinomina...</value>
+    <value>Sposta o _rinomina...</value>
   </data>
   <data name="Mode and max_age read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Modalità e max_age letti da hMailServer.INI su questa macchina.</value>
@@ -6538,6 +6523,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>Testo dell'avviso (inviato a _un mittente ospitato su questo server, con il nome della regola)</value>
   </data>
+  <data name="Na_me" xml:space="preserve">
+    <value>No_me</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Nome</value>
   </data>
@@ -6567,6 +6555,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Names that are never auto-banned" xml:space="preserve">
     <value>Nomi mai bloccati automaticamente</value>
+  </data>
+  <data name="Ne_w rule name" xml:space="preserve">
+    <value>_Nome della nuova regola</value>
   </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - la password non attraversa mai la rete</value>
@@ -6606,9 +6597,6 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Nuova cartella pubblica</value>
-  </data>
-  <data name="New rule name" xml:space="preserve">
-    <value>Nome della nuova regola</value>
   </data>
   <data name="New to hMailServer? A short walk sets up a domain, a mailbox and a listener that offers TLS, and ends on the dashboard." xml:space="preserve">
     <value>Nuovo su hMailServer? Un breve giro imposta un dominio, una casella e un listener che offre TLS, e finisce sulla Dashboard.</value>
@@ -7819,6 +7807,12 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="P_ort" xml:space="preserve">
     <value>P_orta</value>
   </data>
+  <data name="P_rotocol" xml:space="preserve">
+    <value>P_rotocollo</value>
+  </data>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
+    <value>_Pubblica questo record DNS TXT presso il tuo provider DNS, poi attiva DKIM:</value>
+  </data>
   <data name="Page Down" xml:space="preserve">
     <value>Pagina giù</value>
   </data>
@@ -7872,6 +7866,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   </data>
   <data name="Password (leave empty to keep current)" xml:space="preserve">
     <value>Password (lascia vuoto per conservare quella attuale)</value>
+  </data>
+  <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
+    <value>Pass_word (facoltativa - solo per provare un accesso reale)</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Password (facoltativa - solo per provare un accesso reale)</value>
@@ -7992,6 +7989,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Policy refusal" xml:space="preserve">
     <value>Rifiuto per criterio</value>
   </data>
+  <data name="Por_t" xml:space="preserve">
+    <value>P_orta</value>
+  </data>
   <data name="Port" xml:space="preserve">
     <value>Porta</value>
   </data>
@@ -8049,9 +8049,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
     <value>Pubblica permette anche all'account di inviare come indirizzo di questa casella tramite SMTP (Send-As), quando SmtpAuthenticatedSenderCheck è attivo.</value>
   </data>
-  <data name="Pr_operties…" xml:space="preserve">
-    <value>Pr_oprietà…</value>
-  </data>
   <data name="Pre-filled with the domain's postmaster address, as configured on the domain. Change it if reports should go elsewhere." xml:space="preserve">
     <value>Precompilato con l'indirizzo postmaster del dominio, così com'è configurato sul dominio. Cambialo se i rapporti devono andare altrove.</value>
   </data>
@@ -8106,6 +8103,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Previous year" xml:space="preserve">
     <value>Anno precedente</value>
   </data>
+  <data name="Pri_ority" xml:space="preserve">
+    <value>Priorit_à</value>
+  </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>Dai priorità a ChaCha20-Poly1305 quando il client lo preferisce (richiede TLS 1.2 o 1.3)</value>
   </data>
@@ -8118,11 +8118,11 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Private key" xml:space="preserve">
     <value>Chiave privata</value>
   </data>
+  <data name="Private key _file (PEM)" xml:space="preserve">
+    <value>File _della chiave privata (PEM)</value>
+  </data>
   <data name="Private key file" xml:space="preserve">
     <value>File della chiave privata</value>
-  </data>
-  <data name="Private key file (PEM)" xml:space="preserve">
-    <value>File della chiave privata (PEM)</value>
   </data>
   <data name="Private key file for the new certificate" xml:space="preserve">
     <value>File della chiave privata per il nuovo certificato</value>
@@ -8150,6 +8150,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Le metriche Prometheus, gli endpoint di integrità e l'API REST si attivano qui.</value>
+  </data>
+  <data name="Prop_erties…" xml:space="preserve">
+    <value>Pr_oprietà…</value>
   </data>
   <data name="Propagating" xml:space="preserve">
     <value>In propagazione</value>
@@ -8222,9 +8225,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Publish keys in the Web Key Directory" xml:space="preserve">
     <value>Pubblicare le chiavi nel Web Key Directory</value>
-  </data>
-  <data name="Publish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Pubblica questo record DNS TXT presso il tuo provider DNS, poi attiva DKIM:</value>
   </data>
   <data name="Published and correct" xml:space="preserve">
     <value>Pubblicato e corretto</value>
@@ -8336,6 +8336,15 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>File della chiave pubblica RSA/EC (PEM, per i token RS*/ES*)</value>
+  </data>
+  <data name="R_emote domain" xml:space="preserve">
+    <value>D_ominio remoto</value>
+  </data>
+  <data name="R_esume" xml:space="preserve">
+    <value>Ri_prendi</value>
+  </data>
+  <data name="R_ole" xml:space="preserve">
+    <value>R_uolo</value>
   </data>
   <data name="Raise the IMAP search time and size limits; a search that hits either one is reported to the client as a failure." xml:space="preserve">
     <value>Alza i limiti di tempo e di dimensione della ricerca IMAP; una ricerca che raggiunge uno dei due viene segnalata al client come un errore.</value>
@@ -8505,9 +8514,6 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
   </data>
   <data name="Recipient tarpit" xml:space="preserve">
     <value>Tarpit sui destinatari</value>
-  </data>
-  <data name="Recipient wildcard (* = everyone)" xml:space="preserve">
-    <value>Carattere jolly del destinatario (* = tutti)</value>
   </data>
   <data name="Recipients" xml:space="preserve">
     <value>Destinatari</value>
@@ -8828,7 +8834,7 @@ Esegui questa operazione se i client segnalano messaggi che compaiono con l'UID 
     <value>Rimuovi il segreto memorizzato al salvataggio - {0}</value>
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
-    <value>Rimuovi la pass_word memorizzata dell'account di servizio al salvataggio</value>
+    <value>Rimuovi la password _memorizzata dell'account di servizio al salvataggio</value>
   </data>
   <data name="Remove the token" xml:space="preserve">
     <value>Rimuovi il token</value>
@@ -8982,7 +8988,7 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
     <value>Richiedi auth: da _locale a locale</value>
   </data>
   <data name="Require auth: e_xternal to local" xml:space="preserve">
-    <value>Richiedi auth: da e_sterno a locale</value>
+    <value>Richiedi _auth: da esterno a locale</value>
   </data>
   <data name="Require auth: external to exte_rnal" xml:space="preserve">
     <value>Richiedi auth: da esterno a este_rno</value>
@@ -9689,11 +9695,11 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Scroll tabs right" xml:space="preserve">
     <value>Scorri le schede a destra</value>
   </data>
+  <data name="Se_lect" xml:space="preserve">
+    <value>_Seleziona</value>
+  </data>
   <data name="Se_lector" xml:space="preserve">
     <value>Se_lettore</value>
-  </data>
-  <data name="Sea_rch" xml:space="preserve">
-    <value>Ce_rca</value>
   </data>
   <data name="Seal forwarded messages with the domain's DKIM key" xml:space="preserve">
     <value>Sigilla i messaggi inoltrati con la chiave DKIM del dominio</value>
@@ -10034,6 +10040,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="Separately, this server's own SENDING of such reports to other domains is inert: TlsRptFromAddress is empty in hMailServer.INI (the default), so it collects statistics and discards every completed day unsent. Set it on the Transport security page if you want to send reports too." xml:space="preserve">
     <value>A parte questo, l'INVIO di tali rapporti ad altri domini da parte di questo server è inerte: TlsRptFromAddress è vuoto in hMailServer.INI (l'impostazione predefinita), quindi il server raccoglie statistiche e scarta ogni giornata completata senza inviarla. Impostalo nella pagina Sicurezza del trasporto se vuoi inviare anche i tuoi rapporti.</value>
   </data>
+  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
+    <value>Password dell'account di servi_zio (ServicePassword)</value>
+  </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>Servi i criteri MTA-STS per i domini locali</value>
   </data>
@@ -10255,11 +10264,11 @@ Riavviarlo ora?</value>
   <data name="Setup _checklist…" xml:space="preserve">
     <value>_Checklist di configurazione…</value>
   </data>
+  <data name="Setup _key (for manual entry)" xml:space="preserve">
+    <value>C_hiave di configurazione (per l'inserimento manuale)</value>
+  </data>
   <data name="Setup checklist" xml:space="preserve">
     <value>Checklist di configurazione</value>
-  </data>
-  <data name="Setup key (for manual entry)" xml:space="preserve">
-    <value>Chiave di configurazione (per l'inserimento manuale)</value>
   </data>
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Segreto HMAC condiviso (solo per i token HS256/384/512)</value>
@@ -10339,8 +10348,8 @@ Riavviarlo ora?</value>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>
   </data>
-  <data name="Sieve filter script" xml:space="preserve">
-    <value>Script di filtro Sieve</value>
+  <data name="Sieve _filter script" xml:space="preserve">
+    <value>Script _di filtro Sieve</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>F_irma anche gli alias</value>
@@ -10470,9 +10479,6 @@ Riavviarlo ora?</value>
   </data>
   <data name="Source" xml:space="preserve">
     <value>Origine</value>
-  </data>
-  <data name="Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>Indirizzi di origine da cui può essere usata (facoltativo)</value>
   </data>
   <data name="Space" xml:space="preserve">
     <value>Spazio</value>
@@ -10874,9 +10880,6 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>_Porta SMTP di destinazione</value>
-  </data>
-  <data name="Target SMTP host" xml:space="preserve">
-    <value>Host SMTP di destinazione</value>
   </data>
   <data name="Target SMTP port" xml:space="preserve">
     <value>Porta SMTP di destinazione</value>
@@ -12337,7 +12340,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>I programmi di installazione di questo progetto sono firmati con Authenticode dalla 6.3.1, da Progressive Robot Ltd tramite Azure Artifact Signing; le release precedenti alla 6.3.1 non portano alcuna firma, e questa opzione le rifiuta. Quando si scarica un programma di installazione, verifica che Windows consideri attendibile la firma - WinVerifyTrust rispetto alle radici attendibili di questo computer, senza controllo di revoca - e non chi l'ha apposta: questo è compito della firma Sigstore, che ogni release porta e che viene verificata in entrambi i casi.</value>
   </data>
   <data name="This range _expires" xml:space="preserve">
-    <value>Questo intervallo _scade</value>
+    <value>_Questo intervallo scade</value>
   </data>
   <data name="This runs before virus scanning and independently of it: it applies even with every scanner switched off, and it applies to messages the size limit above would skip. A matched attachment is replaced by a short text file explaining the removal rather than being deleted outright, so the recipient can tell something was taken out." xml:space="preserve">
     <value>Questo viene eseguito prima della scansione antivirus e indipendentemente da essa: si applica anche con tutti gli scanner disattivati, e si applica ai messaggi che il limite di dimensione qui sopra salterebbe. Un allegato che corrisponde viene sostituito da un breve file di testo che spiega la rimozione anziché essere eliminato del tutto, così il destinatario può accorgersi che qualcosa è stato tolto.</value>
@@ -12699,9 +12702,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Upper IP" xml:space="preserve">
     <value>IP superiore</value>
   </data>
-  <data name="Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>IP superiore (es. 10.0.0.255)</value>
-  </data>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Gateway a monte (filtri antispam, bilanciatori di carico) i cui indirizzi IP non devono essere considerati il client che si connette nei controlli antispam sull'host.</value>
   </data>
@@ -12786,9 +12786,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Indirizzo del verdetto (GET)</value>
   </data>
-  <data name="Verification code from your authenticator app" xml:space="preserve">
-    <value>Codice di verifica dalla propria app di autenticazione</value>
-  </data>
   <data name="Verified - and the certificate must chain and name the host" xml:space="preserve">
     <value>Verificato - e il certificato deve formare catena e nominare l'host</value>
   </data>
@@ -12833,6 +12830,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Volume signal: times the account's busiest hour (2 to 100)" xml:space="preserve">
     <value>Segnale di volume: volte l'ora più intensa dell'account (da 2 a 100)</value>
+  </data>
+  <data name="W_hose mail" xml:space="preserve">
+    <value>La _posta di chi</value>
   </data>
   <data name="Wait for a free database connection (seconds)" xml:space="preserve">
     <value>Attesa di una connessione libera al database (secondi)</value>
@@ -12883,7 +12883,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>Oggetto dell'avviso (v_uoto = messaggio del server)</value>
   </data>
   <data name="Warning te_xt (empty = the server message; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)" xml:space="preserve">
-    <value>Te_sto dell'avviso (vuoto = messaggio del server; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
+    <value>_Testo dell'avviso (vuoto = messaggio del server; %MACRO_MAILBOX%, %MACRO_QUOTA%, %MACRO_USED%, %MACRO_PERCENT%)</value>
   </data>
   <data name="Warning: {0} is a public suffix. An entry for it covers every domain registered beneath it, which is almost never what is meant." xml:space="preserve">
     <value>Attenzione: {0} è un suffisso pubblico. Una voce per esso copre ogni dominio registrato sotto di esso, il che quasi mai è ciò che si intende.</value>
@@ -12935,6 +12935,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Welcome banner (empty = default)" xml:space="preserve">
     <value>Banner di benvenuto (vuoto = predefinito)</value>
+  </data>
+  <data name="Wh_ich way" xml:space="preserve">
+    <value>_In quale direzione</value>
   </data>
   <data name="What SCIM provisioning matches this account by: at most 255 characters on one line, compared exactly." xml:space="preserve">
     <value>Ciò su cui il provisioning SCIM abbina questo account: al massimo 255 caratteri su una riga, confrontati esattamente.</value>
@@ -12995,6 +12998,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Che cosa deve esistere al di fuori di questo server</value>
+  </data>
+  <data name="What is _sent" xml:space="preserve">
+    <value>_Cosa viene inviato</value>
   </data>
   <data name="What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
     <value>Su {0} esistono uno o più record TXT, ma nessuno contiene la chiave pubblica di questa chiave, quindi ogni firma fatta con essa fallisce la verifica. Aspettare non risolverà: correggi il valore pubblicato perché corrisponda a quello qui sopra.</value>
@@ -13103,6 +13109,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Dove i client raggiungono il listener dei servizi web; ogni certificato vi indica la propria lista di revoca e la propria radice. Vuoto, il predefinito, non indica nessuna delle due, così un client che insiste a verificare la revoca non può farlo. Un certificato già emesso mantiene ciò con cui è stato emesso.</value>
+  </data>
+  <data name="Where it _goes" xml:space="preserve">
+    <value>Dove _va</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Dove va</value>
@@ -13410,17 +13419,26 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_90 days" xml:space="preserve">
     <value>_90 giorni</value>
   </data>
+  <data name="_Account" xml:space="preserve">
+    <value>A_ccount</value>
+  </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Indirizzo dell'account</value>
   </data>
   <data name="_Action" xml:space="preserve">
     <value>Azion_e</value>
   </data>
+  <data name="_Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
+    <value>_Dominio Active Directory (per i domini sincronizzati con AD; facoltativo)</value>
+  </data>
   <data name="_Add" xml:space="preserve">
     <value>_Aggiungi</value>
   </data>
   <data name="_Add account…" xml:space="preserve">
     <value>_Aggiungi account…</value>
+  </data>
+  <data name="_Add address" xml:space="preserve">
+    <value>A_ggiungi indirizzo</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Aggiungi comunque</value>
@@ -13467,29 +13485,32 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Apply this profile" xml:space="preserve">
     <value>_Applica questo profilo</value>
   </data>
-  <data name="_Bind address" xml:space="preserve">
-    <value>Indirizzo di _binding</value>
+  <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
+    <value>Archivio nella destinazione di backup (_nome o percorso)</value>
+  </data>
+  <data name="_Bind address (0.0.0.0)" xml:space="preserve">
+    <value>_Indirizzo di binding (0.0.0.0)</value>
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
-    <value>_Metodo di bind (BindMethod)</value>
+    <value>Metodo di _bind (BindMethod)</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>Blocca ed _elimina</value>
-  </data>
-  <data name="_Body canonicalization" xml:space="preserve">
-    <value>Ca_nonicalizzazione del corpo</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>_Indirizzo per i mancati recapiti (vuoto = i mancati recapiti vanno a chi ha inviato il messaggio)</value>
   </data>
   <data name="_Browse Active Directory…" xml:space="preserve">
-    <value>_Sfoglia Active Directory…</value>
+    <value>Sfoglia _Active Directory…</value>
   </data>
   <data name="_Browse…" xml:space="preserve">
-    <value>_Sfoglia…</value>
+    <value>S_foglia…</value>
   </data>
   <data name="_Cancel the next key" xml:space="preserve">
     <value>_Annulla la chiave successiva</value>
+  </data>
+  <data name="_Certificate file (PEM)" xml:space="preserve">
+    <value>_File del certificato (PEM)</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>_Cambia il pepper</value>
@@ -13526,9 +13547,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)" xml:space="preserve">
     <value>Politica per _paese all'accesso (vuoto = disattivata; allow:GB,IE o block:CN,RU)</value>
-  </data>
-  <data name="_Create" xml:space="preserve">
-    <value>_Crea</value>
   </data>
   <data name="_Create a key…" xml:space="preserve">
     <value>_Crea una chiave…</value>
@@ -13608,11 +13626,26 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>Attributo del nome _visualizzato</value>
   </data>
+  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
+    <value>_Dominio (es. gmail.com)</value>
+  </data>
   <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
     <value>_Nome del dominio (cambiarlo rinomina il dominio e sposta con esso ogni account, alias e lista)</value>
   </data>
+  <data name="_Domain or account" xml:space="preserve">
+    <value>_Dominio o account</value>
+  </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Dominio o suffisso</value>
+  </data>
+  <data name="_Domain:" xml:space="preserve">
+    <value>_Dominio:</value>
+  </data>
+  <data name="_Domains" xml:space="preserve">
+    <value>_Domini</value>
+  </data>
+  <data name="_Domains it may act on (optional)" xml:space="preserve">
+    <value>_Domini su cui può agire (facoltativo)</value>
   </data>
   <data name="_Download update" xml:space="preserve">
     <value>_Scarica l'aggiornamento</value>
@@ -13627,7 +13660,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>_Modifica…</value>
   </data>
   <data name="_Empty mailbox" xml:space="preserve">
-    <value>_Svuota la casella</value>
+    <value>S_vuota la casella</value>
   </data>
   <data name="_Enable DKIM signing" xml:space="preserve">
     <value>_Attiva la firma DKIM</value>
@@ -13647,11 +13680,14 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Erase traces" xml:space="preserve">
     <value>_Cancella le tracce</value>
   </data>
+  <data name="_Expires" xml:space="preserve">
+    <value>_Scade</value>
+  </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>_Scade dopo (giorni)</value>
   </data>
   <data name="_Expiry date" xml:space="preserve">
-    <value>Data di _scadenza</value>
+    <value>Da_ta di scadenza</value>
   </data>
   <data name="_Field" xml:space="preserve">
     <value>_Campo</value>
@@ -13660,13 +13696,16 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>_Nome</value>
   </data>
   <data name="_Follow this message" xml:space="preserve">
-    <value>_Segui questo messaggio</value>
+    <value>Segui _questo messaggio</value>
   </data>
   <data name="_Footer" xml:space="preserve">
     <value>Piè _di pagina</value>
   </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Inoltra la posta in arrivo</value>
+  </data>
+  <data name="_From address" xml:space="preserve">
+    <value>Indirizzo _del mittente</value>
   </data>
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>_Autorità completa - può creare, modificare ed eliminare</value>
@@ -13694,6 +13733,12 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
     <value>_Nome dell'intestazione (ad es. X-Spam-Status)</value>
+  </data>
+  <data name="_Hosted domain" xml:space="preserve">
+    <value>_Dominio ospitato</value>
+  </data>
+  <data name="_How the selected member is sent a managed list's mail" xml:space="preserve">
+    <value>_Come il membro selezionato riceve la posta di una lista gestita</value>
   </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>_L'ho copiato</value>
@@ -13737,6 +13782,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Tipo di account</value>
   </data>
+  <data name="_Label" xml:space="preserve">
+    <value>_Etichetta</value>
+  </data>
   <data name="_Language" xml:space="preserve">
     <value>_Lingua</value>
   </data>
@@ -13760,6 +13808,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>Attributo _del nome di accesso</value>
+  </data>
+  <data name="_Lower IP" xml:space="preserve">
+    <value>_IP inferiore</value>
   </data>
   <data name="_Lower IP address" xml:space="preserve">
     <value>Indirizzo IP _inferiore</value>
@@ -13864,7 +13915,7 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>Informativa come testo sempli_ce</value>
   </data>
   <data name="_Plain-text signature" xml:space="preserve">
-    <value>Firma in testo _semplice</value>
+    <value>_Firma in testo semplice</value>
   </data>
   <data name="_Plus addressing character" xml:space="preserve">
     <value>_Carattere del plus addressing</value>
@@ -13883,6 +13934,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
     <value>_Priorità (vince la più alta quando gli intervalli si sovrappongono)</value>
+  </data>
+  <data name="_Private key file" xml:space="preserve">
+    <value>File della chiave p_rivata</value>
   </data>
   <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
     <value>Ore del _periodo di propagazione (da 1 a 720)</value>
@@ -13921,10 +13975,13 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
     <value>_Generare eventi webhook sulla posta e sugli account di questo dominio</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
-    <value>_Sola lettura - può elencare e leggere; ogni modifica viene rifiutata</value>
+    <value>Sola _lettura - può elencare e leggere; ogni modifica viene rifiutata</value>
   </data>
   <data name="_Recalculate" xml:space="preserve">
     <value>_Ricalcola</value>
+  </data>
+  <data name="_Recipient wildcard (* = everyone)" xml:space="preserve">
+    <value>_Carattere jolly del destinatario (* = tutti)</value>
   </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Aggio_rna</value>
@@ -13949,9 +14006,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>R_imuovi criterio</value>
-  </data>
-  <data name="_Remove expired" xml:space="preserve">
-    <value>_Rimuovi gli scaduti</value>
   </data>
   <data name="_Remove message" xml:space="preserve">
     <value>_Rimuovi il messaggio</value>
@@ -13995,14 +14049,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Restart the service" xml:space="preserve">
     <value>_Riavvia il servizio</value>
   </data>
-  <data name="_Restore defaults" xml:space="preserve">
-    <value>_Ripristina i valori predefiniti</value>
-  </data>
   <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
     <value>Consegna _limitata (i domini indicati sono nella finestra del dominio)</value>
-  </data>
-  <data name="_Resume" xml:space="preserve">
-    <value>_Riprendi</value>
   </data>
   <data name="_Retire the old selector" xml:space="preserve">
     <value>_Ritira il vecchio selettore</value>
@@ -14028,8 +14076,8 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Search" xml:space="preserve">
     <value>_Cerca</value>
   </data>
-  <data name="_Select" xml:space="preserve">
-    <value>_Seleziona</value>
+  <data name="_Security" xml:space="preserve">
+    <value>_Sicurezza</value>
   </data>
   <data name="_Send" xml:space="preserve">
     <value>_Invia</value>
@@ -14039,6 +14087,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
+  </data>
+  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
+    <value>_Indirizzi di origine da cui può essere usata (facoltativo)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>_Inizia la visita</value>
@@ -14067,8 +14118,14 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Unlock mailbox" xml:space="preserve">
     <value>Sblocca _la casella</value>
   </data>
+  <data name="_Upper IP" xml:space="preserve">
+    <value>IP _superiore</value>
+  </data>
+  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
+    <value>IP s_uperiore (es. 10.0.0.255)</value>
+  </data>
   <data name="_Upper IP address" xml:space="preserve">
-    <value>Indirizzo IP _superiore</value>
+    <value>In_dirizzo IP superiore</value>
   </data>
   <data name="_Use LDAP directory authentication (Enabled)" xml:space="preserve">
     <value>Usa _l'autenticazione tramite directory LDAP (Enabled)</value>
@@ -14078,6 +14135,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>_Valore</value>
+  </data>
+  <data name="_Verification code from your authenticator app" xml:space="preserve">
+    <value>Codice di _verifica dalla propria app di autenticazione</value>
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>_Verifica ogni backup estraendone l'archivio dei messaggi e riconciliandolo con le righe</value>

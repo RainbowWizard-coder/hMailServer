@@ -41,7 +41,7 @@ namespace hMailServer.ControlPanel.Views
          cancel.Click += (s, e) => { DialogResult = false; Close(); };
 
          UseFrame(L("Two-factor authentication"),
-            DialogFields.Field(L("Enter the 6-digit code from your authenticator app:"), code_),
+            DialogFields.Field(L("Enter the 6-digit _code from your authenticator app:"), code_),
             ok, cancel, width: 400);
       }
    }

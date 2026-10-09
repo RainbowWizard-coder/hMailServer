@@ -393,7 +393,7 @@ namespace hMailServer.ControlPanel.Views
          // The explanation is the row's hint, so the editor is helped by it to a
          // screen reader as well as captioned - which the prose block above it,
          // and the accessible name set by hand beside it, never managed together.
-         panel.Children.Add(DialogFields.Field(L("Sieve filter script"), sieveScript_,
+         panel.Children.Add(DialogFields.Field(L("Sieve _filter script"), sieveScript_,
             L("Active Sieve (RFC 5228) filter script for this account. It runs during local delivery and supports keep, fileinto, discard and redirect. Leave empty to disable. Multiple named scripts can be managed over ManageSieve.")));
          return DialogFields.Scroll(panel);
       }

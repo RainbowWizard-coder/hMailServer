@@ -192,7 +192,7 @@ namespace hMailServer.ControlPanel.Views
       private void Pause_Click(object sender, RoutedEventArgs e)
       {
          paused_ = !paused_;
-         PauseButton.Content = paused_ ? L("_Resume") : L("_Pause");
+         PauseButton.Content = paused_ ? L("R_esume") : L("_Pause");
          PauseButtonIcon.Symbol = paused_ ? Wpf.Ui.Controls.SymbolRegular.Play24 : Wpf.Ui.Controls.SymbolRegular.Pause24;
       }
 

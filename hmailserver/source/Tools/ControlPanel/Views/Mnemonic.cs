@@ -80,7 +80,9 @@ namespace hMailServer.ControlPanel.Views
 
          string key = char.ToUpperInvariant(text[keyIndex]).ToString();
          Register(key, target);
-         AutomationProperties.SetAccessKey(target, "Alt+" + key); // no-loc
+         // Told on the control the key puts the keyboard in, which for a row of a
+         // box and a button is the box (Editor).
+         AutomationProperties.SetAccessKey(Editor(target, false) ?? target, "Alt+" + key); // no-loc
          return block;
       }
 
@@ -89,9 +91,25 @@ namespace hMailServer.ControlPanel.Views
       private static readonly DependencyProperty AnswersProperty = DependencyProperty.RegisterAttached(
          "Answers", typeof(bool), typeof(Mnemonic), new PropertyMetadata(false)); // no-loc
 
+      // The key the editor is registered for, so that a caption applied again - a
+      // field row applies its caption on every change of its hint or its message -
+      // registers it once, and a caption whose key changed gives the old one up.
+      // The manager keeps every registration, and an element registered twice for
+      // a key is two targets: the key then only moves the focus, as for two
+      // controls that share it.
+      private static readonly DependencyProperty RegisteredKeyProperty = DependencyProperty.RegisterAttached(
+         "RegisteredKey", typeof(string), typeof(Mnemonic), new PropertyMetadata(null)); // no-loc
+
       private static void Register(string key, FrameworkElement target)
       {
-         AccessKeyManager.Register(key, target);
+         string registered = (string)target.GetValue(RegisteredKeyProperty);
+         if (registered != key)
+         {
+            if (registered != null)
+               AccessKeyManager.Unregister(registered, target);
+            AccessKeyManager.Register(key, target);
+            target.SetValue(RegisteredKeyProperty, key);
+         }
 
          // The manager asks each registered element who the target is by raising
          // AccessKeyPressed on it, and an element that does not answer is not a
@@ -105,8 +123,37 @@ namespace hMailServer.ControlPanel.Views
          target.AddHandler(AccessKeyManager.AccessKeyPressedEvent, new AccessKeyPressedEventHandler((sender, e) =>
          {
             if (!e.Handled && e.Scope == null && e.Target == null)
-               e.Target = target;
+               e.Target = Editor(target, true) ?? target;
          }));
       }
+
+      /// <summary>
+      /// The control a caption's key puts the keyboard in: the target itself when
+      /// it takes the keyboard, otherwise the first control inside it that does. A
+      /// field's editor is often a row - a box and its browse button, the backup
+      /// file and the destination folder, a DKIM key file, the route's address to
+      /// add - and the row's panel takes no focus, so the key did nothing at all.
+      /// At a key press only a control that can be reached counts; when the
+      /// caption is applied, before the row is laid out, any that would.
+      /// </summary>
+      public static UIElement Editor(FrameworkElement target, bool reachable)
+      {
+         if (target == null)
+            return null;
+         if (TakesKeyboard(target, reachable))
+            return target;
+
+         foreach (object child in LogicalTreeHelper.GetChildren(target))
+         {
+            if (child is FrameworkElement element && Editor(element, reachable) is { } editor)
+               return editor;
+         }
+
+         return null;
+      }
+
+      private static bool TakesKeyboard(UIElement element, bool reachable)
+         => element.Focusable && KeyboardNavigation.GetIsTabStop(element)
+            && (!reachable || (element.IsEnabled && element.IsVisible));
    }
 }

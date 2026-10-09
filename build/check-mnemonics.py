@@ -16,21 +16,40 @@ letter and registers the key for the editor.
 
 What is checked
   * XAML views: every Button, CheckBox and RadioButton with a literal Content,
-    outside a DataTemplate (a caption repeated per row cannot have a unique
-    key; the rows are reached with the arrow keys, and their verbs with Enter,
-    Delete and a context menu, whose captions do carry keys - DomainsRowVerbsTests
-    holds the domains page's). The scope for uniqueness is the file: a view is
-    one page, all of it on screen at once.
+    and every FieldRow's Label - the caption above an editor, whose key puts
+    the keyboard in the editor - outside a DataTemplate (a caption repeated
+    per row cannot have a unique key; the rows are reached with the arrow
+    keys, and their verbs with Enter, Delete and a context menu, whose
+    captions do carry keys - DomainsRowVerbsTests holds the domains page's).
+    The scope for uniqueness is the file: a view is one page, all of it on
+    screen at once.
+  * A page whose root says AccessKeyScope.ByCard="True" (Views/AccessKeyScope)
+    answers a key first in the card that holds the keyboard: each of its
+    cards is a scope of its own, and a caption outside every card - the
+    page header's - must not share a key with any card's, as a tabbed
+    dialog's constructor must not share one with any tab. The Backup &
+    restore page needs it: its five cards hold more captions than there are
+    letters.
   * Code-built views and dialogs: every Button/CheckBox/RadioButton initialised
     with a literal Content, every MakeButton("..."), every Label("...", editor)
-    and Labelled*_("...", editor) caption, and every "<something>Button.Content =
-    "..."" assignment. The scope is the method that places the control, because
-    a dialog's tabs are built one per method and only one tab is visible at a
-    time; a field is placed by the method that first mentions it. Keys in the
-    constructor (the Save button under every tab) must not collide with any
-    method's keys.
+    and Labelled*_("...", editor) caption, every FieldRow initialised with a
+    literal Label and every caption a field helper puts on a FieldRow
+    (DialogFields.Field, FormField_, Captioned), and every "<something>.Content
+    = "..."" assignment. The scope is the method that places the control,
+    because a dialog's tabs are built one per method and only one tab is
+    visible at a time; a field is placed by the method that first mentions
+    it. Keys in the constructor (the Save button under every tab) must not
+    collide with any method's keys. A caption the code behind a XAML page
+    sets on one of the page's named buttons - the server status page's Pause
+    and Resume - joins the XAML page's scope, where it is on screen.
   * Exempt: Cancel, OK and Close (Escape and Enter are their keys, by platform
     convention), the "…" browse buttons, and captions that come from data.
+  * One verb, one key: a button, check box or radio button carries the same
+    key wherever its caption appears in English - Refresh is Alt+R on every
+    page, never Alt+F on the pages where R was taken - so that a key learnt
+    on one page works on the next. (Every language then follows: one English
+    caption is one catalogue entry.) A field's caption names a field of its
+    own form, and its key is chosen among that form's.
   * A caption may be wrapped for translation - L("_Save changes") in code,
     {loc:L '_Save changes'} in XAML - and is read through the wrapper. Every
     language catalogue (Resources/Strings.<culture>.resx) is then checked the
@@ -115,9 +134,13 @@ def unescape_cs(literal):
 
 
 class Caption:
-    def __init__(self, file, line, scope, raw, class_name=None, page=None, via=None):
+    def __init__(self, file, line, scope, raw, class_name=None, page=None, via=None, target=None, field=False):
         self.file, self.line, self.scope, self.raw = file, line, scope, raw
         self.class_name = class_name
+        # The control a "<target>.Content = ..." assignment sets the caption on.
+        self.target = target
+        # A field's caption (a FieldRow's label), as opposed to a verb or an option.
+        self.field = field
         # The file whose scope the caption joins: its own, or for a shared helper's
         # caption the page the helper put it on, with the call that did - (file,
         # line, call) - in via.
@@ -174,8 +197,45 @@ def xaml_captions(path):
     for m in re.finditer(r'<(?:ui:)?(?:Button|CheckBox|RadioButton|ToggleButton)\b[^>]*?\bContent="([^"]*)"', src, re.S):
         if templated(m.start()):
             continue
-        out.append(Caption(path, line_of(src, m.start()), os.path.basename(path), unwrap_xaml(m.group(1))))
+        scope, class_name = xaml_scope(path, src, m.start())
+        out.append(Caption(path, line_of(src, m.start()), scope, unwrap_xaml(m.group(1)), class_name))
+    # the caption above an editor, whose key puts the keyboard in the editor
+    for m in re.finditer(r'<scaffold:FieldRow\b[^>]*?\bLabel="([^"]*)"', src, re.S):
+        if templated(m.start()):
+            continue
+        scope, class_name = xaml_scope(path, src, m.start())
+        out.append(Caption(path, line_of(src, m.start()), scope, unwrap_xaml(m.group(1)), class_name, field=True))
     return out
+
+
+def card_spans(src):
+    """(start, end) of every scaffold:Card element of a XAML page whose root says
+    AccessKeyScope.ByCard="True", by counting its opening and closing tags; none
+    for any other page."""
+    if not re.search(r'\bAccessKeyScope\.ByCard="True"', src):
+        return []
+    spans, stack = [], []
+    for t in re.finditer(r"<(/?)scaffold:Card\b[^>]*?(/?)>", src, re.S):
+        if t.group(1):
+            if stack:
+                spans.append((stack.pop(), t.end()))
+        elif not t.group(2):
+            stack.append(t.start())
+    return spans
+
+
+def xaml_scope(path, src, pos):
+    """The scope of a XAML caption, and the scope it must not collide with: the
+    file's for a page that is one access-key scope; on a page whose cards answer
+    their own keys (AccessKeyScope.ByCard), the innermost card's, checked against
+    the file's captions outside every card as a tabbed class's method is against
+    its constructor."""
+    base = os.path.basename(path)
+    cards = [(a, b) for a, b in card_spans(src) if a <= pos < b]
+    if not cards:
+        return base, None
+    a, _ = max(cards)
+    return f"{base}#card@{line_of(src, a)}", base
 
 
 def unwrap_xaml(value):
@@ -245,7 +305,7 @@ def cs_captions(path):
             method = (builders or users or [None])[0]
         return (method[0] if method else class_name), class_name
 
-    def add(out, pos, literal, field=None, end=None):
+    def add(out, pos, literal, field=None, end=None, target=None, labels=False):
         line = line_of(src, pos)
         # a caption repeated per row, card, record or setting cannot have a unique key, and says so
         # in a comment on the initialiser or on the literal; the rows are reached with the arrow keys
@@ -253,7 +313,7 @@ def cs_captions(path):
         if re.search(r"//.*\bper (row|card|record|setting)\b", span):
             return
         scope, class_name = scope_for(pos, field)
-        out.append(Caption(path, line, scope, unescape_cs(literal), class_name))
+        out.append(Caption(path, line, scope, unescape_cs(literal), class_name, target=target, field=labels))
 
     out = []
     kinds = r"(?:Button|CheckBox|RadioButton|ToggleButton)"
@@ -266,16 +326,21 @@ def cs_captions(path):
     for m in re.finditer(r"\bMakeButton\(\s*" + LITERAL, src):
         add(out, m.start(), m.group(1))
     for m in re.finditer(r"\bLabel\(\s*" + LITERAL + r"\s*,\s*\w+\s*\)", src):
-        add(out, m.start(), m.group(1))
+        add(out, m.start(), m.group(1), labels=True)
     for m in re.finditer(r"\bLabelled(?:Box|Combo)_\(\s*" + LITERAL, src):
-        add(out, m.start(), m.group(1))
+        add(out, m.start(), m.group(1), labels=True)
     for m in re.finditer(r"\bLabelledCheck_\(\s*\w+\s*,\s*" + LITERAL, src):
         add(out, m.start(), m.group(1))
+    # new FieldRow { Label = "..." }, and the helpers that build one from a caption
+    for m in re.finditer(r"new\s+(?:Scaffold\.)?FieldRow\b(?:\(\))?\s*\{(?:[^{}]|\{[^{}]*\})*?\bLabel\s*=\s*" + LITERAL, src, re.S):
+        add(out, m.start(), m.group(1), end=m.end(), labels=True)
+    for m in re.finditer(r"\b(?:FormField_|Captioned|Field)\(\s*" + LITERAL + r"\s*,", src):
+        add(out, m.start(), m.group(1), labels=True)
     # something.Content = "..." (a button or check box whose caption changes with state)
-    for m in re.finditer(r"\b\w+\.Content\s*=\s*(?:[^;\"]*\?\s*)?" + LITERAL + r"(?:\s*:\s*" + LITERAL + r")?", src):
-        for g in (m.group(1), m.group(2)):
+    for m in re.finditer(r"\b(\w+)\.Content\s*=\s*(?:[^;\"]*\?\s*)?" + LITERAL + r"(?:\s*:\s*" + LITERAL + r")?", src):
+        for g in (m.group(2), m.group(3)):
             if g is not None:
-                add(out, m.start(), g)
+                add(out, m.start(), g, target=m.group(1))
     return out
 
 
@@ -390,8 +455,9 @@ def line_start(src, line):
 
 def collisions(captions, tag=None):
     """No two captions in one scope share a key; a tabbed class's constructor scope
-    is global to its methods. One problem line per collision, for the caption that
-    came second in its scope."""
+    is global to its methods, and a page's captions outside its cards to each of
+    its cards (AccessKeyScope.ByCard). One problem line per collision, for the
+    caption that came second in its scope, after the constructor's or the page's."""
     problems = []
     by_scope = {}
     for c in captions:
@@ -401,7 +467,7 @@ def collisions(captions, tag=None):
     for (page, scope), items in by_scope.items():
         ctor = by_scope.get((page, items[0].class_name), []) if items[0].class_name and items[0].class_name != scope else []
         seen = {}
-        for c in items + ctor:
+        for c in ctor + items:
             if c.key in seen:
                 other = seen[c.key]
                 if c in items:
@@ -444,10 +510,132 @@ def language_problems(captions):
     return problems
 
 
+def onto_xaml_pages(captions):
+    """A caption the code behind a XAML page sets on one of the page's named
+    controls is on screen with the page's XAML captions: it joins the XAML file's
+    scope. One the XAML already gives the control - Pause, put back after Resume -
+    is the same caption and not a second one. On a page whose cards answer their
+    own keys, the caption joins the scope of the card the control is in."""
+    by_file = {}
+    for c in captions:
+        by_file.setdefault(c.file, []).append(c)
+    out = []
+    for c in captions:
+        if c.target and c.file.endswith(".xaml.cs") and os.path.exists(c.file[:-3]):
+            xaml = c.file[:-3]
+            with open(xaml, encoding="utf-8") as handle:
+                page_src = handle.read()
+            names = {m.group(1): m.start() for m in re.finditer(r'x:Name="(\w+)"', page_src)}
+            if c.target in names:
+                if any(x.raw == c.raw for x in by_file.get(xaml, [])):
+                    continue
+                scope, class_name = xaml_scope(xaml, page_src, names[c.target])
+                c = Caption(c.file, c.line, scope, c.raw, class_name, page=xaml)
+        out.append(c)
+    return out
+
+
+def one_key_per_caption(captions):
+    """One verb, one key: a button, check box or radio button with the same caption
+    carries the same key wherever it is. A field's caption is not held to it."""
+    seen = {}
+    for c in captions:
+        if c.text in EXEMPT or c.key is None or c.via or c.field:
+            continue
+        seen.setdefault(c.text, {}).setdefault(c.key, c)
+    problems = []
+    for text, by_key in seen.items():
+        if len(by_key) < 2:
+            continue
+        ordered = sorted(by_key.values(), key=lambda c: (c.file, c.line))
+        first = ordered[0]
+        for c in ordered[1:]:
+            problems.append(f"{location(c)}: one verb, one key: \"{text}\" is Alt+{c.key} in {describe(c)} and Alt+{first.key} at {location(first)}")
+    return problems
+
+
+def self_test():
+    """The rules against pages made to pass and to fail them, each a defect the
+    Control Panel shipped (review findings F071 and F287): a field's caption with
+    no key, a caption set in code on a XAML page's button, a dialog tab's key that
+    is the Save button's under every tab, a verb with two keys, and the cards of a
+    page that answer their own keys."""
+    import tempfile
+    failures = 0
+
+    def expect(what, problems, wanted):
+        nonlocal failures
+        found = bool(problems)
+        if found != wanted:
+            print(f"FAIL: {what}: {'reported' if found else 'not reported'}: {problems}")
+            failures += 1
+
+    with tempfile.TemporaryDirectory() as root:
+        def page(name, text):
+            path = os.path.join(root, name)
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(text)
+            return path
+
+        head = '<UserControl x:Class="T.P" xmlns:local="clr-namespace:T"{0}>\n'
+        cards = ('<ui:Button Content="{{loc:L \'_Refresh\'}}" />\n'
+                 '<scaffold:Card Title="A">\n'
+                 '<scaffold:FieldRow Label="{{loc:L \'_Port\'}}"><ui:TextBox /></scaffold:FieldRow>\n'
+                 '<scaffold:FieldRow Label="{{loc:L \'_Reply to\'}}"><ui:TextBox /></scaffold:FieldRow>\n'
+                 '</scaffold:Card>\n'
+                 '<scaffold:Card Title="B">\n'
+                 '<ui:Button Content="{{loc:L \'_Pause\'}}" />\n'
+                 '<scaffold:FieldRow Label="{{loc:L \'Host\'}}"><ui:TextBox /></scaffold:FieldRow>\n'
+                 '</scaffold:Card>\n'
+                 '</UserControl>\n')
+        one = xaml_captions(page("One.xaml", head.format("") + cards.format()))
+        by_card = xaml_captions(page("ByCard.xaml", head.format(' local:AccessKeyScope.ByCard="True"') + cards.format()))
+
+        # a field's caption is read, and one without a key is reported
+        expect("a FieldRow caption with no key", [c for c in one if c.field and c.key is None], True)
+        # one page is one scope: card A's P and card B's P collide
+        expect("_Port and _Pause on a page that is one scope", [p for p in collisions(one) if "_Pause" in p], True)
+        # a page by card: two cards may share a key, a card and the page may not
+        expect("_Port and _Pause in two cards", [p for p in collisions(by_card) if "_Pause" in p], False)
+        expect("_Refresh outside the cards and _Reply to in a card", [p for p in collisions(by_card) if "_Reply to" in p], True)
+
+        # a caption set in code on a named button is on its page, in its card
+        page("Status.xaml", head.format("") + '<ui:Button x:Name="PauseButton" Content="{loc:L \'_Pause\'}" />\n'
+             '<ui:Button Content="{loc:L \'_Refresh\'}" />\n</UserControl>\n')
+        code = page("Status.xaml.cs", "namespace T\n{\n   public partial class StatusView\n   {\n"
+                    "      private void Show_()\n      {\n"
+                    "         PauseButton.Content = L(\"_Resume\");\n      }\n   }\n}\n")
+        status = onto_xaml_pages(xaml_captions(os.path.join(root, "Status.xaml")) + cs_captions(code))
+        expect("_Resume set in code beside _Refresh", collisions(status), True)
+
+        # a tab's key that is the Save button's, under every tab
+        dialog = page("Dialog.cs", "namespace T\n{\n   public class RouteDialog : Window\n   {\n"
+                      "      public RouteDialog()\n      {\n"
+                      "         var save = new Button { Content = L(\"_Save\") };\n"
+                      "         tabs.Items.Add(new TabItem { Content = BuildAuth() });\n      }\n\n"
+                      "      private FrameworkElement BuildAuth()\n      {\n"
+                      "         return Label(L(\"_Subject\"), subject_);\n      }\n   }\n}\n")
+        expect("a tab's _Subject and the dialog's _Save", collisions(cs_captions(dialog)), True)
+
+        # one verb, one key; a field's caption is its form's
+        verbs = page("Verbs.xaml", head.format("") + '<ui:Button Content="{loc:L \'Re_fresh\'}" />\n'
+                     '<scaffold:FieldRow Label="{loc:L \'Na_me\'}"><ui:TextBox /></scaffold:FieldRow>\n</UserControl>\n')
+        names = page("Names.xaml", head.format("") + '<ui:Button Content="{loc:L \'_Refresh\'}" />\n'
+                     '<scaffold:FieldRow Label="{loc:L \'_Name\'}"><ui:TextBox /></scaffold:FieldRow>\n</UserControl>\n')
+        both = xaml_captions(verbs) + xaml_captions(names)
+        expect("Refresh as Alt+F and Alt+R", [p for p in one_key_per_caption(both) if '"Refresh"' in p], True)
+        expect("the field Name as Alt+M and Alt+N", [p for p in one_key_per_caption(both) if '"Name"' in p], False)
+
+    print("self-test: " + ("FAIL" if failures else "OK"))
+    return 1 if failures else 0
+
+
 def main():
     listing = "--list" in sys.argv
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if "--self-test" in sys.argv:
+        return self_test()
     problems = []
     all_captions = []
     views = os.path.join(ROOT, "Views")
@@ -457,6 +645,9 @@ def main():
             all_captions += xaml_captions(path)
         elif path.endswith(".cs"):
             all_captions += cs_captions(path)
+    # Captions the code behind a XAML page sets on its named controls: on its page.
+    all_captions = onto_xaml_pages(all_captions)
+
     # A shared helper's captions: scanned once, where they are, for coverage, and
     # copied onto every page that calls the helper for the collision check.
     placed = []
@@ -474,6 +665,7 @@ def main():
             problems.append(f"{location(c)}: no mnemonic in \"{c.raw}\"")
     # uniqueness per scope, with the shared helpers' captions on the pages that call them
     problems += collisions(all_captions + placed)
+    problems += one_key_per_caption(all_captions)
     problems += language_problems(all_captions + placed)
     if listing:
         for c in all_captions + placed:

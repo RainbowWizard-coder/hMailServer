@@ -309,7 +309,7 @@ namespace hMailServer.ControlPanel.Views
          var follow = MakeButton(L("_Follow this message"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => FollowSelected());
          actions.Children.Add(follow);
          hMailServer.ControlPanel.Services.SelectionGate.Bind(list_, follow);
-         removeExpired_ = MakeButton(L("_Remove expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired());
+         removeExpired_ = MakeButton(L("Remove _expired"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => SweepExpired());
          ButtonStyles.DangerText(removeExpired_);
          actions.Children.Add(removeExpired_);
          toolbar_.Actions = actions;

@@ -55,7 +55,7 @@ namespace hMailServer.ControlPanel.Views
 
       private readonly Wpf.Ui.Controls.Button okButton_ = new()
       {
-         Content = L("_Select"),
+         Content = L("Se_lect"),
          Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
          MinWidth = 88,
          IsEnabled = false
@@ -152,7 +152,7 @@ namespace hMailServer.ControlPanel.Views
 
          var searchButton = new Wpf.Ui.Controls.Button
          {
-            Content = L("Sea_rch"),
+            Content = L("_Search"),
             Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0)
          };
          searchButton.Click += (s, e) => Search();

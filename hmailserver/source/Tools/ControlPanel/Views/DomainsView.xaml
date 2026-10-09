@@ -123,7 +123,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <scaffold:FieldRow Label="{loc:L 'Domain'}" Margin="0,0,8,0">
+                        <scaffold:FieldRow Label="{loc:L 'Do_main'}" Margin="0,0,8,0">
                             <ui:TextBox x:Name="NewDomainBox" PlaceholderText="newdomain.com" />
                         </scaffold:FieldRow>
                         <ui:Button x:Name="AddDomainButton" Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
@@ -235,10 +235,10 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Address'}">
+                        <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Add_ress'}">
                             <ui:TextBox x:Name="NewAccountBox" PlaceholderText="user@domain" />
                         </scaffold:FieldRow>
-                        <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L 'Password'}" Margin="0,0,8,0">
+                        <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L '_Password'}" Margin="0,0,8,0">
                             <local:PasswordField x:Name="NewAccountPassword" />
                         </scaffold:FieldRow>
                         <WrapPanel x:Name="AccountButtons" Grid.Row="1" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
@@ -316,10 +316,10 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Alias address'}" Margin="0,0,0,8">
+                            <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Alias addr_ess'}" Margin="0,0,0,8">
                                 <ui:TextBox x:Name="NewAliasName" PlaceholderText="alias@domain" FontSize="12" />
                             </scaffold:FieldRow>
-                            <scaffold:FieldRow Grid.Row="1" Label="{loc:L 'Delivers to'}" Margin="0,0,6,0">
+                            <scaffold:FieldRow Grid.Row="1" Label="{loc:L 'Deli_vers to'}" Margin="0,0,6,0">
                                 <ui:TextBox x:Name="NewAliasValue" PlaceholderText="target@anywhere" FontSize="12" />
                             </scaffold:FieldRow>
                             <ui:Button x:Name="AddAliasButton" Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
@@ -367,7 +367,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <scaffold:FieldRow Label="{loc:L 'Address'}" Margin="0,0,6,0">
+                            <scaffold:FieldRow Label="{loc:L 'L_ist address'}" Margin="0,0,6,0">
                                 <ui:TextBox x:Name="NewDistAddress" PlaceholderText="list@domain" FontSize="12" />
                             </scaffold:FieldRow>
                             <ui:Button x:Name="AddListButton" Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"

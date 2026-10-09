@@ -534,7 +534,7 @@ namespace hMailServer.ControlPanel.Views
 
          var labelBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("What this key is for, e.g. \"Grafana probe\"") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(labelBox, "apikeys-dialog-label");
-         FieldRow labelRow = DialogFields.Field(L("Label"), labelBox);
+         FieldRow labelRow = DialogFields.Field(L("_Label"), labelBox);
          panel.Children.Add(labelRow);
 
          // Read-only first and selected by default, matching the server: a create
@@ -575,19 +575,19 @@ namespace hMailServer.ControlPanel.Views
          expiry.Children.Add(QuickPick_(L("_30 days"), 30, expires));
          expiry.Children.Add(QuickPick_(L("_90 days"), 90, expires));
          expiry.Children.Add(QuickPick_(L("_1 year"), 365, expires));
-         FieldRow expiresRow = DialogFields.Field(L("Expires"), expiry,
+         FieldRow expiresRow = DialogFields.Field(L("_Expires"), expiry,
             F("Defaults to {0} days, which is what the API itself uses when a request does not name one. A key with no expiry is the property that makes the administrator password dangerous, so there is no \"never\" option.", ApiKeyStore.DefaultLifetimeDays));
          panel.Children.Add(expiresRow);
 
          var domainsBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = L("example.com, example.net - empty means every domain") };
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainsBox, "apikeys-dialog-domains");
-         FieldRow domainsRow = DialogFields.Field(L("Domains it may act on (optional)"), domainsBox,
+         FieldRow domainsRow = DialogFields.Field(L("_Domains it may act on (optional)"), domainsBox,
             L("A key with a domain list is also refused the delivery-queue endpoints, because the queue is server-wide and cannot be filtered by domain."));
          panel.Children.Add(domainsRow);
 
          var sourceBox = new Wpf.Ui.Controls.TextBox { PlaceholderText = "10.0.0.5, or 10.0.0.0/24, or 10.0.0.1-10.0.0.99" }; // no-loc
          System.Windows.Automation.AutomationProperties.SetAutomationId(sourceBox, "apikeys-dialog-source");
-         FieldRow sourceRow = DialogFields.Field(L("Source addresses it may be used from (optional)"), sourceBox, L("Leave empty for any address"));
+         FieldRow sourceRow = DialogFields.Field(L("_Source addresses it may be used from (optional)"), sourceBox, L("Leave empty for any address"));
          sourceRow.Margin = new Thickness(0);
          panel.Children.Add(sourceRow);
 

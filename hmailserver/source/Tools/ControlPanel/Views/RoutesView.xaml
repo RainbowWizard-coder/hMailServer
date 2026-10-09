@@ -79,13 +79,13 @@
                     <ColumnDefinition Width="*" MinWidth="80" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'Domain (e.g. partner.com)'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Label="{loc:L 'Do_main (e.g. partner.com)'}" Margin="0,0,8,0">
                     <ui:TextBox x:Name="NewDomain" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Target SMTP host'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Grid.Column="1" Label="{loc:L '_Target SMTP host'}" Margin="0,0,8,0">
                     <ui:TextBox x:Name="NewHost" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Port'}" Margin="0,0,8,0">
+                <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'P_ort'}" Margin="0,0,8,0">
                     <ui:TextBox x:Name="NewPort" Text="25" />
                 </scaffold:FieldRow>
                 <ui:Button x:Name="AddRouteButton" Grid.Column="3" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"

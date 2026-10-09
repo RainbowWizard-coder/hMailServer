@@ -263,7 +263,7 @@ namespace hMailServer.ControlPanel.Views
          adBrowse.Click += BrowseAdDomain;
          Grid.SetColumn(adBrowse, 1);
          adRow.Children.Add(adBrowse);
-         panel.Children.Add(DialogFields.Field(L("Active Directory domain (for AD-synchronised domains; optional)"), adRow));
+         panel.Children.Add(DialogFields.Field(L("_Active Directory domain (for AD-synchronised domains; optional)"), adRow));
          return DialogFields.Scroll(panel);
       }
 
@@ -575,7 +575,7 @@ namespace hMailServer.ControlPanel.Views
          dkimKeyRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          Grid.SetColumn(dkimKeyFile_, 0);
          dkimKeyRow.Children.Add(dkimKeyFile_);
-         var dkimBrowse = new Wpf.Ui.Controls.Button { Content = L("B_rowse…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
+         var dkimBrowse = new Wpf.Ui.Controls.Button { Content = L("_Browse…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
          AutomationProperties.SetAutomationId(dkimBrowse, "DkimKeyBrowse");
          dkimBrowse.Click += (s, e) =>
          {
@@ -585,7 +585,7 @@ namespace hMailServer.ControlPanel.Views
          };
          Grid.SetColumn(dkimBrowse, 1);
          dkimKeyRow.Children.Add(dkimBrowse);
-         panel.Children.Add(DialogFields.Field(L("Private key file"), dkimKeyRow));
+         panel.Children.Add(DialogFields.Field(L("_Private key file"), dkimKeyRow));
 
          var dkimGen = new Wpf.Ui.Controls.Button
          {
@@ -598,7 +598,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(dkimGen);
 
          dkimDnsPanel_ = new StackPanel { Visibility = Visibility.Collapsed };
-         dkimDnsPanel_.Children.Add(DialogFields.Field(L("Publish this DNS TXT record at your DNS provider, then enable DKIM:"), dkimDns_));
+         dkimDnsPanel_.Children.Add(DialogFields.Field(L("P_ublish this DNS TXT record at your DNS provider, then enable DKIM:"), dkimDns_));
          var dkimCopy = new Wpf.Ui.Controls.Button { Content = L("_Copy DNS value"), Margin = new Thickness(0, 0, 0, DesignTokens.Space.Md) };
          AutomationProperties.SetAutomationId(dkimCopy, "DkimCopyDns");
          dkimCopy.Click += (s, e) => CopyToClipboard(dkimDnsValue_);
@@ -606,7 +606,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(dkimDnsPanel_);
 
          panel.Children.Add(Label(L("_Header canonicalization"), dkimHeaderCanon_));
-         panel.Children.Add(Label(L("_Body canonicalization"), dkimBodyCanon_));
+         panel.Children.Add(Label(L("B_ody canonicalization"), dkimBodyCanon_));
          panel.Children.Add(Label(L("Signing _algorithm"), dkimAlgorithm_));
 
          panel.Children.Add(DialogFields.Separator());

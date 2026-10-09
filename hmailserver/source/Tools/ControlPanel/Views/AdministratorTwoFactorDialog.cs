@@ -79,7 +79,7 @@ namespace hMailServer.ControlPanel.Views
          status_.SetResourceReference(FrameworkElement.StyleProperty, "TextBody");
 
          BuildEnrolPanel();
-         codeRow_ = DialogFields.Field(L("Verification code from your authenticator app"), code_);
+         codeRow_ = DialogFields.Field(L("_Verification code from your authenticator app"), code_);
 
          var body = new StackPanel();
          body.Children.Add(status_);
@@ -275,7 +275,7 @@ namespace hMailServer.ControlPanel.Views
          Grid.SetColumn(copy, 1);
          keyRow.Children.Add(copy);
 
-         enrolPanel_.Children.Add(DialogFields.Field(L("Setup key (for manual entry)"), keyRow));
+         enrolPanel_.Children.Add(DialogFields.Field(L("Setup _key (for manual entry)"), keyRow));
       }
 
       private void ShowQr(string uri)

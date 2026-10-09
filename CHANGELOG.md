@@ -1470,6 +1470,27 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that the list keeps three rows in the narrowest window and the page scrolls below them, where the detail would have
   taken the list's height. `RowDetailStripTests` holds the strip, each page's fact and its place after the list.
 
+- **Fixed: the Control Panel's page forms had no Alt keys, one action had more than one, and keys collided.** Domain,
+  Address, Password, Alias address, Delivers to and the list's address on the domains page, Account, Role and Domains
+  on the administrator roles page, and some fifty more field captions - on the routes, TCP/IP ports, IP ranges, rules,
+  SSL certificates, incoming relays, MX query, send-out, diagnostics, journaling, Directory synchronisation, Directory
+  authentication and DNS records pages and in eight dialogs - carried no key while the dialog fields around them did, so
+  Alt reached a page's buttons and none of its boxes. Each carries one now, and a field whose box has a button beside
+  it - the backup file, the destination folder, a DKIM key file, a route's address to add - puts the keyboard in the
+  box, where its key did nothing. A verb has one key on every page: Remove is Alt+M (the route and group member
+  dialogs and the two-factor panel said Alt+R), Browse… Alt+B, Copy Alt+C, Search Alt+S, Remove expired Alt+E and
+  Restore defaults Alt+F, and Resume is Alt+E, where on the server status page it was Alt+R beside Refresh; the route
+  dialog's Add is Add address. The Backup & restore page's five cards hold some thirty-five captions, more than there
+  are letters, and shared eight - Alt+P was the encryption passphrase, the archives to keep and Put the message back,
+  and WPF, given two targets for one key, only moves the focus between them: the card that holds the keyboard now
+  answers its own keys first, and a key it does not have goes to the page as before (`Views/AccessKeyScope`).
+  `build/check-mnemonics.py` reads field captions in XAML and in code and captions set in code on a XAML page's
+  buttons, holds a verb to one key and each card of such a page on its own, and holds a dialog tab's keys against the
+  Save button under every tab, which it meant to and did not: in 109 places, all in translations, a tab's key was its
+  dialog's Save - Starkes Passwort erzeugen and Speichern were both Alt+S on a German account's General tab.
+  Some 170 translated captions in fifteen languages took another letter to make room. `--self-test`, which CI runs,
+  proves each rule against a page made to break it; `AccessKeysTests` holds the pages.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

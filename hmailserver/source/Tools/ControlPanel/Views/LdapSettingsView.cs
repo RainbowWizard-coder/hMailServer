@@ -487,7 +487,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetHelpText(servicePassword_, passwordCaption);
          content.Children.Add(new FieldRow
          {
-            Label = L("Service account password (ServicePassword)"),
+            Label = L("Serv_ice account password (ServicePassword)"),
             Content = servicePassword_,
             Hint = passwordCaption
          });
@@ -588,7 +588,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetAutomationId(testPassword_, "ldap-test-password");
          content.Children.Add(new FieldRow
          {
-            Label = L("Password (optional - only to test a real logon)"),
+            Label = L("Password (optional - only to test a real lo_gon)"),
             Content = testPassword_,
             Hint = L("Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search.")
          });

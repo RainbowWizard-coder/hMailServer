@@ -81,7 +81,7 @@ namespace hMailServer.ControlPanel.Views
          delivery_.Items.Add(DialogFields.Combo(L("Each message"), 0));
          delivery_.Items.Add(DialogFields.Combo(L("The daily digest"), 1));
          delivery_.Items.Add(DialogFields.Combo(L("Nothing, while staying a member"), 2));
-         var deliveryRow = DialogFields.Field(L("How the selected member is sent a managed list's mail"), delivery_);
+         var deliveryRow = DialogFields.Field(L("_How the selected member is sent a managed list's mail"), delivery_);
          deliveryRow.Margin = new Thickness(0, DesignTokens.Space.Md, 0, 0);
          body.Children.Add(deliveryRow);
          body.Children.Add(DialogFields.Note(L("Only a managed list reads it, and the member can change it on their own page. The digest goes out once a day on a list whose digest is on; on one whose digest is off, a digest member is sent each message.")));

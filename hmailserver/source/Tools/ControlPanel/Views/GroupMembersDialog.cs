@@ -92,7 +92,7 @@ namespace hMailServer.ControlPanel.Views
          // of a confirmation's own answer, and live with nothing chosen.
          var remove = new Wpf.Ui.Controls.Button
          {
-            Content = L("_Remove"),
+            Content = L("Re_move"),
             MinWidth = 90
          };
          ButtonStyles.DangerText(remove);
@@ -339,7 +339,7 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => dialog.Close();
 
-         dialog.Frame(L("Add account to group"), DialogFields.Field(L("Account to add"), combo), ok, cancel, width: 420);
+         dialog.Frame(L("Add account to group"), DialogFields.Field(L("A_ccount to add"), combo), ok, cancel, width: 420);
          return dialog.ShowDialog() == true ? result : null;
       }
    }

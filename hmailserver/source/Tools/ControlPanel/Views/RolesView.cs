@@ -155,7 +155,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(roleChoice_, L("Role"));
          System.Windows.Automation.AutomationProperties.SetName(domains_, L("Domains, comma separated"));
          address_.Margin = roleChoice_.Margin = domains_.Margin = new Thickness(0);
-         form.Children.Add(FormField_(L("Account"), address_));
+         form.Children.Add(FormField_(L("_Account"), address_));
          // The box opens on no role: it opened on the first the server lists,
          // serveradmin, beside the primary Give the role (review finding F055).
          rolePlaceholder_.Text = L("Choose a role");
@@ -165,8 +165,8 @@ namespace hMailServer.ControlPanel.Views
          var roleBox = new Grid();
          roleBox.Children.Add(roleChoice_);
          roleBox.Children.Add(rolePlaceholder_);
-         form.Children.Add(FormField_(L("Role"), roleBox));
-         form.Children.Add(FormField_(L("Domains"), domains_));
+         form.Children.Add(FormField_(L("R_ole"), roleBox));
+         form.Children.Add(FormField_(L("_Domains"), domains_));
 
          give_ = new Wpf.Ui.Controls.Button
          {

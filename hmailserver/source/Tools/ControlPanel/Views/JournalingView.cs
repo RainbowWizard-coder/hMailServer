@@ -187,12 +187,12 @@ namespace hMailServer.ControlPanel.Views
          var form = new WrapPanel();
          foreach (Control box in new Control[] { scope_, target_, direction_, mode_, address_, note_ })
             box.Margin = new Thickness(0);
-         form.Children.Add(FormField_(L("Domain or account"), scope_));
-         form.Children.Add(FormField_(L("Whose mail"), target_));
-         form.Children.Add(FormField_(L("Which way"), direction_));
-         form.Children.Add(FormField_(L("What is sent"), mode_));
-         form.Children.Add(FormField_(L("Where it goes"), address_));
-         form.Children.Add(FormField_(L("Note"), note_));
+         form.Children.Add(FormField_(L("_Domain or account"), scope_));
+         form.Children.Add(FormField_(L("W_hose mail"), target_));
+         form.Children.Add(FormField_(L("Wh_ich way"), direction_));
+         form.Children.Add(FormField_(L("What is _sent"), mode_));
+         form.Children.Add(FormField_(L("Where it _goes"), address_));
+         form.Children.Add(FormField_(L("_Note"), note_));
 
          add_ = new Wpf.Ui.Controls.Button
          {

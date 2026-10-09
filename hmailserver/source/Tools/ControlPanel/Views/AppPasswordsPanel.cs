@@ -259,7 +259,7 @@ namespace hMailServer.ControlPanel.Views
          nameRow_ = DialogFields.Field(L("_Name"), newName_);
          nameRow_.Margin = new Thickness(0, 0, 8, 0);
          create.Children.Add(nameRow_);
-         Wpf.Ui.Controls.Button createButton = MakeButton(L("_Create"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Create());
+         Wpf.Ui.Controls.Button createButton = MakeButton(L("Cr_eate"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Create());
          createButton.Margin = new Thickness(0);
          createButton.VerticalAlignment = VerticalAlignment.Bottom;
          Grid.SetColumn(createButton, 1);
@@ -296,7 +296,7 @@ namespace hMailServer.ControlPanel.Views
          };
          issued.Children.Add(issuedTitle);
          issued.Children.Add(issuedValue_);
-         var copy = MakeButton(L("Cop_y"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => CopyIssued());
+         var copy = MakeButton(L("_Copy"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => CopyIssued());
          copy.Margin = new Thickness(0, 8, 0, 0);
          copy.HorizontalAlignment = HorizontalAlignment.Left;
          issued.Children.Add(copy);

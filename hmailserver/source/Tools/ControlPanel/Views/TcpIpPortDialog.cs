@@ -52,7 +52,7 @@ namespace hMailServer.ControlPanel.Views
          protocol_.Items.Add(DialogFields.Combo("IMAP", ServerSession.SessionImap));
          body.Children.Add(Label(L("_Protocol"), protocol_));
 
-         body.Children.Add(Label(L("_Bind address"), address_));
+         body.Children.Add(Label(L("B_ind address"), address_));
          portRow_ = Label(L("P_ort"), port_);
          body.Children.Add(portRow_);
 
@@ -90,7 +90,7 @@ namespace hMailServer.ControlPanel.Views
          caRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          Grid.SetColumn(clientCertCaFile_, 0);
          caRow.Children.Add(clientCertCaFile_);
-         var caBrowse = new Wpf.Ui.Controls.Button { Content = L("B_rowse…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
+         var caBrowse = new Wpf.Ui.Controls.Button { Content = L("_Browse…"), Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0), VerticalAlignment = VerticalAlignment.Top };
          AutomationProperties.SetAutomationId(caBrowse, "ClientCertCaBrowse");
          AutomationProperties.SetName(caBrowse, L("Browse for a CA certificate bundle file"));
          caBrowse.Click += (s, e) =>

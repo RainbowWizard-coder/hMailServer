@@ -326,7 +326,7 @@ namespace hMailServer.ControlPanel.Views
          domainChoice_.SelectionChanged += (s, e) => InvalidatePreview_();
          content.Children.Add(new FieldRow
          {
-            Label = L("Domain"),
+            Label = L("D_omain"),
             Content = domainChoice_,
             Hint = L("Only domains with an Active Directory domain name set are listed - that field is what links a mail domain to a directory. Bringing one domain over at a time is the sane way to do this the first time.")
          });

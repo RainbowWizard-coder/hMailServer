@@ -86,12 +86,12 @@ namespace hMailServer.ControlPanel.Views
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-         var nameField = new FieldRow { Label = L("Name"), Content = name_, Margin = new Thickness(0, 0, 8, 0) };
+         var nameField = new FieldRow { Label = L("_Name"), Content = name_, Margin = new Thickness(0, 0, 8, 0) };
          row.Children.Add(nameField);
-         var lowerField = new FieldRow { Label = L("Lower IP"), Content = lower_, Margin = new Thickness(0, 0, 8, 0) };
+         var lowerField = new FieldRow { Label = L("_Lower IP"), Content = lower_, Margin = new Thickness(0, 0, 8, 0) };
          Grid.SetColumn(lowerField, 1);
          row.Children.Add(lowerField);
-         var upperField = new FieldRow { Label = L("Upper IP"), Content = upper_, Margin = new Thickness(0, 0, 8, 0) };
+         var upperField = new FieldRow { Label = L("_Upper IP"), Content = upper_, Margin = new Thickness(0, 0, 8, 0) };
          Grid.SetColumn(upperField, 2);
          row.Children.Add(upperField);
 
@@ -260,7 +260,7 @@ namespace hMailServer.ControlPanel.Views
          inputRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
          inputRow.Children.Add(new FieldRow
          {
-            Label = L("Domain (e.g. gmail.com)"),
+            Label = L("_Domain (e.g. gmail.com)"),
             Content = domain_,
             Margin = new Thickness(0, 0, 8, 0)
          });
@@ -391,7 +391,7 @@ namespace hMailServer.ControlPanel.Views
 
       // The message's row, which says on the field that an empty message is not
       // sent.
-      private readonly FieldRow bodyRow_ = new() { Label = L("Message") };
+      private readonly FieldRow bodyRow_ = new() { Label = L("_Message") };
 
       public SendoutView()
       {
@@ -405,10 +405,10 @@ namespace hMailServer.ControlPanel.Views
 
          var form = new StackPanel();
 
-         form.Children.Add(new FieldRow { Label = L("Recipient wildcard (* = everyone)"), Content = wildcard_ });
-         form.Children.Add(new FieldRow { Label = L("From address"), Content = fromAddress_ });
-         form.Children.Add(new FieldRow { Label = L("From name"), Content = fromName_ });
-         form.Children.Add(new FieldRow { Label = L("Subject"), Content = subject_ });
+         form.Children.Add(new FieldRow { Label = L("_Recipient wildcard (* = everyone)"), Content = wildcard_ });
+         form.Children.Add(new FieldRow { Label = L("_From address"), Content = fromAddress_ });
+         form.Children.Add(new FieldRow { Label = L("From _name"), Content = fromName_ });
+         form.Children.Add(new FieldRow { Label = L("Su_bject"), Content = subject_ });
          body_.SetResourceReference(Control.ForegroundProperty, "TextFillColorPrimaryBrush");
          body_.Background = System.Windows.Media.Brushes.Transparent;
          bodyRow_.Content = body_;
@@ -644,10 +644,10 @@ namespace hMailServer.ControlPanel.Views
          // which domain is which. The captions double as the accessible names.
          System.Windows.Automation.AutomationProperties.SetName(localDomain_, L("Hosted domain"));
          System.Windows.Automation.AutomationProperties.SetName(testDomain_, L("Remote domain"));
-         inputRow.Children.Add(Captioned(L("Hosted domain"), localDomain_));
+         inputRow.Children.Add(Captioned(L("_Hosted domain"), localDomain_));
          testDomain_.Margin = new Thickness(0, 0, 8, 0);
          Grid.SetColumn(testDomain_, 1);
-         inputRow.Children.Add(Captioned(L("Remote domain"), testDomain_));
+         inputRow.Children.Add(Captioned(L("R_emote domain"), testDomain_));
          // Bottom-aligned, level with the two captioned inputs' boxes.
          var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Bottom };
          var run = new Wpf.Ui.Controls.Button { Content = L("Run _diagnostics"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary };

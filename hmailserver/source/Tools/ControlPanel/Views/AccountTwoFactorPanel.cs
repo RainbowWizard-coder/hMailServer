@@ -60,7 +60,7 @@ namespace hMailServer.ControlPanel.Views
          enrolCard_.SetResourceReference(StyleProperty, "Card");
 
          enrol_ = MakeButton(L("_Enrol a second factor"), Wpf.Ui.Controls.ControlAppearance.Primary, (_, _) => Enrol());
-         disable_ = MakeButton(L("_Remove"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Disable());
+         disable_ = MakeButton(L("Re_move"), Wpf.Ui.Controls.ControlAppearance.Secondary, (_, _) => Disable());
          ButtonStyles.DangerText(disable_);
 
          Build();

@@ -771,6 +771,9 @@
   <data name="AWStats-compatible log" xml:space="preserve">
     <value>AWStats-compatibel logboek</value>
   </data>
+  <data name="A_ccount to add" xml:space="preserve">
+    <value>_Toe te voegen account</value>
+  </data>
   <data name="A_ction" xml:space="preserve">
     <value>_Actie</value>
   </data>
@@ -861,9 +864,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Account recovery" xml:space="preserve">
     <value>Accountherstel</value>
   </data>
-  <data name="Account to add" xml:space="preserve">
-    <value>Toe te voegen account</value>
-  </data>
   <data name="Account to add to the group" xml:space="preserve">
     <value>Account om aan de groep toe te voegen</value>
   </data>
@@ -911,9 +911,6 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Active" xml:space="preserve">
     <value>Actief</value>
-  </data>
-  <data name="Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
-    <value>Active Directory-domein (voor met AD gesynchroniseerde domeinen; optioneel)</value>
   </data>
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory is niet beschikbaar op deze machine: {0}</value>
@@ -1122,6 +1119,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add to the suppression list of {0}" xml:space="preserve">
     <value>Aan de onderdrukkingslijst van {0} toevoegen</value>
   </data>
+  <data name="Add_ress" xml:space="preserve">
+    <value>Ad_res</value>
+  </data>
   <data name="Added" xml:space="preserve">
     <value>Toegevoegd</value>
   </data>
@@ -1244,6 +1244,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Alerts sent one at a time in an hour, at most" xml:space="preserve">
     <value>Waarschuwingen die per uur één voor één worden verzonden, hoogstens</value>
+  </data>
+  <data name="Alias addr_ess" xml:space="preserve">
+    <value>Al_iasadres</value>
   </data>
   <data name="Alias address" xml:space="preserve">
     <value>Aliasadres</value>
@@ -1627,9 +1630,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Archive folder (empty = archiving off)" xml:space="preserve">
     <value>Archiefmap (leeg = archivering uit)</value>
   </data>
-  <data name="Archive in the backup destination (_name or path)" xml:space="preserve">
-    <value>Archief in de back-upbestemming (_naam of pad)</value>
-  </data>
   <data name="ArchiveDir is a raw copy of every message that passes through the server, and until now nothing ever removed anything from it - so on a busy server it is a directory that only grows, and the administrator who finds out is the one whose disk filled up. This prunes it. 0 keeps everything, and that is the default on purpose: an archive is usually kept for a legal or contractual reason, and a server that started deleting from one on upgrade would be destroying exactly what it was told to keep. The sweep only ever removes .eml files, so anything else you keep in the archive is left alone, and it runs at startup and every twelve hours after." xml:space="preserve">
     <value>ArchiveDir is een ruwe kopie van elk bericht dat door de server gaat, en tot nu toe verwijderde niets er ooit iets uit - dus op een drukke server is het een map die alleen maar groeit, en de beheerder die daar achter komt is degene wiens schijf vol is gelopen. Dit snoeit hem. 0 bewaart alles, en dat is met opzet de standaard: een archief wordt meestal om een juridische of contractuele reden bewaard, en een server die er bij een upgrade uit begon te verwijderen zou precies vernietigen wat hem is opgedragen te bewaren. De opruiming verwijdert alleen .eml-bestanden, dus al het andere dat u in het archief bewaart blijft met rust, en hij draait bij het opstarten en daarna elke twaalf uur.</value>
   </data>
@@ -1813,8 +1813,11 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="BATV signing secret" xml:space="preserve">
     <value>BATV-ondertekeningsgeheim</value>
   </data>
-  <data name="B_rowse…" xml:space="preserve">
-    <value>B_laderen…</value>
+  <data name="B_ind address" xml:space="preserve">
+    <value>B_indadres</value>
+  </data>
+  <data name="B_ody canonicalization" xml:space="preserve">
+    <value>Body-_canonicalisatie</value>
   </data>
   <data name="Back" xml:space="preserve">
     <value>Terug</value>
@@ -1941,9 +1944,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Bind address" xml:space="preserve">
     <value>Bindadres</value>
-  </data>
-  <data name="Bind address (0.0.0.0)" xml:space="preserve">
-    <value>Bindadres (0.0.0.0)</value>
   </data>
   <data name="Bind outbound connections to IP (empty = any)" xml:space="preserve">
     <value>Uitgaande verbindingen binden aan IP (leeg = elk)</value>
@@ -2202,9 +2202,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Certificate file" xml:space="preserve">
     <value>Certificaatbestand</value>
-  </data>
-  <data name="Certificate file (PEM)" xml:space="preserve">
-    <value>Certificaatbestand (PEM)</value>
   </data>
   <data name="Certificate file for the new certificate" xml:space="preserve">
     <value>Certificaatbestand voor het nieuwe certificaat</value>
@@ -2671,9 +2668,6 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Control-Panel-only two-factor authentication is on." xml:space="preserve">
     <value>Tweefactorauthenticatie alleen voor het Control Panel staat aan.</value>
   </data>
-  <data name="Cop_y" xml:space="preserve">
-    <value>Kop_iëren</value>
-  </data>
   <data name="Copied." xml:space="preserve">
     <value>Gekopieerd.</value>
   </data>
@@ -3123,6 +3117,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Country blocking" xml:space="preserve">
     <value>Blokkeren per land</value>
   </data>
+  <data name="Cr_eate" xml:space="preserve">
+    <value>_Aanmaken</value>
+  </data>
   <data name="Crash-durability barrier and an optional integrity scan for the on-disk message store. The defaults preserve the previous behaviour; enabling fsync adds a small per-message cost." xml:space="preserve">
     <value>Een duurzaamheidsbarrière tegen crashes en een optionele integriteitsscan voor de berichtopslag op schijf. De standaardwaarden behouden het vorige gedrag; fsync inschakelen kost per bericht iets extra.</value>
   </data>
@@ -3299,6 +3296,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="D_epartment" xml:space="preserve">
     <value>_Afdeling</value>
+  </data>
+  <data name="D_omain" xml:space="preserve">
+    <value>_Domein</value>
   </data>
   <data name="Daily backup t_ime (24-hour HH:MM, empty = off)" xml:space="preserve">
     <value>Dagelijkse back-upt_ijd (24-uurs UU:MM, leeg = uit)</value>
@@ -3502,7 +3502,7 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
     <value>Berichten verwijderen</value>
   </data>
   <data name="Delete messages in this domain's mailboxes _older than (days; 0 = no policy, an account's own value overrides it)" xml:space="preserve">
-    <value>Berichten in de postvakken van dit domein verwijderen die _ouder zijn dan (dagen; 0 = geen beleid, de eigen waarde van een account gaat voor)</value>
+    <value>Berichten in de postvakken van dit domein verwijderen die ouder _zijn dan (dagen; 0 = geen beleid, de eigen waarde van een account gaat voor)</value>
   </data>
   <data name="Delete messages older than (days)" xml:space="preserve">
     <value>Berichten verwijderen die ouder zijn dan (dagen)</value>
@@ -3680,6 +3680,9 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   <data name="Deleting a domain deletes the accounts inside it. Check for aliases and lists pointing at it first." xml:space="preserve">
     <value>Een domein verwijderen verwijdert de accounts erin. Controleer eerst op aliassen en lijsten die ernaar verwijzen.</value>
   </data>
+  <data name="Deli_vers to" xml:space="preserve">
+    <value>_Bezorgt bij</value>
+  </data>
   <data name="Deliver _local → local" xml:space="preserve">
     <value>_Lokaal → lokaal bezorgen</value>
   </data>
@@ -3724,9 +3727,6 @@ De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert 
   </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Bezorgen: het bericht wordt geaccepteerd maar vertrekt nooit</value>
-  </data>
-  <data name="Delivers to" xml:space="preserve">
-    <value>Bezorgt bij</value>
   </data>
   <data name="Delivery" xml:space="preserve">
     <value>Bezorging</value>
@@ -3874,17 +3874,17 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Do not send messages larger than (KB; 0 = no limit)" xml:space="preserve">
     <value>Geen berichten verzenden groter dan (KB; 0 = geen limiet)</value>
   </data>
+  <data name="Do_main" xml:space="preserve">
+    <value>D_omein</value>
+  </data>
+  <data name="Do_main (e.g. partner.com)" xml:space="preserve">
+    <value>D_omein (bijv. partner.com)</value>
+  </data>
   <data name="Does not match the certificate" xml:space="preserve">
     <value>Komt niet overeen met het certificaat</value>
   </data>
   <data name="Domain" xml:space="preserve">
     <value>Domein</value>
-  </data>
-  <data name="Domain (e.g. gmail.com)" xml:space="preserve">
-    <value>Domein (bijv. gmail.com)</value>
-  </data>
-  <data name="Domain (e.g. partner.com)" xml:space="preserve">
-    <value>Domein (bijv. partner.com)</value>
   </data>
   <data name="Domain - {0}" xml:space="preserve">
     <value>Domein - {0}</value>
@@ -3928,9 +3928,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Domain, or .suffix" xml:space="preserve">
     <value>Domein, of .achtervoegsel</value>
   </data>
-  <data name="Domain:" xml:space="preserve">
-    <value>Domein:</value>
-  </data>
   <data name="Domains" xml:space="preserve">
     <value>Domeinen</value>
   </data>
@@ -3939,9 +3936,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Domains and HELO suffixes let past greylisting only when the message passes SPF, DKIM or DMARC as the entry requires." xml:space="preserve">
     <value>Domeinen en HELO-achtervoegsels die greylisting alleen passeren wanneer het bericht SPF, DKIM of DMARC doorstaat zoals de vermelding vereist.</value>
-  </data>
-  <data name="Domains it may act on (optional)" xml:space="preserve">
-    <value>Domeinen waarop hij mag werken (optioneel)</value>
   </data>
   <data name="Domains, accounts, aliases and distribution lists, and each account's passwords, forwarding and folders." xml:space="preserve">
     <value>Domeinen, accounts, aliassen en distributielijsten, en van elk account de wachtwoorden, het doorsturen en de mappen.</value>
@@ -4249,8 +4243,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter part of a name and press Search, or search with an empty box to list all users." xml:space="preserve">
     <value>Voer een deel van een naam in en druk op Zoeken, of zoek met een leeg vak om alle gebruikers op te sommen.</value>
   </data>
-  <data name="Enter the 6-digit code from your authenticator app:" xml:space="preserve">
-    <value>Voer de 6-cijferige code uit uw authenticator-app in:</value>
+  <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
+    <value>_Voer de 6-cijferige code uit uw authenticator-app in:</value>
   </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Geef het adres van het account waarvan de mailbox moet worden hersteld.</value>
@@ -4562,7 +4556,7 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
     <value>Externe ontvangers (adressen die deze server niet host)</value>
   </data>
   <data name="External to external (_open relay!)" xml:space="preserve">
-    <value>Extern naar extern (_open relay!)</value>
+    <value>Extern _naar extern (open relay!)</value>
   </data>
   <data name="External-account hosts to FETCH from with OAuth2 (comma separated; blank this to use none)" xml:space="preserve">
     <value>Hosts van externe accounts waarvan met OAuth2 wordt opgehaald (door komma's gescheiden; laat dit leeg om er geen te gebruiken)</value>
@@ -4780,17 +4774,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="From (a_ddress)" xml:space="preserve">
     <value>Van (a_dres)</value>
   </data>
-  <data name="From address" xml:space="preserve">
-    <value>Afzenderadres</value>
+  <data name="From _name" xml:space="preserve">
+    <value>A_fzendernaam</value>
   </data>
   <data name="From address and subject are required." xml:space="preserve">
     <value>Afzenderadres en onderwerp zijn verplicht.</value>
   </data>
   <data name="From is included automatically whenever this list is non-empty - a prepended second From: is the attack oversigning exists for. Names must be printable ASCII without a colon; an invalid name is dropped with an error log entry, and a value longer than 256 characters is ignored entirely, also with an error entry, because h= has to fit on one unfolded line." xml:space="preserve">
     <value>From wordt automatisch meegenomen zodra deze lijst niet leeg is - een ervoor geplaatste tweede From: is precies de aanval waarvoor oversigning bestaat. Namen moeten afdrukbare ASCII zonder dubbele punt zijn; een ongeldige naam wordt weggelaten met een vermelding in het foutenlogboek, en een waarde langer dan 256 tekens wordt volledig genegeerd, ook met een foutvermelding, omdat h= op één niet-gevouwen regel moet passen.</value>
-  </data>
-  <data name="From name" xml:space="preserve">
-    <value>Afzendernaam</value>
   </data>
   <data name="Front-end proxies (PROXY protocol and XCLIENT)" xml:space="preserve">
     <value>Front-endproxy's (PROXY-protocol en XCLIENT)</value>
@@ -5182,9 +5173,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How the password is proved" xml:space="preserve">
     <value>Hoe het wachtwoord wordt bewezen</value>
   </data>
-  <data name="How the selected member is sent a managed list's mail" xml:space="preserve">
-    <value>Hoe het geselecteerde lid de mail van een beheerde lijst krijgt</value>
-  </data>
   <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
     <value>Hoe de server bepaalt dat mail.example.com en example.com bij dezelfde organisatie horen, wat is wat de standaard relaxed uitlijning van DMARC vergelijkt. Het oude antwoord was de Public Suffix List - een bestand met de delegatieregels van elke registry, meegecompileerd en bij het bouwen ververst. DMARCbis heeft dat vervangen door een wandeling omhoog door DNS waarbij aan elk niveau wordt gevraagd of het een organisatiegrens is, zodat een domeineigenaar zelf kan aangeven waar zijn grens ligt in plaats van een lijst te moeten verzoeken. Dit uitschakelen valt terug op de meegecompileerde lijst, en dat gebeurt ook bij elke afzonderlijke opzoeking die de wandeling niet kan afmaken doordat DNS niet beschikbaar was - een storing in de resolver mag relaxed uitlijning niet stilzwijgend in strict veranderen. Kost tot acht DNS-query's per domein, vijf minuten gecached.</value>
   </data>
@@ -5505,6 +5493,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Journaling and dual delivery" xml:space="preserve">
     <value>Journaling en dubbele bezorging</value>
   </data>
+  <data name="Ke_y passphrase (only for an encrypted key)" xml:space="preserve">
+    <value>_Wachtwoordzin van de sleutel (alleen voor een versleutelde sleutel)</value>
+  </data>
   <data name="Keep" xml:space="preserve">
     <value>Behouden</value>
   </data>
@@ -5565,9 +5556,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Key material is present for the algorithms allowed, and both the issuer and the audience are checked, so a token has to have been minted by your provider for this server specifically. The mailbox it names still has to exist as a local account - a valid token for an address this server does not host is refused." xml:space="preserve">
     <value>Er is sleutelmateriaal aanwezig voor de toegestane algoritmen, en zowel de uitgever als de audience wordt gecontroleerd, dus een token moet specifiek voor deze server door uw provider zijn uitgegeven. Het postvak dat het token noemt moet nog steeds als lokaal account bestaan - een geldig token voor een adres dat deze server niet host, wordt geweigerd.</value>
   </data>
-  <data name="Key passphrase (only for an encrypted key)" xml:space="preserve">
-    <value>Wachtwoordzin van de sleutel (alleen voor een versleutelde sleutel)</value>
-  </data>
   <data name="Key prefix (empty = none)" xml:space="preserve">
     <value>Sleutelvoorvoegsel (leeg = geen)</value>
   </data>
@@ -5601,8 +5589,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="LDAPS is the default. A number in the INI that is not one of these three is read as LDAPS, so a typo cannot silently weaken the transport - and whatever this is set to, a password is never sent over an unprotected connection unless that is explicitly allowed below." xml:space="preserve">
     <value>LDAPS is de standaard. Een getal in de INI dat geen van deze drie is, wordt als LDAPS gelezen, zodat een typefout het transport niet stilzwijgend kan verzwakken - en wat hier ook is ingesteld, een wachtwoord wordt nooit over een onbeschermde verbinding verzonden tenzij dat hieronder uitdrukkelijk wordt toegestaan.</value>
   </data>
-  <data name="Label" xml:space="preserve">
-    <value>Label</value>
+  <data name="L_ist address" xml:space="preserve">
+    <value>Li_jstadres</value>
   </data>
   <data name="Language" xml:space="preserve">
     <value>Taal</value>
@@ -5790,6 +5778,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Live, from the running server. The hit rate is the share of lookups answered from memory since the counters last reset - which they do when the service restarts, when a cache is switched off, and when its TTL is changed, so a rate right after any of those describes a very short sample. A lookup for something that does not exist counts as a miss and caches nothing, so a server being probed for addresses it does not host shows a low rate without anything being wrong with the cache." xml:space="preserve">
     <value>Live, van de draaiende server. De hit rate is het aandeel opzoekingen dat sinds de laatste reset van de tellers uit het geheugen is beantwoord - die reset gebeurt bij een herstart van de service, wanneer een cache wordt uitgeschakeld en wanneer de TTL ervan wordt gewijzigd, dus een rate vlak na een van die gebeurtenissen beschrijft een zeer korte steekproef. Een opzoeking naar iets dat niet bestaat, telt als misser en cachet niets, dus een server die wordt afgetast op adressen die hij niet host, toont een lage rate zonder dat er iets mis is met de cache.</value>
   </data>
+  <data name="Lo_wer IP (e.g. 10.0.0.0)" xml:space="preserve">
+    <value>L_aagste IP (bijv. 10.0.0.0)</value>
+  </data>
   <data name="Loaded from disk." xml:space="preserve">
     <value>Van schijf geladen.</value>
   </data>
@@ -5900,9 +5891,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Lower IP" xml:space="preserve">
     <value>Laagste IP</value>
-  </data>
-  <data name="Lower IP (e.g. 10.0.0.0)" xml:space="preserve">
-    <value>Laagste IP (bijv. 10.0.0.0)</value>
   </data>
   <data name="Lower the mark and delete thresholds, or turn on more of the checks." xml:space="preserve">
     <value>Verlaag de markeer- en verwijderdrempels, of schakel meer van de controles in.</value>
@@ -6256,14 +6244,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Merging is on, so its own numeric score is added - which can be any size." xml:space="preserve">
     <value>Samenvoegen staat aan, dus zijn eigen numerieke score wordt opgeteld - en die kan elke grootte hebben.</value>
   </data>
-  <data name="Message" xml:space="preserve">
-    <value>Bericht</value>
-  </data>
   <data name="Message ID" xml:space="preserve">
     <value>Bericht-ID</value>
-  </data>
-  <data name="Message _id, from the listing" xml:space="preserve">
-    <value>Bericht-_id, uit de lijst</value>
   </data>
   <data name="Message archiving" xml:space="preserve">
     <value>Berichtarchivering</value>
@@ -6276,6 +6258,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Message for local s_enders (empty = same as above)" xml:space="preserve">
     <value>Bericht _voor lokale afzenders (leeg = hetzelfde als hierboven)</value>
+  </data>
+  <data name="Message i_d, from the listing" xml:space="preserve">
+    <value>Bericht-_id, uit de lijst</value>
   </data>
   <data name="Message indexing" xml:space="preserve">
     <value>Berichtindexering</value>
@@ -6538,6 +6523,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="N_otice text (mailed to a sender this server hosts, naming the rule)" xml:space="preserve">
     <value>T_ekst van de melding (gestuurd aan een afzender die deze server host, met de naam van de regel)</value>
   </data>
+  <data name="Na_me" xml:space="preserve">
+    <value>_Naam</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>Naam</value>
   </data>
@@ -6567,6 +6555,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Names that are never auto-banned" xml:space="preserve">
     <value>Namen die nooit automatisch gebannen worden</value>
+  </data>
+  <data name="Ne_w rule name" xml:space="preserve">
+    <value>_Naam van de nieuwe regel</value>
   </data>
   <data name="Negotiate (Kerberos/NTLM) - the password never crosses the network" xml:space="preserve">
     <value>Negotiate (Kerberos/NTLM) - het wachtwoord gaat nooit over het netwerk</value>
@@ -6606,9 +6597,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="New public folder" xml:space="preserve">
     <value>Nieuwe openbare map</value>
-  </data>
-  <data name="New rule name" xml:space="preserve">
-    <value>Naam van de nieuwe regel</value>
   </data>
   <data name="New to hMailServer? A short walk sets up a domain, a mailbox and a listener that offers TLS, and ends on the dashboard." xml:space="preserve">
     <value>Nieuw bij hMailServer? Een korte rondleiding maakt een domein, een postvak en een listener die TLS aanbiedt, en eindigt op het Dashboard.</value>
@@ -7819,6 +7807,12 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="P_ort" xml:space="preserve">
     <value>Poo_rt</value>
   </data>
+  <data name="P_rotocol" xml:space="preserve">
+    <value>_Protocol</value>
+  </data>
+  <data name="P_ublish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
+    <value>Publiceer dit DNS-TXT-_record bij uw DNS-provider en schakel DKIM dan in:</value>
+  </data>
   <data name="Page Down" xml:space="preserve">
     <value>Pagina omlaag</value>
   </data>
@@ -7872,6 +7866,9 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Password (leave empty to keep current)" xml:space="preserve">
     <value>Wachtwoord (leeg laten om het huidige te behouden)</value>
+  </data>
+  <data name="Password (optional - only to test a real lo_gon)" xml:space="preserve">
+    <value>Wachtwoo_rd (optioneel - alleen om een echte aanmelding te testen)</value>
   </data>
   <data name="Password (optional - only to test a real logon)" xml:space="preserve">
     <value>Wachtwoord (optioneel - alleen om een echte aanmelding te testen)</value>
@@ -7992,6 +7989,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Policy refusal" xml:space="preserve">
     <value>Beleidsweigering</value>
   </data>
+  <data name="Por_t" xml:space="preserve">
+    <value>P_oort</value>
+  </data>
   <data name="Port" xml:space="preserve">
     <value>Poort</value>
   </data>
@@ -8049,9 +8049,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Post also lets the account send as this mailbox's address over SMTP (Send-As), when SmtpAuthenticatedSenderCheck is on." xml:space="preserve">
     <value>Plaatsen laat het account ook via SMTP verzenden als het adres van dit postvak (Send-As), wanneer SmtpAuthenticatedSenderCheck aanstaat.</value>
   </data>
-  <data name="Pr_operties…" xml:space="preserve">
-    <value>Ei_genschappen…</value>
-  </data>
   <data name="Pre-filled with the domain's postmaster address, as configured on the domain. Change it if reports should go elsewhere." xml:space="preserve">
     <value>Vooraf ingevuld met het postmasteradres van het domein, zoals op het domein geconfigureerd. Wijzig het als de rapporten ergens anders heen moeten.</value>
   </data>
@@ -8106,6 +8103,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   <data name="Previous year" xml:space="preserve">
     <value>Vorig jaar</value>
   </data>
+  <data name="Pri_ority" xml:space="preserve">
+    <value>P_rioriteit</value>
+  </data>
   <data name="Prioritize ChaCha20-Poly1305 when the client prefers it (needs TLS 1.2 or 1.3)" xml:space="preserve">
     <value>ChaCha20-Poly1305 voorrang geven wanneer de client die verkiest (vereist TLS 1.2 of 1.3)</value>
   </data>
@@ -8113,16 +8113,16 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
     <value>Prioriteit</value>
   </data>
   <data name="Private _key passphrase" xml:space="preserve">
-    <value>Wachtwoordzin van de privé_sleutel</value>
+    <value>Wachtwoordzin van _de privésleutel</value>
   </data>
   <data name="Private key" xml:space="preserve">
     <value>Privésleutel</value>
   </data>
+  <data name="Private key _file (PEM)" xml:space="preserve">
+    <value>P_rivésleutelbestand (PEM)</value>
+  </data>
   <data name="Private key file" xml:space="preserve">
     <value>Privésleutelbestand</value>
-  </data>
-  <data name="Private key file (PEM)" xml:space="preserve">
-    <value>Privésleutelbestand (PEM)</value>
   </data>
   <data name="Private key file for the new certificate" xml:space="preserve">
     <value>Privésleutelbestand voor het nieuwe certificaat</value>
@@ -8150,6 +8150,9 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Prometheus metrics, health endpoints and the REST API are enabled here." xml:space="preserve">
     <value>Prometheus-metrics, gezondheidseindpunten en de REST-API worden hier ingeschakeld.</value>
+  </data>
+  <data name="Prop_erties…" xml:space="preserve">
+    <value>Ei_genschappen…</value>
   </data>
   <data name="Propagating" xml:space="preserve">
     <value>Bezig met propageren</value>
@@ -8222,9 +8225,6 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="Publish keys in the Web Key Directory" xml:space="preserve">
     <value>Sleutels publiceren in de Web Key Directory</value>
-  </data>
-  <data name="Publish this DNS TXT record at your DNS provider, then enable DKIM:" xml:space="preserve">
-    <value>Publiceer dit DNS-TXT-record bij uw DNS-provider en schakel DKIM dan in:</value>
   </data>
   <data name="Published and correct" xml:space="preserve">
     <value>Gepubliceerd en correct</value>
@@ -8336,6 +8336,15 @@ Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd to
   </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Bestand met de publieke RSA-/EC-sleutel (PEM, voor RS*-/ES*-tokens)</value>
+  </data>
+  <data name="R_emote domain" xml:space="preserve">
+    <value>_Extern domein</value>
+  </data>
+  <data name="R_esume" xml:space="preserve">
+    <value>_Hervatten</value>
+  </data>
+  <data name="R_ole" xml:space="preserve">
+    <value>_Rol</value>
   </data>
   <data name="Raise the IMAP search time and size limits; a search that hits either one is reported to the client as a failure." xml:space="preserve">
     <value>Verhoog de tijd- en groottelimieten voor IMAP-zoekopdrachten; een zoekopdracht die er een van bereikt, wordt aan de client als een fout gemeld.</value>
@@ -8505,9 +8514,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Recipient tarpit" xml:space="preserve">
     <value>Ontvanger-tarpit</value>
-  </data>
-  <data name="Recipient wildcard (* = everyone)" xml:space="preserve">
-    <value>Jokerteken voor ontvangers (* = iedereen)</value>
   </data>
   <data name="Recipients" xml:space="preserve">
     <value>Ontvangers</value>
@@ -8913,7 +8919,7 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
     <value>Antwoord_bericht</value>
   </data>
   <data name="Reply su_bject" xml:space="preserve">
-    <value>Antwoord_onderwerp</value>
+    <value>An_twoordonderwerp</value>
   </data>
   <data name="Reply to colleagues _only" xml:space="preserve">
     <value>Alleen _collega's beantwoorden</value>
@@ -9689,11 +9695,11 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Scroll tabs right" xml:space="preserve">
     <value>Tabbladen naar rechts schuiven</value>
   </data>
+  <data name="Se_lect" xml:space="preserve">
+    <value>_Selecteren</value>
+  </data>
   <data name="Se_lector" xml:space="preserve">
     <value>S_elector</value>
-  </data>
-  <data name="Sea_rch" xml:space="preserve">
-    <value>_Zoeken</value>
   </data>
   <data name="Seal forwarded messages with the domain's DKIM key" xml:space="preserve">
     <value>Doorgestuurde berichten verzegelen met de DKIM-sleutel van het domein</value>
@@ -10034,6 +10040,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Separately, this server's own SENDING of such reports to other domains is inert: TlsRptFromAddress is empty in hMailServer.INI (the default), so it collects statistics and discards every completed day unsent. Set it on the Transport security page if you want to send reports too." xml:space="preserve">
     <value>Los daarvan doet het VERSTUREN van zulke rapporten door deze server naar andere domeinen niets: TlsRptFromAddress is leeg in hMailServer.INI (de standaard), dus verzamelt hij statistieken en gooit hij elke afgeronde dag ongestuurd weg. Stel het in op de pagina Transportbeveiliging als u ook rapporten wilt versturen.</value>
   </data>
+  <data name="Serv_ice account password (ServicePassword)" xml:space="preserve">
+    <value>Wachtwoord van het serviceacco_unt (ServicePassword)</value>
+  </data>
   <data name="Serve MTA-STS policies for local domains" xml:space="preserve">
     <value>MTA-STS-beleid serveren voor lokale domeinen</value>
   </data>
@@ -10255,11 +10264,11 @@ Nu opnieuw starten?</value>
   <data name="Setup _checklist…" xml:space="preserve">
     <value>_Configuratiechecklist…</value>
   </data>
+  <data name="Setup _key (for manual entry)" xml:space="preserve">
+    <value>I_nstelsleutel (voor handmatige invoer)</value>
+  </data>
   <data name="Setup checklist" xml:space="preserve">
     <value>Configuratiechecklist</value>
-  </data>
-  <data name="Setup key (for manual entry)" xml:space="preserve">
-    <value>Instelsleutel (voor handmatige invoer)</value>
   </data>
   <data name="Shared HMAC secret (only for HS256/384/512 tokens)" xml:space="preserve">
     <value>Gedeeld HMAC-geheim (alleen voor HS256/384/512-tokens)</value>
@@ -10339,8 +10348,8 @@ Nu opnieuw starten?</value>
   <data name="Sieve" xml:space="preserve">
     <value>Sieve</value>
   </data>
-  <data name="Sieve filter script" xml:space="preserve">
-    <value>Sieve-filterscript</value>
+  <data name="Sieve _filter script" xml:space="preserve">
+    <value>_Sieve-filterscript</value>
   </data>
   <data name="Sign aliases _too" xml:space="preserve">
     <value>Ook aliassen onder_tekenen</value>
@@ -10470,9 +10479,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Source" xml:space="preserve">
     <value>Bron</value>
-  </data>
-  <data name="Source addresses it may be used from (optional)" xml:space="preserve">
-    <value>Bronadressen waarvandaan hij mag worden gebruikt (optioneel)</value>
   </data>
   <data name="Space" xml:space="preserve">
     <value>Spatie</value>
@@ -10874,9 +10880,6 @@ Het volgende bericht aan dit adres wordt verzonden, en het komt pas weer op de l
   </data>
   <data name="Target SMTP _port" xml:space="preserve">
     <value>Doel-SMTP-_poort</value>
-  </data>
-  <data name="Target SMTP host" xml:space="preserve">
-    <value>Doel-SMTP-host</value>
   </data>
   <data name="Target SMTP port" xml:space="preserve">
     <value>Doel-SMTP-poort</value>
@@ -12511,7 +12514,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Transportbeveiliging</value>
   </data>
   <data name="Treat _recipient domain as local" xml:space="preserve">
-    <value>_Ontvangerdomein als lokaal behandelen</value>
+    <value>Ontvangerdomein _als lokaal behandelen</value>
   </data>
   <data name="Treat an unanswered check as spam" xml:space="preserve">
     <value>Een onbeantwoorde controle als spam behandelen</value>
@@ -12699,9 +12702,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Upper IP" xml:space="preserve">
     <value>Bovenste IP</value>
   </data>
-  <data name="Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
-    <value>Bovenste IP (bijv. 10.0.0.255)</value>
-  </data>
   <data name="Upstream gateways (spam filters, load balancers) whose IP addresses should not count as the connecting client in anti-spam host checks." xml:space="preserve">
     <value>Upstream-gateways (spamfilters, load balancers) waarvan de IP-adressen bij antispam-hostcontroles niet als de verbindende client mogen tellen.</value>
   </data>
@@ -12786,9 +12786,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Verdict address (GET)" xml:space="preserve">
     <value>Oordeeladres (GET)</value>
   </data>
-  <data name="Verification code from your authenticator app" xml:space="preserve">
-    <value>Verificatiecode uit uw authenticator-app</value>
-  </data>
   <data name="Verified - and the certificate must chain and name the host" xml:space="preserve">
     <value>Geverifieerd - en het certificaat moet ketenen en de host noemen</value>
   </data>
@@ -12833,6 +12830,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Volume signal: times the account's busiest hour (2 to 100)" xml:space="preserve">
     <value>Volumesignaal: zoveel keer het drukste uur van het account (2 tot 100)</value>
+  </data>
+  <data name="W_hose mail" xml:space="preserve">
+    <value>_Wiens post</value>
   </data>
   <data name="Wait for a free database connection (seconds)" xml:space="preserve">
     <value>Wachten op een vrije databaseverbinding (seconden)</value>
@@ -12936,6 +12936,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Welcome banner (empty = default)" xml:space="preserve">
     <value>Welkomstbanner (leeg = standaard)</value>
   </data>
+  <data name="Wh_ich way" xml:space="preserve">
+    <value>W_elke richting</value>
+  </data>
   <data name="What SCIM provisioning matches this account by: at most 255 characters on one line, compared exactly." xml:space="preserve">
     <value>Waarop SCIM-provisioning dit account koppelt: hoogstens 255 tekens op één regel, exact vergeleken.</value>
   </data>
@@ -12995,6 +12998,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="What has to exist outside this server" xml:space="preserve">
     <value>Wat er buiten deze server moet bestaan</value>
+  </data>
+  <data name="What is _sent" xml:space="preserve">
+    <value>Wat er wordt _verzonden</value>
   </data>
   <data name="What is published at {0} does not carry this key's public key, so every signature made with this key fails verification. Waiting will not fix this - correct the published value to match the one above." xml:space="preserve">
     <value>Wat op {0} is gepubliceerd, draagt de publieke sleutel van deze sleutel niet, dus elke handtekening die met deze sleutel is gemaakt faalt bij verificatie. Wachten lost dit niet op - corrigeer de gepubliceerde waarde zodat die overeenkomt met de waarde hierboven.</value>
@@ -13103,6 +13109,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Where clients reach the web services listener; each certificate names its revocation list and its root under it. Empty, the default, names neither, so a client that insists on checking revocation cannot. A certificate already issued keeps what it was issued with." xml:space="preserve">
     <value>Waar clients de webservices-listener bereiken; elk certificaat noemt daaronder zijn intrekkingslijst en zijn basis. Leeg, de standaard, noemt geen van beide, zodat een client die de intrekking per se wil controleren dat niet kan. Een al uitgegeven certificaat behoudt waarmee het is uitgegeven.</value>
+  </data>
+  <data name="Where it _goes" xml:space="preserve">
+    <value>Waar _het naartoe gaat</value>
   </data>
   <data name="Where it goes" xml:space="preserve">
     <value>Waar het naartoe gaat</value>
@@ -13410,17 +13419,26 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_90 days" xml:space="preserve">
     <value>_90 dagen</value>
   </data>
+  <data name="_Account" xml:space="preserve">
+    <value>_Account</value>
+  </data>
   <data name="_Account address" xml:space="preserve">
     <value>_Accountadres</value>
   </data>
   <data name="_Action" xml:space="preserve">
     <value>_Actie</value>
   </data>
+  <data name="_Active Directory domain (for AD-synchronised domains; optional)" xml:space="preserve">
+    <value>_Active Directory-domein (voor met AD gesynchroniseerde domeinen; optioneel)</value>
+  </data>
   <data name="_Add" xml:space="preserve">
     <value>Toe_voegen</value>
   </data>
   <data name="_Add account…" xml:space="preserve">
     <value>_Account toevoegen…</value>
+  </data>
+  <data name="_Add address" xml:space="preserve">
+    <value>Adres toe_voegen</value>
   </data>
   <data name="_Add anyway" xml:space="preserve">
     <value>_Toch toevoegen</value>
@@ -13467,17 +13485,17 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Apply this profile" xml:space="preserve">
     <value>Dit profiel _toepassen</value>
   </data>
-  <data name="_Bind address" xml:space="preserve">
-    <value>_Bindadres</value>
+  <data name="_Archive in the backup destination (name or path)" xml:space="preserve">
+    <value>Archief in de back-upbestemming (_naam of pad)</value>
+  </data>
+  <data name="_Bind address (0.0.0.0)" xml:space="preserve">
+    <value>_Bindadres (0.0.0.0)</value>
   </data>
   <data name="_Bind method (BindMethod)" xml:space="preserve">
     <value>_Bindmethode (BindMethod)</value>
   </data>
   <data name="_Block and delete" xml:space="preserve">
     <value>Blokkeren en _verwijderen</value>
-  </data>
-  <data name="_Body canonicalization" xml:space="preserve">
-    <value>_Body-canonicalisatie</value>
   </data>
   <data name="_Bounce address (empty = bounces go to the poster)" xml:space="preserve">
     <value>_Bounceadres (leeg = bounces gaan naar de inzender)</value>
@@ -13490,6 +13508,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Cancel the next key" xml:space="preserve">
     <value>Volgende sleutel _annuleren</value>
+  </data>
+  <data name="_Certificate file (PEM)" xml:space="preserve">
+    <value>_Certificaatbestand (PEM)</value>
   </data>
   <data name="_Change the pepper" xml:space="preserve">
     <value>Peper _wijzigen</value>
@@ -13526,9 +13547,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Country policy at sign-in (empty = off; allow:GB,IE or block:CN,RU)" xml:space="preserve">
     <value>_Landenbeleid bij aanmelden (leeg = uit; allow:GB,IE of block:CN,RU)</value>
-  </data>
-  <data name="_Create" xml:space="preserve">
-    <value>_Aanmaken</value>
   </data>
   <data name="_Create a key…" xml:space="preserve">
     <value>_Een sleutel aanmaken…</value>
@@ -13608,11 +13626,26 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Display name attribute" xml:space="preserve">
     <value>W_eergavenaamattribuut</value>
   </data>
+  <data name="_Domain (e.g. gmail.com)" xml:space="preserve">
+    <value>_Domein (bijv. gmail.com)</value>
+  </data>
   <data name="_Domain name (changing it renames the domain and moves every account, alias and list with it)" xml:space="preserve">
     <value>_Domeinnaam (wijzigen hernoemt het domein en verplaatst elk account, elke alias en elke lijst mee)</value>
   </data>
+  <data name="_Domain or account" xml:space="preserve">
+    <value>_Domein of account</value>
+  </data>
   <data name="_Domain or suffix" xml:space="preserve">
     <value>_Domein of achtervoegsel</value>
+  </data>
+  <data name="_Domain:" xml:space="preserve">
+    <value>_Domein:</value>
+  </data>
+  <data name="_Domains" xml:space="preserve">
+    <value>_Domeinen</value>
+  </data>
+  <data name="_Domains it may act on (optional)" xml:space="preserve">
+    <value>_Domeinen waarop hij mag werken (optioneel)</value>
   </data>
   <data name="_Download update" xml:space="preserve">
     <value>Update _downloaden</value>
@@ -13630,7 +13663,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>_Postvak legen</value>
   </data>
   <data name="_Enable DKIM signing" xml:space="preserve">
-    <value>DKIM-_ondertekening inschakelen</value>
+    <value>DKIM-ondertekening _inschakelen</value>
   </data>
   <data name="_Enable plus addressing" xml:space="preserve">
     <value>_Plusadressering inschakelen</value>
@@ -13646,6 +13679,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Erase traces" xml:space="preserve">
     <value>Sporen _wissen</value>
+  </data>
+  <data name="_Expires" xml:space="preserve">
+    <value>V_erloopt</value>
   </data>
   <data name="_Expires after (days)" xml:space="preserve">
     <value>Ver_loopt na (dagen)</value>
@@ -13667,6 +13703,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Forward incoming mail" xml:space="preserve">
     <value>_Inkomende mail doorsturen</value>
+  </data>
+  <data name="_From address" xml:space="preserve">
+    <value>_Afzenderadres</value>
   </data>
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>_Volledige bevoegdheid - kan aanmaken, wijzigen en verwijderen</value>
@@ -13695,6 +13734,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Header name (e.g. X-Spam-Status)" xml:space="preserve">
     <value>_Headernaam (bijv. X-Spam-Status)</value>
   </data>
+  <data name="_Hosted domain" xml:space="preserve">
+    <value>_Gehost domein</value>
+  </data>
+  <data name="_How the selected member is sent a managed list's mail" xml:space="preserve">
+    <value>_Hoe het geselecteerde lid de mail van een beheerde lijst krijgt</value>
+  </data>
   <data name="_I have copied it" xml:space="preserve">
     <value>_Ik heb het gekopieerd</value>
   </data>
@@ -13720,7 +13765,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Instellingen _houden, de weg terug vergeten</value>
   </data>
   <data name="_Keep original message" xml:space="preserve">
-    <value>_Oorspronkelijk bericht behouden</value>
+    <value>Oorspronkelijk _bericht behouden</value>
   </data>
   <data name="_Keep the next key" xml:space="preserve">
     <value>Volgende sleutel _houden</value>
@@ -13736,6 +13781,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Kind of account" xml:space="preserve">
     <value>_Soort account</value>
+  </data>
+  <data name="_Label" xml:space="preserve">
+    <value>_Label</value>
   </data>
   <data name="_Language" xml:space="preserve">
     <value>_Taal</value>
@@ -13761,8 +13809,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>_Aanmeldnaamattribuut</value>
   </data>
+  <data name="_Lower IP" xml:space="preserve">
+    <value>_Laagste IP</value>
+  </data>
   <data name="_Lower IP address" xml:space="preserve">
-    <value>_Onderste IP-adres</value>
+    <value>Onderste _IP-adres</value>
   </data>
   <data name="_Make a new key pair" xml:space="preserve">
     <value>Een nieuw sleutelpaar _maken</value>
@@ -13807,7 +13858,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>Ondertekenen _toch verplaatsen</value>
   </data>
   <data name="_Name" xml:space="preserve">
-    <value>_Naam</value>
+    <value>Naa_m</value>
   </data>
   <data name="_Name or suffix" xml:space="preserve">
     <value>_Naam of achtervoegsel</value>
@@ -13825,7 +13876,7 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>N_ieuwere</value>
   </data>
   <data name="_Note" xml:space="preserve">
-    <value>_Notitie</value>
+    <value>N_otitie</value>
   </data>
   <data name="_Number of delivery retries" xml:space="preserve">
     <value>Aantal _bezorgpogingen</value>
@@ -13884,6 +13935,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Priority (higher wins when ranges overlap)" xml:space="preserve">
     <value>_Prioriteit (hoger wint wanneer bereiken overlappen)</value>
   </data>
+  <data name="_Private key file" xml:space="preserve">
+    <value>_Privésleutelbestand</value>
+  </data>
   <data name="_Propagation period in hours (1 to 720)" xml:space="preserve">
     <value>Propa_gatieperiode in uren (1 tot 720)</value>
   </data>
@@ -13926,6 +13980,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Recalculate" xml:space="preserve">
     <value>_Herberekenen</value>
   </data>
+  <data name="_Recipient wildcard (* = everyone)" xml:space="preserve">
+    <value>_Jokerteken voor ontvangers (* = iedereen)</value>
+  </data>
   <data name="_Refresh" xml:space="preserve">
     <value>Ver_nieuwen</value>
   </data>
@@ -13949,9 +14006,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>Criterium _verwijderen</value>
-  </data>
-  <data name="_Remove expired" xml:space="preserve">
-    <value>_Verlopen items verwijderen</value>
   </data>
   <data name="_Remove message" xml:space="preserve">
     <value>Bericht _verwijderen</value>
@@ -13995,14 +14049,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Restart the service" xml:space="preserve">
     <value>Service _herstarten</value>
   </data>
-  <data name="_Restore defaults" xml:space="preserve">
-    <value>Standaardwaarden _herstellen</value>
-  </data>
   <data name="_Restricted delivery (the named domains are on the domain's dialog)" xml:space="preserve">
     <value>Beperkte bezorging (de _genoemde domeinen staan in het venster van het domein)</value>
-  </data>
-  <data name="_Resume" xml:space="preserve">
-    <value>_Hervatten</value>
   </data>
   <data name="_Retire the old selector" xml:space="preserve">
     <value>Oude selector _uitfaseren</value>
@@ -14028,8 +14076,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Search" xml:space="preserve">
     <value>_Zoeken</value>
   </data>
-  <data name="_Select" xml:space="preserve">
-    <value>_Selecteren</value>
+  <data name="_Security" xml:space="preserve">
+    <value>Beve_iliging</value>
   </data>
   <data name="_Send" xml:space="preserve">
     <value>_Verzenden</value>
@@ -14039,6 +14087,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Server" xml:space="preserve">
     <value>_Server</value>
+  </data>
+  <data name="_Source addresses it may be used from (optional)" xml:space="preserve">
+    <value>_Bronadressen waarvandaan hij mag worden gebruikt (optioneel)</value>
   </data>
   <data name="_Start the walk" xml:space="preserve">
     <value>Rondleiding _starten</value>
@@ -14065,7 +14116,13 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
     <value>_Debuglogging nu inschakelen</value>
   </data>
   <data name="_Unlock mailbox" xml:space="preserve">
-    <value>Postvak _ontgrendelen</value>
+    <value>Po_stvak ontgrendelen</value>
+  </data>
+  <data name="_Upper IP" xml:space="preserve">
+    <value>_Bovenste IP</value>
+  </data>
+  <data name="_Upper IP (e.g. 10.0.0.255)" xml:space="preserve">
+    <value>Bovenste IP (bi_jv. 10.0.0.255)</value>
   </data>
   <data name="_Upper IP address" xml:space="preserve">
     <value>_Bovenste IP-adres</value>
@@ -14078,6 +14135,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>Waa_rde</value>
+  </data>
+  <data name="_Verification code from your authenticator app" xml:space="preserve">
+    <value>_Verificatiecode uit uw authenticator-app</value>
   </data>
   <data name="_Verify each backup by extracting its message store and reconciling it against the rows" xml:space="preserve">
     <value>_Elke back-up verifiëren door de berichtenopslag ervan uit te pakken en die af te stemmen op de rijen</value>

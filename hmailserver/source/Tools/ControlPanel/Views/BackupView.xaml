@@ -10,7 +10,8 @@
     xmlns:loc="clr-namespace:hMailServer.ControlPanel.Services"
     xmlns:scaffold="clr-namespace:hMailServer.ControlPanel.Views.Scaffold"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:local="clr-namespace:hMailServer.ControlPanel.Views">
+    xmlns:local="clr-namespace:hMailServer.ControlPanel.Views"
+    local:AccessKeyScope.ByCard="True">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource AppPagePadding}">
         <StackPanel MaxWidth="760" HorizontalAlignment="Left">
@@ -152,7 +153,7 @@
             <scaffold:Card Title="{loc:L 'Restore a mailbox'}"
                            Description="{loc:L 'The folders and messages of one account put back from an archive in the backup destination, without touching the settings, rules, contacts or calendars of the account, or any other account. The archive is named as the destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination.'}">
                 <StackPanel>
-                    <scaffold:FieldRow Label="{loc:L 'Archive in the backup destination (_name or path)'}">
+                    <scaffold:FieldRow Label="{loc:L '_Archive in the backup destination (name or path)'}">
                         <ui:TextBox x:Name="MailboxArchiveBox" />
                     </scaffold:FieldRow>
                     <scaffold:FieldRow Label="{loc:L 'Account address (_whose mailbox)'}" Margin="0,12,0,0">
@@ -182,7 +183,7 @@
                     <ui:TextBox x:Name="ArchivedMessagesBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
                                 MinHeight="120" MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                                 FontFamily="Consolas" Margin="0,0,0,12" />
-                    <scaffold:FieldRow Label="{loc:L 'Message _id, from the listing'}">
+                    <scaffold:FieldRow Label="{loc:L 'Message i_d, from the listing'}">
                         <ui:TextBox x:Name="ArchivedMessageIdBox" MaxWidth="200" HorizontalAlignment="Left" />
                     </scaffold:FieldRow>
                     <scaffold:FieldRow Label="{loc:L 'Into this folder (empt_y: the one it was in)'}" Margin="0,12,0,0">

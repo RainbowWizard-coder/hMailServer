@@ -141,7 +141,7 @@ namespace hMailServer.ControlPanel.Views
          System.Windows.Automation.AutomationProperties.SetName(domainCombo_, L("Domain whose DNS records are shown"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(domainCombo_, "dns-records-domain");
          domainCombo_.SelectionChanged += (s, e) => BuildCards();
-         page.Children.Add(new FieldRow { Label = L("Domain:"), Content = domainCombo_ });
+         page.Children.Add(new FieldRow { Label = L("_Domain:"), Content = domainCombo_ });
 
          page.Children.Add(readFailure_);
          page.Children.Add(body_);
