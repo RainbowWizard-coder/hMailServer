@@ -24,6 +24,9 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>Friendly label for list display.</summary>
       public string Label =>
          string.IsNullOrEmpty(DisplayName) ? SamAccountName : DisplayName + "  (" + SamAccountName + ")";
+
+      /// <summary>What a screen reader says for the account's row in the picker: its three columns.</summary>
+      public override string ToString() => RowSpeech.Of(SamAccountName, DisplayName, Email);
    }
 
    /// <summary>

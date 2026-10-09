@@ -87,6 +87,10 @@ namespace hMailServer.ControlPanel.Views
          public string ActionWord { get; init; }
          public string Note { get; init; }
          public string Created { get; init; }
+
+         // The domain and what is done with it, then the rest with their columns' names.
+         public override string ToString() => RowSpeech.Of(Pattern, Action,
+            RowSpeech.Labelled(L("Matched on"), MatchOn), Note, RowSpeech.Labelled(L("Added"), Created));
       }
 
       private static string MatchOnText_(string word) => word switch

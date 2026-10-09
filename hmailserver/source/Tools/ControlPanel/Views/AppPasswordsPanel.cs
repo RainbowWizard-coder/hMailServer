@@ -180,6 +180,10 @@ namespace hMailServer.ControlPanel.Views
          /// </summary>
          public string State => Active ? L("Active") : L("Revoked");
 
+         // The name and the state, then the two dates with their columns' names.
+         public override string ToString() => RowSpeech.Of(Name, State,
+            RowSpeech.Labelled(L("Issued"), CreatedTime), RowSpeech.Labelled(L("Last used"), LastUsed));
+
          public string LastUsedText => string.IsNullOrEmpty(LastUsed) ? L("Never") : LastUsed;
       }
 

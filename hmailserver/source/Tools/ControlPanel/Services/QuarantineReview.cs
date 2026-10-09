@@ -152,6 +152,9 @@ namespace hMailServer.ControlPanel.Services
       public string AccessibleName => IsGroup
          ? GroupTitle + ", " + GroupCount
          : F("{0}, from {1}, score {2}", Subject, Sender, Score);
+
+      /// <summary>The same, wherever the row is shown without the grid's row style.</summary>
+      public override string ToString() => AccessibleName;
    }
 
    /// <summary>

@@ -17,6 +17,9 @@ namespace hMailServer.ControlPanel.Services
       public string Pattern { get; init; } = "";
       public string Note { get; init; } = "";
       public string Created { get; init; } = "";
+
+      /// <summary>What a screen reader says for the row on the Auto-ban page's grid.</summary>
+      public override string ToString() => RowSpeech.Of(Pattern, Note, RowSpeech.Labelled(L("Added"), Created));
    }
 
    /// <summary>One reverse name of a checked address, as the server judged it.</summary>

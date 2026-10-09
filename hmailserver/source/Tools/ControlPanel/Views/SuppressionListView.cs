@@ -248,6 +248,11 @@ namespace hMailServer.ControlPanel.Views
          public string Since { get; init; }
          public string Expires { get; init; }
          public string Detail { get; init; }
+
+         // The address, why it is listed and the status, then the two dates with
+         // their columns' names, as one statement.
+         public override string ToString()
+            => RowSpeech.Of(Address, Why, Status, Source, RowSpeech.Labelled(L("Since"), Since), RowSpeech.Labelled(L("Expires"), Expires));
       }
 
       private sealed class CountView
@@ -263,6 +268,16 @@ namespace hMailServer.ControlPanel.Views
          public string LastBounce { get; init; }
          public string LastDelivered { get; init; }
          public string Listed { get; init; }
+
+         // The address, then each count with its column's name: a row of bare
+         // numbers says nothing without the columns.
+         public override string ToString() => RowSpeech.Of(Address,
+            RowSpeech.Labelled(L("Hard"), Count_(Hard)), RowSpeech.Labelled(L("Soft"), Count_(Soft)),
+            RowSpeech.Labelled(L("Mailbox full"), Count_(MailboxFull)), RowSpeech.Labelled(L("Policy"), Count_(Policy)),
+            RowSpeech.Labelled(L("Other"), Count_(Other)), RowSpeech.Labelled(L("In a row"), Count_(InARow)),
+            RowSpeech.Labelled(L("Last status"), LastStatus), RowSpeech.Labelled(L("Last delivered"), LastDelivered), Listed);
+
+         private static string Count_(int count) => count.ToString(System.Globalization.CultureInfo.CurrentCulture);
       }
 
       private static string CategoryText_(string category) => category switch

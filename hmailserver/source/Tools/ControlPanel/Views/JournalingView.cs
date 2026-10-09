@@ -51,6 +51,11 @@ namespace hMailServer.ControlPanel.Views
          public string Enabled { get; init; } = "";
          public bool IsEnabled { get; init; }
          public string Note { get; init; } = "";
+
+         // Whose mail, which way and what is sent, then where it goes and whether
+         // the rule is on, with their columns' names, and the note.
+         public override string ToString() => RowSpeech.Of(Target, Scope, Direction, Mode,
+            RowSpeech.Labelled(L("Where it goes"), JournalAddress), RowSpeech.Labelled(L("On"), Enabled), Note);
       }
 
       private readonly DataGrid rules_ = new()

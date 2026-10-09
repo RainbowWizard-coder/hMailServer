@@ -1448,6 +1448,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   named the same, and a row says its role and what it is for, or the account, its role and its domains
   (`Services/RowSpeech`). `RowSpeechTests` holds the sentences and the page.
 
+- **Fixed: rows on the code-built list pages were announced by their class name or as unlabelled values.** A screen
+  reader read a row of the audit trail as "hMailServer.ControlPanel.Views.AuditTrailView+RowView", and so the rows of
+  the suppression list and its bounce counts, the message trace, journaling, eDiscovery's cases and their lines, the
+  domain white and black list, setting profiles, the never-ban list, the message-store consistency list, the app
+  passwords and the Active Directory picker; a collection page's row was its first three raw values with no column -
+  "Yes, zen.spamhaus.org, 127.0.0.2", the first a tick box's. Each row now says itself as one statement: its cells
+  that have something in them, a bare value with its column's name - "gone@old-provider.example, Hard bounce, 5.1.1,
+  Refused while delivering, Since: 2026-10-07 03:10:43, Expires: Never"; "gone@old-provider.example, Hard: 3, Soft:
+  0, …"; "zen.spamhaus.org, Active: Yes, Score: 3" - a collection page's cells as the grid shows them, a choice's
+  word and not its number. `RowSpeechTests` reads every page for a class bound to a list's columns and holds each to
+  a ToString of its own.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

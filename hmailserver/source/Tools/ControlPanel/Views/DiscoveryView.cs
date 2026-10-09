@@ -287,6 +287,13 @@ namespace hMailServer.ControlPanel.Views
          public long Searches { get; init; }
          public long LiveHolds { get; init; }
          public long Exports { get; init; }
+
+         // The case and its state, then the rest with their columns' names.
+         public override string ToString() => RowSpeech.Of(Name, State,
+            RowSpeech.Labelled(L("Opened"), Opened), RowSpeech.Labelled(L("Opened by"), OpenedBy),
+            RowSpeech.Labelled(L("Searches"), Searches.ToString(System.Globalization.CultureInfo.CurrentCulture)),
+            RowSpeech.Labelled(L("Live holds"), LiveHolds.ToString(System.Globalization.CultureInfo.CurrentCulture)),
+            RowSpeech.Labelled(L("Exports"), Exports.ToString(System.Globalization.CultureInfo.CurrentCulture)));
       }
 
       /// <summary>One of a case's rows on the audit trail, as the grid shows it.</summary>
@@ -298,6 +305,9 @@ namespace hMailServer.ControlPanel.Views
          public string Object { get; init; }
          public string Action { get; init; }
          public string Detail { get; init; }
+
+         // When, who, and what was done to what, then the detail.
+         public override string ToString() => RowSpeech.Of(When, Who, Action, Object, Detail);
       }
 
       private static string When_(long seconds)

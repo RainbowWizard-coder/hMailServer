@@ -146,6 +146,12 @@ namespace hMailServer.ControlPanel.Views
          public string FollowHint => QueueId == 0
             ? L("Refused before the message was queued, so there is no message to follow.")
             : F("Queue id {0} - select and choose \"Follow this message\".", QueueId);
+
+         // The time and the event, then the sender, the recipient and the status
+         // with their columns' names.
+         public override string ToString() => RowSpeech.Of(OccurredTime, EventName,
+            RowSpeech.Labelled(L("Sender"), Sender), RowSpeech.Labelled(L("Recipient"), Recipient),
+            RowSpeech.Labelled(L("Status"), StatusCode.ToString(System.Globalization.CultureInfo.CurrentCulture)));
       }
 
       /// <summary>What the last search said, at its level.</summary>

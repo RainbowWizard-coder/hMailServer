@@ -118,6 +118,11 @@ namespace hMailServer.ControlPanel.Views
          public string Action { get; init; }
          public string Detail { get; init; }
          public bool CanPutBack { get; init; }
+
+         // What a screen reader says for the row: when, who, and what was done to
+         // what - not the name of this class, which is what a grid row is
+         // announced as otherwise.
+         public override string ToString() => RowSpeech.Of(When, Who, Action, Object, Name);
       }
 
       private static List<RowView> Present_(IReadOnlyList<AuditRow> rows)

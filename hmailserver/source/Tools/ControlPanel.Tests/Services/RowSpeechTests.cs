@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using hMailServer.ControlPanel.Services;
 using Xunit;
@@ -51,6 +52,99 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("AutomationProperties.SetName(assignmentGrid_, L(\"Who holds a role\"));", page, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"class RoleRow[\s\S]{0,900}?public override string ToString\(\) => RowSpeech\.Of\(Name, Purpose\);"), page);
          Assert.Matches(new Regex(@"class AssignmentRow[\s\S]{0,500}?public override string ToString\(\) => RowSpeech\.Of\(Address, Role, Domains\);"), page);
+      }
+
+      /// <summary>
+      /// Every class a page binds a grid's or a list's columns to (nameof(Row.Cell))
+      /// says itself: without a ToString of its own a row is announced by its class
+      /// name, which is what the audit trail's, the suppression list's, the message
+      /// trace's, journaling's and eDiscovery's rows said (review finding F285).
+      /// </summary>
+      [Fact]
+      public void EveryGridRowClass_SaysItself()
+      {
+         string root = ControlPanelDirectory();
+         string all = string.Join(Environment.NewLine, Directory.EnumerateFiles(Path.Join(root, "Views"), "*.cs", SearchOption.AllDirectories)
+            .Concat(Directory.EnumerateFiles(Path.Join(root, "Services"), "*.cs", SearchOption.AllDirectories))
+            .Select(File.ReadAllText));
+         var bad = new System.Collections.Generic.List<string>();
+         int checkedRows = 0;
+
+         foreach (string file in Directory.EnumerateFiles(Path.Join(root, "Views"), "*.cs", SearchOption.AllDirectories))
+         {
+            string source = File.ReadAllText(file);
+            if (!source.Contains("DataGrid", StringComparison.Ordinal) && !source.Contains("ListView", StringComparison.Ordinal) && !source.Contains("ListBox", StringComparison.Ordinal))
+               continue;
+
+            foreach (string row in Regex.Matches(source, @"nameof\((\w+)\.\w+\)").Select(m => m.Groups[1].Value).Distinct())
+            {
+               Match declared = Regex.Match(all, @"\bclass " + row + @"\b[^{;]*\{");
+               if (!declared.Success)
+                  continue;   // an enum or a type of another assembly
+
+               checkedRows++;
+               if (!Body_(all, declared.Index + declared.Length).Contains("override string ToString", StringComparison.Ordinal))
+                  bad.Add(Path.GetFileName(file) + ": " + row);
+            }
+         }
+
+         Assert.True(checkedRows >= 15, "Only " + checkedRows + " row classes were found; the scan needs updating.");
+         Assert.True(bad.Count == 0, "A grid row a screen reader announces by its class name: " + string.Join(", ", bad));
+      }
+
+      [Fact]
+      public void TheServicesRows_SayThemselves()
+      {
+         Assert.Equal("mail.example.net, our partner's relay, Added: 2026-10-01",
+            new NeverBanNameRow { Pattern = "mail.example.net", Note = "our partner's relay", Created = "2026-10-01" }.ToString());
+         Assert.Equal("D:/Data/example.com/ada/1A.eml, ada@example.com",
+            new MessageStoreConsistencyEntry { ExpectedPath = "D:/Data/example.com/ada/1A.eml", Account = "ada@example.com" }.ToString());
+      }
+
+      /// <summary>
+      /// A collection page's row is its cells as the grid shows them, the first
+      /// cell of words bare and every other with its column's name, where it was
+      /// the first three raw values with no column at all.
+      /// </summary>
+      [Fact]
+      public void ACollectionRow_SaysItsCellsAsTheGridShowsThem()
+      {
+         string editor = Read(Path.Join("Views", "CollectionEditorView.cs"));
+         Assert.Contains("var row = new Row { Id = TryGetId(item), Speech = Speak_ };", editor, StringComparison.Ordinal);
+         Assert.Contains("=> Speech?.Invoke(this) ??", editor, StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"private string Speak_\(Row row\)[\s\S]{0,900}?RowSpeech\.Labelled\(MnemonicText\.Strip\(f\.GridLabel \?\? f\.Label \?\? """"\), text\)"), editor);
+         Assert.Matches(new Regex(@"private static string CellWords_\(FieldSpec f, Row row\)[\s\S]{0,1500}?return option\.Label;"), editor);
+      }
+
+      private static string Body_(string source, int open)
+      {
+         int depth = 1;
+         int i = open;
+         while (depth > 0 && i < source.Length)
+         {
+            if (source[i] == '{')
+               depth++;
+            else if (source[i] == '}')
+               depth--;
+            i++;
+         }
+
+         return source.Substring(open, i - open);
+      }
+
+      private static string ControlPanelDirectory()
+      {
+         var directory = new DirectoryInfo(AppContext.BaseDirectory);
+         while (directory != null)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel");
+            if (File.Exists(Path.Join(candidate, "MainWindow.xaml")))
+               return candidate;
+            directory = directory.Parent;
+         }
+
+         Assert.Fail("The ControlPanel sources could not be found from the test binaries.");
+         return null;
       }
 
       internal static string Read(string relative)

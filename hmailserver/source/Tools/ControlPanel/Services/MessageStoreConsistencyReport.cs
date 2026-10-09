@@ -14,6 +14,9 @@ namespace hMailServer.ControlPanel.Services
       public string MessageId { get; set; } = "";
       public string Account { get; set; } = "";
       public string ExpectedPath { get; set; } = "";
+
+      /// <summary>What a screen reader says for the row on the diagnostics page's grid: the file that is missing, and whose.</summary>
+      public override string ToString() => RowSpeech.Of(ExpectedPath, Account);
    }
 
    /// <summary>

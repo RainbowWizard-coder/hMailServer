@@ -164,10 +164,14 @@ namespace hMailServer.ControlPanel.Views
          public string Display(string prop) =>
             Values.TryGetValue(prop, out object v) ? FormatCell(v) : "";
 
+         // What the row says to a screen reader, as the page that made it words
+         // it: the cells as the grid shows them, each with its column's name.
+         internal Func<Row, string> Speech { get; set; }
+
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString()
-            => string.Join(", ", Values.Values.Select(FormatCell).Where(s => !string.IsNullOrWhiteSpace(s)).Take(3));
+            => Speech?.Invoke(this) ?? string.Join(", ", Values.Values.Select(FormatCell).Where(s => !string.IsNullOrWhiteSpace(s)).Take(3));
       }
 
       // The floor of a star column - a description, a reject message, a note -
@@ -468,7 +472,7 @@ namespace hMailServer.ControlPanel.Views
             for (int i = 0; i < count; i++)
             {
                dynamic item = collection.Item[i];
-               var row = new Row { Id = TryGetId(item) };
+               var row = new Row { Id = TryGetId(item), Speech = Speak_ };
                foreach (FieldSpec f in spec_.Fields)
                {
                   try { row.Values[f.Prop] = GetProp(item, f.Prop); }
@@ -515,6 +519,60 @@ namespace hMailServer.ControlPanel.Views
          countBadge_.Text = activeCount >= 0 ? ActiveEntries.PillText(activeCount, rows_.Count) : rows_.Count == 1
             ? L(spec_.CountOne)
             : F(spec_.CountMany, rows_.Count);
+      }
+
+      /// <summary>
+      /// A row as a screen reader hears it: every cell the grid shows, as the grid
+      /// shows it - a choice's word, not its number; "Never", not an empty date -
+      /// the first cell of words bare, since it is what the row is, and every other
+      /// with its column's name: "zen.spamhaus.org, Active: Yes, Score: 3". The row
+      /// was the first three raw values, "Yes, zen.spamhaus.org, 127.0.0.2", the
+      /// first a tick box's and none with its column (review finding F285).
+      /// </summary>
+      private string Speak_(Row row)
+      {
+         var cells = new List<string>();
+         string first = null;
+         foreach (FieldSpec f in spec_.Fields.Where(f => f.ShowInGrid))
+         {
+            string text = CellWords_(f, row);
+            if (first == null && f.Kind != FieldKind.Bool && text.Length > 0)
+            {
+               first = text;
+               continue;
+            }
+
+            cells.Add(RowSpeech.Labelled(MnemonicText.Strip(f.GridLabel ?? f.Label ?? ""), text));
+         }
+
+         cells.Insert(0, first ?? "");
+         return RowSpeech.Of(cells.ToArray());
+      }
+
+      /// <summary>A cell's words as the grid shows them, through the same rules as its converters.</summary>
+      private static string CellWords_(FieldSpec f, Row row)
+      {
+         row.Values.TryGetValue(f.Prop, out object value);
+
+         if (f.GridOnlyWhen != null && row.Values.TryGetValue(f.GridOnlyWhen, out object gate) && gate is bool applies && !applies)
+            return f.GridEmpty ?? "";
+
+         if (f.Kind == FieldKind.Combo && f.Options != null && value != null)
+         {
+            try
+            {
+               int number = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+               foreach ((int Value, string Label) option in f.Options.Where(o => o.Value == number))
+                  return option.Label;
+            }
+            catch (Exception ex) when (ex is FormatException || ex is InvalidCastException || ex is OverflowException)
+            {
+               // A value the grid shows as a number; so is it said.
+            }
+         }
+
+         string words = Words(value, f.GridTrue, f.GridFalse, f.GridEmpty);
+         return f.Kind == FieldKind.Multiline ? string.Join(" ", words.Split((char[])null, StringSplitOptions.RemoveEmptyEntries)) : words;
       }
 
       /// <summary>What the last action said, at its level.</summary>

@@ -122,6 +122,11 @@ namespace hMailServer.ControlPanel.Views
          public string Profile { get; init; }
          public string Why { get; init; }
          public string Note { get; init; }
+
+         // The setting, what the server has now and what the profile would make
+         // it, with their columns' names, then why and the confirmation it asks for.
+         public override string ToString() => RowSpeech.Of(Setting,
+            RowSpeech.Labelled(L("This server now"), Now), RowSpeech.Labelled(L("The profile"), Profile), Why, Note);
       }
 
       private static string Text_(JsonElement element, string name)
