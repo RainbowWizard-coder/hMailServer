@@ -206,7 +206,33 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(save != null, file + ".Save_ is gone.");
          Assert.Contains("saveState_.Refuse(F(\"Could not save: {0}\"", save, StringComparison.Ordinal);
          Assert.Contains("saveState_.Settle(SettingsPageState.Saved", save, StringComparison.Ordinal);
-         Assert.DoesNotContain("MessageBox.Show(F(\"Could not save", save, StringComparison.Ordinal);
+
+         // Every refusal, not only a failed write, is the Critical notice: Directory
+         // authentication refused an invalid port, an invalid timeout and a new service
+         // password typed with its removal ticked in message boxes, while the
+         // Authentication page refuses the same conflict in its notice.
+         Assert.DoesNotContain("MessageBox.Show(", save, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void DirectoryAuthentication_RefusesASave_InTheNotice()
+      {
+         string save = WithheldRowTests.MemberText(ReadControlPanelFile("Views/LdapSettingsView.cs"), "private bool Save_()");
+         Assert.True(save != null, "LdapSettingsView.Save_ is gone.");
+
+         int port = save.IndexOf("saveState_.Refuse(portError);", StringComparison.Ordinal);
+         int timeout = save.IndexOf("saveState_.Refuse(timeoutError);", StringComparison.Ordinal);
+         int conflict = save.IndexOf("saveState_.Refuse(L(\"A new service account password has been typed AND", StringComparison.Ordinal);
+         int writes = save.IndexOf("IniWrite_(", StringComparison.Ordinal);
+         Assert.True(port >= 0 && timeout > port && conflict > timeout && writes > conflict,
+            "Directory authentication does not refuse an invalid port, an invalid timeout and a conflicting password in its notice before it writes.");
+
+         // The notice is brought into view: the save the question before leaving a page
+         // makes can be refused with the page scrolled down to the edit.
+         string shared = ReadControlPanelFile("Views/IniPageSaveState.cs");
+         string refuse = WithheldRowTests.MemberText(shared, "public void Refuse(string sentence)");
+         Assert.True(refuse != null && refuse.Contains("notice_.BringIntoView();", StringComparison.Ordinal),
+            "A refused save's notice is not brought into view.");
       }
 
       /// <summary>

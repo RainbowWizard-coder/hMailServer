@@ -801,23 +801,26 @@ namespace hMailServer.ControlPanel.Views
          if (denied_ != null)
             return false;
 
+         // A save refused before it writes anything says why as every refused save on
+         // the settings pages does, in the Critical notice under the header, where these
+         // three were message boxes: the Authentication page refuses the same conflict
+         // - a new secret typed with its removal ticked - in its notice.
          if (!NumericField.TryValidate(port_.Text, L("Port"), 0, 65535, out int port, out bool hasPort, out string portError))
          {
-            MessageBox.Show(portError, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            saveState_.Refuse(portError);
             return false;
          }
 
          if (!NumericField.TryValidate(timeout_.Text, L("Timeout in seconds"), 1, 90, out int timeoutSeconds, out bool hasTimeout, out string timeoutError))
          {
-            MessageBox.Show(timeoutError, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            saveState_.Refuse(timeoutError);
             return false;
          }
 
          string newServicePassword = servicePassword_.Password;
          if (newServicePassword.Length > 0 && clearServicePassword_.IsChecked is true)
          {
-            MessageBox.Show(L("A new service account password has been typed AND \"remove the stored password\" is ticked. Untick one of them - guessing which was meant is not this page's decision to make."),
-               L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            saveState_.Refuse(L("A new service account password has been typed AND \"remove the stored password\" is ticked. Untick one of them - guessing which was meant is not this page's decision to make."));
             return false;
          }
 

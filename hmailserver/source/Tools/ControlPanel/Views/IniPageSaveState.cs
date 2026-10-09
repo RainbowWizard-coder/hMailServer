@@ -6,6 +6,8 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Media;
 using hMailServer.ControlPanel.Services;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
@@ -76,12 +78,36 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>
       /// A save that wrote nothing, or not everything: why, in a Critical notice under
       /// the header - never in grey caption text or a message box. The pill keeps
-      /// following the editors, which still hold what was not saved.
+      /// following the editors, which still hold what was not saved. The notice is
+      /// brought into view, with the page header above it where both fit: the save the
+      /// question before leaving a page makes is refused with the page scrolled wherever
+      /// the edit was, and a refusal a message box put in front of the reader must not
+      /// wait above the fold.
       /// </summary>
       public void Refuse(string sentence)
       {
          Say_(sentence, StatusLevel.Critical, null);
          Follow();
+
+         if (notice_ == null || notice_.Visibility != Visibility.Visible)
+            return;
+
+         notice_.UpdateLayout();
+         ScrollViewer scroll = null;
+         for (DependencyObject at = VisualTreeHelper.GetParent(notice_); at != null && scroll == null; at = VisualTreeHelper.GetParent(at))
+            scroll = at as ScrollViewer;
+
+         // From the top of the page down to the notice, so the header's pill and
+         // actions show with it, where that fits in the window; the notice alone where
+         // it does not. One request: a second is measured from the offset the first
+         // has not applied yet, and undoes it.
+         double above = 0;
+         if (scroll?.Content is UIElement page && page.IsAncestorOf(notice_))
+            above = Math.Max(0, notice_.TranslatePoint(new Point(0, 0), page).Y);
+         if (above > 0 && above + notice_.ActualHeight <= scroll.ViewportHeight)
+            notice_.BringIntoView(new Rect(0, -above, Math.Max(1, notice_.ActualWidth), notice_.ActualHeight + above));
+         else
+            notice_.BringIntoView();
       }
 
       /// <summary>

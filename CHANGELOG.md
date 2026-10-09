@@ -1067,8 +1067,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   header, with Save the primary and the same automation ids, the file they edit in a caption under the header, and
   the one save-state model of the settings pages: a pill beside the title that says *Unsaved changes* from the first
   edit, compared with what was read, and *Saved* after a save, its sentence in a notice under the header, and a save
-  that could not be written in a Critical notice - Directory synchronisation's in the same grey caption as its
-  success, LDAP's in a message box. When hMailServer.INI is not on this computer, both say so in that notice beside
+  that could not be written, or that the page refused - Directory authentication's invalid port or timeout, or a new
+  service account password typed with its removal ticked - in a Critical notice, brought into view with the header
+  above it, where Directory synchronisation said it in the same grey caption as its success and Directory
+  authentication in a message box. When hMailServer.INI is not on this computer, both say so in that notice beside
   an *Unavailable* pill, where Directory synchronisation said it in the footer's caption. The page scrolls whole, as
   the feature settings pages do, so the smallest window keeps the cards. Directory synchronisation says *Restart to
   apply* - after a save, and when the page is opened again before the service has restarted - while directory access
