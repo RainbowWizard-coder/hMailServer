@@ -542,8 +542,8 @@ namespace hMailServer.ControlPanel.Services
 
                Page("delivery", N("Delivery of e-mail"),
                   N("Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail."),
-                  aliases: "SMTP relayer|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local",
-                  seeAlso: "routes|queue|ipranges|servermessages"),
+                  aliases: "SMTP relayer|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local|Rule loop limit|Sensitive content|Account-number pattern",
+                  seeAlso: "routes|queue|ipranges|servermessages|rules"),
 
                Page("routes", N("Routes"),
                   N("Deliver mail for named domains to a chosen server instead of looking up its MX record."),
@@ -563,12 +563,12 @@ namespace hMailServer.ControlPanel.Services
                Page("relays", N("Incoming relays"),
                   N("Upstream gateways whose IP address must not be treated as the connecting client in spam checks."),
                   aliases: "Trusted relay|Upstream gateway|Front-end filter|Load balancer|Proxy|Received header",
-                  seeAlso: "ipranges|antispam"),
+                  seeAlso: "ipranges|antispam|hardening"),
 
                Page("rules", N("Rules"),
                   N("Server-wide rules that inspect messages as they arrive and act on them."),
-                  aliases: "Global rules|Filters|Conditions and actions|Sieve|Auto-reply|Move to folder|Tag subject",
-                  seeAlso: "domains|scripts"),
+                  aliases: "Global rules|Filters|Conditions and actions|Auto-reply|Move to folder|Tag subject",
+                  seeAlso: "domains|scripts|delivery"),
 
                Page("servermessages", N("Server messages"),
                   N("The greeting, bounce and error texts the server sends back to clients."),
@@ -807,8 +807,8 @@ namespace hMailServer.ControlPanel.Services
                // lets each half sit in the group where its subject lives - this one
                // beside IP ranges, which is where the ban it creates ends up.
                Page("autoban", N("Auto-ban"),
-                  N("Lock out an address that keeps failing to log on - and let one back in that should not have been locked out."),
-                  aliases: "Auto-ban & SSL/TLS|Autoban|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list|Never ban|Never-ban list|Do not ban|Reverse name|Provider banned|Widen ban|Neighbours|Neighbors|PTR|Subnet ban",
+                  N("Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over."),
+                  aliases: "Auto-ban & SSL/TLS|Autoban|Countries|Country blocking|Block a country|GeoIP|MaxMind|Compromised accounts|Account takeover|Hijacked account|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list|Never ban|Never-ban list|Do not ban|Reverse name|Provider banned|Widen ban|Neighbours|Neighbors|PTR|Subnet ban",
                   // "tls" is here, and "autoban" is on the SSL/TLS page, so a
                   // reader who followed an old note about the combined page and
                   // wanted the other half has a way across. The breadcrumb draws as
@@ -857,8 +857,8 @@ namespace hMailServer.ControlPanel.Services
                   seeAlso: "logging|queue|diagnostics"),
 
                Page("logging", N("Logging"),
-                  N("Which log files the server writes, how much detail they carry, and how long they are kept."),
-                  aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging",
+                  N("Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened."),
+                  aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging|Syslog|Alerts|Alert rules|Webhooks|Outbound webhooks|SNMP|SNMP agent|Audit trail settings",
                   seeAlso: "logs|messagetrace|audit|performance"),
 
                // The guide to mail that stops moving on a healthy-looking server,
@@ -929,8 +929,8 @@ namespace hMailServer.ControlPanel.Services
                   needs: "view_discovery"),
 
                Page("api", N("API & monitoring"),
-                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads."),
-                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Webhooks|Automation",
+                  N("The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions."),
+                  aliases: "REST|Prometheus|Grafana|Metrics|Health endpoint|Nagios|Zabbix|Automation|OpenTelemetry|OTLP|Windows Event Log|Event Viewer|ManageSieve|Sieve|Sieve scripts|Graceful shutdown|Drain on stop",
                   seeAlso: "apikeys|logging|status|webservices"),
 
                // Its own page rather than a card on API & monitoring: keys are a
@@ -974,8 +974,8 @@ namespace hMailServer.ControlPanel.Services
                // calls itself, and its description says where the switch is. The old
                // title stays as an alias; the key is unchanged, so links still arrive.
                Page("advanced", N("Advanced"),
-                  N("Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on."),
-                  aliases: "Advanced & scripting|Archive|Archiving|Mirror|Default domain|Scripting engine|Enable scripting|VBScript|JScript|JavaScript|IPv6 preference",
+                  N("Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on."),
+                  aliases: "Advanced & scripting|Archive|Archiving|Mirror|Default domain|Scripting engine|Enable scripting|VBScript|JScript|JavaScript|IPv6 preference|Prefer IPv6|Disk space|Low disk space|Free disk space|Migration|Migrations|Mailbox migration|IMAP migration|PST import|Import a PST file|Outlook data file",
                   seeAlso: "scripts|hardening"),
 
                Page("scripts", N("Event scripts"),
@@ -990,9 +990,10 @@ namespace hMailServer.ControlPanel.Services
                // titles stay as aliases, and the key is unchanged, so every link,
                // bookmark and remembered path still arrives here.
                Page("hardening", N("Server limits & expert settings"),
-                  N("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature."),
+                  N("Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them."),
                   aliases: "Advanced INI settings|Advanced hardening|INI settings|hMailServer.INI|Registry|Undocumented|Expert settings|Everything else|" +
-                           "Timeouts|Queue bounds|Sending limits|Rate limit|Throttle|fsync|Durability|DPAPI|Received headers|mailer-daemon",
+                           "Timeouts|Queue bounds|Sending limits|Rate limit|Throttle|fsync|Durability|DPAPI|Received headers|mailer-daemon|" +
+                           "PROXY protocol|HAProxy|XCLIENT|Front-end proxy|Sending limits per account|Per-account limits|Script timeout",
                   seeAlso: "advanced|performance|backup")),
 
             Page("about", N("About"),

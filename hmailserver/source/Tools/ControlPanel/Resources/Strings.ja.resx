@@ -1254,6 +1254,9 @@
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>このサーバーが送信する集約レポートのスキーマ: 1 = RFC 7489 付録 C、2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>アラート ルール、送信 Webhook、SNMP エージェントが、何が起きたかを別のシステムに伝えます。</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>アラート</value>
   </data>
@@ -1669,8 +1672,8 @@
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>アーカイブは、すべてのメッセージのコピーを指定したフォルダーに書き出します。</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>アーカイブ、ミラーリング、既定のドメイン、ディスク領域の制限、およびイベント スクリプト エンジンを有効にするスイッチです。</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>アーカイブ、ミラーリング、既定のドメイン、IPv6 での配信、ディスク領域の制限、メールボックスの移行と PST のインポート、およびイベント スクリプト エンジンを有効にするスイッチです。</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (メモリ ハード、推奨)</value>
@@ -5943,6 +5946,9 @@
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>機器やプリンターにメールを送らせる</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>ロード バランサーや Postfix のリレーが、PROXY プロトコルまたは XCLIENT で実際のクライアント アドレスを伝えられるようにします。</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>利用者が自分のディレクトリ エントリを編集できるようにする</value>
   </data>
@@ -6069,8 +6075,8 @@
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>この回数失敗したら名前をロックする (0 = 無効)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>ログオンに失敗し続けるアドレスを締め出し、締め出すべきでなかったアドレスを再び受け入れます。</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>ログオンに失敗し続けるアドレスを締め出し、締め出すべきでなかったアドレスを再び受け入れます。国単位での拒否や許可、乗っ取られたように見えるアカウントのメールの保留も行います。</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>ロックアウト期間 (分)</value>
@@ -8968,6 +8974,9 @@
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>空き容量がこの値を下回ったらメールを一時エラーで拒否する (MB、0 = 拒否しない)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>MaxMind データベースがアドレスを割り当てる国によって接続を拒否または許可します。データベースを用意するまでは、国による判定は一切行われません。</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>受信メールの署名のうち、有効期限を過ぎたものを拒否する</value>
   </data>
@@ -10513,8 +10522,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>特定の機能に属さないサーバー全体の上限、耐久性、不正利用対策はここで編集します。</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>特定のプロトコルや機能に属さないサーバー全体の上限、耐久性、不正利用対策。</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>特定のプロトコルや機能に属さないサーバー全体の上限、耐久性、不正利用対策。PROXY プロトコルと XCLIENT、アカウントごとの送信制限、イベント スクリプトのタイムアウトもここにあります。</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>特定のプロトコルや機能に属さないサーバー全体の上限、耐久性、不正利用対策。既定値は安全です。明確な理由がある場合にのみ変更してください。</value>
@@ -10602,6 +10611,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>各リスナーで接続セキュリティを設定し、認証にそれを必須にします。</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>PST ファイルのコピー先フォルダーを設定します。インポート ジョブそのものは Control Deck または REST API から開始します。</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>ログの出力先をデータベースに設定します。到達できない場合、エントリはログ ファイルにフォールバックします。</value>
@@ -11491,8 +11503,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API のリスナーと Web サービスのリスナーは、この 1 つの値を共有します。</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>外部の監視システムが読み取る REST API、Prometheus メトリクス、ヘルス エンドポイント。</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>外部の監視システムが読み取る REST API、Prometheus メトリクス、ヘルス エンドポイント、Windows イベント ログ、ManageSieve のリスナー、および停止中のサービスがセッションを待つ時間。</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>RSA/EC 公開鍵ファイル {0} がこのコンピューターに存在しないため、RS256 トークンを検証できません。</value>
@@ -12782,6 +12794,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>これらは対になっています。履歴なしの期限切れは、2 つのパスワードを交互に使うことを人々に教え、それは期限切れがまったくないよりも悪い状態です。履歴は、誰かが別のものを選べるその瞬間に「変更」を拒否するだけなので、誰もロックアウトされません。期限切れは「ログオン」を拒否します。オンにする前にその説明を読んでください。</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>これらの設定は、すべてのルールが行えることを制限します。ルールそのもの (各ルールが何に一致し何をするか) はルールページにあります。</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>これらの設定は REST API を通じて読み取りますが、このセッションでは REST API を使用できません。</value>
   </data>
@@ -13787,8 +13802,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>どちらの一覧ですか? 異なる送信者またはドメインごとに 1 件のエントリが書き込まれ、それから各メッセージが処理されます。エントリを作成できないメッセージは、そのままにされます。</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>サーバーがどのログ ファイルを書き、どれだけの詳細を含み、どれだけの期間保持するか。</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>サーバーがどのログ ファイルを書き、どれだけの詳細を含み、どれだけの期間保持するか、監査ログが何を記録するか、そして何が起きたかを別のシステムに伝えるアラート、送信 Webhook、SNMP エージェント。</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>サーバーがどのネーム サーバーに問い合わせ、応答を DNSSEC で検証するかどうか。</value>
@@ -14861,6 +14876,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>評判の悪い IP からのメールをブロックする</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>特定の国からのメールをブロックする</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>本文中のスパム リンクをブロックする</value>
   </data>
@@ -15138,6 +15156,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>既定は https://keys.openpgp.org です。https のアドレス、またはこのコンピューター上のキーサーバーへの http。</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>PST ファイルをインポートする</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>進行中</value>
   </data>
@@ -15375,6 +15396,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>ほかのサーバーに TLS が必須だと示す</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>サーバーの前にプロキシを置く</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>検疫済み</value>
   </data>
@@ -15446,6 +15470,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>すべてのメールをプロバイダー経由で送る</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>別のシステムにアラートを送る</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>あるドメインのメールを別のサーバーに送る</value>

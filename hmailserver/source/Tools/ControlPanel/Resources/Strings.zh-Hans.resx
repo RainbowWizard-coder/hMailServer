@@ -1254,6 +1254,9 @@
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>本服务器发送的汇总报告架构：1 = RFC 7489 附录 C，2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>警报规则、出站 Webhook 和 SNMP 代理会告诉另一个系统发生了什么。</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>警报</value>
   </data>
@@ -1669,8 +1672,8 @@
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>存档会把每一封邮件的副本写入您选择的文件夹。</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>存档、镜像、默认域、磁盘空间限制，以及打开事件脚本引擎的那个开关。</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>存档、镜像、默认域、通过 IPv6 投递、磁盘空间限制、邮箱迁移和 PST 导入，以及打开事件脚本引擎的那个开关。</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id（内存硬，推荐）</value>
@@ -5943,6 +5946,9 @@
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>允许设备或打印机发送邮件</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>让负载均衡器或 Postfix 中继通过 PROXY 协议或 XCLIENT 传递真实的客户端地址。</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>允许用户编辑自己的通讯录条目</value>
   </data>
@@ -6069,8 +6075,8 @@
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>在多少次失败后锁定用户名（0 = 关闭）</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>把反复登录失败的地址锁定在外 - 并放行那些本不应被锁定的地址。</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>把反复登录失败的地址锁定在外 - 并放行那些本不应被锁定的地址；拒绝或允许整个国家，并扣留看起来已被盗用的账户的邮件。</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>锁定时长（分钟）</value>
@@ -8968,6 +8974,9 @@
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>可用空间低于此值时以临时错误拒收邮件（MB；0 = 从不）</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>按 MaxMind 数据库为地址判定的国家拒绝或允许连接；在您提供该数据库之前，不会按国家判断任何连接。</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>拒绝入站邮件上有效期已过的签名</value>
   </data>
@@ -10513,8 +10522,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>不属于任何单一功能的服务器范围上限、持久性和防滥用控制在此编辑。</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制。</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制 - 其中包括 PROXY 协议和 XCLIENT、按账户的发送限制以及事件脚本超时。</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>不属于任何单一协议或功能的服务器范围上限、持久性和防滥用控制。默认值是安全的；只在有明确原因时才更改。</value>
@@ -10602,6 +10611,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>在每个监听器上设置连接安全性，然后要求身份验证必须使用它。</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>设置 PST 文件复制到的文件夹；导入作业本身在 Control Deck 中或通过 REST API 启动。</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>将日志目标设为数据库；无法访问时，条目回退到日志文件。</value>
@@ -11491,8 +11503,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API 监听器和 Web 服务监听器共用这一个值。</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>外部监控系统读取的 REST API、Prometheus 指标和健康端点。</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>外部监控系统读取的 REST API、Prometheus 指标和健康端点，Windows 事件日志，ManageSieve 侦听器，以及正在停止的服务等待其会话的时长。</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>RSA/EC 公钥文件 {0} 在本机上不存在，因此无法验证 RS256 令牌。</value>
@@ -12782,6 +12794,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>这两项是配套的: 没有历史记录的过期会教人们在两个密码之间来回切换，这比根本不过期更糟。历史记录只在有人可以选择其他密码的那一刻拒绝一次“更改”，因此不会把任何人锁在外面。过期拒绝的是“登录” - 开启之前请阅读它的说明。</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>这些设置限制每条规则可以做什么。规则本身（每条规则匹配什么、做什么）在“规则”页。</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>这些设置通过 REST API 读取，而此会话无法使用 REST API。</value>
   </data>
@@ -13787,8 +13802,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>写入哪份名单？系统会为每个不同的发件人或域写入一条条目，然后再对每封邮件执行操作。无法为其写入条目的邮件将保留原状。</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>服务器写哪些日志文件、包含多少细节以及保留多久。</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>服务器写哪些日志文件、包含多少细节以及保留多久，审计跟踪记录什么，以及告诉另一个系统发生了什么的警报、出站 Webhook 和 SNMP 代理。</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>服务器向哪些名称服务器查询，以及应答是否经过 DNSSEC 验证。</value>
@@ -14861,6 +14876,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>拦截来自低信誉 IP 的邮件</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>阻止来自某个国家的邮件</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>拦截邮件正文中的垃圾链接</value>
   </data>
@@ -15138,6 +15156,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>默认 https://keys.openpgp.org。https 地址，或本计算机上密钥服务器的 http 地址。</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>导入 PST 文件</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>进行中</value>
   </data>
@@ -15375,6 +15396,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>向其他服务器证明必须使用 TLS</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>在服务器前面放置代理</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>已隔离</value>
   </data>
@@ -15446,6 +15470,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>通过我的提供商发送所有邮件</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>向另一个系统发送警报</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>把某个域的邮件发送到另一台服务器</value>

@@ -1284,12 +1284,25 @@ namespace hMailServer.ControlPanel.Views
          public StatusLevel Level = StatusLevel.Information;
          public string Text;
 
+         /// <summary>
+         /// The navigation key of the page the notice's subject is on, or null: the
+         /// notice then carries Open and that page's title (Services/NoticeActions),
+         /// as a card that names another page offers the way there.
+         /// </summary>
+         public string Page;
+
          public override bool WantsInitialValue => false;
 
          protected override bool CaptionOnRow => false;
 
          protected override FrameworkElement BuildEditor(object value)
-            => new Scaffold.InlineNotice { Level = Level, Text = Text, Margin = new Thickness(0) };
+            => new Scaffold.InlineNotice
+            {
+               Level = Level,
+               Text = Text,
+               Margin = new Thickness(0),
+               Content = Page == null ? null : NoticeActions.OpenPage(Page, "settings-open-" + Page)
+            };
 
          public override object ReadEditor() => null;
 
@@ -2276,6 +2289,14 @@ namespace hMailServer.ControlPanel.Views
 
          var rules = Card(L("Rules"));
          rules.Settings.Add(new ComText { Path = "RuleLoopLimit", Label = L("Rule loop limit"), Numeric = true });
+         // A tab called Rules one sidebar row from the Rules page, and neither said
+         // where the other was (review finding F273): this tab holds what every
+         // rule may do, the page the rules themselves.
+         rules.Settings.Add(new ComNoticeRow
+         {
+            Text = L("These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page."),
+            Page = "rules" // no-loc: a page key
+         });
          Tab(L("Rules")).Cards.Add(rules);
 
          // The one detector of the sensitive-content rule condition that has to be

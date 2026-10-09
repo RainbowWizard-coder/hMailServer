@@ -1254,6 +1254,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schema voor samengevoegde rapporten dat deze server verstuurt: 1 = RFC 7489 bijlage C, 2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Waarschuwingsregels, uitgaande webhooks en de SNMP-agent laten een ander systeem weten wat er is gebeurd.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Waarschuwingen</value>
   </data>
@@ -1669,8 +1672,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Archiveren schrijft een kopie van elk bericht naar een map die u kiest.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archiveren, spiegelen, het standaarddomein, schijfruimtelimieten en de schakelaar die de gebeurtenisscript-engine inschakelt.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archiveren, spiegelen, het standaarddomein, bezorging via IPv6, schijfruimtelimieten, postvakmigraties en PST-import, en de schakelaar die de gebeurtenisscript-engine inschakelt.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (geheugenintensief, aanbevolen)</value>
@@ -5943,6 +5946,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Een apparaat of printer mail laten verzenden</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Laat een load balancer of een Postfix-relay het echte clientadres doorgeven met het PROXY-protocol of XCLIENT.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Mensen hun eigen adresboekvermelding laten bewerken</value>
   </data>
@@ -6069,8 +6075,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Een naam vergrendelen na dit aantal mislukkingen (0 = uit)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Een adres vergrendelen dat zich steeds niet kan aanmelden - en er weer een ontgrendelen dat niet vergrendeld had moeten worden.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Een adres vergrendelen dat zich steeds niet kan aanmelden - en er weer een ontgrendelen dat niet vergrendeld had moeten worden; hele landen weigeren of toestaan, en de mail vasthouden van een account dat overgenomen lijkt.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Duur van de vergrendeling (minuten)</value>
@@ -8968,6 +8974,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Mail met een tijdelijke fout weigeren onder deze hoeveelheid vrije ruimte (MB; 0 = nooit)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Weiger of sta verbindingen toe op het land waarin een MaxMind-database het adres plaatst; niets wordt op land beoordeeld zolang u de database niet levert.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Handtekeningen op inkomende mail weigeren waarvan de vervaldatum is verstreken</value>
   </data>
@@ -10513,8 +10522,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Serverbrede plafonds, duurzaamheids- en misbruikbeheersing die bij geen enkele functie horen, worden hier bewerkt.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Serverbrede plafonds, duurzaamheids- en misbruikbeheersing die bij geen enkel protocol of functie horen.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Serverbrede plafonds, duurzaamheids- en misbruikbeheersing die bij geen enkel protocol of functie horen - waaronder het PROXY-protocol en XCLIENT, verzendlimieten per account en de time-out van gebeurtenisscripts.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Serverbrede plafonds, duurzaamheids- en misbruikbeheersing die bij geen enkel protocol of functie horen. De standaarden zijn veilig; wijzig ze alleen met een specifieke reden.</value>
@@ -10602,6 +10611,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Stel de verbindingsbeveiliging per listener in en vereis die vervolgens voor authenticatie.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Stel de map in waarnaar PST-bestanden worden gekopieerd; de importtaak zelf wordt gestart in het Control Deck of via de REST-API.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Stel de logbestemming in op de database; vermeldingen vallen terug op de logbestanden als die onbereikbaar is.</value>
@@ -11491,8 +11503,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>De listener van de REST-API en de webservices-listener delen deze.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>De REST-API, de Prometheus-metrics en de gezondheidseindpunten die een extern monitoringsysteem uitleest.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>De REST-API, de Prometheus-metrics en de gezondheidseindpunten die een extern monitoringsysteem uitleest, het Windows-gebeurtenislogboek, de ManageSieve-listener, en hoe lang een service die stopt op zijn sessies wacht.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Het bestand met de publieke RSA-/EC-sleutel {0} bestaat niet op deze machine, dus RS256-tokens kunnen niet worden geverifieerd.</value>
@@ -12782,6 +12794,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Deze horen bij elkaar: verlopen zonder geschiedenis leert mensen om tussen twee wachtwoorden te wisselen, wat erger is dan helemaal niet laten verlopen. Geschiedenis weigert alleen een WIJZIGING, op het moment dat iemand iets anders kan kiezen, dus niemand wordt erdoor buitengesloten. Verlopen weigert een AANMELDING - lees de beschrijving daarvan voordat u het inschakelt.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>Deze beperken wat elke regel mag doen. De regels zelf - waarop elke regel past en wat hij doet - staan op de pagina Regels.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Deze instellingen worden via de REST-API gelezen, die deze sessie niet kan gebruiken.</value>
   </data>
@@ -13787,8 +13802,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Welke lijst? Voor elke afzonderlijke afzender of elk afzonderlijk domein wordt één vermelding geschreven, en daarna wordt op elk bericht gehandeld. Een bericht waarvoor geen vermelding kan worden gemaakt, blijft waar het is.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Welke logbestanden de server schrijft, hoeveel detail ze bevatten, en hoe lang ze worden bewaard.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Welke logbestanden de server schrijft, hoeveel detail ze bevatten en hoe lang ze worden bewaard, wat het audittrail vastlegt, en de waarschuwingen, uitgaande webhooks en de SNMP-agent die een ander systeem laten weten wat er is gebeurd.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Welke naamservers de server bevraagt, en of antwoorden met DNSSEC worden gevalideerd.</value>
@@ -14861,6 +14876,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>mail van een IP met een slechte reputatie blokkeren</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>mail uit een land blokkeren</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>spamlinks in berichtinhoud blokkeren</value>
   </data>
@@ -15138,6 +15156,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>Standaard https://keys.openpgp.org. Een https-adres, of http naar een sleutelserver op deze machine.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>een PST-bestand importeren</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>bezig</value>
   </data>
@@ -15375,6 +15396,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>andere servers bewijzen dat TLS vereist is</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>een proxy voor de server zetten</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>in quarantaine</value>
   </data>
@@ -15446,6 +15470,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>alle mail via mijn provider verzenden</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>een waarschuwing naar een ander systeem sturen</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>mail voor één domein naar een andere server sturen</value>

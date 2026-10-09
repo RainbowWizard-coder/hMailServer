@@ -1260,6 +1260,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schéma souhrnných hlášení, která tento server odesílá: 1 = RFC 7489 Appendix C, 2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Pravidla upozornění, odchozí webhooky a agent SNMP dávají jinému systému vědět, co se stalo.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Upozornění</value>
   </data>
@@ -1684,8 +1687,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Archivace zapisuje kopii každé zprávy do složky, kterou zvolíte.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archivace, zrcadlení, výchozí doména, limity místa na disku a přepínač, který zapíná engine skriptování událostí.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archivace, zrcadlení, výchozí doména, doručování přes IPv6, limity místa na disku, migrace poštovních schránek a import PST a přepínač, který zapíná engine skriptování událostí.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (náročný na paměť, doporučeno)</value>
@@ -6007,6 +6010,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Nechat zařízení nebo tiskárnu odesílat poštu</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Nechte nástroj pro vyrovnávání zatížení nebo předávací server Postfix předat skutečnou adresu klienta pomocí protokolu PROXY nebo XCLIENT.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Dovolit lidem upravovat vlastní záznam v adresáři</value>
   </data>
@@ -6133,8 +6139,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Uzamknout jméno po tomto počtu neúspěšných pokusů (0 = vypnuto)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Uzamkněte adresu, která se opakovaně neúspěšně přihlašuje – a pusťte zpět tu, která uzamčena být neměla.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Uzamkněte adresu, která se opakovaně neúspěšně přihlašuje - a pusťte zpět tu, která uzamčena být neměla; odmítněte nebo povolte celé země a zadržte poštu účtu, který vypadá jako převzatý.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Doba uzamčení (minuty)</value>
@@ -9056,6 +9062,9 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Odmítat poštu dočasnou chybou pod tímto množstvím volného místa (MB; 0 = nikdy)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Odmítejte nebo povolujte připojení podle země, do které adresu zařadí databáze MaxMind; dokud databázi nedodáte, podle země se nerozhoduje o ničem.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Odmítat podpisy příchozí pošty, jejichž platnost vypršela</value>
   </data>
@@ -10637,8 +10646,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Zde se upravují stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádné jednotlivé funkci.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádnému jednotlivému protokolu ani funkci.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádnému jednotlivému protokolu ani funkci - mezi nimi protokol PROXY a XCLIENT, limity odesílání pro jednotlivé účty a časový limit skriptů událostí.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Stropy pro celý server, nastavení trvanlivosti a ochrany proti zneužití, které nepatří žádnému jednotlivému protokolu ani funkci. Výchozí hodnoty jsou bezpečné; měňte je jen z konkrétního důvodu.</value>
@@ -10726,6 +10735,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Nastavte zabezpečení připojení na každém listeneru a poté je vyžadujte pro ověřování.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Nastavte složku, do které se soubory PST kopírují; samotná úloha importu se spouští v Control Decku nebo přes REST API.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Nastavte jako cíl logů databázi; pokud není dostupná, položky se zapisují do souborů logů.</value>
@@ -11621,8 +11633,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>Listener REST API a listener webových služeb sdílejí tuto jednu.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>REST API, metriky pro Prometheus a koncové body stavu, které čte vnější monitorovací systém.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>REST API, metriky pro Prometheus a koncové body stavu, které čte vnější monitorovací systém, log událostí Windows, naslouchací proces ManageSieve a to, jak dlouho zastavovaná služba čeká na své relace.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Soubor veřejného klíče RSA/EC {0} na tomto počítači neexistuje, takže tokeny RS256 nelze ověřit.</value>
@@ -12945,6 +12957,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Tyto dvě patří k sobě: vypršení bez historie učí lidi střídat dvě hesla, což je horší než nevypršet vůbec. Historie jen odmítne ZMĚNU, ve chvíli, kdy si dotyčný může vybrat něco jiného, takže nikoho nezamkne. Vypršení odmítne PŘIHLÁŠENÍ - než ho zapnete, přečtěte si jeho popis.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>Tato nastavení omezují, co smí udělat každé pravidlo. Pravidla samotná - čemu každé odpovídá a co dělá - jsou na stránce Pravidla.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Tato nastavení se čtou přes REST API, které tato relace nemůže použít.</value>
   </data>
@@ -13956,8 +13971,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Který seznam? Pro každého odlišného odesílatele nebo doménu se zapíše jeden záznam a poté se na každé zprávě provede akce. Zpráva, pro kterou nelze záznam vytvořit, zůstane tam, kde je.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Které soubory logu server zapisuje, kolik detailů nesou a jak dlouho se uchovávají.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Které soubory logu server zapisuje, kolik detailů nesou a jak dlouho se uchovávají, co zaznamenává auditní záznam, a upozornění, odchozí webhooky a agent SNMP, které dávají vědět jinému systému, co se stalo.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Kterých jmenných serverů se server ptá a zda se odpovědi ověřují DNSSEC.</value>
@@ -15033,6 +15048,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>blokovat poštu z ip se špatnou reputací</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>blokovat poštu ze země</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>blokovat spamové odkazy v tělech zpráv</value>
   </data>
@@ -15316,6 +15334,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>Výchozí je https://keys.openpgp.org. Adresa https, nebo http na server klíčů na tomto počítači.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>importovat soubor PST</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>probíhá</value>
   </data>
@@ -15562,6 +15583,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>prokázat jiným serverům, že je vyžadováno tls</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>postavit proxy před server</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>v karanténě</value>
   </data>
@@ -15633,6 +15657,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>posílat veškerou poštu přes mého poskytovatele</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>poslat upozornění jinému systému</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>posílat poštu pro jednu doménu na jiný server</value>

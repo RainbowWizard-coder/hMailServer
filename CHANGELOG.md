@@ -2195,6 +2195,23 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the Updates page, and "Not checked yet" points at the daily check below it rather than at API & monitoring. API &
   monitoring names the page under On other pages (review finding F272).
 
+- **Fixed: settings filed under pages whose names do not describe them could not be found from those pages' names,
+  and two aliases sent the reader to the wrong page.** Logging holds the alerts, outbound webhooks and SNMP; API &
+  monitoring the Windows Event Log, the ManageSieve listener and the graceful shutdown, while its Webhooks alias
+  outranked the real webhook settings and the Sieve alias sent the reader to the Rules page; Auto-ban holds the
+  countries and the compromised accounts, Advanced the IPv6 delivery, the disk space, the migrations and the PST
+  import, and Server limits & expert settings the PROXY protocol, XCLIENT, the per-account sending limits and the
+  event-script timeout, none of which their descriptions or aliases named; and Delivery of e-mail's Rules tab sat one
+  sidebar row from the Rules page with neither linking the other. Each page's description, which is its tool tip in
+  the sidebar and its line in the Ctrl+K palette, now names what it holds, and its aliases find it: Webhooks, Alerts
+  and SNMP open Logging, Sieve and ManageSieve open API & monitoring, Countries, GeoIP and Compromised accounts open
+  Auto-ban, PST import and Migrations open Advanced, PROXY protocol and XCLIENT open Server limits & expert settings.
+  The palette has the tasks "block mail from a country", "import a pst file", "send an alert to another system" and
+  "put a proxy in front of the server". Delivery of e-mail's Rules tab says that it limits what every rule may do and
+  opens the Rules page, the Rules page signposts Delivery of e-mail, and Incoming relays signposts Server limits &
+  expert settings. The cards themselves stay where they are: moving them to the pages named for them is the owner's
+  to decide with the new groups (review finding F273).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

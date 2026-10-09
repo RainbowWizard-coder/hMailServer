@@ -1254,6 +1254,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Koosteraportin skeema jota tämä palvelin lähettää: 1 = RFC 7489 liite C, 2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Hälytyssäännöt, lähtevät webhookit ja SNMP-agentti kertovat toiselle järjestelmälle, mitä tapahtui.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Hälytykset</value>
   </data>
@@ -1669,8 +1672,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Arkistointi kirjoittaa kopion jokaisesta viestistä valitsemaasi kansioon.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Arkistointi, peilaus, oletusverkkotunnus, levytilarajat ja kytkin joka ottaa tapahtumakomentosarjamoottorin käyttöön.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Arkistointi, peilaus, oletusverkkotunnus, toimitus IPv6:n kautta, levytilarajat, postilaatikoiden siirrot ja PST-tuonti sekä kytkin joka ottaa tapahtumakomentosarjamoottorin käyttöön.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (muistivaativa, suositeltu)</value>
@@ -5943,6 +5946,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Anna laitteen tai tulostimen lähettää postia</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Anna kuormantasaajan tai Postfix-välittäjän välittää asiakkaan todellinen osoite PROXY-protokollalla tai XCLIENTillä.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Anna ihmisten muokata omaa hakemistomerkintäänsä</value>
   </data>
@@ -6069,8 +6075,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Lukitse nimi näin monen epäonnistumisen jälkeen (0 = pois)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Sulje ulos osoite, joka epäonnistuu kirjautumisessa yhä uudelleen - ja päästä takaisin sellainen, jota ei olisi pitänyt sulkea ulos.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Sulje ulos osoite, joka epäonnistuu kirjautumisessa yhä uudelleen - ja päästä takaisin sellainen, jota ei olisi pitänyt sulkea ulos; torju tai salli kokonaisia maita ja pidätä sellaisen tilin posti, joka näyttää kaapatulta.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Lukituksen kesto (minuuttia)</value>
@@ -8968,6 +8974,9 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Hylkää posti tilapäisellä virheellä, kun vapaata tilaa on alle tämän (Mt; 0 = ei koskaan)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Torju tai salli yhteydet sen maan mukaan, johon MaxMind-tietokanta osoitteen sijoittaa; maan perusteella ei arvioida mitään ennen kuin toimitat tietokannan.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Hylkää saapuvan postin allekirjoitukset, joiden vanhenemisaika on ohitettu</value>
   </data>
@@ -10513,8 +10522,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Palvelimenlaajuiset katot, kestävyys ja väärinkäytön hallintakeinot, jotka eivät kuulu millekään yksittäiselle toiminnolle, muokataan täällä.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Palvelimenlaajuiset katot, kestävyys ja väärinkäytön hallintakeinot, jotka eivät kuulu millekään yksittäiselle protokollalle tai toiminnolle.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Palvelimenlaajuiset katot, kestävyys ja väärinkäytön hallintakeinot, jotka eivät kuulu millekään yksittäiselle protokollalle tai toiminnolle - niiden joukossa PROXY-protokolla ja XCLIENT, tilikohtaiset lähetysrajat ja tapahtumakomentosarjojen aikakatkaisu.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Palvelimenlaajuiset katot, kestävyys ja väärinkäytön hallintakeinot, jotka eivät kuulu millekään yksittäiselle protokollalle tai toiminnolle. Oletukset ovat turvallisia; muuta näitä vain erityisestä syystä.</value>
@@ -10602,6 +10611,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Aseta yhteyden suojaus jokaiselle kuuntelijalle ja vaadi sitä sitten todennukseen.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Määritä kansio, johon PST-tiedostot kopioidaan; itse tuontityö käynnistetään Control Deckissä tai REST-rajapinnan kautta.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Aseta lokin kohteeksi tietokanta; merkinnät menevät lokitiedostoihin, jos siihen ei saada yhteyttä.</value>
@@ -11491,8 +11503,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST API:n kuuntelija ja verkkopalvelujen kuuntelija jakavat tämän.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>REST-rajapinta, Prometheus-mittarit ja kuntopäätepisteet, joita ulkoinen valvontajärjestelmä lukee.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>REST-rajapinta, Prometheus-mittarit ja kuntopäätepisteet, joita ulkoinen valvontajärjestelmä lukee, Windowsin tapahtumaloki, ManageSieve-kuuntelija ja se, kuinka kauan pysähtyvä palvelu odottaa istuntojaan.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>RSA-/EC-julkisen avaimen tiedostoa {0} ei ole tällä koneella, joten RS256-tokeneita ei voi tarkistaa.</value>
@@ -12782,6 +12794,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Nämä kuuluvat yhteen: vanheneminen ilman historiaa opettaa ihmiset vuorottelemaan kahta salasanaa, mikä on pahempi kuin olla vanhenematta lainkaan. Historia hylkää vain VAIHDON, sillä hetkellä, kun joku voi valita jotain muuta, joten se ei lukitse ketään ulos. Vanheneminen hylkää KIRJAUTUMISEN - lue sen kuvaus ennen kuin otat sen käyttöön.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>Nämä rajoittavat, mitä mikä tahansa sääntö saa tehdä. Itse säännöt - mihin kukin osuu ja mitä se tekee - ovat Säännöt-sivulla.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Nämä asetukset luetaan REST-rajapinnan kautta, jota tämä istunto ei voi käyttää.</value>
   </data>
@@ -13787,8 +13802,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Mikä lista? Jokaista erillistä lähettäjää tai verkkotunnusta kohden kirjoitetaan yksi merkintä, ja sen jälkeen jokainen viesti käsitellään. Viesti, jolle ei voida tehdä merkintää, jätetään paikalleen.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Mitä lokitiedostoja palvelin kirjoittaa, kuinka paljon yksityiskohtia ne sisältävät ja kuinka kauan niitä säilytetään.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Mitä lokitiedostoja palvelin kirjoittaa, kuinka paljon yksityiskohtia ne sisältävät ja kuinka kauan niitä säilytetään, mitä tarkastusloki kirjaa, sekä hälytykset, lähtevät webhookit ja SNMP-agentti, jotka kertovat toiselle järjestelmälle, mitä tapahtui.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Miltä nimipalvelimilta palvelin kysyy ja vahvistetaanko vastaukset DNSSEC:llä.</value>
@@ -14861,6 +14876,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>estä posti huonomaineisesta ip:stä</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>estä posti tietystä maasta</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>estä roskapostilinkit viestien rungoissa</value>
   </data>
@@ -15138,6 +15156,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>Oletuksena https://keys.openpgp.org. https-osoite tai http tämän koneen avainpalvelimelle.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>tuo PST-tiedosto</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>käynnissä</value>
   </data>
@@ -15375,6 +15396,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>todista muille palvelimille, että tls vaaditaan</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>laita välityspalvelin palvelimen eteen</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>karanteenissa</value>
   </data>
@@ -15446,6 +15470,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>lähetä kaikki posti palveluntarjoajani kautta</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>lähetä hälytys toiseen järjestelmään</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>lähetä yhden verkkotunnuksen posti eri palvelimelle</value>

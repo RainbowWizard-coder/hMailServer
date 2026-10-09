@@ -1254,6 +1254,9 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Skjemaet for aggregerte rapporter som denne serveren sender: 1 = RFC 7489 tillegg C, 2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Varselregler, utgående webhooks og SNMP-agenten forteller et annet system hva som skjedde.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Alarmer</value>
   </data>
@@ -1669,8 +1672,8 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Arkivering skriver en kopi av hver melding til en mappe du velger.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Arkivering, speiling, standarddomenet, grenser for diskplass, og bryteren som slår på motoren for hendelsesskript.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Arkivering, speiling, standarddomenet, levering over IPv6, grenser for diskplass, migrering av postbokser og PST-import, og bryteren som slår på motoren for hendelsesskript.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (minnekrevende, anbefalt)</value>
@@ -5943,6 +5946,9 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>La en enhet eller skriver sende post</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>La en lastbalanserer eller et Postfix-relé gi videre klientens virkelige adresse med PROXY-protokollen eller XCLIENT.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>La folk redigere sin egen katalogoppføring</value>
   </data>
@@ -6069,8 +6075,8 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Lås et navn etter så mange feil (0 = av)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Steng ute en adresse som stadig mislykkes i å logge på - og slipp inn igjen en som ikke burde vært stengt ute.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Steng ute en adresse som stadig mislykkes i å logge på - og slipp inn igjen en som ikke burde vært stengt ute; avvis eller tillat hele land, og hold tilbake posten til en konto som ser overtatt ut.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Utestengingsvarighet (minutter)</value>
@@ -8968,6 +8974,9 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Avvis post med en midlertidig feil under så mye ledig plass (MB; 0 = aldri)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Avvis eller tillat tilkoblinger etter landet en MaxMind-database plasserer adressen i; ingenting vurderes etter land før du leverer databasen.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Avvis signaturer på innkommende post der utløpet har passert</value>
   </data>
@@ -10513,8 +10522,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Serveromfattende tak, holdbarhet og misbrukskontroller som ikke tilhører noen enkelt funksjon, redigeres her.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Serveromfattende tak, holdbarhet og misbrukskontroller som ikke tilhører noen enkelt protokoll eller funksjon.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Serveromfattende tak, holdbarhet og misbrukskontroller som ikke tilhører noen enkelt protokoll eller funksjon - blant dem PROXY-protokollen og XCLIENT, sendegrenser per konto og tidsavbruddet for hendelsesskript.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Serveromfattende tak, holdbarhet og misbrukskontroller som ikke tilhører noen enkelt protokoll eller funksjon. Standardene er trygge; endre disse bare med en konkret grunn.</value>
@@ -10602,6 +10611,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Sett tilkoblingssikkerheten på hver lytter, og krev den så for autentisering.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Angi mappen PST-filer kopieres inn i; selve importjobben startes i Control Deck eller over REST-API-et.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Sett loggmålet til databasen; oppføringer faller tilbake til loggfilene hvis den ikke kan nås.</value>
@@ -11491,8 +11503,8 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>REST-API-ets lytter og webtjenestelytteren deler denne.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>REST-API-et, Prometheus-metrikker og helseendepunkter som et eksternt overvåkingssystem leser.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>REST-API-et, Prometheus-metrikker og helseendepunkter som et eksternt overvåkingssystem leser, Windows-hendelsesloggen, ManageSieve-lytteren, og hvor lenge en tjeneste som stopper venter på øktene sine.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>RSA/EC offentlig nøkkelfil {0} finnes ikke på denne maskinen, så RS256-tokens kan ikke verifiseres.</value>
@@ -12782,6 +12794,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Disse hører sammen: utløp uten historikk lærer folk å veksle mellom to passord, som er verre enn ikke å utløpe i det hele tatt. Historikken avviser bare en ENDRING, i det øyeblikket noen kan velge noe annet, så ingen låses ute av den. Utløp avviser en PÅLOGGING - les beskrivelsen før du slår det på.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>Disse begrenser hva hver regel kan gjøre. Selve reglene - hva hver av dem treffer og hva den gjør - er på siden Regler.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Disse innstillingene leses gjennom REST-API-et, som denne økten ikke kan bruke.</value>
   </data>
@@ -13787,8 +13802,8 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Hvilken liste? Det skrives én oppføring for hver enkelt avsender eller domene, og deretter behandles hver melding. En melding det ikke kan lages en oppføring for, blir liggende der den er.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Hvilke loggfiler serveren skriver, hvor mye detalj de inneholder, og hvor lenge de beholdes.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Hvilke loggfiler serveren skriver, hvor mye detalj de inneholder og hvor lenge de beholdes, hva revisjonssporet registrerer, og varslene, de utgående webhookene og SNMP-agenten som forteller et annet system hva som skjedde.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Hvilke navneservere serveren spør, og om svar valideres med DNSSEC.</value>
@@ -14861,6 +14876,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>blokker post fra en ip med dårlig omdømme</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>blokker e-post fra et land</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>blokker spam-lenker i meldingskropper</value>
   </data>
@@ -15138,6 +15156,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>https://keys.openpgp.org som standard. En https-adresse, eller http til en nøkkelserver på denne maskinen.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>importer en PST-fil</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>pågår</value>
   </data>
@@ -15375,6 +15396,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>bevis for andre servere at tls kreves</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>sett en proxy foran serveren</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>satt i karantene</value>
   </data>
@@ -15446,6 +15470,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>send all post gjennom leverandøren min</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>send et varsel til et annet system</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>send post for ett domene til en annen server</value>

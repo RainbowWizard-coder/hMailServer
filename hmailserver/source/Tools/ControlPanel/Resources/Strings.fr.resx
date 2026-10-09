@@ -1254,6 +1254,9 @@ Le Control Panel ne peut lire les fichiers de messages que lorsqu'il s'exécute 
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Schéma de rapport agrégé envoyé par ce serveur : 1 = RFC 7489 annexe C, 2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Les règles d'alerte, les webhooks sortants et l'agent SNMP disent à un autre système ce qui s'est passé.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Alertes</value>
   </data>
@@ -1669,8 +1672,8 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>L'archivage écrit une copie de chaque message dans un dossier de votre choix.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archivage, mise en miroir, domaine par défaut, limites d'espace disque, et le commutateur qui active le moteur de scripts d'événements.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archivage, mise en miroir, domaine par défaut, distribution en IPv6, limites d'espace disque, migrations de boîtes et import PST, et le commutateur qui active le moteur de scripts d'événements.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (gourmand en mémoire, recommandé)</value>
@@ -5943,6 +5946,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Permettre à un appareil ou à une imprimante d'envoyer du courrier</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Laissez un répartiteur de charge ou un relais Postfix transmettre l'adresse réelle du client avec le protocole PROXY ou XCLIENT.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Laisser chacun modifier sa propre fiche d'annuaire</value>
   </data>
@@ -6069,8 +6075,8 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Verrouiller un nom après ce nombre d'échecs (0 = désactivé)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Verrouiller une adresse qui n'arrête pas d'échouer à se connecter - et laisser revenir celle qui n'aurait pas dû être verrouillée.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Verrouiller une adresse qui n'arrête pas d'échouer à se connecter - et laisser revenir celle qui n'aurait pas dû être verrouillée ; refuser ou autoriser des pays entiers, et retenir le courrier d'un compte qui semble usurpé.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Durée du verrouillage (minutes)</value>
@@ -8968,6 +8974,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Refuser le courrier avec une erreur temporaire en dessous de cet espace libre (Mo ; 0 = jamais)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Refusez ou autorisez les connexions selon le pays où une base MaxMind place l'adresse ; rien n'est jugé par pays tant que vous ne fournissez pas la base.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Refuser les signatures du courrier entrant dont l'expiration est passée</value>
   </data>
@@ -10513,8 +10522,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Les plafonds valables pour tout le serveur, la durabilité et les contrôles anti-abus qui n'appartiennent à aucune fonction en particulier se modifient ici.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Plafonds valables pour tout le serveur, durabilité et contrôles anti-abus qui n'appartiennent à aucun protocole ni aucune fonction en particulier.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Plafonds valables pour tout le serveur, durabilité et contrôles anti-abus qui n'appartiennent à aucun protocole ni aucune fonction en particulier - parmi eux le protocole PROXY et XCLIENT, les limites d'envoi par compte et le délai des scripts d'événements.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Plafonds valables pour tout le serveur, durabilité et contrôles anti-abus qui n'appartiennent à aucun protocole ni aucune fonction en particulier. Les valeurs par défaut sont sûres ; ne les changez qu'avec une raison précise.</value>
@@ -10602,6 +10611,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Définissez la sécurité de la connexion sur chaque écouteur, puis exigez-la pour l'authentification.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Définissez le dossier dans lequel les fichiers PST sont copiés ; la tâche d'import elle-même se lance dans le Control Deck ou par l'API REST.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Définissez la base de données comme destination des journaux ; les entrées se replient sur les fichiers journaux si elle est injoignable.</value>
@@ -11491,8 +11503,8 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>L'écouteur de l'API REST et celui des services web se partagent celle-ci.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>L'API REST, les métriques Prometheus et les points d'accès de santé que lit un système de supervision externe.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>L'API REST, les métriques Prometheus et les points d'accès de santé que lit un système de supervision externe, le journal d'événements Windows, l'écouteur ManageSieve, et combien de temps un service qui s'arrête attend ses sessions.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Le fichier de clé publique RSA/EC {0} n'existe pas sur cette machine : les jetons RS256 ne peuvent donc pas être vérifiés.</value>
@@ -12782,6 +12794,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Ces deux-là vont ensemble : une expiration sans historique apprend aux gens à alterner entre deux mots de passe, ce qui est pire que de ne pas expirer du tout. L'historique ne refuse jamais qu'un CHANGEMENT, au moment où quelqu'un est en mesure d'en choisir un autre : personne n'est donc bloqué par lui. L'expiration, elle, refuse une CONNEXION - lisez sa description avant de l'activer.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>Ces réglages limitent ce que chaque règle peut faire. Les règles elles-mêmes - ce à quoi chacune correspond et ce qu'elle fait - sont sur la page Règles.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Ces réglages sont lus par l'API REST, que cette session ne peut pas utiliser.</value>
   </data>
@@ -13787,8 +13802,8 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Quelle liste ? Une entrée est écrite pour chaque expéditeur ou domaine distinct, puis on agit sur chaque message. Un message pour lequel aucune entrée ne peut être créée reste où il est.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Quels fichiers journaux le serveur écrit, quel niveau de détail ils portent, et combien de temps ils sont conservés.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Quels fichiers journaux le serveur écrit, quel niveau de détail ils portent et combien de temps ils sont conservés, ce que consigne la piste d'audit, et les alertes, les webhooks sortants et l'agent SNMP qui disent à un autre système ce qui s'est passé.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Quels serveurs de noms le serveur interroge, et si les réponses sont validées par DNSSEC.</value>
@@ -14861,6 +14876,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>bloquer le courrier venant d'une ip de mauvaise réputation</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>bloquer le courrier d'un pays</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>bloquer les liens de spam dans le corps des messages</value>
   </data>
@@ -15138,6 +15156,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>https://keys.openpgp.org par défaut. Une adresse https, ou http vers un serveur de clés sur cette machine.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>importer un fichier PST</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>en cours</value>
   </data>
@@ -15375,6 +15396,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>prouver aux autres serveurs que tls est exigé</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>mettre un proxy devant le serveur</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>mis en quarantaine</value>
   </data>
@@ -15446,6 +15470,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>envoyer tout le courrier via mon fournisseur</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>envoyer une alerte à un autre système</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>envoyer le courrier d'un domaine vers un autre serveur</value>

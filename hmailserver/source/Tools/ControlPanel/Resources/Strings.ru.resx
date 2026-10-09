@@ -1260,6 +1260,9 @@ Control Panel может читать файлы сообщений только
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Схема сводных отчётов, которую отправляет этот сервер: 1 — RFC 7489, приложение C; 2 — RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Правила оповещений, исходящие веб-хуки и агент SNMP сообщают другой системе о случившемся.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Оповещения</value>
   </data>
@@ -1684,8 +1687,8 @@ Control Panel может читать файлы сообщений только
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Архивирование записывает копию каждого сообщения в выбранную вами папку.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Архивирование, зеркалирование, домен по умолчанию, ограничения дискового пространства и переключатель, включающий движок сценариев событий.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Архивирование, зеркалирование, домен по умолчанию, доставка по IPv6, ограничения дискового пространства, миграции почтовых ящиков и импорт PST, а также переключатель, включающий движок сценариев событий.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (требователен к памяти, рекомендуется)</value>
@@ -6007,6 +6010,9 @@ Control Panel может читать файлы сообщений только
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Разрешить устройству или принтеру отправлять почту</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Позвольте балансировщику нагрузки или ретранслятору Postfix передавать настоящий адрес клиента по протоколу PROXY или командой XCLIENT.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Разрешить людям редактировать собственную запись в каталоге</value>
   </data>
@@ -6133,8 +6139,8 @@ Control Panel может читать файлы сообщений только
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Блокировать имя после стольких неудач (0 — выключено)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Заблокировать адрес, который снова и снова не может войти, — и вернуть доступ тому, кого блокировать не следовало.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Заблокировать адрес, который снова и снова не может войти, - и вернуть доступ тому, кого блокировать не следовало; отклонять или разрешать целые страны и задерживать почту учётной записи, которая выглядит захваченной.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Длительность блокировки (минут)</value>
@@ -9056,6 +9062,9 @@ Control Panel может читать файлы сообщений только
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Отклонять почту с временной ошибкой, когда свободного места меньше указанного (МБ; 0 — никогда)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Отклоняйте или разрешайте подключения по стране, к которой база данных MaxMind относит адрес; пока вы не предоставите базу, по стране ничего не оценивается.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Отклонять подписи на входящей почте, срок действия которых истёк</value>
   </data>
@@ -10637,8 +10646,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Здесь редактируются общесерверные верхние границы, параметры надёжности хранения и средства против злоупотреблений, не относящиеся ни к одной отдельной функции.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Общесерверные верхние границы, параметры надёжности хранения и средства против злоупотреблений, не относящиеся ни к одному отдельному протоколу или функции.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Общесерверные верхние границы, параметры надёжности хранения и средства против злоупотреблений, не относящиеся ни к одному отдельному протоколу или функции, - среди них протокол PROXY и XCLIENT, ограничения отправки для учётных записей и тайм-аут сценариев событий.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Общесерверные верхние границы, параметры надёжности хранения и средства против злоупотреблений, не относящиеся ни к одному отдельному протоколу или функции. Значения по умолчанию безопасны; меняйте их только при наличии конкретной причины.</value>
@@ -10726,6 +10735,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Задайте защиту подключения на каждом прослушивателе, а затем потребуйте её для аутентификации.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Задайте папку, в которую копируются файлы PST; само задание импорта запускается в Control Deck или через REST API.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Назначьте местом записи журнала базу данных; если она недоступна, записи возвращаются в файлы журналов.</value>
@@ -11621,8 +11633,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>Прослушиватель REST API и прослушиватель веб-служб используют это общее значение.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>REST API, метрики Prometheus и конечные точки работоспособности, которые читает внешняя система мониторинга.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>REST API, метрики Prometheus и конечные точки работоспособности, которые читает внешняя система мониторинга, журнал событий Windows, прослушиватель ManageSieve и то, как долго останавливающаяся служба ждёт своих сеансов.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>Файла открытого ключа RSA/EC {0} на этом компьютере нет, поэтому токены RS256 проверить невозможно.</value>
@@ -12945,6 +12957,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>Они принадлежат друг другу: истечение срока без истории учит людей чередовать два пароля, что хуже, чем не истекать вовсе. История только отказывает в ИЗМЕНЕНИИ, в момент, когда кто-то может выбрать что-то другое, поэтому никого она не запирает. Истечение срока отказывает во ВХОДЕ - прочитайте его описание, прежде чем включать.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>Эти параметры ограничивают то, что может сделать любое правило. Сами правила - чему соответствует каждое и что оно делает - находятся на странице «Правила».</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>Эти параметры читаются через REST API, который этот сеанс не может использовать.</value>
   </data>
@@ -13956,8 +13971,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Какой список? Для каждого отдельного отправителя или домена записывается одна запись, а затем на каждом сообщении выполняется действие. Сообщение, для которого запись создать нельзя, остаётся там, где есть.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Какие файлы журналов пишет сервер, сколько деталей они содержат и как долго хранятся.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Какие файлы журналов пишет сервер, сколько деталей они содержат и как долго хранятся, что записывает журнал аудита, а также оповещения, исходящие веб-хуки и агент SNMP, которые сообщают другой системе о случившемся.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Какие серверы имён опрашивает сервер и проверяются ли ответы DNSSEC.</value>
@@ -15033,6 +15048,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>заблокировать почту с IP-адреса с плохой репутацией</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>заблокировать почту из страны</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>заблокировать спам-ссылки в теле сообщений</value>
   </data>
@@ -15316,6 +15334,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>По умолчанию https://keys.openpgp.org. Адрес https или http к серверу ключей на этом компьютере.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>импортировать файл PST</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>выполняется</value>
   </data>
@@ -15562,6 +15583,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>доказать другим серверам, что TLS обязателен</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>поставить прокси перед сервером</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>помещено в карантин</value>
   </data>
@@ -15633,6 +15657,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>отправлять всю почту через моего провайдера</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>отправить оповещение в другую систему</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>отправлять почту одного домена на другой сервер</value>

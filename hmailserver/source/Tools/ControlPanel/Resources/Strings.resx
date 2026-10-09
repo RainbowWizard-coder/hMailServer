@@ -1254,6 +1254,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990" xml:space="preserve">
     <value>Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990</value>
   </data>
+  <data name="Alert rules, outbound webhooks and the SNMP agent tell another system what happened." xml:space="preserve">
+    <value>Alert rules, outbound webhooks and the SNMP agent tell another system what happened.</value>
+  </data>
   <data name="Alerts" xml:space="preserve">
     <value>Alerts</value>
   </data>
@@ -1669,8 +1672,8 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Archiving writes a copy of every message to a folder you choose." xml:space="preserve">
     <value>Archiving writes a copy of every message to a folder you choose.</value>
   </data>
-  <data name="Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on." xml:space="preserve">
-    <value>Archiving, mirroring, the default domain, disk-space limits, and the switch that turns the event-scripting engine on.</value>
+  <data name="Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on." xml:space="preserve">
+    <value>Archiving, mirroring, the default domain, IPv6 delivery, disk-space limits, mailbox migrations and PST import, and the switch that turns the event-scripting engine on.</value>
   </data>
   <data name="Argon2id (memory-hard, recommended)" xml:space="preserve">
     <value>Argon2id (memory-hard, recommended)</value>
@@ -5943,6 +5946,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Let a device or printer send mail" xml:space="preserve">
     <value>Let a device or printer send mail</value>
   </data>
+  <data name="Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT." xml:space="preserve">
+    <value>Let a load balancer or a Postfix relay pass on the real client address with the PROXY protocol or XCLIENT.</value>
+  </data>
   <data name="Let people edit their own directory entry" xml:space="preserve">
     <value>Let people edit their own directory entry</value>
   </data>
@@ -6069,8 +6075,8 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Lock a name after this many failures (0 = off)" xml:space="preserve">
     <value>Lock a name after this many failures (0 = off)</value>
   </data>
-  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out." xml:space="preserve">
-    <value>Lock out an address that keeps failing to log on - and let one back in that should not have been locked out.</value>
+  <data name="Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over." xml:space="preserve">
+    <value>Lock out an address that keeps failing to log on - and let one back in that should not have been locked out; refuse or allow whole countries, and hold the mail of an account that looks taken over.</value>
   </data>
   <data name="Lockout duration (minutes)" xml:space="preserve">
     <value>Lockout duration (minutes)</value>
@@ -8968,6 +8974,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Refuse mail with a temporary error below this much free space (MB; 0 = never)" xml:space="preserve">
     <value>Refuse mail with a temporary error below this much free space (MB; 0 = never)</value>
   </data>
+  <data name="Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database." xml:space="preserve">
+    <value>Refuse or allow connections by the country a MaxMind database places the address in; nothing is judged by country until you supply the database.</value>
+  </data>
   <data name="Refuse signatures on incoming mail whose expiry has passed" xml:space="preserve">
     <value>Refuse signatures on incoming mail whose expiry has passed</value>
   </data>
@@ -10513,8 +10522,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here." xml:space="preserve">
     <value>Server-wide ceilings, durability and abuse controls that belong to no single feature are edited here.</value>
   </data>
-  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature." xml:space="preserve">
-    <value>Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature.</value>
+  <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them." xml:space="preserve">
+    <value>Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature - the PROXY protocol and XCLIENT, per-account sending limits and the event-script timeout among them.</value>
   </data>
   <data name="Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason." xml:space="preserve">
     <value>Server-wide ceilings, durability and abuse controls that belong to no single protocol or feature. The defaults are safe; change these only with a specific reason.</value>
@@ -10602,6 +10611,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   </data>
   <data name="Set the connection security on each listener, then require it for authentication." xml:space="preserve">
     <value>Set the connection security on each listener, then require it for authentication.</value>
+  </data>
+  <data name="Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API." xml:space="preserve">
+    <value>Set the folder PST files are copied into; the import job itself is started in the Control Deck or over the REST API.</value>
   </data>
   <data name="Set the log destination to the database; entries fall back to the log files if it is unreachable." xml:space="preserve">
     <value>Set the log destination to the database; entries fall back to the log files if it is unreachable.</value>
@@ -11491,8 +11503,8 @@ Every folder is emptied first: mail that arrived since the backup is gone. The p
   <data name="The REST API's listener and the web services listener share this one." xml:space="preserve">
     <value>The REST API's listener and the web services listener share this one.</value>
   </data>
-  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads." xml:space="preserve">
-    <value>The REST API, Prometheus metrics and health endpoints an outside monitoring system reads.</value>
+  <data name="The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions." xml:space="preserve">
+    <value>The REST API, Prometheus metrics and health endpoints an outside monitoring system reads, the Windows Event Log, the ManageSieve listener, and how long a stopping service waits for its sessions.</value>
   </data>
   <data name="The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified." xml:space="preserve">
     <value>The RSA/EC public key file {0} does not exist on this machine, so RS256 tokens cannot be verified.</value>
@@ -12782,6 +12794,9 @@ It will keep trying as you use the application.</value>
   <data name="These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on." xml:space="preserve">
     <value>These belong together: expiry without history teaches people to alternate between two passwords, which is worse than not expiring at all. History only ever refuses a CHANGE, at the moment somebody is able to pick something else, so nobody is locked out by it. Expiry refuses a LOGON - read its description before turning it on.</value>
   </data>
+  <data name="These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page." xml:space="preserve">
+    <value>These limit what every rule may do. The rules themselves - what each one matches and what it does - are on the Rules page.</value>
+  </data>
   <data name="These settings are read through the REST API, which this session cannot use." xml:space="preserve">
     <value>These settings are read through the REST API, which this session cannot use.</value>
   </data>
@@ -13787,8 +13802,8 @@ It will keep trying as you use the application.</value>
   <data name="Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is." xml:space="preserve">
     <value>Which list? One entry is written for each distinct sender or domain, and then each message is acted on. A message no entry can be made for is left where it is.</value>
   </data>
-  <data name="Which log files the server writes, how much detail they carry, and how long they are kept." xml:space="preserve">
-    <value>Which log files the server writes, how much detail they carry, and how long they are kept.</value>
+  <data name="Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened." xml:space="preserve">
+    <value>Which log files the server writes, how much detail they carry and how long they are kept, what the audit trail records, and the alerts, outbound webhooks and SNMP agent that tell another system what happened.</value>
   </data>
   <data name="Which name servers the server asks, and whether answers are DNSSEC validated." xml:space="preserve">
     <value>Which name servers the server asks, and whether answers are DNSSEC validated.</value>
@@ -14861,6 +14876,9 @@ It will keep trying as you use the application.</value>
   <data name="block mail from a bad reputation ip" xml:space="preserve">
     <value>block mail from a bad reputation ip</value>
   </data>
+  <data name="block mail from a country" xml:space="preserve">
+    <value>block mail from a country</value>
+  </data>
   <data name="block spam links in message bodies" xml:space="preserve">
     <value>block spam links in message bodies</value>
   </data>
@@ -15138,6 +15156,9 @@ It will keep trying as you use the application.</value>
   <data name="https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine." xml:space="preserve">
     <value>https://keys.openpgp.org by default. An https address, or http to a keyserver on this machine.</value>
   </data>
+  <data name="import a pst file" xml:space="preserve">
+    <value>import a pst file</value>
+  </data>
   <data name="in progress" xml:space="preserve">
     <value>in progress</value>
   </data>
@@ -15375,6 +15396,9 @@ It will keep trying as you use the application.</value>
   <data name="prove to other servers that tls is required" xml:space="preserve">
     <value>prove to other servers that tls is required</value>
   </data>
+  <data name="put a proxy in front of the server" xml:space="preserve">
+    <value>put a proxy in front of the server</value>
+  </data>
   <data name="quarantined" xml:space="preserve">
     <value>quarantined</value>
   </data>
@@ -15446,6 +15470,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="send all mail through my provider" xml:space="preserve">
     <value>send all mail through my provider</value>
+  </data>
+  <data name="send an alert to another system" xml:space="preserve">
+    <value>send an alert to another system</value>
   </data>
   <data name="send mail for one domain to a different server" xml:space="preserve">
     <value>send mail for one domain to a different server</value>
