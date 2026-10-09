@@ -246,7 +246,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not save the backup settings: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not save the backup settings: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return false;
          }
       }
@@ -298,7 +298,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not start the backup: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not start the backup: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -341,7 +341,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not start the restore: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not start the restore: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -432,7 +432,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not start the mailbox restore: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not start the mailbox restore: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -450,7 +450,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not read the outcome: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not read the outcome: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -502,7 +502,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not list the messages: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not list the messages: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -534,7 +534,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not start the message restore: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not start the message restore: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -572,7 +572,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not write to hMailServer.ini: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not write to hMailServer.ini: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
 

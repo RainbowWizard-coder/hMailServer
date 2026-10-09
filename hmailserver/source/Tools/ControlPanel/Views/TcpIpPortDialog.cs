@@ -186,7 +186,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not load the port: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not load the port: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             Close();
          }
          finally
@@ -245,7 +245,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not save the port: {0}", ex.Message));
+            notice_.Show(StatusLevel.Critical, F("Could not save the port: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

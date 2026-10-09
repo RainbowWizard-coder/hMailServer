@@ -168,7 +168,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not add the relay: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not add the relay: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -210,7 +210,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the relay: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the relay: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -449,7 +449,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Sendout failed: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Sendout failed: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
       }
 
@@ -695,7 +695,7 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
-               return F("Diagnostics failed: {0}", ex.Message);
+               return F("Diagnostics failed: {0}", ServerSession.DescribeComError(ex));
             }
          });
 

@@ -14573,11 +14573,17 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>gönderenin alan adı veya HELO adı izin verilen bir alan adıdır</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>sunucu, bu Control Panel'in okuyamadığı bir yanıt verdi ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>sunucu veritabanına ulaşamıyor. Veritabanı bağlantısını ve hMailServer hata günlüğünü denetleyin, sonra Yeniden yükle'ye basın. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>sunucu otuz saniye içinde Çalışıyor bildirmedi; ne yaptığını Durum sayfası gösterir.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>sunucuda böyle bir ayar ya da eylem yok - bu Control Panel'den daha eski olabilir ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>sunucu yavaş</value>

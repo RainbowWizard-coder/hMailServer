@@ -43,7 +43,14 @@ namespace hMailServer.ControlPanel.Services
       /// </summary>
       public static void Show(InlineNotice notice, EmptyState empty, ItemsControl list, string prefix, Exception why,
          Action tryAgain, params UIElement[] writes)
-         => Show(notice, empty, list, prefix, ServerSession.DescribeComError(why), tryAgain, writes);
+      {
+         Show(notice, empty, list, prefix, ServerSession.DescribeComError(why), tryAgain, writes);
+
+         // The sentence says what the failure means; the code it came with - the
+         // exception's type, HRESULT and text - stays in reach in the tool tip.
+         if (notice != null)
+            notice.ToolTip = ComErrorText.TechnicalDetail(why);
+      }
 
       /// <summary>
       /// Shows a read that failed: the list emptied, the empty state hidden, the
@@ -69,6 +76,7 @@ namespace hMailServer.ControlPanel.Services
 
          notice.Level = StatusLevel.Critical;
          notice.Text = (prefix ?? "") + (why ?? "");
+         notice.ToolTip = null;
 
          // The button is kept from one failure to the next. Try again runs the
          // page's read, the read fails again - the common case right after a lost
@@ -111,6 +119,7 @@ namespace hMailServer.ControlPanel.Services
          notice.Tag = null;
          notice.Content = null;
          notice.Text = null;
+         notice.ToolTip = null;
          notice.Visibility = Visibility.Collapsed;
       }
 

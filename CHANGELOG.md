@@ -1145,6 +1145,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   time it was read, and the subtitle says "Figures from 04:33:43, the last time the server could be read." A read that
   works puts the figures back in the primary colour. `FailureStateTests` holds the cards to their dash and the page
   to both cases.
+- **Fixed: the Control Panel showed raw exception text and HRESULTs where other pages gave a sentence.** "Could not
+  evaluate all warnings: The RPC server is unavailable. (Exception from HRESULT: 0x800706BA)" stood at the foot of
+  Server status, the same text on the delivery queue, Diagnosing stalled mail, Backup & restore and Event scripts, a
+  message box said "Could not save: " and whatever the runtime said, and Performance showed a JSON parser's position
+  as a statistic. Every catch of a call to the server - eighty-eight of them, in thirty-two files - now goes
+  through `ServerSession.DescribeComError`, which says a lost link in words, notices it and has the session repair
+  it, and now also says what a failure that is not the server's own words is (`Services/ComErrorText`): an answer
+  the Control Panel could not read - a number that was not one, a document that was not JSON, a value of another
+  type - is "the server answered something this Control Panel could not read", and a member the server does not
+  have is "the server has no such setting or action - it may be older than this Control Panel", each with the
+  runtime's text in brackets. The shared failure notice keeps the exception's type, HRESULT and text in its tool tip,
+  and a statistic the server could not give is a Warning notice in place of the figure. The catches whose try is
+  local - a file, the registry, a browser, an HTTPS fetch or an LDAP probe from this machine - keep their own text,
+  and `FailureStateTests` names each with its reason, so that a new catch showing a failure's raw text fails it.
 
 ### Administration
 

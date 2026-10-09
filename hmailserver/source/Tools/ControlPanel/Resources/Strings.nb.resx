@@ -14573,11 +14573,17 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>avsenderens domene eller HELO-navn er et tillatt domene</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>serveren svarte noe dette Control Panel ikke kunne lese ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>serveren når ikke databasen sin. Sjekk databasetilkoblingen og hMailServers feillogg, og trykk deretter Last på nytt. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>serveren meldte ikke Kjører innen tretti sekunder; siden Status viser hva den gjør.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>serveren har ingen slik innstilling eller handling - den kan være eldre enn dette Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>serveren er treg</value>

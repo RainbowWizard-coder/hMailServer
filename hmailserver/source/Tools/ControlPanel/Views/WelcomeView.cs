@@ -354,7 +354,7 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
             {
-               failure = fatalCheck.Message;
+               failure = ServerSession.DescribeComError(fatalCheck);
             }
 
             Dispatcher.BeginInvoke(new Action(() => SampleDone_(removing, json, failure)));

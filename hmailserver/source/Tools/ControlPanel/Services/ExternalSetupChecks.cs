@@ -631,7 +631,7 @@ namespace hMailServer.ControlPanel.Services
          catch (Exception ex) when (ex is JsonException || ex is KeyNotFoundException || ex is InvalidOperationException)
          {
             failedReads_++;
-            firstError_ ??= ex.Message;
+            firstError_ ??= ServerSession.DescribeComError(ex);
          }
 
          return items;

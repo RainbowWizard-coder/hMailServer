@@ -14746,11 +14746,17 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>домен отправителя или имя HELO — разрешённый домен</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>сервер ответил так, что этот Control Panel не смог прочитать ответ ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>сервер не может обратиться к своей базе данных. Проверьте подключение к базе данных и журнал ошибок hMailServer, затем нажмите «Перезагрузить». ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>сервер не сообщил о состоянии «Работает» в течение тридцати секунд; что он делает, показывает страница «Состояние».</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>на сервере нет такого параметра или действия - возможно, он старше этого Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>сервер работает медленно</value>

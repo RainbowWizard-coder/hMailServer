@@ -139,7 +139,7 @@ namespace hMailServer.ControlPanel.Views
          {
             // Everything the server refuses arrives here as a sentence, and every
             // one of those refusals happens before anything is changed.
-            notice_.Show(StatusLevel.Critical, F("The mailbox could not be moved. {0}", fatalCheck.Message));
+            notice_.Show(StatusLevel.Critical, F("The mailbox could not be moved. {0}", ServerSession.DescribeComError(fatalCheck)));
             return;
          }
 

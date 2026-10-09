@@ -208,7 +208,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            rangeNote_.Text = F("Could not load the history: {0}", ex.Message);
+            rangeNote_.Text = F("Could not load the history: {0}", ServerSession.DescribeComError(ex));
             ChartsGrid.Children.Add(throughputCard_);
             ChartsGrid.Children.Add(sessionsCard_);
          }

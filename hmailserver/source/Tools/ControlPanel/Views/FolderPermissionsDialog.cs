@@ -125,7 +125,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not load permissions: {0}", ex.Message));
+            notice_.Show(StatusLevel.Critical, F("Could not load permissions: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -189,7 +189,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not delete the permission: {0}", ex.Message));
+            notice_.Show(StatusLevel.Critical, F("Could not delete the permission: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -255,7 +255,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not save the permission: {0}", ex.Message));
+            notice_.Show(StatusLevel.Critical, F("Could not save the permission: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

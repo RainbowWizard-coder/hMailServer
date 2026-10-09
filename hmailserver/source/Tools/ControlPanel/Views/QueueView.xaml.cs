@@ -77,7 +77,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ShowNotice_(StatusLevel.Critical, F("Could not retrigger delivery: {0}", ex.Message));
+            ShowNotice_(StatusLevel.Critical, F("Could not retrigger delivery: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 
@@ -103,7 +103,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            ShowNotice_(StatusLevel.Critical, F("Could not remove the message: {0}", ex.Message));
+            ShowNotice_(StatusLevel.Critical, F("Could not remove the message: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 

@@ -867,7 +867,12 @@ namespace hMailServer.ControlPanel.Services
             return F("the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})", msg);
          if (msg.IndexOf("do not have access", StringComparison.OrdinalIgnoreCase) >= 0)
             return F("you must connect with the hMailServer server-administrator account to view or change these settings. ({0})", msg);
-         return msg;
+
+         // A failure that is not the server's own words - an answer this Control
+         // Panel could not parse, a member an older server does not have - is said
+         // as what it is, with the runtime's text kept in brackets, and not as the
+         // bare text of a parser or a binder.
+         return ComErrorText.NotTheServersWords(ex, msg) ?? msg;
       }
    }
 }

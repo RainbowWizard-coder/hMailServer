@@ -240,7 +240,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Say_(StatusLevel.Critical, F("Could not change logging: {0}", ex.Message));
+            Say_(StatusLevel.Critical, F("Could not change logging: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 
@@ -275,7 +275,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Say_(StatusLevel.Critical, F("Could not read the logging state: {0}", ex.Message));
+            Say_(StatusLevel.Critical, F("Could not read the logging state: {0}", ServerSession.DescribeComError(ex)));
          }
       }
 

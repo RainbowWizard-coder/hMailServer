@@ -297,7 +297,7 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             SetStageEvent_("cancel-event");
-            Finish_(backup_, F("The service did not prepare the install: {0}", ex.Message), false);
+            Finish_(backup_, F("The service did not prepare the install: {0}", ServerSession.DescribeComError(ex)), false);
          }
       }
 
@@ -382,7 +382,7 @@ namespace hMailServer.ControlPanel.Views
          {
             SetStageEvent_("cancel-event");
             CancelOnServer_();
-            Finish_(drain_, F("The update was not installed: {0}", ex.Message), false);
+            Finish_(drain_, F("The update was not installed: {0}", ServerSession.DescribeComError(ex)), false);
             return;
          }
 

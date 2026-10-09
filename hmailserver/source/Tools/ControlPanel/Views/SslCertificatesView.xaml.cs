@@ -610,7 +610,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not add the certificate: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not add the certificate: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -651,7 +651,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the certificate: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the certificate: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {

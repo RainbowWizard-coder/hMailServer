@@ -14746,11 +14746,17 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>doména odesílatele nebo název HELO je povolená doména</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>server odpověděl něčím, co tento Control Panel neumí přečíst ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>server nedosáhne na svou databázi. Zkontrolujte připojení k databázi a chybový log hMailServeru a poté stiskněte Znovu načíst. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>server nehlásil stav Běží do třiceti sekund; co dělá, uvádí stránka Stav.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>server takové nastavení ani akci nemá - může být starší než tento Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>server je pomalý</value>

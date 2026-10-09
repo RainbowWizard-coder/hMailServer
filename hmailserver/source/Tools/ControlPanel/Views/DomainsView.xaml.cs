@@ -333,7 +333,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not create the alias: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not create the alias: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -382,7 +382,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the alias: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the alias: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -413,7 +413,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not create the list: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not create the list: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -493,7 +493,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the list: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the list: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -616,7 +616,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the domain: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the domain: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -655,7 +655,7 @@ namespace hMailServer.ControlPanel.Views
          {
             // Without this, a duplicate name - the likeliest failure - took the
             // whole window down instead of saying so.
-            MessageBox.Show(F("Could not create the domain: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not create the domain: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -766,7 +766,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the account: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the account: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {

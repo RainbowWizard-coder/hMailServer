@@ -14573,11 +14573,17 @@ Nessun messaggio viene eliminato e nessun account viene rimosso. Continuare?</va
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>il dominio del mittente o il nome HELO è un dominio consentito</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>il server ha risposto qualcosa che questo Control Panel non è riuscito a leggere ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>il server non riesce a raggiungere il proprio database. Controllare la connessione al database e il registro errori di hMailServer, poi premere Ricarica. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>il server non ha segnalato In esecuzione entro trenta secondi; la pagina Stato mostra cosa sta facendo.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>il server non ha questa impostazione né questa azione - potrebbe essere più vecchio di questo Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>il server è lento</value>

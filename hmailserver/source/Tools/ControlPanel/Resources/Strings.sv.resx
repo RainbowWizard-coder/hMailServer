@@ -14573,11 +14573,17 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>avsändarens domän eller HELO-namn är en tillåten domän</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>servern svarade något som den här Control Panel inte kunde läsa ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>servern kan inte nå sin databas. Kontrollera databasanslutningen och hMailServers fellogg, och tryck sedan på Ladda om. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>servern rapporterade inte Körs inom trettio sekunder; sidan Status visar vad den gör.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>servern har ingen sådan inställning eller åtgärd - den kan vara äldre än den här Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>servern är långsam</value>

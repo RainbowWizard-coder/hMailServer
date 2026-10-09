@@ -548,7 +548,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not save: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not save: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -583,7 +583,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {

@@ -776,7 +776,7 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             folderStatus_.Text = "";
-            folderNotice_.Show(StatusLevel.Critical, L("Could not load folders: ") + ex.Message);
+            folderNotice_.Show(StatusLevel.Critical, L("Could not load folders: ") + ServerSession.DescribeComError(ex));
          }
          finally
          {
@@ -803,7 +803,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            folderNotice_.Show(StatusLevel.Critical, F("Could not create the folder: {0}", ex.Message));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not create the folder: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -840,7 +840,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            folderNotice_.Show(StatusLevel.Critical, F("Could not delete the folder: {0}", ex.Message));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not delete the folder: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -866,7 +866,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            folderNotice_.Show(StatusLevel.Critical, F("Could not empty the mailbox: {0}", ex.Message));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not empty the mailbox: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -900,7 +900,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            folderNotice_.Show(StatusLevel.Critical, F("Could not export: {0}", ex.Message));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not export: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -928,7 +928,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            folderNotice_.Show(StatusLevel.Critical, F("Could not erase: {0}", ex.Message));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not erase: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -949,7 +949,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            folderNotice_.Show(StatusLevel.Critical, F("Could not unlock the mailbox: {0}", ex.Message));
+            folderNotice_.Show(StatusLevel.Critical, F("Could not unlock the mailbox: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -1104,7 +1104,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not load the account: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not load the account: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             Close();
          }
          finally

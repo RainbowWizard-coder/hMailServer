@@ -313,7 +313,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("The update step could not be run: {0}", ex.Message), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(F("The update step could not be run: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
@@ -358,7 +358,7 @@ namespace hMailServer.ControlPanel.Views
          {
             // The likeliest failure is rights: pausing requires an administrator-level
             // COM session. Said outright rather than as a raw HRESULT.
-            MessageBox.Show(F("The server state could not be changed: {0}", ex.Message),
+            MessageBox.Show(F("The server state could not be changed: {0}", ServerSession.DescribeComError(ex)),
                L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
          }
 
@@ -594,7 +594,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            AddWarning(StatusLevel.Information, F("Could not evaluate all warnings: {0}", ex.Message));
+            AddWarning(StatusLevel.Information, F("Could not evaluate all warnings: {0}", ServerSession.DescribeComError(ex)));
             return;
          }
 

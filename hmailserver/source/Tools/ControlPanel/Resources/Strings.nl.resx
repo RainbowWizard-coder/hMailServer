@@ -14573,11 +14573,17 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>het domein of de HELO-naam van de afzender een toegestaan domein is</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>de server antwoordde iets wat dit Control Panel niet kon lezen ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>de server kan zijn database niet bereiken. Controleer de databaseverbinding en het hMailServer-foutenlogboek en druk daarna op Opnieuw laden. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>de server meldde niet binnen dertig seconden Actief; de pagina Status toont wat hij doet.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>de server heeft zo'n instelling of actie niet - hij is mogelijk ouder dan dit Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>de server is traag</value>

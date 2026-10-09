@@ -220,7 +220,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not add the recipient: {0}", ex.Message));
+            notice_.Show(StatusLevel.Critical, F("Could not add the recipient: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -422,7 +422,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            notice_.Show(StatusLevel.Critical, F("Could not remove the recipient: {0}", ex.Message));
+            notice_.Show(StatusLevel.Critical, F("Could not remove the recipient: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

@@ -972,7 +972,16 @@ namespace hMailServer.ControlPanel.Views
             }
             catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
             {
-               text = F("This could not be read from the server: {0}", ServerSession.DescribeComError(ex));
+               // A figure the server could not give is a Warning notice, with its
+               // mark and word and the runtime's code in the tool tip, where it was
+               // a line of body text standing in the figure's place - a JSON
+               // parser's message read as a statistic.
+               return new Scaffold.InlineNotice
+               {
+                  Level = StatusLevel.Warning,
+                  Text = F("This could not be read from the server: {0}", ServerSession.DescribeComError(ex)),
+                  ToolTip = ComErrorText.TechnicalDetail(ex)
+               };
             }
 
             var line = new TextBlock
@@ -1085,7 +1094,7 @@ namespace hMailServer.ControlPanel.Views
                }
                catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
                {
-                  Report_(F("Test failed: {0}", ex.Message), false);
+                  Report_(F("Test failed: {0}", ServerSession.DescribeComError(ex)), false);
                }
             };
 

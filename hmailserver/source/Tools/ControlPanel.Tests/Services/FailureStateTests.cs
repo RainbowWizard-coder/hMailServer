@@ -137,15 +137,116 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("private const string NotRead = \"—\";", source, StringComparison.Ordinal);
       }
 
-      /// <summary>Every COM read the checks count as failed also records whether the link went.</summary>
+      // ---- every catch through DescribeComError ----------------------------------
+
+      /// <summary>
+      /// The pages' catches whose try is local and whose exception's own text is
+      /// the reason: a file, the registry, a browser, an HTTPS fetch or an LDAP
+      /// probe from this machine, the sign-in page's own reporting. Each by a
+      /// phrase of its line, so that a new line showing an exception's raw text
+      /// fails the test below until it is routed or added here with its reason.
+      /// </summary>
+      private static readonly (string File, string Phrase, string Why)[] LocalCatches =
+      {
+         ("AccountDialog.cs", "Could not read the photo", "a local image file"),
+         ("ConnectView.xaml.cs", "Fail_(ex.Message)", "the sign-in page's own reporting"),
+         ("DirectorySyncView.cs", "L(\"Could not save: \") + ex.Message", "hMailServer.ini on this machine"),
+         ("DnsRecordsView.cs", "ex.InnerException != null ? ex.InnerException.Message", "an HTTPS fetch from this machine"),
+         ("DnsRecordsView.cs", "The fetch itself failed", "an HTTPS fetch from this machine"),
+         ("DomainDialog.cs", "Could not generate the DKIM key", "a key made and written on this machine"),
+         ("DomainPolicyListView.cs", "The server's answer could not be read", "already a sentence about an unreadable answer"),
+         ("LdapSettingsView.cs", "MessageBox.Show(F(\"Could not save: {0}\", ex.Message)", "hMailServer.ini on this machine"),
+         ("LdapSettingsView.cs", "The test itself failed unexpectedly", "an LDAP probe from this machine"),
+         ("MessageViewerDialog.cs", "Could not read the message file", "a local message file"),
+         ("ScriptsView.cs", "F(\"Could not read the file: {0}\", ex.Message)", "a local script file"),
+         ("ScriptsView.cs", "Could not write the script file", "a local script file"),
+         ("ServerSettingsView.xaml.cs", "Could not open the folder", "Explorer on this machine"),
+         ("StalledMailView.cs", "Could not open a browser", "a browser on this machine"),
+         ("TotpSetupDialog.cs", "notice_.Show(StatusLevel.Critical, ex.Message);", "the Control Panel's own second factor, in the registry"),
+         ("UtilityViews.cs", "Could not read the consistency report", "a local report file"),
+         ("UtilityViews.cs", "Could not read {0}: {1}", "a local report file"),
+         ("UtilityViews.cs", "Could not open {0}: {1}", "Explorer on this machine"),
+      };
+
+      /// <summary>
+      /// No page shows a failed call to the server as the exception's raw text:
+      /// "The RPC server is unavailable. (Exception from HRESULT: 0x800706BA)" at the
+      /// foot of Server status, "Could not save: ..." with a binder's or a parser's
+      /// words in a message box. Every catch of a server call goes through
+      /// ServerSession.DescribeComError, which says a lost link, a database the
+      /// server cannot reach, an answer that could not be read and a member an
+      /// older server does not have in words, and notices the lost link.
+      /// </summary>
+      [Fact]
+      public void NoPage_ShowsAServerFailureAsTheExceptionsRawText()
+      {
+         var raw = new Regex(@"\b(ex|fatalCheck)\.Message\b");
+         string views = Path.GetDirectoryName(ControlPanelPath(Path.Join("Views", "DashboardView.xaml.cs")));
+         var unexplained = new System.Collections.Generic.List<string>();
+         var used = new System.Collections.Generic.HashSet<int>();
+
+         foreach (string path in Directory.GetFiles(views, "*.cs"))
+         {
+            string name = Path.GetFileName(path);
+            string[] lines = File.ReadAllLines(path);
+            for (int i = 0; i < lines.Length; i++)
+            {
+               if (!raw.IsMatch(lines[i]) || lines[i].Contains("DescribeComError", StringComparison.Ordinal))
+                  continue;
+
+               int allowed = Array.FindIndex(LocalCatches, c => c.File == name && lines[i].Contains(c.Phrase, StringComparison.Ordinal));
+               if (allowed < 0)
+                  unexplained.Add(name + ":" + (i + 1) + ": " + lines[i].Trim());
+               else
+                  used.Add(allowed);
+            }
+         }
+
+         Assert.True(unexplained.Count == 0,
+            "These lines show a failure's raw text; route them through ServerSession.DescribeComError, or name them in LocalCatches with the reason:\n"
+            + string.Join("\n", unexplained));
+
+         // An entry nothing matches any more is a reason kept for a line that has gone.
+         var stale = LocalCatches.Where((c, i) => !used.Contains(i)).Select(c => c.File + ": " + c.Phrase).ToList();
+         Assert.True(stale.Count == 0, "LocalCatches names lines that are gone:\n" + string.Join("\n", stale));
+      }
+
+      /// <summary>
+      /// DescribeComError says a failure that is not the server's words as what it
+      /// is (ComErrorText), the shared failure notice keeps the runtime's code in its
+      /// tool tip, and a statistic the server could not give is a Warning notice
+      /// rather than body text standing in the figure's place.
+      /// </summary>
+      [Fact]
+      public void DescribeComError_SaysWhatAFailureThatIsNotTheServersWordsIs()
+      {
+         string session = ReadControlPanelFile(Path.Join("Services", "ServerSession.cs"));
+         string describe = WithheldRowTests.MemberText(session, "public static string DescribeComError(Exception ex)");
+         Assert.Contains("return ComErrorText.NotTheServersWords(ex, msg) ?? msg;", describe, StringComparison.Ordinal);
+
+         string failure = ReadControlPanelFile(Path.Join("Services", "ReadFailure.cs"));
+         Assert.Contains("notice.ToolTip = ComErrorText.TechnicalDetail(why);", failure, StringComparison.Ordinal);
+
+         string settings = ReadView("ServerSettingsView.xaml.cs");
+         int stat = settings.IndexOf("private class ComStat", StringComparison.Ordinal);
+         string build = WithheldRowTests.MemberText(settings.Substring(stat), "protected override FrameworkElement BuildEditor(object value)");
+         Assert.Matches(new Regex(@"catch \(Exception ex\)[^{]*\{[^}]*return new Scaffold\.InlineNotice\s*\{\s*Level = StatusLevel\.Warning", RegexOptions.Singleline), build);
+      }
+
+      /// <summary>
+      /// Every COM read the checks count as failed also records whether the link
+      /// went. (A document that could not be parsed is caught by type, and is never
+      /// a lost link.)
+      /// </summary>
       [Theory]
       [InlineData("Services/ExternalSetupChecks.cs")]
       [InlineData("Views/DnsRecordsView.cs")]
       public void EveryCountedComFailure_RecordsWhetherTheLinkWent(string file)
       {
          string source = ReadControlPanelFile(file);
-         int counted = Regex.Matches(source, @"firstError_ \?\?= ServerSession\.DescribeComError\(ex\);").Count;
-         int recorded = Regex.Matches(source, @"firstError_ \?\?= ServerSession\.DescribeComError\(ex\);\s*linkLost_ \|= ServerSession\.IsTransportFailure\(ex\);").Count;
+         const string counts = @"catch \(Exception ex\) when \(!ExceptionPolicy\.IsFatal\(ex\)\)\s*\{\s*failedReads_\+\+;\s*firstError_ \?\?= ServerSession\.DescribeComError\(ex\);";
+         int counted = Regex.Matches(source, counts).Count;
+         int recorded = Regex.Matches(source, counts + @"\s*linkLost_ \|= ServerSession\.IsTransportFailure\(ex\);").Count;
          Assert.True(counted > 0, file + " counts no failed COM read any more.");
          Assert.Equal(counted, recorded);
       }

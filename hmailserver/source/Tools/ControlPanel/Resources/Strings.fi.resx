@@ -14573,11 +14573,17 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>lähettäjän verkkotunnus tai HELO-nimi on sallittu verkkotunnus</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>palvelin vastasi jotain, mitä tämä Control Panel ei pystynyt lukemaan ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja paina sitten Lataa uudelleen. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>palvelin ei ilmoittanut olevansa käynnissä kolmenkymmenen sekunnin kuluessa; Tila-sivu kertoo, mitä se tekee.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>palvelimella ei ole tällaista asetusta tai toimintoa - se voi olla tätä Control Panelia vanhempi ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>palvelin on hidas</value>

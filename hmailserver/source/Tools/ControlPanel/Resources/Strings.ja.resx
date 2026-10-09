@@ -14573,11 +14573,17 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>送信者のドメインまたは HELO 名が許可するドメインである</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>サーバーの応答を、このコントロール パネルが読み取れませんでした ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>サーバーがデータベースに到達できません。データベース接続と hMailServer のエラー ログを確認してから、「再読み込み」を押してください。({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>サーバーが 30 秒以内に実行中を報告しませんでした。何をしているかは [状態] ページで確認できます。</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>サーバーにこの設定または操作がありません - このコントロール パネルより古いサーバーの可能性があります ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>サーバーが遅い</value>

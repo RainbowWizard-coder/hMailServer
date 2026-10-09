@@ -14746,11 +14746,17 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>domena nadawcy lub nazwa HELO jest dozwoloną domeną</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>serwer odpowiedział czymś, czego ten Control Panel nie umiał odczytać ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>serwer nie może dosięgnąć swojej bazy danych. Należy sprawdzić połączenie z bazą danych oraz dziennik błędów hMailServer, a następnie nacisnąć Załaduj ponownie. ({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>serwer nie zgłosił stanu Działa w ciągu trzydziestu sekund; strona Stan pokazuje, co robi.</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>serwer nie ma takiego ustawienia ani akcji - może być starszy niż ten Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>serwer działa wolno</value>

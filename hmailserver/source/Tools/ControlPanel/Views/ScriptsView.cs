@@ -303,7 +303,7 @@ End Sub
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, F("Saved, but reload failed: {0}", ex.Message));
+            Status_(StatusLevel.Critical, F("Saved, but reload failed: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {
@@ -326,7 +326,7 @@ End Sub
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            Status_(StatusLevel.Critical, F("Syntax check failed: {0}", ex.Message));
+            Status_(StatusLevel.Critical, F("Syntax check failed: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

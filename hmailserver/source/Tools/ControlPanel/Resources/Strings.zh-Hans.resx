@@ -14573,11 +14573,17 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>发件人的域或 HELO 名称是允许的域</value>
   </data>
+  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>服务器返回了此控制面板无法读取的内容 ({0})</value>
+  </data>
   <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
     <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后按“重新加载”。({0})</value>
   </data>
   <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
     <value>服务器在三十秒内未报告正在运行；“状态”页会显示它正在做什么。</value>
+  </data>
+  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>服务器没有此设置或操作 - 它可能比此控制面板旧 ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>服务器很慢</value>

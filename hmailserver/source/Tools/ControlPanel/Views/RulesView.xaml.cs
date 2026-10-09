@@ -403,7 +403,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Rule operation failed: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Rule operation failed: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -458,7 +458,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not create the rule: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not create the rule: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -489,7 +489,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not change the match mode: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not change the match mode: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -531,7 +531,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not remove the criterion: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not remove the criterion: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -575,7 +575,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not remove the action: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not remove the action: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {
@@ -609,7 +609,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not move the action: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not move the action: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
          }
          finally
          {

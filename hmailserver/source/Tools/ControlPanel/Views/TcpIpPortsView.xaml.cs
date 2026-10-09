@@ -426,7 +426,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not add the port: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not add the port: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             return;
          }
          finally
@@ -463,7 +463,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(ex.Message, L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(ServerSession.DescribeComError(ex), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
          }
          finally
          {
@@ -506,7 +506,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not delete the port: {0}", ex.Message), L("Control Panel"));
+            MessageBox.Show(F("Could not delete the port: {0}", ServerSession.DescribeComError(ex)), L("Control Panel"));
             deleted = false;
          }
          finally
