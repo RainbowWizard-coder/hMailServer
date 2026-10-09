@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 messaggio non può essere elencato e sarà lasciato dove si trova: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 schema</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 problema</value>
   </data>
@@ -1714,6 +1717,15 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Presso il tuo provider DNS, pubblica un record TXT chiamato _dmarc.&lt;domain&gt;, iniziando con v=DMARC1; p=none mentre leggi i report, poi p=quarantine o p=reject. La pagina Record DNS mostra il record da pubblicare.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Il blocco degli allegati è disattivato, quindi uno schema aggiunto qui non viene applicato finché il blocco non viene attivato.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Il blocco degli allegati è disattivato, quindi nessuno di questi {0} schemi viene applicato.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Il blocco degli allegati è disattivato, quindi questo schema non viene applicato.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Il blocco degli allegati è attivo senza schemi da bloccare, quindi non fa assolutamente nulla.</value>
   </data>
@@ -1734,6 +1746,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Allegati aperti in una sandbox</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Gli allegati il cui nome file corrisponde a uno di questi schemi vengono sostituiti da una breve nota che lo segnala prima della consegna del messaggio.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Tentativi verso un dispositivo prima di rinunciarvi (da 1 a 20)</value>
@@ -4675,11 +4690,11 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Tipi di file inviati (estensioni e tipi di media, separati da virgole)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Schema del nome file</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Schemi di nomi di file rimossi dai messaggi in ingresso qualunque cosa dica uno scanner.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Caratteri jolly nei nomi di file che vengono rimossi dai messaggi in ingresso (richiede il blocco degli allegati nella pagina Antivirus).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>File su disco</value>
@@ -4923,6 +4938,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Esenzioni dal greylisting</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Il greylisting è disattivato: nessun mittente viene ritardato, quindi questo elenco non cambia nulla finché il greylisting non viene attivato.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Scadenza dei record di greylisting, e spostamento contro copia per SpamAssassin</value>
@@ -10861,6 +10879,9 @@ Riavviarlo ora?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Indirizzo di invio (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Ad esempio *.exe o invoice*.zip: * sta per una qualsiasi sequenza di caratteri e ? per un carattere solo.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Per esempio GeoLite2-Country.mmdb, tenuto aggiornato da te. Vuoto, il predefinito, non valuta nulla per paese qualunque cosa dicano le politiche.</value>
   </data>
@@ -13491,9 +13512,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki a cui punta "Apri sul wiki" del riquadro della guida (vuoto nasconde il collegamento)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Carattere jolly</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Non si avvierà</value>
   </data>
@@ -14102,6 +14120,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Apri Impostazioni antispam</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Apri Impostazioni antivirus</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Apri il rapporto</value>
@@ -14962,6 +14983,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none è il punto di partenza giusto, non una dimenticanza: fa sì che i server destinatari verifichino e segnalino, ma consegnino normalmente. Un criterio più severo (quarantine o reject) dice a ogni server destinatario di trattare come indesiderata o di rifiutare la posta che fallisce l'allineamento - e finché i rapporti non mostrano che la propria posta supera SPF o DKIM, tra la posta che fallisce ci sarà anche la propria. Inasprire il criterio solo dopo che i rapporti dicono che è sicuro.</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>schema</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>per voce</value>
   </data>
@@ -15783,6 +15807,9 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} pattern viene rimosso da ogni messaggio in base al nome del file, qualunque cosa dicano gli scanner.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} schemi</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} pattern vengono rimossi da ogni messaggio in base al nome del file, qualunque cosa dicano gli scanner.</value>

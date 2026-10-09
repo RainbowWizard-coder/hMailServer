@@ -202,6 +202,7 @@ namespace hMailServer.ControlPanel.Views
          DeleteNameProps = new[] { "IPAddress" }, // no-loc: the properties that name an entry
          EmptyText = L("No addresses, so no server is let past greylisting for its IP address."),
          GetCollection = () => AntiSpam.GreyListingWhiteAddresses,
+         StateNotice = GreylistingStateNotice_,
          Fields =
          {
             new FieldSpec { Prop = "IPAddress", Label = L("IP address"), GridWidth = 200 },
@@ -240,6 +241,7 @@ namespace hMailServer.ControlPanel.Views
          DeleteNameProps = new[] { "Pattern" }, // no-loc: the properties that name an entry
          EmptyText = L("No entries, so no domain is let past greylisting for the authentication results its mail carries."),
          GetCollection = () => AntiSpam.GreyListingBypassEntries,
+         StateNotice = GreylistingStateNotice_,
          Fields =
          {
             new FieldSpec { Prop = "Pattern", Label = L("Domain, or .suffix"), GridWidth = 220, Default = "" },
@@ -257,22 +259,69 @@ namespace hMailServer.ControlPanel.Views
       public static CollectionEditorView BlockedAttachments() => new(new CollectionSpec
       {
          Title = L("Blocked attachments"),
-         Subtitle = L("File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)."),
-         ItemNoun = L("rule"),
+         // What the server does with a match (VirusScanner::BlockAttachments
+         // replaces the part's content with the server message ATTACHMENT_REMOVED
+         // and adds .txt to its name), for every message it delivers; whether it
+         // does so now is the switch's, said by the notice above the list. The
+         // entries are patterns throughout, where the page called them
+         // wildcards, its pill rules and the virus overview patterns.
+         Subtitle = L("Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered."),
+         ItemNoun = L("pattern"),
          AddTitle = N("Add a blocked attachment rule"),
          EditTitle = N("Edit the blocked attachment rule"),
-         CountOne = N("1 rule"),
-         CountMany = N("{0} rules"),
+         CountOne = N("1 pattern"),
+         CountMany = N("{0} patterns"),
          DeletePrompt = N("Delete the blocked attachment rule {0}? Attachments it matched are no longer removed."),
          DeleteNameProps = new[] { "Wildcard" }, // no-loc: the properties that name an entry
          EmptyText = L("No wildcards, so no attachment is stripped for its file name."),
          GetCollection = () => Settings.AntiVirus.BlockedAttachments,
+         StateNotice = BlockingStateNotice_,
          Fields =
          {
-            new FieldSpec { Prop = "Wildcard", Label = L("Wildcard"), GridWidth = 220, Default = "*.exe" },
+            new FieldSpec { Prop = "Wildcard", Label = L("File-name pattern"), GridWidth = 220, Default = "*.exe", Hint = L("Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one.") },
             new FieldSpec { Prop = "Description", Label = L("Description") }
          }
       });
+
+      /// <summary>
+      /// What the blocked attachments are while attachment blocking is off: a
+      /// Warning, since a list of patterns reads as patterns at work, and none is
+      /// (review finding F267). Nothing while it is on.
+      /// </summary>
+      private static ListStateNotice BlockingStateNotice_(int patterns)
+      {
+         if ((bool)Settings.AntiVirus.EnableAttachmentBlocking)
+            return null;
+
+         return new ListStateNotice
+         {
+            Level = StatusLevel.Warning,
+            Text = patterns == 0 ? L("Attachment blocking is switched off, so a pattern added here is not applied until it is turned on.")
+               : patterns == 1 ? L("Attachment blocking is switched off, so this pattern is not applied.")
+               : F("Attachment blocking is switched off, so none of these {0} patterns is applied.", patterns),
+            Page = "antivirus",
+            ActionCaption = L("_Open Anti-virus settings")
+         };
+      }
+
+      /// <summary>
+      /// What the greylisting lists are while greylisting is off: Information,
+      /// since an exemption from a delay nobody suffers changes nothing and is
+      /// no fault (review finding F267). Nothing while it is on.
+      /// </summary>
+      private static ListStateNotice GreylistingStateNotice_(int _)
+      {
+         if ((bool)AntiSpam.GreyListingEnabled)
+            return null;
+
+         return new ListStateNotice
+         {
+            Level = StatusLevel.Information,
+            Text = L("Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on."),
+            Page = "antispam",
+            ActionCaption = L("_Open Anti-spam settings")
+         };
+      }
 
       /// <summary>
       /// The Groups page. Not a bare <see cref="CollectionEditorView"/> like its

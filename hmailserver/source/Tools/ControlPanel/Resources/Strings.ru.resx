@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 сообщения нельзя создать запись; оно останется там, где есть: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>Шаблонов: 1</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>Проблем: 1</value>
   </data>
@@ -1729,6 +1732,15 @@ Control Panel может читать файлы сообщений только
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>У своего DNS-провайдера опубликуйте запись TXT с именем _dmarc.&lt;domain&gt;, сначала с v=DMARC1; p=none, пока вы читаете отчёты, затем p=quarantine или p=reject. Страница Записи DNS показывает запись для публикации.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Блокировка вложений выключена, поэтому добавленный здесь шаблон не применяется, пока она не будет включена.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Блокировка вложений выключена, поэтому ни один из этих шаблонов (всего: {0}) не применяется.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Блокировка вложений выключена, поэтому этот шаблон не применяется.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Блокировка вложений включена, но шаблонов для блокировки нет, поэтому она не делает ровно ничего.</value>
   </data>
@@ -1749,6 +1761,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Вложения, открываемые в песочнице</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Вложения, имя файла которых соответствует одному из этих шаблонов, перед доставкой сообщения заменяются короткой заметкой об этом.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Попытки доставки на устройство, прежде чем от него отказаться (от 1 до 20)</value>
@@ -4729,11 +4744,11 @@ Control Panel может читать файлы сообщений только
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Отправляемые типы файлов (расширения и типы медиа через запятую)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Шаблон имени файла</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Шаблоны имён файлов, вложения по которым удаляются из входящих сообщений независимо от того, что скажет сканер.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Маски имён файлов, вложения по которым удаляются из входящих сообщений (требуется блокировка вложений на странице «Антивирус»).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Файлы на диске</value>
@@ -4977,6 +4992,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Исключения серых списков</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Серые списки выключены: ни один отправитель не задерживается, поэтому этот список ни на что не влияет, пока они не будут включены.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Срок действия записей серых списков и выбор между перемещением и копированием для SpamAssassin</value>
@@ -10974,6 +10992,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Адрес отправки (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Например, *.exe или invoice*.zip: * означает любую последовательность символов, а ? означает один любой символ.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Например GeoLite2-Country.mmdb, которую вы поддерживаете в актуальном состоянии. Пусто, по умолчанию, ничего не оценивает по стране, что бы ни говорили политики.</value>
   </data>
@@ -13646,9 +13667,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Вики, на которую ведёт ссылка «Открыть в вики» панели справки (пусто — ссылка скрыта)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Шаблон</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Не запустится</value>
   </data>
@@ -14260,6 +14278,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Открыть «Параметры антиспама»</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Открыть «Параметры антивируса»</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Открыть отчёт</value>
@@ -15134,6 +15155,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none — это правильная отправная точка, а не недосмотр: получатели проверяют и присылают отчёты, но доставляют почту как обычно. Более строгая политика (quarantine или reject) велит каждому получателю отправлять в спам или отклонять почту, не прошедшую выравнивание, — а пока отчёты не покажут, что ваша собственная почта проходит SPF или DKIM, среди непрошедшей будет и ваша. Ужесточайте политику только после того, как отчёты скажут, что это безопасно.</value>
+  </data>
+  <data name="pattern" xml:space="preserve">
+    <value>шаблон</value>
   </data>
   <data name="per entry" xml:space="preserve">
     <value>на запись</value>
@@ -16073,6 +16097,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} шаблон удаляется из каждого сообщения по имени файла, что бы ни говорили сканеры.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>Шаблонов: {0}</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} шаблонов удаляются из каждого сообщения по имени файла, что бы ни говорили сканеры.</value>

@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 封邮件无法列入名单，将保留原状：{0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 个模式</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 个问题</value>
   </data>
@@ -1714,6 +1717,15 @@
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>在您的 DNS 托管商处，发布一条名为 _dmarc.&lt;domain&gt; 的 TXT 记录，阅读报告期间先用 v=DMARC1; p=none，之后改为 p=quarantine 或 p=reject。DNS 记录页面会显示要发布的记录。</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>附件拦截已关闭，因此在此添加的模式在拦截开启之前不会生效。</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>附件拦截已关闭，因此这 {0} 个模式均未生效。</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>附件拦截已关闭，因此此模式未生效。</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>附件拦截已打开，却没有任何要拦截的模式，因此它完全不起作用。</value>
   </data>
@@ -1734,6 +1746,9 @@
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>在沙箱中打开的附件</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>文件名与这些模式之一匹配的附件，会在邮件投递前被替换为一条说明此事的简短注释。</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>放弃设备前的投递尝试次数（1 到 20）</value>
@@ -4675,11 +4690,11 @@
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>提交的文件类型（扩展名和媒体类型，用逗号分隔）</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>文件名模式</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>无论扫描器如何判定，都会从传入邮件中剥除的文件名模式。</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>从传入邮件中剥除的文件名通配符（需要在“反病毒”页打开附件拦截）。</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>磁盘上的文件</value>
@@ -4923,6 +4938,9 @@
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>灰名单豁免</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>灰名单已关闭：不会延迟任何发件人，因此在灰名单开启之前，此列表不起任何作用。</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>灰名单记录到期，以及 SpamAssassin 移动还是复制</value>
@@ -10861,6 +10879,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Submit address (POST)" xml:space="preserve">
     <value>提交地址（POST）</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>例如 *.exe 或 invoice*.zip：* 代表任意一串字符，? 代表任意一个字符。</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>例如由你保持更新的 GeoLite2-Country.mmdb。默认为空，无论策略如何都不按国家判断。</value>
   </data>
@@ -13491,9 +13512,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>帮助窗格中“在 Wiki 中打开”链接指向的 Wiki（留空则隐藏链接）</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>通配符</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>不会启动</value>
   </data>
@@ -14102,6 +14120,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>打开反垃圾邮件设置(_O)</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>打开反病毒设置(_O)</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>打开报告(_O)</value>
@@ -14962,6 +14983,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none 是正确的起点，而不是疏漏：它让接收方进行检查并发送报告，但照常投递。更严格的策略（quarantine 或 reject）会告诉每一个接收方把对齐失败的邮件丢进垃圾箱或直接拒收 - 而在报告显示您自己的邮件能通过 SPF 或 DKIM 之前，失败的邮件里就会有您自己的。只有在报告说安全之后再收紧。</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>模式</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>每个条目</value>
   </data>
@@ -15783,6 +15807,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} 个模式会按文件名从每封邮件中剥除，无论扫描器如何判定。</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} 个模式</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} 个模式会按文件名从每封邮件中剥除，无论扫描器如何判定。</value>

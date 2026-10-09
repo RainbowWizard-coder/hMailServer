@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 件のメッセージは一覧に登録できないため、そのままにします: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>パターン 1 件</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>問題 1 件</value>
   </data>
@@ -1714,6 +1717,15 @@
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>DNS ホスティング先で、_dmarc.&lt;domain&gt; という名前の TXT レコードを公開します。レポートを読む間は v=DMARC1; p=none で始め、その後 p=quarantine または p=reject にします。DNS レコード ページに公開すべきレコードが表示されます。</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>添付ファイルのブロックはオフです。有効にするまで、ここで追加したパターンは適用されません。</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>添付ファイルのブロックはオフのため、これら {0} 件のパターンはどれも適用されていません。</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>添付ファイルのブロックはオフのため、このパターンは適用されていません。</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>添付ファイルのブロックは有効になっていますが、ブロックするパターンが 1 つもないため、まったく何もしません。</value>
   </data>
@@ -1734,6 +1746,9 @@
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>サンドボックスで開く添付ファイル</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>ファイル名がこれらのパターンのいずれかに一致する添付ファイルは、メッセージの配信前に、その旨を記した短いメモに置き換えられます。</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>デバイスへの配信をあきらめるまでの試行回数 (1 から 20)</value>
@@ -4675,11 +4690,11 @@
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>送信するファイルの種類 (拡張子とメディアタイプ、カンマ区切り)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>ファイル名のパターン</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、受信メッセージから取り除かれるファイル名パターン。</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>受信メッセージから取り除かれるファイル名のワイルドカード (ウイルス対策ページで添付ファイルのブロックを有効にする必要があります)。</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>ディスク上のファイル</value>
@@ -4923,6 +4938,9 @@
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>グレイリスティングの除外</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>グレイリスティングはオフです。遅延される送信者はいないため、有効にするまでこのリストは何の効果もありません。</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>グレイリスティング レコードの有効期限と、SpamAssassin の移動/コピー</value>
@@ -10861,6 +10879,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Submit address (POST)" xml:space="preserve">
     <value>送信アドレス (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>*.exe や invoice*.zip など。* は任意の長さの文字列、? は任意の 1 文字を表します。</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>たとえば、最新の状態に保っている GeoLite2-Country.mmdb。既定の空では、ポリシーの内容にかかわらず、国による判定は行われません。</value>
   </data>
@@ -13491,9 +13512,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>ヘルプ ペインの「Wiki で開く」リンク先の Wiki (空欄でリンクを非表示)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>ワイルドカード</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>起動しません</value>
   </data>
@@ -14102,6 +14120,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>スパム対策の設定を開く(_O)</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>ウイルス対策の設定を開く(_O)</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>レポートを開く(_O)</value>
@@ -14962,6 +14983,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none は見落としではなく、正しい出発点です。受信側にチェックとレポートをさせつつ、配信は通常どおり行わせます。より厳しいポリシー (quarantine または reject) は、アライメントに失敗したメールを迷惑メール扱いにするか拒否するよう、すべての受信側に指示します。そして、自分のメールが SPF または DKIM に合格しているとレポートが示すまでは、失敗するメールには自分のメールも含まれます。レポートが安全だと示してから、初めて厳しくしてください。</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>パターン</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>エントリごと</value>
   </data>
@@ -15783,6 +15807,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、{0} 件のパターンに一致する添付ファイルが、ファイル名によってすべてのメッセージから取り除かれます。</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>パターン {0} 件</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>スキャナーの判定にかかわらず、{0} 件のパターンに一致する添付ファイルが、ファイル名によってすべてのメッセージから取り除かれます。</value>

@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 meddelande kan inte listas och lämnas kvar där det är: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 mönster</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 problem</value>
   </data>
@@ -1714,6 +1717,15 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Publicera hos din DNS-leverantör en TXT-post med namnet _dmarc.&lt;domain&gt;, som börjar med v=DMARC1; p=none medan du läser rapporterna, sedan p=quarantine eller p=reject. Sidan DNS-poster visar posten att publicera.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Blockering av bilagor är avstängd, så ett mönster som läggs till här tillämpas inte förrän blockeringen slås på.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Blockering av bilagor är avstängd, så inget av dessa {0} mönster tillämpas.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Blockering av bilagor är avstängd, så det här mönstret tillämpas inte.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Bilageblockering är påslagen utan några mönster att blockera, så den gör ingenting alls.</value>
   </data>
@@ -1734,6 +1746,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Bilagor öppnade i en sandlåda</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Bilagor vars filnamn matchar något av dessa mönster ersätts med en kort notis om det innan meddelandet levereras.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Försök mot en enhet innan den ges upp (1 till 20)</value>
@@ -4675,11 +4690,11 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Filtyper som skickas in (filändelser och medietyper, kommaseparerade)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Filnamnsmönster</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Filnamnsmönster som tas bort från inkommande meddelanden oavsett vad en skanner säger.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Filnamnsmönster som tas bort från inkommande meddelanden (kräver bilageblockering på sidan Antivirus).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Filer på disk</value>
@@ -4923,6 +4938,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Undantag från gråstlistning</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Gråstlistning är avstängd: ingen avsändare fördröjs, så den här listan ändrar ingenting förrän gråstlistning slås på.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Utgång av gråstlistningsposter, och SpamAssassin flytta-eller-kopiera</value>
@@ -10861,6 +10879,9 @@ Starta om den nu?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Inskickningsadress (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Till exempel *.exe eller invoice*.zip: * står för en godtycklig följd av tecken och ? för ett enda tecken.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Till exempel GeoLite2-Country.mmdb, som du håller uppdaterad. Tomt, standard, bedömer ingenting per land vad policyerna än säger.</value>
   </data>
@@ -13491,9 +13512,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki som hjälppanelens "Öppna på wikin" pekar på (tomt döljer länken)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Jokertecken</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Startar inte</value>
   </data>
@@ -14102,6 +14120,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Öppna Skräppostinställningar</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Öppna Antivirusinställningar</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Öppna ra_pport</value>
@@ -14962,6 +14983,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none är rätt utgångspunkt, inte ett förbiseende: det får mottagare att kontrollera och rapportera men leverera som vanligt. En strängare policy (quarantine eller reject) säger åt varje mottagare att skräpmarkera eller avvisa post som underkänns i justeringen - och tills rapporter visar att din egen post klarar SPF eller DKIM kommer posten som underkänns att omfatta din. Skärp först när rapporterna säger att det är säkert.</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>mönster</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>per post</value>
   </data>
@@ -15783,6 +15807,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mönster tas bort från varje meddelande efter filnamn, oavsett vad skannrarna säger.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} mönster</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} mönster tas bort från varje meddelande efter filnamn, oavsett vad skannrarna säger.</value>

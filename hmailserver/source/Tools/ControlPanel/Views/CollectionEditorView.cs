@@ -159,6 +159,29 @@ namespace hMailServer.ControlPanel.Views
          // addresses are not looked up in any." Translated where the spec is
          // written. Null keeps the generic sentence.
          public string EmptyText;
+
+         // What the switch that applies the list means for it, read with the
+         // list on every load and shown above it (review finding F267): the
+         // blocked attachments are applied only while attachment blocking is
+         // on, the greylisting lists matter only while greylisting is, and the
+         // pages said neither, so a list of five patterns read as five patterns
+         // at work. Given the number of entries; null while the switch is on.
+         public Func<int, ListStateNotice> StateNotice;
+      }
+
+      /// <summary>
+      /// A list's standing notice: what the switch that applies it means for the
+      /// entries, at its level, and the page that holds the switch.
+      /// </summary>
+      public sealed class ListStateNotice
+      {
+         public StatusLevel Level = StatusLevel.Information;
+         public string Text;
+
+         // The navigation key of the page that holds the switch, and the
+         // caption of the button that opens it; no button when null.
+         public string Page;
+         public string ActionCaption;
       }
 
       internal sealed class Row
@@ -198,6 +221,10 @@ namespace hMailServer.ControlPanel.Views
       // What the last action said, at its level, and what an empty list means.
       private readonly InlineNotice status_ = new() { Visibility = Visibility.Collapsed };
       private readonly EmptyState empty_ = new() { Icon = SymbolRegular.DocumentBulletList24, Visibility = Visibility.Collapsed };
+
+      // Whether the switch that applies the list is on (CollectionSpec.StateNotice),
+      // above the last action's line: it stays while the state does.
+      private readonly InlineNotice stateNotice_ = new() { Visibility = Visibility.Collapsed };
 
       // Add waits for a read that works (Services/ReadFailure); null for a
       // collection that cannot be added to.
@@ -353,6 +380,7 @@ namespace hMailServer.ControlPanel.Views
          }
          // The notice's own style gives it the card gap below, as on the
          // quarantine page, so it carries no margin of its own here.
+         parts.Children.Add(stateNotice_);
          parts.Children.Add(status_);
 
          // The card is floored at what it holds: the grid's three rows, on a
@@ -515,6 +543,7 @@ namespace hMailServer.ControlPanel.Views
       {
          rows_.Clear();
          dynamic collection = null;
+         ListStateNotice state;
          try
          {
             collection = spec_.GetCollection();
@@ -531,6 +560,10 @@ namespace hMailServer.ControlPanel.Views
                rows_.Add(row);
                ServerSession.Release(item);
             }
+
+            // The switch is read with the list, so a link that fails between
+            // the two is one failed read, said once by the notice below.
+            state = spec_.StateNotice?.Invoke(rows_.Count);
             // An empty list is a state to name, not a blank to stare at: the
             // empty state says so in the grid's own place.
             // The empty state carries the sentence that was in the status line.
@@ -555,6 +588,7 @@ namespace hMailServer.ControlPanel.Views
             // (Services/ReadFailure).
             ReadFailure.Show(status_, empty_, null, L("Could not read the list: "), ex, Reload, addButton_);
             countBadge_.Visibility = Visibility.Collapsed;
+            ShowState_(null);
             return;
          }
          finally
@@ -563,6 +597,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          ReadFailure.Clear(status_, addButton_);
+         ShowState_(state);
          int activeCount = ActiveCount_();
          countBadge_.Level = ActiveEntries.PillLevel(activeCount, rows_.Count);
          countBadge_.Visibility = Visibility.Visible;
@@ -672,6 +707,40 @@ namespace hMailServer.ControlPanel.Views
          // entry saved under the same name - which a text that does not change
          // would not be.
          Announce.Request(status_);
+      }
+
+      /// <summary>
+      /// The list's standing notice, or none: what the switch that applies the
+      /// list means for its entries, with a button to the page that holds it.
+      /// </summary>
+      private void ShowState_(ListStateNotice state)
+      {
+         if (state == null || string.IsNullOrEmpty(state.Text))
+         {
+            stateNotice_.Content = null;
+            stateNotice_.Text = null;
+            stateNotice_.Visibility = Visibility.Collapsed;
+            return;
+         }
+
+         stateNotice_.Level = state.Level;
+         stateNotice_.Text = state.Text;
+         stateNotice_.Content = state.Page == null ? null : OpenPageButton_(state.Page, state.ActionCaption);
+         stateNotice_.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>A notice's action: the page that holds the switch the notice is about.</summary>
+      private static Button OpenPageButton_(string page, string caption)
+      {
+         var button = new Button
+         {
+            Content = caption,
+            Appearance = ControlAppearance.Secondary,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "list-state-open-" + page);
+         button.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo(page);
+         return button;
       }
 
       private void EditSelected()

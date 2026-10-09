@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 mensagem não pode ser listada e será deixada onde está: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 padrão</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 problema</value>
   </data>
@@ -1714,6 +1717,15 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>No seu provedor de DNS, publique um registro TXT chamado _dmarc.&lt;domain&gt;, começando com v=DMARC1; p=none enquanto lê os relatórios, depois p=quarantine ou p=reject. A página Registros DNS mostra o registro a publicar.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>O bloqueio de anexos está desligado, então um padrão adicionado aqui não é aplicado até que o bloqueio seja ligado.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>O bloqueio de anexos está desligado, então nenhum destes {0} padrões é aplicado.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>O bloqueio de anexos está desligado, então este padrão não é aplicado.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>O bloqueio de anexos está ligado sem padrões para bloquear, então não faz nada.</value>
   </data>
@@ -1734,6 +1746,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Anexos abertos em um sandbox</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Anexos cujo nome de arquivo corresponde a um destes padrões são substituídos por uma breve nota avisando disso antes de a mensagem ser entregue.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Tentativas em um dispositivo antes de desistir dele (1 a 20)</value>
@@ -4675,11 +4690,11 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Tipos de arquivo enviados (extensões e tipos de mídia, separados por vírgulas)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Padrão de nome de arquivo</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Padrões de nome de arquivo removidos das mensagens recebidas, diga o que disser um verificador.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Curingas de nome de arquivo que são removidos das mensagens recebidas (requer o bloqueio de anexos na página Antivírus).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Arquivos em disco</value>
@@ -4923,6 +4938,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Exceções do greylisting</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>O greylisting está desligado: nenhum remetente é atrasado, então esta lista não muda nada até que o greylisting seja ligado.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Expiração dos registros de greylisting, e mover-vs-copiar do SpamAssassin</value>
@@ -10861,6 +10879,9 @@ Reiniciá-lo agora?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Endereço de envio (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Como *.exe ou invoice*.zip: * representa qualquer sequência de caracteres e ? um único caractere.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Por exemplo GeoLite2-Country.mmdb, mantido atualizado por você. Vazio, o padrão, não avalia nada por país, digam o que disserem as políticas.</value>
   </data>
@@ -13491,9 +13512,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki para a qual "Abrir na wiki" do painel de ajuda aponta (vazio oculta o link)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Curinga</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Não iniciará</value>
   </data>
@@ -14102,6 +14120,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Abrir Configurações antispam</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Abrir Configurações de antivírus</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Abrir relatório</value>
@@ -14962,6 +14983,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none é o ponto de partida certo, não um descuido: ele faz os receptores verificarem e relatarem, mas entregarem normalmente. Uma política mais rígida (quarantine ou reject) diz a todo receptor para jogar na lixeira ou recusar os e-mails que falham no alinhamento - e até que os relatórios mostrem seus próprios e-mails passando em SPF ou DKIM, os e-mails que falham incluirão os seus. Só aperte a política depois que os relatórios disserem que é seguro.</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>padrão</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>por entrada</value>
   </data>
@@ -15783,6 +15807,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} padrão é removido de toda mensagem pelo nome do arquivo, digam o que disserem os verificadores.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} padrões</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} padrões são removidos de toda mensagem pelo nome do arquivo, digam o que disserem os verificadores.</value>

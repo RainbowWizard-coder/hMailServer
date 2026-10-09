@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Pro 1 zprávu nelze zapsat záznam; zůstane tam, kde je: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>Vzory: 1</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>Problémy: 1</value>
   </data>
@@ -1729,6 +1732,15 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>U svého poskytovatele DNS zveřejněte záznam TXT s názvem _dmarc.&lt;domain&gt;, zpočátku s v=DMARC1; p=none, dokud čtete zprávy, poté p=quarantine nebo p=reject. Stránka Záznamy DNS ukazuje záznam ke zveřejnění.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Blokování příloh je vypnuté, takže vzor přidaný zde se neuplatní, dokud se blokování nezapne.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Blokování příloh je vypnuté, takže se neuplatňuje žádný z těchto vzorů (celkem {0}).</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Blokování příloh je vypnuté, takže se tento vzor neuplatňuje.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Blokování příloh je zapnuto, ale nejsou zadány žádné vzory k blokování, takže nedělá vůbec nic.</value>
   </data>
@@ -1749,6 +1761,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Přílohy otevírané v sandboxu</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Přílohy, jejichž název souboru odpovídá některému z těchto vzorů, jsou před doručením zprávy nahrazeny krátkou poznámkou, která to oznamuje.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Pokusy o doručení do zařízení, než se vzdá (1 až 20)</value>
@@ -4729,11 +4744,11 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Odesílané typy souborů (přípony a typy médií, oddělené čárkou)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Vzor názvu souboru</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Vzory názvů souborů odstraňované z příchozích zpráv bez ohledu na to, co říká skener.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Zástupné vzory názvů souborů, které se odstraňují z příchozích zpráv (vyžaduje blokování příloh na stránce Antivirus).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Soubory na disku</value>
@@ -4977,6 +4992,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Výjimky z greylistingu</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Greylisting je vypnutý: žádný odesílatel není zdržován, takže tento seznam nic nemění, dokud se greylisting nezapne.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Vypršení záznamů greylistingu a přesun vs. kopie pro SpamAssassin</value>
@@ -10974,6 +10992,9 @@ Restartovat ji nyní?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Adresa pro odeslání (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Například *.exe nebo invoice*.zip: * zastupuje libovolnou řadu znaků a ? jeden libovolný znak.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Například GeoLite2-Country.mmdb, kterou udržujete aktuální. Prázdné, výchozí, nic nehodnotí podle země, ať zásady říkají cokoli.</value>
   </data>
@@ -13646,9 +13667,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki, na kterou odkazuje „Otevřít na wiki“ v panelu nápovědy (prázdné odkaz skryje)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Zástupný znak</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Nespustí se</value>
   </data>
@@ -14260,6 +14278,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Otevřít Nastavení antispamu</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Otevřít Nastavení antiviru</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Otevřít hlášení</value>
@@ -15134,6 +15155,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none je správný výchozí bod, ne opomenutí: přiměje příjemce kontrolovat a hlásit, ale doručovat normálně. Přísnější politika (quarantine nebo reject) říká každému příjemci, aby poštu, která neprojde zarovnáním, zahodil do nevyžádané nebo odmítl – a dokud hlášení neukážou, že vaše vlastní pošta prochází SPF nebo DKIM, bude mezi poštou, která neprojde, i ta vaše. Zpřísněte teprve tehdy, až hlášení řeknou, že je to bezpečné.</value>
+  </data>
+  <data name="pattern" xml:space="preserve">
+    <value>vzor</value>
   </data>
   <data name="per entry" xml:space="preserve">
     <value>na položku</value>
@@ -16073,6 +16097,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} vzor se z každé zprávy odstraňuje podle názvu souboru, ať skenery říkají cokoli.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>Vzory: {0}</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} vzorů se z každé zprávy odstraňuje podle názvu souboru, ať skenery říkají cokoli.</value>

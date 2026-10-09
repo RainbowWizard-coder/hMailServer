@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 message ne peut pas être inscrit sur la liste et restera où il est : {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 motif</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 problème</value>
   </data>
@@ -1714,6 +1717,15 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Chez votre hébergeur DNS, publiez un enregistrement TXT nommé _dmarc.&lt;domain&gt;, commençant par v=DMARC1; p=none le temps de lire les rapports, puis p=quarantine ou p=reject. La page Enregistrements DNS montre l'enregistrement à publier.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Le blocage des pièces jointes est désactivé : un motif ajouté ici ne sera appliqué qu'une fois le blocage activé.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Le blocage des pièces jointes est désactivé : aucun de ces {0} motifs n'est donc appliqué.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Le blocage des pièces jointes est désactivé : ce motif n'est donc pas appliqué.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Le blocage des pièces jointes est activé sans aucun motif à bloquer, il ne fait donc rien du tout.</value>
   </data>
@@ -1734,6 +1746,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Pièces jointes ouvertes dans un bac à sable</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Les pièces jointes dont le nom de fichier correspond à l'un de ces motifs sont remplacées par une courte note l'indiquant avant la remise du message.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Tentatives sur un appareil avant d'y renoncer (1 à 20)</value>
@@ -4675,11 +4690,11 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Types de fichiers soumis (extensions et types de médias, séparés par des virgules)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Motif de nom de fichier</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Motifs de noms de fichiers retirés des messages entrants quoi qu'en dise un analyseur.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Jokers de noms de fichiers retirés des messages entrants (nécessite le blocage des pièces jointes sur la page Anti-virus).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Fichiers sur le disque</value>
@@ -4923,6 +4938,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Exemptions du greylisting</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Le greylisting est désactivé : aucun expéditeur n'est retardé, cette liste ne change donc rien tant qu'il n'est pas activé.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Expiration des enregistrements de greylisting, et déplacement ou copie pour SpamAssassin</value>
@@ -10861,6 +10879,9 @@ Le redémarrer maintenant ?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Adresse de soumission (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Par exemple *.exe ou invoice*.zip : * remplace une suite quelconque de caractères et ? un seul.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Par exemple GeoLite2-Country.mmdb, que vous tenez à jour. Vide, la valeur par défaut, n'évalue rien par pays, quoi que disent les politiques.</value>
   </data>
@@ -13491,9 +13512,6 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki vers lequel pointe « Ouvrir sur le wiki » du volet d'aide (vide masque le lien)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Joker</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Ne démarrera pas</value>
   </data>
@@ -14102,6 +14120,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Ouvrir Réglages anti-spam</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Ouvrir Réglages antivirus</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Ouvrir le rapport</value>
@@ -14962,6 +14983,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none est le bon point de départ, pas un oubli : il demande aux destinataires de vérifier et de rapporter, mais de livrer normalement. Une politique plus stricte (quarantine ou reject) dit à chaque destinataire de jeter ou de refuser le courrier qui échoue à l'alignement - et tant que les rapports ne montrent pas votre propre courrier passant SPF ou DKIM, le courrier qui échoue inclura le vôtre. Ne durcissez qu'une fois que les rapports disent que c'est sans risque.</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>motif</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>par entrée</value>
   </data>
@@ -15783,6 +15807,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} motif est retiré de chaque message d'après son nom de fichier, quoi qu'en disent les analyseurs.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} motifs</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} motifs sont retirés de chaque message d'après leur nom de fichier, quoi qu'en disent les analyseurs.</value>

@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 message cannot be listed and will be left where it is: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 pattern</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 problem</value>
   </data>
@@ -1714,6 +1717,15 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Attachment blocking is switched off, so a pattern added here is not applied until it is turned on.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Attachment blocking is switched off, so none of these {0} patterns is applied.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Attachment blocking is switched off, so this pattern is not applied.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Attachment blocking is switched on with no patterns to block, so it does nothing at all.</value>
   </data>
@@ -1734,6 +1746,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Attachments opened in a sandbox</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Attempts at a device before it is given up (1 to 20)</value>
@@ -4675,11 +4690,11 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>File types submitted (extensions and media types, comma separated)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>File-name pattern</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>File-name patterns stripped from incoming messages regardless of what a scanner says.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Files on disk</value>
@@ -4923,6 +4938,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Greylisting exemptions</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Greylisting record expiration, and SpamAssassin move-vs-copy</value>
@@ -10861,6 +10879,9 @@ Restart it now?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Submit address (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say.</value>
   </data>
@@ -13491,9 +13512,6 @@ It will keep trying as you use the application.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki the help pane's "Open on the wiki" link points at (empty hides the link)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Wildcard</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Will not start</value>
   </data>
@@ -14102,6 +14120,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Open Anti-spam settings</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Open Anti-virus settings</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Open report</value>
@@ -14962,6 +14983,9 @@ It will keep trying as you use the application.</value>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe.</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>pattern</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>per entry</value>
   </data>
@@ -15783,6 +15807,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} pattern is stripped from every message by file name, whatever the scanners say.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} patterns</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} patterns are stripped from every message by file name, whatever the scanners say.</value>

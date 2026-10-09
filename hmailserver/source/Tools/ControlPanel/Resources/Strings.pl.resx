@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Dla 1 wiadomości nie można zapisać wpisu; pozostanie tam, gdzie jest: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>Wzorce: 1</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>Problemy: 1</value>
   </data>
@@ -1729,6 +1732,15 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>U swojego dostawcy DNS opublikuj rekord TXT o nazwie _dmarc.&lt;domain&gt;, zaczynając od v=DMARC1; p=none na czas czytania raportów, potem p=quarantine lub p=reject. Strona Rekordy DNS pokazuje rekord do opublikowania.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Blokowanie załączników jest wyłączone, więc wzorzec dodany tutaj nie będzie stosowany, dopóki blokowanie nie zostanie włączone.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Blokowanie załączników jest wyłączone, więc żaden z tych wzorców (łącznie: {0}) nie jest stosowany.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Blokowanie załączników jest wyłączone, więc ten wzorzec nie jest stosowany.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Blokowanie załączników jest włączone, ale nie ma żadnych wzorców do blokowania, więc nie robi zupełnie nic.</value>
   </data>
@@ -1749,6 +1761,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Załączniki otwierane w piaskownicy</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Załączniki, których nazwa pliku pasuje do jednego z tych wzorców, są przed doręczeniem wiadomości zastępowane krótką notatką o tym.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Próby wysłania do urządzenia, zanim zostanie porzucone (od 1 do 20)</value>
@@ -4729,11 +4744,11 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Przesyłane typy plików (rozszerzenia i typy multimediów, rozdzielone przecinkami)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Wzorzec nazwy pliku</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Wzorce nazw plików usuwane z wiadomości przychodzących niezależnie od tego, co powie skaner.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Wzorce nazw plików z symbolami wieloznacznymi, usuwane z wiadomości przychodzących (wymaga blokowania załączników na stronie Antywirus).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Pliki na dysku</value>
@@ -4977,6 +4992,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Wyjątki greylistingu</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Greylisting jest wyłączony: żaden nadawca nie jest opóźniany, więc ta lista niczego nie zmienia, dopóki greylisting nie zostanie włączony.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Wygasanie wpisów greylistingu oraz przenoszenie zamiast kopiowania w SpamAssassin</value>
@@ -10974,6 +10992,9 @@ Uruchomić ją ponownie teraz?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Adres przesyłania (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Na przykład *.exe lub invoice*.zip: * oznacza dowolny ciąg znaków, a ? jeden dowolny znak.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Na przykład GeoLite2-Country.mmdb, aktualizowany przez ciebie. Puste, domyślne, niczego nie ocenia według kraju, bez względu na zasady.</value>
   </data>
@@ -13646,9 +13667,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki, do której prowadzi „Otwórz na wiki” w panelu pomocy (puste ukrywa łącze)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Symbol wieloznaczny</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Nie uruchomi się</value>
   </data>
@@ -14260,6 +14278,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Otwórz Ustawienia antyspamowe</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Otwórz Ustawienia antywirusowe</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Otwórz _raport</value>
@@ -15134,6 +15155,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none to właściwy punkt wyjścia, a nie przeoczenie: sprawia, że odbierające serwery sprawdzają i raportują, ale dostarczają pocztę normalnie. Ostrzejsza polityka (quarantine albo reject) każe każdemu odbierającemu serwerowi wrzucić do śmieci lub odrzucić pocztę, która nie przechodzi zgodności - a dopóki raporty nie pokażą, że własna poczta przechodzi SPF lub DKIM, wśród tej odrzucanej będzie także poczta tego serwera. Zaostrzać należy dopiero wtedy, gdy raporty powiedzą, że jest to bezpieczne.</value>
+  </data>
+  <data name="pattern" xml:space="preserve">
+    <value>wzorzec</value>
   </data>
   <data name="per entry" xml:space="preserve">
     <value>na wpis</value>
@@ -16073,6 +16097,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>Załączniki są usuwane z każdej wiadomości według {0} wzorca nazwy pliku, niezależnie od tego, co powiedzą skanery.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>Wzorce: {0}</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>Załączniki są usuwane z każdej wiadomości według {0} wzorców nazw plików, niezależnie od tego, co powiedzą skanery.</value>

@@ -168,6 +168,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 viesti ei mahdu luetteloon, ja se jätetään paikalleen: {0}</value>
   </data>
+  <data name="1 pattern" xml:space="preserve">
+    <value>1 kuvio</value>
+  </data>
   <data name="1 problem" xml:space="preserve">
     <value>1 ongelma</value>
   </data>
@@ -1714,6 +1717,15 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="At your DNS host, publish a TXT record named _dmarc.&lt;domain&gt;, starting with v=DMARC1; p=none while you read the reports, then p=quarantine or p=reject. The DNS records page shows the record to publish." xml:space="preserve">
     <value>Julkaise DNS-palveluntarjoajallasi TXT-tietue nimellä _dmarc.&lt;domain&gt;, aluksi muodossa v=DMARC1; p=none raporttien lukemisen ajaksi ja sitten p=quarantine tai p=reject. Sivu DNS-tietueet näyttää julkaistavan tietueen.</value>
   </data>
+  <data name="Attachment blocking is switched off, so a pattern added here is not applied until it is turned on." xml:space="preserve">
+    <value>Liitteiden esto on pois käytöstä, joten tähän lisättyä kuviota ei sovelleta ennen kuin esto otetaan käyttöön.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so none of these {0} patterns is applied." xml:space="preserve">
+    <value>Liitteiden esto on pois käytöstä, joten yhtäkään näistä kuvioista ({0}) ei sovelleta.</value>
+  </data>
+  <data name="Attachment blocking is switched off, so this pattern is not applied." xml:space="preserve">
+    <value>Liitteiden esto on pois käytöstä, joten tätä kuviota ei sovelleta.</value>
+  </data>
   <data name="Attachment blocking is switched on with no patterns to block, so it does nothing at all." xml:space="preserve">
     <value>Liitteiden esto on kytketty päälle ilman estettäviä malleja, joten se ei tee yhtään mitään.</value>
   </data>
@@ -1734,6 +1746,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Attachments opened in a sandbox" xml:space="preserve">
     <value>Hiekkalaatikossa avatut liitteet</value>
+  </data>
+  <data name="Attachments whose file names match one of these patterns are replaced by a short note saying so before the message is delivered." xml:space="preserve">
+    <value>Liitteet, joiden tiedostonimi vastaa jotakin näistä kuvioista, korvataan lyhyellä ilmoituksella ennen viestin toimittamista.</value>
   </data>
   <data name="Attempts at a device before it is given up (1 to 20)" xml:space="preserve">
     <value>Yritykset laitteelle ennen kuin siitä luovutaan (1–20)</value>
@@ -4675,11 +4690,11 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="File types submitted (extensions and media types, comma separated)" xml:space="preserve">
     <value>Lähetettävät tiedostotyypit (tiedostopäätteet ja mediatyypit pilkuilla erotettuina)</value>
   </data>
+  <data name="File-name pattern" xml:space="preserve">
+    <value>Tiedostonimen kuvio</value>
+  </data>
   <data name="File-name patterns stripped from incoming messages regardless of what a scanner says." xml:space="preserve">
     <value>Tiedostonimikuviot, jotka poistetaan saapuvista viesteistä riippumatta siitä, mitä tarkistin sanoo.</value>
-  </data>
-  <data name="File-name wildcards that are stripped from incoming messages (requires attachment blocking on the Anti-virus page)." xml:space="preserve">
-    <value>Tiedostonimien jokerimerkit, jotka poistetaan saapuvista viesteistä (vaatii liitteiden eston Virustorjunta-sivulla).</value>
   </data>
   <data name="Files on disk" xml:space="preserve">
     <value>Tiedostot levyllä</value>
@@ -4923,6 +4938,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Greylisting exemptions" xml:space="preserve">
     <value>Harmaalistauksen poikkeukset</value>
+  </data>
+  <data name="Greylisting is switched off: no sender is delayed, so this list changes nothing until it is turned on." xml:space="preserve">
+    <value>Harmaalistaus on pois käytöstä: yhtäkään lähettäjää ei viivytetä, joten tämä luettelo ei muuta mitään ennen kuin harmaalistaus otetaan käyttöön.</value>
   </data>
   <data name="Greylisting record expiration, and SpamAssassin move-vs-copy" xml:space="preserve">
     <value>Harmaalistaustietueiden vanheneminen ja SpamAssassinin siirto vai kopiointi</value>
@@ -10861,6 +10879,9 @@ Käynnistetäänkö se uudelleen nyt?</value>
   <data name="Submit address (POST)" xml:space="preserve">
     <value>Lähetysosoite (POST)</value>
   </data>
+  <data name="Such as *.exe or invoice*.zip: * stands for any run of characters and ? for any one." xml:space="preserve">
+    <value>Esimerkiksi *.exe tai invoice*.zip: * vastaa mitä tahansa merkkijonoa ja ? mitä tahansa yhtä merkkiä.</value>
+  </data>
   <data name="Such as GeoLite2-Country.mmdb, kept up to date by you. Empty, the default, judges nothing by country whatever the policies say." xml:space="preserve">
     <value>Esimerkiksi GeoLite2-Country.mmdb, jonka pidät ajan tasalla. Tyhjä, oletus, ei arvioi mitään maan mukaan, sanoivat käytännöt mitä tahansa.</value>
   </data>
@@ -13491,9 +13512,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Wiki the help pane's &quot;Open on the wiki&quot; link points at (empty hides the link)" xml:space="preserve">
     <value>Wiki, johon ohjepaneelin ”Avaa wikissä” osoittaa (tyhjä piilottaa linkin)</value>
   </data>
-  <data name="Wildcard" xml:space="preserve">
-    <value>Jokerimerkki</value>
-  </data>
   <data name="Will not start" xml:space="preserve">
     <value>Ei käynnisty</value>
   </data>
@@ -14102,6 +14120,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Open Anti-spam settings" xml:space="preserve">
     <value>_Avaa Roskapostisuojauksen asetukset</value>
+  </data>
+  <data name="_Open Anti-virus settings" xml:space="preserve">
+    <value>_Avaa Virustorjunnan asetukset</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Avaa _raportti</value>
@@ -14962,6 +14983,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="p=none is the right starting point, not an oversight: it makes receivers check and report but deliver as normal. A stricter policy (quarantine or reject) tells every receiver to junk or refuse mail that fails alignment - and until reports show your own mail passing SPF or DKIM, the mail that fails will include yours. Tighten only after the reports say it is safe." xml:space="preserve">
     <value>p=none on oikea lähtökohta, ei unohdus: se saa vastaanottajat tarkistamaan ja raportoimaan, mutta toimittamaan normaalisti. Tiukempi käytäntö (quarantine tai reject) käskee jokaista vastaanottajaa roskaamaan tai hylkäämään postin, joka epäonnistuu kohdistuksessa - ja kunnes raportit näyttävät oman postisi läpäisevän SPF:n tai DKIM:n, epäonnistuva posti sisältää sinun postisi. Tiukenna vasta, kun raportit sanovat sen olevan turvallista.</value>
   </data>
+  <data name="pattern" xml:space="preserve">
+    <value>kuvio</value>
+  </data>
   <data name="per entry" xml:space="preserve">
     <value>merkintää kohden</value>
   </data>
@@ -15783,6 +15807,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} pattern is stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} kuvio poistetaan jokaisesta viestistä tiedostonimen perusteella riippumatta siitä, mitä tarkistimet sanovat.</value>
+  </data>
+  <data name="{0} patterns" xml:space="preserve">
+    <value>{0} kuviota</value>
   </data>
   <data name="{0} patterns are stripped from every message by file name, whatever the scanners say." xml:space="preserve">
     <value>{0} kuviota poistetaan jokaisesta viestistä tiedostonimen perusteella riippumatta siitä, mitä tarkistimet sanovat.</value>

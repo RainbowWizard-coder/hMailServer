@@ -1684,6 +1684,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   copy button says *Copied* beside a tick for two seconds, and a screen reader is told; a copy that failed, another
   program holding the clipboard, is said in a toast with the reason.
 
+- **Fixed: the Blocked attachments and greylisting lists never said whether the switch that applies them was on.** The
+  Blocked attachments page showed "5 rules" and the list whether attachment blocking was on or off, so a list of
+  patterns read as patterns at work while none was applied, and the virus scanning overview was the one place that
+  said so; the greylisting white list and bypass list said nothing while greylisting was off. Each reads its switch
+  with the list now: while attachment blocking is off a Warning above the list says that none of its patterns is
+  applied (one sentence for none, one and several), and while greylisting is off an Information notice says that no
+  sender is delayed, so the list changes nothing; each offers the settings page that holds the switch. The blocked
+  entries are patterns throughout - the count, the column, the delete question - where the page called them wildcards
+  and rules, and the subtitle says what the server does with a match, replacing the attachment with a short note
+  before the message is delivered, where it said the wildcards were stripped from incoming messages.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
