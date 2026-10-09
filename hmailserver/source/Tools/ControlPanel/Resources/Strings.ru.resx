@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>Правил: 1</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 сохранённый параметр вступит в силу только после перезапуска службы hMailServer. Перезапустить службу сейчас? Все клиенты, подключённые к серверу, будут отключены, пока она останавливается и запускается снова.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 сохранённый параметр ждёт повторной инициализации — «Применить сейчас» применит его.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 сохранённый параметр ждёт повторной инициализации — «Применить сейчас» применит его. 1 ждёт перезапуска службы.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 сохранённый параметр ждёт повторной инициализации — «Применить сейчас» применит его. Ждут перезапуска службы: {0}.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 сохранённый параметр ждёт перезапуска службы.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>Групп безопасности: 1</value>
   </data>
@@ -8897,6 +8912,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Разрешается самим сервером, поэтому пользовательское значение DNSServer в hMailServer.INI учитывается — именно туда почта действительно уходит, а nslookup с этой рабочей станции такого гарантировать не может.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Перезапустить служ_бу…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Ждёт перезапуска</value>
   </data>
@@ -11594,6 +11612,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Новая запись ещё не разрешалась в течение всего периода распространения. Всё равно перевести подпись? Получатели, чьи резолверы ещё не обновились, не смогут проверить новые подписи, пока не обновятся. Сама запись всё равно должна разрешаться: сервер в любом случае сначала проверяет её.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Новое расписание вступит в силу только после перезапуска службы hMailServer. Перезапустить службу сейчас? Все клиенты, подключённые к серверу, будут отключены, пока она останавливается и запускается снова.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Следующий ключ отменён.</value>
   </data>
@@ -12708,6 +12729,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Ожидание соединения с базой данных из пула. 0 = без ограничения.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Ждут повторной инициализации:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Ждут перезапуска службы:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Ожидание записи DNS</value>
   </data>
@@ -13736,6 +13763,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Требовать адрес отправителя (пусто — любой)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Перезапустить службу</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>Восстановить _значения по умолчанию</value>
@@ -15469,6 +15499,18 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} сохранённый параметр ждёт перезапуска службы.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Сохранённые параметры ({0}) вступят в силу только после перезапуска службы hMailServer. Перезапустить службу сейчас? Все клиенты, подключённые к серверу, будут отключены, пока она останавливается и запускается снова.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>Сохранённых параметров, ждущих повторной инициализации: {0} — «Применить сейчас» применит их.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>Сохранённых параметров, ждущих повторной инициализации: {0} — «Применить сейчас» применит их. 1 ждёт перезапуска службы.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>Сохранённых параметров, ждущих повторной инициализации: {0} — «Применить сейчас» применит их. Ждут перезапуска службы: {1}.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} сохранённых параметров ждут повторной инициализации, а {1} — перезапуска службы.</value>
   </data>
@@ -15672,6 +15714,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, от {1}, баллы {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, на странице «{1}»</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, оценка {2}. {3}</value>

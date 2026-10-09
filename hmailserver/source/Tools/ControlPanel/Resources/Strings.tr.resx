@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 kural</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Kaydedilen 1 ayar yalnızca hMailServer hizmeti yeniden başlatıldığında geçerli olur. Hizmet şimdi yeniden başlatılsın mı? Hizmet durup yeniden başlarken sunucuya bağlı tüm istemcilerin bağlantısı kesilir.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>Kaydedilen 1 ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>Kaydedilen 1 ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular. 1 ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>Kaydedilen 1 ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onu uygular. {0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>Kaydedilen 1 ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 güvenlik grubu</value>
   </data>
@@ -8813,6 +8828,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Sunucunun kendisi tarafından çözümlendi; bu yüzden hMailServer.INI'deki özel bir DNSServer'a uyulur - postanın gerçekten gittiği yer budur; bu iş istasyonundan yapılan bir nslookup bunu vaat edemez.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Hizmeti yeniden _başlat…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Hizmet yeniden başlatılınca uygulanır</value>
   </data>
@@ -11448,6 +11466,9 @@ yüklenemedi. İleti büyük olasılıkla teslim edildi ve artık kuyrukta deği
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Yeni kayıt henüz yayılma süresinin tamamı boyunca çözümlenmedi. İmzalama yine de geçirilsin mi? Çözümleyicileri henüz güncellenmemiş alıcılar, güncellenene kadar yeni imzaları doğrulayamaz. Kaydın kendisi yine de çözümlenmelidir: sunucu her iki durumda da önce onu denetler.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Yeni zamanlama yalnızca hMailServer hizmeti yeniden başlatıldığında geçerli olur. Hizmet şimdi yeniden başlatılsın mı? Hizmet durup yeniden başlarken sunucuya bağlı tüm istemcilerin bağlantısı kesilir.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Sonraki anahtar iptal edildi.</value>
   </data>
@@ -12553,6 +12574,12 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Havuzdan bir veritabanı bağlantısı bekleniyor. 0 = sınır yok.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Yeniden başlatma (Reinitialize) bekleyenler:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Hizmetin yeniden başlatılmasını bekleyenler:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>DNS kaydı bekleniyor</value>
   </data>
@@ -13578,6 +13605,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Gönderen adresi gerektir (boş = herhangi biri)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>Hizmeti _yeniden başlat</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Varsayılanları geri yükle</value>
@@ -15152,6 +15182,18 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>Kaydedilen {0} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Kaydedilen {0} ayar yalnızca hMailServer hizmeti yeniden başlatıldığında geçerli olur. Hizmet şimdi yeniden başlatılsın mı? Hizmet durup yeniden başlarken sunucuya bağlı tüm istemcilerin bağlantısı kesilir.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onları uygular.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onları uygular. 1 ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize) bekliyor - Şimdi uygula onları uygular. {1} ayar hizmetin yeniden başlatılmasını bekliyor.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>Kaydedilen {0} ayar yeniden başlatmayı (Reinitialize), {1} ayar ise hizmetin yeniden başlatılmasını bekliyor.</value>
   </data>
@@ -15307,6 +15349,9 @@ Hiçbir ileti silinmez ve hiçbir hesap kaldırılmaz. Devam edilsin mi?</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, {1} kaynaklı, puan {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, {1} sayfasında</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puan {2}. {3}</value>

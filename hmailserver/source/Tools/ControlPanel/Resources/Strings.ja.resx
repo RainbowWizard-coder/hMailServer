@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>ルール 1 件</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>保存した設定 1 件は、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>保存した設定 1 件が再初期化を待っています。[今すぐ適用] で適用されます。</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>保存した設定 1 件が再初期化を待っています。[今すぐ適用] で適用されます。1 件はサービスの再起動を待っています。</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>保存した設定 1 件が再初期化を待っています。[今すぐ適用] で適用されます。{0} 件はサービスの再起動を待っています。</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>保存した設定 1 件がサービスの再起動を待っています。</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>セキュリティ グループ 1 件</value>
   </data>
@@ -8813,6 +8828,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>サーバー自身が名前解決を行うため、hMailServer.INI のカスタム DNSServer が尊重されます。これがメールの実際の宛先であり、このワークステーションからの nslookup では保証できないものです。</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>サービスを再起動(_V)…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>再起動で適用</value>
   </data>
@@ -11448,6 +11466,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>新しいレコードは、まだ伝播期間全体を通じて解決できていません。それでも署名を切り替えますか？リゾルバーが追いついていない受信側では、追いつくまで新しい署名の検証に失敗します。レコード自体は解決できる必要があります。どちらの場合も、サーバーは最初にレコードを確認します。</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>新しいスケジュールは、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>次の鍵を取り消しました。</value>
   </data>
@@ -12553,6 +12574,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>プールからのデータベース接続を待機中。0 = 上限なし。</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>再初期化待ち:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>サービスの再起動待ち:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>DNS レコードを待っています</value>
   </data>
@@ -13578,6 +13605,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>必須の送信者アドレス (空 = 制限なし)(_R)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>サービスを再起動(_R)</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>既定値に戻す(_R)</value>
@@ -15152,6 +15182,18 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>保存した設定のうち {0} 件がサービスの再起動を待っています。</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>保存した設定 {0} 件は、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。1 件はサービスの再起動を待っています。</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>保存した設定 {0} 件が再初期化を待っています。[今すぐ適用] で適用されます。{1} 件はサービスの再起動を待っています。</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>保存した設定のうち {0} 件が再初期化を、{1} 件がサービスの再起動を待っています。</value>
   </data>
@@ -15307,6 +15349,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}、{1} から、スコア {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0} ({1} ページ)</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}、{1}、スコア {2}。{3}</value>

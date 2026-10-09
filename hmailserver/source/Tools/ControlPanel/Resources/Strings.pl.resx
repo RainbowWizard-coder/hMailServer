@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>Reguły: 1</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 zapisane ustawienie zacznie obowiązywać dopiero po ponownym uruchomieniu usługi hMailServer. Uruchomić usługę ponownie teraz? Wszyscy klienci połączeni z serwerem zostaną rozłączeni na czas jej zatrzymania i ponownego uruchomienia.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 zapisane ustawienie czeka na ponowną inicjalizację - Zastosuj teraz je zastosuje.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 zapisane ustawienie czeka na ponowną inicjalizację - Zastosuj teraz je zastosuje. 1 czeka na ponowne uruchomienie usługi.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 zapisane ustawienie czeka na ponowną inicjalizację - Zastosuj teraz je zastosuje. Na ponowne uruchomienie usługi czeka: {0}.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 zapisane ustawienie czeka na ponowne uruchomienie usługi.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>Grupy zabezpieczeń: 1</value>
   </data>
@@ -8897,6 +8912,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Rozwiązywane przez sam serwer, więc własne ustawienie DNSServer w hMailServer.INI jest honorowane - to pokazuje, dokąd poczta naprawdę trafia, czego nslookup z tej stacji roboczej zagwarantować nie może.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Uruchom usługę ponowni_e…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Czeka na ponowne uruchomienie</value>
   </data>
@@ -11594,6 +11612,9 @@ Wiadomość została prawdopodobnie dostarczona i nie ma jej już w kolejce.</va
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Nowy rekord nie jest jeszcze rozwiązywany przez cały okres propagacji. Mimo to przełączyć podpisywanie? Odbiorcy, których resolvery się jeszcze nie zaktualizowały, będą odrzucać nowe podpisy, dopóki tego nie zrobią. Sam rekord nadal musi być rozwiązywany: serwer i tak najpierw go sprawdza.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Nowy harmonogram zacznie obowiązywać dopiero po ponownym uruchomieniu usługi hMailServer. Uruchomić usługę ponownie teraz? Wszyscy klienci połączeni z serwerem zostaną rozłączeni na czas jej zatrzymania i ponownego uruchomienia.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Następny klucz został anulowany.</value>
   </data>
@@ -12708,6 +12729,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Oczekiwanie na połączenie z bazą danych z puli. 0 = bez ograniczenia.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Czekają na ponowną inicjalizację:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Czekają na ponowne uruchomienie usługi:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Oczekiwanie na rekord DNS</value>
   </data>
@@ -13736,6 +13763,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Wymagaj adresu nadawcy (puste = dowolny)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Uruchom usługę ponownie</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Przywróć domyślne</value>
@@ -15469,6 +15499,18 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} zapisane ustawienie czeka na ponowne uruchomienie usługi.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Zapisane ustawienia ({0}) zaczną obowiązywać dopiero po ponownym uruchomieniu usługi hMailServer. Uruchomić usługę ponownie teraz? Wszyscy klienci połączeni z serwerem zostaną rozłączeni na czas jej zatrzymania i ponownego uruchomienia.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>Zapisane ustawienia czekające na ponowną inicjalizację: {0} - Zastosuj teraz je zastosuje.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>Zapisane ustawienia czekające na ponowną inicjalizację: {0} - Zastosuj teraz je zastosuje. 1 czeka na ponowne uruchomienie usługi.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>Zapisane ustawienia czekające na ponowną inicjalizację: {0} - Zastosuj teraz je zastosuje. Na ponowne uruchomienie usługi czeka: {1}.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} zapisanych ustawień czeka na ponowną inicjalizację, a {1} na ponowne uruchomienie usługi.</value>
   </data>
@@ -15672,6 +15714,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, od {1}, wynik {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, na stronie {1}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, punktacja {2}. {3}</value>

@@ -57,21 +57,68 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.Null(SettingApplies.Banner(0, 0));
 
-         string reinitialize = SettingApplies.Banner(2, 0);
-         Assert.Contains("2", reinitialize);
-         Assert.Contains("reinitialise", reinitialize);
-         Assert.DoesNotContain("restart", reinitialize);
+         // What Apply now takes, and that it takes it (review finding F010).
+         Assert.Equal("2 saved settings wait for a reinitialise - Apply now takes them.", SettingApplies.Banner(2, 0));
+         Assert.Equal("1 saved setting waits for a reinitialise - Apply now takes it.", SettingApplies.Banner(1, 0));
 
-         string restart = SettingApplies.Banner(0, 1);
-         Assert.Contains("1", restart);
-         Assert.Contains("restart", restart);
-         Assert.DoesNotContain("reinitialise", restart);
+         // A restart alone, which Apply now does not take, and which the bar's Restart
+         // the service does.
+         Assert.Equal("1 saved setting waits for a service restart.", SettingApplies.Banner(0, 1));
+         Assert.Equal("4 saved settings wait for a service restart.", SettingApplies.Banner(0, 4));
 
-         string both = SettingApplies.Banner(3, 1);
-         Assert.Contains("3", both);
-         Assert.Contains("1", both);
-         Assert.Contains("reinitialise", both);
-         Assert.Contains("restart", both);
+         // Both, in two sentences, each counting its own way.
+         Assert.Equal("3 saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart.", SettingApplies.Banner(3, 1));
+         Assert.Equal("1 saved setting waits for a reinitialise - Apply now takes it. 2 wait for a service restart.", SettingApplies.Banner(1, 2));
+         Assert.Equal("1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart.", SettingApplies.Banner(1, 1));
+         Assert.Equal("2 saved settings wait for a reinitialise - Apply now takes them. 5 wait for a service restart.", SettingApplies.Banner(2, 5));
+      }
+
+      [Fact]
+      public void NoBannerPutsAnEnglishPluralInBrackets()
+      {
+         foreach ((int reinitialise, int restart) in new[] { (1, 0), (2, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 1), (2, 2) })
+            Assert.DoesNotContain("(s)", SettingApplies.Banner(reinitialise, restart), System.StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheRestartQuestionSaysHowManyWaitAndWhatARestartDoes()
+      {
+         string one = SettingApplies.RestartQuestion(1);
+         Assert.StartsWith("1 saved setting takes effect only when the hMailServer service restarts.", one, System.StringComparison.Ordinal);
+         Assert.Contains("disconnected", one, System.StringComparison.Ordinal);
+
+         string three = SettingApplies.RestartQuestion(3);
+         Assert.StartsWith("3 saved settings take effect only when the hMailServer service restarts.", three, System.StringComparison.Ordinal);
+         Assert.Contains("Restart the service now?", three, System.StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void ThePendingDetailNamesEachSettingUnderWhatItWaitsFor()
+      {
+         var marks = new System.Collections.Generic.Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase)
+         {
+            ["AcmeEnabled"] = "reinitialize",
+            ["RestApiPort"] = "restart",
+            ["NoSuchKey"] = "restart",
+            ["LogLevel"] = "now"
+         };
+         string detail = SettingApplies.PendingDetail(new[] { "AcmeEnabled", "RestApiPort", "NoSuchKey", "LogLevel", "Unmarked" },
+            key => marks.TryGetValue(key, out string mark) ? mark : null);
+         string[] lines = detail.Split((char)10);
+
+         // The caption and the page, as the Ctrl+K palette finds the setting.
+         Assert.Equal("Waiting for a reinitialise:", lines[0]);
+         Assert.Equal("Issue and renew certificates automatically, on the Certificates (ACME) page", lines[1]);
+         Assert.Equal("Waiting for a service restart:", lines[2]);
+         Assert.StartsWith(SettingApplies.DescribePending("RestApiPort"), lines[3], System.StringComparison.Ordinal);
+         Assert.Contains(", on the API & monitoring page", lines[3], System.StringComparison.Ordinal);
+         // A key no page shows is named as it is; a key marked now, or not at all, is
+         // not one the bar counts.
+         Assert.Equal("NoSuchKey", lines[4]);
+         Assert.Equal(5, lines.Length);
+
+         Assert.Null(SettingApplies.PendingDetail(new[] { "LogLevel" }, key => "now"));
+         Assert.Null(SettingApplies.PendingDetail(null, key => "restart"));
       }
 
       /// <summary>
@@ -83,10 +130,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       [Fact]
       public void TheBannerCountsInTheSingularAndThePlural()
       {
-         Assert.Equal("1 saved setting waits for a reinitialise.", SettingApplies.Banner(1, 0));
-         Assert.Equal("2 saved settings wait for a reinitialise.", SettingApplies.Banner(2, 0));
+         Assert.Equal("1 saved setting waits for a reinitialise - Apply now takes it.", SettingApplies.Banner(1, 0));
+         Assert.Equal("2 saved settings wait for a reinitialise - Apply now takes them.", SettingApplies.Banner(2, 0));
          Assert.Equal("1 saved setting waits for a service restart.", SettingApplies.Banner(0, 1));
-         Assert.Equal("1 saved setting waits for a reinitialise, and 3 for a service restart.", SettingApplies.Banner(1, 3));
+         Assert.Equal("1 saved setting waits for a reinitialise - Apply now takes it. 3 wait for a service restart.", SettingApplies.Banner(1, 3));
          Assert.DoesNotContain("(s)", SettingApplies.Banner(5, 5));
       }
 

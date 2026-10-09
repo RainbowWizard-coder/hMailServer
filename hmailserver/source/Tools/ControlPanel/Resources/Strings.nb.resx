@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 lagret innstilling trer først i kraft når hMailServer-tjenesten startes på nytt. Starte tjenesten på nytt nå? Alle klienter som er koblet til serveren, kobles fra mens den stopper og starter igjen.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 lagret innstilling venter på en reinitialisering - Bruk nå tar den i bruk.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 lagret innstilling venter på en reinitialisering - Bruk nå tar den i bruk. 1 venter på en omstart av tjenesten.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 lagret innstilling venter på en reinitialisering - Bruk nå tar den i bruk. {0} venter på en omstart av tjenesten.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 lagret innstilling venter på en omstart av tjenesten.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 sikkerhetsgruppe</value>
   </data>
@@ -8813,6 +8828,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Slått opp av serveren selv, så en egendefinert DNSServer i hMailServer.INI respekteres - dette er dit posten faktisk går, noe en nslookup fra denne arbeidsstasjonen ikke kan love.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Start _tjenesten på nytt…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Trer i kraft ved omstart</value>
   </data>
@@ -11448,6 +11466,9 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Den nye oppføringen har ennå ikke latt seg slå opp gjennom hele spredningsperioden. Bytte signeringen likevel? Mottakere med resolvere som ikke har fulgt med, lar de nye signaturene mislykkes til de gjør det. Selve oppføringen må fortsatt kunne slås opp: serveren kontrollerer den først uansett.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Den nye tidsplanen trer først i kraft når hMailServer-tjenesten startes på nytt. Starte tjenesten på nytt nå? Alle klienter som er koblet til serveren, kobles fra mens den stopper og starter igjen.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Neste nøkkel ble avbrutt.</value>
   </data>
@@ -12553,6 +12574,12 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Venter på en databasetilkobling fra poolen. 0 = ingen grense.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Venter på en reinitialisering:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Venter på en omstart av tjenesten:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Venter på DNS-oppføringen</value>
   </data>
@@ -13578,6 +13605,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Krev avsenderadresse (_tom = alle)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Start tjenesten på nytt</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>G_jenopprett standarder</value>
@@ -15152,6 +15182,18 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} lagret innstilling venter på en omstart av tjenesten.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} lagrede innstillinger trer først i kraft når hMailServer-tjenesten startes på nytt. Starte tjenesten på nytt nå? Alle klienter som er koblet til serveren, kobles fra mens den stopper og starter igjen.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>{0} lagrede innstillinger venter på en reinitialisering - Bruk nå tar dem i bruk.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>{0} lagrede innstillinger venter på en reinitialisering - Bruk nå tar dem i bruk. 1 venter på en omstart av tjenesten.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>{0} lagrede innstillinger venter på en reinitialisering - Bruk nå tar dem i bruk. {1} venter på en omstart av tjenesten.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} lagrede innstillinger venter på en reinitialisering, og {1} på en omstart av tjenesten.</value>
   </data>
@@ -15307,6 +15349,9 @@ Ingen melding slettes, og ingen konto fjernes. Fortsette?</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, fra {1}, poeng {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, på siden {1}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, poengsum {2}. {3}</value>

@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 rule</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 saved setting waits for a reinitialise - Apply now takes it.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 saved setting waits for a service restart.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 security group</value>
   </data>
@@ -8813,6 +8828,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Restart the ser_vice…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Restart to apply</value>
   </data>
@@ -11448,6 +11466,9 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>The next key was cancelled.</value>
   </data>
@@ -12553,6 +12574,12 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Waiting for a pooled database connection. 0 = no bound.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Waiting for a reinitialise:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Waiting for a service restart:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Waiting for the DNS record</value>
   </data>
@@ -13578,6 +13605,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Require sender address (empty = any)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Restart the service</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Restore defaults</value>
@@ -15152,6 +15182,18 @@ No message is deleted and no account is removed. Continue?</value>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} saved setting waits for a service restart.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>{0} saved settings wait for a reinitialise - Apply now takes them.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} saved settings wait for a reinitialise, and {1} for a service restart.</value>
   </data>
@@ -15307,6 +15349,9 @@ No message is deleted and no account is removed. Continue?</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, from {1}, score {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, on the {1} page</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>

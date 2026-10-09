@@ -1432,7 +1432,54 @@ namespace hMailServer.ControlPanel
          PendingNotice.Text = banner;
          ApplyPendingButton.Visibility = waitingForReinitialize > 0 ? Visibility.Visible : Visibility.Collapsed;
          ApplyPendingButton.IsEnabled = true;
+
+         // Which settings wait, by their captions and pages: the bar said how many
+         // and never which.
+         string detail = SettingApplies.PendingDetail(pending, IniFeatureStore.AppliesFor);
+         PendingNotice.ToolTip = detail;
+         System.Windows.Automation.AutomationProperties.SetHelpText(PendingNotice, detail ?? "");
+
+         // The settings only a restart takes had nothing to press: the restart the
+         // feature settings pages offer after a save, for the service on this
+         // machine - the only one a restart from here reaches.
+         pendingRestartCount_ = waitingForRestart;
+         RestartServiceButton.Visibility = waitingForRestart > 0 && ServiceRestart.Available ? Visibility.Visible : Visibility.Collapsed;
+         RestartServiceButton.IsEnabled = true;
          PendingBar.Visibility = Visibility.Visible;
+      }
+
+      // How many settings the bar last counted as waiting for a restart: what its
+      // Restart the service asks about.
+      private int pendingRestartCount_;
+
+      /// <summary>
+      /// Restart the service: asks first, naming how many saved settings wait and
+      /// that connected clients are disconnected, with Cancel the answer Enter gives;
+      /// then restarts it and attaches the session again (Services/ServiceRestart).
+      /// The reattach raises the session's Reconnected, which enters the page again
+      /// and refreshes the bar (OnSessionReconnected); a restart that failed says why
+      /// and puts the bar back.
+      /// </summary>
+      private async void RestartPending_Click(object sender, RoutedEventArgs e)
+      {
+         if (!MessageBox.Confirm(SettingApplies.RestartQuestion(pendingRestartCount_), L("Control Panel"), L("_Restart the service"), cancelByDefault: true))
+            return;
+
+         ApplyPendingButton.IsEnabled = false;
+         RestartServiceButton.IsEnabled = false;
+         PendingNotice.Level = StatusLevel.Information;
+         PendingNotice.Text = L("Restarting the hMailServer service...");
+
+         (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
+         PendingNotice.Level = StatusLevel.Warning;
+
+         if (outcome == ServiceRestartOutcome.NotRestarted)
+            Services.Toast.Failure(F("Could not restart the service: {0}", reason), L("Control Panel"));
+         else if (outcome == ServiceRestartOutcome.NotReattached)
+            Services.Toast.Failure(F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason), L("Control Panel"));
+
+         if (outcome != ServiceRestartOutcome.Restarted)
+            RefreshPendingBar_(fresh: true);
       }
 
       /// <summary>
@@ -1465,6 +1512,7 @@ namespace hMailServer.ControlPanel
             return;
 
          ApplyPendingButton.IsEnabled = false;
+         RestartServiceButton.IsEnabled = false;
          PendingNotice.Level = StatusLevel.Information;
          PendingNotice.Text = L("Reinitialising the server...");
          Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);

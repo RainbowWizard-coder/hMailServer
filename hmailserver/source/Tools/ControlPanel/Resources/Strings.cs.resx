@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>Pravidla: 1</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 uložené nastavení se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní. 1 čeká na restart služby.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 uložené nastavení čeká na reinicializaci – použije ho tlačítko Použít nyní. {0} čeká na restart služby.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 uložené nastavení čeká na restart služby.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>Skupiny zabezpečení: 1</value>
   </data>
@@ -8897,6 +8912,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Překládá jej server sám, takže se respektuje vlastní DNSServer v hMailServer.INI – právě tam pošta skutečně jde, což nslookup z této pracovní stanice slíbit nemůže.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Restartovat _službu…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Projeví se po restartu</value>
   </data>
@@ -11594,6 +11612,9 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Nový záznam se ještě nepřekládá po celou dobu šíření. Přesto přepnout podepisování? Příjemci, jejichž resolvery se ještě neaktualizovaly, budou nové podpisy odmítat, dokud se neaktualizují. Samotný záznam se přesto musí překládat: server ho v každém případě nejprve zkontroluje.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Nový plán se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Další klíč byl zrušen.</value>
   </data>
@@ -12708,6 +12729,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Čekání na databázové spojení z poolu. 0 = bez omezení.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Čeká na reinicializaci:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Čeká na restart služby:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Čeká se na záznam DNS</value>
   </data>
@@ -13736,6 +13763,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>_Vyžadovat adresu odesílatele (prázdné = libovolná)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Restartovat službu</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>O_bnovit výchozí</value>
@@ -15469,6 +15499,18 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} uložené nastavení čeká na restart služby.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} uložených nastavení se projeví až po restartu služby hMailServer. Restartovat službu nyní? Všichni klienti připojení k serveru budou během zastavení a opětovného spuštění odpojeni.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>{0} uložených nastavení čeká na reinicializaci – použije je tlačítko Použít nyní.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>{0} uložených nastavení čeká na reinicializaci – použije je tlačítko Použít nyní. 1 čeká na restart služby.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>{0} uložených nastavení čeká na reinicializaci – použije je tlačítko Použít nyní. {1} čeká na restart služby.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} uložených nastavení čeká na reinicializaci a {1} na restart služby.</value>
   </data>
@@ -15672,6 +15714,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, od {1}, skóre {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, na stránce {1}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, skóre {2}. {3}</value>

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
@@ -895,7 +894,7 @@ namespace hMailServer.ControlPanel.Views
                var start = new System.Diagnostics.ProcessStartInfo
                {
                   FileName = System.IO.Path.Combine(Environment.SystemDirectory, "cmd.exe"), // no-loc
-                  // /d, as TryRestartService: no Command Processor AutoRun in the
+                  // /d, as ServiceRestart.TryRestart: no Command Processor AutoRun in the
                   // elevated cmd.exe.
                   Arguments = "/d /s /c \"" + CommandFor_(executable, action, report) + "\"", // no-loc
                   UseShellExecute = true,
@@ -3186,117 +3185,27 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
+      /// <summary>
+      /// Restarts the service and says how it went, through the restart the window's
+      /// pending bar shares (Services/ServiceRestart).
+      /// </summary>
       private async void RestartService()
       {
          SetState_(SettingsPageState.Restarting, L("Restarting the hMailServer service..."), StatusLevel.Information);
 
-         string error = await Task.Run(() => TryRestartService());
-         if (error != null)
+         (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
+         switch (outcome)
          {
-            SetState_(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", error));
-            return;
-         }
-
-         SetState_(SettingsPageState.Applied, L("Service restarted - settings are live."));
-         Reattach();
-      }
-
-      /// <summary>
-      /// Stops and starts the service, returning null on success or a message
-      /// describing the failure. Stopping a service needs administrator rights
-      /// and the Control Panel runs asInvoker, so a non-elevated session hands
-      /// the work to net.exe behind a single UAC prompt instead of failing
-      /// with an opaque "Cannot open hMailServer service" error.
-      /// </summary>
-      private static string TryRestartService()
-      {
-         try
-         {
-            bool elevated;
-            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
-               elevated = new System.Security.Principal.WindowsPrincipal(identity)
-                  .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-
-            if (elevated)
-            {
-               using var controller = new ServiceController("hMailServer");
-               if (controller.Status != ServiceControllerStatus.Stopped)
-               {
-                  if (controller.Status == ServiceControllerStatus.Running ||
-                      controller.Status == ServiceControllerStatus.Paused)
-                     controller.Stop();
-                  controller.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(60));
-               }
-               controller.Start();
-               controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
-               return null;
-            }
-
-            // "net stop" fails harmlessly when the service is already stopped,
-            // so chain with "&" rather than "&&".
-            //
-            // cmd.exe and net.exe by their full System32 paths, and System32 as
-            // the working directory: ShellExecuteEx looks for a bare name in the
-            // current directory first, and that is whatever folder a file dialog
-            // last left it in, so a cmd.exe waiting in Downloads would have run
-            // elevated behind the prompt the administrator expects. /d skips any
-            // Command Processor AutoRun; with /s, cmd takes off only the outer
-            // pair of quotes.
-            string system = Environment.SystemDirectory;
-            string net = System.IO.Path.Combine(system, "net.exe"); // no-loc
-            var startInfo = new System.Diagnostics.ProcessStartInfo
-            {
-               FileName = System.IO.Path.Combine(system, "cmd.exe"), // no-loc
-               Arguments = "/d /s /c \"\"" + net + "\" stop hMailServer & \"" + net + "\" start hMailServer\"", // no-loc
-               WorkingDirectory = system,
-               UseShellExecute = true,
-               Verb = "runas",
-               WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
-            };
-
-            using (var process = System.Diagnostics.Process.Start(startInfo))
-               process?.WaitForExit();
-
-            using (var controller = new ServiceController("hMailServer"))
-               controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(60));
-            return null;
-         }
-         catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
-         {
-            return L("the elevation prompt was cancelled.");
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            return ex.GetBaseException().Message;
-         }
-      }
-
-      /// <summary>
-      /// The COM server lives inside the service process, so restarting it
-      /// invalidates every interface pointer the Control Panel holds. Rebuild
-      /// the session straight away rather than letting the next page fail with
-      /// "The RPC server is unavailable". The service registers its COM class
-      /// factory a moment before it can serve calls, hence the retries.
-      /// </summary>
-      private void Reattach()
-      {
-         ServerSession session = ServerSession.Current;
-         if (session == null)
-            return;
-
-         Mouse.OverrideCursor = Cursors.Wait;
-         try
-         {
-            if (session.Reconnect(20, TimeSpan.FromMilliseconds(500), out string error))
+            case ServiceRestartOutcome.NotRestarted:
+               SetState_(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", reason));
                return;
-
-            session.Invalidate();
-            SetState_(SettingsPageState.NotConnected,
-               F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", error));
-         }
-         finally
-         {
-            Mouse.OverrideCursor = null;
+            case ServiceRestartOutcome.NotReattached:
+               SetState_(SettingsPageState.NotConnected,
+                  F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason));
+               return;
+            default:
+               SetState_(SettingsPageState.Applied, L("Service restarted - settings are live."));
+               return;
          }
       }
    }

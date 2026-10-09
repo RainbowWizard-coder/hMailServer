@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 sääntö</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 tallennettu asetus tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön. 1 odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 tallennettu asetus odottaa uudelleenalustusta - Ota käyttöön nyt ottaa sen käyttöön. {0} odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 tallennettu asetus odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 suojausryhmä</value>
   </data>
@@ -8813,6 +8828,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Palvelin itse selvittää, joten hMailServer.INI-tiedoston mukautettua DNSServer-asetusta noudatetaan - tänne posti todella menee, mitä tältä työasemalta ajettu nslookup ei voi luvata.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Käynnistä _palvelu uudelleen…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Voimaan uudelleenkäynnistyksessä</value>
   </data>
@@ -11448,6 +11466,9 @@ ei voitu ladata. Viesti on todennäköisesti toimitettu eikä ole enää jonossa
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Uusi tietue ei ole vielä ratkennut koko leviämisajan. Siirretäänkö allekirjoitus silti? Vastaanottajat, joiden nimipalvelimet eivät ole vielä päivittyneet, hylkäävät uudet allekirjoitukset, kunnes ne päivittyvät. Tietueen on silti ratkettava: palvelin tarkistaa sen joka tapauksessa ensin.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Uusi aikataulu tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Seuraava avain peruutettiin.</value>
   </data>
@@ -12553,6 +12574,12 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Odotetaan tietokantayhteyttä varannosta. 0 = ei rajaa.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Odottavat uudelleenalustusta:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Odottavat palvelun uudelleenkäynnistystä:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Odotetaan DNS-tietuetta</value>
   </data>
@@ -13578,6 +13605,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Vaadi lähettäjän _osoite (tyhjä = mikä tahansa)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Käynnistä palvelu uudelleen</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Palauta oletukset</value>
@@ -15152,6 +15182,18 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} tallennettu asetus odottaa palvelun uudelleenkäynnistystä.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} tallennettua asetusta tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>{0} tallennettua asetusta odottaa uudelleenalustusta - Ota käyttöön nyt ottaa ne käyttöön.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>{0} tallennettua asetusta odottaa uudelleenalustusta - Ota käyttöön nyt ottaa ne käyttöön. 1 odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>{0} tallennettua asetusta odottaa uudelleenalustusta - Ota käyttöön nyt ottaa ne käyttöön. {1} odottaa palvelun uudelleenkäynnistystä.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} tallennettua asetusta odottaa uudelleenalustusta ja {1} palvelun uudelleenkäynnistystä.</value>
   </data>
@@ -15307,6 +15349,9 @@ Yhtään viestiä ei poisteta eikä yhtään tiliä poisteta. Jatketaanko?</valu
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, lähettäjä {1}, pisteet {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, sivulla {1}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, pistemäärä {2}. {3}</value>

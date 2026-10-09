@@ -550,10 +550,57 @@ namespace hMailServer.ControlPanel.Views
          bool scheduleChanged = !string.Equals(scheduleMinutes_.Text.Trim(), savedSchedule_, StringComparison.Ordinal);
          savedSchedule_ = scheduleMinutes_.Text.Trim();
          if (scheduleChanged)
-            saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.", time));
+            saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.", time),
+               action: RestartAction_());
          else
             saveState_.Settle(SettingsPageState.Saved, F("Saved {0} - the server picks the selection up within two seconds; no service restart is needed.", time));
          return true;
+      }
+
+      /// <summary>
+      /// The action of the notice that says a new schedule waits for a restart:
+      /// Restart the service, the window's pending bar's restart, which asks first
+      /// (Services/ServiceRestart). Null when the server is not the one on this
+      /// machine, which a restart from here cannot reach.
+      /// </summary>
+      private Wpf.Ui.Controls.Button RestartAction_()
+      {
+         if (!ServiceRestart.Available)
+            return null;
+
+         var button = new Wpf.Ui.Controls.Button
+         {
+            Content = L("Restart the ser_vice…"),
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "dirsync-restart-service");
+         button.Click += async (s, e) => await RestartForSchedule_();
+         return button;
+      }
+
+      /// <summary>Asks, restarts the service for the new schedule, and says how it went.</summary>
+      private async Task RestartForSchedule_()
+      {
+         if (!MessageBox.Confirm(L("The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again."),
+                L("Control Panel"), L("_Restart the service"), cancelByDefault: true))
+            return;
+
+         saveState_.Settle(SettingsPageState.Restarting, L("Restarting the hMailServer service..."), StatusLevel.Information);
+         (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
+         switch (outcome)
+         {
+            case ServiceRestartOutcome.NotRestarted:
+               saveState_.Settle(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", reason), action: RestartAction_());
+               break;
+            case ServiceRestartOutcome.NotReattached:
+               saveState_.Settle(SettingsPageState.NotConnected,
+                  F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason));
+               break;
+            default:
+               saveState_.Settle(SettingsPageState.Applied, L("Service restarted - settings are live."));
+               break;
+         }
       }
 
       /// <summary>

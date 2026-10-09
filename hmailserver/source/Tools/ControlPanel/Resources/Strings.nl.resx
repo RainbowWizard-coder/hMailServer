@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 regel</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 opgeslagen instelling wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee. 1 wacht op een herstart van de service.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 opgeslagen instelling wacht op een herinitialisatie - Nu toepassen neemt haar mee. {0} wachten op een herstart van de service.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 opgeslagen instelling wacht op een herstart van de service.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 beveiligingsgroep</value>
   </data>
@@ -8813,6 +8828,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Wordt door de server zelf opgezocht, dus een aangepaste DNSServer in hMailServer.INI wordt gerespecteerd - dit is waar mail werkelijk heen gaat, en dat kan een nslookup vanaf dit werkstation niet beloven.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Service _herstarten…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Van kracht na herstart</value>
   </data>
@@ -11448,6 +11466,9 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>Het nieuwe record is nog niet de hele propagatieperiode opgelost. Het ondertekenen toch verplaatsen? Ontvangers van wie de resolvers nog niet zijn bijgewerkt, laten de nieuwe handtekeningen mislukken tot ze dat wel zijn. Het record zelf moet wel worden opgelost: de server controleert het in elk geval eerst.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Het nieuwe schema wordt pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>De volgende sleutel is geannuleerd.</value>
   </data>
@@ -12553,6 +12574,12 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Wachten op een databaseverbinding uit de pool. 0 = geen begrenzing.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Wachten op een herinitialisatie:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Wachten op een herstart van de service:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Wachten op het DNS-record</value>
   </data>
@@ -13578,6 +13605,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>Afzenderadres _vereisen (leeg = elk adres)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>Service _herstarten</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>Standaardwaarden _herstellen</value>
@@ -15152,6 +15182,18 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} opgeslagen instelling wacht op een herstart van de service.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} opgeslagen instellingen worden pas van kracht wanneer de hMailServer-service opnieuw start. De service nu herstarten? Alle clients die met de server verbonden zijn, worden verbroken terwijl hij stopt en opnieuw start.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>{0} opgeslagen instellingen wachten op een herinitialisatie - Nu toepassen neemt ze mee.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>{0} opgeslagen instellingen wachten op een herinitialisatie - Nu toepassen neemt ze mee. 1 wacht op een herstart van de service.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>{0} opgeslagen instellingen wachten op een herinitialisatie - Nu toepassen neemt ze mee. {1} wachten op een herstart van de service.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} opgeslagen instellingen wachten op een herinitialisatie, en {1} op een herstart van de service.</value>
   </data>
@@ -15307,6 +15349,9 @@ Er wordt geen bericht verwijderd en er wordt geen account verwijderd. Doorgaan?<
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, van {1}, score {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, op de pagina {1}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, score {2}. {3}</value>

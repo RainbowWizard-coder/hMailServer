@@ -183,6 +183,21 @@
   <data name="1 rule" xml:space="preserve">
     <value>1 regla</value>
   </data>
+  <data name="1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>1 ajuste guardado solo se aplica cuando se reinicia el servicio hMailServer. ¿Reiniciar el servicio ahora? Todos los clientes conectados al servidor se desconectan mientras se detiene y vuelve a arrancar.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it." xml:space="preserve">
+    <value>1 ajuste guardado espera una reinicialización - Aplicar ahora lo aplica.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart." xml:space="preserve">
+    <value>1 ajuste guardado espera una reinicialización - Aplicar ahora lo aplica. 1 espera un reinicio del servicio.</value>
+  </data>
+  <data name="1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart." xml:space="preserve">
+    <value>1 ajuste guardado espera una reinicialización - Aplicar ahora lo aplica. {0} esperan un reinicio del servicio.</value>
+  </data>
+  <data name="1 saved setting waits for a service restart." xml:space="preserve">
+    <value>1 ajuste guardado espera un reinicio del servicio.</value>
+  </data>
   <data name="1 security group" xml:space="preserve">
     <value>1 grupo de seguridad</value>
   </data>
@@ -8813,6 +8828,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Lo resuelve el propio servidor, así que se respeta un DNSServer personalizado de hMailServer.INI - aquí es adonde va realmente el correo, algo que un nslookup desde esta estación de trabajo no puede prometer.</value>
   </data>
+  <data name="Restart the ser_vice…" xml:space="preserve">
+    <value>Rei_niciar el servicio…</value>
+  </data>
   <data name="Restart to apply" xml:space="preserve">
     <value>Se aplica tras reiniciar</value>
   </data>
@@ -11448,6 +11466,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The new record has not resolved for the whole propagation period yet. Move signing anyway? Receivers whose resolvers have not caught up fail the new signatures until they do. The record itself must still resolve: the server checks it first either way." xml:space="preserve">
     <value>El registro nuevo aún no se ha resuelto durante todo el período de propagación. ¿Cambiar la firma de todos modos? Los destinatarios cuyos resolvedores no se hayan actualizado harán fallar las firmas nuevas hasta que lo hagan. El registro debe resolverse igualmente: el servidor lo comprueba antes en cualquier caso.</value>
   </data>
+  <data name="The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>La nueva programación solo se aplica cuando se reinicia el servicio hMailServer. ¿Reiniciar el servicio ahora? Todos los clientes conectados al servidor se desconectan mientras se detiene y vuelve a arrancar.</value>
+  </data>
   <data name="The next key was cancelled." xml:space="preserve">
     <value>Se ha cancelado la clave siguiente.</value>
   </data>
@@ -12553,6 +12574,12 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="Waiting for a pooled database connection. 0 = no bound." xml:space="preserve">
     <value>Espera de una conexión de base de datos del pool. 0 = sin límite.</value>
   </data>
+  <data name="Waiting for a reinitialise:" xml:space="preserve">
+    <value>Esperan una reinicialización:</value>
+  </data>
+  <data name="Waiting for a service restart:" xml:space="preserve">
+    <value>Esperan un reinicio del servicio:</value>
+  </data>
   <data name="Waiting for the DNS record" xml:space="preserve">
     <value>Esperando el registro DNS</value>
   </data>
@@ -13578,6 +13605,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="_Require sender address (empty = any)" xml:space="preserve">
     <value>E_xigir dirección de remitente (vacío = cualquiera)</value>
+  </data>
+  <data name="_Restart the service" xml:space="preserve">
+    <value>_Reiniciar el servicio</value>
   </data>
   <data name="_Restore defaults" xml:space="preserve">
     <value>_Restaurar los valores por defecto</value>
@@ -15152,6 +15182,18 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   <data name="{0} saved setting waits for a service restart." xml:space="preserve">
     <value>{0} ajuste guardado espera un reinicio del servicio.</value>
   </data>
+  <data name="{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>{0} ajustes guardados solo se aplican cuando se reinicia el servicio hMailServer. ¿Reiniciar el servicio ahora? Todos los clientes conectados al servidor se desconectan mientras se detiene y vuelve a arrancar.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them." xml:space="preserve">
+    <value>{0} ajustes guardados esperan una reinicialización - Aplicar ahora los aplica.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart." xml:space="preserve">
+    <value>{0} ajustes guardados esperan una reinicialización - Aplicar ahora los aplica. 1 espera un reinicio del servicio.</value>
+  </data>
+  <data name="{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart." xml:space="preserve">
+    <value>{0} ajustes guardados esperan una reinicialización - Aplicar ahora los aplica. {1} esperan un reinicio del servicio.</value>
+  </data>
   <data name="{0} saved settings wait for a reinitialise, and {1} for a service restart." xml:space="preserve">
     <value>{0} ajustes guardados esperan una reinicialización, y {1} un reinicio del servicio.</value>
   </data>
@@ -15307,6 +15349,9 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="{0}, from {1}, score {2}" xml:space="preserve">
     <value>{0}, de {1}, puntuación {2}</value>
+  </data>
+  <data name="{0}, on the {1} page" xml:space="preserve">
+    <value>{0}, en la página {1}</value>
   </data>
   <data name="{0}, {1}, score {2}. {3}" xml:space="preserve">
     <value>{0}, {1}, puntuación {2}. {3}</value>

@@ -143,10 +143,12 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// The pending bar's sentence, or null when nothing waits and the bar is not
-      /// shown. waitingForReinitialize is what the bar's Apply now takes;
-      /// waitingForRestart is said as well, because a reinitialise does not take it
-      /// and an administrator who pressed Apply now and still saw a count would
-      /// otherwise be owed an explanation the bar never gave.
+      /// shown. waitingForReinitialize is what the bar's Apply now takes, and the
+      /// sentence says so; waitingForRestart is said as well, because a reinitialise
+      /// does not take it, and the bar's Restart the service does (review finding
+      /// F010). One whole sentence per case and per count of one, so that every
+      /// language counts its own way, where "{0} saved setting(s)" put the English
+      /// plural ending in brackets after a translated noun.
       /// </summary>
       public static string Banner(int waitingForReinitialize, int waitingForRestart)
       {
@@ -154,15 +156,83 @@ namespace hMailServer.ControlPanel.Services
             return null;
 
          if (waitingForRestart <= 0)
-            return Plural(waitingForReinitialize, "{0} saved setting waits for a reinitialise.", "{0} saved settings wait for a reinitialise.");
+            return waitingForReinitialize == 1
+               ? L("1 saved setting waits for a reinitialise - Apply now takes it.")
+               : F("{0} saved settings wait for a reinitialise - Apply now takes them.", waitingForReinitialize);
 
          if (waitingForReinitialize <= 0)
-            return Plural(waitingForRestart, "{0} saved setting waits for a service restart.", "{0} saved settings wait for a service restart.");
+            return waitingForRestart == 1
+               ? L("1 saved setting waits for a service restart.")
+               : F("{0} saved settings wait for a service restart.", waitingForRestart);
 
-         return PluralF(waitingForReinitialize,
-            "{0} saved setting waits for a reinitialise, and {1} for a service restart.",
-            "{0} saved settings wait for a reinitialise, and {1} for a service restart.",
-            waitingForReinitialize, waitingForRestart);
+         if (waitingForReinitialize == 1)
+            return waitingForRestart == 1
+               ? L("1 saved setting waits for a reinitialise - Apply now takes it. 1 waits for a service restart.")
+               : F("1 saved setting waits for a reinitialise - Apply now takes it. {0} wait for a service restart.", waitingForRestart);
+
+         return waitingForRestart == 1
+            ? F("{0} saved settings wait for a reinitialise - Apply now takes them. 1 waits for a service restart.", waitingForReinitialize)
+            : F("{0} saved settings wait for a reinitialise - Apply now takes them. {1} wait for a service restart.", waitingForReinitialize, waitingForRestart);
+      }
+
+      /// <summary>
+      /// What the pending bar's Restart the service asks before it stops the service:
+      /// how many saved settings wait for it, and what a restart does to the clients
+      /// connected - the question the feature settings pages ask after a save, for
+      /// the settings any page saved.
+      /// </summary>
+      public static string RestartQuestion(int waitingForRestart)
+         => waitingForRestart == 1
+            ? L("1 saved setting takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.")
+            : F("{0} saved settings take effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again.", waitingForRestart);
+
+      /// <summary>
+      /// Which settings the pending bar counts, for its tool tip and its help text:
+      /// one line per setting, under a heading for what it waits for - its caption
+      /// and the page it is on, as the Ctrl+K palette finds it
+      /// (<see cref="SettingsSearchIndex"/>), or its key where no page shows it. The
+      /// bar said how many settings waited and never which. Null when none of them
+      /// carries a mark the bar counts.
+      /// </summary>
+      /// <param name="pending">The keys the server lists as saved and not yet running.</param>
+      /// <param name="markOf">The mark of a key: now, reinitialize or restart.</param>
+      public static string PendingDetail(IEnumerable<string> pending, Func<string, string> markOf)
+      {
+         var reinitialise = new List<string>();
+         var restart = new List<string>();
+         foreach (string key in pending ?? Enumerable.Empty<string>())
+         {
+            string mark = markOf?.Invoke(key);
+            if (mark == Reinitialize)
+               reinitialise.Add(DescribePending(key));
+            else if (mark == Restart)
+               restart.Add(DescribePending(key));
+         }
+
+         var lines = new List<string>();
+         if (reinitialise.Count > 0)
+         {
+            lines.Add(L("Waiting for a reinitialise:"));
+            lines.AddRange(reinitialise);
+         }
+
+         if (restart.Count > 0)
+         {
+            lines.Add(L("Waiting for a service restart:"));
+            lines.AddRange(restart);
+         }
+
+         return lines.Count == 0 ? null : string.Join("\n", lines);
+      }
+
+      /// <summary>A pending key in the reader's words: its caption and its page, or the key itself.</summary>
+      public static string DescribePending(string key)
+      {
+         SettingEntry entry = SettingsSearchIndex.Entries.FirstOrDefault(e => string.Equals(e.Key, key, StringComparison.OrdinalIgnoreCase));
+         if (entry == null)
+            return key ?? "";
+
+         return F("{0}, on the {1} page", L(entry.Label), L(NavigationMap.TitleOf(entry.Page)));
       }
 
       /// <summary>

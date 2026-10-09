@@ -1080,6 +1080,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   page's header would be - "Changes here are saved as you make them, not with the dialog's Save, so Cancel does not
   undo them." A test holds every list built for a dialog's tab to saying so.
 
+- **Fixed: the Control Panel's pending bar had nothing to press for the settings that wait for a service restart,
+  and never said which settings waited.** "2 saved setting(s) wait for a reinitialize, and 1 for a service restart."
+  had one button, Apply now, which takes only the first; afterwards the bar went on saying "1 for a service restart"
+  with nothing to press, though the feature settings pages restart the service after a save themselves. The bar now
+  says what each button takes - "2 saved settings wait for a reinitialise - Apply now takes them. 1 waits for a
+  service restart." - in whole sentences per count in every language, and carries *Restart the service…* beside
+  Apply now while a setting waits for a restart and the Control Panel is signed in to the server on its own machine,
+  the only one it can restart. It asks first, naming how many settings wait and that every connected client is
+  disconnected, with Cancel the answer Enter gives, and runs the restart the feature settings pages use, now one
+  shared flow (`Services/ServiceRestart`). The bar's tool tip and help text name the waiting settings by their
+  captions and pages, under what each waits for. Directory synchronisation offers the same restart beside a saved
+  schedule that waits for one.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the
