@@ -292,9 +292,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       public void AGroupsOrTheCheckedMessagesRelease_AsksFirst_WithCancelOnEnter()
       {
          string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
-         string act = WithheldRowTests.MemberText(page, "private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null)");
+         string act = WithheldRowTests.MemberText(page, "private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null, bool checkedSet = false)");
          Assert.True(act != null, "QuarantineView.Act_ is gone.");
-         Assert.Contains("(ids.Count > 1 || groupTitle != null) && !ConfirmRelease_(ids.Count, groupTitle)", act, StringComparison.Ordinal);
+         Assert.Contains("(checkedSet || groupTitle != null || ids.Count > 1) && !ConfirmRelease_(ids.Count, groupTitle)", act, StringComparison.Ordinal);
+         Assert.Contains("Act_(review_.CheckedIds, \"release\", checkedSet: true)", page, StringComparison.Ordinal);
          string ask = WithheldRowTests.MemberText(page, "private static bool ConfirmRelease_(int count, string groupTitle)");
          Assert.Contains("cancelByDefault: true", ask, StringComparison.Ordinal);
       }

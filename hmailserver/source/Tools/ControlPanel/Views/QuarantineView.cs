@@ -453,7 +453,7 @@ namespace hMailServer.ControlPanel.Views
          list_.Columns.Add(TemplateColumn_(selectAll_, CheckBox_(BoxWidth, new Thickness(0)), new DataGridLength(CheckWidth), null));
 
          var headerActions = new StackPanel { Orientation = Orientation.Horizontal };
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.CheckmarkCircle24, ThemeTokens.Success, false, L("Release the checked messages"), () => Act_(review_.CheckedIds, "release")));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.CheckmarkCircle24, ThemeTokens.Success, false, L("Release the checked messages"), () => Act_(review_.CheckedIds, "release", checkedSet: true)));
          headerActions.Children.Add(HeaderButton_(SymbolRegular.DismissCircle24, ThemeTokens.Danger, false, L("Delete the checked messages"), () => Act_(review_.CheckedIds, "delete")));
          headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Success, false, L("Allow the checked messages' senders, then release"), () => Act_(review_.CheckedIds, "allow")));
          headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Danger, true, L("Block the checked messages' senders, then delete"), () => Act_(review_.CheckedIds, "block")));
@@ -656,7 +656,7 @@ namespace hMailServer.ControlPanel.Views
       /// told 250, so nothing will retry and there is no other copy. Whitelist and
       /// blacklist ask which list, and show what will be written before anything is.
       /// </summary>
-      private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null)
+      private void Act_(IReadOnlyList<int> ids, string action, string groupTitle = null, bool checkedSet = false)
       {
          if (ids == null || ids.Count == 0)
          {
@@ -678,10 +678,10 @@ namespace hMailServer.ControlPanel.Views
                   break;
 
                case "release":
-                  // A group's or the checked messages' release asks first: each is
-                  // delivered at once, and a release cannot be taken back. One
-                  // message's own icon releases that message.
-                  if ((ids.Count > 1 || groupTitle != null) && !ConfirmRelease_(ids.Count, groupTitle))
+                  // A group's or the checked messages' release asks first, however
+                  // many it holds: each is delivered at once, and a release cannot
+                  // be taken back. One message's own icon releases that message.
+                  if ((checkedSet || groupTitle != null || ids.Count > 1) && !ConfirmRelease_(ids.Count, groupTitle))
                      return;
 
                   answer = Bulk_(QuarantineReview.BulkRequest(ids, "release")) ?? OneAtATime_(ids, true);

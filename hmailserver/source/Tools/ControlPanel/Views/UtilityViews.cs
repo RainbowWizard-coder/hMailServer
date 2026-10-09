@@ -446,7 +446,17 @@ namespace hMailServer.ControlPanel.Views
          // The question says how many accounts the message reaches, counted as the
          // server counts them, and asks nothing where it would reach none.
          string wildcard = wildcard_.Text;
-         int? recipients = CountRecipients_(wildcard);
+         int? recipients;
+         System.Windows.Input.Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
+         try
+         {
+            // A read of every account over COM: a large server takes a moment.
+            recipients = CountRecipients_(wildcard);
+         }
+         finally
+         {
+            System.Windows.Input.Mouse.OverrideCursor = null;
+         }
          if (recipients == 0)
          {
             status_.Level = StatusLevel.Warning;
