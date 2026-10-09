@@ -4012,9 +4012,6 @@ Control Panel может читать файлы сообщений только
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Редактируется на других вкладках этого диалога.</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>Изменение {0}</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Изменение {0} — сохранённые изменения вступают в силу в течение двух секунд; перезапуск службы не нужен.</value>
   </data>
@@ -5074,8 +5071,8 @@ Control Panel может читать файлы сообщений только
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Как почта попадает внутрь, куда она отправляется дальше и что происходит с ней по дороге.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>Как пользователи почтовых ящиков подтверждают, кто они: внешние поставщики удостоверений, способ хранения паролей и то, где предлагается SMTP AUTH (hMailServer.INI).</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>Как пользователи почтовых ящиков подтверждают, кто они: внешние поставщики удостоверений, способ хранения паролей и то, где предлагается SMTP AUTH.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Сколько подключений к базе данных сервер держит открытыми и делит между своими рабочими потоками. Увеличивать это значение имеет смысл только тогда, когда потоки заметно ждут подключения, — см. тайм-аут получения подключения к базе данных на странице «Ограничения сервера и экспертные параметры»: именно его они и ждут.</value>
@@ -5119,8 +5116,8 @@ Control Panel может читать файлы сообщений только
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Как сервер использует базу данных, для которой он уже настроен. То, ГДЕ эта база находится, — сервер, имя, учётные данные и тип — задаётся мастером установки и намеренно не редактируется здесь, поскольку неверное значение там не замедлит сервер, а не даст ему запуститься. Вступает в силу после перезапуска службы.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Как этот сервер выполняет запросы MX, PTR, SPF, DKIM, DMARC и списков блокировки (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>Как этот сервер выполняет запросы MX, PTR, SPF, DKIM, DMARC и списков блокировки.</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Я _подтверждаю отмеченные выше изменения.</value>
@@ -7648,8 +7645,8 @@ Control Panel может читать файлы сообщений только
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Исходящая доставка, повторные попытки и ограничение скорости. Сохранение выравнивания SPF для пересылаемой почты (SRS) и пометка возвратных сообщений (BATV) находятся на странице «Транспортная безопасность».</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>Политики аутентификации и шифрования исходящей почты (hMailServer.INI).</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>Политики аутентификации и шифрования исходящей почты.</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Исходящие веб-хуки</value>
@@ -8354,6 +8351,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Прочитано с сервера. Значения перечитываются при каждом открытии этой страницы.</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>Прочитано из {0} на этом компьютере.</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Читать сообщения</value>
@@ -10538,6 +10538,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Хранится в hMailServer.ini на сервере. Полученный с его помощью токен кэшируется в памяти, пока не пройдёт 80 % его времени жизни, и запрашивается заново автоматически.</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>Хранится в базе данных параметров сервера.</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>Хранится в базе данных параметров сервера; параметры, которые по словам карточки хранятся в hMailServer.ini, находятся в {0}.</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>Хранится в защищённом виде и больше никогда не показывается.</value>
   </data>
@@ -11104,8 +11110,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>Тексты отчётов о недоставке и сообщений об ошибках, которые отправляет сервер, — это редактируемые шаблоны.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>Встроенный прослушиватель HTTP, который отдаёт автонастройку для почтовых клиентов и политики MTA-STS для ваших локальных доменов (hMailServer.INI).</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>Встроенный прослушиватель HTTP, который отдаёт автонастройку для почтовых клиентов и политики MTA-STS для ваших локальных доменов.</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Встроенный прослушиватель HTTP: Autodiscover, autoconfig, политика MTA-STS и проверки ACME.</value>
@@ -11880,6 +11886,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер может заметить новый выпуск, проверить его по собственной подписи Sigstore этого выпуска и установить его — по щелчку на странице «Состояние» или самостоятельно внутри заданного вами окна. Выключено, пока вы не включите проверку; проверка не отправляет ничего, кроме самого запроса.</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>Не удалось запросить у сервера эти параметры: {0} На странице показаны значения из hMailServer.ini на этом компьютере, которые могут отличаться от тех, с которыми работает сервер, и ничего нельзя сохранить, пока сервер не ответит.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Сервер не поставил рассылку в очередь. Проверьте шаблон адреса и журнал ошибок hMailServer.</value>

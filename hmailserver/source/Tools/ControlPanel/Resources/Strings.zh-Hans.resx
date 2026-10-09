@@ -3976,9 +3976,6 @@
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>在此对话框的其他选项卡上编辑。</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>正在编辑 {0}</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>正在编辑 {0} - 保存的更改会在两秒钟内生效；无需重启服务。</value>
   </data>
@@ -5020,8 +5017,8 @@
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>邮件如何进入、接下来去哪里，以及途中会发生什么。</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>邮箱用户如何证明自己的身份：外部身份提供方、密码如何存储，以及在哪里提供 SMTP AUTH（hMailServer.INI）。</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>邮箱用户如何证明自己的身份：外部身份提供方、密码如何存储，以及在哪里提供 SMTP AUTH。</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>服务器保持打开并在工作线程之间共享的数据库连接数。只有在线程明显在等待连接时提高它才有帮助 - 请参阅“服务器限制和专家设置”页上的数据库连接获取超时，那正是它们所等待的。</value>
@@ -5065,8 +5062,8 @@
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>服务器如何使用它已经配置好的数据库。该数据库在哪里 - 服务器、名称、凭据和类型 - 由安装向导设置，并且有意不在此处提供编辑，因为那里的错误值会让服务器无法启动，而不仅仅是变慢。在重启服务后生效。</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和拦截列表查询（hMailServer.INI）。</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和拦截列表查询。</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>我确认上面标出的更改(_C)</value>
@@ -7570,8 +7567,8 @@
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>出站投递、重试和限速。让转发邮件保持 SPF 对齐（SRS）和退信标记（BATV）在“传输安全”页。</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>出站邮件身份验证和加密策略（hMailServer.INI）。</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>出站邮件身份验证和加密策略。</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>传出 Webhook</value>
@@ -8276,6 +8273,9 @@
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>读取自服务器。每次打开本页时都会重新读取这些值。</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>从此计算机上的 {0} 读取。</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>读取邮件</value>
@@ -10425,6 +10425,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>存储在服务器上的 hMailServer.ini 中。它获取的令牌会缓存在内存中，直到其生命周期过去 80%，然后自动重新获取。</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>存储在服务器的设置数据库中。</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>存储在服务器的设置数据库中；卡片上说明保存在 hMailServer.ini 中的设置位于 {0}。</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>受保护存储，且不会再次显示。</value>
   </data>
@@ -10988,8 +10994,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>服务器发送的退信和错误文本是可编辑的模板。</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>为本地域提供邮件客户端自动配置和 MTA-STS 策略的内置 HTTP 监听器 (hMailServer.INI)。</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>为本地域提供邮件客户端自动配置和 MTA-STS 策略的内置 HTTP 监听器。</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>内置 HTTP 监听器: Autodiscover、autoconfig、MTA-STS 策略和 ACME 质询。</value>
@@ -11734,6 +11740,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>无法向服务器查询这些设置：{0} 此页面显示的是此计算机上 hMailServer.ini 中的值，可能与服务器实际运行的值不同，在服务器响应之前无法保存任何内容。</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>服务器没有将群发排入队列。请检查地址通配符和 hMailServer 错误日志。</value>

@@ -3976,9 +3976,6 @@
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>このダイアログのほかのタブで編集します。</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>{0} を編集中</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} を編集中 - 保存した変更は 2 秒以内に反映されます。サービスの再起動は不要です。</value>
   </data>
@@ -5020,8 +5017,8 @@
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>メールがどのように入ってきて、次にどこへ向かい、その途中で何が起きるか。</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>メールボックス ユーザーが自分を証明する方法: 外部の ID プロバイダー、パスワードの保存方法、SMTP AUTH を提供する場所 (hMailServer.INI)。</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>メールボックス ユーザーが自分を証明する方法: 外部の ID プロバイダー、パスワードの保存方法、SMTP AUTH を提供する場所。</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>サーバーが開いたままにしてワーカー スレッド間で共有するデータベース接続の数。引き上げて効果があるのは、スレッドが接続を明らかに待っている場合だけです。サーバーの制限と上級者向け設定ページにあるデータベース接続取得タイムアウトを参照してください。スレッドが待っているのはそれです。</value>
@@ -5065,8 +5062,8 @@
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>すでに設定されているデータベースをサーバーがどう使うか。そのデータベースが「どこにあるか」(サーバー、名前、資格情報、種類) はインストール ウィザードが設定するもので、ここでは意図的に編集できません。そこでの誤った値はサーバーを遅くするのではなく、起動できなくするからです。サービスの再起動後に適用されます。</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>このサーバーが MX、PTR、SPF、DKIM、DMARC、ブロック リストの参照をどう解決するか (hMailServer.INI)。</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>このサーバーが MX、PTR、SPF、DKIM、DMARC、ブロック リストの参照をどう解決するか。</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>上で印の付いた変更を確認します(_C)</value>
@@ -7570,8 +7567,8 @@
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>送信配信、再試行、スロットリング。転送メールの SPF アライメントを保つ SRS と、バウンスへのタグ付け (BATV) は「トランスポート セキュリティ」ページにあります。</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>送信メールの認証と暗号化のポリシー (hMailServer.INI)。</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>送信メールの認証と暗号化のポリシー。</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>送信 Webhook</value>
@@ -8276,6 +8273,9 @@
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>サーバーから読み取りました。値はこのページを開くたびに読み取り直されます。</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>このコンピューターの {0} から読み取りました。</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>メッセージを読み取り</value>
@@ -10425,6 +10425,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>サーバー上の hMailServer.ini に保存されます。取得したトークンは有効期間の 80% が経過するまでメモリにキャッシュされ、自動的に再取得されます。</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>サーバーの設定データベースに保存されています。</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>サーバーの設定データベースに保存されています。カードに hMailServer.ini に保存すると書かれている設定は {0} にあります。</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>保護して保存され、二度と表示されません。</value>
   </data>
@@ -10988,8 +10994,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>サーバーが送信するバウンスとエラーのテキストは編集可能なテンプレートです。</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>ローカル ドメイン向けにメール クライアントの自動設定と MTA-STS ポリシーを提供する組み込み HTTP リスナー (hMailServer.INI)。</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>ローカル ドメイン向けにメール クライアントの自動設定と MTA-STS ポリシーを提供する組み込み HTTP リスナー。</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>組み込み HTTP リスナー: Autodiscover、autoconfig、MTA-STS ポリシー、ACME チャレンジ。</value>
@@ -11734,6 +11740,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、ステータス ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>これらの設定をサーバーに問い合わせられませんでした: {0} このページには、このコンピューターの hMailServer.ini の値を表示しています。サーバーが実際に使っている値と異なる場合があり、サーバーが応答するまで何も保存できません。</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>サーバーは一斉送信をキューに入れませんでした。アドレスのワイルドカードと hMailServer のエラー ログを確認してください。</value>

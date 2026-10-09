@@ -3976,9 +3976,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Redigeres på dialogens andre faner.</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>Redigerer {0}</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Redigerer {0} - gemte ændringer er aktive inden for to sekunder; ingen genstart af tjenesten.</value>
   </data>
@@ -5020,8 +5017,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Hvordan post kommer ind, hvor den går hen derefter, og hvad der sker med den undervejs.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>Hvordan postkassebrugere beviser, hvem de er: eksterne identitetsudbydere, hvordan adgangskoder gemmes, og hvor SMTP AUTH tilbydes (hMailServer.INI).</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>Hvordan postkassebrugere beviser, hvem de er: eksterne identitetsudbydere, hvordan adgangskoder gemmes, og hvor SMTP AUTH tilbydes.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Hvor mange databaseforbindelser serveren holder åbne og deler mellem sine worker-tråde. At hæve tallet hjælper kun, når tråde synligt venter på en forbindelse – se timeouten for at få en databaseforbindelse på siden Servergrænser og ekspertindstillinger, som er det, de venter på.</value>
@@ -5065,8 +5062,8 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Hvordan serveren bruger den database, den allerede er konfigureret til. Hvor den database ER – serveren, navnet, legitimationsoplysningerne og typen – sættes op af installationsguiden og kan med vilje ikke redigeres her, fordi en forkert værdi dér forhindrer serveren i at starte frem for at gøre den langsommere. Gælder efter en genstart af tjenesten.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og blokeringslister op (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>Hvordan denne server slår MX, PTR, SPF, DKIM, DMARC og blokeringslister op.</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Jeg be_kræfter ændringerne markeret ovenfor.</value>
@@ -7570,8 +7567,8 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Udgående levering, genforsøg og begrænsning. At holde videresendt post SPF-aligned (SRS) og bounce-mærkning (BATV) findes på siden Transportsikkerhed.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>Politikker for godkendelse og kryptering af udgående post (hMailServer.INI).</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>Politikker for godkendelse og kryptering af udgående post.</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Udgående webhooks</value>
@@ -8276,6 +8273,9 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Læst fra serveren. Værdierne læses igen, hver gang denne side åbnes.</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>Læst fra {0} på denne computer.</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Læs meddelelser</value>
@@ -10425,6 +10425,12 @@ Genstart den nu?</value>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Gemmes i hMailServer.ini på serveren. Det token, den køber, caches i hukommelsen, indtil 80 % af dets levetid er gået, og hentes automatisk igen.</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>Gemt i serverens indstillingsdatabase.</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>Gemt i serverens indstillingsdatabase; de indstillinger, som et kort siger ligger i hMailServer.ini, findes i {0}.</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>Gemmes beskyttet og vises aldrig igen.</value>
   </data>
@@ -10988,8 +10994,8 @@ Den næste besked til adressen bliver sendt, og den kommer først på listen ige
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>De afvisnings- og fejltekster, serveren sender, er redigerbare skabeloner.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>Den indbyggede HTTP-lytter, der serverer mailklient-autokonfiguration og MTA-STS-politikker for dine lokale domæner (hMailServer.INI).</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>Den indbyggede HTTP-lytter, der serverer mailklient-autokonfiguration og MTA-STS-politikker for dine lokale domæner.</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Den indbyggede HTTP-lytter: Autodiscover, autoconfig, MTA-STS-politikken og ACME-udfordringer.</value>
@@ -11734,6 +11740,9 @@ Tilføj alligevel?</value>
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Serveren kan opdage en ny udgivelse, verificere den mod udgivelsens egen Sigstore-signatur og installere den – med et klik på statussiden eller på egen hånd inden for et vindue, du angiver. Slået fra, indtil du slår kontrollen til; kontrollen sender intet andet end forespørgslen.</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>Serveren kunne ikke spørges om disse indstillinger: {0} Siden viser værdierne i hMailServer.ini på denne computer, som kan afvige fra det, serveren kører med, og intet kan gemmes, før serveren svarer.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Serveren satte ikke udsendelsen i kø. Kontrollér adressejokertegnet og hMailServers fejllog.</value>

@@ -3976,9 +3976,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Bu iletişim kutusunun diğer sekmelerinde düzenlenir.</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>{0} düzenleniyor</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>{0} düzenleniyor - kaydedilen değişiklikler iki saniye içinde geçerli olur; hizmetin yeniden başlatılması gerekmez.</value>
   </data>
@@ -5020,8 +5017,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Postanın nasıl girdiği, sonra nereye gittiği ve yolda ona ne olduğu.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>Posta kutusu kullanıcılarının kim olduklarını nasıl kanıtladığı: dış kimlik sağlayıcıları, parolaların nasıl saklandığı ve SMTP AUTH'un nerede sunulduğu (hMailServer.INI).</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>Posta kutusu kullanıcılarının kim olduklarını nasıl kanıtladığı: dış kimlik sağlayıcıları, parolaların nasıl saklandığı ve SMTP AUTH'un nerede sunulduğu.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Sunucunun kaç veritabanı bağlantısını açık tutup işçi iş parçacıkları arasında paylaştırdığı. Artırmak yalnızca iş parçacıkları gözle görülür biçimde bağlantı beklediğinde yardımcı olur - bekledikleri şey, Sunucu sınırları ve uzman ayarları sayfasındaki veritabanı bağlantısı edinme zaman aşımıdır; ona bakın.</value>
@@ -5065,8 +5062,8 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Sunucunun zaten yapılandırılmış olduğu veritabanını nasıl kullandığı. O veritabanının NEREDE olduğu - sunucu, ad, kimlik bilgileri ve tür - kurulum sihirbazı tarafından ayarlanır ve burada bilinçli olarak düzenlenemez, çünkü oradaki yanlış bir değer sunucuyu yavaşlatmak yerine başlamasını engeller. Hizmet yeniden başlatıldıktan sonra uygulanır.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Bu sunucunun MX, PTR, SPF, DKIM, DMARC ve engelleme listesi aramalarını nasıl çözdüğü (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>Bu sunucunun MX, PTR, SPF, DKIM, DMARC ve engelleme listesi aramalarını nasıl çözdüğü.</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Yukarıda işaretli değişiklikleri _onaylıyorum.</value>
@@ -7570,8 +7567,8 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Giden teslim, yeniden denemeler ve kısıtlama. İletilen postayı SPF ile hizalı tutmak (SRS) ve geri dönme etiketleme (BATV) Taşıma güvenliği sayfasındadır.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>Giden posta kimlik doğrulama ve şifreleme ilkeleri (hMailServer.INI).</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>Giden posta kimlik doğrulama ve şifreleme ilkeleri.</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Giden webhook'lar</value>
@@ -8276,6 +8273,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Sunucudan okundu. Değerler bu sayfa her açıldığında yeniden okunur.</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>Bu bilgisayardaki {0} dosyasından okundu.</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>İletileri okuma</value>
@@ -10425,6 +10425,12 @@ Devam edilsin mi?</value>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Sunucudaki hMailServer.ini'de saklanır. Satın aldığı belirteç, ömrünün %80'i geçene kadar bellekte önbelleğe alınır ve otomatik olarak yeniden getirilir.</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>Sunucunun ayar veritabanında saklanır.</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>Sunucunun ayar veritabanında saklanır; bir kartın hMailServer.ini dosyasında tutulduğunu söylediği ayarlar {0} içindedir.</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>Korumalı olarak saklanır ve bir daha asla gösterilmez.</value>
   </data>
@@ -10988,8 +10994,8 @@ Bu adrese giden bir sonraki ileti gönderilir; adres ancak eşik değerin gerekt
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>Sunucunun gönderdiği geri dönme ve hata metinleri düzenlenebilir şablonlardır.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>Yerel etki alanlarınız için posta istemcisi otomatik yapılandırmasını ve MTA-STS ilkelerini sunan yerleşik HTTP dinleyicisi (hMailServer.INI).</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>Yerel etki alanlarınız için posta istemcisi otomatik yapılandırmasını ve MTA-STS ilkelerini sunan yerleşik HTTP dinleyicisi.</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Yerleşik HTTP dinleyicisi: Autodiscover, autoconfig, MTA-STS ilkesi ve ACME doğrulamaları.</value>
@@ -11734,6 +11740,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Sunucu yeni bir sürümü fark edebilir, onu sürümün kendi Sigstore imzasına karşı doğrulayabilir ve uygulayabilir - Durum sayfasındaki bir tıklamayla ya da belirlediğiniz bir pencerenin içinde kendi başına. Denetimi açana kadar kapalıdır; denetim, istekten başka hiçbir şey göndermez.</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>Bu ayarlar sunucuya sorulamadı: {0} Sayfa, bu bilgisayardaki hMailServer.ini dosyasındaki değerleri gösteriyor; bunlar sunucunun kullandıklarından farklı olabilir ve sunucu yanıt verene kadar hiçbir şey kaydedilemez.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Sunucu toplu gönderimi kuyruğa almadı. Adres joker karakterini ve hMailServer hata günlüğünü denetleyin.</value>

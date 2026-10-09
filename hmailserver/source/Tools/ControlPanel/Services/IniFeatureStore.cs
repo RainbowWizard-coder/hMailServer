@@ -421,7 +421,10 @@ namespace hMailServer.ControlPanel.Services
             {
                // An older server without these members, or a session that has gone
                // away. Fall through to the file, which on the server itself is a
-               // complete copy written by the server.
+               // complete copy written by the server - and remember that this was a
+               // fall-back, and why, so that the page can say its values are the
+               // file's and may not be what the server runs (FallbackCause).
+               FallbackCause ??= fatalCheck;
             }
          }
 
@@ -430,6 +433,21 @@ namespace hMailServer.ControlPanel.Services
 
          return defaultValue;
       }
+
+      /// <summary>
+      /// Why a read since the last <see cref="ForgetFallback"/> fell back from the
+      /// server to hMailServer.ini on this computer - the first failure of the COM
+      /// read, which a page puts in words - or null when every read the server was
+      /// asked for answered. A page that shows values read this way says they are
+      /// the file's: the file is the server's cache of its settings store, and may
+      /// differ from what the running server uses, and a save needs the server.
+      /// Before, a lost link left the page looking as it always did, with Save
+      /// enabled and, on API &amp; monitoring, a port of 0.
+      /// </summary>
+      public Exception FallbackCause { get; private set; }
+
+      /// <summary>Starts a new count of fall-backs: a page calls it before it reads its values again.</summary>
+      public void ForgetFallback() => FallbackCause = null;
 
       public bool ReadBool(string key, bool defaultValue)
          => Read(key, defaultValue ? "1" : "0").Trim() == "1";

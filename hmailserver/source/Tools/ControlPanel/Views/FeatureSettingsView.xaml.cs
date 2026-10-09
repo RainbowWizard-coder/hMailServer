@@ -1726,7 +1726,7 @@ namespace hMailServer.ControlPanel.Views
          {
             case Section.Security:
                Header.Title = L("Transport security");
-               Header.Subtitle = L("Outbound mail authentication and encryption policies (hMailServer.INI).");
+               Header.Subtitle = L("Outbound mail authentication and encryption policies.");
                cards_.Add(new CardDef
                {
                   Title = L("DANE & DNSSEC"),
@@ -2710,7 +2710,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.Authentication:
                Header.Title = L("Authentication");
-               Header.Subtitle = L("How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI).");
+               Header.Subtitle = L("How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered.");
                cards_.Add(new CardDef
                {
                   Title = L("OAuth2 / external identity provider"),
@@ -2817,7 +2817,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.Dns:
                Header.Title = L("DNS resolver");
-               Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI).");
+               Header.Subtitle = L("How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups.");
                cards_.Add(new CardDef
                {
                   Title = L("Name servers"),
@@ -2855,7 +2855,7 @@ namespace hMailServer.ControlPanel.Views
 
             case Section.WebServices:
                Header.Title = L("Web services & client autoconfiguration");
-               Header.Subtitle = L("The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI).");
+               Header.Subtitle = L("The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains.");
                cards_.Add(new CardDef
                {
                   Title = L("Listener"),
@@ -2953,6 +2953,7 @@ namespace hMailServer.ControlPanel.Views
       {
          CardsPanel.Children.Clear();
          warningRows_.Clear();
+         store_.ForgetFallback();
 
          AssignAccessibleNames();
 
@@ -3008,8 +3009,31 @@ namespace hMailServer.ControlPanel.Views
 
          RefreshWarnings_();
 
-         PathText.Text = F("Editing {0}", store_.IniPath);
          PathText.Visibility = Visibility.Visible;
+
+         // The server could not be asked, and the values on screen are the ones in
+         // hMailServer.ini on this computer: the server's cache of its settings
+         // store, which may not be what it runs. Said, as a Warning beside a pill
+         // that says Not connected, and Save waits for the server, which every
+         // write needs - where the page looked as it always did, Save and all.
+         if (store_.FallbackCause != null)
+         {
+            PathText.Text = F("Read from {0} on this computer.", store_.IniPath);
+            SaveButton.IsEnabled = false;
+            SetState_(SettingsPageState.NotConnected,
+               F("The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers.",
+                  ServerSession.DescribeComError(store_.FallbackCause)),
+               StatusLevel.Warning);
+            return;
+         }
+
+         // Since schema 6042 the settings store is the database and the file its
+         // cache: the page edits the store. A card that keeps its settings in a
+         // section of the file of their own - the per-account sending limits - says
+         // so in its own words, and the line names the file for it.
+         PathText.Text = cards_.SelectMany(card => card.Settings).Any(setting => setting is SectionTextSetting or SectionLinesSetting)
+            ? F("Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}.", store_.IniPath)
+            : L("Stored in the server's settings database.");
          SaveButton.IsEnabled = true;
          SetState_(SettingsPageState.Clean, null);
       }
@@ -3134,6 +3158,12 @@ namespace hMailServer.ControlPanel.Views
       private bool Save_()
       {
          if (!store_.IsAvailable)
+            return false;
+
+         // Values read from the file when the server could not be asked are not
+         // written back over what the server holds: the notice says why, and the
+         // question before leaving the page, whose Save comes here, stays on it.
+         if (store_.FallbackCause != null)
             return false;
 
          // A secret given a new value and ticked for removal both: refused before

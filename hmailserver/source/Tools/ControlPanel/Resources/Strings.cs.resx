@@ -4012,9 +4012,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Upravuje se na ostatních kartách tohoto dialogu.</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>Úprava {0}</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Úprava {0} - uložené změny jsou živé do dvou sekund; bez restartu služby.</value>
   </data>
@@ -5074,8 +5071,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Jak se pošta dostane dovnitř, kam jde dál a co se s ní cestou děje.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>Jak uživatelé schránek prokazují, kdo jsou: externí poskytovatelé identity, jak se ukládají hesla a kde se nabízí SMTP AUTH (hMailServer.INI).</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>Jak uživatelé schránek prokazují, kdo jsou: externí poskytovatelé identity, jak se ukládají hesla a kde se nabízí SMTP AUTH.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Kolik databázových spojení server drží otevřených a sdílí mezi pracovními vlákny. Zvýšení pomůže jen tehdy, když vlákna viditelně čekají na spojení - viz timeout získání databázového spojení na stránce Limity serveru a expertní nastavení, což je to, na co čekají.</value>
@@ -5119,8 +5116,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Jak server používá databázi, pro kterou je už nakonfigurován. Kde ta databáze JE - server, název, přihlašovací údaje a typ - nastavuje instalační průvodce a zde to záměrně nelze upravit, protože špatná hodnota tam server zastaví, místo aby ho zpomalila. Projeví se po restartu služby.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Jak tento server řeší dotazy MX, PTR, SPF, DKIM, DMARC a blokovacích seznamů (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>Jak tento server řeší dotazy MX, PTR, SPF, DKIM, DMARC a blokovacích seznamů.</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Po_tvrzuji změny označené výše.</value>
@@ -7648,8 +7645,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Odchozí doručování, opakované pokusy a omezování toku. Zachování zarovnání SPF u přeposílané pošty (SRS) a značkování bounce zpráv (BATV) jsou na stránce Transportní zabezpečení.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>Politiky ověřování a šifrování odchozí pošty (hMailServer.INI).</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>Politiky ověřování a šifrování odchozí pošty.</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Odchozí webhooky</value>
@@ -8354,6 +8351,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Načteno ze serveru. Hodnoty se načítají znovu při každém otevření této stránky.</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>Načteno z {0} na tomto počítači.</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Číst zprávy</value>
@@ -10538,6 +10538,12 @@ Restartovat ji nyní?</value>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Ukládá se do hMailServer.ini na serveru. Token, který se tím získá, se drží v paměti, dokud neuplyne 80 % jeho životnosti, a poté se automaticky stáhne znovu.</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>Uloženo v databázi nastavení serveru.</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>Uloženo v databázi nastavení serveru; nastavení, o kterých karta uvádí, že jsou v hMailServer.ini, jsou v {0}.</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>Ukládá se chráněně a už se nikdy nezobrazí.</value>
   </data>
@@ -11104,8 +11110,8 @@ Příští zpráva na tuto adresu bude odeslána a na seznam se adresa vrátí a
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>Texty nedoručenek a chyb, které server odesílá, jsou upravitelné šablony.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>Vestavěný HTTP listener, který poskytuje automatickou konfiguraci poštovních klientů a politiky MTA-STS pro vaše místní domény (hMailServer.INI).</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>Vestavěný HTTP listener, který poskytuje automatickou konfiguraci poštovních klientů a politiky MTA-STS pro vaše místní domény.</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Vestavěný HTTP listener: Autodiscover, autoconfig, politika MTA-STS a výzvy ACME.</value>
@@ -11880,6 +11886,9 @@ Přesto přidat?</value>
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je – kliknutím na stránce Stav, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>Server se na tato nastavení nepodařilo zeptat: {0} Stránka ukazuje hodnoty z hMailServer.ini na tomto počítači, které se mohou lišit od toho, s čím server běží, a nic nelze uložit, dokud server neodpoví.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Server hromadné odeslání nezařadil do fronty. Zkontrolujte zástupný znak adresy a log chyb hMailServeru.</value>

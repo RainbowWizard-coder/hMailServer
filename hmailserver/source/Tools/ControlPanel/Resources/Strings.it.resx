@@ -3976,9 +3976,6 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Si modifica nelle altre schede di questa finestra.</value>
   </data>
-  <data name="Editing {0}" xml:space="preserve">
-    <value>Modifica di {0}</value>
-  </data>
   <data name="Editing {0} - saved changes are live within two seconds; no service restart." xml:space="preserve">
     <value>Modifica di {0} - le modifiche salvate sono attive entro due secondi; nessun riavvio del servizio.</value>
   </data>
@@ -5020,8 +5017,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="How mail gets in, where it goes next, and what happens to it on the way." xml:space="preserve">
     <value>Come la posta entra, dove va poi, e cosa le succede lungo il percorso.</value>
   </data>
-  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered (hMailServer.INI)." xml:space="preserve">
-    <value>Come gli utenti delle caselle dimostrano la propria identità: provider di identità esterni, come vengono memorizzate le password e dove viene offerto AUTH su SMTP (hMailServer.INI).</value>
+  <data name="How mailbox users prove who they are: external identity providers, how passwords are stored, and where SMTP AUTH is offered." xml:space="preserve">
+    <value>Come gli utenti delle caselle dimostrano la propria identità: provider di identità esterni, come vengono memorizzate le password e dove viene offerto AUTH su SMTP.</value>
   </data>
   <data name="How many database connections the server keeps open and shares between its worker threads. Raising it helps only when threads are visibly waiting for a connection - see the database connection acquire timeout on the Server limits &amp; expert settings page, which is what they are waiting on." xml:space="preserve">
     <value>Quante connessioni al database il server tiene aperte e condivide fra i suoi thread di lavoro. Alzarlo aiuta solo quando i thread sono visibilmente in attesa di una connessione - vedi il timeout di acquisizione di una connessione al database nella pagina Limiti del server e impostazioni avanzate, che è ciò che stanno aspettando.</value>
@@ -5065,8 +5062,8 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="How the server uses the database it is already configured for. Where that database IS - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Come il server usa il database per cui è già configurato. DOVE si trovi quel database - server, nome, credenziali e tipo - viene impostato dalla procedura guidata di installazione e volutamente non è modificabile qui, perché un valore sbagliato lì impedisce al server di avviarsi invece di renderlo più lento. Si applica dopo un riavvio del servizio.</value>
   </data>
-  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups (hMailServer.INI)." xml:space="preserve">
-    <value>Come questo server risolve le ricerche MX, PTR, SPF, DKIM, DMARC e di liste di blocco (hMailServer.INI).</value>
+  <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
+    <value>Come questo server risolve le ricerche MX, PTR, SPF, DKIM, DMARC e di liste di blocco.</value>
   </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>_Confermo le modifiche segnate sopra.</value>
@@ -7570,8 +7567,8 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Outbound delivery, retries and throttling. Keeping forwarded mail SPF-aligned (SRS) and bounce tagging (BATV) are on the Transport security page." xml:space="preserve">
     <value>Consegna in uscita, nuovi tentativi e limitazione della frequenza. Mantenere la posta inoltrata allineata a SPF (SRS) e l'etichettatura dei bounce (BATV) si trovano nella pagina Sicurezza del trasporto.</value>
   </data>
-  <data name="Outbound mail authentication and encryption policies (hMailServer.INI)." xml:space="preserve">
-    <value>Criteri di autenticazione e cifratura per la posta in uscita (hMailServer.INI).</value>
+  <data name="Outbound mail authentication and encryption policies." xml:space="preserve">
+    <value>Criteri di autenticazione e cifratura per la posta in uscita.</value>
   </data>
   <data name="Outbound webhooks" xml:space="preserve">
     <value>Webhook in uscita</value>
@@ -8276,6 +8273,9 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   </data>
   <data name="Read from the server. Values are read again every time this page is opened." xml:space="preserve">
     <value>Letto dal server. I valori vengono riletti ogni volta che questa pagina viene aperta.</value>
+  </data>
+  <data name="Read from {0} on this computer." xml:space="preserve">
+    <value>Letto da {0} su questo computer.</value>
   </data>
   <data name="Read messages" xml:space="preserve">
     <value>Leggi i messaggi</value>
@@ -10425,6 +10425,12 @@ Riavviarlo ora?</value>
   <data name="Stored in hMailServer.ini on the server. The token it buys is cached in memory until 80% of its lifetime has passed and refetched automatically." xml:space="preserve">
     <value>Memorizzato in hMailServer.ini sul server. Il token che si ottiene con esso resta in cache in memoria finché non è trascorso l'80% della sua durata, poi viene riscaricato automaticamente.</value>
   </data>
+  <data name="Stored in the server's settings database." xml:space="preserve">
+    <value>Memorizzato nel database delle impostazioni del server.</value>
+  </data>
+  <data name="Stored in the server's settings database; the settings a card says are kept in hMailServer.ini are in {0}." xml:space="preserve">
+    <value>Memorizzato nel database delle impostazioni del server; le impostazioni che una scheda indica come conservate in hMailServer.ini si trovano in {0}.</value>
+  </data>
   <data name="Stored protected and never shown again." xml:space="preserve">
     <value>Conservato protetto e mai più mostrato.</value>
   </data>
@@ -10988,8 +10994,8 @@ Il prossimo messaggio a questo indirizzo verrà inviato, e tornerà in lista sol
   <data name="The bounce and error texts the server sends are editable templates." xml:space="preserve">
     <value>I testi di mancato recapito e di errore che il server invia sono modelli modificabili.</value>
   </data>
-  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains (hMailServer.INI)." xml:space="preserve">
-    <value>Il listener HTTP integrato che serve la configurazione automatica dei client di posta e i criteri MTA-STS per i tuoi domini locali (hMailServer.INI).</value>
+  <data name="The built-in HTTP listener that serves mail-client autoconfiguration and MTA-STS policies for your local domains." xml:space="preserve">
+    <value>Il listener HTTP integrato che serve la configurazione automatica dei client di posta e i criteri MTA-STS per i tuoi domini locali.</value>
   </data>
   <data name="The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges." xml:space="preserve">
     <value>Il listener HTTP integrato: Autodiscover, autoconfig, il criterio MTA-STS e le challenge ACME.</value>
@@ -11734,6 +11740,9 @@ Aggiungerlo comunque?</value>
   </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Il server può accorgersi di una nuova versione, verificarla con la firma Sigstore della versione stessa e installarla - con un clic nella pagina Stato, oppure da solo all'interno di una finestra che imposti tu. È disattivato finché non attivi il controllo; il controllo non invia nulla oltre alla richiesta.</value>
+  </data>
+  <data name="The server could not be asked for these settings: {0} The page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers." xml:space="preserve">
+    <value>Non è stato possibile chiedere al server queste impostazioni: {0} La pagina mostra i valori di hMailServer.ini su questo computer, che possono differire da quelli con cui gira il server, e non si può salvare nulla finché il server non risponde.</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Il server non ha accodato l'invio. Controllare il carattere jolly dell'indirizzo e il registro errori di hMailServer.</value>
