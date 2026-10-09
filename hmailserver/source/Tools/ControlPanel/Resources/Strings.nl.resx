@@ -4297,11 +4297,20 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Voer eerst een hostnaam en poort in.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Voer een naam voor het certificaat in.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Voer een naam in voor de nieuwe regel.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Voer een naam voor het bereik in.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Voer een wachtwoord in of druk op Genereren.</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Voer een poort van 1 tot 65535 in, of laat het vak leeg voor de automatische poort.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Voer eerst een rapportpostvak in - een record zonder echt rua=-postvak vraagt om niets.</value>
@@ -4315,8 +4324,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Voer een geldig poortnummer in.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Voer een geheel aantal seconden van 1 tot 90 in.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Voer een geheel getal in.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Voer een geheel getal in; het hoogste getal wint.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Voer een adres in en zoek. De tracering legt niets vast totdat berichttracering wordt ingeschakeld op de pagina Logboekregistratie – standaard staat deze uit omdat ze opslaat wie met wie correspondeert.</value>
@@ -4345,14 +4360,26 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter the list's address." xml:space="preserve">
     <value>Voer het adres van de lijst in.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Voer het laagste adres van het bereik in, zoals 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Voer de wachtwoordzin in waarmee het archief versleuteld moet worden, en typ hem hieronder nog eens.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Voer het pad van het certificaatbestand in, of kies het bestand met de knop … naast het vak.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Voer het pad van het privésleutelbestand in, of kies het bestand met de knop … naast het vak.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Voer eerst het scannercommando in.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Voer het wachtwoord van het serviceaccount in</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Voer het bovenste adres van het bereik in, zoals 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Geef aan waar de alias bezorgt.</value>
@@ -6663,9 +6690,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Noem het archief zoals de back-upbestemming het toont (HMBackup YYYY-MM-DD HHMMSS.7z), of met zijn pad binnen de bestemming.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Naam, certificaatbestand en privésleutelbestand zijn verplicht.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Naam, laagste IP en hoogste IP zijn verplicht.</value>
@@ -12482,6 +12506,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>De update is gestopt; er is niets geïnstalleerd.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Het bovenste adres moet van dezelfde soort zijn als het laagste: beide IPv4 of beide IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Het bovenste adres mag niet lager zijn dan het laagste.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Bij de gebruikersnaam worden omringende spaties weggehaald; bij het wachtwoord bewust niet, omdat witruimte binnen een wachtwoord legitiem is.</value>
   </data>
@@ -12653,8 +12683,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Deze sleutel kan dingen wijzigen en verwijderen. Verloopt {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Dit sleutelbestand is versleuteld (beveiligd met een wachtwoordzin). Voer de wachtwoordzin hieronder in voordat u het toevoegt, anders laadt de sleutel niet (serverfout 6170) en starten de TLS-poorten die dit certificaat gebruiken niet.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Dit sleutelbestand is versleuteld (beveiligd met een wachtwoordzin). Voer de wachtwoordzin in bij Wachtwoordzin van de sleutel voordat u het toevoegt, anders laadt de sleutel niet (serverfout 6170) en starten de TLS-poorten die dit certificaat gebruiken niet.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Deze postbus kan op dit moment niet worden verplaatst: {0}</value>

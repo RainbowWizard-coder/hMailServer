@@ -81,6 +81,11 @@ namespace hMailServer.ControlPanel.Views
       private readonly ComboBox security_ = new();
       private readonly CheckBox verifyCertificate_ = new();
       private readonly Wpf.Ui.Controls.TextBox timeout_ = new();
+
+      // The port's and the timeout's rows, which say a refused value on the box
+      // as well as in the notice under the header (review finding F129).
+      private FieldRow portRow_;
+      private FieldRow timeoutRow_;
       private readonly ComboBox bindMethod_ = new();
       private readonly CheckBox allowUnprotected_ = new();
       private readonly Wpf.Ui.Controls.TextBox searchBase_ = new();
@@ -411,7 +416,7 @@ namespace hMailServer.ControlPanel.Views
             L("Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address."),
             placeholder: "dc01.example.local"));
 
-         content.Children.Add(LabelledBox_(L("_Port (Port)"), port_, "ldap-port",
+         content.Children.Add(portRow_ = LabelledBox_(L("_Port (Port)"), port_, "ldap-port",
             L("Leave empty (or 0) for automatic: 636 when the connection security is LDAPS, 389 otherwise. The port is derived from the security setting so that choosing LDAPS and forgetting the port cannot attempt TLS against the cleartext port, which fails in a way that looks like a certificate problem."),
             placeholder: L("Automatic - 636 for LDAPS, 389 otherwise")));
 
@@ -426,7 +431,7 @@ namespace hMailServer.ControlPanel.Views
             "ldap-verify-certificate",
             L("On by default, and only an explicit 0 in the INI turns it off. Turned off, the encrypted connection no longer proves it reaches YOUR directory: anyone who can intercept it can present any certificate and collect every password sent over it. The server notes the disabling in its application log once per service start. Only meaningful for LDAPS and StartTLS.")));
 
-         content.Children.Add(LabelledBox_(L("Time_out in seconds (TimeoutSeconds)"), timeout_, "ldap-timeout",
+         content.Children.Add(timeoutRow_ = LabelledBox_(L("Time_out in seconds (TimeoutSeconds)"), timeout_, "ldap-timeout",
             L("Default 10, allowed range 1 to 90. The server reads values below 1 as 10 and clamps values above 90, because \"wait forever\" for an unreachable directory is how connection threads get exhausted."),
             placeholder: "10"));
 
@@ -842,15 +847,20 @@ namespace hMailServer.ControlPanel.Views
          // goes as its cause is put right - the port in range, the password cleared or
          // the box unticked - though another edit is still unsaved: it stayed saying
          // "Port must be between 0 and 65535." over 636 until the next save.
+         // The box at fault says it too, with the keyboard put in it, where only
+         // the notice did (review finding F129).
+         DialogFields.ClearErrors(portRow_, timeoutRow_);
          if (!TryPort_(out int port, out bool hasPort, out string portError))
          {
             saveState_.Refuse(portError, () => !TryPort_(out _, out _, out _));
+            DialogFields.ShowError(portRow_, L("Enter a port from 1 to 65535, or leave the box empty for the automatic port."));
             return false;
          }
 
          if (!TryTimeout_(out int timeoutSeconds, out bool hasTimeout, out string timeoutError))
          {
             saveState_.Refuse(timeoutError, () => !TryTimeout_(out _, out _, out _));
+            DialogFields.ShowError(timeoutRow_, L("Enter a whole number of seconds from 1 to 90."));
             return false;
          }
 

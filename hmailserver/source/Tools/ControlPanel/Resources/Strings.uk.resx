@@ -4343,11 +4343,20 @@
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Спершу введіть ім'я вузла та порт.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Введіть ім'я сертифіката.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Введіть назву нового правила.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Введіть назву діапазону.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Введіть пароль або натисніть «Згенерувати».</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Введіть порт від 1 до 65535 або залиште поле порожнім для автоматичного порту.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Спершу введіть поштову скриньку для звітів - запис без справжньої скриньки rua= нічого не просить.</value>
@@ -4361,8 +4370,14 @@
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Введіть дійсний номер порту.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Введіть ціле число секунд від 1 до 90.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введіть ціле число.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Введіть ціле число; перемагає більше число.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Введіть адресу та виконайте пошук. Трасування нічого не записує, доки трасування повідомлень не буде ввімкнено на сторінці «Журналювання», – типово воно вимкнене, бо зберігає, хто з ким листується.</value>
@@ -4391,14 +4406,26 @@
   <data name="Enter the list's address." xml:space="preserve">
     <value>Введіть адресу списку.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Введіть нижню адресу діапазону, наприклад 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введіть парольну фразу, якою буде зашифровано архів, і наберіть її ще раз нижче.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Введіть шлях до файлу сертифіката або виберіть файл кнопкою «…» поруч із полем.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Введіть шлях до файлу закритого ключа або виберіть файл кнопкою «…» поруч із полем.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Спершу введіть команду сканера.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введіть пароль облікового запису служби</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Введіть верхню адресу діапазону, наприклад 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Вкажіть, куди доставляє псевдонім.</value>
@@ -6736,9 +6763,6 @@
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Вкажіть архів так, як його перелічує місце призначення резервних копій (HMBackup YYYY-MM-DD HHMMSS.7z), або за шляхом усередині нього.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Ім’я, файл сертифіката та файл закритого ключа обов’язкові.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Ім’я, нижня та верхня IP-адреси обов’язкові.</value>
@@ -12645,6 +12669,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>Оновлення зупинено; нічого не встановлено.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Верхня адреса має бути того самого виду, що й нижня: обидві IPv4 або обидві IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Верхня адреса не може бути меншою за нижню.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Ім'я користувача очищається від пробілів по краях; пароль - навмисно ні, бо пробіли всередині пароля допустимі.</value>
   </data>
@@ -12816,8 +12846,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Цей ключ може змінювати і видаляти. Термін дії спливає {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Цей файл ключа зашифровано (захищено парольною фразою). Введіть його парольну фразу в поле нижче перед додаванням, інакше ключ не завантажиться (помилка сервера 6170), і порти TLS, що використовують цей сертифікат, не запустяться.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Цей файл ключа зашифровано (захищено парольною фразою). Введіть його парольну фразу в поле «Парольна фраза ключа» перед додаванням, інакше ключ не завантажиться (помилка сервера 6170), і порти TLS, що використовують цей сертифікат, не запустяться.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Цю скриньку зараз не можна перенести: {0}</value>

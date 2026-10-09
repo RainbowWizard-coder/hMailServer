@@ -4343,11 +4343,20 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Nejdřív zadejte název hostitele a port.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Zadejte název certifikátu.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Zadejte název nového pravidla.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Zadejte název rozsahu.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Zadejte heslo, nebo stiskněte Generovat.</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Zadejte port od 1 do 65535, nebo nechte pole prázdné pro automatický port.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Nejdřív zadejte schránku pro hlášení - záznam bez skutečné schránky rua= o nic nežádá.</value>
@@ -4361,8 +4370,14 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Zadejte platné číslo portu.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Zadejte celý počet sekund od 1 do 90.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Zadejte celé číslo.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Zadejte celé číslo; vyšší číslo má přednost.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Zadejte adresu a vyhledejte. Trasování nezaznamenává vůbec nic, dokud není trasování zpráv zapnuto na stránce Logování – ve výchozím nastavení je vypnuto, protože ukládá, kdo si s kým dopisuje.</value>
@@ -4391,14 +4406,26 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the list's address." xml:space="preserve">
     <value>Zadejte adresu seznamu.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Zadejte dolní adresu rozsahu, například 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Zadejte heslo, kterým se má archiv šifrovat, a napište je znovu níže.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Zadejte cestu k souboru certifikátu, nebo soubor vyberte tlačítkem … vedle pole.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Zadejte cestu k souboru soukromého klíče, nebo soubor vyberte tlačítkem … vedle pole.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Nejdřív zadejte příkaz skeneru.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Zadejte heslo servisního účtu</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Zadejte horní adresu rozsahu, například 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Zadejte, kam alias doručuje.</value>
@@ -6736,9 +6763,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Pojmenujte archiv tak, jak ho uvádí cíl zálohy (HMBackup YYYY-MM-DD HHMMSS.7z), nebo cestou uvnitř cíle.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Název, soubor certifikátu a soubor soukromého klíče jsou povinné.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Název, dolní IP a horní IP jsou povinné.</value>
@@ -12645,6 +12669,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>Aktualizace byla zastavena; nic nebylo nainstalováno.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Horní adresa musí být stejného druhu jako dolní: obě IPv4, nebo obě IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Horní adresa nesmí být nižší než dolní.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Uživatelské jméno je zbaveno okolních mezer; heslo záměrně ne, protože mezery uvnitř hesla jsou legitimní.</value>
   </data>
@@ -12816,8 +12846,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Tento klíč může měnit a mazat. Platnost vyprší {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Tento soubor klíče je šifrovaný (chráněný přístupovým heslem). Před přidáním zadejte jeho přístupové heslo do pole níže, jinak se klíč nenačte (chyba serveru 6170) a porty TLS používající tento certifikát se nespustí.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Tento soubor klíče je šifrovaný (chráněný přístupovým heslem). Před přidáním zadejte jeho přístupové heslo do pole Přístupové heslo ke klíči, jinak se klíč nenačte (chyba serveru 6170) a porty TLS používající tento certifikát se nespustí.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Tuto schránku nelze nyní přesunout: {0}</value>

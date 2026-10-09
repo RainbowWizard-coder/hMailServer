@@ -1874,6 +1874,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   next press, an edit of the box, the domain changed or the page opened again, and a message box is left for the
   server's own refusal. Each form's button stays beside its box when a message appears under it.
 
+- **Fixed: SSL certificates, IP ranges and Directory authentication (LDAP) refused a value in a message box or a
+  notice that pointed at no box, and IP ranges put 15 in place of a priority that was no number.** "Name, certificate
+  file and private key file are required." and "Name, lower IP and upper IP are required." were message boxes; a
+  priority of "high" became 15 without a word; the ends of a range went to the server as typed; LDAP's port and
+  timeout were refused only in the notice under the header; and the certificate form's note sent the reader to "the
+  box below" for a box beside the others. Each value refused is said under its box now, with the keyboard put in the
+  first and every box at fault marked on one press: an empty name or file, the lower and upper address of a range as
+  the server reads an address ("Enter the lower address of the range, such as 10.0.0.0."), the upper of the same kind
+  as the lower and not below it, a priority that is a whole number ("Enter a whole number; the higher number wins."),
+  and on the LDAP page the port and the timeout on their boxes as well as in the notice. The certificate's note names
+  the Key passphrase box. On both pages' Add forms the boxes and Add line up whatever a caption wraps to, and a
+  message under one box moves none of the others.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

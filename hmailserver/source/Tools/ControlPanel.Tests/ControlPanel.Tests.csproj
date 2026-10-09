@@ -113,6 +113,10 @@
     <!-- An address read as the server reads one (IPAddress::Parse), which the
          source restriction's addresses are checked with. -->
     <Compile Include="..\ControlPanel\Services\ServerAddressText.cs" />
+    <!-- What the forms check of a value before they send it - a whole number, a
+         port, an address, a range's two ends, a host - read as the server reads
+         them (review findings F129 and F212). -->
+    <Compile Include="..\ControlPanel\Services\InlineFormChecks.cs" />
     <!-- The words for when a saved setting reaches the running server, which
          IniFeatureStore's pending list is read through (docs/SettingsApply.md). -->
     <Compile Include="..\ControlPanel\Services\SettingApplies.cs" />

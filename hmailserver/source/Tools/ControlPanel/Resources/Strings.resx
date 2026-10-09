@@ -4297,11 +4297,20 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Enter a host name and port first.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Enter a name for the certificate.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Enter a name for the new rule.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Enter a name for the range.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Enter a password, or press Generate.</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Enter a port from 1 to 65535, or leave the box empty for the automatic port.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Enter a report mailbox first - a record without a real rua= mailbox asks for nothing.</value>
@@ -4315,8 +4324,14 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Enter a valid port number.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Enter a whole number of seconds from 1 to 90.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Enter a whole number.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Enter a whole number; the higher number wins.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom.</value>
@@ -4345,14 +4360,26 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter the list's address." xml:space="preserve">
     <value>Enter the list's address.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Enter the lower address of the range, such as 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Enter the passphrase the archive is to be encrypted with, and type it again below.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Enter the path of the certificate file, or choose the file with the … button beside the box.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Enter the path of the private key file, or choose the file with the … button beside the box.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Enter the scanner command first.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Enter the service account password</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Enter the upper address of the range, such as 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Enter where the alias delivers.</value>
@@ -6663,9 +6690,6 @@ Nothing already there is removed.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Name, certificate file and private key file are required.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Name, lower IP and upper IP are required.</value>
@@ -12482,6 +12506,12 @@ It will keep trying as you use the application.</value>
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>The update was stopped; nothing was installed.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>The upper address must be of the same kind as the lower: both IPv4, or both IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>The upper address must not be below the lower.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password.</value>
   </data>
@@ -12653,8 +12683,8 @@ It will keep trying as you use the application.</value>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>This key can change and delete things. Expires {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>This mailbox cannot be moved at the moment: {0}</value>

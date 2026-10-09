@@ -4343,11 +4343,20 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Сначала укажите имя узла и порт.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Введите имя сертификата.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Укажите имя нового правила.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Введите имя диапазона.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Введите пароль или нажмите «Сгенерировать».</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Введите порт от 1 до 65535 или оставьте поле пустым для автоматического порта.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Сначала укажите почтовый ящик для отчётов — запись без настоящего почтового ящика в rua= ни о чём не просит.</value>
@@ -4361,8 +4370,14 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Введите корректный номер порта.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Введите целое число секунд от 1 до 90.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Введите целое число.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Введите целое число; побеждает большее число.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Введите адрес и выполните поиск. Трассировка ничего не записывает, пока трассировка сообщений не будет включена на странице «Журналирование», – по умолчанию она выключена, потому что сохраняет, кто с кем переписывается.</value>
@@ -4391,14 +4406,26 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the list's address." xml:space="preserve">
     <value>Введите адрес списка.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Введите нижний адрес диапазона, например 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Введите путь к файлу сертификата или выберите файл кнопкой «…» рядом с полем.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Введите путь к файлу закрытого ключа или выберите файл кнопкой «…» рядом с полем.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Сначала укажите команду сканера.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введите пароль учётной записи службы</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Введите верхний адрес диапазона, например 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Укажите, куда доставляет псевдоним.</value>
@@ -6736,9 +6763,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Укажите архив так, как его перечисляет место назначения резервных копий (HMBackup YYYY-MM-DD HHMMSS.7z), или по пути внутри него.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Требуются имя, файл сертификата и файл закрытого ключа.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Требуются имя, нижний IP и верхний IP.</value>
@@ -12645,6 +12669,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>Обновление остановлено; ничего не установлено.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Верхний адрес должен быть того же вида, что и нижний: оба IPv4 или оба IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Верхний адрес не может быть меньше нижнего.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Имя пользователя очищается от пробелов по краям; пароль - намеренно нет, потому что пробелы внутри пароля допустимы.</value>
   </data>
@@ -12816,8 +12846,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Этот ключ может изменять и удалять. Срок действия истекает {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Этот файл ключа зашифрован (защищён парольной фразой). Введите его парольную фразу в поле ниже перед добавлением, иначе ключ не загрузится (ошибка сервера 6170), и порты TLS, использующие этот сертификат, не запустятся.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Этот файл ключа зашифрован (защищён парольной фразой). Введите его парольную фразу в поле «Парольная фраза ключа» перед добавлением, иначе ключ не загрузится (ошибка сервера 6170), и порты TLS, использующие этот сертификат, не запустятся.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Этот ящик сейчас нельзя перенести: {0}</value>

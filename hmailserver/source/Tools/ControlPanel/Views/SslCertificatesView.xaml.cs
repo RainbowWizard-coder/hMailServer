@@ -102,7 +102,7 @@ namespace hMailServer.ControlPanel.Views
          // the add form; Enter in the form adds the certificate, and Enter in the
          // passphrase box saves the passphrase (Views/GridKeys, FormSubmit).
          GridKeys.Wire(CertGrid, null, GridKeys.Pressing(DeleteButton), GridKeys.Focusing(NewCertName));
-         FormSubmit.Bind((UIElement)AddCertButton.Parent, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
+         FormSubmit.Bind(AddCertForm, AddCertButton, NewCertName, NewCertFile, NewKeyFile, NewKeyPassphrase);
          FormSubmit.Bind(PassphraseBox, SavePassphraseButton, PassphraseBox);
 
          // The empty state under the grid's column headers, centred where the
@@ -554,7 +554,7 @@ namespace hMailServer.ControlPanel.Views
          if (encrypted == true)
          {
             ShowAddHint(StatusLevel.Warning,
-               L("This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start."));
+               L("This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start."));
          }
          else
          {
@@ -578,11 +578,18 @@ namespace hMailServer.ControlPanel.Views
          string keyFile = NewKeyFile.Text.Trim();
          string passphrase = NewKeyPassphrase.Password;
 
-         if (name.Length == 0 || certFile.Length == 0 || keyFile.Length == 0)
-         {
-            MessageBox.Show(L("Name, certificate file and private key file are required."), L("Control Panel"));
+         // Each box left empty is said on that box, all on one press, with the
+         // keyboard in the first, where one message box named all three and none
+         // of them (review finding F129).
+         DialogFields.ClearErrors(NewCertNameRow, NewCertFileRow, NewKeyFileRow);
+         if (name.Length == 0)
+            NewCertNameRow.Error = L("Enter a name for the certificate.");
+         if (certFile.Length == 0)
+            NewCertFileRow.Error = L("Enter the path of the certificate file, or choose the file with the … button beside the box.");
+         if (keyFile.Length == 0)
+            NewKeyFileRow.Error = L("Enter the path of the private key file, or choose the file with the … button beside the box.");
+         if (DialogFields.ShowFirstError(NewCertNameRow, NewCertFileRow, NewKeyFileRow))
             return;
-         }
 
          // Catch the outage before it is configured: an encrypted key with no
          // passphrase will not load (server error 6170) and the ports using it

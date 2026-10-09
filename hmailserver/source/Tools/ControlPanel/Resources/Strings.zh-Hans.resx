@@ -4297,11 +4297,20 @@
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>请先输入主机名和端口。</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>请输入证书的名称。</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>请为新规则输入名称。</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>请输入范围的名称。</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>请输入密码，或按“生成”。</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>请输入 1 到 65535 之间的端口，或将框留空以使用自动端口。</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>请先输入报告邮箱 - 没有真实 rua= 邮箱的记录不会索取任何东西。</value>
@@ -4315,8 +4324,14 @@
   <data name="Enter a valid port number." xml:space="preserve">
     <value>请输入有效的端口号。</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>请输入 1 到 90 之间的整数秒数。</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>请输入整数。</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>请输入整数；数字越大优先级越高。</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>输入地址并搜索。在“日志记录”页面开启邮件跟踪之前，跟踪不会记录任何内容 - 它默认关闭，因为它会存储谁与谁通信。</value>
@@ -4345,14 +4360,26 @@
   <data name="Enter the list's address." xml:space="preserve">
     <value>请输入列表的地址。</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>请输入范围的起始地址，例如 10.0.0.0。</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>请输入用来加密存档的口令，并在下面再输入一次。</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>请输入证书文件的路径，或用框旁边的“…”按钮选择文件。</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>请输入私钥文件的路径，或用框旁边的“…”按钮选择文件。</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>请先输入扫描器命令。</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>输入服务账户密码</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>请输入范围的上限地址，例如 10.0.0.255。</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>请输入别名投递到的地址。</value>
@@ -6663,9 +6690,6 @@
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>请按备份目标中列出的名称 (HMBackup YYYY-MM-DD HHMMSS.7z) 或其在备份目标内的路径指定存档。</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>必须填写名称、证书文件和私钥文件。</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>必须填写名称、起始 IP 和结束 IP。</value>
@@ -12482,6 +12506,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>更新已停止；未安装任何内容。</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>上限地址必须与起始地址类型相同：都是 IPv4，或都是 IPv6。</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>上限地址不能低于起始地址。</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>用户名会去除首尾空格；密码有意不去除，因为空格在密码内部是合法的。</value>
   </data>
@@ -12653,8 +12683,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>此密钥可以更改和删除内容。{0} 到期。</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>此密钥文件已加密 (受密码短语保护)。添加之前请在下面的框中输入其密码短语，否则密钥不会加载 (服务器错误 6170)，使用此证书的 TLS 端口也不会启动。</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>此密钥文件已加密 (受密码短语保护)。添加之前请在“密钥密码短语”框中输入其密码短语，否则密钥不会加载 (服务器错误 6170)，使用此证书的 TLS 端口也不会启动。</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>此邮箱当前无法迁移：{0}</value>

@@ -4297,11 +4297,20 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Geben Sie zuerst einen Hostnamen und einen Port ein.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Geben Sie einen Namen für das Zertifikat ein.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Geben Sie einen Namen für die neue Regel ein.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Geben Sie einen Namen für den Bereich ein.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Geben Sie ein Passwort ein, oder klicken Sie auf Erzeugen.</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Geben Sie einen Port von 1 bis 65535 ein, oder lassen Sie das Feld für den automatischen Port leer.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Geben Sie zuerst ein Berichtspostfach ein - ein Eintrag ohne echtes rua=-Postfach bittet um nichts.</value>
@@ -4315,8 +4324,14 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Geben Sie eine gültige Portnummer ein.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Geben Sie eine ganze Zahl von Sekunden zwischen 1 und 90 ein.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl ein.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Geben Sie eine ganze Zahl ein; die höhere Zahl hat Vorrang.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Geben Sie eine Adresse ein und suchen Sie. Der Trace zeichnet nichts auf, bis die Nachrichtenverfolgung auf der Seite Protokollierung eingeschaltet wird – sie ist standardmäßig aus, weil sie speichert, wer mit wem korrespondiert.</value>
@@ -4345,14 +4360,26 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter the list's address." xml:space="preserve">
     <value>Geben Sie die Adresse der Liste ein.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Geben Sie die untere Adresse des Bereichs ein, etwa 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Geben Sie die Passphrase ein, mit der das Archiv verschlüsselt werden soll, und tippen Sie sie unten noch einmal.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Geben Sie den Pfad der Zertifikatdatei ein, oder wählen Sie die Datei mit der Schaltfläche … neben dem Feld.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Geben Sie den Pfad der privaten Schlüsseldatei ein, oder wählen Sie die Datei mit der Schaltfläche … neben dem Feld.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Geben Sie zuerst den Scanner-Befehl ein.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Geben Sie das Passwort des Dienstkontos ein</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Geben Sie die obere Adresse des Bereichs ein, etwa 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Geben Sie an, wohin der Alias zustellt.</value>
@@ -6663,9 +6690,6 @@ Nichts, was schon dort ist, wird entfernt.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Benennen Sie das Archiv, wie das Sicherungsziel es auflistet (HMBackup YYYY-MM-DD HHMMSS.7z), oder über seinen Pfad im Ziel.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Name, Zertifikatdatei und private Schlüsseldatei sind erforderlich.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Name, untere IP und obere IP sind erforderlich.</value>
@@ -12482,6 +12506,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>Das Update wurde abgebrochen; es wurde nichts installiert.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Die obere Adresse muss von derselben Art sein wie die untere: beide IPv4 oder beide IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Die obere Adresse darf nicht unter der unteren liegen.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Beim Benutzernamen werden umgebende Leerzeichen entfernt; beim Passwort absichtlich nicht, weil Leerraum innerhalb eines Passworts legitim ist.</value>
   </data>
@@ -12653,8 +12683,8 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Dieser Schlüssel kann Dinge ändern und löschen. Läuft am {0} ab.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Diese Schlüsseldatei ist verschlüsselt (passphrasengeschützt). Geben Sie ihre Passphrase vor dem Hinzufügen in das Feld unten ein, sonst wird der Schlüssel nicht geladen (Serverfehler 6170) und die TLS-Ports, die dieses Zertifikat verwenden, starten nicht.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Diese Schlüsseldatei ist verschlüsselt (passphrasengeschützt). Geben Sie ihre Passphrase vor dem Hinzufügen in das Feld Schlüsselpassphrase ein, sonst wird der Schlüssel nicht geladen (Serverfehler 6170) und die TLS-Ports, die dieses Zertifikat verwenden, starten nicht.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Dieses Postfach kann derzeit nicht verschoben werden: {0}</value>

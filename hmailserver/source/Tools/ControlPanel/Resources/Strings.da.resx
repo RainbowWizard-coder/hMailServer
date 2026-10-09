@@ -4297,11 +4297,20 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Indtast først et værtsnavn og en port.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Indtast et navn til certifikatet.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Indtast et navn til den nye regel.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Indtast et navn til området.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Indtast en adgangskode, eller tryk på Generér.</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Indtast en port fra 1 til 65535, eller lad feltet stå tomt for den automatiske port.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Indtast først en rapportpostkasse - en post uden en rigtig rua=-postkasse beder ikke om noget.</value>
@@ -4315,8 +4324,14 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Indtast et gyldigt portnummer.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Indtast et helt antal sekunder fra 1 til 90.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Indtast et helt tal.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Indtast et helt tal; det højeste tal vinder.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Indtast en adresse og søg. Sporingen registrerer slet ingenting, før meddelelsessporing slås til på siden Logføring – den er som standard slået fra, fordi den gemmer, hvem der skriver med hvem.</value>
@@ -4345,14 +4360,26 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter the list's address." xml:space="preserve">
     <value>Indtast listens adresse.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Indtast områdets nedre adresse, f.eks. 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Angiv den adgangssætning, arkivet skal krypteres med, og skriv den igen nedenfor.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Indtast stien til certifikatfilen, eller vælg filen med knappen … ved siden af feltet.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Indtast stien til den private nøglefil, eller vælg filen med knappen … ved siden af feltet.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Indtast først scannerkommandoen.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Indtast tjenestekontoens adgangskode</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Indtast områdets øvre adresse, f.eks. 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Angiv, hvor aliasset leverer til.</value>
@@ -6663,9 +6690,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Navngiv arkivet, som backupdestinationen viser det (HMBackup YYYY-MM-DD HHMMSS.7z), eller ved dets sti inde i destinationen.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Navn, certifikatfil og privat nøglefil skal angives.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Navn, nedre IP og øvre IP skal angives.</value>
@@ -12482,6 +12506,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>Opdateringen blev stoppet; intet blev installeret.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Den øvre adresse skal være af samme slags som den nedre: begge IPv4 eller begge IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Den øvre adresse må ikke ligge under den nedre.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Brugernavnet renses for omgivende mellemrum; adgangskoden bliver det med vilje ikke, fordi mellemrum er legitime inde i en adgangskode.</value>
   </data>
@@ -12653,8 +12683,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Denne nøgle kan ændre og slette ting. Udløber {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Denne nøglefil er krypteret (beskyttet med adgangssætning). Indtast dens adgangssætning i feltet nedenfor, før du tilføjer, ellers indlæses nøglen ikke (serverfejl 6170), og de TLS-porte, der bruger dette certifikat, starter ikke.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Denne nøglefil er krypteret (beskyttet med adgangssætning). Indtast dens adgangssætning i feltet Adgangssætning til nøglen, før du tilføjer, ellers indlæses nøglen ikke (serverfejl 6170), og de TLS-porte, der bruger dette certifikat, starter ikke.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Denne postkasse kan ikke flyttes lige nu: {0}</value>

@@ -143,7 +143,11 @@
         </scaffold:Card>
 
         <scaffold:Card Title="{loc:L 'Add range'}" Margin="0,12,0,0">
-            <Grid>
+            <!-- The captions of the line share one height (FieldRow.LabelGroup) and
+                 Add sits under a row of it, so that the boxes line up whatever a
+                 caption wraps to and a message under one box moves none of the
+                 others, where every field sat on the line's bottom edge. -->
+            <Grid x:Name="AddRangeForm" Grid.IsSharedSizeScope="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="2*" />
@@ -151,20 +155,26 @@
                     <ColumnDefinition Width="*" MinWidth="80" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <scaffold:FieldRow Label="{loc:L 'Na_me'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                <scaffold:FieldRow x:Name="NewNameRow" Label="{loc:L 'Na_me'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewName" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="1" Label="{loc:L 'Lo_wer IP (e.g. 10.0.0.0)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                <scaffold:FieldRow x:Name="NewLowerRow" Grid.Column="1" Label="{loc:L 'Lo_wer IP (e.g. 10.0.0.0)'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewLower" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="2" Label="{loc:L '_Upper IP (e.g. 10.0.0.255)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                <scaffold:FieldRow x:Name="NewUpperRow" Grid.Column="2" Label="{loc:L '_Upper IP (e.g. 10.0.0.255)'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewUpper" />
                 </scaffold:FieldRow>
-                <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Pri_ority'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                <scaffold:FieldRow x:Name="NewPriorityRow" Grid.Column="3" Label="{loc:L 'Pri_ority'}" Margin="0,0,8,0" LabelGroup="RangeLine">
                     <ui:TextBox x:Name="NewPriority" Text="15" />
                 </scaffold:FieldRow>
-                <ui:Button x:Name="AddRangeButton" Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                           VerticalAlignment="Bottom" Margin="0" />
+                <Grid Grid.Column="4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" SharedSizeGroup="RangeLine" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ui:Button x:Name="AddRangeButton" Grid.Row="1" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
+                               VerticalAlignment="Top" Margin="0" />
+                </Grid>
             </Grid>
         </scaffold:Card>
         </scaffold:FillPanel>

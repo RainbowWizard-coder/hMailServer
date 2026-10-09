@@ -57,7 +57,7 @@ namespace hMailServer.ControlPanel.Views
          // Insert goes to the add form, and Enter in the form adds the range;
          // Escape empties its three boxes and leaves the priority (Views/GridKeys, FormSubmit).
          GridKeys.Wire(RangeGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteRangeButton), GridKeys.Focusing(NewName));
-         FormSubmit.Bind((UIElement)AddRangeButton.Parent, AddRangeButton, NewName, NewLower, NewUpper);
+         FormSubmit.Bind(AddRangeForm, AddRangeButton, NewName, NewLower, NewUpper);
 
          // Ctrl+S saves the permissions the card holds, the page's one unsaved
          // change (Views/PageCommands); F5 reads the ranges again (Refresh).
@@ -475,14 +475,26 @@ namespace hMailServer.ControlPanel.Views
          string lower = NewLower.Text.Trim();
          string upper = NewUpper.Text.Trim();
 
-         if (name.Length == 0 || lower.Length == 0 || upper.Length == 0)
-         {
-            MessageBox.Show(L("Name, lower IP and upper IP are required."), L("Control Panel"));
+         // Each value refused is said on its box, all on one press, with the
+         // keyboard in the first, where one message box named three boxes and a
+         // priority that was no number became 15 without a word (review findings
+         // F129 and F212). The ends of the range are addresses the server reads,
+         // of one family, the lower not above the upper.
+         DialogFields.ClearErrors(NewNameRow, NewLowerRow, NewUpperRow, NewPriorityRow);
+         if (name.Length == 0)
+            NewNameRow.Error = L("Enter a name for the range.");
+         if (!InlineFormChecks.IsAddress(lower))
+            NewLowerRow.Error = L("Enter the lower address of the range, such as 10.0.0.0.");
+         if (!InlineFormChecks.IsAddress(upper))
+            NewUpperRow.Error = L("Enter the upper address of the range, such as 10.0.0.255.");
+         else if (InlineFormChecks.OrderOf(lower, upper) is InlineFormChecks.RangeOrder order && order != InlineFormChecks.RangeOrder.InOrder)
+            NewUpperRow.Error = order == InlineFormChecks.RangeOrder.MixedFamilies
+               ? L("The upper address must be of the same kind as the lower: both IPv4, or both IPv6.")
+               : L("The upper address must not be below the lower.");
+         if (!InlineFormChecks.TryWholeNumber(NewPriority.Text, int.MinValue, int.MaxValue, out int priority))
+            NewPriorityRow.Error = L("Enter a whole number; the higher number wins.");
+         if (DialogFields.ShowFirstError(NewNameRow, NewLowerRow, NewUpperRow, NewPriorityRow))
             return;
-         }
-
-         if (!int.TryParse(NewPriority.Text.Trim(), out int priority))
-            priority = 15;
 
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try

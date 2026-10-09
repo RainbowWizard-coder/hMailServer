@@ -4297,11 +4297,20 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Anna ensin konenimi ja portti.</value>
   </data>
+  <data name="Enter a name for the certificate." xml:space="preserve">
+    <value>Anna varmenteelle nimi.</value>
+  </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Anna uudelle säännölle nimi.</value>
   </data>
+  <data name="Enter a name for the range." xml:space="preserve">
+    <value>Anna alueelle nimi.</value>
+  </data>
   <data name="Enter a password, or press Generate." xml:space="preserve">
     <value>Anna salasana tai paina Luo.</value>
+  </data>
+  <data name="Enter a port from 1 to 65535, or leave the box empty for the automatic port." xml:space="preserve">
+    <value>Anna portti väliltä 1–65535 tai jätä kenttä tyhjäksi automaattista porttia varten.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Anna ensin raporttipostilaatikko - tietue ilman todellista rua=-postilaatikkoa ei pyydä mitään.</value>
@@ -4315,8 +4324,14 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Anna kelvollinen portin numero.</value>
   </data>
+  <data name="Enter a whole number of seconds from 1 to 90." xml:space="preserve">
+    <value>Anna kokonainen sekuntimäärä väliltä 1–90.</value>
+  </data>
   <data name="Enter a whole number." xml:space="preserve">
     <value>Anna kokonaisluku.</value>
+  </data>
+  <data name="Enter a whole number; the higher number wins." xml:space="preserve">
+    <value>Anna kokonaisluku; suurempi luku voittaa.</value>
   </data>
   <data name="Enter an address and search. The trace records nothing at all until message tracing is switched on, on the Logging page - it is off by default because it stores who corresponds with whom." xml:space="preserve">
     <value>Anna osoite ja hae. Jäljitys ei tallenna mitään ennen kuin viestien jäljitys otetaan käyttöön Lokitus-sivulla – se on oletuksena pois käytöstä, koska se tallentaa, kuka kirjoittaa kenelle.</value>
@@ -4345,14 +4360,26 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter the list's address." xml:space="preserve">
     <value>Anna jakelulistan osoite.</value>
   </data>
+  <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
+    <value>Anna alueen alempi osoite, esimerkiksi 10.0.0.0.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Anna salasanalause, jolla arkisto salataan, ja kirjoita se uudelleen alle.</value>
+  </data>
+  <data name="Enter the path of the certificate file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Anna varmennetiedoston polku tai valitse tiedosto kentän vieressä olevalla …-painikkeella.</value>
+  </data>
+  <data name="Enter the path of the private key file, or choose the file with the … button beside the box." xml:space="preserve">
+    <value>Anna yksityisen avaimen tiedoston polku tai valitse tiedosto kentän vieressä olevalla …-painikkeella.</value>
   </data>
   <data name="Enter the scanner command first." xml:space="preserve">
     <value>Anna ensin tarkistimen komento.</value>
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Anna palvelutilin salasana</value>
+  </data>
+  <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
+    <value>Anna alueen ylempi osoite, esimerkiksi 10.0.0.255.</value>
   </data>
   <data name="Enter where the alias delivers." xml:space="preserve">
     <value>Anna osoite, johon alias toimittaa.</value>
@@ -6663,9 +6690,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Name the archive as the backup destination lists it (HMBackup YYYY-MM-DD HHMMSS.7z), or by its path inside the destination." xml:space="preserve">
     <value>Nimeä arkisto niin kuin varmuuskopiokohde sen luettelee (HMBackup YYYY-MM-DD HHMMSS.7z), tai sen polulla kohteen sisällä.</value>
-  </data>
-  <data name="Name, certificate file and private key file are required." xml:space="preserve">
-    <value>Nimi, varmennetiedosto ja yksityisen avaimen tiedosto ovat pakollisia.</value>
   </data>
   <data name="Name, lower IP and upper IP are required." xml:space="preserve">
     <value>Nimi, alempi IP ja ylempi IP ovat pakollisia.</value>
@@ -12482,6 +12506,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The update was stopped; nothing was installed." xml:space="preserve">
     <value>Päivitys pysäytettiin; mitään ei asennettu.</value>
   </data>
+  <data name="The upper address must be of the same kind as the lower: both IPv4, or both IPv6." xml:space="preserve">
+    <value>Ylemmän osoitteen on oltava samaa lajia kuin alemman: molemmat IPv4 tai molemmat IPv6.</value>
+  </data>
+  <data name="The upper address must not be below the lower." xml:space="preserve">
+    <value>Ylempi osoite ei saa olla alempaa pienempi.</value>
+  </data>
   <data name="The user name is trimmed of surrounding spaces; the password deliberately is not, because whitespace is legitimate inside a password." xml:space="preserve">
     <value>Käyttäjänimestä poistetaan ympäröivät välilyönnit; salasanasta tarkoituksella ei, koska välilyönti on sallittu salasanan sisällä.</value>
   </data>
@@ -12653,8 +12683,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="This key can change and delete things. Expires {0}." xml:space="preserve">
     <value>Tämä avain voi muuttaa ja poistaa asioita. Vanhenee {0}.</value>
   </data>
-  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the box below before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
-    <value>Tämä avaintiedosto on salattu (tunnuslauseella suojattu). Anna sen tunnuslause alla olevaan kenttään ennen lisäämistä, tai avain ei lataudu (palvelinvirhe 6170) eivätkä tätä varmennetta käyttävät TLS-portit käynnisty.</value>
+  <data name="This key file is encrypted (passphrase-protected). Enter its passphrase in the Key passphrase box before adding, or the key will not load (server error 6170) and the TLS ports using this certificate will not start." xml:space="preserve">
+    <value>Tämä avaintiedosto on salattu (tunnuslauseella suojattu). Anna sen tunnuslause kenttään Avaimen tunnuslause ennen lisäämistä, tai avain ei lataudu (palvelinvirhe 6170) eivätkä tätä varmennetta käyttävät TLS-portit käynnisty.</value>
   </data>
   <data name="This mailbox cannot be moved at the moment: {0}" xml:space="preserve">
     <value>Tätä postilaatikkoa ei voi siirtää juuri nyt: {0}</value>

@@ -129,7 +129,7 @@
 
         <scaffold:Card Title="{loc:L 'Add certificate'}" Margin="0,12,0,0">
             <StackPanel>
-                <Grid>
+                <Grid x:Name="AddCertForm" Grid.IsSharedSizeScope="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" MinWidth="120" />
                         <ColumnDefinition Width="2*" />
@@ -137,14 +137,17 @@
                         <ColumnDefinition Width="*" MinWidth="160" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <!-- Each field sits on the row's bottom edge: the passphrase's
-                         caption wraps to two lines in a narrow window, and with the
-                         fields at the top its box and the Add button sat lower and
-                         higher than the other boxes. -->
-                    <scaffold:FieldRow Label="{loc:L '_Name'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                    <!-- Every caption of the line is as tall as the tallest
+                         (FieldRow.LabelGroup), and the Add button sits under a row
+                         of that height: the passphrase's caption wraps to two lines
+                         in a narrow window, and the boxes lined up only while they
+                         sat on the line's bottom edge, where a message under one box
+                         would lift it above the others and put Add beside the
+                         message. -->
+                    <scaffold:FieldRow x:Name="NewCertNameRow" Label="{loc:L '_Name'}" Margin="0,0,8,0" LabelGroup="CertLine">
                         <ui:TextBox x:Name="NewCertName" />
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="1" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                    <scaffold:FieldRow x:Name="NewCertFileRow" Grid.Column="1" Label="{loc:L '_Certificate file (PEM)'}" Margin="0,0,8,0" LabelGroup="CertLine">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -155,7 +158,7 @@
                                        AutomationProperties.Name="{loc:L 'Browse for the certificate file'}" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="2" Label="{loc:L 'Private key _file (PEM)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                    <scaffold:FieldRow x:Name="NewKeyFileRow" Grid.Column="2" Label="{loc:L 'Private key _file (PEM)'}" Margin="0,0,8,0" LabelGroup="CertLine">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -166,11 +169,17 @@
                                        AutomationProperties.Name="{loc:L 'Browse for the private key file'}" />
                         </Grid>
                     </scaffold:FieldRow>
-                    <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0,0,8,0" VerticalAlignment="Bottom">
+                    <scaffold:FieldRow Grid.Column="3" Label="{loc:L 'Ke_y passphrase (only for an encrypted key)'}" Margin="0,0,8,0" LabelGroup="CertLine">
                         <local:PasswordField x:Name="NewKeyPassphrase" />
                     </scaffold:FieldRow>
-                    <ui:Button x:Name="AddCertButton" Grid.Column="4" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
-                               VerticalAlignment="Bottom" Margin="0" />
+                    <Grid Grid.Column="4">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" SharedSizeGroup="CertLine" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ui:Button x:Name="AddCertButton" Grid.Row="1" Content="{loc:L '_Add'}" Appearance="Primary" Click="Add_Click"
+                                   VerticalAlignment="Top" Margin="0" />
+                    </Grid>
                 </Grid>
                 <!-- Filled in by code when the picked key file turns out to be
                      encrypted: that is knowable from the file itself, and saying
