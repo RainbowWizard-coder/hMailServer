@@ -516,7 +516,7 @@ namespace hMailServer.ControlPanel.Views
          // the restart, as it did after the save.
          if (store_.IsAvailable && denied_ == null)
          {
-            DirectorySyncSchedule.Shared.Read(ServerStarted_(), scheduleMinutes_.Text);
+            DirectorySyncSchedule.Shared.ReadFile(store_.IniPath);
             if (DirectorySyncSchedule.Shared.Waits)
                saveState_.Settle(SettingsPageState.WaitsForRestart,
                   L("The saved schedule takes effect when the service restarts: the server is still running the one it started with."),
@@ -570,9 +570,11 @@ namespace hMailServer.ControlPanel.Views
          // schedule needs a restart after every save, whether or not it had changed.
          // Measured from the schedule the server started with (DirectorySyncSchedule),
          // never from the last save: a second save after a schedule change, with no
-         // restart between, said that no restart was needed.
+         // restart between, said that no restart was needed. And measured as the server
+         // registers it, from the file as written: while directory access is off nothing
+         // runs whatever the minutes say, and 5 is 15.
          string time = DateTime.Now.ToLongTimeString();
-         bool scheduleWaits = DirectorySyncSchedule.Shared.Saved(ServerStarted_(), scheduleMinutes_.Text);
+         bool scheduleWaits = DirectorySyncSchedule.Shared.SavedFile(store_.IniPath);
          if (scheduleWaits)
             saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.", time),
                action: RestartAction_());
@@ -582,76 +584,14 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// When the server last started or reinitialised - the moment it read the
-      /// schedule - as its status reports it, or null when it cannot say.
-      /// </summary>
-      private static string ServerStarted_()
-      {
-         dynamic status = null;
-         try
-         {
-            ServerSession session = ServerSession.Current;
-            if (session == null)
-               return null;
-
-            status = session.Application.Status;
-            return (string)status.StartTime;
-         }
-         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
-         {
-            return null;
-         }
-         finally
-         {
-            ServerSession.Release((object)status);
-         }
-      }
-
-      /// <summary>
       /// The action of the notice that says a new schedule waits for a restart:
       /// Restart the service, the window's pending bar's restart, which asks first
-      /// (Services/ServiceRestart). Null when the server is not the one on this
+      /// (IniPageSaveState.RestartAction). Null when the server is not the one on this
       /// machine, which a restart from here cannot reach.
       /// </summary>
       private Wpf.Ui.Controls.Button RestartAction_()
-      {
-         if (!ServiceRestart.Available)
-            return null;
-
-         var button = new Wpf.Ui.Controls.Button
-         {
-            Content = L("Restart the service…"),
-            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
-            VerticalAlignment = VerticalAlignment.Center
-         };
-         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "dirsync-restart-service");
-         button.Click += async (s, e) => await RestartForSchedule_();
-         return button;
-      }
-
-      /// <summary>Asks, restarts the service for the new schedule, and says how it went.</summary>
-      private async Task RestartForSchedule_()
-      {
-         if (!MessageBox.Confirm(L("The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again."),
-                L("Control Panel"), L("_Restart the service"), cancelByDefault: true))
-            return;
-
-         saveState_.Settle(SettingsPageState.Restarting, L("Restarting the hMailServer service..."), StatusLevel.Information);
-         (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
-         switch (outcome)
-         {
-            case ServiceRestartOutcome.NotRestarted:
-               saveState_.Settle(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", reason), action: RestartAction_());
-               break;
-            case ServiceRestartOutcome.NotReattached:
-               saveState_.Settle(SettingsPageState.NotConnected,
-                  F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason));
-               break;
-            default:
-               saveState_.Settle(SettingsPageState.Applied, L("Service restarted - settings are live."));
-               break;
-         }
-      }
+         => saveState_.RestartAction("dirsync-restart-service",
+            L("The new schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again."));
 
       /// <summary>
       /// Writes one [LDAP] key, and throws when the file refused it: the six writes

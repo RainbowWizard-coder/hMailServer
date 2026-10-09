@@ -96,11 +96,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          string[] captions = Regex.Matches(body, @"Content=""\{loc:L '((?:[^'\\]|\\.)*)'\}""").Select(m => m.Groups[1].Value).ToArray();
          Assert.Equal(new[] { "Restart the service…", "Apply now" }, captions);
 
-         // The synchronisation page's notice offers the same restart under the same caption.
-         string sync = SaveStateModelTests.ReadControlPanelFile("Views/DirectorySyncView.cs");
-         string action = WithheldRowTests.MemberText(sync, "private Wpf.Ui.Controls.Button RestartAction_()");
+         // The directory pages' notice offers the same restart under the same caption.
+         string shared = SaveStateModelTests.ReadControlPanelFile("Views/IniPageSaveState.cs");
+         string action = WithheldRowTests.MemberText(shared, "public Wpf.Ui.Controls.Button RestartAction(string automationId, string question)");
          Assert.True(action != null && action.Contains("Content = L(\"Restart the service…\")", StringComparison.Ordinal),
-            "The synchronisation page's restart is not captioned as the bar's is.");
+            "The directory pages' restart is not captioned as the bar's is.");
 
          string[] catalogues = Directory.GetFiles(Path.Join(SaveStateModelTests.ControlPanelDirectory(), "Resources"), "Strings*.resx");
          Assert.True(catalogues.Length >= 18, "The catalogues were not found.");
@@ -140,7 +140,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       [Theory]
       [InlineData("Views/FeatureSettingsView.xaml.cs")]
-      [InlineData("Views/DirectorySyncView.cs")]
+      [InlineData("Views/IniPageSaveState.cs")]
       public void EveryRestart_GoesThroughTheSharedFlow(string file)
       {
          string code = SaveStateModelTests.ReadControlPanelFile(file);
@@ -149,23 +149,38 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.DoesNotContain("TryRestartService", code, StringComparison.Ordinal);
       }
 
-      [Fact]
-      public void DirectorySynchronisation_OffersTheRestart_WhenTheScheduleWaitsForIt()
+      /// <summary>
+      /// The two directory pages offer the restart beside a saved schedule that waits
+      /// for one - Directory synchronisation for its schedule, Directory authentication
+      /// for the Enabled that is half of it - through one flow, which asks first and is
+      /// offered only for the service on this machine.
+      /// </summary>
+      [Theory]
+      [InlineData("Views/DirectorySyncView.cs", "dirsync-restart-service")]
+      [InlineData("Views/LdapSettingsView.cs", "ldap-restart-service")]
+      public void TheDirectoryPages_OfferTheRestart_WhenTheScheduleWaitsForIt(string file, string automationId)
       {
-         string code = SaveStateModelTests.ReadControlPanelFile("Views/DirectorySyncView.cs");
+         string code = SaveStateModelTests.ReadControlPanelFile(file);
          string save = WithheldRowTests.MemberText(code, "private bool Save_()");
          Assert.True(save != null && save.Contains("action: RestartAction_()", StringComparison.Ordinal),
-            "A schedule that waits for a restart is not offered one.");
+            file + ": a schedule that waits for a restart is not offered one.");
 
          string action = WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button RestartAction_()");
-         Assert.True(action != null && action.Contains("if (!ServiceRestart.Available)", StringComparison.Ordinal),
-            "The synchronisation page offers to restart a service it cannot reach.");
+         Assert.True(action != null && action.Contains("saveState_.RestartAction(\"" + automationId + "\"", StringComparison.Ordinal),
+            file + ": the restart is not the shared one.");
+         Assert.DoesNotContain("ServiceRestart.RunAsync()", code, StringComparison.Ordinal);
 
-         string restart = WithheldRowTests.MemberText(code, "private async Task RestartForSchedule_()");
-         Assert.True(restart != null, "RestartForSchedule_ is gone.");
-         int asks = restart.IndexOf("MessageBox.Confirm(", StringComparison.Ordinal);
+         string shared = SaveStateModelTests.ReadControlPanelFile("Views/IniPageSaveState.cs");
+         string offer = WithheldRowTests.MemberText(shared, "public Wpf.Ui.Controls.Button RestartAction(string automationId, string question)");
+         Assert.True(offer != null && offer.Contains("if (!ServiceRestart.Available)", StringComparison.Ordinal),
+            "The directory pages offer to restart a service they cannot reach.");
+
+         string restart = WithheldRowTests.MemberText(shared, "private async Task RestartAsync_(string automationId, string question)");
+         Assert.True(restart != null, "IniPageSaveState.RestartAsync_ is gone.");
+         int asks = restart.IndexOf("MessageBox.Confirm(question,", StringComparison.Ordinal);
          int restarts = restart.IndexOf("ServiceRestart.RunAsync()", StringComparison.Ordinal);
-         Assert.True(asks >= 0 && restarts > asks, "The synchronisation page restarts the service without asking first.");
+         Assert.True(asks >= 0 && restarts > asks, "The directory pages restart the service without asking first.");
+         Assert.Contains("cancelByDefault: true", restart, StringComparison.Ordinal);
       }
 
       /// <summary>A file under the repository root, found from the test binaries.</summary>

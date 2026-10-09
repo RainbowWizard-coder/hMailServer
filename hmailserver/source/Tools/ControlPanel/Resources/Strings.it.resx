@@ -9306,6 +9306,9 @@ Continuare?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Salvato {0} - il server rileva la selezione entro due secondi; la nuova pianificazione si applica al riavvio del servizio.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Salvato {0} - il server lo rileva entro due secondi, ma la pianificazione della sincronizzazione della directory si applica solo al riavvio del servizio.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Salvato {0} - il server lo rileva entro due secondi. Non serve alcun riavvio del servizio.</value>
   </data>
@@ -11175,6 +11178,9 @@ Selezionare la chiave qui sopra e copiarla a mano - non verrà mostrata di nuovo
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>La directory ha risposto: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>La pianificazione della sincronizzazione della directory si applica solo al riavvio del servizio hMailServer. Riavviare il servizio ora? Tutti i client connessi al server vengono disconnessi mentre si ferma e riparte.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>La documentazione mostrata dal riquadro della guida è la copia propria del server; qui si indica dove si trova la stessa pagina sul wiki, con il nome del documento aggiunto. Di fabbrica, il wiki GitLab del progetto.</value>

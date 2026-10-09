@@ -9390,6 +9390,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Сохранено: {0} — выбор сервер подхватит в течение двух секунд; новое расписание вступит в силу после перезапуска службы.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Сохранено: {0} — сервер подхватит это в течение двух секунд, но расписание синхронизации с каталогом вступит в силу только после перезапуска службы.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Сохранено: {0} — сервер подхватит это в течение двух секунд. Перезапуск службы не нужен.</value>
   </data>
@@ -11312,6 +11315,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Каталог ответил: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Расписание синхронизации с каталогом вступит в силу только после перезапуска службы hMailServer. Перезапустить службу сейчас? Все клиенты, подключённые к серверу, будут отключены, пока она останавливается и запускается снова.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Документация в панели справки — собственная копия сервера; здесь указано, где та же страница находится в вики, с добавлением имени документа. По умолчанию — вики проекта на GitLab.</value>

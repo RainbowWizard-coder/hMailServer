@@ -1071,9 +1071,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   success, LDAP's in a message box. When hMailServer.INI is not on this computer, both say so in that notice beside
   an *Unavailable* pill, where Directory synchronisation said it in the footer's caption. The page scrolls whole, as
   the feature settings pages do, so the smallest window keeps the cards. Directory synchronisation says *Restart to
-  apply* - after a save, and when the page is opened again before the service has restarted - while the schedule
-  this Control Panel saved is not the one the server registered as it last started or reinitialised, where it said
-  after every save that a change to the schedule needs a restart; and it now notices when hMailServer.ini refused a
+  apply* - after a save, and when the page is opened again before the service has restarted - while directory access
+  is on and the schedule in hMailServer.ini runs at another interval than the one the server registered as it last
+  started or reinitialised - none, when it started with directory access off - where it said after every save that a
+  change to the schedule needs a restart. A schedule changed while directory access is off, or to minutes the server
+  runs alike - 5 and 15, an empty value and 0 - waits for nothing. Directory authentication says the same, with the
+  restart, when its save switches directory access on over a schedule the running server did not register, where it
+  said that no service restart was needed. And Directory synchronisation now notices when hMailServer.ini refused a
   write, which it reported as saved.
 
 - **Fixed: the lists on the domain and account dialogs' tabs saved as they were edited, under a dialog whose Cancel

@@ -3,10 +3,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using hMailServer.ControlPanel.Services;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
+using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
+using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
@@ -78,6 +82,52 @@ namespace hMailServer.ControlPanel.Views
       {
          Say_(sentence, StatusLevel.Critical, null);
          Follow();
+      }
+
+      /// <summary>
+      /// The notice's action for a saved change that waits for a service restart:
+      /// Restart the service…, the window's pending bar's restart, which asks
+      /// <paramref name="question"/> first, with Cancel the answer Enter gives, and
+      /// settles the page as the restart goes (Services/ServiceRestart). Null when the
+      /// server is not the one on this machine, which a restart from here cannot reach.
+      /// </summary>
+      public Wpf.Ui.Controls.Button RestartAction(string automationId, string question)
+      {
+         if (!ServiceRestart.Available)
+            return null;
+
+         var button = new Wpf.Ui.Controls.Button
+         {
+            Content = L("Restart the service…"),
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         AutomationProperties.SetAutomationId(button, automationId);
+         button.Click += async (s, e) => await RestartAsync_(automationId, question);
+         return button;
+      }
+
+      /// <summary>Asks, restarts the service, and says how it went.</summary>
+      private async Task RestartAsync_(string automationId, string question)
+      {
+         if (!MessageBox.Confirm(question, L("Control Panel"), L("_Restart the service"), cancelByDefault: true))
+            return;
+
+         Settle(SettingsPageState.Restarting, L("Restarting the hMailServer service..."), StatusLevel.Information);
+         (ServiceRestartOutcome outcome, string reason) = await ServiceRestart.RunAsync();
+         switch (outcome)
+         {
+            case ServiceRestartOutcome.NotRestarted:
+               Settle(SettingsPageState.RestartFailed, F("Could not restart the service: {0}", reason), action: RestartAction(automationId, question));
+               break;
+            case ServiceRestartOutcome.NotReattached:
+               Settle(SettingsPageState.NotConnected,
+                  F("The service was restarted but the Control Panel could not reconnect to it: {0}\n\nIt will keep trying as you use the application.", reason));
+               break;
+            default:
+               Settle(SettingsPageState.Applied, L("Service restarted - settings are live."));
+               break;
+         }
       }
 
       private void Show_(SettingsPageState state)

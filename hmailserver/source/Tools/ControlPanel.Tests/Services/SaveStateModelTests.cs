@@ -273,22 +273,68 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          // A changed schedule waits for the service; nothing else here does. Measured
          // from the schedule the server started with, not from the last save, which
-         // called a second save after a schedule change applied (DirectorySyncScheduleTests).
+         // called a second save after a schedule change applied, and from the file as
+         // the server reads it, Enabled with the minutes (DirectorySyncScheduleTests).
          Assert.Contains("SettingsPageState.WaitsForRestart", save, StringComparison.Ordinal);
-         Assert.Contains("DirectorySyncSchedule.Shared.Saved(ServerStarted_(), scheduleMinutes_.Text)", save, StringComparison.Ordinal);
+         int written = save.IndexOf("Write_(\"SyncScheduleMinutes\"", StringComparison.Ordinal);
+         int saved = save.IndexOf("DirectorySyncSchedule.Shared.SavedFile(store_.IniPath)", StringComparison.Ordinal);
+         Assert.True(written >= 0 && saved > written, "The schedule's wait is not measured from the file as written.");
          Assert.DoesNotContain("savedSchedule_", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("Shared.Saved(", code, StringComparison.Ordinal);
 
          // And the page says so as it opens, while the schedule still waits.
          string load = WithheldRowTests.MemberText(code, "private void Load_()");
          Assert.True(load != null, "DirectorySyncView.Load_ is gone.");
-         int read = load.IndexOf("DirectorySyncSchedule.Shared.Read(ServerStarted_(), scheduleMinutes_.Text);", StringComparison.Ordinal);
+         int read = load.IndexOf("DirectorySyncSchedule.Shared.ReadFile(store_.IniPath);", StringComparison.Ordinal);
          int waits = load.IndexOf("if (DirectorySyncSchedule.Shared.Waits)", StringComparison.Ordinal);
          Assert.True(read >= 0 && waits > read, "Directory synchronisation does not say, as it opens, that a saved schedule waits.");
          Assert.Contains("SettingsPageState.WaitsForRestart", load.Substring(waits), StringComparison.Ordinal);
+      }
 
-         string started = WithheldRowTests.MemberText(code, "private static string ServerStarted_()");
+      /// <summary>
+      /// The record reads the file with the server's own call and asks the server when
+      /// it started: [LDAP] Enabled is half of the schedule the server registers, and the
+      /// minutes are what GetPrivateProfileInt makes of them, clamped.
+      /// </summary>
+      [Fact]
+      public void TheScheduleRecord_ReadsTheFileAsTheServerDoes()
+      {
+         string session = ReadControlPanelFile("Services/DirectorySyncSchedule.Session.cs");
+         Assert.Contains("ProfileApi.ReadInt(Section, \"Enabled\", 0, iniPath) != 0", session, StringComparison.Ordinal);
+         Assert.Contains("ProfileApi.ReadInt(Section, \"SyncScheduleMinutes\", 0, iniPath)", session, StringComparison.Ordinal);
+
+         string started = WithheldRowTests.MemberText(session, "public static string ServerStarted()");
          Assert.True(started != null && started.Contains("status.StartTime", StringComparison.Ordinal),
-            "The page no longer asks the server when it started.");
+            "The record no longer asks the server when it started.");
+      }
+
+      /// <summary>
+      /// Directory authentication writes [LDAP] Enabled, half of what the server
+      /// registers for the synchronisation schedule. Switched on after a start with it
+      /// off, a schedule in the file runs nothing until the service restarts, and the
+      /// page said "No service restart is needed". It tells the record what it read and
+      /// what it saved, and says Restart to apply, with the restart, when the schedule
+      /// waits.
+      /// </summary>
+      [Fact]
+      public void DirectoryAuthentication_SaysWhenItsSaveLeavesTheScheduleWaiting()
+      {
+         string code = ReadControlPanelFile("Views/LdapSettingsView.cs");
+
+         string load = WithheldRowTests.MemberText(code, "private void Load_()");
+         Assert.True(load != null && load.Contains("DirectorySyncSchedule.Shared.ReadFile(store_.IniPath);", StringComparison.Ordinal),
+            "Directory authentication does not tell the schedule record what the file held before its save.");
+
+         string save = WithheldRowTests.MemberText(code, "private bool Save_()");
+         Assert.True(save != null, "LdapSettingsView.Save_ is gone.");
+         int enabled = save.IndexOf("IniWrite_(\"Enabled\"", StringComparison.Ordinal);
+         int saved = save.IndexOf("if (DirectorySyncSchedule.Shared.SavedFile(store_.IniPath))", StringComparison.Ordinal);
+         Assert.True(enabled >= 0 && saved > enabled, "Directory authentication does not ask, after its save, whether the schedule waits.");
+         Assert.Matches(new Regex(@"saveState_\.Settle\(SettingsPageState\.WaitsForRestart,\s*F\(""Saved \{0\} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts\."", time\),\s*action: RestartAction_\(\)\);"), save.Substring(saved));
+
+         string action = WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button RestartAction_()");
+         Assert.True(action != null && action.Contains("saveState_.RestartAction(\"ldap-restart-service\"", StringComparison.Ordinal),
+            "Directory authentication's restart is not the shared one.");
       }
 
       /// <summary>

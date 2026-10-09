@@ -9306,6 +9306,9 @@ Fortfahren?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} gespeichert - der Server übernimmt die Auswahl innerhalb von zwei Sekunden; der neue Zeitplan wirkt, sobald der Dienst neu startet.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>{0} gespeichert - der Server übernimmt das innerhalb von zwei Sekunden, aber der Zeitplan der Verzeichnissynchronisation wirkt erst, wenn der Dienst neu startet.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>{0} gespeichert - der Server übernimmt das innerhalb von zwei Sekunden. Ein Neustart des Dienstes ist nicht nötig.</value>
   </data>
@@ -11175,6 +11178,9 @@ Markieren Sie den Schlüssel oben und kopieren Sie ihn von Hand - er wird nicht 
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Das Verzeichnis meldete: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Der Zeitplan der Verzeichnissynchronisation wirkt erst, wenn der hMailServer-Dienst neu startet. Den Dienst jetzt neu starten? Alle mit dem Server verbundenen Clients werden getrennt, während er anhält und neu startet.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Die Dokumentation im Hilfebereich ist die eigene Kopie des Servers; hier steht, wo dieselbe Seite im Wiki liegt, ergänzt um den Namen des Dokuments. Ab Werk das GitLab-Wiki des Projekts.</value>

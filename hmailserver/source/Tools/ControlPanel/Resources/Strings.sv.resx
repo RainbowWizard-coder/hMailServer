@@ -9306,6 +9306,9 @@ Fortsätt?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Sparat {0} - servern plockar upp valet inom två sekunder; det nya schemat gäller när tjänsten startas om.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Sparat {0} - servern plockar upp detta inom två sekunder, men schemat för katalogsynkronisering börjar gälla först när tjänsten startas om.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Sparat {0} - servern plockar upp detta inom två sekunder. Ingen omstart av tjänsten behövs.</value>
   </data>
@@ -11175,6 +11178,9 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Katalogen sade: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Schemat för katalogsynkronisering börjar gälla först när tjänsten hMailServer startas om. Starta om tjänsten nu? Alla klienter som är anslutna till servern kopplas från medan den stoppas och startar igen.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Dokumentationen som hjälppanelen visar är serverns egen kopia; här anges var samma sida finns på wikin, med dokumentets namn tillagt. Som levererad är det projektets GitLab-wiki.</value>

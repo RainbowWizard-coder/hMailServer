@@ -9306,6 +9306,9 @@ Vil du fortsætte?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Gemt {0} - serveren opfanger valget inden for to sekunder; den nye tidsplan træder i kraft, når tjenesten genstartes.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Gemt {0} - serveren opfanger det inden for to sekunder, men tidsplanen for katalogsynkronisering træder først i kraft, når tjenesten genstartes.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Gemte {0} - serveren opfanger det inden for to sekunder. Ingen genstart af tjenesten er nødvendig.</value>
   </data>
@@ -11175,6 +11178,9 @@ Markér nøglen ovenfor og kopiér den manuelt - den vises ikke igen.</value>
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Kataloget svarede: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Tidsplanen for katalogsynkronisering træder først i kraft, når hMailServer-tjenesten genstartes. Genstart tjenesten nu? Alle klienter, der er forbundet til serveren, afbrydes, mens den stopper og starter igen.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Den dokumentation, hjælpepanelet viser, er serverens egen kopi; her står, hvor den samme side findes på wikien, med dokumentets navn tilføjet. Som leveret er det projektets GitLab-wiki.</value>

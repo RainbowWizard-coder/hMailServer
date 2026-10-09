@@ -9306,6 +9306,9 @@ Continuar?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Salvo: {0} - o servidor detecta a seleção em até dois segundos; o novo agendamento passa a valer quando o serviço reiniciar.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Salvo: {0} - o servidor detecta isso em até dois segundos, mas o agendamento da sincronização de diretório só passa a valer quando o serviço reiniciar.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Salvo: {0} - o servidor detecta isso em até dois segundos. Não é preciso reiniciar o serviço.</value>
   </data>
@@ -11175,6 +11178,9 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>O diretório disse: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>O agendamento da sincronização de diretório só passa a valer quando o serviço hMailServer reinicia. Reiniciar o serviço agora? Todos os clientes conectados ao servidor são desconectados enquanto ele para e inicia de novo.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>A documentação que o painel de ajuda mostra é a cópia própria do servidor; aqui fica onde a mesma página está na wiki, com o nome do documento adicionado. De fábrica, a wiki do projeto no GitLab.</value>

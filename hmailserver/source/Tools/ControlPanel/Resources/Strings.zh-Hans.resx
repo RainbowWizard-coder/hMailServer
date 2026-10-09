@@ -9306,6 +9306,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>已于 {0} 保存 - 服务器会在两秒内读取所选内容；新的计划在服务重启后生效。</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>已保存 {0} - 服务器会在两秒内读取，但目录同步计划在服务重启后才会生效。</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>已保存 {0} - 服务器会在两秒内读取。无需重启服务。</value>
   </data>
@@ -11175,6 +11178,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>目录返回：{0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>目录同步计划只有在 hMailServer 服务重启后才会生效。现在重启服务吗？服务停止并重新启动期间，所有连接到服务器的客户端都会断开。</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>帮助窗格显示的文档是服务器自己的副本；此处指定同一页面在 Wiki 上的位置，并附加文档名称。出厂设置为项目的 GitLab Wiki。</value>

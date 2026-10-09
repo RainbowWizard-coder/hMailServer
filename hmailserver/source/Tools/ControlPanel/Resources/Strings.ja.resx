@@ -9306,6 +9306,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} に保存しました。サーバーは 2 秒以内に選択を取り込みます。新しいスケジュールはサービスの再起動後に有効になります。</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>{0} を保存しました。サーバーは 2 秒以内にこれを取り込みますが、ディレクトリ同期のスケジュールはサービスの再起動後に有効になります。</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>{0} を保存しました。サーバーは 2 秒以内にこれを取り込みます。サービスの再起動は不要です。</value>
   </data>
@@ -11175,6 +11178,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>ディレクトリからの応答: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>ディレクトリ同期のスケジュールは、hMailServer サービスを再起動したときにだけ有効になります。今すぐサービスを再起動しますか? サービスが停止して再開する間、サーバーに接続しているクライアントはすべて切断されます。</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>ヘルプ ペインに表示されるドキュメントはサーバー自身のコピーです。これは同じページが Wiki 上のどこにあるかを示し、ドキュメント名が付加されます。既定ではプロジェクトの GitLab Wiki です。</value>

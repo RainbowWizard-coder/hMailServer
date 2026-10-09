@@ -9306,6 +9306,9 @@ Continuer ?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>{0} enregistré - le serveur prend la sélection en compte en moins de deux secondes ; la nouvelle planification s'applique au redémarrage du service.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>{0} enregistré - le serveur le prend en compte en moins de deux secondes, mais la planification de la synchronisation de l'annuaire ne s'applique qu'au redémarrage du service.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>{0} enregistré - le serveur le prend en compte en moins de deux secondes. Aucun redémarrage du service n'est nécessaire.</value>
   </data>
@@ -11175,6 +11178,9 @@ Sélectionnez la clé ci-dessus et copiez-la à la main - elle ne sera plus jama
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>L'annuaire a répondu : {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>La planification de la synchronisation de l'annuaire ne s'applique qu'au redémarrage du service hMailServer. Redémarrer le service maintenant ? Tous les clients connectés au serveur sont déconnectés pendant qu'il s'arrête et redémarre.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>La documentation affichée dans le volet d'aide est la copie propre du serveur ; ceci indique où se trouve la même page sur le wiki, avec le nom du document ajouté. Par défaut, le wiki GitLab du projet.</value>

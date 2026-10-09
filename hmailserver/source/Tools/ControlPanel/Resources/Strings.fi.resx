@@ -9306,6 +9306,9 @@ Jatketaanko?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Tallennettu {0} - palvelin poimii valinnan kahden sekunnin kuluessa; uusi aikataulu tulee voimaan, kun palvelu käynnistetään uudelleen.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Tallennettu {0} - palvelin poimii tämän kahden sekunnin kuluessa, mutta hakemiston synkronoinnin aikataulu tulee voimaan vasta, kun palvelu käynnistetään uudelleen.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Tallennettu {0} - palvelin poimii tämän kahden sekunnin kuluessa. Palvelun uudelleenkäynnistystä ei tarvita.</value>
   </data>
@@ -11175,6 +11178,9 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Hakemisto vastasi: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Hakemiston synkronoinnin aikataulu tulee voimaan vasta, kun hMailServer-palvelu käynnistetään uudelleen. Käynnistetäänkö palvelu uudelleen nyt? Kaikki palvelimeen yhdistetyt asiakkaat katkaistaan, kun se pysähtyy ja käynnistyy uudelleen.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Ohjepaneelin näyttämä dokumentaatio on palvelimen oma kopio; tässä kerrotaan, missä sama sivu on wikissä, asiakirjan nimi lisättynä. Oletuksena projektin GitLab-wiki.</value>

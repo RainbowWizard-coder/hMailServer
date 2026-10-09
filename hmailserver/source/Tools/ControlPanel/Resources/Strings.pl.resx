@@ -9390,6 +9390,9 @@ Kontynuować?</value>
   <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
     <value>Zapisano {0} - serwer odczyta wybór w ciągu dwóch sekund; nowy harmonogram zacznie obowiązywać po ponownym uruchomieniu usługi.</value>
   </data>
+  <data name="Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Zapisano {0} - serwer odczyta to w ciągu dwóch sekund, ale harmonogram synchronizacji katalogu zacznie obowiązywać dopiero po ponownym uruchomieniu usługi.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Zapisano {0} - serwer odczyta to w ciągu dwóch sekund. Ponowne uruchomienie usługi nie jest potrzebne.</value>
   </data>
@@ -11312,6 +11315,9 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   </data>
   <data name="The directory said: {0}" xml:space="preserve">
     <value>Katalog odpowiedział: {0}</value>
+  </data>
+  <data name="The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again." xml:space="preserve">
+    <value>Harmonogram synchronizacji katalogu zacznie obowiązywać dopiero po ponownym uruchomieniu usługi hMailServer. Uruchomić usługę ponownie teraz? Wszyscy klienci połączeni z serwerem zostaną rozłączeni na czas jej zatrzymania i ponownego uruchomienia.</value>
   </data>
   <data name="The documentation the help pane shows is the server's own copy; this is where the same page is on the wiki, with the document's name added. As shipped, the project's GitLab wiki." xml:space="preserve">
     <value>Dokumentacja wyświetlana w panelu pomocy to własna kopia serwera; tutaj podaje się, gdzie ta sama strona znajduje się na wiki, z dodaną nazwą dokumentu. Domyślnie wiki projektu na GitLabie.</value>

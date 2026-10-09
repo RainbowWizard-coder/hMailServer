@@ -759,7 +759,12 @@ namespace hMailServer.ControlPanel.Views
          baseline_.Take(EditorValues_());
 
          if (store_.IsAvailable)
+         {
+            // What the file holds of the directory synchronisation schedule, which
+            // Enabled is half of, before a save here changes it (DirectorySyncSchedule).
+            DirectorySyncSchedule.Shared.ReadFile(store_.IniPath);
             saveState_.Settle(SettingsPageState.Clean, null);
+         }
          else
             saveState_.Settle(SettingsPageState.Unavailable, L("hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here."));
       }
@@ -859,15 +864,35 @@ namespace hMailServer.ControlPanel.Views
          RefreshState_();
          baseline_.Take(EditorValues_());
 
-         // No restart offer, and that is the point of this section's design: the
-         // server keys its cache on the INI's write time and re-reads within two
-         // seconds, precisely so a broken directory configuration can be fixed
-         // while the administrator is still looking at the screen. So Saved, which
-         // on these pages means in effect.
-         saveState_.Settle(SettingsPageState.Saved,
-            F("Saved {0} - the server picks this up within two seconds. No service restart is needed.", DateTime.Now.ToLongTimeString()));
+         // No restart for these settings, and that is the point of this section's
+         // design: the server keys its cache on the INI's write time and re-reads
+         // within two seconds, precisely so a broken directory configuration can be
+         // fixed while the administrator is still looking at the screen. So Saved,
+         // which on these pages means in effect - unless the directory synchronisation
+         // schedule waits. The server registers its scheduled run as it starts, and
+         // only while Enabled is on, so switching directory access on after a start
+         // with it off, with a schedule in the file, runs nothing until the service
+         // restarts, and the page that switched it on says so, with the restart.
+         string time = DateTime.Now.ToLongTimeString();
+         if (DirectorySyncSchedule.Shared.SavedFile(store_.IniPath))
+            saveState_.Settle(SettingsPageState.WaitsForRestart,
+               F("Saved {0} - the server picks this up within two seconds, but the directory synchronisation schedule takes effect when the service restarts.", time),
+               action: RestartAction_());
+         else
+            saveState_.Settle(SettingsPageState.Saved,
+               F("Saved {0} - the server picks this up within two seconds. No service restart is needed.", time));
          return true;
       }
+
+      /// <summary>
+      /// The action of the notice that says the directory synchronisation schedule
+      /// waits for a restart: Restart the service, as Directory synchronisation offers
+      /// it, which asks first (IniPageSaveState.RestartAction). Null when the server is
+      /// not the one on this machine.
+      /// </summary>
+      private Wpf.Ui.Controls.Button RestartAction_()
+         => saveState_.RestartAction("ldap-restart-service",
+            L("The directory synchronisation schedule takes effect only when the hMailServer service restarts. Restart the service now? Every client connected to the server is disconnected while it stops and starts again."));
 
       /// <summary>
       /// Every editor a save writes, wired to the pill: Unsaved changes from the first

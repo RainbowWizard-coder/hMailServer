@@ -22,6 +22,10 @@ namespace hMailServer.ControlPanel.Services
       private static partial int GetPrivateProfileString(string section, string key, string defaultValue,
          Span<char> result, int size, string filePath);
 
+      [LibraryImport("kernel32.dll", EntryPoint = "GetPrivateProfileIntW",
+         StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+      private static partial uint GetPrivateProfileInt(string section, string key, int defaultValue, string filePath);
+
       [LibraryImport("kernel32.dll", EntryPoint = "WritePrivateProfileStringW",
          StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
       [return: MarshalAs(UnmanagedType.Bool)]
@@ -47,6 +51,18 @@ namespace hMailServer.ControlPanel.Services
          var buffer = new char[capacity];
          int copied = GetPrivateProfileString(section, key, defaultValue, buffer, capacity, filePath);
          return new string(buffer, 0, Math.Max(0, Math.Min(copied, capacity)));
+      }
+
+      /// <summary>
+      /// One value as a number, read as the server reads its numeric keys, with the same
+      /// call: <paramref name="defaultValue"/> for a missing or empty value, and otherwise
+      /// what the API makes of it - 0x10 is 16, -1 is 4294967295, 30abc is 30 and a word
+      /// is 0. For a page that must judge a value the way the server will, rather than
+      /// parse the text its own way.
+      /// </summary>
+      public static uint ReadInt(string section, string key, int defaultValue, string filePath)
+      {
+         return GetPrivateProfileInt(section, key, defaultValue, filePath);
       }
 
       public static bool WriteString(string section, string key, string value, string filePath)
