@@ -94,12 +94,22 @@ namespace hMailServer.ControlPanel.Views
          close_.Click += (s, e) => Close();
 
          // A verification code is digits, and the box takes nothing else - typed or
-         // pasted - so that a stray letter is not what "does not match" is about.
+         // pasted - so that a stray letter is not what "does not match" is about. A
+         // pasted code keeps its digits: authenticator apps copy "123 456".
          code_.PreviewTextInput += (s, e) => e.Handled = !IsDigits_(e.Text);
          DataObject.AddPastingHandler(code_, (s, e) =>
          {
-            if (!e.DataObject.GetDataPresent(DataFormats.UnicodeText) || !IsDigits_(((string)e.DataObject.GetData(DataFormats.UnicodeText) ?? "").Trim()))
-               e.CancelCommand();
+            string pasted = e.DataObject.GetDataPresent(DataFormats.UnicodeText) ? (string)e.DataObject.GetData(DataFormats.UnicodeText) ?? "" : "";
+            e.CancelCommand();
+            if (pasted.Any(c => !char.IsAsciiDigit(c) && !char.IsWhiteSpace(c)))
+               return;
+
+            string digits = new string(pasted.Where(char.IsAsciiDigit).ToArray());
+            if (digits.Length == 0)
+               return;
+
+            code_.Text = digits.Length > code_.MaxLength ? digits.Substring(0, code_.MaxLength) : digits;
+            code_.CaretIndex = code_.Text.Length;
          });
 
          UseFrame(L("Second factor on the administrator credential"), body, action_, close_, width: 560);
