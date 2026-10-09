@@ -906,8 +906,8 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory er ikke tilgjengelig på denne maskinen: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>Active Directory kan ikke nås fra denne maskinen — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>Active Directory kan ikke nås fra denne maskinen: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory avviser anonyme søk som standard, så søkemodus trenger normalt legitimasjon som har lov til å lese katalogen. Oppsett med Negotiate og med DN-mal trenger ikke noe av dette.</value>
@@ -10759,6 +10759,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Logg på med hMailServer-administratorlegitimasjonen.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Logg på med hMailServers serveradministratorkonto for å se eller endre disse innstillingene. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Logg folk på med en SAML-identitetsleverandør - Entra ID, Okta, ADFS. Gi leverandøren serverens metadata, som er webmailens basisadresse etterfulgt av /saml/metadata. SAML er av til leverandørens enhets-ID, påloggingsadresse og sertifikat alle er angitt.</value>
   </data>
@@ -11497,14 +11500,14 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP-agenten, alarmene, de utgående webhooksene og revisjonsloggen</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>SSL-sertifikatlisten kunne ikke leses - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>SSL-sertifikatlisten kunne ikke leses: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Service Control Manager kunne ikke spørres, så kontoen tjenesten kjører som, er ukjent: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>TCP/IP-portlisten kunne ikke leses - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>TCP/IP-portlisten kunne ikke leses: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>URI-blokkeringslistene på siden SURBL-servere spørres om hvert registrerbare domene og hver adresse en melding lenker til, opptil 200 for hver melding. En melding med lenker som nevner flere, spørres det ikke om i sin helhet: den får i stedet poengsummen nedenfor, én gang, uansett hvor mange lister som er aktive, slik at det ikke er gratis å gjemme en listet lenke blant oppdiktede domener. Ingenting gis poeng mens ingen URI-blokkeringsliste er aktiv.</value>
@@ -11731,6 +11734,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Sertifikatet er ikke gyldig før {0}. Serveren serverer det (feil 5991 i applikasjonsloggen), og klienter avviser det fram til den datoen - sjekk sertifikatet og klokken på denne serveren.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>Sertifikatet finnes ikke lenger - det ble slettet etter at denne listen ble lest.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Sertifikatets offentlige nøkkel kunne ikke eksporteres for sammenligning.</value>
   </data>
@@ -11786,6 +11792,9 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Den konfigurerte loggmappen finnes ikke på denne maskinen: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>Forbindelsen til hMailServer-tjenesten gikk tapt - den ble mest sannsynlig startet på nytt. Control Panel kobler til igjen av seg selv; prøv igjen om et øyeblikk.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>Konsistenskontrollen er aktivert, men har ennå ikke skrevet noen rapport. Serveren skanner ved oppstart og deretter hver time, og skriver {0}.</value>
@@ -11901,8 +11910,8 @@ Merk nøkkelen ovenfor og kopier den for hånd - den vises ikke igjen.</value>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Det eksterne oppsettet kunne ikke sjekkes - ikke koblet til serveren.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>Det eksterne oppsettet kunne ikke sjekkes - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>Det eksterne oppsettet kunne ikke sjekkes: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Selve hentingen mislyktes: {0} Dette sier ingenting om policyen.</value>
@@ -12403,14 +12412,23 @@ Legg til likevel?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Serverens administrasjonspassord, og hvem som i det hele tatt får bruke disse verktøyene.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>Serveren svarte noe dette Control Panel ikke kunne lese ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Serveren kan oppdage en ny utgivelse, verifisere den mot utgivelsens egen Sigstore-signatur og installere den - med et klikk på Status-siden, eller på egen hånd innenfor et vindu du angir. Av til du slår på kontrollen; kontrollen sender ingenting annet enn forespørselen.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>Serveren når ikke databasen sin. Sjekk databasetilkoblingen og hMailServers feillogg, og prøv deretter igjen. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>Serveren kunne ikke spørres om disse innstillingene, så siden viser verdiene i hMailServer.ini på denne datamaskinen, som kan avvike fra det serveren kjører med, og ingenting kan lagres før serveren svarer. Hvorfor: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Serveren la ikke utsendingen i kø. Sjekk adressejokeren og hMailServers feillogg.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>Serveren meldte ikke Kjører innen tretti sekunder; siden Serverstatus viser hva den gjør.</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Serveren rapporterte ikke nøkkelrotasjonen.</value>
@@ -12432,6 +12450,9 @@ Legg til likevel?</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Serveren genererer neste nøkkel, viser TXT-oppføringen som skal publiseres, kontrollerer den via sin egen resolver og bytter først signeringen til den når oppføringen har latt seg slå opp gjennom hele spredningsperioden. Den gamle selektoren beholdes i oppbevaringsperioden og fases deretter ut.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>Serveren har ingen slik innstilling eller handling - den kan være eldre enn dette Control Panel ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Serveren tømmes. En reinitialisering avslutter vedlikeholdsmodus: lytterne åpnes igjen, og leveringen fortsetter. Reinitialisere serveren nå?</value>
@@ -15471,9 +15492,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="the certificate" xml:space="preserve">
     <value>sertifikatet</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>sertifikatet finnes ikke lenger - last siden på nytt.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>det konfigurerte UserSearchFilter er ikke et gyldig LDAP-filter</value>
   </data>
@@ -15482,9 +15500,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>den tilkoblende adressen samsvarer med ett av unntakene fra grålisting (oppføringer: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>forbindelsen til hMailServer-tjenesten gikk tapt - den ble mest sannsynlig startet på nytt. Control Panel kobler til igjen av seg selv; trykk Last på nytt for å prøve igjen.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>legitimasjonen ble avvist</value>
@@ -15560,18 +15575,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>avsenderens domene eller HELO-navn er et tillatt domene</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>serveren svarte noe dette Control Panel ikke kunne lese ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>serveren når ikke databasen sin. Sjekk databasetilkoblingen og hMailServers feillogg, og trykk deretter Last på nytt. ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>serveren meldte ikke Kjører innen tretti sekunder; siden Status viser hva den gjør.</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>serveren har ingen slik innstilling eller handling - den kan være eldre enn dette Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>serveren er treg</value>
@@ -15659,9 +15662,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>skriv loggen til en database</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>du må koble til med hMailServers serveradministratorkonto for å se eller endre disse innstillingene. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>din applikasjons-/klient-id</value>

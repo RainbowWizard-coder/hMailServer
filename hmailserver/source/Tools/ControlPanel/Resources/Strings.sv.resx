@@ -906,8 +906,8 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory är inte tillgängligt på den här datorn: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>Active Directory kan inte nås från den här datorn — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>Active Directory kan inte nås från den här datorn: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory vägrar anonyma sökningar som standard, så sökläget behöver normalt en inloggningsuppgift som får läsa katalogen. Konfigurationer med Negotiate och DN-mall behöver inget av detta.</value>
@@ -10759,6 +10759,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Logga in med hMailServers administratörsuppgifter.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Logga in med hMailServers serveradministratörskonto för att se eller ändra de här inställningarna. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Logga in folk med en SAML-identitetsleverantör - Entra ID, Okta, ADFS. Ge leverantören serverns metadata, som är webbmejlens basadress följd av /saml/metadata. SAML är av tills leverantörens entitets-ID, inloggningsadress och certifikat alla är angivna.</value>
   </data>
@@ -11497,14 +11500,14 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP-agenten, larmen, utgående webhooks och granskningsloggen</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>Listan över SSL-certifikat kunde inte läsas - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>Listan över SSL-certifikat kunde inte läsas: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Service Control Manager kunde inte frågas, så kontot tjänsten körs som är okänt: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>Listan över TCP/IP-portar kunde inte läsas - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>Listan över TCP/IP-portar kunde inte läsas: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>URI-spärrlistorna på sidan SURBL-servrar tillfrågas om varje registrerbar domän och varje adress som ett meddelande länkar till, upp till 200 per meddelande. Ett meddelande vars länkar nämner fler tillfrågas inte om i sin helhet: det får i stället poängen nedan, en gång, hur många listor som än är aktiva, så att det inte är gratis att gömma en listad länk bland påhittade domäner. Ingenting poängsätts medan ingen URI-spärrlista är aktiv.</value>
@@ -11731,6 +11734,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Certifikatet är inte giltigt förrän {0}. Servern serverar det (fel 5991 i programloggen) och klienter vägrar det fram till det datumet - kontrollera certifikatet och den här serverns klocka.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>Certifikatet finns inte längre - det togs bort efter att den här listan lästes.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Certifikatets publika nyckel kunde inte exporteras för jämförelse.</value>
   </data>
@@ -11786,6 +11792,9 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Den konfigurerade loggmappen finns inte på den här datorn: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>Anslutningen till hMailServer-tjänsten förlorades - den startades troligen om. Kontrollpanelen återansluter på egen hand; försök igen om en stund.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>Konsistenskontrollen är aktiverad men har inte skrivit någon rapport ännu. Servern genomsöker vid start och sedan varje timme, och skriver {0}.</value>
@@ -11901,8 +11910,8 @@ Markera nyckeln ovan och kopiera den för hand - den visas inte igen.</value>
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Den externa konfigurationen kunde inte kontrolleras - inte ansluten till servern.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>Den externa konfigurationen kunde inte kontrolleras - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>Den externa konfigurationen kunde inte kontrolleras: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Själva hämtningen misslyckades: {0} Det säger inget om policyn.</value>
@@ -12403,14 +12412,23 @@ Lägg till det ändå?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Serverns administrationslösenord, och vem som över huvud taget får använda de här verktygen.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>Servern svarade något som den här Control Panel inte kunde läsa ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Servern kan upptäcka en ny utgåva, verifiera den mot utgåvans egen Sigstore-signatur och installera den - med ett klick på statussidan, eller på egen hand inom ett fönster du anger. Av tills du slår på kontrollen; kontrollen skickar inget annat än förfrågan.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>Servern kan inte nå sin databas. Kontrollera databasanslutningen och hMailServers fellogg, och försök sedan igen. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>Servern kunde inte tillfrågas om de här inställningarna, så sidan visar värdena i hMailServer.ini på den här datorn, som kan skilja sig från det servern kör med, och inget kan sparas förrän servern svarar. Varför: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Servern köade inte utskicket. Kontrollera adressjokern och hMailServers fellogg.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>Servern rapporterade inte Körs inom trettio sekunder; sidan Serverstatus visar vad den gör.</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Servern rapporterade inte nyckelrotationen.</value>
@@ -12432,6 +12450,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Servern genererar nästa nyckel, visar TXT-posten som ska publiceras, kontrollerar den via sin egen resolver och byter signeringen till den först när posten har gått att slå upp under hela spridningstiden. Den gamla selektorn behålls under lagringstiden och avvecklas sedan.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>Servern har ingen sådan inställning eller åtgärd - den kan vara äldre än den här Control Panel ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Servern töms. En ominitiering avslutar underhållsläget: lyssnarna öppnas igen och leveransen återupptas. Ominitiera servern nu?</value>
@@ -15471,9 +15492,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="the certificate" xml:space="preserve">
     <value>certifikatet</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>certifikatet finns inte längre - ladda om sidan.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>det konfigurerade UserSearchFilter är inte ett giltigt LDAP-filter</value>
   </data>
@@ -15482,9 +15500,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>den anslutande adressen matchar ett av undantagen från gråstlistning (poster: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>anslutningen till hMailServer-tjänsten förlorades - den startades troligen om. Kontrollpanelen återansluter på egen hand; tryck på Ladda om för att försöka igen.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>inloggningsuppgifterna avvisades</value>
@@ -15560,18 +15575,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>avsändarens domän eller HELO-namn är en tillåten domän</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>servern svarade något som den här Control Panel inte kunde läsa ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>servern kan inte nå sin databas. Kontrollera databasanslutningen och hMailServers fellogg, och tryck sedan på Ladda om. ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>servern rapporterade inte Körs inom trettio sekunder; sidan Status visar vad den gör.</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>servern har ingen sådan inställning eller åtgärd - den kan vara äldre än den här Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>servern är långsam</value>
@@ -15659,9 +15662,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>skriv loggen till en databas</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>du måste ansluta med hMailServers serveradministratörskonto för att se eller ändra de här inställningarna. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>ditt program- / klient-ID</value>

@@ -1658,7 +1658,7 @@ namespace hMailServer.ControlPanel
             }
 
             if (!running)
-               failure = L("the server did not report Running within thirty seconds; the Status page says what it is doing.");
+               failure = L("The server did not report Running within thirty seconds; the Server status page says what it is doing.");
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {

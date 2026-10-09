@@ -906,8 +906,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory is niet beschikbaar op deze machine: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>Active Directory is niet bereikbaar vanaf deze computer — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>Active Directory is niet bereikbaar vanaf deze computer: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory weigert standaard anonieme zoekopdrachten, dus de zoekmodus heeft normaal een referentie nodig die de directory mag lezen. Negotiate- en DN-sjabloonconfiguraties hebben hier niets van nodig.</value>
@@ -10759,6 +10759,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Meld u aan met de beheerdersreferentie van hMailServer.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Meld u aan met het hMailServer-serverbeheerdersaccount om deze instellingen te bekijken of te wijzigen. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Mensen aanmelden met een SAML-identiteitsprovider - Entra ID, Okta, ADFS. Geef de provider de metadata van deze server: het basisadres van de webmail gevolgd door /saml/metadata. SAML staat uit totdat de entiteits-ID, het aanmeldadres en het certificaat van de provider allemaal zijn ingesteld.</value>
   </data>
@@ -11497,14 +11500,14 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>De SNMP-agent, de waarschuwingen, de uitgaande webhooks en het auditlogboek</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>De lijst met SSL-certificaten kon niet worden gelezen - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>De lijst met SSL-certificaten kon niet worden gelezen: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>De Service Control Manager kon niet worden bevraagd, dus het account waaronder de service draait is onbekend: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>De lijst met TCP/IP-poorten kon niet worden gelezen - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>De lijst met TCP/IP-poorten kon niet worden gelezen: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>De URI-blokkeerlijsten op de pagina SURBL-servers worden gevraagd naar elk registreerbaar domein en elk adres waar een bericht naar linkt, tot 200 per bericht. Een bericht waarvan de links er meer noemen, wordt niet in zijn geheel gevraagd: het krijgt in plaats daarvan de score hieronder, één keer, ongeacht hoeveel lijsten actief zijn, zodat het verbergen van een vermelde link tussen verzonnen domeinen niet gratis is. Er wordt niets gescoord zolang geen URI-blokkeerlijst actief is.</value>
@@ -11731,6 +11734,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Het certificaat is pas geldig vanaf {0}. De server biedt het aan (fout 5991 in het toepassingslogboek) en clients weigeren het tot die datum - controleer het certificaat en de klok van deze server.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>Het certificaat bestaat niet meer - het is verwijderd nadat deze lijst werd gelezen.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>De openbare sleutel van het certificaat kon niet worden geëxporteerd om te vergelijken.</value>
   </data>
@@ -11786,6 +11792,9 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>De geconfigureerde logmap bestaat niet op deze machine: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>De verbinding met de hMailServer-service is verbroken - hoogstwaarschijnlijk is hij herstart. Het Control Panel maakt zelf opnieuw verbinding; probeer het zo meteen opnieuw.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>De consistentiecontrole is ingeschakeld, maar heeft nog geen rapport geschreven. De server scant bij het opstarten en daarna elk uur, en schrijft {0}.</value>
@@ -11901,8 +11910,8 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>De externe configuratie kon niet worden gecontroleerd - geen verbinding met de server.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>De externe configuratie kon niet worden gecontroleerd - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>De externe configuratie kon niet worden gecontroleerd: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Het ophalen zelf is mislukt: {0} Dit zegt niets over het beleid.</value>
@@ -12403,14 +12412,23 @@ Toch toevoegen?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Het beheerderswachtwoord van de server, en wie deze hulpmiddelen überhaupt mag gebruiken.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>De server antwoordde iets wat dit Control Panel niet kon lezen ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op de pagina Status, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>De server kan zijn database niet bereiken. Controleer de databaseverbinding en het hMailServer-foutenlogboek en probeer het daarna opnieuw. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>De server kon niet naar deze instellingen worden gevraagd; de pagina toont daarom de waarden in hMailServer.ini op deze computer, die kunnen afwijken van wat de server gebruikt, en er kan niets worden opgeslagen tot de server antwoordt. Waarom: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>De server heeft de verzending niet in de wachtrij gezet. Controleer het jokerteken in het adres en het foutenlogboek van hMailServer.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>De server meldde niet binnen dertig seconden Actief; de pagina Serverstatus toont wat hij doet.</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>De server heeft de sleutelrotatie niet gemeld.</value>
@@ -12432,6 +12450,9 @@ Toch toevoegen?</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>De server genereert de volgende sleutel, toont het TXT-record dat moet worden gepubliceerd, controleert het via zijn eigen resolver en verplaatst het ondertekenen pas naar die sleutel wanneer het record de hele propagatieperiode is opgelost. De oude selector wordt de bewaarperiode lang bewaard en daarna uitgefaseerd.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>De server heeft zo'n instelling of actie niet - hij is mogelijk ouder dan dit Control Panel ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>De server loopt leeg. Een herinitialisatie beëindigt de onderhoudsmodus: de listeners gaan weer open en de bezorging wordt hervat. De server nu herinitialiseren?</value>
@@ -15471,9 +15492,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="the certificate" xml:space="preserve">
     <value>het certificaat</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>het certificaat bestaat niet meer - laad de pagina opnieuw.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>de geconfigureerde UserSearchFilter is geen geldig LDAP-filter</value>
   </data>
@@ -15482,9 +15500,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>het verbindende adres komt overeen met een van de greylisting-uitzonderingen (vermeldingen: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>de verbinding met de hMailServer-service is verbroken - hoogstwaarschijnlijk is hij herstart. Het Control Panel maakt zelf opnieuw verbinding; druk op Opnieuw laden om het nu te proberen.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>de referenties zijn geweigerd</value>
@@ -15560,18 +15575,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>het domein of de HELO-naam van de afzender een toegestaan domein is</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>de server antwoordde iets wat dit Control Panel niet kon lezen ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>de server kan zijn database niet bereiken. Controleer de databaseverbinding en het hMailServer-foutenlogboek en druk daarna op Opnieuw laden. ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>de server meldde niet binnen dertig seconden Actief; de pagina Status toont wat hij doet.</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>de server heeft zo'n instelling of actie niet - hij is mogelijk ouder dan dit Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>de server is traag</value>
@@ -15659,9 +15662,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>het logboek naar een database schrijven</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>u moet verbinding maken met het hMailServer-serverbeheerdersaccount om deze instellingen te bekijken of te wijzigen. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>uw toepassings- / client-id</value>

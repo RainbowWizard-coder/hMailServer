@@ -906,8 +906,8 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>O Active Directory não está disponível nesta máquina: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>O Active Directory não é alcançável deste computador — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>O Active Directory não é alcançável deste computador: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>O Active Directory recusa buscas anônimas por padrão, então o modo de busca normalmente precisa de uma credencial que possa ler o diretório. Configurações Negotiate e de modelo de DN não precisam de nada disso.</value>
@@ -10759,6 +10759,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Entre com a credencial de administrador do hMailServer.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Entre com a conta de administrador do servidor hMailServer para ver ou alterar estas configurações. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Fazer o login das pessoas com um provedor de identidade SAML - Entra ID, Okta, ADFS. Dê ao provedor os metadados deste servidor, que são o endereço base do webmail seguido de /saml/metadata. O SAML fica desligado até que o ID da entidade, o endereço de login e o certificado do provedor estejam todos definidos.</value>
   </data>
@@ -11497,14 +11500,14 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>O agente SNMP, os alertas, os webhooks de saída e a trilha de auditoria</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>A lista de certificados SSL não pôde ser lida - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>A lista de certificados SSL não pôde ser lida: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Não foi possível consultar o Gerenciador de Controle de Serviços, então a conta com a qual o serviço roda é desconhecida: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>A lista de portas TCP/IP não pôde ser lida - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>A lista de portas TCP/IP não pôde ser lida: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>As listas de bloqueio de URI da página Servidores SURBL são consultadas sobre cada domínio registrável e cada endereço para os quais uma mensagem aponta, até 200 por mensagem. Uma mensagem cujos links citam mais não é consultada por inteiro: em vez disso, recebe a pontuação abaixo, uma vez, qualquer que seja o número de listas ativas, para que esconder um link listado entre domínios inventados não saia de graça. Nada é pontuado enquanto nenhuma lista de bloqueio de URI estiver ativa.</value>
@@ -11731,6 +11734,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>O certificado só passa a ser válido em {0}. O servidor o apresenta (erro 5991 no log do aplicativo) e os clientes o recusam até essa data - verifique o certificado e o relógio deste servidor.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>O certificado não existe mais - foi excluído depois que esta lista foi lida.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>A chave pública do certificado não pôde ser exportada para comparação.</value>
   </data>
@@ -11786,6 +11792,9 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>A pasta de logs configurada não existe nesta máquina: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>A conexão com o serviço hMailServer foi perdida - ele provavelmente foi reiniciado. O Control Panel se reconecta sozinho; tente de novo em instantes.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>A verificação de consistência está ativada mas ainda não gravou nenhum relatório. O servidor examina na inicialização e depois de hora em hora, e grava {0}.</value>
@@ -11901,8 +11910,8 @@ Selecione a chave acima e copie-a à mão - ela não será mostrada de novo.</va
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>A configuração externa não pôde ser verificada - sem conexão com o servidor.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>A configuração externa não pôde ser verificada - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>A configuração externa não pôde ser verificada: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>A própria busca falhou: {0} Isso não diz nada sobre a política.</value>
@@ -12403,14 +12412,23 @@ Adicionar mesmo assim?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>A senha de administração do servidor, e quem tem permissão para usar estas ferramentas.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>O servidor respondeu algo que este Control Panel não conseguiu ler ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>O servidor pode detectar uma nova versão, validá-la contra a assinatura Sigstore da própria versão e aplicá-la - com um clique na página Status, ou por conta própria dentro de uma janela que você definir. Desligado até você ligar a verificação; a verificação não envia nada além da requisição.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>O servidor não consegue alcançar seu banco de dados. Verifique a conexão com o banco de dados e o log de erros do hMailServer, e então tente de novo. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>Não foi possível perguntar ao servidor por estas configurações, por isso a página mostra os valores do hMailServer.ini neste computador, que podem ser diferentes dos que o servidor usa, e nada pode ser salvo até que o servidor responda. Motivo: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>O servidor não enfileirou o envio. Verifique o curinga de endereço e o log de erros do hMailServer.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>O servidor não informou Em execução em trinta segundos; a página Status do servidor mostra o que ele está fazendo.</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>O servidor não informou a rotação de chaves.</value>
@@ -12432,6 +12450,9 @@ Adicionar mesmo assim?</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>O servidor gera a próxima chave, mostra o registro TXT a publicar, verifica-o com o próprio resolvedor e só passa a assinatura para ela quando o registro tiver sido resolvido durante todo o período de propagação. O seletor antigo é mantido durante o período de retenção e depois aposentado.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>O servidor não tem essa configuração nem essa ação - pode ser anterior a este Control Panel ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>O servidor está sendo drenado. Uma reinicialização completa encerra o modo de manutenção: os listeners voltam a abrir e a entrega é retomada. Reinicializar o servidor agora?</value>
@@ -15471,9 +15492,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="the certificate" xml:space="preserve">
     <value>o certificado</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>o certificado não existe mais - recarregue a página.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>o UserSearchFilter configurado não é um filtro LDAP válido</value>
   </data>
@@ -15482,9 +15500,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>o endereço que se conecta corresponde a uma das exceções do greylisting (entradas: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>a conexão com o serviço hMailServer foi perdida - ele provavelmente foi reiniciado. O Control Panel se reconectará sozinho; pressione Recarregar para tentar de novo.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>as credenciais foram rejeitadas</value>
@@ -15560,18 +15575,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>o domínio do remetente ou o nome HELO é um domínio permitido</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>o servidor respondeu algo que este Control Panel não conseguiu ler ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>o servidor não consegue alcançar seu banco de dados. Verifique a conexão com o banco de dados e o log de erros do hMailServer, e então pressione Recarregar. ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>o servidor não informou Em execução em trinta segundos; a página Status mostra o que ele está fazendo.</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>o servidor não tem essa configuração nem essa ação - pode ser anterior a este Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>o servidor está lento</value>
@@ -15659,9 +15662,6 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>gravar o log em um banco de dados</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>é necessário conectar-se com a conta de administrador do servidor hMailServer para ver ou alterar estas configurações. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>seu ID de aplicativo / cliente</value>

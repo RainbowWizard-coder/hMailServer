@@ -2007,6 +2007,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   date and a time of day on one line, where it was one box of "YYYY-MM-DD HH:MM:SS", each said on the field when it
   is missing or not a time.
 
+- **Fixed: the sentence for a failure that blocks every read started in lower case and named a button the page did
+  not have.** The lost link, the unreachable database and a session that is not the server administrator's were
+  written to follow "Could not ...:", so a page that said one alone - Setting profiles, the quarantine, the audit
+  trail, message trace, an account's app passwords and second factor - read "Critical the connection to the
+  hMailServer service was lost ...", and each told the reader to press Reload, beside a button called Refresh or none
+  at all. Each is now a whole sentence that begins with a capital and names no button - "The connection to the
+  hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a
+  moment.", "... then try again.", "Sign in with the hMailServer server-administrator account to view or change these
+  settings." - as are the two for an older server and for an answer this Control Panel could not read, in all
+  seventeen languages; after what failed it follows a colon, as the server's own refusals do, where the setup
+  checklist, the Dashboard and the Active Directory check put it after a dash. A reinitialise that does not report
+  Running within thirty seconds names the Server status page, where it named a Status page, and a passphrase saved
+  for a certificate deleted in the meantime says that it was deleted after the list was read, where it said "reload
+  the page".
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

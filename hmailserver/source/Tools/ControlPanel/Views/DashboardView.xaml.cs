@@ -567,7 +567,7 @@ namespace hMailServer.ControlPanel.Views
                // Run() degrades per-item rather than throwing, so this is belt
                // and braces - but a dashboard that dies building a summary card
                // would be strictly worse than a dashboard without one.
-               ShowSetupUncheckable_(F("The external setup could not be checked - {0}", ServerSession.DescribeComError(ex)));
+               ShowSetupUncheckable_(F("The external setup could not be checked: {0}", ServerSession.DescribeComError(ex)));
                return;
             }
 

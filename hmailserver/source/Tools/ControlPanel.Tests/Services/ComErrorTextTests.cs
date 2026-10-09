@@ -113,7 +113,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Exception ex = Make(kind);
          Assert.True(ComErrorText.IsUnreadableAnswer(ex), ex.GetType().Name + " is not taken for an unreadable answer.");
          Assert.False(ComErrorText.IsMissingMember(ex));
-         Assert.Equal("the server answered something this Control Panel could not read (detail)", ComErrorText.NotTheServersWords(ex, "detail"));
+         Assert.Equal("The server answered something this Control Panel could not read (detail)", ComErrorText.NotTheServersWords(ex, "detail"));
       }
 
       /// <summary>A member the server does not have is an older server, and said so.</summary>
@@ -127,7 +127,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Exception ex = Make(kind);
          Assert.True(ComErrorText.IsMissingMember(ex));
-         Assert.Equal("the server has no such setting or action - it may be older than this Control Panel (detail)", ComErrorText.NotTheServersWords(ex, "detail"));
+         Assert.Equal("The server has no such setting or action - it may be older than this Control Panel (detail)", ComErrorText.NotTheServersWords(ex, "detail"));
       }
 
       /// <summary>

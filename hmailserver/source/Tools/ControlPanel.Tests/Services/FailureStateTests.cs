@@ -236,13 +236,14 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
-      /// DescribeComError's sentence is written to follow a prefix that says what
-      /// failed - "the connection to the hMailServer service was lost ...", "the
-      /// server answered something this Control Panel could not read (...)" - so a
-      /// place that shows it says what failed first. Six places that had shown the
-      /// runtime's text bare showed the sentence bare once routed, opening in lower
-      /// case and naming nothing: a message box, a dialog's notice, the Welcome
-      /// page's warning, and "The mailbox could not be moved. the connection ...".
+      /// DescribeComError's sentence says why, not what failed - "The connection to
+      /// the hMailServer service was lost ...", "The server answered something this
+      /// Control Panel could not read (...)" - so a message box or a dialog's notice
+      /// that shows it says what failed first. Six places that had shown the
+      /// runtime's text bare showed the sentence bare once routed, naming nothing
+      /// (and, before FailureSentenceTests, opening in lower case): a message box, a
+      /// dialog's notice, the Welcome page's warning, and "The mailbox could not be
+      /// moved. the connection ...".
       /// The Levels tab's save, whose failure the tab now says in a Critical notice,
       /// is held to the same.
       /// </summary>

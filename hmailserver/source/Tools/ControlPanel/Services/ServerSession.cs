@@ -855,7 +855,7 @@ namespace hMailServer.ControlPanel.Services
          if (IsTransportFailure(ex))
          {
             Current?.Invalidate();
-            return L("the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again.");
+            return L("The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment.");
          }
 
          Exception real = ex;
@@ -864,9 +864,9 @@ namespace hMailServer.ControlPanel.Services
          string msg = string.IsNullOrEmpty(real.Message) ? (ex.Message ?? L("Unknown error.")) : real.Message;
 
          if (msg.IndexOf("connection to the database", StringComparison.OrdinalIgnoreCase) >= 0)
-            return F("the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})", msg);
+            return F("The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})", msg);
          if (msg.IndexOf("do not have access", StringComparison.OrdinalIgnoreCase) >= 0)
-            return F("you must connect with the hMailServer server-administrator account to view or change these settings. ({0})", msg);
+            return F("Sign in with the hMailServer server-administrator account to view or change these settings. ({0})", msg);
 
          // A failure that is not the server's own words - an answer this Control
          // Panel could not parse, a member an older server does not have - is said

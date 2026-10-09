@@ -906,8 +906,8 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory bu makinede kullanılamıyor: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>Active Directory bu bilgisayardan erişilebilir değil — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>Active Directory bu bilgisayardan erişilebilir değil: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory varsayılan olarak anonim aramaları reddeder; bu nedenle arama kipi normalde dizini okuyabilen bir kimlik bilgisi gerektirir. Negotiate ve DN şablonu yapılandırmalarının bunların hiçbirine ihtiyacı yoktur.</value>
@@ -10759,6 +10759,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>hMailServer yönetici kimlik bilgisiyle oturum açın.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Bu ayarları görüntülemek ya da değiştirmek için hMailServer sunucu yöneticisi hesabıyla oturum açın. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Kişilerin bir SAML kimlik sağlayıcısıyla - Entra ID, Okta, ADFS - oturum açmasını sağlayın. Sağlayıcıya bu sunucunun meta verisini verin: web postasının taban adresine /saml/metadata eklenmiş hali. Üçü de - varlık kimliği, oturum açma adresi ve sağlayıcının sertifikası - ayarlanana kadar SAML kapalıdır.</value>
   </data>
@@ -11497,14 +11500,14 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP aracısı, uyarılar, giden webhook'lar ve denetim izi</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>SSL sertifika listesi okunamadı - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>SSL sertifika listesi okunamadı: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Hizmet Denetim Yöneticisi sorgulanamadı, bu yüzden hizmetin çalıştığı hesap bilinmiyor: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>TCP/IP port listesi okunamadı - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>TCP/IP port listesi okunamadı: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>SURBL sunucuları sayfasındaki URI engelleme listelerine, bir iletinin bağlantı verdiği her kaydedilebilir etki alanı ve adres sorulur; ileti başına en çok 200. Bağlantıları daha fazlasını adlandıran bir ileti bütünüyle sorulmaz: bunun yerine, kaç liste etkin olursa olsun, aşağıdaki puanı bir kez alır; böylece listelenmiş bir bağlantıyı uydurma etki alanları arasına gizlemek bedelsiz olmaz. Hiçbir URI engelleme listesi etkin değilken puan verilmez.</value>
@@ -11731,6 +11734,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Sertifika {0} tarihine kadar geçerli değil. Sunucu onu sunuyor (uygulama günlüğünde 5991 hatası) ve istemciler o tarihe kadar onu reddediyor - sertifikayı ve bu sunucunun saatini denetleyin.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>Sertifika artık yok - bu liste okunduktan sonra silindi.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Sertifikanın ortak anahtarı karşılaştırma için dışa aktarılamadı.</value>
   </data>
@@ -11786,6 +11792,9 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Yapılandırılan günlük klasörü bu makinede yok: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>hMailServer hizmetiyle bağlantı koptu - büyük olasılıkla yeniden başlatıldı. Denetim Masası kendiliğinden yeniden bağlanır; biraz sonra yeniden deneyin.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>Tutarlılık denetimi etkin, ancak henüz bir rapor yazmadı. Sunucu başlangıçta ve sonra her saat tarar ve {0} dosyasını yazar.</value>
@@ -11901,8 +11910,8 @@ Yukarıdaki anahtarı seçip elle kopyalayın - bir daha gösterilmeyecek.</valu
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Dış kurulum denetlenemedi - sunucuya bağlı değil.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>Dış kurulum denetlenemedi - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>Dış kurulum denetlenemedi: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Getirmenin kendisi başarısız oldu: {0} Bu, ilke hakkında hiçbir şey söylemez.</value>
@@ -12403,14 +12412,23 @@ Yine de eklensin mi?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Sunucu yönetim parolası ve bu araçları kimin kullanabileceği.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>Sunucu, bu Control Panel'in okuyamadığı bir yanıt verdi ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Sunucu yeni bir sürümü fark edebilir, onu sürümün kendi Sigstore imzasına karşı doğrulayabilir ve uygulayabilir - Durum sayfasındaki bir tıklamayla ya da belirlediğiniz bir pencerenin içinde kendi başına. Denetimi açana kadar kapalıdır; denetim, istekten başka hiçbir şey göndermez.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>Sunucu veritabanına ulaşamıyor. Veritabanı bağlantısını ve hMailServer hata günlüğünü denetleyin, sonra yeniden deneyin. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>Bu ayarlar sunucuya sorulamadı; bu yüzden sayfa, bu bilgisayardaki hMailServer.ini dosyasındaki değerleri gösteriyor. Bunlar sunucunun kullandıklarından farklı olabilir ve sunucu yanıt verene kadar hiçbir şey kaydedilemez. Nedeni: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Sunucu toplu gönderimi kuyruğa almadı. Adres joker karakterini ve hMailServer hata günlüğünü denetleyin.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>Sunucu otuz saniye içinde Çalışıyor bildirmedi; ne yaptığını Sunucu durumu sayfası gösterir.</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Sunucu anahtar döndürmeyi bildirmedi.</value>
@@ -12432,6 +12450,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Sunucu sonraki anahtarı oluşturur, yayımlanacak TXT kaydını gösterir, kaydı kendi çözümleyicisiyle denetler ve imzalamayı ancak kayıt yayılma süresinin tamamı boyunca çözümlendiğinde yeni anahtara geçirir. Eski seçici saklama süresi boyunca tutulur ve ardından emekliye ayrılır.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>Sunucuda böyle bir ayar ya da eylem yok - bu Control Panel'den daha eski olabilir ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Sunucu boşaltılıyor. Yeniden başlatma (Reinitialize) bakım modunu sona erdirir: dinleyiciler yeniden açılır ve teslim sürer. Sunucu şimdi yeniden başlatılsın mı?</value>
@@ -15471,9 +15492,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="the certificate" xml:space="preserve">
     <value>sertifika</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>sertifika artık yok - sayfayı yeniden yükleyin.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>yapılandırılan UserSearchFilter geçerli bir LDAP filtresi değil</value>
   </data>
@@ -15482,9 +15500,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>bağlanan adres greylisting istisnalarından biriyle eşleşiyor (kayıt: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>hMailServer hizmetiyle bağlantı koptu - büyük olasılıkla yeniden başlatıldı. Denetim Masası kendiliğinden yeniden bağlanır; yeniden denemek için Yeniden yükle'ye basın.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>kimlik bilgileri reddedildi</value>
@@ -15560,18 +15575,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>gönderenin alan adı veya HELO adı izin verilen bir alan adıdır</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>sunucu, bu Control Panel'in okuyamadığı bir yanıt verdi ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>sunucu veritabanına ulaşamıyor. Veritabanı bağlantısını ve hMailServer hata günlüğünü denetleyin, sonra Yeniden yükle'ye basın. ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>sunucu otuz saniye içinde Çalışıyor bildirmedi; ne yaptığını Durum sayfası gösterir.</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>sunucuda böyle bir ayar ya da eylem yok - bu Control Panel'den daha eski olabilir ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>sunucu yavaş</value>
@@ -15659,9 +15662,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>günlüğü bir veritabanına yaz</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>bu ayarları görüntülemek ya da değiştirmek için hMailServer sunucu yöneticisi hesabıyla bağlanmanız gerekir. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>uygulama / istemci kimliğiniz</value>

@@ -1483,7 +1483,7 @@ namespace hMailServer.ControlPanel.Services
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
             linkLost_ |= ServerSession.IsTransportFailure(ex);
-            item.Add(SetupItemState.CannotTell, F("The SSL certificate list could not be read - {0}", firstError_));
+            item.Add(SetupItemState.CannotTell, F("The SSL certificate list could not be read: {0}", firstError_));
          }
          finally
          {
@@ -1665,7 +1665,7 @@ namespace hMailServer.ControlPanel.Services
             failedReads_++;
             firstError_ ??= ServerSession.DescribeComError(ex);
             linkLost_ |= ServerSession.IsTransportFailure(ex);
-            item.Add(SetupItemState.CannotTell, F("The TCP/IP port list could not be read - {0}", firstError_));
+            item.Add(SetupItemState.CannotTell, F("The TCP/IP port list could not be read: {0}", firstError_));
          }
          finally
          {

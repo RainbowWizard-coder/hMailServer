@@ -906,8 +906,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory ei ole käytettävissä tällä koneella: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>Active Directory ei ole tavoitettavissa tältä tietokoneelta — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>Active Directory ei ole tavoitettavissa tältä tietokoneelta: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory hylkää oletuksena anonyymit haut, joten hakutila tarvitsee yleensä tunnistetiedot, joilla on lukuoikeus hakemistoon. Negotiate- ja DN-mallimääritykset eivät tarvitse tästä mitään.</value>
@@ -10759,6 +10759,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Kirjaudu sisään hMailServerin järjestelmänvalvojan tunnistetiedoilla.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Kirjaudu hMailServerin palvelimen järjestelmänvalvojan tilillä nähdäksesi tai muuttaaksesi näitä asetuksia. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Kirjaa ihmiset sisään SAML-identiteettipalvelulla - Entra ID, Okta, ADFS. Anna palvelulle tämän palvelimen metatiedot, joiden osoite on verkkopostin perusosoite ja perään /saml/metadata. SAML on pois päältä, kunnes palvelun entiteettitunnus, kirjautumisosoite ja varmenne on kaikki asetettu.</value>
   </data>
@@ -11497,14 +11500,14 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP-agentti, hälytykset, lähtevät webhookit ja tarkastusloki</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>SSL-varmenneluetteloa ei voitu lukea - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>SSL-varmenneluetteloa ei voitu lukea: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Service Control Manageria ei voitu kysyä, joten tili, jolla palvelu toimii, on tuntematon: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>TCP/IP-porttiluetteloa ei voitu lukea - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>TCP/IP-porttiluetteloa ei voitu lukea: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>SURBL-palvelimet-sivun URI-estolistoilta kysytään jokaista rekisteröitävää verkkotunnusta ja osoitetta, johon viesti linkittää, enintään 200 viestiä kohden. Viestiä, jonka linkit nimeävät useampia, ei kysytä kokonaan: se saa sen sijaan alla olevan pistemäärän kerran, olipa aktiivisia listoja kuinka monta tahansa, jotta listatun linkin piilottaminen keksittyjen verkkotunnusten joukkoon ei ole ilmaista. Mitään ei pisteytetä, kun yksikään URI-estolista ei ole aktiivinen.</value>
@@ -11731,6 +11734,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Varmenne ei ole voimassa ennen {0}. Palvelin tarjoaa sen (virhe 5991 sovelluslokissa), ja asiakkaat hylkäävät sen siihen päivään asti - tarkista varmenne ja tämän palvelimen kello.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>Varmennetta ei enää ole - se poistettiin tämän luettelon lukemisen jälkeen.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Varmenteen julkista avainta ei voitu viedä vertailua varten.</value>
   </data>
@@ -11786,6 +11792,9 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Määritettyä lokikansiota ei ole tällä koneella: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>Yhteys hMailServer-palveluun katkesi - se todennäköisesti käynnistettiin uudelleen. Control Panel yhdistää uudelleen itsestään; yritä hetken kuluttua uudelleen.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>Eheystarkistus on käytössä, mutta se ei ole vielä kirjoittanut raporttia. Palvelin tarkistaa käynnistyksessä ja sen jälkeen tunneittain ja kirjoittaa tiedoston {0}.</value>
@@ -11901,8 +11910,8 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Ulkoista määritystä ei voitu tarkistaa - ei yhteyttä palvelimeen.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>Ulkoista määritystä ei voitu tarkistaa - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>Ulkoista määritystä ei voitu tarkistaa: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Itse nouto epäonnistui: {0} Tämä ei kerro käytännöstä mitään.</value>
@@ -12403,14 +12412,23 @@ Lisätäänkö silti?</value>
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Palvelimen hallintasalasana ja se, kuka ylipäätään saa käyttää näitä työkaluja.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>Palvelin vastasi jotain, mitä tämä Control Panel ei pystynyt lukemaan ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen – yhdellä napsautuksella Tila-sivulla tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>Palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja yritä sitten uudelleen. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>Palvelimelta ei voitu kysyä näitä asetuksia, joten sivu näyttää tämän tietokoneen tiedoston hMailServer.ini arvot, jotka voivat poiketa siitä, millä palvelin toimii, eikä mitään voi tallentaa ennen kuin palvelin vastaa. Syy: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Palvelin ei laittanut joukkolähetystä jonoon. Tarkista osoitteen jokerimerkki ja hMailServerin virheloki.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>Palvelin ei ilmoittanut olevansa käynnissä kolmenkymmenen sekunnin kuluessa; Palvelimen tila -sivu kertoo, mitä se tekee.</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Palvelin ei ilmoittanut avainten kierrätystä.</value>
@@ -12432,6 +12450,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Palvelin luo seuraavan avaimen, näyttää julkaistavan TXT-tietueen, tarkistaa sen omalla nimipalvelimellaan ja siirtää allekirjoituksen siihen vasta, kun tietue on ratkennut koko leviämisajan. Vanha valitsin säilytetään säilytysajan ja poistetaan sitten käytöstä.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>Palvelimella ei ole tällaista asetusta tai toimintoa - se voi olla tätä Control Panelia vanhempi ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Palvelinta tyhjennetään. Uudelleenalustus päättää huoltotilan: kuuntelijat avautuvat uudelleen ja toimitus jatkuu. Alustetaanko palvelin uudelleen nyt?</value>
@@ -15471,9 +15492,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="the certificate" xml:space="preserve">
     <value>varmenne</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>varmennetta ei enää ole - lataa sivu uudelleen.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>määritetty UserSearchFilter ei ole kelvollinen LDAP-suodatin</value>
   </data>
@@ -15482,9 +15500,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>yhdistävä osoite vastaa yhtä harmaalistauksen poikkeuksista (merkintöjä: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>yhteys hMailServer-palveluun katkesi - se todennäköisesti käynnistettiin uudelleen. Control Panel yhdistää uudelleen itsestään; paina Lataa uudelleen yrittääksesi uudelleen.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>tunnistetiedot hylättiin</value>
@@ -15560,18 +15575,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>lähettäjän verkkotunnus tai HELO-nimi on sallittu verkkotunnus</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>palvelin vastasi jotain, mitä tämä Control Panel ei pystynyt lukemaan ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja paina sitten Lataa uudelleen. ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>palvelin ei ilmoittanut olevansa käynnissä kolmenkymmenen sekunnin kuluessa; Tila-sivu kertoo, mitä se tekee.</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>palvelimella ei ole tällaista asetusta tai toimintoa - se voi olla tätä Control Panelia vanhempi ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>palvelin on hidas</value>
@@ -15659,9 +15662,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>kirjoita loki tietokantaan</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>sinun on yhdistettävä hMailServerin palvelimen järjestelmänvalvojan tilillä nähdäksesi tai muuttaaksesi näitä asetuksia. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>sovelluksesi / asiakastunnuksesi</value>

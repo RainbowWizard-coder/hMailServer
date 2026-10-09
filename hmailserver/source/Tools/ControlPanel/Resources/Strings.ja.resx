@@ -906,8 +906,8 @@
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>このコンピューターでは Active Directory を利用できません: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>このコンピューターから Active Directory に到達できません — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>このコンピューターから Active Directory に到達できません: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory は既定で匿名の検索を拒否するため、検索モードでは通常、ディレクトリを読み取れる資格情報が必要です。Negotiate と DN テンプレートの構成では、これは一切不要です。</value>
@@ -10759,6 +10759,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>hMailServer の管理者資格情報でサインインしてください。</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>これらの設定を表示または変更するには、hMailServer のサーバー管理者アカウントでサインインしてください。({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>SAML ID プロバイダー (Entra ID、Okta、ADFS) で利用者をサインインさせます。プロバイダーには、このサーバーのメタデータ (ウェブメールのベース アドレスに /saml/metadata を付けたもの) を渡します。エンティティ ID、サインイン アドレス、プロバイダーの証明書の 3 つがすべて設定されるまで SAML はオフです。</value>
   </data>
@@ -11497,14 +11500,14 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP エージェント、アラート、送信 Webhook、監査ログ</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>SSL 証明書一覧を読み取れませんでした - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>SSL 証明書一覧を読み取れませんでした: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>サービス コントロール マネージャーに問い合わせできなかったため、サービスが実行されているアカウントは不明です: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>TCP/IP ポート一覧を読み取れませんでした - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>TCP/IP ポート一覧を読み取れませんでした: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>SURBL サーバー ページの URI ブロック リストには、メッセージがリンクする登録可能なドメインとアドレスのすべてを、1 通につき 200 まで問い合わせます。リンクがそれより多くを挙げるメッセージは全体を問い合わせず、代わりに下のスコアを、有効なリストの数にかかわらず 1 回だけ加算します。これにより、掲載されたリンクを架空のドメインの中に隠すことは無償ではなくなります。有効な URI ブロック リストがないあいだは何も加算されません。</value>
@@ -11731,6 +11734,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>証明書は {0} まで有効になりません。サーバーはそれを提示し (アプリケーション ログのエラー 5991)、クライアントはその日付までそれを拒否します。証明書とこのサーバーの時計を確認してください。</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>その証明書はもう存在しません。この一覧を読み取った後に削除されました。</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>比較のために証明書の公開鍵をエクスポートできませんでした。</value>
   </data>
@@ -11786,6 +11792,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>設定されたログ フォルダーがこのコンピューターに存在しません: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>hMailServer サービスへの接続が失われました。おそらく再起動されたものと思われます。コントロールパネルは自動的に再接続します。しばらくしてからもう一度お試しください。</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>整合性チェックは有効ですが、まだレポートを書き出していません。サーバーは起動時とその後 1 時間ごとにスキャンし、{0} を書き出します。</value>
@@ -11901,8 +11910,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>外部セットアップを確認できませんでした。サーバーに接続されていません。</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>外部セットアップを確認できませんでした - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>外部セットアップを確認できませんでした: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>取得自体が失敗しました: {0} これはポリシーについて何も示していません。</value>
@@ -12403,14 +12412,23 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>サーバー管理パスワードと、そもそも誰がこれらのツールを使えるか。</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>サーバーの応答を、このコントロール パネルが読み取れませんでした ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、ステータス ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>サーバーがデータベースに到達できません。データベース接続と hMailServer のエラー ログを確認してから、もう一度お試しください。({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>これらの設定をサーバーに問い合わせられなかったため、このページには、このコンピューターの hMailServer.ini の値を表示しています。サーバーが実際に使っている値と異なる場合があり、サーバーが応答するまで何も保存できません。理由: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>サーバーは一斉送信をキューに入れませんでした。アドレスのワイルドカードと hMailServer のエラー ログを確認してください。</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>サーバーが 30 秒以内に実行中を報告しませんでした。何をしているかは [サーバーの状態] ページで確認できます。</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>サーバーは鍵のローテーションを報告しませんでした。</value>
@@ -12432,6 +12450,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>サーバーが次の鍵を生成し、公開する TXT レコードを表示し、自身のリゾルバーでそれを確認し、伝播期間全体を通じてレコードが解決できた場合にのみ署名をその鍵に切り替えます。古いセレクターは保持期間のあいだ残され、その後廃止されます。</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>サーバーにこの設定または操作がありません - このコントロール パネルより古いサーバーの可能性があります ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>サーバーはドレイン中です。再初期化するとメンテナンス モードが終了し、リスナーが再び開いて配信が再開されます。今すぐサーバーを再初期化しますか?</value>
@@ -15471,9 +15492,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="the certificate" xml:space="preserve">
     <value>証明書</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>その証明書はもう存在しません。ページを再読み込みしてください。</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>設定されている UserSearchFilter は有効な LDAP フィルターではありません</value>
   </data>
@@ -15482,9 +15500,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>接続元アドレスがグレイリスティングの除外のいずれかに一致する (エントリ数: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>hMailServer サービスへの接続が失われました。おそらく再起動されたものと思われます。コントロールパネルは自動的に再接続します。もう一度試すには「再読み込み」を押してください。</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>資格情報が拒否されました</value>
@@ -15560,18 +15575,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>送信者のドメインまたは HELO 名が許可するドメインである</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>サーバーの応答を、このコントロール パネルが読み取れませんでした ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>サーバーがデータベースに到達できません。データベース接続と hMailServer のエラー ログを確認してから、「再読み込み」を押してください。({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>サーバーが 30 秒以内に実行中を報告しませんでした。何をしているかは [状態] ページで確認できます。</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>サーバーにこの設定または操作がありません - このコントロール パネルより古いサーバーの可能性があります ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>サーバーが遅い</value>
@@ -15659,9 +15662,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>ログをデータベースに書き込む</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>これらの設定を表示または変更するには、hMailServer のサーバー管理者アカウントで接続する必要があります。({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>アプリケーション / クライアント ID</value>

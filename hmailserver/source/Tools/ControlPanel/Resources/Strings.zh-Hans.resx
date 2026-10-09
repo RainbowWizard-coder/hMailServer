@@ -906,8 +906,8 @@
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>本机上无法使用 Active Directory：{0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>从本计算机无法访问 Active Directory — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>从本计算机无法访问 Active Directory：{0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory 默认拒绝匿名搜索，因此搜索模式通常需要一个可以读取目录的凭据。Negotiate 和 DN 模板这两种配置都不需要这些。</value>
@@ -10759,6 +10759,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>使用 hMailServer 管理员凭据登录。</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>要查看或更改这些设置，请使用 hMailServer 服务器管理员账户登录。({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>通过 SAML 身份提供商（Entra ID、Okta、ADFS）让用户登录。把本服务器的元数据（网页邮箱的基础地址加上 /saml/metadata）提供给提供商。在实体 ID、登录地址和提供商的证书这三项都设置之前，SAML 处于关闭状态。</value>
   </data>
@@ -11497,14 +11500,14 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>SNMP 代理、警报、传出 Webhook 和审计记录</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>无法读取 SSL 证书列表 - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>无法读取 SSL 证书列表：{0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>无法查询服务控制管理器，因此服务所运行的账户未知: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>无法读取 TCP/IP 端口列表 - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>无法读取 TCP/IP 端口列表：{0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>SURBL 服务器页面上的 URI 拦截列表会被查询邮件链接到的每个可注册域名和地址，每封邮件最多 200 个。链接所含域名多于此数的邮件不会被完整查询：它改为获得下面的分数，只计一次，无论有多少个列表处于活动状态，这样把已列入列表的链接藏在虚构域名之中就不再是没有代价的。没有任何 URI 拦截列表处于活动状态时，不计任何分数。</value>
@@ -11731,6 +11734,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>证书在 {0} 之前尚未生效。服务器仍会提供它 (应用程序日志中的错误 5991)，而客户端在该日期之前都会拒绝它 - 请检查证书和本服务器的时钟。</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>该证书已不存在 - 它在读取此列表之后被删除了。</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>无法导出证书的公钥以进行比较。</value>
   </data>
@@ -11786,6 +11792,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>所配置的日志文件夹在本机上不存在: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>与 hMailServer 服务的连接已断开 - 很可能是它被重启了。控制面板会自行重新连接；请稍后再试。</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>一致性检查已启用，但尚未写出报告。服务器会在启动时扫描，之后每小时扫描一次，并写入 {0}。</value>
@@ -11901,8 +11910,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>无法检查外部设置 - 未连接到服务器。</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>无法检查外部设置 - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>无法检查外部设置：{0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>获取本身失败: {0} 这并不说明策略有任何问题。</value>
@@ -12403,14 +12412,23 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>服务器管理密码，以及究竟谁可以使用这些工具。</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>服务器返回了此控制面板无法读取的内容 ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后再试一次。({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>无法向服务器查询这些设置，因此此页面显示的是此计算机上 hMailServer.ini 中的值，可能与服务器实际运行的值不同，在服务器响应之前无法保存任何内容。原因：{0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>服务器没有将群发排入队列。请检查地址通配符和 hMailServer 错误日志。</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>服务器在三十秒内未报告正在运行；“服务器状态”页会显示它正在做什么。</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>服务器没有报告密钥轮换。</value>
@@ -12432,6 +12450,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>服务器生成下一个密钥，显示要发布的 TXT 记录，用它自己的解析器检查该记录，并且只有在整个传播期内记录都能解析后，才将签名切换到新密钥。旧选择器在保留期内保留，然后停用。</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>服务器没有此设置或操作 - 它可能比此控制面板旧 ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>服务器正在排空。重新初始化会结束维护模式：侦听器重新打开，投递恢复。现在重新初始化服务器吗？</value>
@@ -15471,9 +15492,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="the certificate" xml:space="preserve">
     <value>该证书</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>该证书已不存在 - 请重新加载页面。</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>配置的 UserSearchFilter 不是有效的 LDAP 筛选器</value>
   </data>
@@ -15482,9 +15500,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>连接地址与其中一条灰名单豁免匹配（条目：{0}）</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>与 hMailServer 服务的连接已断开 - 很可能是它被重启了。控制面板会自行重新连接；请按“重新加载”再试一次。</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>凭据被拒绝</value>
@@ -15560,18 +15575,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>发件人的域或 HELO 名称是允许的域</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>服务器返回了此控制面板无法读取的内容 ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后按“重新加载”。({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>服务器在三十秒内未报告正在运行；“状态”页会显示它正在做什么。</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>服务器没有此设置或操作 - 它可能比此控制面板旧 ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>服务器很慢</value>
@@ -15659,9 +15662,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>把日志写入数据库</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>您必须使用 hMailServer 服务器管理员账户连接，才能查看或更改这些设置。({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>您的应用程序 / 客户端 id</value>

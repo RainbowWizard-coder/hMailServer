@@ -59,7 +59,7 @@ namespace hMailServer.ControlPanel.Services
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            reason = F("Active Directory is not reachable from this computer — {0}", ServerSession.DescribeComError(ex));
+            reason = F("Active Directory is not reachable from this computer: {0}", ServerSession.DescribeComError(ex));
             return false;
          }
       }

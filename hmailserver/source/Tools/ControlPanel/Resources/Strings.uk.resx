@@ -912,8 +912,8 @@
   <data name="Active Directory is not available on this machine: {0}" xml:space="preserve">
     <value>Active Directory недоступний на цьому комп’ютері: {0}</value>
   </data>
-  <data name="Active Directory is not reachable from this computer — {0}" xml:space="preserve">
-    <value>Active Directory недосяжний із цього комп’ютера — {0}</value>
+  <data name="Active Directory is not reachable from this computer: {0}" xml:space="preserve">
+    <value>Active Directory недосяжний із цього комп’ютера: {0}</value>
   </data>
   <data name="Active Directory refuses anonymous searches by default, so search mode normally needs a credential that may read the directory. Negotiate and DN-template configurations need none of this." xml:space="preserve">
     <value>Active Directory типово відхиляє анонімні пошуки, тому режим пошуку зазвичай потребує облікових даних, яким дозволено читати каталог. Конфігураціям з Negotiate і з DN-шаблоном нічого з цього не потрібно.</value>
@@ -10889,6 +10889,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Sign in with the hMailServer administrator credential." xml:space="preserve">
     <value>Увійдіть з обліковими даними адміністратора hMailServer.</value>
   </data>
+  <data name="Sign in with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
+    <value>Щоб переглядати або змінювати ці параметри, увійдіть з обліковим записом адміністратора сервера hMailServer. ({0})</value>
+  </data>
   <data name="Sign people in with a SAML identity provider - Entra ID, Okta, ADFS. Give the provider this server's metadata, which is the webmail's base address followed by /saml/metadata. SAML is off until the provider's entity ID, sign-in address and certificate are all set." xml:space="preserve">
     <value>Виконувати вхід людей через постачальника ідентичності SAML — Entra ID, Okta, ADFS. Передайте постачальникові метадані цього сервера — це базова адреса вебпошти, за якою йде /saml/metadata. SAML вимкнено, доки не задано всі три: ідентифікатор сутності, адресу входу й сертифікат постачальника.</value>
   </data>
@@ -11630,14 +11633,14 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The SNMP agent, alerts, outbound webhooks and the audit trail" xml:space="preserve">
     <value>Агент SNMP, оповіщення, вихідні вебхуки та журнал аудиту</value>
   </data>
-  <data name="The SSL certificate list could not be read - {0}" xml:space="preserve">
-    <value>Не вдалося прочитати список сертифікатів SSL - {0}</value>
+  <data name="The SSL certificate list could not be read: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати список сертифікатів SSL: {0}</value>
   </data>
   <data name="The Service Control Manager could not be queried, so the account the service runs as is unknown: {0}" xml:space="preserve">
     <value>Не вдалося опитати Диспетчер керування службами, тому обліковий запис, під яким працює служба, невідомий: {0}</value>
   </data>
-  <data name="The TCP/IP port list could not be read - {0}" xml:space="preserve">
-    <value>Не вдалося прочитати список портів TCP/IP - {0}</value>
+  <data name="The TCP/IP port list could not be read: {0}" xml:space="preserve">
+    <value>Не вдалося прочитати список портів TCP/IP: {0}</value>
   </data>
   <data name="The URI block lists on the SURBL servers page are asked about every registrable domain and address a message links to, up to 200 for each message. A message whose links name more is not asked about whole: it scores the number below instead, once, however many lists are active, so that hiding a listed link among made-up domains does not come free. Nothing is scored while no URI block list is active." xml:space="preserve">
     <value>Списки блокування URI зі сторінки «Сервери SURBL» запитуються про кожен реєстровний домен і кожну адресу, на які посилається повідомлення, — до 200 на повідомлення. Повідомлення, посилання якого називають більше, не перевіряється повністю: натомість воно отримує оцінку нижче, один раз, хоч би скільки списків було активно, щоб сховати посилання зі списку серед вигаданих доменів не минало даром. Поки жоден список блокування URI не активний, нічого не нараховується.</value>
@@ -11882,6 +11885,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The certificate is not valid until {0}. The server serves it (error 5991 in the application log) and clients refuse it until that date - check the certificate and this server's clock." xml:space="preserve">
     <value>Сертифікат дійсний лише з {0}. Сервер його віддає (помилка 5991 у журналі застосунку), а клієнти відхиляють його до цієї дати - перевірте сертифікат і годинник цього сервера.</value>
   </data>
+  <data name="The certificate no longer exists - it was deleted after this list was read." xml:space="preserve">
+    <value>Сертифіката більше не існує — його видалено після того, як цей список було прочитано.</value>
+  </data>
   <data name="The certificate's public key could not be exported for comparison." xml:space="preserve">
     <value>Відкритий ключ сертифіката не вдалося експортувати для порівняння.</value>
   </data>
@@ -11940,6 +11946,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The configured log folder does not exist on this machine: {0}" xml:space="preserve">
     <value>Налаштована папка журналів не існує на цьому комп'ютері: {0}</value>
+  </data>
+  <data name="The connection to the hMailServer service was lost - it was most likely restarted. The Control Panel reconnects by itself; try again in a moment." xml:space="preserve">
+    <value>Підключення до служби hMailServer втрачено — найімовірніше, її було перезапущено. Панель керування підключиться повторно сама; спробуйте ще раз трохи згодом.</value>
   </data>
   <data name="The consistency check is enabled but has not written a report yet. The server scans at start-up and then hourly, and writes {0}." xml:space="preserve">
     <value>Перевірку цілісності увімкнено, але звіт ще не записано. Сервер сканує під час запуску, а потім щогодини, і записує {0}.</value>
@@ -12058,8 +12067,8 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The external setup could not be checked - not connected to the server." xml:space="preserve">
     <value>Зовнішнє налаштування не вдалося перевірити - немає підключення до сервера.</value>
   </data>
-  <data name="The external setup could not be checked - {0}" xml:space="preserve">
-    <value>Зовнішнє налаштування не вдалося перевірити - {0}</value>
+  <data name="The external setup could not be checked: {0}" xml:space="preserve">
+    <value>Зовнішнє налаштування не вдалося перевірити: {0}</value>
   </data>
   <data name="The fetch itself failed: {0} This says nothing about the policy." xml:space="preserve">
     <value>Саме отримання не вдалося: {0} Це нічого не говорить про політику.</value>
@@ -12566,14 +12575,23 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server administration password, and who is allowed to use these tools at all." xml:space="preserve">
     <value>Пароль адміністрування сервера і хто взагалі має право користуватися цими інструментами.</value>
   </data>
+  <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
+    <value>Сервер відповів так, що цей Control Panel не зміг прочитати відповідь ({0})</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його — клацанням на сторінці «Стан» або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
+  </data>
+  <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
+    <value>Сервер не може дістатися своєї бази даних. Перевірте підключення до бази даних і журнал помилок hMailServer, а потім спробуйте ще раз. ({0})</value>
   </data>
   <data name="The server could not be asked for these settings, so the page shows the values in hMailServer.ini on this computer, which may differ from what the server runs, and nothing can be saved until the server answers. Why: {0}" xml:space="preserve">
     <value>Не вдалося запитати в сервера ці параметри, тому сторінка показує значення з hMailServer.ini на цьому комп’ютері, які можуть відрізнятися від тих, з якими працює сервер, і нічого не можна зберегти, доки сервер не відповість. Причина: {0}</value>
   </data>
   <data name="The server did not queue the sendout. Check the address wildcard and the hMailServer error log." xml:space="preserve">
     <value>Сервер не поставив розсилання в чергу. Перевірте шаблон адреси та журнал помилок hMailServer.</value>
+  </data>
+  <data name="The server did not report Running within thirty seconds; the Server status page says what it is doing." xml:space="preserve">
+    <value>Сервер не повідомив про стан «Працює» протягом тридцяти секунд; що він робить, показує сторінка «Стан сервера».</value>
   </data>
   <data name="The server did not report the key rotation." xml:space="preserve">
     <value>Сервер не повідомив стан ротації ключів.</value>
@@ -12595,6 +12613,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The server generates the next key, shows the TXT record to publish, checks it from its own resolver, and moves signing to it only once the record has resolved for the whole propagation period. The old selector is kept for the retention period and then retired." xml:space="preserve">
     <value>Сервер створює наступний ключ, показує запис TXT для публікації, перевіряє його через власний резолвер і переводить підпис на новий ключ, лише коли запис розв'язується протягом усього періоду поширення. Старий селектор зберігається на період зберігання, а потім виводиться з ужитку.</value>
+  </data>
+  <data name="The server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
+    <value>На сервері немає такого параметра чи дії - можливо, він старіший за цей Control Panel ({0})</value>
   </data>
   <data name="The server is draining. A reinitialise ends maintenance mode: the listeners open again and delivery resumes. Reinitialise the server now?" xml:space="preserve">
     <value>Сервер розвантажується. Повторна ініціалізація завершує режим обслуговування: прослуховувачі знову відкриваються, і доставка відновлюється. Виконати повторну ініціалізацію сервера зараз?</value>
@@ -15658,9 +15679,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="the certificate" xml:space="preserve">
     <value>сертифікат</value>
   </data>
-  <data name="the certificate no longer exists - reload the page." xml:space="preserve">
-    <value>сертифіката більше не існує — перезавантажте сторінку.</value>
-  </data>
   <data name="the configured UserSearchFilter is not a valid LDAP filter" xml:space="preserve">
     <value>налаштований UserSearchFilter не є припустимим фільтром LDAP</value>
   </data>
@@ -15669,9 +15687,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="the connecting address matches one of the greylisting exemptions (entries: {0})" xml:space="preserve">
     <value>адреса підключення збігається з одним із винятків сірого списку (записів: {0})</value>
-  </data>
-  <data name="the connection to the hMailServer service was lost - it was most likely restarted. The Control Panel will reconnect by itself; press Reload to try again." xml:space="preserve">
-    <value>підключення до служби hMailServer втрачено — найімовірніше, її було перезапущено. Панель керування підключиться повторно сама; натисніть «Перезавантажити», щоб спробувати ще раз.</value>
   </data>
   <data name="the credentials were rejected" xml:space="preserve">
     <value>облікові дані відхилено</value>
@@ -15747,18 +15762,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="the sender's domain or HELO name is an allowed domain" xml:space="preserve">
     <value>домен відправника або ім’я HELO — дозволений домен</value>
-  </data>
-  <data name="the server answered something this Control Panel could not read ({0})" xml:space="preserve">
-    <value>сервер відповів так, що цей Control Panel не зміг прочитати відповідь ({0})</value>
-  </data>
-  <data name="the server cannot reach its database. Check the database connection and the hMailServer error log, then press Reload. ({0})" xml:space="preserve">
-    <value>сервер не може дістатися своєї бази даних. Перевірте підключення до бази даних і журнал помилок hMailServer, а потім натисніть «Перезавантажити». ({0})</value>
-  </data>
-  <data name="the server did not report Running within thirty seconds; the Status page says what it is doing." xml:space="preserve">
-    <value>сервер не повідомив про стан «Працює» протягом тридцяти секунд; що він робить, показує сторінка «Стан».</value>
-  </data>
-  <data name="the server has no such setting or action - it may be older than this Control Panel ({0})" xml:space="preserve">
-    <value>на сервері немає такого параметра чи дії - можливо, він старіший за цей Control Panel ({0})</value>
   </data>
   <data name="the server is slow" xml:space="preserve">
     <value>сервер працює повільно</value>
@@ -15846,9 +15849,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="write the log to a database" xml:space="preserve">
     <value>записувати журнал до бази даних</value>
-  </data>
-  <data name="you must connect with the hMailServer server-administrator account to view or change these settings. ({0})" xml:space="preserve">
-    <value>щоб переглядати або змінювати ці параметри, потрібно підключитися з обліковим записом адміністратора сервера hMailServer. ({0})</value>
   </data>
   <data name="your application / client id" xml:space="preserve">
     <value>ідентифікатор вашої програми / клієнта</value>
@@ -16336,6 +16336,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="{0} messages" xml:space="preserve">
     <value>{0} повідомлень</value>
   </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} повідомлення</value>
+  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} повідомлень не можна створити запис; вони залишаться там, де є. Перша причина: {1}</value>
   </data>
@@ -16365,9 +16368,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} messages waiting for delivery.|few" xml:space="preserve">
     <value>{0} повідомлення чекають на доставку.</value>
-  </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} повідомлення</value>
   </data>
   <data name="{0} min" xml:space="preserve">
     <value>{0} хв</value>

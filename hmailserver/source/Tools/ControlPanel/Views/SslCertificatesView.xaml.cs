@@ -490,7 +490,7 @@ namespace hMailServer.ControlPanel.Views
                }
             }
 
-            error = L("the certificate no longer exists - reload the page.");
+            error = L("The certificate no longer exists - it was deleted after this list was read.");
             return false;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))

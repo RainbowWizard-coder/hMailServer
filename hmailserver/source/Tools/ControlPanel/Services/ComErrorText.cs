@@ -86,10 +86,10 @@ namespace hMailServer.ControlPanel.Services
             return null;
 
          if (IsMissingMember(ex))
-            return F("the server has no such setting or action - it may be older than this Control Panel ({0})", detail ?? "");
+            return F("The server has no such setting or action - it may be older than this Control Panel ({0})", detail ?? "");
 
          if (IsUnreadableAnswer(ex))
-            return F("the server answered something this Control Panel could not read ({0})", detail ?? "");
+            return F("The server answered something this Control Panel could not read ({0})", detail ?? "");
 
          return null;
       }
