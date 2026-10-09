@@ -1105,6 +1105,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   refuses its own; and removing the password pepper is asked about as changing it is, since it stops the passwords
   peppered with it.
 
+- **Fixed: the IP ranges page's permissions card said a save by adding "(saved)" to its title, and said nothing of a
+  change.** The card now keeps the settings pages' model in a pill beside *Save permissions*: none while the boxes
+  hold what the range has, *Unsaved changes* from the first box ticked or cleared, and *Saved* after a save until
+  the next change.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

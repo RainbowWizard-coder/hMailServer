@@ -7803,9 +7803,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Käyttöoikeudet - {0}</value>
   </data>
-  <data name="Permissions - {0} (saved)" xml:space="preserve">
-    <value>Käyttöoikeudet - {0} (tallennettu)</value>
-  </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Vaihe: {0}</value>
   </data>

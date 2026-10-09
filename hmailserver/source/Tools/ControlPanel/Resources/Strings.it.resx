@@ -7803,9 +7803,6 @@ Non verrà accettata alcuna nuova connessione e non verrà consegnata alcuna pos
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Permessi - {0}</value>
   </data>
-  <data name="Permissions - {0} (saved)" xml:space="preserve">
-    <value>Permessi - {0} (salvato)</value>
-  </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Fase: {0}</value>
   </data>

@@ -7881,9 +7881,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Oprávnění – {0}</value>
   </data>
-  <data name="Permissions - {0} (saved)" xml:space="preserve">
-    <value>Oprávnění – {0} (uloženo)</value>
-  </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Fáze: {0}</value>
   </data>

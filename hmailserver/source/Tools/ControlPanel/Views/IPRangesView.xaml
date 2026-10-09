@@ -87,7 +87,10 @@
         </scaffold:Card>
 
         <!-- The selected range's permissions. The card's title names the range;
-             Save is the card's own action, in its footer. With no range selected
+             Save is the card's own action, in its footer, with the pill that says
+             where the card stands by the settings pages' model (SettingsPageStatus):
+             none while the boxes hold what the range has, Unsaved changes from the
+             first change, Saved after a save until the next. With no range selected
              the boxes are clear and disabled, so that they never show the
              permissions of a range that is no longer the one selected. -->
         <scaffold:Card x:Name="PermCard" Title="{loc:L 'Permissions (select a range)'}" Margin="0,12,0,0">
@@ -116,8 +119,13 @@
                 <CheckBox x:Name="PermRR" Content="{loc:L 'Deliver remote → remote (rela_y)'}" Margin="0,0,12,0" />
             </UniformGrid>
             <scaffold:Card.Footer>
-                <ui:Button x:Name="SavePermsButton" Content="{loc:L 'Sa_ve permissions'}" Appearance="Primary"
-                           Click="SavePerms_Click" IsEnabled="False" HorizontalAlignment="Left" />
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button x:Name="SavePermsButton" Content="{loc:L 'Sa_ve permissions'}" Appearance="Primary"
+                               Click="SavePerms_Click" IsEnabled="False" HorizontalAlignment="Left" />
+                    <scaffold:StatusPill x:Name="PermsStatePill" Visibility="Collapsed" Margin="12,0,0,0"
+                                         VerticalAlignment="Center"
+                                         AutomationProperties.AutomationId="ip-range-permissions-state" />
+                </StackPanel>
             </scaffold:Card.Footer>
         </scaffold:Card>
 

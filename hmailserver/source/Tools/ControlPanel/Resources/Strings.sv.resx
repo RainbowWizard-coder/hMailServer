@@ -7803,9 +7803,6 @@ Inga nya anslutningar tas emot och ingen post levereras förrän den återupptas
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Behörigheter - {0}</value>
   </data>
-  <data name="Permissions - {0} (saved)" xml:space="preserve">
-    <value>Behörigheter - {0} (sparade)</value>
-  </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Fas: {0}</value>
   </data>

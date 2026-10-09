@@ -136,6 +136,29 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("scheduleChanged", save, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The IP ranges page's permissions card said a save by putting "(saved)" after
+      /// the range's name in its title, and said nothing of a change (review finding
+      /// F218). Its pill keeps the settings pages' model now.
+      /// </summary>
+      [Fact]
+      public void TheIPRangesPermissionsCard_KeepsTheModel()
+      {
+         string code = ReadControlPanelFile("Views/IPRangesView.xaml.cs");
+         Assert.DoesNotContain("PermCard.Title = F(\"Permissions - {0} (saved)\"", code, StringComparison.Ordinal);
+
+         string state = WithheldRowTests.MemberText(code, "private void ShowPermsState_()");
+         Assert.True(state != null && state.Contains("SettingsPageStatus.Follow(permsSettled_, HasUnsavedChanges)", StringComparison.Ordinal),
+            "The permissions card's pill does not follow its boxes.");
+
+         string save = WithheldRowTests.MemberText(code, "private void SavePerms_Click(object sender, RoutedEventArgs e)");
+         Assert.True(save != null && save.Contains("permsSettled_ = SettingsPageState.Saved", StringComparison.Ordinal),
+            "A saved range's card does not say Saved.");
+
+         string markup = ReadControlPanelFile("Views/IPRangesView.xaml");
+         Assert.Contains("x:Name=\"PermsStatePill\" Visibility=\"Collapsed\"", markup, StringComparison.Ordinal);
+      }
+
       // ---- helpers -------------------------------------------------------------------------
 
       /// <summary>The text of a class from its declaration to its closing brace.</summary>

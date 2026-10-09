@@ -43,7 +43,34 @@ namespace hMailServer.ControlPanel.Views
          // Properties and Delete act on the selected range: live with nothing
          // selected, one answered with a message box and the other with nothing.
          SelectionGate.Bind(RangeGrid, PropertiesButton, DeleteRangeButton);
+
+         // Every box follows the card's pill: Unsaved changes from the first change.
+         foreach (CheckBox box in PermissionBoxes())
+         {
+            box.Checked += (s, e) => ShowPermsState_();
+            box.Unchecked += (s, e) => ShowPermsState_();
+         }
+
          ShowNoRange();
+      }
+
+      // What the card settled in after the range was read or saved: Clean, or Saved
+      // until the next change.
+      private SettingsPageState permsSettled_ = SettingsPageState.Clean;
+
+      /// <summary>
+      /// The permissions card's pill, by the settings pages' one save-state model
+      /// (SettingsPageStatus): none while the boxes hold what the range has, Unsaved
+      /// changes from the first change, and Saved after a save until the next - where
+      /// a save put "(saved)" after the range's name in the card's title, and a change
+      /// said nothing.
+      /// </summary>
+      private void ShowPermsState_()
+      {
+         SettingsPageState state = SettingsPageStatus.Follow(permsSettled_, HasUnsavedChanges);
+         PermsStatePill.Level = SettingsPageStatus.LevelFor(state);
+         PermsStatePill.Text = SettingsPageStatus.WordFor(state);
+         PermsStatePill.Visibility = SettingsPageStatus.ShowsPill(state) ? Visibility.Visible : Visibility.Collapsed;
       }
 
       // The range whose permissions the card shows, and what its boxes held when
@@ -186,6 +213,8 @@ namespace hMailServer.ControlPanel.Views
             box.IsChecked = false;
          PermGrid.IsEnabled = false;
          SavePermsButton.IsEnabled = false;
+         permsSettled_ = SettingsPageState.Clean;
+         ShowPermsState_();
       }
 
       private IEnumerable<CheckBox> PermissionBoxes()
@@ -296,6 +325,8 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(range);
             permsRow_ = row;
             perms_.Take(PermissionValues_());
+            permsSettled_ = SettingsPageState.Clean;
+            ShowPermsState_();
          }
          catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
          {
@@ -333,10 +364,14 @@ namespace hMailServer.ControlPanel.Views
 
          bool saved = SavePermissions_(row);
 
-         // After the reload, which selects the range again and so retitles the card.
+         // After the reload, which selects the range again and so reads its
+         // permissions back: the pill says Saved until the next change.
          Reload();
          if (saved && permsRow_ != null && permsRow_.Id == row.Id)
-            PermCard.Title = F("Permissions - {0} (saved)", row.Name);
+         {
+            permsSettled_ = SettingsPageState.Saved;
+            ShowPermsState_();
+         }
       }
 
       /// <summary>

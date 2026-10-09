@@ -7881,9 +7881,6 @@ Control Panel может читать файлы сообщений только
   <data name="Permissions - {0}" xml:space="preserve">
     <value>Разрешения — {0}</value>
   </data>
-  <data name="Permissions - {0} (saved)" xml:space="preserve">
-    <value>Разрешения — {0} (сохранено)</value>
-  </data>
   <data name="Phase: {0}" xml:space="preserve">
     <value>Этап: {0}</value>
   </data>
