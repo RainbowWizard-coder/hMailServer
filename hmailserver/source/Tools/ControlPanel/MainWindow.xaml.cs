@@ -61,6 +61,7 @@ namespace hMailServer.ControlPanel
       private readonly List<RadioButton> railItems_ = new();
       private bool sidebarCollapsedByUser_;
       private bool railShowing_;
+      private bool sidebarShown_;
       private readonly Dictionary<string, Func<UserControl>> pageFactories_ = new();
       private PaletteUsage paletteUsage_ = new();
       private string currentPage_;
@@ -104,10 +105,19 @@ namespace hMailServer.ControlPanel
          LoadHelpPreference_();
          HelpPanel.CloseRequested += (s, e) => CloseHelp_();
 
+         // Before sign-in the navigation and the search cannot be used, and are
+         // not shown: the sidebar and the search field follow whether they can be
+         // used (ApplySidebar_, ShowSearch_), so that the sign-in page is one card
+         // and not sixty pages that look ready to open and do nothing when they
+         // are clicked. The help button stays, dimmed, beside the theme toggle.
+         NavTree.IsEnabledChanged += (s, e) => ApplySidebar_();
+         SearchButton.IsEnabledChanged += (s, e) => ShowSearch_();
          NavTree.IsEnabled = false;
          NavRail.IsEnabled = false;
          SearchButton.IsEnabled = false;
          HelpButton.IsEnabled = false;
+         ApplySidebar_();
+         ShowSearch_();
          ShowLinkState_(LinkState.NotConnected);
          ContentHost.Content = new ConnectView(OnConnected);
 
@@ -584,21 +594,44 @@ namespace hMailServer.ControlPanel
       }
 
       /// <summary>
-      /// Shows the tree or the rail. The rail whenever the window is narrower
-      /// than the threshold, or the administrator collapsed the sidebar; the
-      /// tree otherwise. The column's three widths move together, because a
-      /// star width with the old MinWidth would hold the rail open.
+      /// Shows the tree or the rail, or neither before sign-in. The rail whenever
+      /// the window is narrower than the threshold, or the administrator
+      /// collapsed the sidebar; the tree otherwise. The column's three widths
+      /// move together, because a star width with the old MinWidth would hold
+      /// the rail open.
       /// </summary>
       private void ApplySidebar_()
       {
          bool rail = sidebarCollapsedByUser_ || ActualWidth < DesignTokens.Shell.CollapseSidebarBelow;
 
-         if (rail == railShowing_ && IsLoaded)
+         // The sidebar is shown while it can be used. Before sign-in, and after a
+         // second factor that was refused, the tree is disabled, and then the
+         // whole sidebar - the tree or the rail, its footer and the toggle that
+         // opens it - is not shown at all: a disabled tree drawn as it is drawn
+         // when it works offered sixty pages that did nothing when clicked, with
+         // nothing to say why (the owner's choice of 9 October 2026 was to hide
+         // it rather than dim it). NavTree.IsEnabled is the one switch - the
+         // constructor and a refused second factor clear it, OnConnected sets it
+         // - and its IsEnabledChanged brings the sidebar here.
+         bool shown = NavTree.IsEnabled;
+
+         if (rail == railShowing_ && shown == sidebarShown_ && IsLoaded)
             return;
 
          railShowing_ = rail;
+         sidebarShown_ = shown;
 
-         if (rail)
+         SidebarPane.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+         SidebarToggle.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;
+         ContentSurface.CornerRadius = shown ? new CornerRadius(8, 0, 0, 0) : new CornerRadius(0);
+
+         if (!shown)
+         {
+            SidebarColumn.MinWidth = 0;
+            SidebarColumn.MaxWidth = 0;
+            SidebarColumn.Width = new GridLength(0);
+         }
+         else if (rail)
          {
             SidebarColumn.MinWidth = DesignTokens.Shell.RailWidth;
             SidebarColumn.MaxWidth = DesignTokens.Shell.RailWidth;
@@ -616,6 +649,16 @@ namespace hMailServer.ControlPanel
          SidebarFooter.Visibility = rail ? Visibility.Collapsed : Visibility.Visible;
 
          UpdateSidebarToggle_();
+      }
+
+      /// <summary>
+      /// Shows the search field while it can be used, as the sidebar is
+      /// (ApplySidebar_): before sign-in it opens nothing, and drawn as it is when
+      /// it works it said otherwise. Ctrl+K waits for sign-in as well.
+      /// </summary>
+      private void ShowSearch_()
+      {
+         SearchButton.Visibility = SearchButton.IsEnabled ? Visibility.Visible : Visibility.Collapsed;
       }
 
       /// <summary>

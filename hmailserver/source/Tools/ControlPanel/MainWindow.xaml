@@ -168,8 +168,9 @@
                 <ColumnDefinition x:Name="HelpColumn" Width="0" />
             </Grid.ColumnDefinitions>
 
-            <!-- Sidebar -->
-            <Grid Grid.Column="0" Margin="0,4,0,0">
+            <!-- Sidebar. Shown while it can be used: not before sign-in
+                 (ApplySidebar_). -->
+            <Grid x:Name="SidebarPane" Grid.Column="0" Margin="0,4,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -280,8 +281,9 @@
                 </Border>
             </Grid>
 
-            <!-- Content -->
-            <Border Grid.Column="1" Background="{DynamicResource ApplicationBackgroundBrush}"
+            <!-- Content. Its rounded corner meets the sidebar; with no sidebar,
+                 before sign-in, it is square to the window's edge (ApplySidebar_). -->
+            <Border x:Name="ContentSurface" Grid.Column="1" Background="{DynamicResource ApplicationBackgroundBrush}"
                     CornerRadius="8,0,0,0" Margin="0,4,0,0">
                 <Grid>
                     <Grid.RowDefinitions>

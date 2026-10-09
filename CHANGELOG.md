@@ -1363,6 +1363,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   every level: the brand pill on the selected page, the secondary text at rest, the same height and highlight, the
   keyboard's border, and each page's label lined up under its group's.
 
+- **Changed: before sign-in the Control Panel shows the sign-in card alone, with no sidebar and no search.** The
+  sidebar and the search field were disabled until somebody had signed in but were drawn exactly as they are when
+  they work - the same dark grey on every page row, the hand pointer, the search's placeholder within a shade of its
+  enabled colour - so a first-time administrator met sixty pages that looked ready to open and did nothing when
+  clicked, with nothing to say why; only the help button dimmed. They are now not shown at all until sign-in: the
+  sidebar, whether the tree or the rail, its footer and the button that collapses it, and the search field, with the
+  sign-in card in the middle of the whole window. They appear with the pages the signed-in account may open, and go
+  again if a second factor is refused. The help button stays, dimmed, beside the theme toggle and the administrator's
+  menu.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

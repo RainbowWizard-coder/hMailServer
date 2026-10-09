@@ -41,6 +41,54 @@ namespace hMailServer.ControlPanel.Tests.Services
       }
 
       /// <summary>
+      /// Before sign-in the sidebar, its toggle and the search are not shown -
+      /// the owner's choice over dimming them - where the disabled tree and the
+      /// search field were drawn exactly as they are when they work. Each
+      /// follows whether it can be used: the window disables them before sign-in
+      /// and after a refused second factor and enables them on sign-in, and their
+      /// IsEnabledChanged shows or hides them, so nothing else has to remember to.
+      /// </summary>
+      [Fact]
+      public void BeforeSignIn_TheSidebarAndTheSearchAreNotShown()
+      {
+         string source = ContrastTokensTests.ReadControlPanelFile("MainWindow.xaml.cs");
+         string xaml = ContrastTokensTests.ReadControlPanelFile("MainWindow.xaml");
+         if (source == null || xaml == null)
+            return;
+
+         // Wired before the constructor disables them, so the first change already hides them.
+         int wiredTree = source.IndexOf("NavTree.IsEnabledChanged += (s, e) => ApplySidebar_();", StringComparison.Ordinal);
+         int wiredSearch = source.IndexOf("SearchButton.IsEnabledChanged += (s, e) => ShowSearch_();", StringComparison.Ordinal);
+         int disabled = source.IndexOf("NavTree.IsEnabled = false;", StringComparison.Ordinal);
+         int connect = source.IndexOf("ContentHost.Content = new ConnectView(OnConnected);", StringComparison.Ordinal);
+         Assert.True(wiredTree >= 0 && wiredSearch >= 0, "The sidebar or the search no longer follows whether it can be used.");
+         Assert.True(wiredTree < disabled && wiredSearch < disabled && disabled < connect,
+            "The window disables the navigation before it follows it, or after it shows the sign-in page.");
+
+         string apply = WithheldRowTests.MemberText(source, "private void ApplySidebar_()");
+         Assert.True(apply != null, "MainWindow.ApplySidebar_ is gone.");
+         Assert.Contains("bool shown = NavTree.IsEnabled;", apply, StringComparison.Ordinal);
+         Assert.Contains("SidebarPane.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;", apply, StringComparison.Ordinal);
+         Assert.Contains("SidebarToggle.Visibility = shown ? Visibility.Visible : Visibility.Collapsed;", apply, StringComparison.Ordinal);
+         Assert.Contains("SidebarColumn.Width = new GridLength(0);", apply, StringComparison.Ordinal);
+         Assert.Contains("shown == sidebarShown_", apply, StringComparison.Ordinal);
+
+         string search = WithheldRowTests.MemberText(source, "private void ShowSearch_()");
+         Assert.True(search != null, "MainWindow.ShowSearch_ is gone.");
+         Assert.Contains("SearchButton.Visibility = SearchButton.IsEnabled ? Visibility.Visible : Visibility.Collapsed;", search, StringComparison.Ordinal);
+
+         Assert.Contains("x:Name=\"SidebarPane\"", xaml, StringComparison.Ordinal);
+         Assert.Contains("x:Name=\"ContentSurface\"", xaml, StringComparison.Ordinal);
+
+         // Sign-in enables both, and a refused second factor disables the tree again.
+         string connected = WithheldRowTests.MemberText(source, "private void OnConnected()");
+         Assert.True(connected != null, "MainWindow.OnConnected is gone.");
+         Assert.Contains("NavTree.IsEnabled = true;", connected, StringComparison.Ordinal);
+         Assert.Contains("SearchButton.IsEnabled = true;", connected, StringComparison.Ordinal);
+         Assert.Contains("NavTree.IsEnabled = false;", connected, StringComparison.Ordinal);
+      }
+
+      /// <summary>
       /// The row style itself is the one the shell's tests read (the brand pill,
       /// the subtle grey, the keyboard border): it is still the TreeView's own,
       /// declared in MainWindow.xaml.
