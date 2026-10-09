@@ -47,8 +47,11 @@ namespace hMailServer.ControlPanel.Services
    /// bottom edge is the theme's accent line, as Wpf.Ui's date picker is, is a
    /// box). A read-only
    /// field takes the keyboard, so it is ringed. A field whose binding reports a
-   /// validation error keeps the danger colour for its ring, with the violet
-   /// glow outside it. While the ring is shown the field's own keyboard focus
+   /// validation error, or whose FieldRow carries a message
+   /// (<see cref="Views.Scaffold.FieldRow.HasErrorProperty"/>), keeps the danger
+   /// colour for its ring, with the violet glow outside it - a message set on a
+   /// row sets no Validation.HasError, so the ring of a refused field stayed
+   /// violet. While the ring is shown the field's own keyboard focus
    /// rectangle is held off, so the two are not drawn over each other. The ring
    /// fades in over 120 ms, unless Windows has animations turned off.
    /// </summary>
@@ -61,6 +64,9 @@ namespace hMailServer.ControlPanel.Services
 
       private static readonly DependencyPropertyDescriptor HasErrorDescriptor =
          DependencyPropertyDescriptor.FromProperty(Validation.HasErrorProperty, typeof(FrameworkElement));
+
+      private static readonly DependencyPropertyDescriptor RefusedDescriptor =
+         DependencyPropertyDescriptor.FromProperty(Views.Scaffold.FieldRow.HasErrorProperty, typeof(FrameworkElement));
 
       /// <summary>Safe to call more than once.</summary>
       public static void Register()
@@ -211,6 +217,7 @@ namespace hMailServer.ControlPanel.Services
          field.IsVisibleChanged += OnFieldChanged_;
          field.LayoutUpdated += OnFieldLayout_;
          HasErrorDescriptor.AddValueChanged(field, OnHasErrorChanged_);
+         RefusedDescriptor.AddValueChanged(field, OnHasErrorChanged_);
 
          if (SystemParameters.ClientAreaAnimation)
             adorner_.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(120)));
@@ -229,6 +236,7 @@ namespace hMailServer.ControlPanel.Services
          field.IsVisibleChanged -= OnFieldChanged_;
          field.LayoutUpdated -= OnFieldLayout_;
          HasErrorDescriptor.RemoveValueChanged(field, OnHasErrorChanged_);
+         RefusedDescriptor.RemoveValueChanged(field, OnHasErrorChanged_);
 
          if (heldFocusVisual_ && field.ReadLocalValue(FrameworkElement.FocusVisualStyleProperty) == null)
             field.ClearValue(FrameworkElement.FocusVisualStyleProperty);
@@ -321,7 +329,7 @@ namespace hMailServer.ControlPanel.Services
             // by the shared brush: a template that took that brush once froze it,
             // and a frozen brush keeps the colour of the theme it was frozen in.
             DesignTokens.FocusArgb focus = DesignTokens.Focus(ThemeTokens.CurrentChartTheme, ThemeTokens.CurrentSystemColors);
-            Color ring = Validation.GetHasError(field)
+            Color ring = Refused_(field)
                ? Token_(field, "AppDangerBrush", DesignTokens.Status(ThemeTokens.CurrentChartTheme, ThemeTokens.CurrentSystemColors).Danger)
                : Token_(field, "AppFocusBrush", focus.Ring);
             Color glow = Token_(field, "AppFocusGlowBrush", focus.Glow);
@@ -362,6 +370,13 @@ namespace hMailServer.ControlPanel.Services
                Math.Max(0, radius - half), Math.Max(0, radius - half));
             drawing.Pop();
          }
+
+         /// <summary>
+         /// Whether the field's value is refused: by its binding's validation, or by
+         /// the message its FieldRow carries.
+         /// </summary>
+         private static bool Refused_(Control field)
+            => Validation.GetHasError(field) || Views.Scaffold.FieldRow.GetHasError(field);
 
          private static Color Token_(FrameworkElement field, string key, uint fallback)
             => field.TryFindResource(key) is SolidColorBrush brush ? brush.Color : FromArgb(fallback);

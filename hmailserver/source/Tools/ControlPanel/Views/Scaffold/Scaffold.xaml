@@ -305,7 +305,11 @@
         </Setter>
     </Style>
 
-    <!-- FieldRow: caption, editor, hint, message. -->
+    <!-- FieldRow: caption, editor, message, hint. The caption is body text, as a
+         check box's caption is (F146); the message sits directly under the
+         editor it is about, before the Applies line and the hint (F213). Rows
+         of a grid, not a stack: the caption's row takes a shared height where
+         the field stands beside others on one line (FieldRow.LabelGroup). -->
     <Style TargetType="{x:Type scaffold:FieldRow}">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="IsTabStop" Value="False" />
@@ -314,16 +318,20 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type scaffold:FieldRow}">
-                    <StackPanel>
-                        <TextBlock x:Name="PART_Label" Style="{StaticResource TextCaption}" Margin="0,0,0,4" />
-                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                        <!-- When a saved value reaches the running server, for a field
-                             kept in the settings store (FieldRow.Applies). -->
-                        <TextBlock x:Name="PART_Applies" Text="{TemplateBinding Applies}"
-                                   Style="{StaticResource TextCaptionTertiary}" FontStyle="Italic" Margin="0,4,0,0" />
-                        <TextBlock x:Name="PART_Hint" Text="{TemplateBinding Hint}"
-                                   Style="{StaticResource TextCaptionTertiary}" Margin="0,4,0,0" />
-                        <Grid x:Name="PART_ErrorRow" Margin="0,4,0,0">
+                    <Grid x:Name="PART_Lines">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <!-- On the line's bottom edge: in a shared row taller than
+                             itself, a one-line caption stays just above its box. -->
+                        <TextBlock x:Name="PART_Label" Style="{StaticResource TextBody}" Margin="0,0,0,4"
+                                   VerticalAlignment="Bottom" />
+                        <ContentPresenter Grid.Row="1" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        <Grid x:Name="PART_ErrorRow" Grid.Row="2" Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -335,7 +343,13 @@
                                        Foreground="{DynamicResource AppDangerFillTextBrush}"
                                        AutomationProperties.LiveSetting="Assertive" />
                         </Grid>
-                    </StackPanel>
+                        <!-- When a saved value reaches the running server, for a field
+                             kept in the settings store (FieldRow.Applies). -->
+                        <TextBlock x:Name="PART_Applies" Grid.Row="3" Text="{TemplateBinding Applies}"
+                                   Style="{StaticResource TextCaptionTertiary}" FontStyle="Italic" Margin="0,4,0,0" />
+                        <TextBlock x:Name="PART_Hint" Grid.Row="4" Text="{TemplateBinding Hint}"
+                                   Style="{StaticResource TextCaptionTertiary}" Margin="0,4,0,0" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Label" Value="{x:Null}">
                             <Setter TargetName="PART_Label" Property="Visibility" Value="Collapsed" />

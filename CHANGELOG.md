@@ -1854,6 +1854,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and the size limit's note names it among the checks that need the body; and the subtitle reads "Each spam check in
   the order the server runs it, what it adds to the score, and what the total does to a message."
 
+- **Fixed: a field's caption was the quietest text of its row, and a field's message did not mark the field and sat
+  under its hint.** A caption above a box was 12-pixel secondary text over a 12-pixel hint four points of alpha
+  lighter, so that "Void SPF lookups allowed before permerror (0 = no limit)" could not be told from the paragraph
+  under it, while a check box's caption on the same card was 14-pixel primary text. A field's message - "A domain is
+  required." - appeared under the hint, as much as 50 pixels from its box, which kept its neutral border and the
+  violet focus ring, and the dialog grew by the message and moved Add and Cancel from under the pointer. A caption is
+  body text now, 14 pixels in the primary colour, and the hint stays small and tertiary; the message sits directly
+  under the box, the box's border turns the danger colour and its focus ring with it, and an edit of the value takes
+  the message away; the dialogs whose field can be refused - Allow or block a domain, the never-ban name and the
+  suppression list's Add - keep a line of room for the message, so that their buttons stay where they were.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

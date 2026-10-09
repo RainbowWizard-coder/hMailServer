@@ -463,6 +463,9 @@ namespace hMailServer.ControlPanel.Views
          dialog.Frame(L("Allow or block a domain"), body, ok, cancel,
             L("The entry applies to the next session from that domain. It is consulted for unauthenticated inbound sessions of an IP range that runs the spam tests, and never to override authentication."),
             width: 520);
+         // A refusal of the domain, typed or the server's, is said under its box
+         // without moving Add and Cancel.
+         dialog.KeepRoomForFieldErrors();
 
          return dialog.ShowDialog() == true ? result : null;
       }

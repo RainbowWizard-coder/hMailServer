@@ -107,6 +107,40 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// Keeps room under the body for <paramref name="lines"/> lines of a field's
+      /// message, so that a message appearing under a field moves nothing but the
+      /// fields below it: once the window has sized itself to its content, the
+      /// body is held to that height and the room more, and its fields grow into
+      /// the room as messages appear - past it, the window grows as before, or
+      /// the body scrolls at the cap. A window sized to its content grew by every
+      /// message, 20 pixels a line, and moved its footer, Add and Cancel with it,
+      /// from under the pointer that had pressed Add (review finding F213). For
+      /// the dialogs whose fields can be refused on the field: one line for each
+      /// field a press can refuse at once. The body's floor, not the window's
+      /// height: a FluentWindow sized to its content counts a title bar its chrome
+      /// does not draw, and a height set from it left that much more blank.
+      /// </summary>
+      public void KeepRoomForFieldErrors(int lines = 1)
+      {
+         if (lines <= 0)
+            return;
+
+         Loaded += (_, _) =>
+         {
+            if (SizeToContent != SizeToContent.Height || (Content as DialogFrame)?.Body is not FrameworkElement body)
+               return;
+
+            double room = lines * FieldRow.ErrorLineHeight(this);
+            double grows = Math.Max(0, Math.Min(room, MaxHeight - ActualHeight));
+            body.MinHeight = body.ActualHeight + room;
+
+            // Centred as it was placed: the room it grows by is shared above and below.
+            if (WindowStartupLocation != WindowStartupLocation.Manual)
+               Top -= grows / 2;
+         };
+      }
+
+      /// <summary>
       /// On load, puts the keyboard in the first focusable field inside
       /// <paramref name="root"/>. Without this a FluentWindow opens with the
       /// focus on nothing, and the first Tab lands on the title bar's buttons.

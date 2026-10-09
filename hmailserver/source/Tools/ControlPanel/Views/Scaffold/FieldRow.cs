@@ -2,10 +2,13 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using System.Windows.Shapes;
 using hMailServer.ControlPanel.Services;
 
@@ -13,19 +16,33 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 {
    /// <summary>
    /// One field of a form: the caption above the editor, the editor (the
-   /// content), an optional hint under it, and an optional validation message
-   /// under that. The caption carries an Alt-key mnemonic the way every caption
-   /// here does ("_Host" is Alt+H), wired to the editor through
+   /// content), an optional validation message directly under it, and an
+   /// optional hint under that. The caption carries an Alt-key mnemonic the way
+   /// every caption here does ("_Host" is Alt+H), wired to the editor through
    /// <see cref="Mnemonic"/>; the editor takes its accessible name from the
    /// caption and its help text from the hint and the message, so a screen
    /// reader landing in the editor hears what it is, what it wants and what is
    /// wrong with it - the same three things a sighted user reads around it.
    ///
+   /// The caption is body text, 14 pixels in the primary colour, as a check
+   /// box's caption beside it is; the hint and the Applies line under the
+   /// editor stay small and tertiary. The caption was 12-pixel secondary text
+   /// over a 12-pixel hint four points of alpha lighter, so that a field's name
+   /// could not be told from the paragraph under it and ranked below a check
+   /// box's (review finding F146).
+   ///
    /// The message is drawn with the danger colour, a cross and the words
-   /// themselves; it is an assertive live region, and the row raises the
-   /// live-region event on it (<see cref="Announce"/>) as the message is set,
-   /// so it is announced when it appears. Set <see cref="Error"/> to null to
-   /// clear it.
+   /// themselves, directly under the editor, where it sat under the hint as
+   /// much as 50 pixels from the box; it is an assertive live region, and the
+   /// row raises the live-region event on it (<see cref="Announce"/>) as the
+   /// message is set, so it is announced when it appears. While a message is
+   /// set the editor is marked refused as well (<see cref="HasErrorProperty"/>):
+   /// its border at rest is the danger colour, and FocusGlow draws its ring in
+   /// that colour, where the box kept its neutral border and the violet ring
+   /// because FocusGlow read only Validation.HasError, which a message set here
+   /// never sets (review finding F213). An edit of the value takes the message
+   /// away - it said what was wrong with the value it was given - as does
+   /// setting <see cref="Error"/> to null.
    ///
    /// <code>
    /// &lt;scaffold:FieldRow Label="{loc:L '_Host'}" Hint="{loc:L 'The name or address of the server.'}"&gt;
@@ -40,6 +57,16 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          DefaultStyleKeyProperty.OverrideMetadata(typeof(FieldRow), new FrameworkPropertyMetadata(typeof(FieldRow)));
       }
 
+      public FieldRow()
+      {
+         // An edit of the editor's value takes the message away. Routed events
+         // from the content bubble through the row: a text box's or a number
+         // box's text, a password box's password and a combo box's choice.
+         AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnEdited_));
+         AddHandler(PasswordBox.PasswordChangedEvent, new RoutedEventHandler(OnEdited_));
+         AddHandler(Selector.SelectionChangedEvent, new SelectionChangedEventHandler(OnEdited_));
+      }
+
       public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
          nameof(Label), typeof(string), typeof(FieldRow), new PropertyMetadata(null, OnAnyChanged, NullWhenEmpty));
 
@@ -52,6 +79,31 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       public static readonly DependencyProperty AppliesProperty = DependencyProperty.Register(
          nameof(Applies), typeof(string), typeof(FieldRow), new PropertyMetadata(null, OnAnyChanged, NullWhenEmpty));
 
+      public static readonly DependencyProperty LabelGroupProperty = DependencyProperty.Register(
+         nameof(LabelGroup), typeof(string), typeof(FieldRow), new PropertyMetadata(null, OnLabelGroupChanged, NullWhenEmpty));
+
+      /// <summary>
+      /// Set on an editor while the row around it carries a message: what
+      /// FocusGlow reads for the danger ring, beside Validation.HasError, and
+      /// what a test or an automation client can read for "this field was
+      /// refused". The row sets and clears it; nothing else needs to.
+      /// </summary>
+      public static readonly DependencyProperty HasErrorProperty = DependencyProperty.RegisterAttached(
+         "HasError", typeof(bool), typeof(FieldRow), new PropertyMetadata(false));
+
+      public static bool GetHasError(DependencyObject element) => (bool)element.GetValue(HasErrorProperty);
+
+      public static void SetHasError(DependencyObject element, bool value) => element.SetValue(HasErrorProperty, value);
+
+      // Whether the row put the danger colour on the editor's border, so that it
+      // takes away only a colour it set and never one the page gave the box.
+      private static readonly DependencyProperty OwnsBorderProperty = DependencyProperty.RegisterAttached(
+         "OwnsBorder", typeof(bool), typeof(FieldRow), new PropertyMetadata(false));
+
+      // The editor this row marked refused, so that a cleared message or a new
+      // editor unmarks the one that was marked.
+      private FrameworkElement marked_;
+
       /// <summary>The caption, with its Alt key marked by an underscore.</summary>
       public string Label
       {
@@ -59,7 +111,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          set => SetValue(LabelProperty, value);
       }
 
-      /// <summary>What the field wants, in one line, shown under the editor.</summary>
+      /// <summary>What the field wants, in one line, shown under the editor and its message.</summary>
       public string Hint
       {
          get => (string)GetValue(HintProperty);
@@ -75,7 +127,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
 
       /// <summary>
       /// When a saved value of this field reaches the running server - "Applies on
-      /// save", "After reinitialize" or "After a restart" (Services/SettingApplies) -
+      /// save", "After reinitialise" or "After a restart" (Services/SettingApplies) -
       /// for a field kept in the settings store that was hMailServer.ini's [Settings]
       /// section, or null for every other field. Shown small under the editor and
       /// read with its help text, so a screen reader hears it with the field.
@@ -86,7 +138,36 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          set => SetValue(AppliesProperty, value);
       }
 
+      /// <summary>
+      /// For fields laid beside each other on one line - an inline Add form: the
+      /// name of a group whose captions share one height, so that the editors
+      /// line up whatever a caption wraps to, and a message under one editor
+      /// moves none of the others. Every row of the line names the same group,
+      /// a button beside them sits under a row of that group (a grid row whose
+      /// SharedSizeGroup is the name), and the panel around them sets
+      /// Grid.IsSharedSizeScope. The rows of such a line sat on its bottom edge,
+      /// so a message under one box lifted that box above its neighbours and put
+      /// the button beside the message. Null, the caption takes its own height.
+      /// </summary>
+      public string LabelGroup
+      {
+         get => (string)GetValue(LabelGroupProperty);
+         set => SetValue(LabelGroupProperty, value);
+      }
+
       protected override AutomationControlType ControlType => AutomationControlType.Group;
+
+      /// <summary>
+      /// The height one line of a message takes under an editor, as the template
+      /// draws it - the caption size's line and the gap above it - for a dialog
+      /// that keeps room for its messages (FluentDialogWindow.KeepRoomForFieldErrors).
+      /// </summary>
+      public static double ErrorLineHeight(FrameworkElement scope)
+      {
+         double size = scope?.TryFindResource("AppFontSizeCaption") is double caption ? caption : Typography.Caption;
+         FontFamily family = scope == null ? new FontFamily(Typography.UiFontFamily) : System.Windows.Documents.TextElement.GetFontFamily(scope);
+         return Math.Ceiling(size * family.LineSpacing) + DesignTokens.Space.Xs;
+      }
 
       public override void OnApplyTemplate()
       {
@@ -99,6 +180,7 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          if (Part<Path>("PART_ErrorMark") is { } mark)
             ShapeMarkVisuals.ApplyMark(mark, critical.Shape, critical.FillTextBrushKey);
 
+         ApplyLabelGroup_();
          Apply_();
       }
 
@@ -119,6 +201,38 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             Announce.Request(message);
       }
 
+      private static void OnLabelGroupChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+         => ((FieldRow)d).ApplyLabelGroup_();
+
+      // The caption's line is the first row of the template's grid; in a group
+      // it is as tall as the tallest caption of the group's rows in the scope.
+      private void ApplyLabelGroup_()
+      {
+         if (Part<Grid>("PART_Lines") is { } lines && lines.RowDefinitions.Count > 0)
+            lines.RowDefinitions[0].SharedSizeGroup = LabelGroup;
+      }
+
+      private void OnEdited_(object sender, RoutedEventArgs e)
+      {
+         if (Error != null && e.OriginalSource is DependencyObject source && IsInContent_(source))
+            Error = null;
+      }
+
+      // An edit inside this row's own editor - not one of a row nested in it,
+      // which clears its own.
+      private bool IsInContent_(DependencyObject source)
+      {
+         for (DependencyObject at = source; at != null; at = at is Visual ? VisualTreeHelper.GetParent(at) ?? LogicalTreeHelper.GetParent(at) : LogicalTreeHelper.GetParent(at))
+         {
+            if (ReferenceEquals(at, this))
+               return true;
+            if (at is FieldRow)
+               return false;
+         }
+
+         return false;
+      }
+
       private void Apply_()
       {
          string label = Label ?? "";
@@ -130,7 +244,10 @@ namespace hMailServer.ControlPanel.Views.Scaffold
             Mnemonic.Apply(caption, label, editor);
 
          if (editor == null)
+         {
+            Mark_(null);
             return;
+         }
 
          // A row of a box and a button beside it - a file and its Browse… - names
          // and describes the box, which a screen reader lands on, where it named
@@ -148,6 +265,41 @@ namespace hMailServer.ControlPanel.Views.Scaffold
          string help = Loc.Sentences(Hint, Applies, Error);
 
          AutomationProperties.SetHelpText(editor, help);
+
+         Mark_(Error != null ? editor : null);
+      }
+
+      /// <summary>
+      /// Marks the editor refused, and the one marked before not: HasError for
+      /// FocusGlow's ring, and the danger colour on the border at rest, by its
+      /// resource key so that a change of theme recolours it. A border the page
+      /// set on the box itself is left as it is.
+      /// </summary>
+      private void Mark_(FrameworkElement editor)
+      {
+         if (ReferenceEquals(editor, marked_))
+            return;
+
+         if (marked_ != null)
+         {
+            marked_.ClearValue(HasErrorProperty);
+            if ((bool)marked_.GetValue(OwnsBorderProperty))
+            {
+               marked_.ClearValue(Control.BorderBrushProperty);
+               marked_.ClearValue(OwnsBorderProperty);
+            }
+         }
+
+         marked_ = editor;
+         if (editor == null)
+            return;
+
+         SetHasError(editor, true);
+         if (editor is Control box && box.ReadLocalValue(Control.BorderBrushProperty) == DependencyProperty.UnsetValue)
+         {
+            box.SetResourceReference(Control.BorderBrushProperty, "AppDangerBrush");
+            box.SetValue(OwnsBorderProperty, true);
+         }
       }
    }
 }

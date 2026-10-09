@@ -659,6 +659,9 @@ namespace hMailServer.ControlPanel.Views
          dialog.Frame(F("Add to the suppression list of {0}", domain), body, ok, cancel,
             L("The next message from this domain to the address is refused, dropped or delivered and recorded, as the bounce settings say. Mail already queued to it meets the list on its next delivery attempt."),
             width: 480);
+         // A refusal of the address, typed or the server's, is said under its box
+         // without moving Add and Cancel.
+         dialog.KeepRoomForFieldErrors();
 
          return dialog.ShowDialog() == true ? result : null;
       }
