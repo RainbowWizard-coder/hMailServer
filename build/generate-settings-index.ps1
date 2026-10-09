@@ -58,11 +58,16 @@ $handWrittenPages = @{ 'BackupView' = 'backup'; 'IPRangesView' = 'ipranges'; 'Tc
                        'RoutesView' = 'routes'; 'DomainsView' = 'domains'; 'RulesView' = 'rules';
                        'SslCertificatesView' = 'certs' }
 
-function Add-Entry($list, $label, $key, $page) {
+# $tab and $card say where on the page the setting is - the tab's header and the
+# card's title, as the page's source writes them (catalogue keys) - so that the
+# palette's row can say "Sign-in & access > Auto-ban > Countries" and the page can
+# open the tab (review finding F274). Empty where the page has none, or where the
+# scan cannot tell.
+function Add-Entry($list, $label, $key, $page, $tab = '', $card = '') {
    # $label must already be escaped the way a C# string literal escapes it.
    $label = $label.Trim()
    if ([string]::IsNullOrWhiteSpace($label)) { return }
-   $list.Add([PSCustomObject]@{ Label = $label; Key = $key; Page = $page }) | Out-Null
+   $list.Add([PSCustomObject]@{ Label = $label; Key = $key; Page = $page; Tab = $tab; Card = $card }) | Out-Null
 }
 
 # On a hand-written page the on-screen wording lives in the XAML and the setting
@@ -206,9 +211,18 @@ for ($i = 1; $i -lt $featureParts.Count; $i += 2) {
    $page = $featurePages[$section]
    if (-not $page) { continue }
 
-   # \bKey, not Key: a section's header names its page as PageKey = "acme", which is no setting.
-   foreach ($m in [regex]::Matches($body, '\bKey = "([^"]+)"[^}]*?Label = (?:L\()?"((?:[^"\\]|\\.)*)"')) {
-      Add-Entry $entries (ConvertFrom-CSharpLiteral $m.Groups[2].Value) $m.Groups[1].Value $page
+   # One card at a time: each is a cards_.Add(new CardDef { Title = L("..."), ...
+   # Settings = { ... } }), and the first Title in it is the card's. These pages
+   # have no tabs.
+   foreach ($cardText in [regex]::Split($body, 'cards_\.Add\(new CardDef')) {
+      $titleMatch = [regex]::Match($cardText, 'Title = L\("((?:[^"\\]|\\.)*)"\)')
+      $card = ''
+      if ($titleMatch.Success) { $card = ConvertFrom-CSharpLiteral $titleMatch.Groups[1].Value }
+
+      # \bKey, not Key: a section's header names its page as PageKey = "acme", which is no setting.
+      foreach ($m in [regex]::Matches($cardText, '\bKey = "([^"]+)"[^}]*?Label = (?:L\()?"((?:[^"\\]|\\.)*)"')) {
+         Add-Entry $entries (ConvertFrom-CSharpLiteral $m.Groups[2].Value) $m.Groups[1].Value $page '' $card
+      }
    }
 }
 
@@ -223,11 +237,58 @@ foreach ($m in [regex]::Matches($serverText, '(?s)private void Build(\w+)\(\)\s*
    $page = $serverPages[$section]
    if (-not $page) { continue }
 
+   # Where each setting is. A card is made as var x = Card(L("Title")...) and put on
+   # a tab by Tab(L("Header")).Cards.Add(x), or by t.Cards.Add(x) after
+   # TabDef t = Tab(L("Header")); a setting is put on a card inline,
+   # x.Settings.Add(new ... { Path = ... }), or made first as var v = new ... and
+   # added by x.Settings.Add(v).
+   $cardTitles = @{}
+   foreach ($c in [regex]::Matches($body, '\bvar (\w+) = Card\(L\("((?:[^"\\]|\\.)*)"\)')) {
+      $cardTitles[$c.Groups[1].Value] = ConvertFrom-CSharpLiteral $c.Groups[2].Value
+   }
+   $tabVariables = @{}
+   foreach ($t in [regex]::Matches($body, '\bTabDef (\w+) = Tab\(L\("((?:[^"\\]|\\.)*)"\)\)')) {
+      $tabVariables[$t.Groups[1].Value] = ConvertFrom-CSharpLiteral $t.Groups[2].Value
+   }
+   $cardTabs = @{}
+   foreach ($t in [regex]::Matches($body, '\bTab\(L\("((?:[^"\\]|\\.)*)"\)\)\.Cards\.Add\((\w+)\)')) {
+      $cardTabs[$t.Groups[2].Value] = ConvertFrom-CSharpLiteral $t.Groups[1].Value
+   }
+   foreach ($t in [regex]::Matches($body, '\b(\w+)\.Cards\.Add\((\w+)\)')) {
+      if ($tabVariables.ContainsKey($t.Groups[1].Value)) { $cardTabs[$t.Groups[2].Value] = $tabVariables[$t.Groups[1].Value] }
+   }
+   $inlineAdds = @([regex]::Matches($body, '\b(\w+)\.Settings\.Add\(new\b'))
+   $madeFirst = @([regex]::Matches($body, '\bvar (\w+) = new [A-Z]\w*'))
+
+   # The card variable the setting found at $at belongs to, or '' when the scan cannot tell.
+   $cardOf = {
+      param($at)
+      $inline = $inlineAdds | Where-Object { $_.Index -lt $at } | Select-Object -Last 1
+      $made = $madeFirst | Where-Object { $_.Index -lt $at } | Select-Object -Last 1
+      if ($made -and (-not $inline -or $made.Index -gt $inline.Index)) {
+         $added = [regex]::Match($body, '\b(\w+)\.Settings\.Add\(' + [regex]::Escape($made.Groups[1].Value) + '\)')
+         if ($added.Success) { return $added.Groups[1].Value }
+         return ''
+      }
+      if ($inline) { return $inline.Groups[1].Value }
+      return ''
+   }
+   $placeOf = {
+      param($at)
+      $variable = & $cardOf $at
+      $tab = ''; $card = ''
+      if ($variable -and $cardTabs.ContainsKey($variable)) { $tab = $cardTabs[$variable] }
+      if ($variable -and $cardTitles.ContainsKey($variable)) { $card = $cardTitles[$variable] }
+      return @($tab, $card)
+   }
+
    foreach ($s in [regex]::Matches($body, 'Path = "([^"]+)",\s*Label = (?:L\()?"((?:[^"\\]|\\.)*)"')) {
-      Add-Entry $entries (ConvertFrom-CSharpLiteral $s.Groups[2].Value) $s.Groups[1].Value $page
+      $place = & $placeOf $s.Index
+      Add-Entry $entries (ConvertFrom-CSharpLiteral $s.Groups[2].Value) $s.Groups[1].Value $page $place[0] $place[1]
    }
    foreach ($s in [regex]::Matches($body, 'Label = (?:L\()?"((?:[^"\\]|\\.)*)"\)?,\s*Path = "([^"]+)"')) {
-      Add-Entry $entries (ConvertFrom-CSharpLiteral $s.Groups[1].Value) $s.Groups[2].Value $page
+      $place = & $placeOf $s.Index
+      Add-Entry $entries (ConvertFrom-CSharpLiteral $s.Groups[1].Value) $s.Groups[2].Value $page $place[0] $place[1]
    }
 }
 
@@ -273,7 +334,7 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('{')
 [void]$sb.AppendLine('   public static partial class SettingsSearchIndex')
 [void]$sb.AppendLine('   {')
-[void]$sb.AppendLine('      /// <summary>Every setting on the settings pages: label, INI key or COM path, and the nav page that owns it.</summary>')
+[void]$sb.AppendLine('      /// <summary>Every setting on the settings pages: label, INI key or COM path, the nav page that owns it, and its tab and card there.</summary>')
 [void]$sb.AppendLine('      public static readonly SettingEntry[] Entries =')
 [void]$sb.AppendLine('      {')
 
@@ -282,7 +343,9 @@ foreach ($e in $sorted) {
    # already escaped; re-escaping it here would double the backslashes.
    # One escape, at the one place text becomes a C# literal - wherever the
    # label came from, it is plain text by the time it reaches here.
-   [void]$sb.AppendLine("         new SettingEntry(`"$(ConvertTo-CSharpLiteral $e.Label)`", `"$($e.Key)`", `"$($e.Page)`"),")
+   # The tab and the card are lifted out of C# literals as the label is, so they
+   # are plain text by now and escaped once here.
+   [void]$sb.AppendLine("         new SettingEntry(`"$(ConvertTo-CSharpLiteral $e.Label)`", `"$($e.Key)`", `"$($e.Page)`", `"$(ConvertTo-CSharpLiteral $e.Tab)`", `"$(ConvertTo-CSharpLiteral $e.Card)`"),")
 }
 
 [void]$sb.AppendLine('      };')

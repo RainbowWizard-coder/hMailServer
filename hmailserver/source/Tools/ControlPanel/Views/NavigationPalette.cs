@@ -69,6 +69,12 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The id of the tour to start, or null. Never set together with <see cref="SelectedPage"/>.</summary>
       public string SelectedTour { get; private set; }
 
+      /// <summary>
+      /// The key or path of the setting a setting row was chosen for, which the page
+      /// in <see cref="SelectedPage"/> is asked to show; null for any other row.
+      /// </summary>
+      public string SelectedSetting { get; private set; }
+
       /// <summary>True when the keyboard shortcuts row was chosen; neither a page nor a tour is then.</summary>
       public bool ShowShortcuts { get; private set; }
 
@@ -432,6 +438,7 @@ namespace hMailServer.ControlPanel.Views
             ShowShortcuts = row.Kind == PaletteRowKind.Shortcuts;
             SelectedTour = ShowShortcuts ? null : row.Tour;
             SelectedPage = ShowShortcuts || row.Tour != null ? null : row.Page;
+            SelectedSetting = SelectedPage != null && row.Kind == PaletteRowKind.Setting ? row.Setting : null;
          }
 
          Close();

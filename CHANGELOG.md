@@ -2212,6 +2212,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   expert settings. The cards themselves stay where they are: moving them to the pages named for them is the owner's
   to decide with the new groups (review finding F273).
 
+- **Fixed: a setting found by the Control Panel's Ctrl+K palette opened its page on the first tab, with nothing
+  marked.** The settings index carried a setting's label, key and page and nothing of where on the page it was, so
+  "MaxMind country database" opened Auto-ban on its Auto-ban tab, three tabs from the setting, and its row said only
+  "Opens Sign-in & access > Auto-ban". The index now records each setting's tab and card
+  (`build/generate-settings-index.ps1`), the row says "Sign-in & access > Auto-ban > Countries" - the tab on a page
+  of tabs, the card on a page of one scroll - and the page it opens shows the setting: the settings pages choose its
+  tab, scroll its row into view, put the keyboard in its editor and draw a ring round the row in the focus colour,
+  once, fading unless Windows has animations turned off and in the system highlight under High Contrast (review
+  finding F274).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

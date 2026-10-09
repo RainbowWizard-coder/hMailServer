@@ -11,21 +11,41 @@ namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
    /// One searchable setting: what it is called on screen, the underlying
-   /// hMailServer.INI key or COM property path, and the navigation page that
-   /// hosts it.
+   /// hMailServer.INI key or COM property path, the navigation page that hosts
+   /// it, and where on that page it is - the tab, and the card.
    /// </summary>
    public sealed class SettingEntry
    {
-      public SettingEntry(string label, string key, string page)
+      public SettingEntry(string label, string key, string page, string tab = null, string card = null)
       {
          Label = label;
          Key = key;
          Page = page;
+         Tab = string.IsNullOrEmpty(tab) ? null : tab;
+         Card = string.IsNullOrEmpty(card) ? null : card;
       }
 
       public string Label { get; }
       public string Key { get; }
       public string Page { get; }
+
+      /// <summary>
+      /// The header of the page's tab that holds the setting, as the page's source
+      /// writes it (a catalogue key), or null on a page with no tabs. A setting
+      /// found by search opens on its tab, where it opened the page on its first
+      /// (review finding F274).
+      /// </summary>
+      public string Tab { get; }
+
+      /// <summary>The title of the card that holds the setting (a catalogue key), or null where none is known.</summary>
+      public string Card { get; }
+
+      /// <summary>
+      /// Where on its page the setting is, in the reader's language: the tab on a
+      /// page of tabs, and the card on a page of one scroll; null where neither is
+      /// known.
+      /// </summary>
+      public string Within => Tab != null ? L(Tab) : Card != null ? L(Card) : null;
    }
 
    /// <summary>
@@ -51,13 +71,23 @@ namespace hMailServer.ControlPanel.Services
       public string Page => Entry.Page;
 
       /// <summary>
-      /// The full navigation trail to the page hosting the setting, so that a
-      /// result can say where it will take the reader before they go there.
-      /// Resolved through <see cref="NavigationMap"/> rather than stored, so a
-      /// page that moves in the navigation cannot leave stale trails behind in
-      /// the generated index.
+      /// The full navigation trail to the page hosting the setting, and on to its
+      /// tab or card - "Sign-in &amp; access &gt; Auto-ban &gt; Countries" - so that a
+      /// result can say where it will take the reader before they go there, which
+      /// "Sign-in &amp; access &gt; Auto-ban" did not for a setting three tabs in
+      /// (review finding F274). The page's trail is resolved through
+      /// <see cref="NavigationMap"/> rather than stored, so a page that moves in
+      /// the navigation cannot leave stale trails behind in the generated index.
       /// </summary>
-      public string Location => NavigationMap.LocationOf(Page);
+      public string Location
+      {
+         get
+         {
+            string page = NavigationMap.LocationOf(Page);
+            string within = Entry.Within;
+            return string.IsNullOrEmpty(within) || page.Length == 0 ? page : page + " > " + within;
+         }
+      }
    }
 
    /// <summary>

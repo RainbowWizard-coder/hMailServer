@@ -791,7 +791,39 @@ namespace hMailServer.ControlPanel
          }
 
          if (palette.SelectedPage != null)
+         {
             NavigateTo(palette.SelectedPage, true);
+            RevealSetting_(palette.SelectedPage, palette.SelectedSetting);
+         }
+      }
+
+      /// <summary>
+      /// A setting chosen in the palette: once its page is on screen and laid out,
+      /// the page is asked to show it - its tab chosen, its row in view, the
+      /// keyboard in its editor and a ring round it once (Views/IRevealSetting) -
+      /// where the page opened on its first tab with nothing marked (review finding
+      /// F274). Not when the page did not open: a Stay at the question about unsaved
+      /// changes keeps the reader where they were.
+      /// </summary>
+      private void RevealSetting_(string page, string setting)
+      {
+         if (string.IsNullOrEmpty(setting))
+            return;
+
+         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() =>
+         {
+            if (!string.Equals(currentPage_, page, StringComparison.OrdinalIgnoreCase) || ContentHost?.Content is not IRevealSetting reveal)
+               return;
+
+            try
+            {
+               reveal.RevealSetting(setting);
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               // Showing the setting is a convenience: the page is open either way.
+            }
+         }));
       }
 
       /// <summary>

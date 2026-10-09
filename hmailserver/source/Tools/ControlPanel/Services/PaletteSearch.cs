@@ -42,7 +42,7 @@ namespace hMailServer.ControlPanel.Services
    public sealed class PaletteRow
    {
       internal PaletteRow(PaletteRowKind kind, string section, string title, string location,
-         string detail, string page, int score, string tour = null)
+         string detail, string page, int score, string tour = null, string setting = null)
       {
          Kind = kind;
          Section = section;
@@ -52,6 +52,7 @@ namespace hMailServer.ControlPanel.Services
          Page = page;
          Score = score;
          Tour = tour;
+         Setting = setting;
       }
 
       public PaletteRowKind Kind { get; }
@@ -78,6 +79,14 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>The id of the tour to start, on a tour row and nowhere else.</summary>
       public string Tour { get; }
+
+      /// <summary>
+      /// The hMailServer.ini key or COM path of the setting a setting row found, which
+      /// the page it opens is asked to show (Views/IRevealSetting): its tab, its row
+      /// and the keyboard in its editor, where the page opened on its first tab with
+      /// nothing marked (review finding F274). Null on every other row.
+      /// </summary>
+      public string Setting { get; }
 
       /// <summary>Match score, lower being better. Zero for the rows of an unfiltered overview.</summary>
       public int Score { get; }
@@ -532,7 +541,7 @@ namespace hMailServer.ControlPanel.Services
          {
             rows.Add(new PaletteRow(PaletteRowKind.Setting, SettingSection, L(match.Label),
                match.Location, F("Setting  -  {0}", match.Key),
-               match.Page, Add(match.Rank, SettingBase)));
+               match.Page, Add(match.Rank, SettingBase), setting: match.Key));
          }
 
          return rows;
