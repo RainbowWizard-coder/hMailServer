@@ -635,10 +635,13 @@ namespace hMailServer.ControlPanel.Views
 
          public override void OnEditorChanged(Action handler)
          {
-            // Wpf.Ui's PasswordBox derives from TextBox, so TextChanged fires as
-            // the (masked) text changes - including when Generate fills it in.
+            // PasswordChanged, which WPF-UI 4.3 raises for a typed character and for a
+            // Password set in code - Generate's - alike. Not TextChanged, though the box
+            // is a TextBox: a Password set in code rewrites the mask without raising it,
+            // so a generated secret left the pill saying nothing over an unsaved change,
+            // and the warnings that ask whether a secret is set unrefreshed.
             if (box_ != null && handler != null)
-               box_.TextChanged += (s, e) => handler();
+               box_.PasswordChanged += (s, e) => handler();
 
             // The removal box is an edit of its own: the pill, and the warnings that
             // ask whether a secret is configured, follow it.

@@ -65,6 +65,97 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(silent.Count == 0, "These settings hold a value and never say it changed: " + string.Join(", ", silent));
       }
 
+      /// <summary>
+      /// A secret's editor says it changed by PasswordChanged. WPF-UI 4.3's PasswordBox
+      /// is a TextBox, but a Password set in code - Generate's - rewrites the mask
+      /// without raising TextChanged, so with TextChanged a generated metrics token or
+      /// SRS secret left the pill saying nothing over an unsaved change, and the
+      /// warnings that ask whether a secret is set unrefreshed (the review's re-check of
+      /// F218 and F239, on server1: one PasswordChanged and no TextChanged per Generate).
+      /// </summary>
+      [Fact]
+      public void ASecretsEditor_SaysItChanged_WhenGenerateFillsIt()
+      {
+         string code = ReadControlPanelFile("Views/FeatureSettingsView.xaml.cs");
+         string secret = ClassBody_(code, "private class SecretSetting : Setting");
+
+         Assert.Contains("generate.Click += (s, e) => box_.Password = PasswordGenerator.Generate(32);", secret, StringComparison.Ordinal);
+
+         string watch = WithheldRowTests.MemberText(secret, "public override void OnEditorChanged(Action handler)");
+         Assert.True(watch != null, "SecretSetting.OnEditorChanged is gone.");
+         Assert.Contains("box_.PasswordChanged += (s, e) => handler();", watch, StringComparison.Ordinal);
+         Assert.DoesNotContain("box_.TextChanged", secret, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// No password box on any page is watched by TextChanged, alone or in a list of
+      /// boxes wired together: the edit a page makes in code is missed by it, as
+      /// Generate's was on the feature settings pages. Each name is looked for in the
+      /// innermost class that declares it, since the settings classes of one page each
+      /// call their own editor box_.
+      /// </summary>
+      [Fact]
+      public void NoPasswordBox_IsWatchedByTextChanged()
+      {
+         string views = Path.Join(ControlPanelDirectory(), "Views");
+         var found = new System.Collections.Generic.List<string>();
+         int declarations = 0;
+
+         foreach (string file in Directory.GetFiles(views, "*.cs", SearchOption.AllDirectories))
+         {
+            string code = File.ReadAllText(file);
+            var declared = Regex.Matches(code, @"\bPasswordField\s+(\w+)\s*[=;:)]")
+               .Concat(Regex.Matches(code, @"\b(\w+)\s*=\s*new\s+(?:[\w.]+\.)?PasswordField\b"))
+               .ToList();
+
+            foreach (Match declaration in declared)
+            {
+               declarations++;
+               string name = declaration.Groups[1].Value;
+               string scope = InnermostClassAt_(code, declaration.Index);
+
+               bool direct = Regex.IsMatch(scope, @"\b" + Regex.Escape(name) + @"\.TextChanged\s*\+=");
+               bool listed = Regex.Matches(scope, @"foreach\s*\([^)]*?\bin\s+new\s+[\w.]*\[\]\s*\{(?<items>[^}]*)\}\s*\)\s*\{?\s*\w+\.TextChanged\s*\+=")
+                  .Any(list => Regex.IsMatch(list.Groups["items"].Value, @"\b" + Regex.Escape(name) + @"\b"));
+               if (direct || listed)
+                  found.Add(Path.GetFileName(file) + ": " + name);
+            }
+         }
+
+         Assert.True(declarations >= 8, "The password boxes were not found: " + declarations);
+         Assert.True(found.Count == 0, "These password boxes are watched by TextChanged, which a Password set in code does not raise: " + string.Join(", ", found.Distinct()));
+      }
+
+      /// <summary>The text of the innermost class whose body holds <paramref name="index"/>.</summary>
+      private static string InnermostClassAt_(string code, int index)
+      {
+         string innermost = code;
+         foreach (Match declaration in Regex.Matches(code, @"\bclass\s+\w+[^{;]*\{"))
+         {
+            int open = declaration.Index + declaration.Length - 1;
+            if (open > index)
+               break;
+
+            int depth = 0;
+            int close = code.Length - 1;
+            for (int i = open; i < code.Length; i++)
+            {
+               if (code[i] == '{')
+                  depth++;
+               else if (code[i] == '}' && --depth == 0)
+               {
+                  close = i;
+                  break;
+               }
+            }
+
+            if (close > index && close + 1 - open < innermost.Length)
+               innermost = code.Substring(open, close + 1 - open);
+         }
+
+         return innermost;
+      }
+
       [Fact]
       public void AFailedSave_IsACriticalNotice_AndNoPageWearsAPillAtRest()
       {

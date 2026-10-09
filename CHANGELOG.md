@@ -1107,11 +1107,12 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   it", and blank kept it while nothing cleared it; the Directory authentication page had always had a box for its
   service account password. While a secret is stored, a box under its field now reads *Remove the stored secret when
   saving*, and the page's save writes the empty value that is no secret, after which the field says none is stored.
-  Ticking it is an edit like any other - the pill says *Unsaved changes* and leaving the page asks - and the
-  computed warnings that ask whether a secret is set follow it. A new value typed with the box ticked is refused
-  before anything on the page is written, in the notice under the header, as the Directory authentication page
-  refuses its own; and removing the password pepper is asked about as changing it is, since it stops the passwords
-  peppered with it.
+  Ticking it is an edit like any other, as a value typed or filled in by **Generate** is - the pill says *Unsaved
+  changes* and leaving the page asks - and the computed warnings that ask whether a secret is set follow it, where a
+  value **Generate** filled in changed neither, as the box was watched for typing alone. A new value typed with the
+  box ticked is refused before anything on the page is written, in the notice under the header, as the Directory
+  authentication page refuses its own; and removing the password pepper is asked about as changing it is, since it
+  stops the passwords peppered with it.
 
 - **Fixed: the IP ranges page's permissions card said a save by adding "(saved)" to its title, and said nothing of a
   change.** The card now keeps the settings pages' model in a pill beside *Save permissions*: none while the boxes

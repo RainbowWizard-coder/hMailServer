@@ -884,8 +884,12 @@ namespace hMailServer.ControlPanel.Views
             box.Unchecked += (s, e) => Follow();
          }
 
-         foreach (TextBox box in new TextBox[] { server_, port_, timeout_, searchBase_, userSearchFilter_, userDnTemplate_, serviceUsername_, servicePassword_ })
+         foreach (TextBox box in new TextBox[] { server_, port_, timeout_, searchBase_, userSearchFilter_, userDnTemplate_, serviceUsername_ })
             box.TextChanged += (s, e) => Follow();
+
+         // The password box by PasswordChanged, which WPF-UI raises for a Password set
+         // in code as well as for a typed one; TextChanged is not raised for the first.
+         servicePassword_.PasswordChanged += (s, e) => Follow();
 
          security_.SelectionChanged += (s, e) => Follow();
          bindMethod_.SelectionChanged += (s, e) => Follow();
