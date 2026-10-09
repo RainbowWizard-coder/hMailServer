@@ -534,6 +534,43 @@ namespace hMailServer.ControlPanel.Services
       }
 
       /// <summary>
+      /// A link's colour at rest and under the pointer, as 0xAARRGGBB: the About
+      /// page's, the help pane's document list and every link inside a help
+      /// document. A link took WPF's own colour, the system's #0066CC, which is
+      /// 2.5:1 on the dark card, and turned red under the pointer, the danger
+      /// colour. These clear 4.5:1 on the page, a card, a dialog and a hovered or
+      /// selected row in their theme, under the pointer as well. Under High
+      /// Contrast a link is the system's own link colour, HotTrack.
+      /// </summary>
+      public readonly struct LinkArgb
+      {
+         public LinkArgb(uint rest, uint hover)
+         {
+            Rest = rest;
+            Hover = hover;
+         }
+
+         public uint Rest { get; }
+         public uint Hover { get; }
+      }
+
+      /// <summary>The link colours for a theme (<see cref="LinkArgb"/>).</summary>
+      public static LinkArgb Link(ChartTheme theme, ChartSystemColors system)
+      {
+         switch (theme)
+         {
+            case ChartTheme.HighContrast:
+               return new LinkArgb(system.HotTrack, system.HotTrack);
+
+            case ChartTheme.Light:
+               return new LinkArgb(0xFF0B5CB5, 0xFF084A94);
+
+            default:
+               return new LinkArgb(0xFF6CB6FF, 0xFF9CCFFF);
+         }
+      }
+
+      /// <summary>
       /// A text field's border at rest, as 0xAARRGGBB: its bottom edge, and the
       /// rest of its outline. Fluent's own drew a field's outline at 1.1:1 and
       /// its bottom edge at 1.5 to 1.7:1, so that an empty field was a faint band

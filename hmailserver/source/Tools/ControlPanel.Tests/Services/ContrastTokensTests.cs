@@ -384,6 +384,90 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("1", setters["BorderThickness"]);
       }
 
+      // ---- Links (F190, F011) --------------------------------------------------
+
+      /// <summary>
+      /// A link clears 4.5:1 at rest and under the pointer on every surface its
+      /// theme draws text on. WPF's own link colour, the system's #0066CC, is
+      /// 2.5:1 on the dark card, and it turned red under the pointer.
+      /// </summary>
+      [Theory]
+      [MemberData(nameof(LightAndDark))]
+      public void ALinkClearsFourPointFiveToOneOnEverySurfaceAtRestAndUnderThePointer(ChartTheme theme)
+      {
+         DesignTokens.LinkArgb link = DesignTokens.Link(theme, ChartSystemColors.Fallback);
+
+         foreach ((string state, uint colour) in new[] { ("at rest", link.Rest), ("under the pointer", link.Hover) })
+         {
+            Assert.Equal(0xFFu, colour >> 24);
+
+            foreach ((string name, uint surface) in Surfaces(theme))
+            {
+               double ratio = ChartPalette.ContrastRatio(colour, surface);
+               Assert.True(ratio >= 4.5, $"{theme}: a link {state} is {ratio:F2}:1 on {name} ({surface:X8}), under 4.5:1.");
+            }
+         }
+
+         // Under the pointer it is a different colour, and never the danger colour.
+         Assert.NotEqual(link.Rest, link.Hover);
+         Assert.NotEqual(DesignTokens.Status(theme, ChartSystemColors.Fallback).Danger, link.Hover);
+      }
+
+      /// <summary>Under High Contrast a link is the system's link colour, HotTrack.</summary>
+      [Fact]
+      public void UnderHighContrastALinkIsHotTrack()
+      {
+         var system = new ChartSystemColors(0xFF112233, 0xFFEEDDCC, 0xFF445566, 0xFF778899, 0xFFAABBCC);
+         DesignTokens.LinkArgb link = DesignTokens.Link(ChartTheme.HighContrast, system);
+
+         Assert.Equal(system.HotTrack, link.Rest);
+         Assert.Equal(system.HotTrack, link.Hover);
+      }
+
+      /// <summary>
+      /// App.xaml's implicit Hyperlink style reaches every link - the About page's,
+      /// the help pane's and the help documents', none of which sets a colour of its
+      /// own - with the link colour, the hover colour, the underline and the
+      /// disabled text colour; ThemeTokens publishes the two brushes and Tokens.xaml
+      /// declares them with the dark values.
+      /// </summary>
+      [Fact]
+      public void EveryLinkTakesTheLinkColourFromTheImplicitHyperlinkStyle()
+      {
+         string app = ReadControlPanelFile("App.xaml");
+         string themeTokens = ReadControlPanelFile(Path.Join("Services", "ThemeTokens.cs"));
+         string tokensXaml = ReadControlPanelFile(Path.Join("Views", "Scaffold", "Tokens.xaml"));
+         if (app == null || themeTokens == null || tokensXaml == null)
+            return;
+
+         XElement style = XDocument.Parse(app).Root.Descendants(Wpf + "Style")
+            .Single(s => (string)s.Attribute("TargetType") == "Hyperlink" && s.Attribute(X + "Key") == null);
+         var setters = style.Elements(Wpf + "Setter").ToDictionary(s => (string)s.Attribute("Property"), s => (string)s.Attribute("Value"));
+         Assert.Equal("{DynamicResource AppLinkBrush}", setters["Foreground"]);
+         Assert.Equal("Underline", setters["TextDecorations"]);
+
+         List<XElement> triggers = style.Element(Wpf + "Style.Triggers").Elements(Wpf + "Trigger").ToList();
+         string Foreground(string property, string value) => (string)triggers
+            .Single(t => (string)t.Attribute("Property") == property && (string)t.Attribute("Value") == value)
+            .Elements(Wpf + "Setter").Single(s => (string)s.Attribute("Property") == "Foreground").Attribute("Value");
+         Assert.Equal("{DynamicResource AppLinkHoverBrush}", Foreground("IsMouseOver", "True"));
+         Assert.Equal("{DynamicResource TextFillColorDisabledBrush}", Foreground("IsEnabled", "False"));
+
+         DesignTokens.LinkArgb dark = DesignTokens.Link(ChartTheme.Dark, ChartSystemColors.Fallback);
+         Assert.Contains("Publish(\"AppLinkBrush\"", themeTokens, StringComparison.Ordinal);
+         Assert.Contains("Publish(\"AppLinkHoverBrush\"", themeTokens, StringComparison.Ordinal);
+         Assert.Equal(dark.Rest.ToString("X8"), DeclaredColour(tokensXaml, "AppLinkBrush"));
+         Assert.Equal(dark.Hover.ToString("X8"), DeclaredColour(tokensXaml, "AppLinkHoverBrush"));
+
+         // The links themselves set no colour that would outrank the style.
+         foreach (string file in new[] { Path.Join("Views", "AboutView.cs"), Path.Join("Views", "HelpPane.cs"), Path.Join("Services", "MarkdownFlow.cs") })
+         {
+            string source = ReadControlPanelFile(file);
+            Assert.True(source != null && source.Contains("Hyperlink", StringComparison.Ordinal), file + " no longer builds a link.");
+            Assert.DoesNotMatch(new Regex(@"\b(?:link|hl|webLink)\.Foreground\b|Hyperlink\([^;]*Foreground\s*="), source);
+         }
+      }
+
       // ---- helpers ---------------------------------------------------------------
 
       private static readonly XNamespace Wpf = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";

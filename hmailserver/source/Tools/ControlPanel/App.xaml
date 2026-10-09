@@ -519,6 +519,30 @@
                 <Setter Property="BorderThickness" Value="1" />
             </Style>
 
+            <!-- Every link - the About page's, the help pane's list of documents,
+                 a link inside a help document - in the link colour
+                 (DesignTokens.Link), underlined, a shade further from the surface
+                 under the pointer, and the disabled text colour when it cannot be
+                 followed. WPF's own drew the system's #0066CC, 2.5:1 on the dark
+                 card, and turned it red under the pointer, the danger colour. A
+                 Hyperlink is not a TextBlock: an implicit style on it reaches the
+                 links and nothing in a control template. -->
+            <Style TargetType="Hyperlink">
+                <Setter Property="Foreground" Value="{DynamicResource AppLinkBrush}" />
+                <Setter Property="TextDecorations" Value="Underline" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource AppLinkHoverBrush}" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="True">
+                        <Setter Property="Cursor" Value="Hand" />
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- A secondary button whose action destroys something - Delete,
                  Delete selected - with its words in the danger colour while it
                  can be pressed. A style setter, not a local Foreground: the

@@ -322,6 +322,14 @@ namespace hMailServer.ControlPanel.Services
          Publish("AppDangerSolidPressedBrush", FromArgb(dangerSolid.Pressed));
          Publish("AppOnDangerSolidBrush", FromArgb(dangerSolid.Text));
 
+         // A link's colour at rest and under the pointer (DesignTokens.Link),
+         // which App.xaml's Hyperlink style gives every link in place of WPF's
+         // own: the system's #0066CC, 2.5:1 on the dark card, and red under the
+         // pointer. Under High Contrast it is HotTrack, the system's link colour.
+         DesignTokens.LinkArgb link = DesignTokens.Link(CurrentChartTheme, CurrentSystemColors);
+         Publish("AppLinkBrush", FromArgb(link.Rest));
+         Publish("AppLinkHoverBrush", FromArgb(link.Hover));
+
          // A text field's border at rest (DesignTokens.TextFieldStroke): the
          // theme's own key, which the text box, password box and number box draw
          // their border in (and the date picker, through App.xaml's style), set

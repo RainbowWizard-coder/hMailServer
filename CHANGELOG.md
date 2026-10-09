@@ -1336,6 +1336,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   focused field keeps its accent line and focus ring, and under High Contrast the theme's own border stands. The date
   picker, which had the buttons' border and no bottom edge at all, takes the text fields' border.
 
+- **Fixed: links in the Control Panel were WPF's own blue, 2.5:1 on the dark theme's card, and turned red under the
+  pointer.** The links on the About page, the help pane's list of documents and every link inside a help document set
+  no colour of their own, so they took the system's #0066CC in both themes - legible on the light theme, under the
+  floor on the dark one - and WPF's own red when pointed at, the colour the Control Panel keeps for failures. Every
+  link now takes the link colour of the design tokens, #0B5CB5 in the light theme and #6CB6FF in the dark, 4.5:1 or
+  more on the page, a card, a dialog and a hovered or selected row; it stays underlined, takes a shade further from
+  its surface under the pointer, and the disabled text colour when it cannot be followed. Under High Contrast a link
+  is the system's own link colour.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

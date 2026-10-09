@@ -150,4 +150,10 @@
     <SolidColorBrush x:Key="AppDangerSolidHoverBrush" Color="#FA6B64" />
     <SolidColorBrush x:Key="AppDangerSolidPressedBrush" Color="#E5534B" />
     <SolidColorBrush x:Key="AppOnDangerSolidBrush" Color="#1B1B1B" />
+
+    <!-- A link at rest and under the pointer (DesignTokens.Link), which App.xaml's
+         Hyperlink style gives every link. Dark values here, the theme's from
+         ThemeTokens. -->
+    <SolidColorBrush x:Key="AppLinkBrush" Color="#6CB6FF" />
+    <SolidColorBrush x:Key="AppLinkHoverBrush" Color="#9CCFFF" />
 </ResourceDictionary>
