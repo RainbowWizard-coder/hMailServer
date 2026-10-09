@@ -2985,6 +2985,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Не удалось прочитать статистику сервера: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Не удалось прочитать уровни параметров: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Не удалось прочитать список подавления: </value>
   </data>

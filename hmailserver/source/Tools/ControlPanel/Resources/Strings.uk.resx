@@ -2985,6 +2985,9 @@
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Не вдалося прочитати статистику сервера: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Не вдалося прочитати рівні параметрів: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Не вдалося прочитати список придушення: </value>
   </data>

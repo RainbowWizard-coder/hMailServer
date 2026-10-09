@@ -2967,6 +2967,9 @@ Vil du starte Control Panel på nytt nå? Velg Nei for å prøve å fortsette å
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Kunne ikke lese serverens statistikk: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Kunne ikke lese innstillingsnivåene: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kunne ikke lese sperrelisten: </value>
   </data>

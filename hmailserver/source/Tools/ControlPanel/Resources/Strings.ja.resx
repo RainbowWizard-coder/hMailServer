@@ -2967,6 +2967,9 @@
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>サーバーの統計を読み取れませんでした: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>設定レベルを読み取れませんでした: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>抑止リストを読み取れませんでした: </value>
   </data>

@@ -2967,6 +2967,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Palvelimen tilastoja ei voitu lukea: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Asetustasoja ei voitu lukea: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Estolistaa ei voitu lukea: </value>
   </data>

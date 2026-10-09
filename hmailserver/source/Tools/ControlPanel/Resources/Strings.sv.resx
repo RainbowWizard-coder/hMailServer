@@ -2967,6 +2967,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Kunde inte läsa serverns statistik: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Kunde inte läsa inställningsnivåerna: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kunde inte läsa spärrlistan: </value>
   </data>

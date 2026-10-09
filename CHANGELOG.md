@@ -1192,6 +1192,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   under the header says "Stored in the server's settings database." - naming the file only on Server limits & expert
   settings, whose sending limits a card says are kept in it - and the four subtitles that ended "(hMailServer.INI)" no
   longer do. `IniFallbackTests` holds the store to remembering a fall-back and its cause and the pages to the rest.
+- **Fixed: the domain and account dialogs' Levels tab showed its failures and its notes as plain bold text.** A read
+  that failed was a bare line - on a lost link starting in lower case, and in the review's render "The input string
+  'max_message_size_kb' was not in a correct format." - beside a greyed *Save levels now* and no way to read again,
+  drawn exactly like the note about a server older than schema 6088 and the one asking for the dialog to be saved
+  first. The tab now says each at its level, in a notice: a failed read at Critical, "Could not read the setting
+  levels:" and the reason, with Try again, which keeps its button and the keyboard when the read fails again and gives
+  *Save levels now* back when it works; the older server and the save-it-first notes as Information; a save as Good,
+  or the settings it could not write as Critical. `FailureStateTests` holds the tab to each.
 
 ### Administration
 

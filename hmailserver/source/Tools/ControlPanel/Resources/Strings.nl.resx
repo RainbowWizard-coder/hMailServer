@@ -2967,6 +2967,9 @@ Het Control Panel nu herstarten? Kies Nee om te proberen door te werken.</value>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Kon de statistieken van de server niet lezen: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Kon de instellingsniveaus niet lezen: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kon de onderdrukkingslijst niet lezen: </value>
   </data>

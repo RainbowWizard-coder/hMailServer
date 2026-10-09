@@ -337,6 +337,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("NavigateTo(\"api\")", notice, StringComparison.Ordinal);
       }
 
+      // ---- the Levels tab: notices instead of bare text ---------------------------
+
+      /// <summary>
+      /// The domain and account dialogs' Levels tab says what it has to say in a
+      /// notice at its level, where one bold text block carried everything alike: a
+      /// failed read at Critical with Try again, the older server and the
+      /// save-it-first notes as Information, a save as Good or the refusals as
+      /// Critical.
+      /// </summary>
+      [Fact]
+      public void TheLevelsTab_SaysEachThingAtItsLevel()
+      {
+         string source = ReadView("SettingLevelsPanel.cs");
+         Assert.Contains("private readonly Scaffold.InlineNotice status_ = DialogFields.Notice();", source, StringComparison.Ordinal);
+         Assert.DoesNotContain("status_.Text =", source, StringComparison.Ordinal);
+
+         string reload = WithheldRowTests.MemberText(source, "public void Reload()");
+         Assert.Contains("status_.Show(StatusLevel.Information, L(\"Save it and reopen it: a level's own value belongs to something that exists.\"));", reload, StringComparison.Ordinal);
+         Assert.Contains("status_.Show(StatusLevel.Information, L(\"This server has no setting levels:", reload, StringComparison.Ordinal);
+         Assert.Contains("ReadFailure.Show(status_, null, null, L(\"Could not read the setting levels: \"), ex, Reload, save_);", reload, StringComparison.Ordinal);
+         Assert.Contains("ReadFailure.Clear(status_, save_);", reload, StringComparison.Ordinal);
+
+         // Try again keeps its button across failures: the failure is not cleared
+         // before the read, only after one that worked.
+         int read = reload.IndexOf("owner = OpenOwner();", StringComparison.Ordinal);
+         Assert.True(reload.IndexOf("ReadFailure.Clear(status_, save_);", StringComparison.Ordinal) > read,
+            "The Levels tab clears its failure before it reads again, which replaces Try again and loses the keyboard.");
+
+         string save = WithheldRowTests.MemberText(source, "private void SaveLevels()");
+         Assert.Contains("status_.Show(StatusLevel.Good, L(\"Saved. What is in effect is shown beside each setting.\"));", save, StringComparison.Ordinal);
+         Assert.Contains("status_.Show(StatusLevel.Critical, string.Join(Environment.NewLine, refused));", save, StringComparison.Ordinal);
+         Assert.Contains("if (ReadFailure.IsShown(status_))", save, StringComparison.Ordinal);
+      }
+
       /// <summary>
       /// Every COM read the checks count as failed also records whether the link
       /// went. (A document that could not be parsed is caught by type, and is never

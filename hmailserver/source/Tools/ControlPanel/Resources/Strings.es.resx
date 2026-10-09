@@ -2967,6 +2967,9 @@ Los detalles completos se escribieron en:
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>No se pudieron leer las estadísticas del servidor: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>No se pudieron leer los niveles de ajustes: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>No se pudo leer la lista de supresión: </value>
   </data>

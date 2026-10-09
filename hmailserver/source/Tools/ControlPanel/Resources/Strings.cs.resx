@@ -2985,6 +2985,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Nepodařilo se přečíst statistiky serveru: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Nepodařilo se přečíst úrovně nastavení: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Nepodařilo se přečíst seznam blokovaných: </value>
   </data>

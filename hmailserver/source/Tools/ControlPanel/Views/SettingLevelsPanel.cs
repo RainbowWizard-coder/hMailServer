@@ -45,7 +45,12 @@ namespace hMailServer.ControlPanel.Views
       private readonly string address_;
       private readonly bool forAccount_;
       private readonly List<Row> rows_ = new();
-      private readonly TextBlock status_ = new() { TextWrapping = TextWrapping.Wrap };
+
+      // What the tab has to say, as a notice at its level, where it was one bold
+      // text block for everything: a failed read is Critical, with Try again
+      // (Services/ReadFailure); the notes about an older server and a dialog that
+      // must be saved first are Information; a save says Saved or what was refused.
+      private readonly Scaffold.InlineNotice status_ = DialogFields.Notice();
       private readonly Button save_;
       private readonly StackPanel list_ = new();
 
@@ -85,6 +90,7 @@ namespace hMailServer.ControlPanel.Views
          hint.SetResourceReference(ForegroundProperty, "TextFillColorSecondaryBrush");
          root.Children.Add(hint);
 
+         status_.Margin = new Thickness(0, 0, 0, 12);
          root.Children.Add(status_);
          root.Children.Add(list_);
          root.Children.Add(save_);
@@ -97,11 +103,17 @@ namespace hMailServer.ControlPanel.Views
       {
          list_.Children.Clear();
          rows_.Clear();
-         status_.Text = "";
+
+         // A message of the tab's own goes with the read it was about. A failed
+         // read stays until a read works, and keeps its Try again button - and the
+         // keyboard on it - when the read fails again (ReadFailure).
+         if (!ReadFailure.IsShown(status_))
+            status_.Hide();
 
          if (string.IsNullOrEmpty(domainName_) || (ForAccount && string.IsNullOrEmpty(address_)))
          {
-            status_.Text = L("Save it and reopen it: a level's own value belongs to something that exists.");
+            ReadFailure.Clear(status_);
+            status_.Show(StatusLevel.Information, L("Save it and reopen it: a level's own value belongs to something that exists."));
             save_.IsEnabled = false;
             return;
          }
@@ -123,15 +135,31 @@ namespace hMailServer.ControlPanel.Views
             }
 
             save_.IsEnabled = true;
+
+            // The read worked: a failure it was tried again for goes, and the
+            // keyboard, if it was on Try again, goes to Save levels now.
+            ReadFailure.Clear(status_, save_);
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             list_.Children.Clear();
             rows_.Clear();
             save_.IsEnabled = false;
-            status_.Text = SettingApplies.IsMissingMember(ex)
-               ? L("This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field.")
-               : ServerSession.DescribeComError(ex);
+
+            // An older server has no levels at all: that is a fact about it, not a
+            // failure, and is said as information. Anything else is a read that
+            // failed, said at Critical with Try again, where it was bare bold text
+            // - "The input string ... was not in a correct format." - with Save
+            // levels now greyed and no way to read again.
+            if (SettingApplies.IsMissingMember(ex))
+            {
+               ReadFailure.Clear(status_);
+               status_.Show(StatusLevel.Information, L("This server has no setting levels: it is older than schema 6088, and every setting here is the server's or the domain's own field."));
+            }
+            else
+            {
+               ReadFailure.Show(status_, null, null, L("Could not read the setting levels: "), ex, Reload, save_);
+            }
          }
          finally
          {
@@ -231,9 +259,15 @@ namespace hMailServer.ControlPanel.Views
 
          Reload();
 
-         status_.Text = refused.Count == 0
-            ? L("Saved. What is in effect is shown beside each setting.")
-            : string.Join(Environment.NewLine, refused);
+         // A read that failed after the save says so, and is not written over: the
+         // levels on the tab are not the ones just saved.
+         if (ReadFailure.IsShown(status_))
+            return;
+
+         if (refused.Count == 0)
+            status_.Show(StatusLevel.Good, L("Saved. What is in effect is shown beside each setting."));
+         else
+            status_.Show(StatusLevel.Critical, string.Join(Environment.NewLine, refused));
       }
 
       private dynamic OpenOwner()

@@ -2967,6 +2967,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Sunucunun istatistikleri okunamadı: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Ayar düzeyleri okunamadı: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Engelleme listesi okunamadı: </value>
   </data>

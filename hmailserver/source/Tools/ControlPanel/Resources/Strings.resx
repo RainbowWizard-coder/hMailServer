@@ -2967,6 +2967,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Could not read the server's statistics: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Could not read the setting levels: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Could not read the suppression list: </value>
   </data>

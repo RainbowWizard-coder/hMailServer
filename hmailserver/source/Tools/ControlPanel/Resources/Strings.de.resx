@@ -2967,6 +2967,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>Die Statistik des Servers konnte nicht gelesen werden: </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>Die Einstellungsebenen konnten nicht gelesen werden: </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Die Unterdrückungsliste konnte nicht gelesen werden: </value>
   </data>

@@ -2967,6 +2967,9 @@
   <data name="Could not read the server's statistics: " xml:space="preserve">
     <value>无法读取服务器的统计信息： </value>
   </data>
+  <data name="Could not read the setting levels: " xml:space="preserve">
+    <value>无法读取设置级别： </value>
+  </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>无法读取抑制列表： </value>
   </data>
