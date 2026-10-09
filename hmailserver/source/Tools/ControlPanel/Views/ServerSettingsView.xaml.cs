@@ -2824,15 +2824,19 @@ namespace hMailServer.ControlPanel.Views
          Header.Subtitle = L("Virus scanning and attachment blocking of received messages.");
 
          var general = Card(L("Action & notifications"));
-         general.Settings.Add(new ComCombo
+         var action = new ComCombo
          {
             Path = "AntiVirus.Action",
             Label = L("When a virus is found"),
             Options = AntivirusAction,
             Blurb = L("Every attachment is replaced by a short note, not only the infected one; an encrypted message is delivered unchanged.")
-         });
-         general.Settings.Add(new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify sender") });
-         general.Settings.Add(new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify receiver") });
+         };
+         var notifySender = new ComBool { Path = "AntiVirus.NotifySender", Label = L("Notify sender") };
+         var notifyReceiver = new ComBool { Path = "AntiVirus.NotifyReceiver", Label = L("Notify receiver") };
+         general.Settings.Add(action);
+         general.Settings.Add(notifySender);
+         general.Settings.Add(notifyReceiver);
+         afterBuildUi_ = () => WireAntivirusNoticeDependency(action, notifySender, notifyReceiver);
          general.Settings.Add(new ComText { Path = "AntiVirus.MaximumMessageSize", Label = L("Max message size to virus-scan (KB, 0 = unlimited)"), Numeric = true });
          general.Settings.Add(new ComBool { Path = "AntiVirus.EnableAttachmentBlocking", Label = L("Enable attachment blocking (manage list on the Blocked attachments page)") });
          Tab(L("General")).Cards.Add(general);
@@ -6138,6 +6142,40 @@ namespace hMailServer.ControlPanel.Views
          }
 
          format.Combo.SelectionChanged += (s, e) => Update();
+         Update();
+      }
+
+      /// <summary>
+      /// The anti-virus notices follow the action: the sender and the receiver are told
+      /// only when the whole message is deleted (SMTPDeliverer), so with the attachments
+      /// removed both rows are dimmed, say why under the box, and keep the state they are saved with
+      /// - where they stayed live and said nothing (review finding F197).
+      /// </summary>
+      private static void WireAntivirusNoticeDependency(ComCombo action, ComBool notifySender, ComBool notifyReceiver)
+      {
+         if (action?.Combo == null || notifySender?.Box == null || notifyReceiver?.Box == null)
+            return;
+
+         void Update()
+         {
+            bool sent = action.SelectedValue == 0;
+            string why = sent ? null : L("Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told.");
+            foreach (CheckBox box in new[] { notifySender.Box, notifyReceiver.Box })
+            {
+               // The row, which says why under the box and as its help text; the box
+               // itself keeps what else decides it - a value the environment sets.
+               if (box.Parent is Scaffold.FieldRow row)
+               {
+                  row.IsEnabled = sent;
+                  row.Hint = why;
+               }
+               else
+                  box.IsEnabled = sent;
+               box.ToolTip = why;
+            }
+         }
+
+         action.Combo.SelectionChanged += (s, e) => Update();
          Update();
       }
 

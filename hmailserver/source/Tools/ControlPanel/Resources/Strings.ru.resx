@@ -2476,6 +2476,9 @@ Control Panel может читать файлы сообщений только
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Выберите NCSA Common Log Format, чтобы строки читал анализатор, или JSON — для системы сбора журналов.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Выберите день, когда диапазон истекает.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Выберите алгоритм хеширования паролей и его коэффициент трудоёмкости.</value>
   </data>
@@ -4475,9 +4478,6 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Введите домен, для которого действует маршрут, например partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Введите срок истечения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Введите имя группы.</value>
   </data>
@@ -4510,6 +4510,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Введите размер в байтах целым числом, например 1048576 для 1 МБ.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Введите время в формате HH:MM, например 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Введите верхний адрес диапазона, например 10.0.0.255.</value>
@@ -4757,6 +4760,9 @@ Control Panel может читать файлы сообщений только
   <data name="Expires" xml:space="preserve">
     <value>Срок действия</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Ис_текает (время сервера)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Истекает (yyyy-mm-dd hh:mm:ss, когда перестаёт действовать)</value>
   </data>
@@ -4775,11 +4781,11 @@ Control Panel может читать файлы сообщений только
   <data name="Expires {0}." xml:space="preserve">
     <value>Срок действия истекает {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>В_ремя истечения срока (ГГГГ-ММ-ДД ЧЧ:ММ:СС)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Срок действия отсюда прочитать нельзя: файлы сертификата находятся на сервере, а этот Control Panel подключён к нему удалённо. Всё остальное на этой странице приходит по COM и является достоверным.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Время истечения (HH:MM; пусто = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Срок не читается</value>
@@ -10549,6 +10555,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Исходящая</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Отправляется, только когда удаляется всё сообщение. Если удаляются вложения, получателю сообщает об этом заметка на их месте, а больше никто не уведомляется.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Отдельно от этого данный сервер сам ОТПРАВЛЯЕТ такие отчёты другим доменам: TlsRptFromAddress имеет значение {0}, поэтому его собственные отчёты уходят.</value>

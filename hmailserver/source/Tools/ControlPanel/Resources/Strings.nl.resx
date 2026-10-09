@@ -2452,6 +2452,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Kies het NCSA Common Log Format zodat een analysetool de regels kan lezen, of JSON voor een log shipper.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Kies de dag waarop het bereik verloopt.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Kies het hash-algoritme voor wachtwoorden en de bijbehorende werkfactor.</value>
   </data>
@@ -4429,9 +4432,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Voer het domein in waarvoor de route geldt, zoals partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Voer de vervaldatum in als YYYY-MM-DD HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Voer de naam van de groep in.</value>
   </data>
@@ -4464,6 +4464,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Voer de grootte in als een geheel aantal bytes, bijvoorbeeld 1048576 voor 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Voer de tijd in als HH:MM, bijvoorbeeld 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Voer het bovenste adres van het bereik in, zoals 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expires" xml:space="preserve">
     <value>Verloopt</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Verloopt o_p (servertijd)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Verloopt op (yyyy-mm-dd hh:mm:ss, wanneer het vervalt)</value>
   </data>
@@ -4714,11 +4720,11 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Expires {0}." xml:space="preserve">
     <value>Verloopt {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Verval_tijd (YYYY-MM-DD HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>De vervaldatum kan vanaf hier niet worden gelezen: de certificaatbestanden staan op de server en dit Control Panel is er op afstand mee verbonden. Al het andere op deze pagina komt via COM en klopt.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Vervaltijd (HH:MM; leeg = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Vervaldatum onleesbaar</value>
@@ -10422,6 +10428,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Uitgaand</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Wordt alleen verzonden wanneer het hele bericht wordt verwijderd. Worden de bijlagen verwijderd, dan vertelt de notitie op hun plaats het de ontvanger, en krijgt verder niemand bericht.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Los daarvan VERSTUURT deze server zulke rapporten naar andere domeinen: TlsRptFromAddress is ingesteld op {0}, dus zijn eigen rapporten gaan de deur uit.</value>

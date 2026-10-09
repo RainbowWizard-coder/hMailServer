@@ -185,6 +185,16 @@ namespace hMailServer.ControlPanel.Views
          public FieldRow Field { get; private set; }
 
          /// <summary>
+         /// The key of the switch - a BoolSetting on the same page - that this setting
+         /// counts only while it is on; null for a setting that counts whatever is
+         /// switched. The editor follows the switch (review finding F197).
+         /// </summary>
+         public string DependsOn;
+
+         /// <summary>What <see cref="CreateEditor"/> returned, which follows the switch named by <see cref="DependsOn"/>.</summary>
+         public FrameworkElement Built;
+
+         /// <summary>
          /// Why the value in the editor is not one the server takes, or null: a number
          /// outside the range the server reads it in, an address that is not one. Asked
          /// only of a value that was edited - one read from the file is shown as it is
@@ -262,6 +272,9 @@ namespace hMailServer.ControlPanel.Views
       {
          public bool Default;
          private CheckBox box_;
+
+         /// <summary>The switch, which the settings that depend on it follow.</summary>
+         public CheckBox Box => box_;
 
          public override FrameworkElement CreateEditor(IniFeatureStore store)
          {
@@ -1254,6 +1267,10 @@ namespace hMailServer.ControlPanel.Views
          public List<WarningDef> Warnings = new();
       }
 
+      // The master switches the settings under them follow (Setting.DependsOn).
+      private const string AcmeSwitch = "AcmeEnabled"; // no-loc: INI keys
+      private const string OAuth2Switch = "OAuth2Enabled"; // no-loc
+
       private readonly Section section_;
       private readonly IniFeatureStore store_ = new();
       private List<CardDef> cards_;
@@ -2165,12 +2182,12 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "AcmeEnabled", Default = false, Label = L("Issue and renew certificates automatically") },
-                     new TextSetting { Key = "AcmeContactEmail", Label = L("Contact e-mail (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
-                     new TextSetting { Key = "AcmeDomains", Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.yourdomain.com, mta-sts.yourdomain.com" }, // no-loc
-                     new TextSetting { Key = "AcmeDirectoryUrl", Default = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") },
-                     new NumberSetting { Key = "AcmeHttpPort", Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
+                     new TextSetting { Key = "AcmeContactEmail", DependsOn = AcmeSwitch, Label = L("Contact e-mail (CA expiry notices)"), Placeholder = "admin@yourdomain.com" },
+                     new TextSetting { Key = "AcmeDomains", DependsOn = AcmeSwitch, Label = L("Host names for the certificate (comma separated)"), Placeholder = "mail.yourdomain.com, mta-sts.yourdomain.com" }, // no-loc
+                     new TextSetting { Key = "AcmeDirectoryUrl", DependsOn = AcmeSwitch, Default = "https://acme-v02.api.letsencrypt.org/directory", Label = L("ACME directory URL") },
+                     new NumberSetting { Key = "AcmeHttpPort", DependsOn = AcmeSwitch, Minimum = 1, Maximum = 65535, Default = "80", Label = L("Port for http-01 challenges") },
                      new PathSetting { Key = "AcmeCertificateDirectory", PickFolder = true, Label = L("Certificate output folder (empty = Data\\ACME)"), Placeholder = L("Falls back to Data\\ACME") },
-                     new BoolSetting { Key = "AcmeReuseKey", Default = true, Label = L("Reuse the private key across renewals (keeps DANE TLSA records valid)") }
+                     new BoolSetting { Key = "AcmeReuseKey", DependsOn = AcmeSwitch, Default = true, Label = L("Reuse the private key across renewals (keeps DANE TLSA records valid)") }
                   },
                   Warnings =
                   {
@@ -2917,23 +2934,23 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new BoolSetting { Key = "OAuth2Enabled", Default = false, Label = L("Accept OAuth2 bearer tokens (XOAUTH2)") },
-                     new BoolSetting { Key = "OAuth2RequireTLS", Default = true, Label = L("Require TLS for token authentication") },
-                     new TextSetting { Key = "OAuth2Issuer", Label = L("Expected token issuer (iss)"), Placeholder = "https://login.microsoftonline.com/<tenant>/v2.0" },
-                     new TextSetting { Key = "OAuth2Audience", Label = L("Expected audience (aud)"), Placeholder = L("your application / client id") },
-                     new TextSetting { Key = "OAuth2AllowedAlgorithms", Default = "RS256", Label = L("Allowed signing algorithms (comma separated)"), Placeholder = "RS256, ES256" }, // no-loc
-                     new TextSetting { Key = "OAuth2UsernameClaim", Default = "email", Label = L("Claim that holds the mailbox address"), Placeholder = "email" },
-                     new PathSetting { Key = "OAuth2PublicKeyFile", FileFilter = L("PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*"), Label = L("RSA/EC public key file (PEM, for RS*/ES* tokens)"), Placeholder = L("Path to the issuer's public key") },
-                     new SecretSetting { Key = "OAuth2HmacSecret", Label = L("Shared HMAC secret (only for HS256/384/512 tokens)"), Hint = L("Only needed for HS* algorithms") },
+                     new BoolSetting { Key = "OAuth2RequireTLS", DependsOn = OAuth2Switch, Default = true, Label = L("Require TLS for token authentication") },
+                     new TextSetting { Key = "OAuth2Issuer", DependsOn = OAuth2Switch, Label = L("Expected token issuer (iss)"), Placeholder = "https://login.microsoftonline.com/<tenant>/v2.0" },
+                     new TextSetting { Key = "OAuth2Audience", DependsOn = OAuth2Switch, Label = L("Expected audience (aud)"), Placeholder = L("your application / client id") },
+                     new TextSetting { Key = "OAuth2AllowedAlgorithms", DependsOn = OAuth2Switch, Default = "RS256", Label = L("Allowed signing algorithms (comma separated)"), Placeholder = "RS256, ES256" }, // no-loc
+                     new TextSetting { Key = "OAuth2UsernameClaim", DependsOn = OAuth2Switch, Default = "email", Label = L("Claim that holds the mailbox address"), Placeholder = "email" },
+                     new PathSetting { Key = "OAuth2PublicKeyFile", DependsOn = OAuth2Switch, FileFilter = L("PEM/key files (*.pem;*.crt;*.cer;*.key;*.pub)|*.pem;*.crt;*.cer;*.key;*.pub|All files (*.*)|*.*"), Label = L("RSA/EC public key file (PEM, for RS*/ES* tokens)"), Placeholder = L("Path to the issuer's public key") },
+                     new SecretSetting { Key = "OAuth2HmacSecret", DependsOn = OAuth2Switch, Label = L("Shared HMAC secret (only for HS256/384/512 tokens)"), Hint = L("Only needed for HS* algorithms") },
                      // The two round trips to the provider, both off unless set: its
                      // published keys instead of a hand-copied PEM file, and a live
                      // revocation check after a token verifies.
-                     new TextSetting { Key = "OAuth2JwksUrl", Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = "https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys" },
-                     new NumberSetting { Key = "OAuth2JwksCacheSeconds", Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)") },
-                     new TextSetting { Key = "OAuth2IntrospectionUrl", Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = "https://idp.example.com/oauth2/introspect" },
-                     new TextSetting { Key = "OAuth2IntrospectionClientId", Label = L("Client id this server introspects as") },
-                     new SecretSetting { Key = "OAuth2IntrospectionClientSecret", Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client id") },
-                     new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
-                     new BoolSetting { Key = "OAuth2IntrospectionFailOpen", Default = false, Label = L("Accept a token when the introspection endpoint cannot answer (availability over the revocation check)") }
+                     new TextSetting { Key = "OAuth2JwksUrl", DependsOn = OAuth2Switch, Label = L("JWK Set URL (the provider's published signing keys; empty = the key file only)"), Placeholder = "https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys" },
+                     new NumberSetting { Key = "OAuth2JwksCacheSeconds", DependsOn = OAuth2Switch, Minimum = 10, Default = "3600", Label = L("Seconds to keep the JWK Set before re-fetching (a token naming an unknown key id re-fetches at once)") },
+                     new TextSetting { Key = "OAuth2IntrospectionUrl", DependsOn = OAuth2Switch, Label = L("Token introspection endpoint (RFC 7662; empty = no revocation check)"), Placeholder = "https://idp.example.com/oauth2/introspect" },
+                     new TextSetting { Key = "OAuth2IntrospectionClientId", DependsOn = OAuth2Switch, Label = L("Client id this server introspects as") },
+                     new SecretSetting { Key = "OAuth2IntrospectionClientSecret", DependsOn = OAuth2Switch, Label = L("Client secret for introspection"), Hint = L("Issued by the provider together with the client id") },
+                     new NumberSetting { Key = "OAuth2IntrospectionCacheSeconds", DependsOn = OAuth2Switch, Minimum = 0, Default = "300", Label = L("Seconds an introspection verdict is reused (never past the token's own expiry)") },
+                     new BoolSetting { Key = "OAuth2IntrospectionFailOpen", DependsOn = OAuth2Switch, Default = false, Label = L("Accept a token when the introspection endpoint cannot answer (availability over the revocation check)") }
                   },
                   Warnings =
                   {
@@ -3187,7 +3204,7 @@ namespace hMailServer.ControlPanel.Views
             // closes the card.
             var fields = new StackPanel();
             foreach (Setting setting in card.Settings)
-               fields.Children.Add(setting.CreateEditor(store_));
+               fields.Children.Add(setting.Built = setting.CreateEditor(store_));
 
             if (fields.Children.Count > 0 && fields.Children[fields.Children.Count - 1] is FrameworkElement last)
                last.Margin = new Thickness(0);
@@ -3205,6 +3222,14 @@ namespace hMailServer.ControlPanel.Views
             var surface = new Card { Content = section };
             surface.SetResourceReference(MarginProperty, "AppCardGap");
             CardsPanel.Children.Add(surface);
+         }
+
+         // A setting that counts only while a switch is on follows the switch, once
+         // both exist (review finding F197).
+         foreach (Setting setting in cards_.SelectMany(card => card.Settings).Where(setting => setting.DependsOn != null))
+         {
+            if (FindSetting_(setting.DependsOn) is BoolSetting master && master.Box != null && setting.Built != null)
+               DialogFields.EnabledBy(master.Box, setting.Built);
          }
 
          // Wire every editor to the warnings AFTER all the editors exist, because

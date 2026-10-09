@@ -1986,6 +1986,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   wide and other text the width of the form. The drop size for oversized inbound messages is captioned in KB, the unit
   the server compares it in, where it said bytes.
 
+- **Fixed: fields that count only while their switch is on stayed editable while it was off.** A domain's account,
+  alias and list limits, its plus-addressing character, signature, relay credential, out-of-office text for local
+  senders, subject tag, disclaimer, key rotation interval, digest hour and webhook subjects; an account's forward
+  address, auto-reply, signature and Windows account; a route's credential; an IP range's expiry; the ACME and OAuth2
+  settings under their master switches; and the anti-virus notices, which are sent only when the whole message is
+  deleted, all stayed live under a switch that was off. Each now follows its switch, dimmed while it is off and saved
+  as it stands; the fields the server reads for something else stay live - a domain's out-of-office subject and text,
+  which answer outside senders in an account's place under the override, the two signature boxes that hold back every
+  signature, and the rotation's period, retention and key size, which Rotate now uses. An IP range's expiry is a date
+  and a time of day on one line, where it was one box of "YYYY-MM-DD HH:MM:SS", each said on the field when it is
+  missing or not a time.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

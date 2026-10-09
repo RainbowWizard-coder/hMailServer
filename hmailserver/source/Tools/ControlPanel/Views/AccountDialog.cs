@@ -321,9 +321,14 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(forwardOn_));
-         panel.Children.Add(Label(L("Forward _to"), forwardTo_));
+         FieldRow toRow = Label(L("Forward _to"), forwardTo_);
+         panel.Children.Add(toRow);
          panel.Children.Add(DialogFields.Check(forwardKeep_));
          panel.Children.Add(DialogFields.Check(forwardAbortSpam_));
+
+         // Nothing is forwarded while forwarding is off (LocalDelivery), so the
+         // address and the two choices about it follow the switch (review finding F197).
+         DialogFields.EnabledBy(forwardOn_, toRow, forwardKeep_, forwardAbortSpam_);
          return DialogFields.Scroll(panel);
       }
 
@@ -331,27 +336,40 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(vacationOn_));
-         panel.Children.Add(Label(L("Reply su_bject"), vacationSubject_));
-         panel.Children.Add(Label(L("Reply _message"), vacationBody_));
+         FieldRow subjectRow = Label(L("Reply su_bject"), vacationSubject_);
+         panel.Children.Add(subjectRow);
+         FieldRow messageRow = Label(L("Reply _message"), vacationBody_);
+         panel.Children.Add(messageRow);
          panel.Children.Add(DialogFields.Separator());
 
          vacationBeginDate_.HorizontalAlignment = HorizontalAlignment.Left;
          vacationBeginDate_.MinWidth = 160;
-         panel.Children.Add(Label(L("Sta_rt date"), vacationBeginDate_));
+         FieldRow beginRow = Label(L("Sta_rt date"), vacationBeginDate_);
+         panel.Children.Add(beginRow);
 
          panel.Children.Add(DialogFields.Check(vacationExpires_));
          vacationExpiresDate_.HorizontalAlignment = HorizontalAlignment.Left;
          vacationExpiresDate_.MinWidth = 160;
-         panel.Children.Add(Label(L("_Expiry date"), vacationExpiresDate_));
+         FieldRow expiryRow = Label(L("_Expiry date"), vacationExpiresDate_);
+         panel.Children.Add(expiryRow);
 
          panel.Children.Add(DialogFields.Check(vacationAbortSpam_));
          panel.Children.Add(DialogFields.Separator());
 
-         panel.Children.Add(Label(L("Answer the same sender again after (da_ys, 0 = once per absence)"), vacationDays_));
+         FieldRow daysRow = Label(L("Answer the same sender again after (da_ys, 0 = once per absence)"), vacationDays_);
+         panel.Children.Add(daysRow);
          panel.Children.Add(DialogFields.Note(L("Optional different text for colleagues - senders whose address belongs to this server. It never leaves the server, so it can say more than the message above. Empty means the message above.")));
-         panel.Children.Add(Label(L("Subject for _colleagues (empty = same as above)"), vacationInternalSubject_));
-         panel.Children.Add(Label(L("Message for colleag_ues (empty = same as above)"), vacationInternalMessage_));
+         FieldRow internalSubjectRow = Label(L("Subject for _colleagues (empty = same as above)"), vacationInternalSubject_);
+         panel.Children.Add(internalSubjectRow);
+         FieldRow internalMessageRow = Label(L("Message for colleag_ues (empty = same as above)"), vacationInternalMessage_);
+         panel.Children.Add(internalMessageRow);
          panel.Children.Add(DialogFields.Check(vacationInternalOnly_));
+
+         // Every part of the reply counts only while it is on, and the expiry date
+         // only while the reply is also set to stop on one (review finding F197).
+         DialogFields.EnabledBy(vacationOn_, subjectRow, messageRow, beginRow, vacationExpires_, vacationAbortSpam_,
+            daysRow, internalSubjectRow, internalMessageRow, vacationInternalOnly_);
+         DialogFields.EnabledWhenAll(new System.Windows.Controls.Primitives.ToggleButton[] { vacationOn_, vacationExpires_ }, expiryRow);
          // The outside senders' fate, under the box and told to the box as its help
          // text, so that a screen reader reading the box hears it as it did when the
          // caption said it.
@@ -382,8 +400,12 @@ namespace hMailServer.ControlPanel.Views
       {
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(signatureOn_));
-         panel.Children.Add(Label(L("_Plain-text signature"), signaturePlain_));
-         panel.Children.Add(Label(L("_HTML signature"), signatureHtml_));
+         FieldRow plainRow = Label(L("_Plain-text signature"), signaturePlain_);
+         panel.Children.Add(plainRow);
+         FieldRow htmlRow = Label(L("_HTML signature"), signatureHtml_);
+         panel.Children.Add(htmlRow);
+         // The account's signature is added only while it is on (SignatureAdder).
+         DialogFields.EnabledBy(signatureOn_, plainRow, htmlRow);
          return DialogFields.Scroll(panel);
       }
 
@@ -440,7 +462,8 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(directoryEffect_);
          directoryEffect_.SetResourceReference(FrameworkElement.StyleProperty, "TextCaption");
 
-         panel.Children.Add(Label(L("Windows _user name"), adUser_));
+         FieldRow userRow = Label(L("Windows _user name"), adUser_);
+         panel.Children.Add(userRow);
 
          var browse = new Wpf.Ui.Controls.Button
          {
@@ -449,6 +472,11 @@ namespace hMailServer.ControlPanel.Views
          };
          browse.Click += (s, e) => BrowseActiveDirectory();
          panel.Children.Add(browse);
+
+         // The domain and the user name are read only for an account checked against
+         // Windows - for its sign-in and for directory synchronisation's matching alike
+         // (review finding F197).
+         DialogFields.EnabledBy(isAd_, domainRow, userRow, browse);
 
          panel.Children.Add(DialogFields.Note(L("A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join.")));
 

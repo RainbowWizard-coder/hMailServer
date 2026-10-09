@@ -2452,6 +2452,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Choisissez le NCSA Common Log Format pour qu'un analyseur puisse lire les lignes, ou JSON pour un expéditeur de journaux.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Choisissez le jour où la plage expire.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Choisissez l'algorithme de hachage des mots de passe et son facteur de travail.</value>
   </data>
@@ -4429,9 +4432,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Saisissez le domaine auquel la route s'applique, par exemple partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Saisissez l'expiration au format AAAA-MM-JJ HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Saisissez le nom du groupe.</value>
   </data>
@@ -4464,6 +4464,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Saisissez la taille sous forme de nombre entier d'octets, par exemple 1048576 pour 1 Mo.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Saisissez l'heure au format HH:MM, par exemple 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Saisissez l'adresse haute de la plage, par exemple 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expires" xml:space="preserve">
     <value>Expire</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Expire _le (heure du serveur)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Expire le (yyyy-mm-dd hh:mm:ss, quand il cesse de s'appliquer)</value>
   </data>
@@ -4714,11 +4720,11 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Expires {0}." xml:space="preserve">
     <value>Expire le {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Da_te d'expiration (AAAA-MM-JJ HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>L'expiration ne peut pas être lue d'ici : les fichiers de certificat sont sur le serveur et ce Control Panel y est connecté à distance. Tout le reste sur cette page vient par COM et est exact.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Heure d'expiration (HH:MM ; vide = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Expiration illisible</value>
@@ -10422,6 +10428,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Sortant</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Envoyé seulement lorsque le message entier est supprimé. Quand les pièces jointes sont retirées, la note qui les remplace en informe le destinataire, et personne d'autre n'est averti.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Par ailleurs, ce serveur ENVOIE de tels rapports à d'autres domaines : TlsRptFromAddress est réglé sur {0}, ses propres rapports partent donc.</value>

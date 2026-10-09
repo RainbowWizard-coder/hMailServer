@@ -2452,6 +2452,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Välj NCSA Common Log Format så att ett analysverktyg kan läsa raderna, eller JSON för en loggförmedlare.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Välj dagen då intervallet går ut.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Välj algoritmen för lösenordshashning och dess arbetsfaktor.</value>
   </data>
@@ -4429,9 +4432,6 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Ange domänen som vägen gäller, till exempel partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Ange utgången som YYYY-MM-DD HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Ange gruppens namn.</value>
   </data>
@@ -4464,6 +4464,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Ange storleken som ett heltal i byte, till exempel 1048576 för 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Ange tiden som HH:MM, till exempel 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Ange intervallets övre adress, till exempel 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Expires" xml:space="preserve">
     <value>Går ut</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Går ut _den (servertid)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Går ut (yyyy-mm-dd hh:mm:ss, när den slutar gälla)</value>
   </data>
@@ -4714,11 +4720,11 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Expires {0}." xml:space="preserve">
     <value>Går ut {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Utgångs_tid (YYYY-MM-DD HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Utgångstiden kan inte läsas härifrån: certifikatfilerna finns på servern och den här Kontrollpanelen är ansluten till den på distans. Allt annat på den här sidan kommer över COM och är korrekt.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Utgångstid (HH:MM; tomt = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Utgångsdatum oläsbart</value>
@@ -10422,6 +10428,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Utgående</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Skickas bara när hela meddelandet tas bort. När bilagorna tas bort talar anteckningen i deras ställe om det för mottagaren, och ingen annan får veta.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Separat SKICKAR den här servern sådana rapporter till andra domäner: TlsRptFromAddress är satt till {0}, så dess egna rapporter går ut.</value>

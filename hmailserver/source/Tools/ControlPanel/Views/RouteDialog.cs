@@ -150,9 +150,14 @@ namespace hMailServer.ControlPanel.Views
       {
          var p = DialogFields.TabPanel();
          p.Children.Add(DialogFields.Check(requiresAuth_));
-         p.Children.Add(Label(L("_User name"), authUser_));
-         p.Children.Add(Label(L("_Password"), authPassword_)
-            .WithHint(L("Leave empty to keep the current password.")));
+         FieldRow userRow = Label(L("_User name"), authUser_);
+         p.Children.Add(userRow);
+         FieldRow passwordRow = Label(L("_Password"), authPassword_)
+            .WithHint(L("Leave empty to keep the current password."));
+         p.Children.Add(passwordRow);
+
+         // Presented only while the target requires it (ServerTargetResolver; review finding F197).
+         DialogFields.EnabledBy(requiresAuth_, userRow, passwordRow);
          return DialogFields.Scroll(p);
       }
 

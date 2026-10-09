@@ -364,6 +364,7 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Check(digestOn_));
          digestHourRow_ = Label(L("Send it during this _hour of the local day (0 to 23; the sends are spread across the hour)"), digestHour_);
          panel.Children.Add(digestHourRow_);
+         DialogFields.EnabledBy(digestOn_, digestHourRow_);
          return DialogFields.Scroll(panel);
       }
 
@@ -419,6 +420,8 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("Outbound webhooks post events to the receivers subscribed in the Control Deck or over the REST API. A subscription that names no domain covers every domain, and switching this off takes the domain out of all of them. The server's own switch is on the Logging page.")));
          panel.Children.Add(DialogFields.Check(webhooksOn_));
          panel.Children.Add(DialogFields.Check(webhookSubjects_));
+         // "Those events" are the switch's above: a subject travels on none while it is off.
+         DialogFields.EnabledBy(webhooksOn_, webhookSubjects_);
          panel.Children.Add(DialogFields.Note(L("Off by default: a subject line is what a message is about. It travels only where this and the subscription both allow it, and only on message.received and message.quarantined.")));
          return DialogFields.Scroll(panel);
       }
@@ -472,8 +475,16 @@ namespace hMailServer.ControlPanel.Views
 
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(plusAddressingOn_));
-         panel.Children.Add(Label(L("_Plus addressing character"), plusChar_));
+         FieldRow plusCharRow = Label(L("_Plus addressing character"), plusChar_);
+         panel.Children.Add(plusCharRow);
          panel.Children.Add(DialogFields.Check(greylisting_));
+
+         // Each count only while its limit is on, the character only while plus
+         // addressing is (review finding F197).
+         DialogFields.EnabledBy(maxAccountsOn_, maxAccountsRow_);
+         DialogFields.EnabledBy(maxAliasesOn_, maxAliasesRow_);
+         DialogFields.EnabledBy(maxDistsOn_, maxDistsRow_);
+         DialogFields.EnabledBy(plusAddressingOn_, plusCharRow);
          return DialogFields.Scroll(panel);
       }
 
@@ -485,11 +496,20 @@ namespace hMailServer.ControlPanel.Views
 
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(signatureOn_));
-         panel.Children.Add(Label(L("Signature _method"), signatureMethod_));
+         FieldRow methodRow = Label(L("Signature _method"), signatureMethod_);
+         panel.Children.Add(methodRow);
          panel.Children.Add(DialogFields.Check(signReplies_));
          panel.Children.Add(DialogFields.Check(signLocal_));
-         panel.Children.Add(Label(L("_Plain-text signature"), signaturePlain_));
-         panel.Children.Add(Label(L("_HTML signature"), signatureHtml_));
+         FieldRow plainRow = Label(L("_Plain-text signature"), signaturePlain_);
+         panel.Children.Add(plainRow);
+         FieldRow htmlRow = Label(L("_HTML signature"), signatureHtml_);
+         panel.Children.Add(htmlRow);
+
+         // The domain's signature and how it meets the account's count only while it
+         // is added. The two boxes between are not the domain signature's: no
+         // signature at all, the account's included, goes on a reply or on local
+         // mail while they are off (SignatureAdder), so they stay live.
+         DialogFields.EnabledBy(signatureOn_, methodRow, plainRow, htmlRow);
          return DialogFields.Scroll(panel);
       }
 
@@ -510,8 +530,13 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(Label(L("_Connection security"), relaySecurity_));
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(relayAuthOn_));
-         panel.Children.Add(Label(L("_User name"), relayUser_));
-         panel.Children.Add(Label(L("Pass_word (leave blank to keep the stored one)"), relayPassword_));
+         FieldRow userRow = Label(L("_User name"), relayUser_);
+         panel.Children.Add(userRow);
+         FieldRow passwordRow = Label(L("Pass_word (leave blank to keep the stored one)"), relayPassword_);
+         panel.Children.Add(passwordRow);
+
+         // The credential is presented only while the relay requires it (ServerTargetResolver).
+         DialogFields.EnabledBy(relayAuthOn_, userRow, passwordRow);
          return DialogFields.Scroll(panel);
       }
 
@@ -526,9 +551,19 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(Label(L("_Message"), oooMessage_));
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Note(L("Optional different text for local senders - colleagues can be told more than strangers. Empty means everyone gets the text above. Note this identifies the sender's ADDRESS, which is forgeable: treat it as a courtesy, never as a place for anything confidential.")));
-         panel.Children.Add(Label(L("Subject for _local senders (empty = same as above)"), oooInternalSubject_));
-         panel.Children.Add(Label(L("Message for local s_enders (empty = same as above)"), oooInternalMessage_));
-         panel.Children.Add(Label(L("Answer the same sender a_gain after this many days (0 = once per absence)"), oooDays_));
+         FieldRow internalSubjectRow = Label(L("Subject for _local senders (empty = same as above)"), oooInternalSubject_);
+         panel.Children.Add(internalSubjectRow);
+         FieldRow internalMessageRow = Label(L("Message for local s_enders (empty = same as above)"), oooInternalMessage_);
+         panel.Children.Add(internalMessageRow);
+         FieldRow daysRow = Label(L("Answer the same sender a_gain after this many days (0 = once per absence)"), oooDays_);
+         panel.Children.Add(daysRow);
+
+         // The text for local senders and the interval are the domain-wide reply's
+         // alone (LocalDelivery's domain reply). The subject and the message above
+         // are not: with the override below on, they answer outside senders in an
+         // account's place whether or not the domain-wide reply is on, so they and
+         // the override stay live.
+         DialogFields.EnabledBy(oooOn_, internalSubjectRow, internalMessageRow, daysRow);
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(oooExternalOverride_));
          panel.Children.Add(DialogFields.Note(L("With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation.")));
@@ -544,6 +579,8 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Note(L("The subject tag breaks any DKIM signature the sender made over their subject, exactly as the anti-spam subject prefix does. The header does not, so prefer the header where the reader can show it.")));
          tagTextRow_ = Label(L("Tag te_xt (empty = [EXTERNAL], at most 100 characters)"), tagText_);
          panel.Children.Add(tagTextRow_);
+         // The text tags the subject; the banner header does not carry it (ExternalSenderTagger).
+         DialogFields.EnabledBy(tagSubject_, tagTextRow_);
          panel.Children.Add(DialogFields.Check(tagHeader_));
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(firstContact_));
@@ -551,8 +588,11 @@ namespace hMailServer.ControlPanel.Views
          panel.Children.Add(DialogFields.Separator());
          panel.Children.Add(DialogFields.Check(disclaimerOn_));
          panel.Children.Add(DialogFields.Note(L("Added once, to mail with at least one recipient outside this server. Never to a signed or encrypted message, an automatic reply, a bounce or a list posting, and never a second time to a reply that already quotes it.")));
-         panel.Children.Add(Label(L("_Plain-text disclaimer"), disclaimerPlain_));
-         panel.Children.Add(Label(L("HTM_L disclaimer (empty = the plain text, with its line breaks)"), disclaimerHtml_));
+         FieldRow disclaimerPlainRow = Label(L("_Plain-text disclaimer"), disclaimerPlain_);
+         panel.Children.Add(disclaimerPlainRow);
+         FieldRow disclaimerHtmlRow = Label(L("HTM_L disclaimer (empty = the plain text, with its line breaks)"), disclaimerHtml_);
+         panel.Children.Add(disclaimerHtmlRow);
+         DialogFields.EnabledBy(disclaimerOn_, disclaimerPlainRow, disclaimerHtmlRow);
          return DialogFields.Scroll(panel);
       }
 
@@ -631,6 +671,10 @@ namespace hMailServer.ControlPanel.Views
          section.Children.Add(DialogFields.Check(rotOn_));
          rotIntervalRow_ = Label(L("Days bet_ween rotations (1 to 3650)"), rotInterval_);
          section.Children.Add(rotIntervalRow_);
+         // The interval is the schedule's. The propagation period, the retention and
+         // the key size are a rotation's, and Rotate now uses them with the schedule
+         // off (DkimRotation's policy), so they stay live.
+         DialogFields.EnabledBy(rotOn_, rotIntervalRow_);
          rotPropagationRow_ = Label(L("_Propagation period in hours (1 to 720)"), rotPropagation_);
          section.Children.Add(rotPropagationRow_);
          rotRetentionRow_ = Label(L("Retention period in _days (1 to 365)"), rotRetention_);
@@ -1148,26 +1192,26 @@ namespace hMailServer.ControlPanel.Views
          if (!NumericField.TryValidate(quotaStopAt_.Text, L("Stop sending at (%)"), -1, 1000, out int quotaStopV, out bool hasQuotaStop, out error))
          { DialogFields.ShowError(quotaStopAtRow_, error); return; }
 
-         if (!NumericField.TryValidate(maxAccounts_.Text, L("Maximum number of accounts"), 0, int.MaxValue, out int mnaV, out bool hasMna, out error))
+         if (!NumericField.TryValidate(maxAccounts_.Text, L("Maximum number of accounts"), 0, int.MaxValue, out int mnaV, out bool hasMna, out error) && maxAccountsOn_.IsChecked is true)
          { DialogFields.ShowError(maxAccountsRow_, error); return; }
 
-         if (!NumericField.TryValidate(maxAliases_.Text, L("Maximum number of aliases"), 0, int.MaxValue, out int mnalV, out bool hasMnal, out error))
+         if (!NumericField.TryValidate(maxAliases_.Text, L("Maximum number of aliases"), 0, int.MaxValue, out int mnalV, out bool hasMnal, out error) && maxAliasesOn_.IsChecked is true)
          { DialogFields.ShowError(maxAliasesRow_, error); return; }
 
-         if (!NumericField.TryValidate(maxDists_.Text, L("Maximum number of distribution lists"), 0, int.MaxValue, out int mndV, out bool hasMnd, out error))
+         if (!NumericField.TryValidate(maxDists_.Text, L("Maximum number of distribution lists"), 0, int.MaxValue, out int mndV, out bool hasMnd, out error) && maxDistsOn_.IsChecked is true)
          { DialogFields.ShowError(maxDistsRow_, error); return; }
 
          if (!NumericField.TryValidate(relayPort_.Text, L("Relay port"), 0, 65535, out int relayPortValue, out bool _, out error))
          { DialogFields.ShowError(relayPortRow_, error); return; }
 
-         if (!NumericField.TryValidate(digestHour_.Text, L("Digest hour"), 0, 23, out int digestHourValue, out bool hasDigestHour, out error))
+         if (!NumericField.TryValidate(digestHour_.Text, L("Digest hour"), 0, 23, out int digestHourValue, out bool hasDigestHour, out error) && digestOn_.IsChecked is true)
          { DialogFields.ShowError(digestHourRow_, error); return; }
 
          int rotationInterval = 0, rotationPropagation = 0, rotationRetention = 0;
          bool hasRotationInterval = false, hasRotationPropagation = false, hasRotationRetention = false;
          if (rotationSupported_)
          {
-            if (!NumericField.TryValidate(rotInterval_.Text, L("Days between rotations"), 1, 3650, out rotationInterval, out hasRotationInterval, out error))
+            if (!NumericField.TryValidate(rotInterval_.Text, L("Days between rotations"), 1, 3650, out rotationInterval, out hasRotationInterval, out error) && rotOn_.IsChecked is true)
             { DialogFields.ShowError(rotIntervalRow_, error); return; }
 
             if (!NumericField.TryValidate(rotPropagation_.Text, L("Propagation period in hours"), 1, 720, out rotationPropagation, out hasRotationPropagation, out error))

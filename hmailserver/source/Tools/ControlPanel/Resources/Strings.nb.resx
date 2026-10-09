@@ -2452,6 +2452,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Velg NCSA Common Log Format slik at et analyseverktøy kan lese linjene, eller JSON for en loggavsender.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Velg dagen området utløper.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Velg algoritmen for passordhashing og arbeidsfaktoren dens.</value>
   </data>
@@ -4429,9 +4432,6 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Skriv inn domenet ruten gjelder for, for eksempel partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Skriv inn utløpet som ÅÅÅÅ-MM-DD TT:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Skriv inn gruppens navn.</value>
   </data>
@@ -4464,6 +4464,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Skriv inn størrelsen som et helt antall byte, for eksempel 1048576 for 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Skriv inn klokkeslettet som HH:MM, for eksempel 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Skriv inn den øvre adressen i området, for eksempel 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expires" xml:space="preserve">
     <value>Utløper</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Utløper _den (servertid)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Utløper (yyyy-mm-dd hh:mm:ss, når den slutter å gjelde)</value>
   </data>
@@ -4714,11 +4720,11 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Expires {0}." xml:space="preserve">
     <value>Utløper {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Utløps_tidspunkt (ÅÅÅÅ-MM-DD TT:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Utløp kan ikke leses herfra: sertifikatfilene er på serveren, og dette Control Panel er koblet til den eksternt. Alt annet på denne siden kommer over COM og er riktig.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Utløpstid (HH:MM; tom = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Utløp uleselig</value>
@@ -10422,6 +10428,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Utgående</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Sendes bare når hele meldingen slettes. Når vedleggene fjernes, forteller merknaden i deres sted mottakeren det, og ingen andre får beskjed.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Separat SENDER denne serveren slike rapporter til andre domener: TlsRptFromAddress er satt til {0}, så dens egne rapporter går ut.</value>

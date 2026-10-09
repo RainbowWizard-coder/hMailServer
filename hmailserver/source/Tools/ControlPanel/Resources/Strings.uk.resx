@@ -2476,6 +2476,9 @@
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Виберіть NCSA Common Log Format, щоб рядки міг читати аналізатор, або JSON — для засобу пересилання журналів.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Виберіть день, коли діапазон спливає.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Виберіть алгоритм хешування паролів і його коефіцієнт складності.</value>
   </data>
@@ -4475,9 +4478,6 @@
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Введіть домен, для якого діє маршрут, наприклад partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Введіть час закінчення у форматі РРРР-ММ-ДД ГГ:ХХ:СС.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Введіть назву групи.</value>
   </data>
@@ -4510,6 +4510,9 @@
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Введіть розмір у байтах цілим числом, наприклад 1048576 для 1 МБ.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Введіть час у форматі HH:MM, наприклад 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Введіть верхню адресу діапазону, наприклад 10.0.0.255.</value>
@@ -4757,6 +4760,9 @@
   <data name="Expires" xml:space="preserve">
     <value>Спливає</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>С_пливає (час сервера)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Спливає (yyyy-mm-dd hh:mm:ss, коли перестає діяти)</value>
   </data>
@@ -4775,11 +4781,11 @@
   <data name="Expires {0}." xml:space="preserve">
     <value>Термін дії спливає {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>_Час закінчення (РРРР-ММ-ДД ГГ:ХХ:СС)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Термін дії звідси прочитати неможливо: файли сертифікатів на сервері, а ця Панель керування під'єднана до нього віддалено. Усе інше на цій сторінці надходить через COM і є точним.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Час завершення (HH:MM; порожньо = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Термін не читається</value>
@@ -10549,6 +10555,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Вихідна</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Надсилається лише тоді, коли видаляється все повідомлення. Якщо вилучаються вкладення, одержувачеві про це каже примітка на їхньому місці, а більше нікого не сповіщають.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Окремо, цей сервер НАДСИЛАЄ такі звіти іншим доменам: TlsRptFromAddress встановлено в {0}, тому його власні звіти виходять.</value>

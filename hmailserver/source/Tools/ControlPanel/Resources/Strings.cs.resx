@@ -2476,6 +2476,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Zvolte NCSA Common Log Format, aby řádky dokázal přečíst analyzátor, nebo JSON pro nástroj odesílající logy.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Vyberte den, kdy rozsah vyprší.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Zvolte algoritmus hashování hesel a jeho pracovní faktor.</value>
   </data>
@@ -4475,9 +4478,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Zadejte doménu, pro kterou trasa platí, například partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Zadejte název skupiny.</value>
   </data>
@@ -4510,6 +4510,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Zadejte velikost jako celé číslo v bajtech, například 1048576 pro 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Zadejte čas ve tvaru HH:MM, například 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Zadejte horní adresu rozsahu, například 10.0.0.255.</value>
@@ -4757,6 +4760,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expires" xml:space="preserve">
     <value>Vyprší</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Vyprší dn_e (čas serveru)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Vyprší (yyyy-mm-dd hh:mm:ss, kdy přestane platit)</value>
   </data>
@@ -4775,11 +4781,11 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Expires {0}." xml:space="preserve">
     <value>Platnost vyprší {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>_Čas vypršení (RRRR-MM-DD HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vypršení odsud nelze přečíst: soubory certifikátů jsou na serveru a tento Control Panel je k němu připojen vzdáleně. Vše ostatní na této stránce přichází přes COM a je přesné.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Čas vypršení (HH:MM; prázdné = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Platnost nečitelná</value>
@@ -10549,6 +10555,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Odchozí</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Posílá se, jen když se smaže celá zpráva. Při odebrání příloh to příjemci řekne poznámka na jejich místě a nikdo další se nic nedozví.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Nezávisle na tom tento server takováto hlášení jiným doménám ODESÍLÁ: TlsRptFromAddress je nastaveno na {0}, takže jeho vlastní hlášení odcházejí.</value>

@@ -58,7 +58,12 @@ namespace hMailServer.ControlPanel.Views
       private readonly CheckBox spam_ = new() { Content = L("Enable _anti-spam for this range") };
       private readonly CheckBox virus_ = new() { Content = L("Enable anti-_virus for this range") };
       private readonly CheckBox expires_ = new() { Content = L("This range _expires") };
-      private readonly TextBox expiresTime_ = new();
+
+      // The expiry as a date and a time of day, enabled only while the range expires
+      // (review finding F197): it was one box of "YYYY-MM-DD HH:MM:SS" that showed a
+      // stored time - "2026-10-08 04:13:09" - with "This range expires" unticked.
+      private readonly DatePicker expiresDate_ = new() { MinWidth = 180 };
+      private readonly Wpf.Ui.Controls.TextBox expiresTime_ = new() { Width = 100, PlaceholderText = "00:00", Margin = new Thickness(DesignTokens.Space.Sm, 0, 0, 0) };
       private FieldRow expiresRow_;
 
       private readonly InlineNotice notice_ = DialogFields.Notice();
@@ -146,8 +151,20 @@ namespace hMailServer.ControlPanel.Views
          p.Children.Add(DialogFields.Check(virus_));
          p.Children.Add(DialogFields.Separator());
          p.Children.Add(DialogFields.Check(expires_));
-         expiresRow_ = Label(L("Expiry _time (YYYY-MM-DD HH:MM:SS)"), expiresTime_);
+         // The day and the time of day on one line, under one caption: the tab is the
+         // dialog's tallest, and a message under a second row ran out of it.
+         var when = new StackPanel { Orientation = Orientation.Horizontal };
+         when.Children.Add(expiresDate_);
+         when.Children.Add(expiresTime_);
+         // The caption names the row and its key reaches the date; the time box is named for itself.
+         System.Windows.Automation.AutomationProperties.SetName(expiresTime_, L("Expiry time (HH:MM; empty = 00:00)"));
+         expiresRow_ = Label(L("Expires _on (server time)"), when);
          p.Children.Add(expiresRow_);
+         DialogFields.EnabledBy(expires_, expiresRow_);
+
+         // An error goes when what it is about is edited.
+         expiresDate_.SelectedDateChanged += (s, e) => expiresRow_.Error = null;
+         expiresTime_.TextChanged += (s, e) => expiresRow_.Error = null;
          return DialogFields.Scroll(p);
       }
 
@@ -195,7 +212,22 @@ namespace hMailServer.ControlPanel.Views
             spam_.IsChecked = (bool)r.EnableSpamProtection;
             virus_.IsChecked = (bool)r.EnableAntiVirus;
             expires_.IsChecked = (bool)r.Expires;
-            try { expiresTime_.Text = Convert.ToString(r.ExpiresTime); } catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { expiresTime_.Text = ""; }
+            // A VT_DATE, the server's local time (DateTime::GetVariant). A range that never
+            // expired holds no date worth showing: the picker stays empty for one to be chosen.
+            try
+            {
+               DateTime when = (DateTime)r.ExpiresTime;
+               if (when.Year >= 1970)
+               {
+                  expiresDate_.SelectedDate = when.Date;
+                  expiresTime_.Text = TimeOfDayText.Format(when);
+               }
+            }
+            catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+            {
+               expiresDate_.SelectedDate = null;
+               expiresTime_.Text = "";
+            }
 
             ServerSession.Release(r);
          }
@@ -231,6 +263,27 @@ namespace hMailServer.ControlPanel.Views
             priority = parsed;
          }
 
+         // A range set to expire needs the day it expires, and a time of day that is one.
+         DateTime? expiry = null;
+         if (expires_.IsChecked is true)
+         {
+            if (expiresDate_.SelectedDate is not DateTime day)
+            {
+               DialogFields.ShowError(expiresRow_, L("Choose the day the range expires."));
+               return;
+            }
+
+            if (!TimeOfDayText.TryParse(expiresTime_.Text, out TimeSpan time))
+            {
+               DialogFields.ShowError(expiresRow_, L("Enter the time as HH:MM, such as 18:30."));
+               // The row's first editor is the date: the keyboard goes on to the time.
+               Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() => expiresTime_.Focus()));
+               return;
+            }
+
+            expiry = day.Date + time;
+         }
+
          dynamic ranges = ServerSession.Current.Application.Settings.SecurityRanges;
          try
          {
@@ -260,23 +313,10 @@ namespace hMailServer.ControlPanel.Views
             r.EnableSpamProtection = spam_.IsChecked is true;
             r.EnableAntiVirus = virus_.IsChecked is true;
             r.Expires = expires_.IsChecked is true;
-            if (expires_.IsChecked is true && expiresTime_.Text.Trim().Length > 0)
-            {
-               // The server parses the date itself and refuses what it cannot
-               // read. That refusal used to be swallowed - the range saved with
-               // "expires" set and no expiry time, which never expires - so it
-               // now stops the save on the field that caused it.
-               try
-               {
-                  r.ExpiresTime = expiresTime_.Text.Trim();
-               }
-               catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
-               {
-                  ServerSession.Release(r);
-                  DialogFields.ShowError(expiresRow_, L("Enter the expiry as YYYY-MM-DD HH:MM:SS."));
-                  return;
-               }
-            }
+            // As a date, which the server takes as its own local time; a range that does
+            // not expire keeps the time it has.
+            if (expiry.HasValue)
+               r.ExpiresTime = expiry.Value;
 
             r.Save();
             ServerSession.Release(r);

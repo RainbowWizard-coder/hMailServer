@@ -1,0 +1,181 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using System;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using hMailServer.ControlPanel.Services;
+using Xunit;
+
+namespace hMailServer.ControlPanel.Tests.Services
+{
+   /// <summary>
+   /// Fields that count only while their switch is on stayed editable while it was off -
+   /// a relay's credential, a domain's account limit, an account's forward address, a
+   /// route's credential, an IP range's expiry, the ACME and OAuth2 settings, the
+   /// anti-virus notices (review findings F197 and F106). These hold each pair to
+   /// DialogFields.EnabledBy, the fields the server reads for something else to staying
+   /// live, and the IP range's expiry to a date and a time of day.
+   /// </summary>
+   public class DependentFieldsTests
+   {
+      [Theory]
+      // Domain properties
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(maxAccountsOn_, maxAccountsRow_);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(maxAliasesOn_, maxAliasesRow_);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(maxDistsOn_, maxDistsRow_);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(plusAddressingOn_, plusCharRow);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(signatureOn_, methodRow, plainRow, htmlRow);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(relayAuthOn_, userRow, passwordRow);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(oooOn_, internalSubjectRow, internalMessageRow, daysRow);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(tagSubject_, tagTextRow_);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(disclaimerOn_, disclaimerPlainRow, disclaimerHtmlRow);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(rotOn_, rotIntervalRow_);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(digestOn_, digestHourRow_);")]
+      [InlineData("DomainDialog.cs", "DialogFields.EnabledBy(webhooksOn_, webhookSubjects_);")]
+      // Account properties
+      [InlineData("AccountDialog.cs", "DialogFields.EnabledBy(forwardOn_, toRow, forwardKeep_, forwardAbortSpam_);")]
+      [InlineData("AccountDialog.cs", "DialogFields.EnabledBy(signatureOn_, plainRow, htmlRow);")]
+      [InlineData("AccountDialog.cs", "DialogFields.EnabledBy(isAd_, domainRow, userRow, browse);")]
+      [InlineData("AccountDialog.cs", "DialogFields.EnabledWhenAll(new System.Windows.Controls.Primitives.ToggleButton[] { vacationOn_, vacationExpires_ }, expiryRow);")]
+      // Route and IP range
+      [InlineData("RouteDialog.cs", "DialogFields.EnabledBy(requiresAuth_, userRow, passwordRow);")]
+      [InlineData("IPRangeDialog.cs", "DialogFields.EnabledBy(expires_, expiresRow_);")]
+      public void AFieldThatCountsOnlyWhileItsSwitchIsOn_FollowsTheSwitch(string view, string wiring)
+         => Assert.Contains(wiring, View_(view), StringComparison.Ordinal);
+
+      [Fact]
+      public void TheAutoReply_FollowsItsSwitch_Whole()
+      {
+         string reply = WithheldRowTests.MemberText(View_("AccountDialog.cs"), "private ScrollViewer BuildAutoReply()");
+         Assert.True(reply != null, "AccountDialog.BuildAutoReply is gone.");
+         Assert.Contains("DialogFields.EnabledBy(vacationOn_, subjectRow, messageRow, beginRow, vacationExpires_, vacationAbortSpam_,", reply, StringComparison.Ordinal);
+         Assert.Contains("daysRow, internalSubjectRow, internalMessageRow, vacationInternalOnly_);", reply, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// What the server reads with the switch off stays live: a domain's reply subject
+      /// and text, which answer outside senders in an account's place under the override
+      /// (LocalDelivery); the two signature boxes that hold back every signature
+      /// (SignatureAdder); a rotation's period, retention and key size, which Rotate now
+      /// uses (DkimRotation); DKIM itself, whose key is made and published before it is
+      /// switched on.
+      /// </summary>
+      [Fact]
+      public void WhatTheServerReadsWithTheSwitchOff_StaysLive()
+      {
+         string domain = View_("DomainDialog.cs");
+         foreach (Match wiring in Regex.Matches(domain, @"DialogFields\.EnabledBy\(([^;]*)\);"))
+         {
+            string args = wiring.Groups[1].Value;
+            foreach (string kept in new[] { "oooSubject", "oooMessage", "oooExternalOverride_", "signReplies_", "signLocal_",
+                                            "rotPropagationRow_", "rotRetentionRow_", "rotKeyBits_", "dkimOn_" })
+               Assert.DoesNotContain(kept, args, StringComparison.Ordinal);
+         }
+      }
+
+      [Fact]
+      public void ANumberBehindASwitchThatIsOff_IsNotHeldAgainstTheSave()
+      {
+         string domain = View_("DomainDialog.cs");
+         foreach (string guard in new[] { "&& maxAccountsOn_.IsChecked is true)", "&& maxAliasesOn_.IsChecked is true)", "&& maxDistsOn_.IsChecked is true)",
+                                          "&& digestOn_.IsChecked is true)", "&& rotOn_.IsChecked is true)" })
+            Assert.Contains(guard, domain, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheRowsFollow_NotTheirEditors_AndEveryTickAndFillIsFollowed()
+      {
+         string fields = View_("DialogFields.cs");
+         string all = WithheldRowTests.MemberText(fields, "public static void EnabledWhenAll(System.Windows.Controls.Primitives.ToggleButton[] toggles, params UIElement[] dependents)");
+         Assert.True(all != null, "DialogFields.EnabledWhenAll is gone.");
+         foreach (string step in new[] { "toggle.IsChecked == true", "toggle.Checked +=", "toggle.Unchecked +=", "toggle.Indeterminate +=", "Apply();" })
+            Assert.Contains(step, all, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheFeaturePages_FollowTheirMasterSwitches()
+      {
+         string feature = View_("FeatureSettingsView.xaml.cs");
+         Assert.Contains("DialogFields.EnabledBy(master.Box, setting.Built);", feature, StringComparison.Ordinal);
+         Assert.Contains("fields.Children.Add(setting.Built = setting.CreateEditor(store_));", feature, StringComparison.Ordinal);
+
+         foreach (string key in new[] { "AcmeContactEmail", "AcmeDomains", "AcmeDirectoryUrl", "AcmeHttpPort", "AcmeReuseKey" })
+            Assert.Contains("Key = \"" + key + "\", DependsOn = AcmeSwitch", feature, StringComparison.Ordinal);
+
+         // The certificate folder is read by the REST API's and the web services' fallback
+         // to the ACME certificate, the setup check and the service account's grants.
+         Assert.DoesNotContain("Key = \"AcmeCertificateDirectory\", DependsOn", feature, StringComparison.Ordinal);
+
+         int oauth = Regex.Matches(feature, "DependsOn = OAuth2Switch").Count;
+         Assert.Equal(14, oauth);
+      }
+
+      [Fact]
+      public void TheAntivirusNotices_FollowTheAction_TheyAreSentOnlyWhenTheMessageIsDeleted()
+      {
+         string settings = View_("ServerSettingsView.xaml.cs");
+         Assert.Contains("afterBuildUi_ = () => WireAntivirusNoticeDependency(action, notifySender, notifyReceiver);", settings, StringComparison.Ordinal);
+         string wire = WithheldRowTests.MemberText(settings, "private static void WireAntivirusNoticeDependency(ComCombo action, ComBool notifySender, ComBool notifyReceiver)");
+         Assert.True(wire != null, "ServerSettingsView.WireAntivirusNoticeDependency is gone.");
+         Assert.Contains("bool sent = action.SelectedValue == 0;", wire, StringComparison.Ordinal);
+         Assert.Contains("row.IsEnabled = sent;", wire, StringComparison.Ordinal);
+         Assert.Contains("row.Hint = why;", wire, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void TheIPRangesExpiry_IsADateAndATimeOfDay_HeldOnTheirFields()
+      {
+         string range = View_("IPRangeDialog.cs");
+         Assert.Contains("private readonly DatePicker expiresDate_", range, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"Expiry _time (YYYY-MM-DD HH:MM:SS)\")", range, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"Enter the expiry as YYYY-MM-DD HH:MM:SS.\")", range, StringComparison.Ordinal);
+         string save = WithheldRowTests.MemberText(range, "private void Save()");
+         Assert.Contains("DialogFields.ShowError(expiresRow_, L(\"Choose the day the range expires.\"));", save, StringComparison.Ordinal);
+         Assert.Contains("TimeOfDayText.TryParse(expiresTime_.Text, out TimeSpan time)", save, StringComparison.Ordinal);
+         Assert.Contains("r.ExpiresTime = expiry.Value;", save, StringComparison.Ordinal);
+      }
+
+      [Theory]
+      [InlineData("", 0, 0, 0)]
+      [InlineData("18:30", 18, 30, 0)]
+      [InlineData("7:05", 7, 5, 0)]
+      [InlineData("23:59:59", 23, 59, 59)]
+      [InlineData(" 00:00 ", 0, 0, 0)]
+      public void ATimeOfDay_IsReadAsThe24HourClockWritesIt(string text, int hours, int minutes, int seconds)
+      {
+         Assert.True(TimeOfDayText.TryParse(text, out TimeSpan time));
+         Assert.Equal(new TimeSpan(hours, minutes, seconds), time);
+      }
+
+      [Theory]
+      [InlineData("24:00")]
+      [InlineData("18.30")]
+      [InlineData("6 pm")]
+      [InlineData("18:60")]
+      [InlineData("1830")]
+      public void AnythingElse_IsNotATimeOfDay(string text)
+         => Assert.False(TimeOfDayText.TryParse(text, out _));
+
+      [Fact]
+      public void ATime_IsShownWithItsSecondsOnlyWhereThereAreSome()
+      {
+         Assert.Equal("18:30", TimeOfDayText.Format(new DateTime(2026, 10, 8, 18, 30, 0)));
+         Assert.Equal("04:13:09", TimeOfDayText.Format(new DateTime(2026, 10, 8, 4, 13, 9)));
+      }
+
+      private static string View_(string name)
+      {
+         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
+         {
+            string candidate = Path.Join(directory.FullName, "ControlPanel", "Views", name);
+            if (File.Exists(candidate))
+               return File.ReadAllText(candidate);
+         }
+
+         throw new FileNotFoundException("ControlPanel/Views/" + name + " could not be found from the test binaries.");
+      }
+   }
+}

@@ -2452,6 +2452,9 @@
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>解析ツールが行を読めるように NCSA Common Log Format を、ログ シッパー向けには JSON を選択してください。</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>範囲の有効期限の日を選択してください。</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>パスワード ハッシュ アルゴリズムとそのワーク ファクターを選択します。</value>
   </data>
@@ -4429,9 +4432,6 @@
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>ルートの対象のドメインを入力してください (例: partner.com)。</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>有効期限を YYYY-MM-DD HH:MM:SS の形式で入力してください。</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>グループの名前を入力してください。</value>
   </data>
@@ -4464,6 +4464,9 @@
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>サイズをバイト単位の整数で入力してください (例: 1 MB なら 1048576)。</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>時刻を HH:MM 形式で入力してください (例: 18:30)。</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>範囲の上限アドレスを入力してください (例: 10.0.0.255)。</value>
@@ -4699,6 +4702,9 @@
   <data name="Expires" xml:space="preserve">
     <value>有効期限</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>有効期限 (サーバー時刻)(_O)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>有効期限 (yyyy-mm-dd hh:mm:ss、無効になる日時)</value>
   </data>
@@ -4714,11 +4720,11 @@
   <data name="Expires {0}." xml:space="preserve">
     <value>有効期限 {0}。</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>有効期限 (YYYY-MM-DD HH:MM:SS)(_T)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>有効期限をここから読み取れません: 証明書ファイルはサーバー上にあり、このコントロールパネルはサーバーにリモート接続しています。このページのそれ以外の項目は COM 経由で取得しており、正確です。</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>有効期限の時刻 (HH:MM、空 = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>有効期限を読めません</value>
@@ -10422,6 +10428,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Sent" xml:space="preserve">
     <value>送信</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>メッセージ全体が削除される場合にのみ送信されます。添付ファイルを削除する場合は、その代わりに入る注記が受信者に知らせ、ほかの誰にも通知されません。</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>これとは別に、このサーバーは他のドメインにそのようなレポートを送信しています。TlsRptFromAddress が {0} に設定されているため、自身のレポートが送信されます。</value>

@@ -2452,6 +2452,9 @@ Los detalles completos se escribieron en:
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Elija el formato NCSA Common Log para que un analizador pueda leer las líneas, o JSON para un expedidor de registros.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Elija el día en que caduca el rango.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Elija el algoritmo de hash de contraseñas y su factor de trabajo.</value>
   </data>
@@ -4429,9 +4432,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Introduzca el dominio al que se aplica la ruta, como partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Introduzca la caducidad como AAAA-MM-DD HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Introduzca el nombre del grupo.</value>
   </data>
@@ -4464,6 +4464,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Introduzca el tamaño como un número entero de bytes, por ejemplo 1048576 para 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Introduzca la hora como HH:MM, por ejemplo 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Introduzca la dirección superior del rango, como 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expires" xml:space="preserve">
     <value>Caduca</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Caduca _el (hora del servidor)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Caduca el (yyyy-mm-dd hh:mm:ss, cuándo deja de aplicarse)</value>
   </data>
@@ -4714,11 +4720,11 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Expires {0}." xml:space="preserve">
     <value>Caduca el {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>_Hora de caducidad (AAAA-MM-DD HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>La caducidad no puede leerse desde aquí: los archivos del certificado están en el servidor y este Control Panel está conectado a él de forma remota. Todo lo demás de esta página llega por COM y es exacto.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Hora de caducidad (HH:MM; vacío = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Caducidad ilegible</value>
@@ -10422,6 +10428,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Saliente</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Solo se envía cuando se elimina el mensaje completo. Si se quitan los adjuntos, la nota que ocupa su lugar se lo dice al destinatario y nadie más recibe aviso.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Aparte, este servidor ENVÍA tales informes a otros dominios: TlsRptFromAddress está definido como {0}, así que sus propios informes sí salen.</value>

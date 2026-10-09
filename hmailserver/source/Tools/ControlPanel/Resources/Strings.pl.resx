@@ -2476,6 +2476,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Należy wybrać NCSA Common Log Format, aby wiersze mógł czytać analizator, albo JSON dla programu przesyłającego dzienniki.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Wybierz dzień, w którym zakres wygasa.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Wybór algorytmu skrótu haseł oraz jego współczynnika pracy.</value>
   </data>
@@ -4475,9 +4478,6 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Należy podać domenę, której dotyczy trasa, np. partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Należy podać wygaśnięcie w formacie YYYY-MM-DD HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Należy podać nazwę grupy.</value>
   </data>
@@ -4510,6 +4510,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Należy podać rozmiar jako liczbę całkowitą bajtów, np. 1048576 dla 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Należy podać godzinę w formacie HH:MM, np. 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Należy podać górny adres zakresu, np. 10.0.0.255.</value>
@@ -4757,6 +4760,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expires" xml:space="preserve">
     <value>Wygasa</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Wygasa _dnia (czas serwera)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Wygasa (yyyy-mm-dd hh:mm:ss, kiedy przestaje obowiązywać)</value>
   </data>
@@ -4775,11 +4781,11 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Expires {0}." xml:space="preserve">
     <value>Wygasa {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>_Czas wygaśnięcia (YYYY-MM-DD HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Terminu wygaśnięcia nie da się odczytać z tego miejsca: pliki certyfikatu znajdują się na serwerze, a ten Control Panel jest z nim połączony zdalnie. Wszystko inne na tej stronie przychodzi przez COM i jest dokładne.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Godzina wygaśnięcia (HH:MM; puste = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Nieczytelna data wygaśnięcia</value>
@@ -10549,6 +10555,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Wychodzące</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Wysyłane tylko wtedy, gdy usuwana jest cała wiadomość. Gdy usuwane są załączniki, mówi o tym odbiorcy notatka w ich miejscu, a nikt inny nie jest powiadamiany.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Niezależnie od tego ten serwer SAM WYSYŁA takie raporty do innych domen: TlsRptFromAddress jest ustawione na {0}, więc jego własne raporty są wysyłane.</value>

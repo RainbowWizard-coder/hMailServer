@@ -263,6 +263,50 @@ namespace hMailServer.ControlPanel.Views
          => combo.SelectedItem is ComboBoxItem item ? (int)item.Tag : fallback;
 
       /// <summary>
+      /// Fields that count only while a switch is on follow it: enabled while it is
+      /// ticked, dimmed and out of the tab order while it is not, as the switch is
+      /// ticked and unticked and as a dialog fills it (review findings F197 and
+      /// F106). They were live under an unticked switch - a relay's user name and
+      /// password with "The relay requires authentication" off, a domain's account
+      /// limit with "Limit number of accounts" off - so that an edit there looked as
+      /// if it did something. The values are left as they are and saved as they are,
+      /// which is what the server keeps while the switch is off; only fields the
+      /// server reads for nothing else follow a switch.
+      ///
+      /// The rows, not their editors, are disabled, so that what else decides an
+      /// editor's IsEnabled - a server without the property, a key the environment
+      /// sets - keeps deciding it; WPF enables a child only while its parent is.
+      /// </summary>
+      public static void EnabledBy(System.Windows.Controls.Primitives.ToggleButton toggle, params UIElement[] dependents)
+         => EnabledWhenAll(new[] { toggle }, dependents);
+
+      /// <summary>
+      /// The same for fields that need every one of several switches - an auto-reply's
+      /// expiry date, which counts only while the reply is on and set to stop.
+      /// </summary>
+      public static void EnabledWhenAll(System.Windows.Controls.Primitives.ToggleButton[] toggles, params UIElement[] dependents)
+      {
+         void Apply()
+         {
+            bool on = Array.TrueForAll(toggles, toggle => toggle.IsChecked == true);
+            foreach (UIElement dependent in dependents)
+            {
+               if (dependent != null)
+                  dependent.IsEnabled = on;
+            }
+         }
+
+         foreach (System.Windows.Controls.Primitives.ToggleButton toggle in toggles)
+         {
+            toggle.Checked += (s, e) => Apply();
+            toggle.Unchecked += (s, e) => Apply();
+            toggle.Indeterminate += (s, e) => Apply();
+         }
+
+         Apply();
+      }
+
+      /// <summary>
       /// One line of text, asked for in a framed dialog. Null when cancelled. The
       /// caption names the box to a screen reader through the field row, which
       /// is what the two hand-built prompts this replaces had to do by hand.

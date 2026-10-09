@@ -2452,6 +2452,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Choose the day the range expires.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Choose the password hashing algorithm and its work factor.</value>
   </data>
@@ -4429,9 +4432,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Enter the domain the route is for, such as partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Enter the expiry as YYYY-MM-DD HH:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Enter the group's name.</value>
   </data>
@@ -4464,6 +4464,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Enter the size as a whole number of bytes, such as 1048576 for 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Enter the time as HH:MM, such as 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Enter the upper address of the range, such as 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Expires" xml:space="preserve">
     <value>Expires</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Expires _on (server time)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)</value>
   </data>
@@ -4714,11 +4720,11 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Expires {0}." xml:space="preserve">
     <value>Expires {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Expiry _time (YYYY-MM-DD HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Expiry time (HH:MM; empty = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Expiry unreadable</value>
@@ -10422,6 +10428,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Sent</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out.</value>

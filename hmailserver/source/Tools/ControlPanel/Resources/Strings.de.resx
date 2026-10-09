@@ -2452,6 +2452,9 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Wählen Sie das NCSA Common Log Format, damit ein Analysewerkzeug die Zeilen lesen kann, oder JSON für einen Log-Shipper.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Wählen Sie den Tag, an dem der Bereich abläuft.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Wählen Sie den Passwort-Hash-Algorithmus und seinen Arbeitsfaktor.</value>
   </data>
@@ -4429,9 +4432,6 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Geben Sie die Domain ein, für die die Route gilt, etwa partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Geben Sie den Ablauf als JJJJ-MM-TT HH:MM:SS ein.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Geben Sie den Namen der Gruppe ein.</value>
   </data>
@@ -4464,6 +4464,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Geben Sie die Größe als ganze Zahl in Byte ein, zum Beispiel 1048576 für 1 MB.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Geben Sie die Uhrzeit als HH:MM ein, zum Beispiel 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Geben Sie die obere Adresse des Bereichs ein, etwa 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expires" xml:space="preserve">
     <value>Ablauf</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Läuft ab a_m (Serverzeit)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Ablaufdatum (yyyy-mm-dd hh:mm:ss, wann der Eintrag nicht mehr gilt)</value>
   </data>
@@ -4714,11 +4720,11 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Expires {0}." xml:space="preserve">
     <value>Läuft am {0} ab.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Ablaufzei_t (JJJJ-MM-TT HH:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Der Ablauf kann von hier aus nicht gelesen werden: die Zertifikatdateien liegen auf dem Server und dieses Control Panel ist entfernt damit verbunden. Alles andere auf dieser Seite kommt über COM und ist korrekt.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Ablaufzeit (HH:MM; leer = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Ablauf unlesbar</value>
@@ -10422,6 +10428,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Ausgehend</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Wird nur gesendet, wenn die ganze Nachricht gelöscht wird. Werden die Anhänge entfernt, sagt es der Hinweis an ihrer Stelle dem Empfänger, und sonst erfährt es niemand.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Davon getrennt SENDET dieser Server solche Berichte an andere Domains: TlsRptFromAddress ist auf {0} gesetzt, seine eigenen Berichte gehen also hinaus.</value>

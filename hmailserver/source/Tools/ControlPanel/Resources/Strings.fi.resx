@@ -2452,6 +2452,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Choose the NCSA Common Log Format so an analyser can read the lines, or JSON for a log shipper." xml:space="preserve">
     <value>Valitse NCSA Common Log Format, jotta analysointityökalu voi lukea rivit, tai JSON lokien lähettäjälle.</value>
   </data>
+  <data name="Choose the day the range expires." xml:space="preserve">
+    <value>Valitse päivä, jona alue vanhenee.</value>
+  </data>
   <data name="Choose the password hashing algorithm and its work factor." xml:space="preserve">
     <value>Valitse salasanojen tiivistealgoritmi ja sen työkerroin.</value>
   </data>
@@ -4429,9 +4432,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter the domain the route is for, such as partner.com." xml:space="preserve">
     <value>Anna verkkotunnus, jota reitti koskee, esimerkiksi partner.com.</value>
   </data>
-  <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
-    <value>Anna vanheneminen muodossa VVVV-KK-PP TT:MM:SS.</value>
-  </data>
   <data name="Enter the group's name." xml:space="preserve">
     <value>Anna ryhmän nimi.</value>
   </data>
@@ -4464,6 +4464,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
     <value>Anna koko kokonaislukuna tavuina, esimerkiksi 1048576, joka on 1 Mt.</value>
+  </data>
+  <data name="Enter the time as HH:MM, such as 18:30." xml:space="preserve">
+    <value>Anna aika muodossa HH:MM, esimerkiksi 18:30.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Anna alueen ylempi osoite, esimerkiksi 10.0.0.255.</value>
@@ -4699,6 +4702,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expires" xml:space="preserve">
     <value>Vanhenee</value>
   </data>
+  <data name="Expires _on (server time)" xml:space="preserve">
+    <value>Vanhenemis_hetki (palvelimen aika)</value>
+  </data>
   <data name="Expires on (yyyy-mm-dd hh:mm:ss, when it stops mattering)" xml:space="preserve">
     <value>Vanhenee (yyyy-mm-dd hh:mm:ss, milloin lakkaa pätemästä)</value>
   </data>
@@ -4714,11 +4720,11 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Expires {0}." xml:space="preserve">
     <value>Vanhenee {0}.</value>
   </data>
-  <data name="Expiry _time (YYYY-MM-DD HH:MM:SS)" xml:space="preserve">
-    <value>Vanhenemis_aika (VVVV-KK-PP TT:MM:SS)</value>
-  </data>
   <data name="Expiry cannot be read from here: the certificate files are on the server and this Control Panel is connected to it remotely. Everything else on this page comes over COM and is accurate." xml:space="preserve">
     <value>Vanhenemista ei voi lukea täältä: varmennetiedostot ovat palvelimella ja tämä Control Panel on yhteydessä siihen etänä. Kaikki muu tällä sivulla tulee COM-rajapinnan kautta ja pitää paikkansa.</value>
+  </data>
+  <data name="Expiry time (HH:MM; empty = 00:00)" xml:space="preserve">
+    <value>Vanhenemisaika (HH:MM; tyhjä = 00:00)</value>
   </data>
   <data name="Expiry unreadable" xml:space="preserve">
     <value>Vanhenemista ei voi lukea</value>
@@ -10422,6 +10428,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Sent" xml:space="preserve">
     <value>Lähtevä</value>
+  </data>
+  <data name="Sent only when the whole message is deleted. With the attachments removed, the note in their place tells the receiver, and nobody else is told." xml:space="preserve">
+    <value>Lähetetään vain, kun koko viesti poistetaan. Kun liitteet poistetaan, niiden tilalle tuleva huomautus kertoo sen vastaanottajalle, eikä kenellekään muulle ilmoiteta.</value>
   </data>
   <data name="Separately, this server SENDS such reports to other domains: TlsRptFromAddress is set to {0}, so its own reports go out." xml:space="preserve">
     <value>Erikseen: tämä palvelin LÄHETTÄÄ tällaisia raportteja muille verkkotunnuksille: TlsRptFromAddress on asetettu arvoon {0}, joten sen omat raportit lähtevät.</value>
