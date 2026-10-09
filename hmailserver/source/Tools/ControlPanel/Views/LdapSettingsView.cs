@@ -414,7 +414,7 @@ namespace hMailServer.ControlPanel.Views
          content.Children.Add(LabelledCheck_(enabled_,
             L("_Use LDAP directory authentication (Enabled)"),
             "ldap-enabled",
-            L("Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way.")));
+            L("Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way.")));
 
          content.Children.Add(LabelledBox_(L("Directory server _host name (Server)"), server_, "ldap-server",
             L("Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address."),
@@ -470,7 +470,7 @@ namespace hMailServer.ControlPanel.Views
             placeholder: "DC=example,DC=local"));
 
          content.Children.Add(LabelledBox_(L("User search _filter (UserSearchFilter)"), userSearchFilter_, "ldap-user-search-filter",
-            L("Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design."),
+            L("Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design."),
             placeholder: DefaultUserSearchFilter));
 
          content.Children.Add(LabelledBox_(L("User _DN template (UserDnTemplate)"), userDnTemplate_, "ldap-user-dn-template",
@@ -553,10 +553,10 @@ namespace hMailServer.ControlPanel.Views
             L("For search mode: a service account allowed to read the directory. Any ordinary domain account can, by default; it needs no other rights."));
 
          AddBullet_(content,
-            L("Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory."));
+            L("Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory."));
 
          var links = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
-         links.Children.Add(PageLink_("domains", L("Open Domains..."), L("Open Domains, where an account's Directory tab links it to the directory")));
+         links.Children.Add(PageLink_("domains", L("Open Domains..."), L("Open Domains, where an account's Windows directory tab links it to the directory")));
          links.Children.Add(PageLink_("logs", L("Open Live logs..."), L("Open Live logs, where LDAP infrastructure failures are reported")));
          content.Children.Add(links);
 
@@ -588,11 +588,11 @@ namespace hMailServer.ControlPanel.Views
             out StackPanel content);
 
          content.Children.Add(LabelledBox_(L("User name to _look up"), testUsername_, "ldap-test-username",
-            L("The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages."),
+            L("The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages."),
             placeholder: "jsmith"));
 
          content.Children.Add(LabelledBox_(L("AD do_main of that user"), testDomain_, "ldap-test-domain",
-            L("Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here."),
+            L("Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here."),
             placeholder: "EXAMPLE")); // no-loc
 
          testPassword_.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -1952,7 +1952,7 @@ namespace hMailServer.ControlPanel.Views
                if (matchCount == 0)
                {
                   return LdapProbeResult.Make(StatusLevel.Warning, Sentences([.. proven,
-                     F("The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory.", filter, config.SearchBase)]));
+                     F("The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory.", filter, config.SearchBase)]));
                }
 
                if (matchCount > 1)

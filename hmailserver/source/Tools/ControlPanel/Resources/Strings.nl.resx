@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>"Iedereen in het domein" betekent dat het adres van de afzender bij een domein hoort dat deze server host, wat een buitenstaander kan beweren tenzij de lijst ook authenticatie vereist. Vink dat hieronder aan als de lijst beperkt moet zijn tot mensen die zijn aangemeld.</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>"done spam-protection", daarna stilte</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>"{0}" is niet opgeslagen: {1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>'Iedereen in het domein mag verzenden' betekent dat het adres van de afzender bij een domein hoort dat deze server host, wat een buitenstaander kan beweren tenzij de lijst ook authenticatie vereist. Vink dat hieronder aan als de lijst beperkt moet zijn tot mensen die zijn aangemeld.</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>'Weigeren, met de reden' beantwoordt een inzending bij RCPT met de reden, en stuurt al het andere - een alias, een doorsturing, een geplande verzending - terug naar de afzender in een melding over de afleverstatus. Mail die al voor een adres in de wachtrij staat, stuit bij de volgende afleverpoging op de lijst. 'Afleveren en alleen vastleggen' is de veilige manier om te zien wat de lijst zou doen voordat ze het doet.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' is geen 24-uurs UU:MM-tijd. De server accepteert waarden als 02:00 of 23:45 en weigert al het andere in plaats van te raden. Laat het vak leeg voor geen dagelijkse back-up.</value>
@@ -426,8 +429,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Een domein kan zijn mensen S/MIME-certificaten uitgeven vanuit een eigen certificeringsinstantie.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Een domeinnaam hier vereist dat de computer van de SERVER zelf lid is van dat domein, omdat Windows het valideert met LogonUser. Vanaf een computer die geen lid is mislukt elke poging alsof het wachtwoord fout is - ook wanneer de domeinnaam gewoon verkeerd gespeld is - zodat een postvak dat zo is geconfigureerd op een server zonder domeinlidmaatschap nooit kan aanmelden en nooit zegt waarom. Is de server geen domeinlid, gebruik dan LDAP-directoryauthenticatie op de pagina Directoryauthenticatie: die bindt via het netwerk aan de directory en heeft geen domeinlidmaatschap nodig.</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Een domeinnaam hier vereist dat de computer van de SERVER zelf lid is van dat domein, omdat Windows het valideert met LogonUser. Vanaf een computer die geen lid is mislukt elke poging alsof het wachtwoord fout is - ook wanneer de domeinnaam gewoon verkeerd gespeld is - zodat een postvak dat zo is geconfigureerd op een server zonder domeinlidmaatschap nooit kan aanmelden en nooit zegt waarom. Is de server geen domeinlid, gebruik dan LDAP-directoryauthenticatie op de pagina Directoryauthenticatie (LDAP): die bindt via het netwerk aan de directory en heeft geen domeinlidmaatschap nodig.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Er staat al een domein met de naam {0} op deze server, en het is niet het voorbeelddomein dat deze pagina maakt, dus hier kan geen voorbeeld worden gemaakt en deze pagina verwijdert het niet. Wilt u dat domein niet, verwijder het dan op de pagina Domeinen.</value>
@@ -882,8 +885,8 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>Accounts die als directorygekoppeld zijn gemarkeerd, melden zich aan met hun domeinwachtwoord via een LDAP-bind - anders dan Windows-aanmelding werkt dit vanaf een host die geen lid is van het domein, wat de gebruikelijke situatie is voor een mailserver in een DMZ. Bewerkt de sectie [LDAP] van hMailServer.INI; de server leest die sectie binnen twee seconden na opslaan opnieuw, dus deze instellingen hebben geen herstart van de service nodig.</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>Accounts die als directorygekoppeld zijn gemarkeerd. Die helft zit al in deze GUI: open Domeinen, bewerk het account, en vink op het tabblad Directory de optie Active Directory aan en vul de AD-gebruikersnaam in - de sAMAccountName, wat %u draagt. Accounts zonder die markering houden hun gewone hMailServer-wachtwoord en raken de directory nooit aan.</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>Accounts die als directorygekoppeld zijn gemarkeerd. Die helft zit al in deze GUI: open Domeinen, bewerk het account, en vink op het tabblad Windows-directory 'Dit wachtwoord controleren bij Windows (Active Directory of een lokaal Windows-account)' aan en vul 'Windows-gebruikersnaam' in - de sAMAccountName, wat %u draagt. Accounts zonder die markering houden hun gewone hMailServer-wachtwoord en raken de directory nooit aan.</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Accounts van dit domein mogen alleen mailen met de hier genoemde domeinen en met niemand anders: een externe afzender buiten een genoemd domein wordt bij RCPT TO geweigerd, en een account hier mag alleen naar de genoemde domeinen, het eigen domein en de postmaster sturen. Andere domeinen die deze server host, tellen als extern tenzij ze genoemd zijn. Bounces komen altijd door. Elk account volgt dit tenzij zijn eigen venster beperkt of vrijgesteld zegt; leeg betekent dat het domein niet beperkt is. Een alias of een distributielijst van dit domein die naar buiten reikt, is van u, en een beperkt account mag ernaar schrijven.</value>
@@ -2053,8 +2056,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Beide adressen zijn ingesteld. Of de dienst antwoordt, is van hieruit niet te zeggen: stuur van buiten een bericht met een bijgevoegd bestand van een ingediend type en zoek het onder Vastgehouden voor een sandbox op de wachtrijpagina van de Deck, of zoek in het toepassingslogboek naar een regel dat het naar de sandbox is ingediend.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Beide uitzonderingen lezen de score die deze server in het bericht heeft vastgelegd, dus ze vereisen dat "Reden aan de header toevoegen" aanstaat (Antispaminstellingen). Staat dat uit, dan wordt er geen score vastgelegd, valt er niets te bewijzen en werkt geen van beide uitzonderingen - het account houdt het serverbrede gedrag. De waarde in het bestand wordt in dat geval niet vertrouwd, omdat niets een AFZENDER belet er zelf een in te zetten.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>Beide uitzonderingen lezen de score die deze server in het bericht heeft vastgelegd, dus ze vereisen dat 'X-hMailServer-Reason-header toevoegen' aanstaat op de pagina Antispaminstellingen. Staat dat uit, dan wordt er geen score vastgelegd, valt er niets te bewijzen en werkt geen van beide uitzonderingen - het account houdt het serverbrede gedrag. De waarde in het bestand wordt in dat geval niet vertrouwd, omdat niets een AFZENDER belet er zelf een in te zetten.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Beide drempels staan op 0, dus geen enkele score kan iets markeren of weigeren - de server toetst ze met "groter dan 0" voordat hij ze gebruikt. Hij stopt ook met toetsen zodra het lopende totaal de hoogste drempel bereikt, en die is 0, dus er draait precies één controle in elke fase en het resultaat daarvan wordt weggegooid.</value>
@@ -2215,8 +2218,8 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Niet vast te stellen wanneer de laatste back-up is gedraaid: de back-upinstellingen konden niet van de server worden gelezen.</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>Niet vast te stellen wanneer de laatste back-up is gedraaid: {0} kon niet vanaf deze machine worden gelezen. Kijk in de map op de server, of in het back-uplogboek op de pagina Logboeken.</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>Niet vast te stellen wanneer de laatste back-up is gedraaid: {0} kon niet vanaf deze machine worden gelezen. Kijk in de map op de server, of in het back-uplogboek op de pagina Live logboeken.</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>Niet vast te stellen of er een schema is geconfigureerd: hMailServer.ini is op deze machine niet gevonden. Controleer de dagelijkse back-uptijd en het back-upinterval op de server zelf.</value>
@@ -4078,8 +4081,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Elke IMAP-map houdt een teller bij voor de volgende bericht-UID die hij zal uitgeven. Loopt die teller achter op de berichten die al in de map staan - wat kan gebeuren door een teruggezette of met de hand bewerkte database - dan geeft de map een UID uit die hij al heeft gebruikt, en toont een client die op UID cachet het ene bericht waar het andere zou moeten staan. Dit zet elke teller omhoog naar de hoogste UID die zijn map werkelijk bevat. Hij zet er nooit een omlaag, dus hij kan de fout die hij herstelt niet zelf veroorzaken.</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
-    <value>Elk geaccepteerd inkomend bericht krijgt één Authentication-Results-header (RFC 8601) met de SPF-, DKIM- en DMARC-oordelen die deze server erover heeft geveld. Alleen controles die daadwerkelijk zijn uitgevoerd worden gerapporteerd - welke controles draaien wordt ingesteld op de pagina Antispam - en een bericht waarop geen enkele controle is uitgevoerd krijgt geen header. Bij een binnenkomend bericht dat al een Authentication-Results-header draagt die de eigen identiteit van deze server claimt, wordt die header eerst verwijderd, zodat een afzender niet verderop een oordeel op naam van deze server kan laten geloven (RFC 8601, sectie 5).</value>
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+    <value>Elk geaccepteerd inkomend bericht krijgt één Authentication-Results-header (RFC 8601) met de SPF-, DKIM- en DMARC-oordelen die deze server erover heeft geveld. Alleen controles die daadwerkelijk zijn uitgevoerd worden gerapporteerd - welke controles draaien wordt ingesteld op de pagina Antispaminstellingen - en een bericht waarop geen enkele controle is uitgevoerd krijgt geen header. Bij een binnenkomend bericht dat al een Authentication-Results-header draagt die de eigen identiteit van deze server claimt, wordt die header eerst verwijderd, zodat een afzender niet verderop een oordeel op naam van deze server kan laten geloven (RFC 8601, sectie 5).</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
     <value>Elk als [ipv4:|ipv6:]zone[=codes], gescheiden door komma's of spaties, zoals ipv4:zen.spamhaus.org. Standaard vier lijsten, bevraagd voor IPv4: Spamhaus ZEN, SpamCop, PSBL en Mailspike.</value>
@@ -5509,8 +5512,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Als de directory niet kan antwoorden</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>Als het schema net is ingesteld, controleer dan opnieuw nadat de eerste run had moeten plaatsvinden; anders zegt het back-uplogboek op de pagina Logboeken waarom runs worden overgeslagen.</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>Als het schema net is ingesteld, controleer dan opnieuw nadat de eerste run had moeten plaatsvinden; anders zegt het back-uplogboek op de pagina Live logboeken waarom runs worden overgeslagen.</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Als {0} al ergens anders mail ontvangt - bij een gehoste mailboxprovider, op een andere server - dan verplaatst het publiceren van dit record die mail hierheen. Wijzig het alleen wanneer deze server klaar is om die mail te ontvangen.</value>
@@ -5617,8 +5620,8 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Insert template…" xml:space="preserve">
     <value>Sjabloon invoegen…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de pagina Status. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de pagina Serverstatus. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>De update nu installeren?
@@ -5889,8 +5892,8 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Left Edge" xml:space="preserve">
     <value>Linkerrand</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Leeg gelaten gebruikt de server het meegeleverde filter dat in het grijs wordt getoond - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Leeg gelaten gebruikt de server het meegeleverde filter dat in het grijs wordt getoond - objectCategory eerst omdat dat in Active Directory geïndexeerd is, en sAMAccountName omdat dat is wat het tabblad Windows-directory van het account opslaat. %u is de Active Directory-gebruikersnaam van het account, %d zijn AD-domein, %m zijn volledige e-mailadres; alle drie worden vóór de substitutie geëscapet, zodat een vijandige aanmeldnaam het filter niet kan herschrijven. Een filter dat op meer dan één vermelding past, authenticeert niemand - met opzet.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Gelaten waar ze waren: {0}. De eerste reden: {1}</value>
@@ -7096,6 +7099,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Er is geen hostnaam ingesteld, dus deze server kondigt zijn Windows-computernaam aan, die geen enkele DNS op internet kent.</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>Er is geen hostnaam ingesteld: 'Hostnaam (HELO/EHLO-begroeting)' op het tabblad SMTP van de pagina Protocollen is leeg.</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Er is geen hostnaam of adres ingesteld.</value>
   </data>
@@ -7203,9 +7209,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Nog geen openbare mappen. Map toevoegen maakt er een die meerdere accounts kunnen openen; Rechten bepaalt daarna wie erin mag lezen en schrijven.</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>Er is geen openbare hostnaam geconfigureerd in de SMTP-instellingen.</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>Nog geen ontvangers, dus mail naar deze lijst bereikt niemand. Voeg hieronder een adres toe.</value>
@@ -7528,8 +7531,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Staat standaard uit, omdat het een termentabel van een paar kilobytes per bericht kost plus een inhaaldoorloop over elk al bezorgd bericht - een beslissing van de beheerder, nooit van een upgrade. De resultaten zijn aan en uit identiek: de index beperkt alleen welke berichten de substringscan moet lezen. Vereist dat berichtindexering (hierboven) is ingeschakeld; op zichzelf indexeert dit niets.</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>Staat standaard uit, en doet niets zolang het uitstaat: directorygekoppelde accounts worden dan op de oude manier gevalideerd, via Windows-aanmelding. Staat het aan, dan worden dezelfde accounts - die met het tabblad Directory ingevuld - in plaats daarvan gevalideerd met een LDAP-bind tegen de server hieronder. Accounts zonder directory worden hoe dan ook nooit geraakt.</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>Staat standaard uit, en doet niets zolang het uitstaat: directorygekoppelde accounts worden dan op de oude manier gevalideerd, via Windows-aanmelding. Staat het aan, dan worden dezelfde accounts - die met het tabblad Windows-directory ingevuld - in plaats daarvan gevalideerd met een LDAP-bind tegen de server hieronder. Accounts zonder directory worden hoe dan ook nooit geraakt.</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>Staat standaard uit, en dit is de beslissing die het overwegen waard is. Uit laat een engine die niet meer antwoordt spam door totdat iemand het merkt. Aan houdt de mail juist tegen - en een bericht dat wordt uitgesteld terwijl niemand kijkt, is een bericht dat uiteindelijk bounct. Uit is de herstelbare fout, en daarom is het de standaard.</value>
@@ -7684,8 +7687,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Som op de pagina Antispaminstellingen de verzegelende domeinen op die u vertrouwt (de mailinglijst- en doorstuurdiensten waarvan uw gebruikers afhankelijk zijn) en zet de ARC-offset aan. Benoemen wie u vertrouwt is een afweging die alleen u kunt maken, en daarom is er geen standaard.</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Stel op de pagina Back-up de map in waarnaar de back-up wordt geschreven, op een andere schijf dan die van de berichtenopslag.</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Stel op de pagina Back-up en herstel de map in waarnaar de back-up wordt geschreven, op een andere schijf dan die van de berichtenopslag.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Stel op het tabblad SMTP van de pagina Protocollen Hostnaam in op de volledige DNS-naam van deze server, zoals mail.example.com. Vraag daarna degene die het publieke adres van de server bezit om een PTR-record dat die naam noemt; de pagina DNS-records toont waarom u moet vragen.</value>
@@ -7825,8 +7828,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Geblokkeerde bijlagen openen, waar de lijst met bestandsnaampatronen is ondergebracht</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>Domeinen openen, waar het tabblad Directory van een account het aan de directory koppelt</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>Domeinen openen, waar het tabblad Windows-directory van een account het aan de directory koppelt</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>Domeinen openen, waar domeinen worden toegevoegd</value>
@@ -8887,8 +8890,8 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Legt voor elke bezorging, weigering en quarantaine een doorzoekbare rij vast, zodat "wat is er gebeurd met het bericht dat Jane om 14:20 verstuurde" kan worden beantwoord door te zoeken in plaats van door logboeken te grepen. Het zijn dezelfde gebeurtenissen die het AWStats-journaal altijd al zag; dit geeft ze een plek waar ze bevraagd kunnen worden. Staat standaard uit, omdat het adressen van afzenders en ontvangers opslaat - wat het tot een register maakt van wie met wie correspondeert.</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>Legt het SPF-oordeel voor elk geaccepteerd inkomend bericht vast als een Received-SPF-header (RFC 7208, paragraaf 9.1). De header wordt alleen geschreven wanneer de SPF-controle daadwerkelijk heeft gedraaid, dus 'SPF controleren' moet op de pagina Antispam zijn ingeschakeld om hem te laten verschijnen.</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>Legt het SPF-oordeel voor elk geaccepteerd inkomend bericht vast als een Received-SPF-header (RFC 7208, paragraaf 9.1). De header wordt alleen geschreven wanneer de SPF-controle daadwerkelijk heeft gedraaid, dus 'SPF controleren' moet op de pagina Antispaminstellingen zijn ingeschakeld om hem te laten verschijnen.</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Legt de oordelen die deze server zelf over elk inkomend bericht velde - SPF, DKIM en DMARC - vast als traceerheaders op het bezorgde bericht, voor filters verderop en voor diagnose (RFC 8601, RFC 7208).</value>
@@ -8934,9 +8937,6 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Een sessie weigeren vanaf elk ander adres dan dat waarop ze begon</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>Weigeren beantwoordt een inzending bij RCPT met de reden, en stuurt al het andere - een alias, een doorsturing, een geplande verzending - terug naar de afzender in een melding over de afleverstatus. Mail die al voor een adres in de wachtrij staat, stuit bij de volgende afleverpoging op de lijst. Afleveren en alleen vastleggen is de veilige manier om te zien wat de lijst zou doen voordat ze het doet.</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>Weigeren en de afzender inlichten</value>
@@ -9589,8 +9589,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Wordt uitgevoerd als &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; wanneer een ban ontstaat en als &lt;command&gt; unban &lt;address&gt; wanneer het bereik verdwijnt, op Windows en op Linux - voor een cloudfirewall, een router of een SIEM. Zet het pad van het programma tussen aanhalingstekens als het spaties bevat; de server voegt de argumenten toe. Een exitcode ongelijk aan nul of een programma dat niet start wordt eenmaal in het foutenlogboek gemeld.</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>Beheer een sandbox, of abonneer u op een sandbox, die het kleine HTTP-contract uit docs/Sandbox.md spreekt, stel het indien- en oordeeladres in op het tabblad Sandbox van de pagina Antivirus en schakel hem in.</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Beheer een sandbox, of abonneer u op een sandbox, die het kleine HTTP-contract uit docs/Sandbox.md spreekt, stel het indien- en oordeeladres in op het tabblad Sandbox van de pagina Antivirusinstellingen en schakel hem in.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Scriptfunctie uitvoeren</value>
@@ -11347,8 +11347,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>Dat is niet het beheerderswachtwoord dat nu in gebruik is.</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>Dat is ouder dan het schema toestaat, dus runs mislukken of worden overgeslagen - het back-uplogboek op de pagina Logboeken zegt waarom.</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>Dat is ouder dan het schema toestaat, dus runs mislukken of worden overgeslagen - het back-uplogboek op de pagina Live logboeken zegt waarom.</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Dat is de acceptatiepijplijn die na de 354 vastloopt: de fasetijden in het debuglogboek zeggen welke fase.</value>
@@ -11374,8 +11374,8 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>De instellingen voor ARC-filtering konden niet van de server worden gelezen, dus deze pagina kan niet zeggen of de functie is geconfigureerd.</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>De Active Directory-gebruikersnaam (sAMAccountName) - dezelfde waarde als op het tabblad Directory van het account. Optioneel: leeg gelaten stopt de test na de fasen verbinding en servicereferentie.</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>De Active Directory-gebruikersnaam (sAMAccountName) - dezelfde waarde als op het tabblad Windows-directory van het account. Optioneel: leeg gelaten stopt de test na de fasen verbinding en servicereferentie.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Het Control Panel is verbonden met een andere host, dus het account waaronder DIE service draait kan hiervandaan niet worden gelezen. Open het Control Panel op de server zelf om het te zien.</value>
@@ -11793,8 +11793,8 @@ Selecteer de sleutel hierboven en kopieer die met de hand - hij wordt niet opnie
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>De consistentiecontrole staat uit, dus er heeft geen scan gedraaid. Schakel 'Berichtrijen periodiek vergelijken met de bestanden op schijf' in op de pagina {0}; de server scant dan bij het opstarten en elk uur en schrijft {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>De tegenhanger van ARC-verzegeling: bij inkomende mail kan een geldige ARC-keten van een vertrouwde verzegelaar de DMARC-faalscore compenseren voor een bericht waarvan het geslaagde DMARC-resultaat door doorsturen is vernietigd (RFC 8617). Het wordt ingesteld op de pagina Antispam, onder afzenderauthenticatie, omdat het bij de andere antispaminstellingen wordt opgeslagen en niet in hMailServer.INI. Met een lege lijst van vertrouwde verzegelaars doet de functie helemaal niets, en dat is bewust: iedereen kan een complete ARC-keten fabriceren en verzegelen met sleutels die hij in zijn eigen DNS publiceert, en die valideert perfect - een geslaagde keten bewijst dus niets tenzij u de verzegelaar al vertrouwt. De lijst is geen optie van de functie, het is de functie. De compensatie is nooit groter dan de DMARC-faalscore en geldt alleen zolang DMARC-scoring is ingeschakeld op de pagina Antispam.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>De tegenhanger van ARC-verzegeling: bij inkomende mail kan een geldige ARC-keten van een vertrouwde verzegelaar de DMARC-faalscore compenseren voor een bericht waarvan het geslaagde DMARC-resultaat door doorsturen is vernietigd (RFC 8617). Het wordt ingesteld op het tabblad Afzender-auth van de pagina Antispaminstellingen, omdat het bij de andere antispaminstellingen wordt opgeslagen en niet in hMailServer.INI. Met een lege lijst van vertrouwde verzegelaars doet de functie helemaal niets, en dat is bewust: iedereen kan een complete ARC-keten fabriceren en verzegelen met sleutels die hij in zijn eigen DNS publiceert, en die valideert perfect - een geslaagde keten bewijst dus niets tenzij u de verzegelaar al vertrouwt. De lijst is geen optie van de functie, het is de functie. De compensatie is nooit groter dan de DMARC-faalscore en geldt alleen zolang DMARC-scoring is ingeschakeld op de pagina Antispaminstellingen.</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>De referenties waarmee deze server wordt beheerd.</value>
@@ -12385,8 +12385,8 @@ Toch toevoegen?</value>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Het zoeken kwam overeen met MEER dan één directoryvermelding (filter {0}, basis {1}). De server weigert te authenticeren tegen een dubbelzinnige overeenkomst - laat UserSearchFilter of SearchBase precies één vermelding selecteren.</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>Het zoeken kwam met niets overeen (filter {0} onder {1}). Als aanmelding is dit een weigering, geen storing - controleer de gebruikersnaam tegen het tabblad Directory van het account, en het filter en de zoekbasis tegen de directory.</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>Het zoeken kwam met niets overeen (filter {0} onder {1}). Als aanmelding is dit een weigering, geen storing - controleer de gebruikersnaam tegen het tabblad Windows-directory van het account, en het filter en de zoekbasis tegen de directory.</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>Het zoeken stopt wanneer dit is bereikt en de client krijgt te horen dat het zoeken is mislukt, in plaats van een gedeeltelijk resultaat te krijgen dat hij voor een volledig zou aanzien.</value>
@@ -12424,8 +12424,8 @@ Toch toevoegen?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>De server antwoordde iets wat dit Control Panel niet kon lezen ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op de pagina Status, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op de pagina Serverstatus, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>De server kan zijn database niet bereiken. Controleer de databaseverbinding en het hMailServer-foutenlogboek en probeer het daarna opnieuw. ({0})</value>
@@ -13277,8 +13277,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Wordt gebruikt als envelopafzender van elke kopie die de lijst verstuurt, zodat bezorgfouten - een dode abonnee, een vol postvak - bij de eigenaar van de lijst terechtkomen in plaats van bij degene die toevallig het laatst heeft gepost.</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>Wordt gebruikt voor de tijdelijke aanduiding %d en voor een Negotiate-bind (NTLM heeft die nodig op een host die geen domeinlid is). De server haalt dit uit het tabblad Directory van het account; typ hier dezelfde waarde.</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>Wordt gebruikt voor de tijdelijke aanduiding %d en voor een Negotiate-bind (NTLM heeft die nodig op een host die geen domeinlid is). De server haalt dit uit het tabblad Windows-directory van het account; typ hier dezelfde waarde.</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>Wordt één keer gebruikt voor een testbind en nooit opgeslagen. Zonder wachtwoord bewijst de test nog steeds de verbinding, het transport, de servicereferentie en het zoeken.</value>
@@ -13886,8 +13886,8 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Hiermee aan beantwoordt het eigen vakantiebericht van een account nog steeds collega's, maar krijgen afzenders van buiten in plaats daarvan de algemene tekst van het domein - zo blijven persoonlijke details in een vakantiebericht binnen de organisatie.</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>Hiermee aan wordt het wachtwoord hier helemaal niet opgeslagen - Windows wordt gevraagd het te controleren. Laat het uit en het account gebruikt het wachtwoord op het tabblad Account.</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>Hiermee aan wordt het wachtwoord hier helemaal niet opgeslagen - Windows wordt gevraagd het te controleren. Laat het uit en het account gebruikt het wachtwoord op het tabblad Algemeen.</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Tekst op de SAML-aanmeldknop</value>

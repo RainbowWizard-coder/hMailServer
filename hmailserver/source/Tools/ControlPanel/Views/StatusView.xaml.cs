@@ -604,7 +604,7 @@ namespace hMailServer.ControlPanel.Views
             {
                // Each check names the page that puts it right, and opens it.
                if (((string)settings.HostName).Length == 0)
-                  count += AddWarning(StatusLevel.Warning, L("No public host name is configured in the SMTP settings."), "protocols");
+                  count += AddWarning(StatusLevel.Warning, L("No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty."), "protocols");
 
                if ((bool)settings.DenyMailFromNull)
                   count += AddWarning(StatusLevel.Warning, L("Mail from an empty sender address is denied. Many servers send bounces from <>, which will be rejected."), "protocols");

@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>「ドメイン内の全員」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。ログインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>「done spam-protection」の後、無応答</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>「{0}」は保存されませんでした: {1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>「ドメイン内の全員が送信できる」とは、送信者アドレスがこのサーバーでホストしているドメインのものであることを意味します。リストが認証も必須にしていない限り、外部の人間でもこれを詐称できます。ログインした人だけにリストを限定する必要がある場合は、下のチェックボックスをオンにしてください。</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>「理由を付けて拒否する」の場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。「配信して記録だけする」は、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' は 24 時間制の HH:MM 形式の時刻ではありません。サーバーは 02:00 や 23:45 のような値だけを受け付け、それ以外は推測せずに拒否します。毎日のバックアップを行わない場合は、この欄を空のままにしてください。</value>
@@ -426,8 +429,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>ドメインは、自分の認証局からその利用者に S/MIME 証明書を発行できます。</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに「ディレクトリ認証」ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>ここにドメイン名を指定する場合、サーバー自身のコンピューターがそのドメインに参加している必要があります。Windows が LogonUser で検証するためです。参加していないコンピューターからは、ドメイン名を単に打ち間違えた場合も含め、すべての試行がパスワードが違うときとまったく同じように失敗します。そのため、ドメインに参加していないサーバーでこのように設定したメールボックスは決してログインできず、その理由も示されません。サーバーがドメインに参加していない場合は、代わりに[ディレクトリ認証 (LDAP)] ページの LDAP ディレクトリ認証を使用してください。こちらはネットワーク越しにディレクトリへバインドするため、ドメインへの参加は不要です。</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>{0} という名前のドメインがすでにこのサーバーにありますが、このページが作るサンプルドメインではありません。そのため、ここではサンプルを作成できず、このページがそのドメインを削除することもありません。そのドメインが不要な場合は、ドメイン ページで削除してください。</value>
@@ -882,8 +885,8 @@
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>ディレクトリ連携としてマークされたアカウントは、LDAP バインドを通じてドメインのパスワードでログオンします。Windows のログオンとは異なり、ドメインに参加していないホストからでも機能します。DMZ に置かれたメール サーバーでは、それが通常の状況です。この設定は hMailServer.INI の [LDAP] セクションを書き換えます。サーバーは保存から 2 秒以内にそのセクションを読み直すため、これらの設定にはサービスの再起動は不要です。</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その「ディレクトリ」タブで Active Directory のオプションをオンにして、AD のユーザー名 (sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>ディレクトリ連携としてマークされたアカウントが必要です。その部分はすでにこの GUI にあります。「ドメイン」を開いてアカウントを編集し、その [Windows ディレクトリ] タブで「このパスワードを Windows (Active Directory またはローカルの Windows アカウント) で確認する」をオンにして、「Windows ユーザー名」(sAMAccountName、%u が運ぶ値です) を入力してください。このマークが付いていないアカウントは、通常の hMailServer のパスワードを使い続け、ディレクトリには一切触れません。</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>このドメインのアカウントは、ここに指定したドメインとのみメールをやり取りできます。指定ドメイン外の外部送信者は RCPT TO で拒否され、ここのアカウントは指定ドメイン、自分のドメイン、postmaster にのみ送信できます。このサーバーがホストする他のドメインも、指定しない限り外部として扱われます。バウンスは常に通ります。各アカウントは、自身のダイアログで制限または除外を指定しない限りこれに従います。空欄ならドメインは制限されません。外部に届くこのドメインのエイリアスや配布リストはあなたのものであり、制限されたアカウントもそこへ送信できます。</value>
@@ -2053,8 +2056,8 @@
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>両方のアドレスが設定されています。サービスが応答するかどうかはここからは判断できません。外部から送信対象の種類のファイルを添付したメッセージを送信し、Deck のキューページの「サンドボックス待ちで保留」でそれを探すか、アプリケーションログでサンドボックスに送信されたことを示す行を探してください。</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>どちらの上書きも、このサーバーがメッセージに記録したスコアを読み取るため、「理由をヘッダーに追加する」(スパム対策の設定) をオンにしておく必要があります。オフの場合はスコアが記録されず、何も証明できず、どちらの上書きも働きません。アカウントはサーバー全体の動作のままです。その場合、ファイル内の値は信頼されません。送信者がそこに値を書き込むのを止めるものが何もないからです。</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>どちらの上書きも、このサーバーがメッセージに記録したスコアを読み取るため、[スパム対策の設定] ページの「X-hMailServer-Reason ヘッダーを追加する」をオンにしておく必要があります。オフの場合はスコアが記録されず、何も証明できず、どちらの上書きも働きません。アカウントはサーバー全体の動作のままです。その場合、ファイル内の値は信頼されません。送信者がそこに値を書き込むのを止めるものが何もないからです。</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>どちらのしきい値も 0 なので、スコアによって何かをマークしたり拒否したりすることはできません。サーバーは使う前に「0 より大きいか」でテストするからです。また、累計が高いほうのしきい値 (これも 0) に達した時点でテストを打ち切るため、各フェーズでちょうど 1 つのチェックが実行され、その結果は破棄されます。</value>
@@ -2215,8 +2218,8 @@
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>前回のバックアップの実行時刻を判断できません: バックアップ設定をサーバーから読み取れませんでした。</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>前回のバックアップの実行時刻を判断できません: {0} をこのコンピューターから読み取れませんでした。サーバー上のフォルダーか、ログ ページのバックアップ ログを確認してください。</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>前回のバックアップの実行時刻を判断できません: {0} をこのコンピューターから読み取れませんでした。サーバー上のフォルダーか、[ライブ ログ] ページのバックアップ ログを確認してください。</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>スケジュールが設定されているかどうか判断できません: このコンピューターに hMailServer.ini が見つかりませんでした。サーバー自身で 毎日のバックアップ時刻とバックアップ間隔を確認してください。</value>
@@ -4078,8 +4081,8 @@
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>各 IMAP フォルダーは、次に発行するメッセージ UID のカウンターを持っています。このカウンターがフォルダー内に既にあるメッセージより遅れると (復元したデータベースや手で編集したデータベースではあり得ます)、フォルダーはすでに使った UID を発行し、UID でキャッシュするクライアントには、あるメッセージの場所に別のメッセージが表示されます。これは、すべてのカウンターを、そのフォルダーが実際に保持している最大の UID まで引き上げます。下げることは決してないため、修復対象の障害を引き起こすことはありません。</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
-    <value>受け入れられた受信メッセージにはそれぞれ、このサーバーが下した SPF、DKIM、DMARC の判定を載せた Authentication-Results ヘッダー (RFC 8601) が 1 つ付きます。報告されるのは実際に実行されたチェックだけで (どのチェックを実行するかはスパム対策の設定ページで設定します)、チェックが 1 つも実行されなかったメッセージにはヘッダーが付きません。このサーバー自身の ID を名乗る Authentication-Results ヘッダーをすでに持って到着したメッセージは、まずそのヘッダーが取り除かれるため、送信者がこのサーバーの名前で書いた判定を下流に信じさせることはできません (RFC 8601 セクション 5)。</value>
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+    <value>受け入れられた受信メッセージにはそれぞれ、このサーバーが下した SPF、DKIM、DMARC の判定を載せた Authentication-Results ヘッダー (RFC 8601) が 1 つ付きます。報告されるのは実際に実行されたチェックだけで (どのチェックを実行するかは[スパム対策の設定] ページで設定します)、チェックが 1 つも実行されなかったメッセージにはヘッダーが付きません。このサーバー自身の ID を名乗る Authentication-Results ヘッダーをすでに持って到着したメッセージは、まずそのヘッダーが取り除かれるため、送信者がこのサーバーの名前で書いた判定を下流に信じさせることはできません (RFC 8601 セクション 5)。</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
     <value>それぞれ [ipv4:|ipv6:]zone[=codes] の形式で、コンマまたはスペースで区切ります (例: ipv4:zen.spamhaus.org)。既定は IPv4 について問い合わせる 4 つのリスト、Spamhaus ZEN、SpamCop、PSBL、Mailspike です。</value>
@@ -5509,8 +5512,8 @@
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>ディレクトリが応答できない場合</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>スケジュールを設定したばかりであれば、最初の実行予定時刻を過ぎてからもう一度確認してください。そうでない場合は、ログ ページのバックアップ ログに実行がスキップされている理由が書かれています。</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>スケジュールを設定したばかりであれば、最初の実行予定時刻を過ぎてからもう一度確認してください。そうでない場合は、[ライブ ログ] ページのバックアップ ログに実行がスキップされている理由が書かれています。</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>{0} がすでに別の場所 (ホスティングされたメールボックス プロバイダーや別のサーバー) でメールを受け取っている場合、このレコードを公開するとそのメールはこちらに移ります。変更するのは、このサーバーがそのメールを受け取る準備ができてからにしてください。</value>
@@ -5617,8 +5620,8 @@
   <data name="Insert template…" xml:space="preserve">
     <value>テンプレートを挿入…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、およびステータス ページに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および [サーバーの状態] ページに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>今すぐ更新プログラムをインストールしますか?
@@ -5889,8 +5892,8 @@
   <data name="Left Edge" xml:space="preserve">
     <value>左端</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>空のままにすると、サーバーは灰色で表示されている出荷時のフィルターを使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントのディレクトリ タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるログオン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>空のままにすると、サーバーは灰色で表示されている出荷時のフィルターを使います。objectCategory が先なのは Active Directory でインデックス化されているためで、sAMAccountName はアカウントの [Windows ディレクトリ] タブが保存しているものだからです。%u はアカウントの Active Directory ユーザー名、%d はその AD ドメイン、%m は完全なメール アドレスです。3 つとも置換前にエスケープされるため、悪意のあるログオン名でフィルターを書き換えることはできません。複数のエントリに一致するフィルターは、意図的に誰も認証しません。</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>そのままにしたメッセージ: {0} 件。最初の理由: {1}</value>
@@ -7096,6 +7099,9 @@
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>ホスト名が設定されていないため、このサーバーは Windows コンピューター名を名乗っています。この名前は、インターネット上のどの DNS も知りません。</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>ホスト名が設定されていません。[プロトコル] ページの [SMTP] タブの「ホスト名 (HELO/EHLO のあいさつ)」が空です。</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>ホスト名もアドレスも設定されていません。</value>
   </data>
@@ -7203,9 +7209,6 @@
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>パブリック フォルダーはまだありません。フォルダーを追加 で複数のアカウントが開けるフォルダーを作成し、権限 で読み書きできるユーザーを決めます。</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>SMTP 設定に公開ホスト名が設定されていません。</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>受信者がまだいないため、このリスト宛てのメールは誰にも届きません。下でアドレスを追加してください。</value>
@@ -7528,8 +7531,8 @@
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>既定ではオフです。メッセージごとに数キロバイトの語テーブルと、すでに配信済みのすべてのメッセージに対するバックフィル パスというコストがかかるためで、これは管理者の決定であり、アップグレードが決めることではありません。結果はオンでもオフでも同一です。インデックスは、部分文字列スキャンが読み取るべきメッセージを絞り込むだけです。メッセージ インデックス (上) が有効である必要があり、これ単独では何もインデックス化しません。</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>既定ではオフで、オフの間は何もしません: ディレクトリ連携アカウントは従来どおり Windows ログオンで検証されます。オンにすると、同じアカウント (ディレクトリ タブが入力されているもの) が代わりに下のサーバーへの LDAP バインドで検証されます。ディレクトリ連携でないアカウントはどちらでも影響を受けません。</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>既定ではオフで、オフの間は何もしません: ディレクトリ連携アカウントは従来どおり Windows ログオンで検証されます。オンにすると、同じアカウント ([Windows ディレクトリ] タブが入力されているもの) が代わりに下のサーバーへの LDAP バインドで検証されます。ディレクトリ連携でないアカウントはどちらでも影響を受けません。</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>既定ではオフで、これは考える価値のある決定です。オフの場合、応答しなくなったエンジンは、誰かが気付くまでスパムを通してしまいます。オンの場合は代わりにメールを止めます。そして、誰も見ていない間に延期されたメッセージは、いずれバウンスします。オフは回復可能な失敗であり、だからこそ既定値です。</value>
@@ -7684,8 +7687,8 @@
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>スパム対策の設定ページで、信頼するシール付与ドメイン (ユーザーが頼っているメーリング リストや転送サービス) を列挙し、ARC の相殺をオンにしてください。誰を信頼するかを決めるのはあなたにしかできない判断であり、だからこそ既定値がありません。</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>バックアップ ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>[バックアップと復元] ページで、バックアップの書き出し先フォルダーを、メッセージストアとは別のディスクに設定します。</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>プロトコル ページの SMTP タブで、ホスト名にこのサーバーの完全な DNS 名 (mail.example.com など) を設定します。次に、サーバーの公開アドレスの所有者に、その名前を指す PTR レコードを依頼します。何を依頼すればよいかは DNS レコード ページに表示されます。</value>
@@ -7825,8 +7828,8 @@
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>「ブロックされた添付ファイル」を開く — ファイル名パターンの一覧はそこにあります</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>「ドメイン」を開く — アカウントの「ディレクトリ」タブが、そのアカウントをディレクトリに結び付けます</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>「ドメイン」を開く — アカウントの [Windows ディレクトリ] タブが、そのアカウントをディレクトリに結び付けます</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>「ドメイン」を開く — ドメインの追加はそこで行います</value>
@@ -8887,8 +8890,8 @@
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>配信、拒否、検疫のすべてについて照会可能な行を記録するため、「Jane が 14:20 に送ったメッセージはどうなったか」に、ログを grep するのではなく検索で答えられるようになります。記録されるイベントは、AWStats のジャーナルが以前から見てきたものと同じです。これは、それらに問い合わせを受ける場所を与えるものです。既定では無効です。送信者と受信者のアドレスを保存するため、誰が誰とやり取りしているかの記録になるからです。</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>受け入れた受信メッセージごとに、SPF の判定を Received-SPF ヘッダーとして記録します (RFC 7208 セクション 9.1)。このヘッダーは SPF のチェックが実際に実行されたときにのみ書き込まれるため、表示するには「スパム対策」ページで「SPF を確認」を有効にする必要があります。</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>受け入れた受信メッセージごとに、SPF の判定を Received-SPF ヘッダーとして記録します (RFC 7208 セクション 9.1)。このヘッダーは SPF のチェックが実際に実行されたときにのみ書き込まれるため、表示するには[スパム対策の設定] ページで「SPF を確認」を有効にする必要があります。</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>このサーバー自身が受信メッセージごとに下した判定 (SPF、DKIM、DMARC) を、配信されるメッセージのトレース ヘッダーとして記録します。下流のフィルターや診断のためのものです (RFC 8601、RFC 7208)。</value>
@@ -8934,9 +8937,6 @@
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>開始したアドレス以外からのセッションを拒否する</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>拒否する場合、RCPT での送信には理由を付けて応答し、それ以外 (エイリアス、転送、予約送信) は配信状態通知で送信者に返します。すでにキューにあるアドレス宛てのメールは、次の配信試行時にリストと照合されます。配信して記録だけするのは、リストが実際に動く前に何をするかを確かめる安全な方法です。</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>拒否して送信者に通知する</value>
@@ -9589,8 +9589,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>BAN の作成時に &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; として、範囲の消滅時に &lt;command&gt; unban &lt;address&gt; として、Windows でも Linux でも同じ形で実行されます。クラウドのファイアウォール、ルーター、SIEM 向けです。プログラムのパスに空白が含まれる場合は引用符で囲んでください。引数はサーバーが付け加えます。0 以外の終了コード、または起動できないプログラムはエラーログに 1 回報告されます。</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>docs/Sandbox.md の小さな HTTP 規約に対応したサンドボックスを運用または契約し、ウイルス対策ページの [サンドボックス] タブで送信アドレスと判定アドレスを設定して、オンにしてください。</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>docs/Sandbox.md の小さな HTTP 規約に対応したサンドボックスを運用または契約し、[ウイルス対策の設定] ページの [サンドボックス] タブで送信アドレスと判定アドレスを設定して、オンにしてください。</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>スクリプト関数を実行</value>
@@ -11347,8 +11347,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>これは現在使用されている管理者パスワードではありません。</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>これはスケジュールが許容する間隔より古いため、実行が失敗しているかスキップされています。理由はログ ページのバックアップ ログに書かれています。</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>これはスケジュールが許容する間隔より古いため、実行が失敗しているかスキップされています。理由は[ライブ ログ] ページのバックアップ ログに書かれています。</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>それは 354 の後で受け入れパイプラインが停滞しているものです。デバッグ ログのステージ タイミングがどのステージかを示します。</value>
@@ -11374,8 +11374,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>ARC フィルタリング設定をサーバーから読み取れなかったため、このページでは機能が設定されているかどうかを示せません。</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>Active Directory のユーザー名 (sAMAccountName)。アカウントの「ディレクトリ」タブにあるものと同じ値です。省略可: 空のままにすると、テストは接続とサービス資格情報のステージの後で停止します。</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>Active Directory のユーザー名 (sAMAccountName)。アカウントの [Windows ディレクトリ] タブにあるものと同じ値です。省略可: 空のままにすると、テストは接続とサービス資格情報のステージの後で停止します。</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>コントロールパネルは別のホストに接続しているため、そのホストのサービスが実行されているアカウントをここから読み取ることはできません。サーバー自体でコントロールパネルを開いて確認してください。</value>
@@ -11793,8 +11793,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>整合性チェックが無効になっているため、スキャンは実行されていません。{0} ページで「メッセージの行とディスク上のファイルを定期的に突き合わせる」を有効にしてください。サーバーはその後、起動時と 1 時間ごとにスキャンし、{1} を書き出します。</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>ARC シール付与の対になる機能です。受信メールにおいて、信頼されたシーラーからの有効な ARC チェーンは、転送によって DMARC 合格が壊れたメッセージの DMARC 失敗スコアを相殺できます (RFC 8617)。この設定は hMailServer.INI ではなく他のスパム対策設定と一緒に保存されるため、スパム対策の設定ページの送信者認証の下で構成します。信頼されたシーラーのリストが空の場合、この機能は意図的に何もしません。誰でも ARC チェーン全体を捏造し、自分の DNS で公開した鍵でシールを付けることができ、それは完璧に検証を通過します。したがって、シーラーを既に信頼していない限り、合格したチェーンは何も証明しません。このリストは機能のオプションではなく、機能そのものです。相殺量が DMARC 失敗スコアを超えることはなく、スパム対策の設定ページで DMARC スコアリングが有効な間だけ適用されます。</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>ARC シール付与の対になる機能です。受信メールにおいて、信頼されたシーラーからの有効な ARC チェーンは、転送によって DMARC 合格が壊れたメッセージの DMARC 失敗スコアを相殺できます (RFC 8617)。この設定は hMailServer.INI ではなく他のスパム対策設定と一緒に保存されるため、[スパム対策の設定] ページの [送信者認証] タブで構成します。信頼されたシーラーのリストが空の場合、この機能は意図的に何もしません。誰でも ARC チェーン全体を捏造し、自分の DNS で公開した鍵でシールを付けることができ、それは完璧に検証を通過します。したがって、シーラーを既に信頼していない限り、合格したチェーンは何も証明しません。このリストは機能のオプションではなく、機能そのものです。相殺量が DMARC 失敗スコアを超えることはなく、[スパム対策の設定] ページで DMARC スコアリングが有効な間だけ適用されます。</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>このサーバーの管理に使う資格情報。</value>
@@ -12385,8 +12385,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>検索が複数のディレクトリ エントリに一致しました (フィルター {0}、ベース {1})。サーバーはあいまいな一致に対する認証を拒否します。UserSearchFilter または SearchBase がちょうど 1 つのエントリを選ぶようにしてください。</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>検索は何にも一致しませんでした (フィルター {0}、{1} 配下)。ログオンとしては、これは障害ではなく拒否です。ユーザー名をアカウントの「ディレクトリ」タブと、フィルターと検索ベースをディレクトリと照らし合わせてください。</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>検索は何にも一致しませんでした (フィルター {0}、{1} 配下)。ログオンとしては、これは障害ではなく拒否です。ユーザー名をアカウントの [Windows ディレクトリ] タブと、フィルターと検索ベースをディレクトリと照らし合わせてください。</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>これに達すると検索は停止し、クライアントには検索が失敗したと伝えられます。完全だと誤解される部分的な結果を渡すことはありません。</value>
@@ -12424,8 +12424,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>サーバーの応答を、このコントロール パネルが読み取れませんでした ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、ステータス ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、[サーバーの状態] ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>サーバーがデータベースに到達できません。データベース接続と hMailServer のエラー ログを確認してから、もう一度お試しください。({0})</value>
@@ -13277,8 +13277,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>リストが送信するすべてのコピーのエンベロープ送信者として使われるため、配信失敗 (無効になった購読者、いっぱいのメールボックス) は、たまたま最後に投稿した人ではなくリストの所有者に届きます。</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>%d プレースホルダーと Negotiate バインドに使われます (ドメインに参加していないホストでは NTLM がこれを必要とします)。サーバーはこれをアカウントの「ディレクトリ」タブから取得します。ここにも同じ値を入力してください。</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>%d プレースホルダーと Negotiate バインドに使われます (ドメインに参加していないホストでは NTLM がこれを必要とします)。サーバーはこれをアカウントの [Windows ディレクトリ] タブから取得します。ここにも同じ値を入力してください。</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>テスト バインドに 1 回使われ、保存されることはありません。パスワードがなくても、テストは接続、トランスポート、サービス資格情報、検索を証明します。</value>
@@ -13886,8 +13886,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>これをオンにすると、アカウント自身の不在メッセージは引き続き同僚に応答しますが、外部の送信者にはドメインの汎用テキストが返されます。不在メッセージの個人的な詳細が組織内に留まります。</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>これをオンにすると、パスワードはここにまったく保存されず、Windows に確認を依頼します。オフのままにすると、アカウントは「アカウント」タブのパスワードを使います。</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>これをオンにすると、パスワードはここにまったく保存されず、Windows に確認を依頼します。オフのままにすると、アカウントは[全般] タブのパスワードを使います。</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>SAML サインイン ボタンの文字列</value>

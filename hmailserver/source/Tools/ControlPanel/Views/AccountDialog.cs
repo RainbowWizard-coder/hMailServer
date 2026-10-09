@@ -391,7 +391,7 @@ namespace hMailServer.ControlPanel.Views
          spamDeleteRow_ = Label(L("_Delete threshold override (-1 or 0 = off)"), spamDelete_);
          panel.Children.Add(spamDeleteRow_);
 
-         panel.Children.Add(DialogFields.Note(L("Both overrides read the score this server recorded in the message, so they need \"Add reason to header\" switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there.")));
+         panel.Children.Add(DialogFields.Note(L("Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there.")));
          panel.Children.Add(DialogFields.Note(L("The delete override never deletes on a guess: the copy is removed only when the recorded score actually reached the value, and it goes to the quarantine store instead when that is enabled.")));
          return DialogFields.Scroll(panel);
       }
@@ -421,7 +421,7 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      ///    The Directory tab, which used to be a checkbox and two unexplained boxes.
+      ///    The Windows directory tab, which used to be a checkbox and two unexplained boxes.
       ///
       ///    Three things decide whether this account can ever log in, and none of them
       ///    was stated anywhere the administrator could see:
@@ -451,7 +451,7 @@ namespace hMailServer.ControlPanel.Views
          var panel = DialogFields.TabPanel();
          panel.Children.Add(DialogFields.Check(isAd_));
 
-         panel.Children.Add(DialogFields.Note(L("With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab.")));
+         panel.Children.Add(DialogFields.Note(L("With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab.")));
 
          // The sentence under the domain box changes as the box is typed in, so
          // it is the row's own hint rather than a block beside it: a hint is read
@@ -478,7 +478,7 @@ namespace hMailServer.ControlPanel.Views
          // (review finding F197).
          DialogFields.EnabledBy(isAd_, domainRow, userRow, browse);
 
-         panel.Children.Add(DialogFields.Note(L("A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join.")));
+         panel.Children.Add(DialogFields.Note(L("A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join.")));
 
          adDomain_.TextChanged += (s, e) => RefreshDirectoryEffect_();
          isAd_.Checked += (s, e) => RefreshDirectoryEffect_();

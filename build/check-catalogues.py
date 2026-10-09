@@ -26,6 +26,13 @@ catalogue, or against what the server does at run time:
             the ordinary words "no IP ranges are configured", which a
             translation is right to render as ordinary words.
 
+  references
+            The English names pages and tabs that exist, by their titles: "the
+            X page" ends in a title the navigation map gives, "the X tab" in a
+            tab header a view declares. "The backup log on the Logs page", "the
+            Status page" and the account dialog's "Account tab" sent the reader
+            to names that are not on screen (review findings F048, F280, F126).
+
   numbers   Every RFC number, port, size and count the English states is
             stated by the translation too. Digit-group separators differ
             between languages, so the comparison is on the digits alone -
@@ -86,6 +93,63 @@ def navigation_titles():
 
 
 PAGE_TITLES = sorted(set(PAGE_TITLES) | set(navigation_titles()))
+
+
+def tab_headers():
+   """Every tab header the Control Panel's views declare - Tab(L("...")) on the settings
+   pages, Header = L("...") on the dialogs' TabItems, Header="{loc:L '...'}" in XAML -
+   with the Alt-key underscore taken out, so that "the X tab" is held to a tab that
+   exists: the account dialog's hint sent the reader to an "Account tab" where the
+   password is on General, and the directory pages to its "Directory tab", which is
+   Windows directory (review finding F126)."""
+   views = os.path.join(ROOT, "hmailserver", "source", "Tools", "ControlPanel", "Views")
+   found = set()
+   # Only a TabItem's header: a grid column's Header = L("Account") is not a tab.
+   patterns = (r'\bTab\(L\("((?:[^"\\]|\\.)*)"\)', r'\bnew TabItem\s*\{\s*Header\s*=\s*L\("((?:[^"\\]|\\.)*)"\)',
+               r"<TabItem\b[^>]*\bHeader=\"\{loc:L '((?:[^'\\]|\\.)*)'\}\"")
+   for dirpath, _dirs, files in os.walk(views):
+      for name in files:
+         if not name.endswith((".cs", ".xaml")):
+            continue
+         try:
+            with open(os.path.join(dirpath, name), encoding="utf-8-sig") as handle:
+               source = handle.read()
+         except OSError:
+            continue
+         for pattern in patterns:
+            found.update(header.replace("_", "") for header in re.findall(pattern, source))
+   return found
+
+
+# A page or a tab the English names: "the Live logs page", "on the Anti-spam settings
+# page", "the Protocols page's SMTP tab", "its Windows directory tab". The name is a
+# capitalised run of at most five words (four for a tab) before the word, which ends in
+# a title the navigation map gives (or a tab header a view declares); "the Logs page",
+# "the Status page" and "the Anti-spam page" named pages that do not exist (review
+# findings F048, F280). The Control Deck's pages are its own and are not checked.
+PAGE_REFERENCE = re.compile(r"\b[Tt]he ([A-Z][\w&'/().,-]*(?: [\w&'/().,-]+){0,4}) page(?![\w-])")
+TAB_REFERENCE = re.compile(r"(?:\b[Tt]he|\bits|'s) ([A-Z][\w&'/().,-]*(?: [\w&'/().,-]+){0,3}) tab(?![\w-])")
+NOT_A_CONTROL_PANEL_PAGE = ("Control Deck", "Deck's")
+
+
+def reference_findings(english, titles, tabs):
+   """Findings for the English texts that name a page or a tab the Control Panel does not have."""
+   def known(name, names):
+      return any(name == known_name or name.endswith(" " + known_name) for known_name in names)
+
+   findings = []
+   for text in sorted(english):
+      for match in PAGE_REFERENCE.finditer(text):
+         name = match.group(1)
+         if any(word in name for word in NOT_A_CONTROL_PANEL_PAGE) or known(name, titles):
+            continue
+         findings.append((text, "names a page %r the navigation does not have; use the page's title" % name))
+      for match in TAB_REFERENCE.finditer(text):
+         name = match.group(1)
+         if known(name, tabs):
+            continue
+         findings.append((text, "names a tab %r no view declares; use the tab's header" % name))
+   return findings
 
 # What the server writes, and what the user types back verbatim.
 LITERALS = [
@@ -284,6 +348,34 @@ def self_test():
       if found != expected:
          print("FAIL: %r is %s as naming the page wrongly" % (value, "reported" if found else "not reported"))
          failures += 1
+
+   # The English reference rule: a page or a tab named in the text exists by that name.
+   titles = {"Live logs", "Server status", "Anti-spam settings", "Protocols", "Directory authentication (LDAP)"}
+   tabs = {"General", "SMTP", "Windows directory", "Sender auth"}
+   references = {
+      "Check the folder on the server, or in the backup log on the Logs page.": True,
+      "Check the folder on the server, or in the backup log on the Live logs page.": False,
+      "The outcome goes to the log and the Status page.": True,
+      "The outcome goes to the log and the Server status page.": False,
+      "It is configured on the Anti-spam page, under sender authentication.": True,
+      "It is configured on the Anti-spam settings page's Sender auth tab.": False,
+      "Use LDAP directory authentication on the Directory authentication (LDAP) page instead.": False,
+      "Leave it off and the account uses the password on the Account tab.": True,
+      "Leave it off and the account uses the password on the General tab.": False,
+      "The same value the account's Directory tab holds.": True,
+      "The same value the account's Windows directory tab holds.": False,
+      "Host name on the Protocols page's SMTP tab is empty.": False,
+      "Look for it on the Deck's queue page.": False,
+      "No profile has been applied, so this page shows the shipped values.": False,
+   }
+   for text, expected in references.items():
+      found = bool(reference_findings({text}, titles, tabs))
+      if found != expected:
+         print("FAIL: %r is %s as naming a page or a tab that does not exist" % (text, "reported" if found else "not reported"))
+         failures += 1
+   if "General" not in tab_headers() or "Windows directory" not in tab_headers():
+      print("FAIL: the tab rule does not read the account dialog's tab headers")
+      failures += 1
    print("self-test: %d failure(s)" % failures)
    return 1 if failures else 0
 
@@ -302,7 +394,12 @@ def main():
       print("Strings.resx is empty or missing; run check-localisation.py --write first.")
       return 1
 
-   total = 0
+   # The English itself: every page and tab it names is one the Control Panel has.
+   references = reference_findings(english, set(PAGE_TITLES), tab_headers())
+   for source, what in references:
+      print("  [en] %s\n        in %r" % (what, source[:110]))
+   total = len(references)
+
    for name in sorted(os.listdir(RESOURCES)):
       match = re.match(r"^Strings\.([A-Za-z-]+)\.resx$", name)
       if not match:

@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>"Kuka tahansa verkkotunnuksessa" tarkoittaa, että lähettäjän osoite on tämän palvelimen isännöimässä verkkotunnuksessa, minkä ulkopuolinen voi väittää itsestään, ellei lista vaadi lisäksi todennusta. Rastita se alta, jos lista on rajattava sisäänkirjautuneisiin käyttäjiin.</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>"done spam-protection", sitten hiljaisuus</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>Kohdetta "{0}" ei tallennettu: {1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>'Kuka tahansa verkkotunnuksessa voi lähettää' tarkoittaa, että lähettäjän osoite on tämän palvelimen isännöimässä verkkotunnuksessa, minkä ulkopuolinen voi väittää itsestään, ellei lista vaadi lisäksi todennusta. Rastita se alta, jos lista on rajattava sisäänkirjautuneisiin käyttäjiin.</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>'Hylkää syyn kera' vastaa lähetykseen RCPT-vaiheessa syyn kera ja palauttaa kaiken muun - aliaksen, edelleenlähetyksen, ajastetun lähetyksen - lähettäjälle toimitustilailmoituksessa. Osoitteeseen jo jonossa oleva posti kohtaa listan seuraavalla toimitusyrityksellä. 'Toimita ja vain kirjaa' on turvallinen tapa nähdä, mitä lista tekisi, ennen kuin se tekee sen.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' ei ole 24 tunnin HH:MM-muotoinen kellonaika. Palvelin hyväksyy arvot kuten 02:00 tai 23:45 ja hylkää muut sen sijaan että arvaisi. Jätä kenttä tyhjäksi, jos päivittäistä varmuuskopiota ei oteta.</value>
@@ -426,8 +429,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Verkkotunnus voi myöntää väelleen S/MIME-varmenteita omasta varmentajastaan.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Tähän merkitty toimialueen nimi edellyttää, että PALVELIMEN oma tietokone on liitetty kyseiseen toimialueeseen, koska Windows vahvistaa sen LogonUser-kutsulla. Liittämättömältä tietokoneelta jokainen yritys epäonnistuu aivan kuin salasana olisi väärä – myös silloin kun toimialueen nimi on vain kirjoitettu väärin – joten näin määritetty postilaatikko ei liittämättömällä palvelimella voi koskaan kirjautua sisään eikä koskaan kerro miksi. Jos palvelinta ei ole liitetty toimialueeseen, käytä sen sijaan LDAP-hakemistotodennusta Hakemistotodennus-sivulla: se muodostaa sidonnan hakemistoon verkon yli eikä vaadi toimialueeseen liittämistä.</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Tähän merkitty toimialueen nimi edellyttää, että PALVELIMEN oma tietokone on liitetty kyseiseen toimialueeseen, koska Windows vahvistaa sen LogonUser-kutsulla. Liittämättömältä tietokoneelta jokainen yritys epäonnistuu aivan kuin salasana olisi väärä – myös silloin kun toimialueen nimi on vain kirjoitettu väärin – joten näin määritetty postilaatikko ei liittämättömällä palvelimella voi koskaan kirjautua sisään eikä koskaan kerro miksi. Jos palvelinta ei ole liitetty toimialueeseen, käytä sen sijaan LDAP-hakemistotodennusta sivulla Hakemistotodennus (LDAP): se muodostaa sidonnan hakemistoon verkon yli eikä vaadi toimialueeseen liittämistä.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Palvelimella on jo toimialue nimeltä {0}, eikä se ole tämän sivun luoma näytetoimialue, joten näytettä ei voi luoda tässä, eikä tämä sivu poista sitä. Jos et halua tätä toimialuetta, poista se sivulla Verkkotunnukset.</value>
@@ -882,8 +885,8 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>Hakemistoon liitetyiksi merkityt tilit kirjautuvat sisään toimialueen salasanallaan LDAP-sidonnan kautta – toisin kuin Windows-kirjautuminen, tämä toimii koneelta jota ei ole liitetty toimialueeseen, mikä on tavallinen tilanne DMZ:ssä olevalle postipalvelimelle. Muokkaus kohdistuu hMailServer.INI-tiedoston [LDAP]-osioon; palvelin lukee osion uudelleen kahden sekunnin kuluessa tallennuksesta, joten nämä asetukset eivät vaadi palvelun uudelleenkäynnistystä.</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>Hakemistoon liitetyiksi merkityt tilit. Tuo puoli on jo tässä käyttöliittymässä: avaa Verkkotunnukset, muokkaa tiliä ja rastita sen Hakemisto-välilehdellä Active Directory -vaihtoehto sekä täytä AD-käyttäjänimi – sAMAccountName, jota %u kuljettaa. Tilit joilla ei ole tuota merkintää säilyttävät tavallisen hMailServer-salasanansa eivätkä koskaan koske hakemistoon.</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>Hakemistoon liitetyiksi merkityt tilit. Tuo puoli on jo tässä käyttöliittymässä: avaa Verkkotunnukset, muokkaa tiliä ja rastita sen Windows-hakemisto-välilehdellä 'Tarkista tämä salasana Windowsia vasten (Active Directory tai paikallinen Windows-tili)' sekä täytä 'Windows-käyttäjänimi' – sAMAccountName, jota %u kuljettaa. Tilit joilla ei ole tuota merkintää säilyttävät tavallisen hMailServer-salasanansa eivätkä koskaan koske hakemistoon.</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Tämän verkkotunnuksen tilit saavat vaihtaa postia vain tässä nimettyjen verkkotunnusten kanssa: ulkopuolinen lähettäjä, joka ei ole nimetyssä verkkotunnuksessa, hylätään RCPT TO -vaiheessa, ja täkäläinen tili saa lähettää vain nimettyihin verkkotunnuksiin, omaan verkkotunnukseensa ja postmasterille. Muut tämän palvelimen verkkotunnukset lasketaan ulkopuolisiksi, ellei niitä ole nimetty. Palautusilmoitukset pääsevät aina läpi. Jokainen tili noudattaa tätä, ellei sen oma ikkuna sano rajoitettu tai vapautettu; tyhjä tarkoittaa, ettei verkkotunnusta ole rajoitettu. Tämän verkkotunnuksen alias tai jakelulista, joka ulottuu ulos, on sinun, ja rajoitettu tili saa kirjoittaa siihen.</value>
@@ -2053,8 +2056,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Molemmat osoitteet on asetettu. Vastaako palvelu, ei voi päätellä täältä: lähetä ulkopuolelta viesti, jonka liitteenä on lähetettävää tyyppiä oleva tiedosto, ja etsi se kohdasta Pidätetty hiekkalaatikkoa varten Deckin jonosivulta tai sovelluslokista rivi, jonka mukaan se lähetettiin hiekkalaatikkoon.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Molemmat ohitukset lukevat pistemäärän, jonka tämä palvelin kirjasi viestiin, joten ne tarvitsevat "Lisää syy otsakkeeseen" -asetuksen päälle (Roskapostisuojauksen asetukset). Sen ollessa pois päältä pistemäärää ei kirjata, mitään ei voi todistaa, eikä kumpikaan ohitus toimi - tili säilyttää palvelimenlaajuisen käyttäytymisen. Tiedoston arvoon ei siinä tapauksessa luoteta, koska mikään ei estä LÄHETTÄJÄÄ laittamasta sitä sinne.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>Molemmat ohitukset lukevat pistemäärän, jonka tämä palvelin kirjasi viestiin, joten ne tarvitsevat 'Lisää X-hMailServer-Reason-otsake' -asetuksen päälle sivulla Roskapostisuojauksen asetukset. Sen ollessa pois päältä pistemäärää ei kirjata, mitään ei voi todistaa, eikä kumpikaan ohitus toimi - tili säilyttää palvelimenlaajuisen käyttäytymisen. Tiedoston arvoon ei siinä tapauksessa luoteta, koska mikään ei estä LÄHETTÄJÄÄ laittamasta sitä sinne.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Molemmat kynnysarvot ovat 0, joten mikään pistemäärä ei voi merkitä tai hylätä mitään - palvelin testaa ne ehdolla "suurempi kuin 0" ennen käyttöä. Se myös lopettaa testaamisen heti, kun juokseva summa saavuttaa korkeamman kynnyksen, joka on 0, joten kussakin vaiheessa ajetaan täsmälleen yksi tarkistus ja sen tulos hylätään.</value>
@@ -2215,8 +2218,8 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Ei voida sanoa, milloin viimeisin varmuuskopiointi ajettiin: varmuuskopioinnin asetuksia ei voitu lukea palvelimelta.</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>Ei voida sanoa, milloin viimeisin varmuuskopiointi ajettiin: tiedostoa {0} ei voitu lukea tältä koneelta. Tarkista kansio palvelimella tai varmuuskopiointiloki Lokit-sivulla.</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>Ei voida sanoa, milloin viimeisin varmuuskopiointi ajettiin: tiedostoa {0} ei voitu lukea tältä koneelta. Tarkista kansio palvelimella tai varmuuskopiointiloki sivulla Reaaliaikaiset lokit.</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>Ei voida sanoa, onko aikataulu määritetty: hMailServer.ini-tiedostoa ei löytynyt tältä koneelta. Tarkista päivittäisen varmuuskopioinnin kellonaika ja varmuuskopioinnin väli itse palvelimella.</value>
@@ -4078,7 +4081,7 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Jokainen IMAP-kansio pitää laskuria seuraavasta viestin UID:stä, jonka se antaa. Jos laskuri jää jälkeen kansiossa jo olevista viesteistä - minkä palautettu tai käsin muokattu tietokanta voi aiheuttaa - kansio antaa UID:n, jonka se on jo käyttänyt, ja UID:n mukaan välimuistittava asiakas näyttää yhden viestin siinä, missä pitäisi olla toinen. Tämä nostaa jokaisen laskurin korkeimpaan UID:hen, jonka sen kansio todella sisältää. Se ei koskaan laske laskuria, joten se ei voi aiheuttaa vikaa, jonka se korjaa.</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
     <value>Jokainen hyväksytty saapuva viesti saa yhden Authentication-Results-otsakkeen (RFC 8601), joka sisältää tämän palvelimen siitä tekemät SPF-, DKIM- ja DMARC-tuomiot. Vain todella ajetut tarkistukset raportoidaan - mitkä tarkistukset ajetaan, määritetään Roskapostisuojauksen asetukset -sivulla - ja viesti, jolle ei ajettu yhtään tarkistusta, ei saa otsaketta. Saapuvalta viestiltä, jossa on jo tämän palvelimen omaa identiteettiä väittävä Authentication-Results-otsake, tuo otsake poistetaan ensin, jotta lähettäjä ei voi saada tämän palvelimen nimissä kirjoitettua tuomiota uskotuksi myöhemmässä käsittelyssä (RFC 8601 kohta 5).</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
@@ -5509,8 +5512,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Jos hakemisto ei voi vastata</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>Jos ajastus on juuri luotu, tarkista uudelleen sen jälkeen kun ensimmäisen ajon oli määrä tapahtua; muussa tapauksessa Lokit-sivun varmuuskopiointiloki kertoo, miksi ajoja ohitetaan.</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>Jos ajastus on juuri luotu, tarkista uudelleen sen jälkeen kun ensimmäisen ajon oli määrä tapahtua; muussa tapauksessa varmuuskopiointiloki sivulla Reaaliaikaiset lokit kertoo, miksi ajoja ohitetaan.</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Jos verkkotunnus {0} vastaanottaa jo postia muualla - isännöidyn postilaatikkopalvelun tarjoajalla tai toisella palvelimella - tämän tietueen julkaiseminen siirtää sen postin tänne. Muuta sitä vasta, kun tämä palvelin on valmis ottamaan postin vastaan.</value>
@@ -5617,8 +5620,8 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Insert template…" xml:space="preserve">
     <value>Lisää malli…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Aikaikkunan sisällä ajastettu tehtävä asentaa varmennetun asennusohjelman ilman napsautusta: palvelu pysäytetään, tiedostot ja skeema päivitetään, palvelu käynnistetään, ja lopputulos päätyy lokiin, Windowsin tapahtumalokiin ja Tila-sivulle. Palvelu, joka ei palaa käyntiin, palautetaan edelliseen asennusohjelmaan, ellei uusi versio ole jo muuttanut tietokantaa.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Aikaikkunan sisällä ajastettu tehtävä asentaa varmennetun asennusohjelman ilman napsautusta: palvelu pysäytetään, tiedostot ja skeema päivitetään, palvelu käynnistetään, ja lopputulos päätyy lokiin, Windowsin tapahtumalokiin ja sivulle Palvelimen tila. Palvelu, joka ei palaa käyntiin, palautetaan edelliseen asennusohjelmaan, ellei uusi versio ole jo muuttanut tietokantaa.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Asennetaanko päivitys nyt?
@@ -5889,8 +5892,8 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   <data name="Left Edge" xml:space="preserve">
     <value>Vasen reuna</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Tyhjänä palvelin käyttää harmaalla näytettyä mukana toimitettua suodatinta - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Tyhjänä palvelin käyttää harmaalla näytettyä mukana toimitettua suodatinta - objectCategory ensin, koska se on indeksoitu Active Directoryssa, ja sAMAccountName, koska sitä tilin Windows-hakemisto-välilehti tallentaa. %u on tilin Active Directory -käyttäjänimi, %d sen AD-toimialue, %m sen koko sähköpostiosoite; kaikki kolme koodataan ennen sijoitusta, joten vihamielinen kirjautumisnimi ei voi kirjoittaa suodatinta uusiksi. Suodatin, joka täsmää useampaan kuin yhteen merkintään, ei todenna ketään, tarkoituksella.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Jätetty paikalleen: {0}. Ensimmäinen syy: {1}</value>
@@ -7096,6 +7099,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Konenimeä ei ole asetettu, joten tämä palvelin ilmoittaa Windows-tietokonenimensä, jota mikään internetin DNS ei tunne.</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>Konenimeä ei ole asetettu: 'Konenimi (HELO/EHLO-tervehdys)' sivun Protokollat SMTP-välilehdellä on tyhjä.</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Konenimeä tai osoitetta ei ole asetettu.</value>
   </data>
@@ -7203,9 +7209,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Julkisia kansioita ei vielä ole. Lisää kansio luo kansion, jonka useampi tili voi avata; Käyttöoikeudet määrää sitten, kuka saa lukea ja kirjoittaa siihen.</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>SMTP-asetuksissa ei ole määritetty julkista konenimeä.</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>Ei vielä vastaanottajia, joten tälle listalle lähetetty posti ei tavoita ketään. Lisää osoite alla.</value>
@@ -7528,8 +7531,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Oletuksena pois päältä, koska se maksaa muutaman kilotavun termitaulun viestiä kohden ja täydennysajon jokaisen jo toimitetun viestin yli - ylläpitäjän päätös, ei koskaan päivityksen. Tulokset ovat samat päällä ja pois: indeksi vain kaventaa, mitkä viestit osajonoskannauksen on luettava. Vaatii viestien indeksoinnin (yllä) käyttöönottoa; yksinään tämä ei indeksoi mitään.</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>Oletuksena pois päältä ja pois ollessaan vaikutukseton: hakemistoon liitetyt tilit todennetaan silloin vanhaan tapaan Windows-kirjautumisen kautta. Päällä ollessaan samat tilit - ne, joilla Hakemisto-välilehti on täytetty - todennetaan sen sijaan LDAP-sidonnalla alla olevaa palvelinta vasten. Tämä ei koskaan vaikuta tileihin, jotka eivät ole hakemistotilejä.</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>Oletuksena pois päältä ja pois ollessaan vaikutukseton: hakemistoon liitetyt tilit todennetaan silloin vanhaan tapaan Windows-kirjautumisen kautta. Päällä ollessaan samat tilit - ne, joilla Windows-hakemisto-välilehti on täytetty - todennetaan sen sijaan LDAP-sidonnalla alla olevaa palvelinta vasten. Tämä ei koskaan vaikuta tileihin, jotka eivät ole hakemistotilejä.</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>Oletuksena pois päältä, ja tämä on se päätös, jota kannattaa miettiä. Pois päältä moottori, joka lakkaa vastaamasta, päästää roskapostin läpi, kunnes joku huomaa. Päällä se pysäyttää postin sen sijaan - ja viesti, joka lykätään kenenkään katsomatta, on viesti, joka lopulta palautuu. Pois on korjattavissa oleva vika, minkä vuoksi se on oletus.</value>
@@ -7684,8 +7687,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Luettele Roskapostisuojauksen asetukset -sivulla sinetöivät verkkotunnukset, joihin luotat (postituslista- ja edelleenlähetyspalvelut, joihin käyttäjäsi luottavat), ja kytke ARC-hyvitys päälle. Sen nimeäminen, keneen luotat, on arvio, jonka vain sinä voit tehdä, minkä vuoksi oletusta ei ole.</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Aseta sivulla Varmuuskopio kansio, johon varmuuskopio kirjoitetaan, eri levylle kuin viestivarasto.</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Aseta sivulla Varmuuskopiointi ja palautus kansio, johon varmuuskopio kirjoitetaan, eri levylle kuin viestivarasto.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Aseta sivulla Protokollat SMTP-välilehden Konenimi-kenttään tämän palvelimen täydellinen DNS-nimi, esimerkiksi mail.example.com. Pyydä sitten siltä, joka omistaa palvelimen julkisen osoitteen, PTR-tietue, joka nimeää sen; sivu DNS-tietueet näyttää, mitä pyytää.</value>
@@ -7825,8 +7828,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Avaa Estetyt liitteet, joka omistaa tiedostonimikuvioiden luettelon</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>Avaa Verkkotunnukset, jossa tilin Hakemisto-välilehti liittää sen hakemistoon</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>Avaa Verkkotunnukset, jossa tilin Windows-hakemisto-välilehti liittää sen hakemistoon</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>Avaa Verkkotunnukset, jossa verkkotunnuksia lisätään</value>
@@ -8887,8 +8890,8 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Tallentaa kyseltävissä olevan rivin jokaisesta toimituksesta, hylkäyksestä ja karanteenista, joten "mitä tapahtui viestille, jonka Jane lähetti 14:20" voidaan vastata hakemalla lokien grep-selaamisen sijaan. Tapahtumat ovat samat, jotka AWStats-päiväkirja on aina nähnyt; tämä antaa niille paikan, josta niitä voi kysyä. Oletuksena pois päältä, koska se tallentaa lähettäjän ja vastaanottajan osoitteet - mikä tekee siitä tallenteen siitä, kuka kirjoittaa kenelle.</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>Tallentaa SPF-tuomion jokaiselle hyväksytylle saapuvalle viestille Received-SPF-otsakkeena (RFC 7208 kohta 9.1). Otsake kirjoitetaan vain, kun SPF-tarkistus todella ajettiin, joten 'Tarkista SPF' on oltava käytössä Roskapostisuojaus-sivulla, jotta se näkyy.</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>Tallentaa SPF-tuomion jokaiselle hyväksytylle saapuvalle viestille Received-SPF-otsakkeena (RFC 7208 kohta 9.1). Otsake kirjoitetaan vain, kun SPF-tarkistus todella ajettiin, joten 'Tarkista SPF' on oltava käytössä sivulla Roskapostisuojauksen asetukset, jotta se näkyy.</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Tallentaa tuomiot, jotka tämä palvelin itse teki jokaisesta saapuvasta viestistä - SPF, DKIM ja DMARC - jäljitysotsakkeina toimitettuun viestiin alavirran suodattimia ja diagnostiikkaa varten (RFC 8601, RFC 7208).</value>
@@ -8934,9 +8937,6 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Hylkää istunto mistä tahansa muusta osoitteesta kuin siitä, jossa se alkoi</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>Hylkää vastaa lähetykseen RCPT-vaiheessa syyn kera ja palauttaa kaiken muun - aliaksen, edelleenlähetyksen, ajastetun lähetyksen - lähettäjälle toimitustilailmoituksessa. Osoitteeseen jo jonossa oleva posti kohtaa listan seuraavalla toimitusyrityksellä. Toimita ja vain kirjaa on turvallinen tapa nähdä, mitä lista tekisi, ennen kuin se tekee sen.</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>Hylkää ja ilmoita lähettäjälle</value>
@@ -9589,8 +9589,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Ajetaan muodossa &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt;, kun esto luodaan, ja muodossa &lt;command&gt; unban &lt;address&gt;, kun alue poistuu, samalla tavalla Windowsissa ja Linuxissa - pilvipalomuuria, reititintä tai SIEM-järjestelmää varten. Laita ohjelman polku lainausmerkkeihin, jos siinä on välilyöntejä; palvelin lisää argumentit. Nollasta poikkeava paluuarvo tai ohjelma, joka ei käynnisty, raportoidaan kerran virhelokiin.</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>Ylläpidä tai tilaa hiekkalaatikko, joka puhuu tiedoston docs/Sandbox.md pientä HTTP-sopimusta, aseta sen lähetys- ja tuomio-osoite Virustorjunta-sivun Hiekkalaatikko-välilehdellä ja ota se käyttöön.</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Ylläpidä tai tilaa hiekkalaatikko, joka puhuu tiedoston docs/Sandbox.md pientä HTTP-sopimusta, aseta sen lähetys- ja tuomio-osoite sivun Virustorjunnan asetukset Hiekkalaatikko-välilehdellä ja ota se käyttöön.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Aja komentosarjafunktio</value>
@@ -11347,8 +11347,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>Tämä ei ole nyt käytössä oleva ylläpitäjän salasana.</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>Se on vanhempi kuin ajastus sallii, joten ajot epäonnistuvat tai ohitetaan – Lokit-sivun varmuuskopiointiloki kertoo syyn.</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>Se on vanhempi kuin ajastus sallii, joten ajot epäonnistuvat tai ohitetaan – varmuuskopiointiloki sivulla Reaaliaikaiset lokit kertoo syyn.</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Se on vastaanottoketjun jumiutuminen 354:n jälkeen: vianjäljityslokin vaiheiden ajat kertovat, mikä vaihe.</value>
@@ -11374,8 +11374,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>ARC-suodatuksen asetuksia ei voitu lukea palvelimelta, joten tämä sivu ei voi sanoa, onko toiminto määritetty.</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>Active Directory -käyttäjänimi (sAMAccountName) - sama arvo, joka on tilin Hakemisto-välilehdellä. Valinnainen: tyhjäksi jätettynä testi pysähtyy yhteys- ja palvelun tunnistetietovaiheiden jälkeen.</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>Active Directory -käyttäjänimi (sAMAccountName) - sama arvo, joka on tilin Windows-hakemisto-välilehdellä. Valinnainen: tyhjäksi jätettynä testi pysähtyy yhteys- ja palvelun tunnistetietovaiheiden jälkeen.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel on yhteydessä toiseen koneeseen, joten tiliä, jolla SEN palvelu toimii, ei voi lukea täältä. Avaa Control Panel itse palvelimella nähdäksesi sen.</value>
@@ -11793,8 +11793,8 @@ Valitse yllä oleva avain ja kopioi se käsin - sitä ei näytetä uudelleen.</v
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Eheystarkistus on poistettu käytöstä, joten tarkistusta ei ole ajettu. Ota 'Ristiintarkista viestirivit ajoittain levyn tiedostoja vasten' käyttöön sivulla {0}; palvelin tarkistaa sen jälkeen käynnistyksessä ja tunneittain ja kirjoittaa tiedoston {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>ARC-sinetöinnin vastinpari: saapuvassa postissa luotetun sinetöijän kelvollinen ARC-ketju voi kumota DMARC-epäonnistumisen pistemäärän viestiltä, jonka DMARC-läpäisyn edelleenlähetys tuhosi (RFC 8617). Se määritetään Roskapostisuojauksen asetukset -sivulla lähettäjän todennuksen alla, koska se tallennetaan muiden roskapostisuojauksen asetusten kanssa eikä hMailServer.INI-tiedostoon. Kun luotettujen sinetöijien luettelo on tyhjä, toiminto ei tee tarkoituksella yhtään mitään: kuka tahansa voi sepittää kokonaisen ARC-ketjun ja sinetöidä sen omassa DNS:ssään julkaistuilla avaimilla, ja se läpäisee tarkistuksen täydellisesti, joten läpäisevä ketju ei todista mitään, ellet jo luota sinetöijään. Luettelo ei ole toiminnon valinta - se on itse toiminto. Kumoaminen ei koskaan ylitä DMARC-epäonnistumisen pistemäärää ja se on voimassa vain, kun DMARC-pisteytys on käytössä Roskapostisuojauksen asetukset -sivulla.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>ARC-sinetöinnin vastinpari: saapuvassa postissa luotetun sinetöijän kelvollinen ARC-ketju voi kumota DMARC-epäonnistumisen pistemäärän viestiltä, jonka DMARC-läpäisyn edelleenlähetys tuhosi (RFC 8617). Se määritetään sivun Roskapostisuojauksen asetukset Lähettäjän todennus -välilehdellä, koska se tallennetaan muiden roskapostisuojauksen asetusten kanssa eikä hMailServer.INI-tiedostoon. Kun luotettujen sinetöijien luettelo on tyhjä, toiminto ei tee tarkoituksella yhtään mitään: kuka tahansa voi sepittää kokonaisen ARC-ketjun ja sinetöidä sen omassa DNS:ssään julkaistuilla avaimilla, ja se läpäisee tarkistuksen täydellisesti, joten läpäisevä ketju ei todista mitään, ellet jo luota sinetöijään. Luettelo ei ole toiminnon valinta - se on itse toiminto. Kumoaminen ei koskaan ylitä DMARC-epäonnistumisen pistemäärää ja se on voimassa vain, kun DMARC-pisteytys on käytössä Roskapostisuojauksen asetukset -sivulla.</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>Tunnistetiedot, joilla tätä palvelinta hallitaan.</value>
@@ -12385,8 +12385,8 @@ Lisätäänkö silti?</value>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Haku vastasi USEAMPAA kuin yhtä hakemistomerkintää (suodatin {0}, juuri {1}). Palvelin kieltäytyy todentamasta moniselitteistä osumaa vastaan - muuta UserSearchFilter tai SearchBase valitsemaan täsmälleen yksi merkintä.</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>Haku ei vastannut mitään (suodatin {0} juuressa {1}). Kirjautumisena tämä on hylkäys, ei katko - tarkista käyttäjänimi tilin Hakemisto-välilehteä vastaan sekä suodatin ja hakujuuri hakemistoa vastaan.</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>Haku ei vastannut mitään (suodatin {0} juuressa {1}). Kirjautumisena tämä on hylkäys, ei katko - tarkista käyttäjänimi tilin Windows-hakemisto-välilehteä vastaan sekä suodatin ja hakujuuri hakemistoa vastaan.</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>Haku pysähtyy, kun tämä saavutetaan, ja asiakkaalle kerrotaan haun epäonnistuneen sen sijaan, että sille annettaisiin osittainen tulos, jonka se luulisi täydelliseksi.</value>
@@ -12424,8 +12424,8 @@ Lisätäänkö silti?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Palvelin vastasi jotain, mitä tämä Control Panel ei pystynyt lukemaan ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen – yhdellä napsautuksella Tila-sivulla tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen – yhdellä napsautuksella sivulla Palvelimen tila tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Palvelin ei tavoita tietokantaansa. Tarkista tietokantayhteys ja hMailServerin virheloki ja yritä sitten uudelleen. ({0})</value>
@@ -13277,8 +13277,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Käytetään kuoren lähettäjänä jokaisessa listan lähettämässä kopiossa, jotta toimitusvirheet - kuollut tilaaja, täysi postilaatikko - päätyvät listan omistajalle eivätkä sille, joka sattui kirjoittamaan viimeksi.</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>Käytetään %d-paikkamerkkiin ja Negotiate-sidontaan (NTLM tarvitsee sitä koneella, jota ei ole liitetty toimialueeseen). Palvelin ottaa tämän tilin Hakemisto-välilehdeltä; kirjoita tähän sama arvo.</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>Käytetään %d-paikkamerkkiin ja Negotiate-sidontaan (NTLM tarvitsee sitä koneella, jota ei ole liitetty toimialueeseen). Palvelin ottaa tämän tilin Windows-hakemisto-välilehdeltä; kirjoita tähän sama arvo.</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>Käytetään kerran testisidontaan eikä tallenneta koskaan. Ilman salasanaa testi todistaa silti yhteyden, siirron, palvelun tunnistetiedot ja haun.</value>
@@ -13886,8 +13886,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Kun tämä on käytössä, tilin oma lomaviesti vastaa yhä kollegoille, mutta ulkopuoliset lähettäjät saavat sen sijaan verkkotunnuksen yleisen tekstin - joten lomaviestin henkilökohtaiset tiedot pysyvät organisaation sisällä.</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>Kun tämä on käytössä, salasanaa ei tallenneta tänne lainkaan - Windowsia pyydetään tarkistamaan se. Jätä pois päältä, niin tili käyttää Tili-välilehden salasanaa.</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>Kun tämä on käytössä, salasanaa ei tallenneta tänne lainkaan - Windowsia pyydetään tarkistamaan se. Jätä pois päältä, niin tili käyttää Yleiset-välilehden salasanaa.</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>SAML-kirjautumispainikkeen teksti</value>

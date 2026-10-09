@@ -720,7 +720,7 @@ namespace hMailServer.ControlPanel.Services
                {
                   Title = L("A backup destination - until one is set there is no backup"),
                   Purpose = L("The backup writes the database and the message store to a folder; until one is set there is no backup."),
-                  Action = L("On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on."),
+                  Action = L("On the Backup & restore page, set the folder the backup is written to, on a disk other than the one the message store is on."),
                   Page = "backup"
                };
             case "second_factor":
@@ -1828,7 +1828,7 @@ namespace hMailServer.ControlPanel.Services
          {
             Title = L("Attachment sandbox - a service that opens files"),
             Purpose = L("Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious."),
-            Action = L("Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on."),
+            Action = L("Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on."),
             Page = "antivirus"
          };
 

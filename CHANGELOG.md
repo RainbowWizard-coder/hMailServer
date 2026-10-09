@@ -2042,6 +2042,28 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   now leads with "Could not read the certificates:", as the other list pages do, with Try again beside it, the list
   emptied and Add disabled until a read works.
 
+- **Fixed: the Control Panel sent the reader to pages that do not exist and named options by words that are not their
+  captions.** The backup warnings pointed at "the backup log on the Logs page", the update settings at "the Status
+  page", the sender-authentication headers and ARC trust at "the Anti-spam page, under sender authentication", the
+  setup checklist at "the Backup page" and "the Anti-virus page's Sandbox tab", the Windows directory tab at "the
+  Directory authentication page"; the account's spam overrides needed "Add reason to header" switched on, the
+  distribution list's hint explained "Anyone in the domain", the blocked-recipients claim "Refuse" and "Deliver and
+  record", and the status page said "No public host name is configured in the SMTP settings". Each now names the page
+  by its title - Live logs, Server status, Anti-spam settings (and its Sender auth tab), Backup & restore, Anti-virus
+  settings, Directory authentication (LDAP) - and the option by its caption: 'Add X-hMailServer-Reason header',
+  'Anyone in the domain can send', 'Refuse it, with the reason', 'Deliver it, and only record it', and "No host name
+  is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty", in all seventeen languages with
+  each catalogue's own titles and captions. build/check-catalogues.py now also reads the English: every "the X page"
+  it names must end in a title the navigation map gives.
+
+- **Fixed: the account dialog's Windows directory tab sent the reader to "the password on the Account tab", and the
+  directory authentication page to "the account's Directory tab"; neither tab exists.** They are the General and
+  Windows directory tabs, and the directory page now names the checkbox and the box to fill in there by their
+  captions - 'Check this password against Windows (Active Directory, or a local Windows account)' and 'Windows user
+  name' - where it said "the Active Directory option" and "the AD user name", in all seventeen languages.
+  build/check-catalogues.py holds every "the X tab", "its X tab" and "the page's X tab" in the English to a tab
+  header a view declares.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

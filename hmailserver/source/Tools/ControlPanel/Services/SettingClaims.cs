@@ -309,7 +309,7 @@ namespace hMailServer.ControlPanel.Services
             N("In force for the next message. Off, nothing is classified, counted or listed and the list is not applied; the entries already on it stay, and the hourly sweep still expires them. A database that cannot be read sends the mail as if the address were not listed, and says so in the error log once an hour.")),
 
          new SettingClaim("BounceSuppressionAction", ClaimKind.Honoured,
-            N("Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it.")),
+            N("'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it.")),
 
          // Conditional: read only while bounce processing is on, and a report is
          // counted only when it matches a message this server sent.

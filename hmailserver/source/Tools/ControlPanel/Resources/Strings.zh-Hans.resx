@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>“域内任何人”是指发件人地址位于本服务器托管的某个域下，除非该列表同时要求身份验证，否则外部人员也可以冒称。如果该列表必须限定为已登录的人员，请勾选下面的选项。</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>“done spam-protection”，然后便没有下文</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>“{0}”未保存：{1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>“域内任何人都可以发信”是指发件人地址位于本服务器托管的某个域下，除非该列表同时要求身份验证，否则外部人员也可以冒称。如果该列表必须限定为已登录的人员，请勾选下面的选项。</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>“拒绝，并说明原因”会在 RCPT 阶段向提交的邮件说明原因并拒绝，其他情况（别名、转发、定时发送）则以投递状态通知退回给发件人。已在队列中发往该地址的邮件会在下一次投递尝试时与列表比对。“照常投递，仅作记录”是在列表真正生效前查看其效果的安全方式。</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' 不是 24 小时制的 HH:MM 时间。服务器只接受 02:00 或 23:45 这样的值，其余一律拒绝而不去猜测。若不需要每日备份，请将该框留空。</value>
@@ -426,8 +429,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>域可以用自己的证书颁发机构为其用户颁发 S/MIME 证书。</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>在此处填写域名，要求服务器本机加入该域，因为 Windows 是用 LogonUser 来验证的。在未加入域的计算机上，每一次尝试都会像密码错误一样失败 - 包括仅仅是域名拼写有误的情况 - 因此在未加入域的服务器上这样配置的邮箱永远无法登录，也永远不会说明原因。如果服务器未加入域，请改用“目录身份验证”页上的 LDAP 目录身份验证：它通过网络绑定到目录，不需要加入域。</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>在此处填写域名，要求服务器本机加入该域，因为 Windows 是用 LogonUser 来验证的。在未加入域的计算机上，每一次尝试都会像密码错误一样失败 - 包括仅仅是域名拼写有误的情况 - 因此在未加入域的服务器上这样配置的邮箱永远无法登录，也永远不会说明原因。如果服务器未加入域，请改用“目录身份验证（LDAP）”页上的 LDAP 目录身份验证：它通过网络绑定到目录，不需要加入域。</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>此服务器上已有一个名为 {0} 的域，但它不是本页创建的样例域，因此无法在此创建样例，本页也不会移除它。如果您不需要该域，请在“域”页面上删除它。</value>
@@ -882,8 +885,8 @@
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>标记为目录关联的账户，通过 LDAP 绑定使用其域密码登录 - 与 Windows 登录不同，这在未加入域的主机上同样有效，而这正是 DMZ 中的邮件服务器的常见情形。它会修改 hMailServer.INI 的 [LDAP] 节；服务器会在保存后两秒内重新读取该节，因此这些设置无需重启服务。</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>标记为目录关联的账户。这一半功能已经存在于本界面中：打开“域”，编辑该账户，在其“目录”选项卡上勾选 Active Directory 选项并填写 AD 用户名 - 也就是 sAMAccountName，%u 携带的正是它。没有该标记的账户继续使用普通的 hMailServer 密码，永远不会访问目录。</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>标记为目录关联的账户。这一半功能已经存在于本界面中：打开“域”，编辑该账户，在其“Windows 目录”选项卡上勾选“对照 Windows 检查此密码（Active Directory 或本地 Windows 账户）”并填写“Windows 用户名” - 也就是 sAMAccountName，%u 携带的正是它。没有该标记的账户继续使用普通的 hMailServer 密码，永远不会访问目录。</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>此域的账户只能与此处指定的域收发邮件：不在指定域中的外部发件人会在 RCPT TO 时被拒绝，此处的账户只能发送到指定的域、自己的域和 postmaster。此服务器托管的其他域除非指定，否则视为外部。退信始终可以送达。每个账户都遵循此设置，除非其自身的对话框设为受限或豁免；留空表示此域不受限制。此域中通向外部的别名或分发列表由您掌管，受限账户可以向其发送。</value>
@@ -2053,8 +2056,8 @@
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>两个地址都已设置。服务是否应答无法在这里判断：请从外部发送一封附有提交类型文件的邮件，然后在 Deck 队列页面的“等待沙箱判定”中查找它，或在应用程序日志中查找表明它已提交到沙箱的行。</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>这两个覆盖项读取的都是本服务器记录在邮件中的分数，因此它们需要打开“把原因添加到标头”（“反垃圾邮件设置”）。关闭它就不会记录任何分数，什么也无法证明，两个覆盖项都不会起作用 - 该账户保持服务器范围的行为。在这种情况下不信任文件中的值，因为没有什么能阻止发件人自己往里面放一个。</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>这两个覆盖项读取的都是本服务器记录在邮件中的分数，因此它们需要在“反垃圾邮件设置”页上打开“添加 X-hMailServer-Reason 标头”。关闭它就不会记录任何分数，什么也无法证明，两个覆盖项都不会起作用 - 该账户保持服务器范围的行为。在这种情况下不信任文件中的值，因为没有什么能阻止发件人自己往里面放一个。</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>两个阈值都是 0，因此没有任何分数能标记或拒绝任何邮件 - 服务器在使用它们之前会先测试“大于 0”。它还会在累计总分达到较高阈值（即 0）时立即停止测试，因此每个阶段恰好只运行一项检查，而且其结果会被丢弃。</value>
@@ -2215,8 +2218,8 @@
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>无法判断上次备份的运行时间：无法从服务器读取备份设置。</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>无法判断上次备份的运行时间：无法从本机读取 {0}。请检查服务器上的该文件夹，或查看“日志”页上的备份日志。</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>无法判断上次备份的运行时间：无法从本机读取 {0}。请检查服务器上的该文件夹，或查看“实时日志”页上的备份日志。</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>无法判断是否配置了计划：在本机上未找到 hMailServer.ini。请在服务器本机上检查每日备份时间和备份间隔。</value>
@@ -4078,8 +4081,8 @@
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>每个 IMAP 文件夹都保存一个计数器，记录它将要签发的下一个邮件 UID。如果该计数器落后于文件夹中已有的邮件 - 还原过或手工编辑过的数据库可能造成这种情况 - 文件夹就会签发一个已经用过的 UID，而按 UID 缓存的客户端会在本该显示某封邮件的位置显示另一封。此操作会把每个计数器上调到其文件夹实际持有的最高 UID。它永远不会把计数器下调，因此不可能造成它所修复的这种故障。</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
-    <value>每一封被接受的入站邮件都会获得一个 Authentication-Results 标头（RFC 8601），其中带有本服务器对它得出的 SPF、DKIM 和 DMARC 判定。只报告实际运行过的检查 - 运行哪些检查在“反垃圾邮件”页配置 - 而没有运行任何检查的邮件不会获得该标头。到达的邮件如果已经带有声称是本服务器身份的 Authentication-Results 标头，会先被移除该标头，这样发件人就无法以本服务器的名义写入一个让下游相信的判定（RFC 8601 第 5 节）。</value>
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+    <value>每一封被接受的入站邮件都会获得一个 Authentication-Results 标头（RFC 8601），其中带有本服务器对它得出的 SPF、DKIM 和 DMARC 判定。只报告实际运行过的检查 - 运行哪些检查在“反垃圾邮件设置”页配置 - 而没有运行任何检查的邮件不会获得该标头。到达的邮件如果已经带有声称是本服务器身份的 Authentication-Results 标头，会先被移除该标头，这样发件人就无法以本服务器的名义写入一个让下游相信的判定（RFC 8601 第 5 节）。</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
     <value>每项的格式为 [ipv4:|ipv6:]zone[=codes]，用逗号或空格分隔，例如 ipv4:zen.spamhaus.org。默认是对 IPv4 查询的四个列表：Spamhaus ZEN、SpamCop、PSBL 和 Mailspike。</value>
@@ -5509,8 +5512,8 @@
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>如果目录无法应答</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>如果计划刚刚建立，请等到它第一次运行应到期之后再检查；否则“日志”页上的备份日志会说明为何跳过了这些运行。</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>如果计划刚刚建立，请等到它第一次运行应到期之后再检查；否则“实时日志”页上的备份日志会说明为何跳过了这些运行。</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>如果 {0} 已经在其他地方接收邮件（托管邮箱提供商或另一台服务器），发布这条记录会把这些邮件转到这里。只有在本服务器准备好接收时才更改它。</value>
@@ -5617,8 +5620,8 @@
   <data name="Insert template…" xml:space="preserve">
     <value>插入模板…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和“状态”页。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和“服务器状态”页。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>是否立即安装更新？
@@ -5889,8 +5892,8 @@
   <data name="Left Edge" xml:space="preserve">
     <value>左边缘</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>留空时，服务器使用灰色显示的出厂过滤器 - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>留空时，服务器使用灰色显示的出厂过滤器 - 先用 objectCategory，因为它在 Active Directory 中有索引；再用 sAMAccountName，因为账户的“Windows 目录”选项卡存储的正是它。%u 是账户的 Active Directory 用户名，%d 是其 AD 域，%m 是其完整邮件地址；三者在替换前都会被转义，因此恶意的登录名无法改写过滤器。匹配到多个条目的过滤器不会验证任何人，这是有意为之。</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>已保留原状：{0} 封。首个原因：{1}</value>
@@ -7096,6 +7099,9 @@
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>未设置主机名，因此本服务器通告的是其 Windows 计算机名，互联网上没有任何 DNS 知道这个名称。</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>未设置主机名：“协议”页“SMTP”选项卡上的“主机名（HELO/EHLO 问候）”为空。</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>未设置主机名或地址。</value>
   </data>
@@ -7203,9 +7209,6 @@
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>还没有公用文件夹。添加文件夹 会创建一个可供多个帐户打开的文件夹；然后由 权限 决定谁可以读写它。</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>SMTP 设置中未配置公共主机名。</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>还没有收件人，因此发往此列表的邮件不会送达任何人。请在下方添加地址。</value>
@@ -7528,8 +7531,8 @@
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>默认关闭，因为它的代价是每封邮件几千字节的词条表，以及对每封已投递邮件的一次回填遍历 - 这是管理员的决定，绝不是升级的决定。打开和关闭的结果完全相同：索引只是缩小了子串扫描必须读取的邮件范围。需要启用（上面的）邮件索引；单独打开此项不会索引任何内容。</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>默认关闭，关闭时不起作用：关联目录的账户此时按旧方式通过 Windows 登录验证。打开时，同样的这些账户 - 填写了“目录”选项卡的账户 - 改为通过对下面的服务器进行 LDAP 绑定来验证。非目录账户在任何情况下都不受影响。</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>默认关闭，关闭时不起作用：关联目录的账户此时按旧方式通过 Windows 登录验证。打开时，同样的这些账户 - 填写了“Windows 目录”选项卡的账户 - 改为通过对下面的服务器进行 LDAP 绑定来验证。非目录账户在任何情况下都不受影响。</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>默认关闭，而这是值得考虑的决定。关闭时，停止应答的引擎会放垃圾邮件通过，直到有人注意到。打开时，它会改为拦下邮件 - 而在无人看管时被推迟的邮件最终会被退回。关闭是可以挽回的失败，这就是它作为默认值的原因。</value>
@@ -7684,8 +7687,8 @@
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>在“反垃圾邮件设置”页列出您信任的签封域（您的用户依赖的邮件列表和转发服务），并打开 ARC 抵消。指明信任谁是只有您才能作出的判断，这就是没有默认值的原因。</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>在备份页面设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>在“备份与还原”页上设置备份写入的文件夹，放在与邮件存储不同的磁盘上。</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>在“协议”页面的 SMTP 选项卡上，把主机名设置为本服务器的完整 DNS 名称，例如 mail.example.com。然后请服务器公共地址的所有者添加一条指向该名称的 PTR 记录；DNS 记录页面会显示需要请求什么。</value>
@@ -7825,8 +7828,8 @@
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>打开“已拦截的附件”，它拥有文件名模式列表</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>打开“域”，账户的“目录”选项卡在那里把它关联到目录</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>打开“域”，账户的“Windows 目录”选项卡在那里把它关联到目录</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>打开“域”，域在那里添加</value>
@@ -8887,8 +8890,8 @@
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>为每一次投递、拒绝和隔离记录一行可查询的数据，这样“Jane 在 14:20 发的那封邮件到底怎么样了”就可以通过搜索来回答，而不必去 grep 日志。这些事件与 AWStats 日志一直以来看到的是同一批；此功能只是给它们一个可以被提问的地方。默认关闭，因为它会存储发件人和收件人地址 - 这就使它成为一份谁与谁通信的记录。</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>把每封被接受的入站邮件的 SPF 判定结果记录为一个 Received-SPF 标头（RFC 7208 第 9.1 节）。只有在 SPF 检查确实运行过时才会写入该标头，因此必须在“反垃圾邮件”页上启用“检查 SPF”，它才会出现。</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>把每封被接受的入站邮件的 SPF 判定结果记录为一个 Received-SPF 标头（RFC 7208 第 9.1 节）。只有在 SPF 检查确实运行过时才会写入该标头，因此必须在“反垃圾邮件设置”页上启用“检查 SPF”，它才会出现。</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>把本服务器自己对每封入站邮件作出的判定 - SPF、DKIM 和 DMARC - 作为跟踪标头写在投递的邮件上，供下游过滤器和诊断使用（RFC 8601、RFC 7208）。</value>
@@ -8934,9 +8937,6 @@
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>拒绝来自会话起始地址以外任何地址的会话</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>“拒绝”会在 RCPT 阶段向提交的邮件说明原因并拒绝，其他情况（别名、转发、定时发送）则以投递状态通知退回给发件人。已在队列中发往该地址的邮件会在下一次投递尝试时与列表比对。“照常投递，仅作记录”是在列表真正生效前查看其效果的安全方式。</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>拒绝并通知发件人</value>
@@ -9589,8 +9589,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>创建封禁时以 &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; 运行，范围消失时以 &lt;command&gt; unban &lt;address&gt; 运行，在 Windows 和 Linux 上相同，可用于云防火墙、路由器或 SIEM。程序路径含空格时请加引号；参数由服务器追加。非零退出码或无法启动的程序会在错误日志中报告一次。</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>运营或订阅一个支持 docs/Sandbox.md 中小型 HTTP 约定的沙箱，在反病毒页面的“沙箱”选项卡上设置其提交地址和判定地址，然后打开它。</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>运营或订阅一个支持 docs/Sandbox.md 中小型 HTTP 约定的沙箱，在“反病毒设置”页的“沙箱”选项卡上设置其提交地址和判定地址，然后打开它。</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>运行脚本函数</value>
@@ -11347,8 +11347,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>这不是当前使用的管理员密码。</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>这比计划所允许的时间更久远，说明运行正在失败或被跳过 - “日志”页上的备份日志会说明原因。</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>这比计划所允许的时间更久远，说明运行正在失败或被跳过 - “实时日志”页上的备份日志会说明原因。</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>那是接收流水线在 354 之后停滞: 调试日志中的阶段计时会指出是哪个阶段。</value>
@@ -11374,8 +11374,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>无法从服务器读取 ARC 过滤设置，因此本页无法说明该功能是否已配置。</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>Active Directory 用户名 (sAMAccountName) - 与账户“目录”选项卡中的值相同。可选: 留空时，测试在连接和服务凭据阶段之后停止。</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>Active Directory 用户名 (sAMAccountName) - 与账户“Windows 目录”选项卡中的值相同。可选: 留空时，测试在连接和服务凭据阶段之后停止。</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>控制面板连接的是另一台主机，因此无法从此处读取该主机的服务所运行的账户。请在服务器本身上打开控制面板查看。</value>
@@ -11793,8 +11793,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>一致性检查已关闭，因此没有运行过扫描。请在 {0} 页启用“定期把邮件行与磁盘上的文件交叉核对”；之后服务器会在启动时和每小时扫描，并写入 {1}。</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>ARC 密封的对应功能: 对于入站邮件，来自受信任密封者的有效 ARC 链可以抵消因转发而破坏了 DMARC 通过结果的邮件的 DMARC 失败分数 (RFC 8617)。它在反垃圾邮件设置页的发件人身份验证下配置，因为它与其他反垃圾邮件设置一起存储，而不是存放在 hMailServer.INI 中。受信任密封者列表为空时，此功能有意什么也不做: 任何人都可以伪造一整条 ARC 链，并用发布在自己 DNS 中的密钥密封它，而它会完美地通过验证，所以除非您已经信任该密封者，否则通过验证的链什么也证明不了。这个列表不是该功能的一个选项 - 它就是该功能本身。抵消量永远不会超过 DMARC 失败分数，并且仅在反垃圾邮件设置页启用了 DMARC 评分时才生效。</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>ARC 密封的对应功能: 对于入站邮件，来自受信任密封者的有效 ARC 链可以抵消因转发而破坏了 DMARC 通过结果的邮件的 DMARC 失败分数 (RFC 8617)。它在“反垃圾邮件设置”页的“发件人身份验证”选项卡上配置，因为它与其他反垃圾邮件设置一起存储，而不是存放在 hMailServer.INI 中。受信任密封者列表为空时，此功能有意什么也不做: 任何人都可以伪造一整条 ARC 链，并用发布在自己 DNS 中的密钥密封它，而它会完美地通过验证，所以除非您已经信任该密封者，否则通过验证的链什么也证明不了。这个列表不是该功能的一个选项 - 它就是该功能本身。抵消量永远不会超过 DMARC 失败分数，并且仅在“反垃圾邮件设置”页上启用了 DMARC 评分时才生效。</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>用于管理本服务器的凭据。</value>
@@ -12385,8 +12385,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>搜索匹配了多于一个目录条目 (过滤器 {0}，基准 {1})。服务器拒绝针对有歧义的匹配进行身份验证 - 请让 UserSearchFilter 或 SearchBase 只选出恰好一个条目。</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>搜索没有匹配到任何内容 (在 {1} 下使用过滤器 {0})。作为登录，这是拒绝而不是故障 - 请对照账户的“目录”选项卡检查用户名，对照目录检查过滤器和搜索基准。</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>搜索没有匹配到任何内容 (在 {1} 下使用过滤器 {0})。作为登录，这是拒绝而不是故障 - 请对照账户的“Windows 目录”选项卡检查用户名，对照目录检查过滤器和搜索基准。</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>达到此值时搜索停止，并告知客户端搜索失败，而不是给它一个会被误当作完整结果的部分结果。</value>
@@ -12424,8 +12424,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>服务器返回了此控制面板无法读取的内容 ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“服务器状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>服务器无法连接到它的数据库。请检查数据库连接和 hMailServer 错误日志，然后再试一次。({0})</value>
@@ -13277,8 +13277,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>用作列表发送的每份副本的信封发件人，这样投递失败 - 失效的订阅者、已满的邮箱 - 会到达列表所有者，而不是碰巧最后一个发帖的人。</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>用于 %d 占位符和 Negotiate 绑定 (在未加入域的主机上 NTLM 需要它)。服务器从账户的“目录”选项卡获取此值；请在此输入相同的值。</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>用于 %d 占位符和 Negotiate 绑定 (在未加入域的主机上 NTLM 需要它)。服务器从账户的“Windows 目录”选项卡获取此值；请在此输入相同的值。</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>仅用于一次测试绑定，永不存储。即使没有密码，测试仍能证明连接、传输、服务凭据和搜索。</value>
@@ -13886,8 +13886,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>开启后，账户自己的休假消息仍会回复同事，但外部发件人会收到域的通用文本 - 这样休假消息中的个人细节就留在了组织内部。</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>开启后，密码根本不存储在这里 - 而是请 Windows 来检查它。保持关闭，账户就使用“账户”选项卡上的密码。</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>开启后，密码根本不存储在这里 - 而是请 Windows 来检查它。保持关闭，账户就使用“常规”选项卡上的密码。</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>SAML 登录按钮上的文字</value>

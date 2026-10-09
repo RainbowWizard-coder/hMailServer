@@ -2042,7 +2042,7 @@ namespace hMailServer.ControlPanel.Views
                   // could not be edited at all, which stopped being true the moment the COM
                   // properties landed; a card that describes a limitation the product no
                   // longer has is the same defect as one that claims a feature it lacks.
-                  Blurb = L("The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page.")
+                  Blurb = L("The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page.")
                });
                cards_.Add(new CardDef
                {
@@ -2107,14 +2107,14 @@ namespace hMailServer.ControlPanel.Views
                         Key = "AuthenticationResultsEnabled",
                         Default = false,
                         Label = L("Write an Authentication-Results header on inbound mail"),
-                        Blurb = L("Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5).")
+                        Blurb = L("Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5).")
                      },
                      new BoolSetting
                      {
                         Key = "ReceivedSpfHeaderEnabled",
                         Default = false,
                         Label = L("Write a Received-SPF header on inbound mail"),
-                        Blurb = L("Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear.")
+                        Blurb = L("Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear.")
                      },
                      new TextSetting
                      {
@@ -2501,7 +2501,7 @@ namespace hMailServer.ControlPanel.Views
                   // the buttons. Everything is off until the check is turned on, and
                   // the check sends nothing but the request.
                   Title = L("Updates"),
-                  Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
+                  Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
                   Settings =
                   {
                      new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
@@ -2515,7 +2515,7 @@ namespace hMailServer.ControlPanel.Views
                         Key = "UpdateWindow",
                         Label = L("Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)"),
                         Placeholder = "Sun 03:00", // no-loc
-                        Blurb = L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.")
+                        Blurb = L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.")
                      },
                      new BoolSetting { Key = "UpdateBackupBeforeApply", Default = true, Label = L("Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)") },
                      new BoolSetting

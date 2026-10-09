@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>„Kdokoli v doméně“ znamená, že adresa odesílatele je v doméně hostované tímto serverem, což si může nárokovat i cizí osoba, pokud seznam zároveň nevyžaduje ověření. Pokud má být seznam omezen na přihlášené osoby, zaškrtněte to níže.</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>„done spam-protection“, poté ticho</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>„{0}“ se neuložilo: {1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>„Odesílat může kdokoli v doméně“ znamená, že adresa odesílatele je v doméně hostované tímto serverem, což si může nárokovat i cizí osoba, pokud seznam zároveň nevyžaduje ověření. Pokud má být seznam omezen na přihlášené osoby, zaškrtněte to níže.</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>„Odmítnout, s uvedením důvodu“ odpoví na odeslání u RCPT s důvodem a vše ostatní - alias, přeposlání, naplánované odeslání - vrátí odesílateli ve zprávě o stavu doručení. Pošta, která už na adresu čeká ve frontě, narazí na seznam při dalším pokusu o doručení. „Doručit a jen zaznamenat“ je bezpečný způsob, jak zjistit, co by seznam udělal, dřív než to udělá.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>'{0}' není čas ve 24hodinovém formátu HH:MM. Server přijímá hodnoty jako 02:00 nebo 23:45 a cokoli jiného raději odmítne, než aby hádal. Chcete-li denní zálohu vypnout, nechte pole prázdné.</value>
@@ -429,8 +432,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Doména může vydávat svým lidem certifikáty S/MIME z vlastní certifikační autority.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Název domény zde vyžaduje, aby počítač SERVERU byl připojen do této domény, protože Windows jej ověřují funkcí LogonUser. Z počítače, který připojen není, selže každý pokus, jako by bylo heslo špatné – včetně případu, kdy je název domény jen napsán s překlepem – takže poštovní schránka nastavená tímto způsobem na nepřipojeném serveru se nikdy nepřihlásí a nikdy neřekne proč. Pokud server není připojen k doméně, použijte místo toho ověřování proti adresáři LDAP na stránce Ověřování proti adresáři: to se k adresáři připojuje po síti a žádné připojení k doméně nevyžaduje.</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Název domény zde vyžaduje, aby počítač SERVERU byl připojen do této domény, protože Windows jej ověřují funkcí LogonUser. Z počítače, který připojen není, selže každý pokus, jako by bylo heslo špatné – včetně případu, kdy je název domény jen napsán s překlepem – takže poštovní schránka nastavená tímto způsobem na nepřipojeném serveru se nikdy nepřihlásí a nikdy neřekne proč. Pokud server není připojen k doméně, použijte místo toho ověřování proti adresáři LDAP na stránce Ověřování proti adresáři (LDAP): to se k adresáři připojuje po síti a žádné připojení k doméně nevyžaduje.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Doména s názvem {0} už na tomto serveru je a není to ukázková doména, kterou vytváří tato stránka, takže zde nelze ukázku vytvořit a tato stránka tuto doménu neodstraní. Pokud tuto doménu nechcete, odstraňte ji na stránce Domény.</value>
@@ -888,8 +891,8 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>Účty označené jako propojené s adresářem se přihlašují svým doménovým heslem přes LDAP bind – na rozdíl od přihlášení přes Windows to funguje i z hostitele, který není připojen k doméně, což je obvyklá situace poštovního serveru v DMZ. Upravuje sekci [LDAP] v hMailServer.INI; server tuto sekci znovu načte do dvou sekund od uložení, takže tato nastavení nevyžadují restart služby.</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>Účty označené jako propojené s adresářem. Tato polovina už v tomto GUI je: otevřete Domény, upravte účet a na jeho kartě Adresář zaškrtněte volbu Active Directory a vyplňte uživatelské jméno v AD – sAMAccountName, což je to, co nese %u. Účty bez tohoto označení si ponechají své běžné heslo hMailServeru a adresáře se nikdy nedotknou.</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>Účty označené jako propojené s adresářem. Tato polovina už v tomto GUI je: otevřete Domény, upravte účet a na jeho kartě Adresář Windows zaškrtněte „Ověřit toto heslo proti Windows (Active Directory, nebo místní účet Windows)“ a vyplňte „Uživatelské jméno Windows“ – sAMAccountName, což je to, co nese %u. Účty bez tohoto označení si ponechají své běžné heslo hMailServeru a adresáře se nikdy nedotknou.</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Účty této domény si mohou vyměňovat poštu se zde vyjmenovanými doménami a s nikým jiným: vnější odesílatel mimo vyjmenovanou doménu je odmítnut při RCPT TO a účet zde smí posílat jen do vyjmenovaných domén, do vlastní domény a postmasterovi. Ostatní domény hostované tímto serverem se počítají jako vnější, pokud nejsou vyjmenovány. Nedoručenky vždy projdou. Každý účet se tím řídí, pokud jeho vlastní dialog neříká omezeno nebo výjimka; prázdné znamená, že doména není omezena. Alias nebo distribuční seznam této domény, který vede ven, je váš a omezený účet na něj smí psát.</value>
@@ -2077,8 +2080,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Obě adresy jsou nastaveny. Zda služba odpovídá, odsud zjistit nelze: pošlete zvenčí zprávu s přiloženým souborem odesílaného typu a hledejte ji v části Zadrženo pro sandbox na stránce fronty v Decku, nebo v aplikačním protokolu řádek, že byla odeslána do sandboxu.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Obě výjimky čtou skóre, které tento server do zprávy zaznamenal, takže potřebují zapnutou volbu „Přidat důvod do hlavičky“ (Nastavení antispamu). Když je vypnutá, žádné skóre se nezaznamenává, nic nelze doložit a neuplatní se ani jedna výjimka – účet si ponechá chování platné pro celý server. Hodnotě v souboru se v takovém případě nedůvěřuje, protože nic nebrání ODESÍLATELI, aby tam nějakou vložil.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>Obě výjimky čtou skóre, které tento server do zprávy zaznamenal, takže potřebují zapnutou volbu „Přidat hlavičku X-hMailServer-Reason“ na stránce Nastavení antispamu. Když je vypnutá, žádné skóre se nezaznamenává, nic nelze doložit a neuplatní se ani jedna výjimka – účet si ponechá chování platné pro celý server. Hodnotě v souboru se v takovém případě nedůvěřuje, protože nic nebrání ODESÍLATELI, aby tam nějakou vložil.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Obě hranice jsou 0, takže žádné skóre nemůže nic označit ani odmítnout – server je před použitím testuje podmínkou „větší než 0“. Zároveň přestává testovat, jakmile průběžný součet dosáhne vyšší hranice, což je 0, takže v každé fázi proběhne přesně jedna kontrola a její výsledek se zahodí.</value>
@@ -2239,8 +2242,8 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Nelze určit, kdy proběhla poslední záloha: nastavení zálohování se ze serveru nepodařilo přečíst.</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>Nelze určit, kdy proběhla poslední záloha: {0} se z tohoto počítače nepodařilo přečíst. Zkontrolujte složku na serveru, nebo log zálohování na stránce Logy.</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>Nelze určit, kdy proběhla poslední záloha: {0} se z tohoto počítače nepodařilo přečíst. Zkontrolujte složku na serveru, nebo log zálohování na stránce Živé logy.</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>Nelze určit, zda je nastaven plán: hMailServer.ini nebyl na tomto počítači nalezen. Zkontrolujte čas denní zálohy a interval zálohování přímo na serveru.</value>
@@ -4124,7 +4127,7 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Každá složka IMAP si vede čítač dalšího UID zprávy, které vydá. Pokud se ten čítač opozdí za zprávami, které už ve složce jsou - což může způsobit obnovená nebo ručně upravená databáze - složka vydá UID, které už použila, a klient, který kešuje podle UID, zobrazí jednu zprávu tam, kde má být jiná. Toto posune každý čítač na nejvyšší UID, které jeho složka skutečně obsahuje. Nikdy ho nesnižuje, takže nemůže způsobit chybu, kterou opravuje.</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
     <value>Každá přijatá příchozí zpráva dostane jednu hlavičku Authentication-Results (RFC 8601) s verdikty SPF, DKIM a DMARC, ke kterým o ní tento server dospěl. Hlásí se jen kontroly, které skutečně proběhly - které běží, se konfiguruje na stránce Nastavení antispamu - a zpráva, na které neproběhla žádná kontrola, hlavičku nedostane. Přicházející zprávě, která už nese hlavičku Authentication-Results hlásící se k identitě tohoto serveru, se tato hlavička nejprve odstraní, aby odesílatel nemohl dosáhnout toho, že verdiktu napsanému jménem tohoto serveru někdo dál uvěří (RFC 8601 oddíl 5).</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
@@ -5573,8 +5576,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Pokud adresář nemůže odpovědět</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>Pokud byl plán teprve nastaven, zkontrolujte to znovu poté, co měl proběhnout jeho první běh; jinak důvod, proč se běhy přeskakují, uvádí log zálohování na stránce Logy.</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>Pokud byl plán teprve nastaven, zkontrolujte to znovu poté, co měl proběhnout jeho první běh; jinak důvod, proč se běhy přeskakují, uvádí log zálohování na stránce Živé logy.</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Pokud {0} už přijímá poštu někde jinde – u poskytovatele hostovaných schránek, na jiném serveru –, zveřejnění tohoto záznamu tuto poštu přesune sem. Změňte ho, až když je tento server připraven ji přijímat.</value>
@@ -5681,8 +5684,8 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Insert template…" xml:space="preserve">
     <value>Vložit šablonu…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na stránku Stav. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na stránku Stav serveru. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Nainstalovat aktualizaci teď?
@@ -5953,8 +5956,8 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Left Edge" xml:space="preserve">
     <value>Levý okraj</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Když zůstane prázdné, použije server dodávaný filtr zobrazený šedě – objectCategory na prvním místě, protože je v Active Directory indexován, a sAMAccountName proto, že právě to ukládá karta Adresář u účtu. %u je uživatelské jméno účtu v Active Directory, %d jeho AD doména a %m jeho celá poštovní adresa; všechny tři se před dosazením escapují, takže nepřátelské přihlašovací jméno nemůže filtr přepsat. Filtr, který odpovídá více než jedné položce, záměrně neověří nikoho.</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Když zůstane prázdné, použije server dodávaný filtr zobrazený šedě – objectCategory na prvním místě, protože je v Active Directory indexován, a sAMAccountName proto, že právě to ukládá karta Adresář Windows u účtu. %u je uživatelské jméno účtu v Active Directory, %d jeho AD doména a %m jeho celá poštovní adresa; všechny tři se před dosazením escapují, takže nepřátelské přihlašovací jméno nemůže filtr přepsat. Filtr, který odpovídá více než jedné položce, záměrně neověří nikoho.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Ponecháno tam, kde bylo: {0}. První důvod: {1}</value>
@@ -7169,6 +7172,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Není nastaven žádný název hostitele, takže tento server oznamuje název svého počítače Windows, který žádný DNS na internetu nezná.</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>Není nastaven žádný název hostitele: „Název hostitele (pozdrav HELO/EHLO)“ na kartě SMTP stránky Protokoly je prázdný.</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Není nastaven žádný název hostitele ani adresa.</value>
   </data>
@@ -7279,9 +7285,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Zatím žádné veřejné složky. Přidat složku vytvoří složku, kterou může otevřít více účtů; Oprávnění pak určí, kdo do ní smí číst a zapisovat.</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>V nastavení SMTP není nastaven žádný veřejný název hostitele.</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>Zatím žádní příjemci, takže pošta odeslaná na tento seznam nedojde nikomu. Přidejte adresu níže.</value>
@@ -7616,8 +7619,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Ve výchozím nastavení vypnuto, protože to stojí tabulku termů o několika kilobajtech na zprávu a doplňovací průchod přes každou už doručenou zprávu – to je rozhodnutí správce, nikdy ne aktualizace. Výsledky jsou zapnuto i vypnuto stejné: index jen zužuje, které zprávy musí prohledávání podřetězců přečíst. Vyžaduje zapnuté indexování zpráv (výše); samo o sobě neindexuje nic.</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>Ve výchozím nastavení vypnuto a ve vypnutém stavu nečinné: účty propojené s adresářem se pak ověřují postaru, přes přihlášení Windows. Když je to zapnuto, ověřují se tytéž účty – ty s vyplněnou kartou Adresář – místo toho bindem LDAP proti serveru níže. Účtů nepropojených s adresářem se to tak ani tak nikdy nedotkne.</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>Ve výchozím nastavení vypnuto a ve vypnutém stavu nečinné: účty propojené s adresářem se pak ověřují postaru, přes přihlášení Windows. Když je to zapnuto, ověřují se tytéž účty – ty s vyplněnou kartou Adresář Windows – místo toho bindem LDAP proti serveru níže. Účtů nepropojených s adresářem se to tak ani tak nikdy nedotkne.</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>Ve výchozím nastavení vypnuto a je to rozhodnutí, nad kterým stojí za to přemýšlet. Vypnuto: engine, který přestane odpovídat, propouští spam, dokud si toho někdo nevšimne. Zapnuto: zastaví místo toho poštu – a zpráva odložená ve chvíli, kdy se nikdo nedívá, je zpráva, která se nakonec vrátí odesílateli. Vypnuto je zotavitelné selhání, a proto je to výchozí volba.</value>
@@ -7772,8 +7775,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Na stránce Nastavení antispamu uveďte pečetící domény, kterým důvěřujete (konferenční a přeposílací služby, na které vaši uživatelé spoléhají), a zapněte offset ARC. Pojmenovat, komu důvěřujete, je úsudek, který můžete udělat jen vy – proto zde není žádná výchozí hodnota.</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Na stránce Zálohování nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Na stránce Zálohování a obnovení nastavte složku, do níž se záloha zapisuje, na jiném disku, než na kterém je úložiště zpráv.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Na kartě SMTP stránky Protokoly nastavte Název hostitele na úplný název DNS tohoto serveru, například mail.example.com. Pak požádejte vlastníka veřejné adresy serveru o záznam PTR, který tento název uvádí; stránka Záznamy DNS ukazuje, o co požádat.</value>
@@ -7913,8 +7916,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Otevřít Blokované přílohy, kde se spravuje seznam vzorů názvů souborů</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>Otevřít Domény, kde karta Adresář u účtu propojuje účet s adresářem</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>Otevřít Domény, kde karta Adresář Windows u účtu propojuje účet s adresářem</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>Otevřít Domény, kde se přidávají domény</value>
@@ -8975,8 +8978,8 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Zaznamená dohledatelný řádek pro každé doručení, odmítnutí a karanténu, takže na otázku „co se stalo se zprávou, kterou Jana poslala ve 14:20“ lze odpovědět hledáním místo grepování logů. Události jsou tytéž, které odjakživa vidí žurnál AWStats; tohle jim dává místo, kde se na ně lze ptát. Ve výchozím nastavení vypnuto, protože ukládá adresy odesílatelů a příjemců – což z toho dělá záznam o tom, kdo si s kým píše.</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>Zaznamená verdikt SPF pro každou přijatou příchozí zprávu jako hlavičku Received-SPF (RFC 7208, oddíl 9.1). Hlavička se zapíše jen tehdy, když kontrola SPF skutečně proběhla, takže aby se objevila, musí být na stránce Antispam zapnuta volba „Kontrolovat SPF“.</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>Zaznamená verdikt SPF pro každou přijatou příchozí zprávu jako hlavičku Received-SPF (RFC 7208, oddíl 9.1). Hlavička se zapíše jen tehdy, když kontrola SPF skutečně proběhla, takže aby se objevila, musí být na stránce Nastavení antispamu zapnuta volba „Zkontrolovat SPF“.</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Zaznamená verdikty, ke kterým tento server sám došel u každé příchozí zprávy – SPF, DKIM a DMARC – jako trasovací hlavičky doručené zprávy, pro navazující filtry a diagnostiku (RFC 8601, RFC 7208).</value>
@@ -9022,9 +9025,6 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Odmítnout relaci z jakékoli jiné adresy než té, na které začala</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>Odmítnout odpoví na odeslání u RCPT s důvodem a vše ostatní - alias, přeposlání, naplánované odeslání - vrátí odesílateli ve zprávě o stavu doručení. Pošta, která už na adresu čeká ve frontě, narazí na seznam při dalším pokusu o doručení. Doručit a jen zaznamenat je bezpečný způsob, jak zjistit, co by seznam udělal, dřív než to udělá.</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>Odmítnout a upozornit odesílatele</value>
@@ -9689,8 +9689,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Spouští se jako &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; při vytvoření zákazu a jako &lt;command&gt; unban &lt;address&gt;, když rozsah zmizí, stejně ve Windows i v Linuxu - pro cloudový firewall, směrovač nebo SIEM. Cestu k programu dejte do uvozovek, obsahuje-li mezery; server připojí argumenty. Nenulový návratový kód nebo program, který nelze spustit, se jednou nahlásí v protokolu chyb.</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>Provozujte nebo si předplaťte sandbox, který mluví malým HTTP kontraktem z docs/Sandbox.md, nastavte jeho adresy pro odeslání a verdikt na kartě Sandbox stránky Antivirus a zapněte ho.</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Provozujte nebo si předplaťte sandbox, který mluví malým HTTP kontraktem z docs/Sandbox.md, nastavte jeho adresy pro odeslání a verdikt na kartě Sandbox stránky Nastavení antiviru a zapněte ho.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Spustit funkci skriptu</value>
@@ -11477,8 +11477,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>Toto není heslo správce, které se právě používá.</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>To je starší, než plán dovoluje, takže běhy selhávají nebo se přeskakují – důvod uvádí log zálohování na stránce Logy.</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>To je starší, než plán dovoluje, takže běhy selhávají nebo se přeskakují – důvod uvádí log zálohování na stránce Živé logy.</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>To se zasekává přijímací řetězec po odpovědi 354: která fáze to je, uvádějí časy jednotlivých fází v ladicím logu.</value>
@@ -11504,8 +11504,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>Nastavení filtrování ARC se ze serveru nepodařilo přečíst, takže tato stránka nemůže říct, zda je funkce nastavena.</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>Uživatelské jméno v Active Directory (sAMAccountName) – stejná hodnota, jakou nese karta Adresář u účtu. Nepovinné: ponecháte-li je prázdné, test skončí po fázi připojení a fázi přihlašovacích údajů služby.</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>Uživatelské jméno v Active Directory (sAMAccountName) – stejná hodnota, jakou nese karta Adresář Windows u účtu. Nepovinné: ponecháte-li je prázdné, test skončí po fázi připojení a fázi přihlašovacích údajů služby.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel je připojen k jinému hostiteli, takže účet, pod kterým běží JEHO služba, odsud přečíst nelze. Chcete-li jej zjistit, otevřete Control Panel přímo na serveru.</value>
@@ -11944,8 +11944,8 @@ Označte klíč výše a zkopírujte ho ručně - znovu už se nezobrazí.</valu
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Kontrola konzistence je vypnutá, takže žádný sken neproběhl. Zapněte „Pravidelně porovnávat řádky zpráv se soubory na disku“ na stránce {0}; server pak skenuje při spuštění a každou hodinu a zapisuje {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>Protějšek pečetění ARC: u příchozí pošty může platný řetězec ARC od důvěryhodného pečetitele vyrovnat skóre za selhání DMARC u zprávy, jejíž úspěšný DMARC zničilo přeposlání (RFC 8617). Konfiguruje se na stránce Nastavení antispamu v části ověřování odesílatele, protože se ukládá s ostatními antispamovými nastaveními, ne v hMailServer.INI. S prázdným seznamem důvěryhodných pečetitelů funkce záměrně nedělá vůbec nic: kdokoli může vyrobit celý řetězec ARC a zapečetit ho klíči zveřejněnými ve vlastním DNS, a projde ověřením dokonale, takže procházející řetězec nic nedokazuje, pokud pečetiteli už nedůvěřujete. Seznam není volba funkce - seznam je ta funkce. Vyrovnání nikdy nepřekročí skóre za selhání DMARC a platí jen dokud je na stránce Nastavení antispamu zapnuté skórování DMARC.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Protějšek pečetění ARC: u příchozí pošty může platný řetězec ARC od důvěryhodného pečetitele vyrovnat skóre za selhání DMARC u zprávy, jejíž úspěšný DMARC zničilo přeposlání (RFC 8617). Konfiguruje se na kartě Ověření odesílatele stránky Nastavení antispamu, protože se ukládá s ostatními antispamovými nastaveními, ne v hMailServer.INI. S prázdným seznamem důvěryhodných pečetitelů funkce záměrně nedělá vůbec nic: kdokoli může vyrobit celý řetězec ARC a zapečetit ho klíči zveřejněnými ve vlastním DNS, a projde ověřením dokonale, takže procházející řetězec nic nedokazuje, pokud pečetiteli už nedůvěřujete. Seznam není volba funkce - seznam je ta funkce. Vyrovnání nikdy nepřekročí skóre za selhání DMARC a platí jen dokud je na stránce Nastavení antispamu zapnuté skórování DMARC.</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>Přihlašovací údaje, kterými se tento server spravuje.</value>
@@ -12548,8 +12548,8 @@ Přesto přidat?</value>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Hledání odpovídalo VÍCE než jedné položce adresáře (filtr {0}, base {1}). Server odmítá ověřovat proti nejednoznačné shodě - upravte UserSearchFilter nebo SearchBase tak, aby vybíraly přesně jednu položku.</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>Hledání nenašlo nic (filtr {0} pod {1}). Jako přihlášení je to odmítnutí, ne výpadek - zkontrolujte uživatelské jméno proti kartě Adresář účtu a filtr a základ hledání proti adresáři.</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>Hledání nenašlo nic (filtr {0} pod {1}). Jako přihlášení je to odmítnutí, ne výpadek - zkontrolujte uživatelské jméno proti kartě Adresář Windows účtu a filtr a základ hledání proti adresáři.</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>Hledání se při dosažení této hodnoty zastaví a klientovi se řekne, že hledání selhalo, místo aby dostal částečný výsledek, který by pokládal za úplný.</value>
@@ -12587,8 +12587,8 @@ Přesto přidat?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Server odpověděl něčím, co tento Control Panel neumí přečíst ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je – kliknutím na stránce Stav, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je – kliknutím na stránce Stav serveru, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Server nedosáhne na svou databázi. Zkontrolujte připojení k databázi a chybový log hMailServeru a poté to zkuste znovu. ({0})</value>
@@ -13443,8 +13443,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Používá se jako odesílatel obálky každé kopie, kterou seznam rozesílá, aby selhání doručení - mrtvý odběratel, plná schránka - došla vlastníkovi seznamu místo tomu, kdo náhodou psal naposledy.</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>Používá se pro zástupný symbol %d a pro bind Negotiate (NTLM ho potřebuje na hostiteli, který není v doméně). Server ji bere z karty Adresář účtu; zadejte zde tutéž hodnotu.</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>Používá se pro zástupný symbol %d a pro bind Negotiate (NTLM ho potřebuje na hostiteli, který není v doméně). Server ji bere z karty Adresář Windows účtu; zadejte zde tutéž hodnotu.</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>Použije se jednou pro testovací bind a nikdy se neuloží. Bez hesla test stále prokáže spojení, transport, servisní přihlašovací údaje a hledání.</value>
@@ -14055,8 +14055,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Se zapnutým nastavením vlastní zpráva o nepřítomnosti účtu stále odpovídá kolegům, ale vnější odesílatelé dostanou místo ní obecný text domény - takže osobní podrobnosti ve zprávě o nepřítomnosti zůstanou uvnitř organizace.</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>Se zapnutým nastavením se heslo zde vůbec neukládá - o jeho kontrolu je požádán Windows. Nechte ho vypnuté a účet používá heslo z karty Účet.</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>Se zapnutým nastavením se heslo zde vůbec neukládá - o jeho kontrolu je požádán Windows. Nechte ho vypnuté a účet používá heslo z karty Obecné.</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Text na přihlašovacím tlačítku SAML</value>

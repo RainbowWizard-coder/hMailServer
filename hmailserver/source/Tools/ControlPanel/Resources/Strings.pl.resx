@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>„Każdy w domenie” oznacza, że adres nadawcy należy do domeny obsługiwanej przez ten serwer, a osoba z zewnątrz może taki adres podać, o ile lista nie wymaga dodatkowo uwierzytelnienia. Jeśli lista ma być ograniczona do osób zalogowanych, należy zaznaczyć tę opcję poniżej.</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>„done spam-protection”, a potem cisza</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>Nie zapisano „{0}”: {1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>„Każdy w domenie może wysyłać” oznacza, że adres nadawcy należy do domeny obsługiwanej przez ten serwer, a osoba z zewnątrz może taki adres podać, o ile lista nie wymaga dodatkowo uwierzytelnienia. Jeśli lista ma być ograniczona do osób zalogowanych, należy zaznaczyć tę opcję poniżej.</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>„Odrzuć, podając powód” odpowiada na zgłoszenie przy RCPT, podając powód, a wszystko inne - alias, przekierowanie, zaplanowaną wysyłkę - zwraca nadawcy w powiadomieniu o stanie doręczenia. Poczta już czekająca w kolejce do adresu trafi na listę przy następnej próbie doręczenia. „Doręcz i tylko zapisz” to bezpieczny sposób, by zobaczyć, co zrobiłaby lista, zanim to zrobi.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>„{0}” nie jest godziną w 24-godzinnym formacie HH:MM. Serwer przyjmuje wartości takie jak 02:00 lub 23:45, a wszystko inne odrzuca, zamiast zgadywać. Puste pole oznacza brak codziennej kopii zapasowej.</value>
@@ -429,8 +432,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Domena może wydawać swoim ludziom certyfikaty S/MIME z własnego urzędu certyfikacji.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Nazwa domeny podana tutaj wymaga, aby komputer SAMEGO SERWERA był przyłączony do tej domeny, ponieważ Windows sprawdza ją funkcją LogonUser. Z komputera nieprzyłączonego każda próba kończy się niepowodzeniem tak, jakby hasło było błędne - również wtedy, gdy nazwa domeny jest po prostu źle wpisana - więc skrzynka pocztowa skonfigurowana w ten sposób na serwerze nieprzyłączonym do domeny nigdy się nie zaloguje i nigdy nie poda przyczyny. Jeśli serwer nie jest przyłączony do domeny, należy zamiast tego użyć uwierzytelniania katalogowego LDAP na stronie Uwierzytelnianie katalogowe: łączy się ono z katalogiem przez sieć operacją bind i nie wymaga przyłączenia do domeny.</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Nazwa domeny podana tutaj wymaga, aby komputer SAMEGO SERWERA był przyłączony do tej domeny, ponieważ Windows sprawdza ją funkcją LogonUser. Z komputera nieprzyłączonego każda próba kończy się niepowodzeniem tak, jakby hasło było błędne - również wtedy, gdy nazwa domeny jest po prostu źle wpisana - więc skrzynka pocztowa skonfigurowana w ten sposób na serwerze nieprzyłączonym do domeny nigdy się nie zaloguje i nigdy nie poda przyczyny. Jeśli serwer nie jest przyłączony do domeny, należy zamiast tego użyć uwierzytelniania katalogowego LDAP na stronie Uwierzytelnianie katalogowe (LDAP): łączy się ono z katalogiem przez sieć operacją bind i nie wymaga przyłączenia do domeny.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Domena o nazwie {0} jest już na tym serwerze i nie jest to przykładowa domena tworzona przez tę stronę, więc nie można tu utworzyć próbki, a ta strona tej domeny nie usunie. Jeśli ta domena nie jest potrzebna, usuń ją na stronie Domeny.</value>
@@ -888,8 +891,8 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>Konta oznaczone jako powiązane z katalogiem logują się hasłem domenowym przez bind LDAP - w odróżnieniu od logowania Windows działa to z hosta nieprzyłączonego do domeny, co jest typową sytuacją serwera pocztowego w strefie DMZ. Edytuje sekcję [LDAP] pliku hMailServer.INI; serwer odczytuje tę sekcję ponownie w ciągu dwóch sekund od zapisu, więc te ustawienia nie wymagają ponownego uruchomienia usługi.</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>Konta oznaczone jako powiązane z katalogiem. Ta połowa jest już w tym interfejsie: otwórz Domeny, edytuj konto i na jego karcie Katalog zaznacz opcję Active Directory oraz wpisz nazwę użytkownika AD - sAMAccountName, czyli to, co niesie %u. Konta bez tego oznaczenia zachowują zwykłe hasło hMailServer i nigdy nie sięgają do katalogu.</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>Konta oznaczone jako powiązane z katalogiem. Ta połowa jest już w tym interfejsie: otwórz Domeny, edytuj konto i na jego karcie Katalog Windows zaznacz „Sprawdzaj to hasło w systemie Windows (Active Directory lub lokalne konto Windows)” oraz wypełnij „Nazwa użytkownika Windows” - sAMAccountName, czyli to, co niesie %u. Konta bez tego oznaczenia zachowują zwykłe hasło hMailServer i nigdy nie sięgają do katalogu.</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Konta tej domeny mogą wymieniać pocztę z wymienionymi tu domenami i z nikim innym: nadawca z zewnątrz spoza wskazanej domeny jest odrzucany przy RCPT TO, a konto stąd może wysyłać tylko do wskazanych domen, do własnej domeny i do postmastera. Inne domeny obsługiwane przez ten serwer liczą się jako zewnętrzne, chyba że są wskazane. Zwroty zawsze przechodzą. Każde konto stosuje się do tego, chyba że jego własne okno mówi ograniczone lub wyjątek; puste oznacza, że domena nie jest ograniczona. Alias lub lista dystrybucyjna tej domeny sięgająca na zewnątrz należy do Ciebie i ograniczone konto może do niej pisać.</value>
@@ -2077,8 +2080,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Oba adresy są ustawione. Czy usługa odpowiada, nie da się stwierdzić stąd: wyślij z zewnątrz wiadomość z załączonym plikiem przesyłanego typu i poszukaj jej w sekcji Zatrzymane dla piaskownicy na stronie kolejki w Decku albo w dzienniku aplikacji wiersza mówiącego, że została przesłana do piaskownicy.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Oba nadpisania odczytują punktację, którą ten serwer zapisał w wiadomości, wymagają więc włączonej opcji „Dodawaj nagłówek z przyczyną” (Ustawienia antyspamowe). Gdy jest wyłączona, żadna punktacja nie jest zapisywana, niczego nie da się wykazać i żadne z nadpisań nie działa - konto zachowuje zachowanie obowiązujące na całym serwerze. Wartość znajdująca się w pliku nie jest wtedy godna zaufania, ponieważ nic nie powstrzymuje NADAWCY przed jej umieszczeniem.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>Oba nadpisania odczytują punktację, którą ten serwer zapisał w wiadomości, wymagają więc włączonej opcji „Dodawaj nagłówek X-hMailServer-Reason” na stronie Ustawienia antyspamowe. Gdy jest wyłączona, żadna punktacja nie jest zapisywana, niczego nie da się wykazać i żadne z nadpisań nie działa - konto zachowuje zachowanie obowiązujące na całym serwerze. Wartość znajdująca się w pliku nie jest wtedy godna zaufania, ponieważ nic nie powstrzymuje NADAWCY przed jej umieszczeniem.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Oba progi mają wartość 0, więc żadna punktacja niczego nie oznaczy ani nie odrzuci - serwer sprawdza je warunkiem „większe niż 0”, zanim ich użyje. Przerywa też sprawdzanie, gdy tylko bieżąca suma osiągnie wyższy z progów, czyli 0, więc w każdej fazie wykonuje się dokładnie jedna kontrola, a jej wynik jest odrzucany.</value>
@@ -2239,8 +2242,8 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Nie da się stwierdzić, kiedy wykonano ostatnią kopię zapasową: nie udało się odczytać ustawień kopii zapasowej z serwera.</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>Nie da się stwierdzić, kiedy wykonano ostatnią kopię zapasową: nie udało się odczytać {0} z tego komputera. Należy sprawdzić folder na serwerze albo dziennik kopii zapasowych na stronie Dzienniki.</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>Nie da się stwierdzić, kiedy wykonano ostatnią kopię zapasową: nie udało się odczytać {0} z tego komputera. Należy sprawdzić folder na serwerze albo dziennik kopii zapasowych na stronie Dzienniki na żywo.</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>Nie da się stwierdzić, czy skonfigurowano harmonogram: nie znaleziono pliku hMailServer.ini na tym komputerze. Należy sprawdzić godzinę codziennej kopii zapasowej i interwał kopii zapasowej na samym serwerze.</value>
@@ -4124,8 +4127,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Każdy folder IMAP przechowuje licznik następnego identyfikatora UID wiadomości, jaki wyda. Jeśli licznik zostanie w tyle za wiadomościami już znajdującymi się w folderze - co potrafi spowodować przywrócona lub ręcznie zmieniona baza danych - folder wydaje UID, którego już użył, a klient buforujący według UID pokazuje jedną wiadomość tam, gdzie powinna być inna. Ta operacja podnosi każdy licznik do najwyższego UID, jaki faktycznie znajduje się w jego folderze. Nigdy żadnego nie obniża, nie może więc wywołać usterki, którą naprawia.</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
-    <value>Każda przyjęta wiadomość przychodząca otrzymuje jeden nagłówek Authentication-Results (RFC 8601) z werdyktami SPF, DKIM i DMARC, do jakich doszedł co do niej ten serwer. Zgłaszane są wyłącznie kontrole, które faktycznie się odbyły - to, które kontrole są wykonywane, konfiguruje się na stronie Antyspam - a wiadomość, dla której nie wykonano żadnej kontroli, nie otrzymuje nagłówka. Przychodzącej wiadomości, która niesie już nagłówek Authentication-Results podający się za tożsamość tego serwera, nagłówek ten jest najpierw usuwany, aby nadawca nie mógł sprawić, że werdykt zapisany w imieniu tego serwera zostanie uznany dalej w łańcuchu (RFC 8601, sekcja 5).</value>
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+    <value>Każda przyjęta wiadomość przychodząca otrzymuje jeden nagłówek Authentication-Results (RFC 8601) z werdyktami SPF, DKIM i DMARC, do jakich doszedł co do niej ten serwer. Zgłaszane są wyłącznie kontrole, które faktycznie się odbyły - to, które kontrole są wykonywane, konfiguruje się na stronie Ustawienia antyspamowe - a wiadomość, dla której nie wykonano żadnej kontroli, nie otrzymuje nagłówka. Przychodzącej wiadomości, która niesie już nagłówek Authentication-Results podający się za tożsamość tego serwera, nagłówek ten jest najpierw usuwany, aby nadawca nie mógł sprawić, że werdykt zapisany w imieniu tego serwera zostanie uznany dalej w łańcuchu (RFC 8601, sekcja 5).</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
     <value>Każda jako [ipv4:|ipv6:]zone[=codes], rozdzielone przecinkami lub spacjami, na przykład ipv4:zen.spamhaus.org. Domyślnie cztery listy, odpytywane dla IPv4: Spamhaus ZEN, SpamCop, PSBL i Mailspike.</value>
@@ -5573,8 +5576,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Jeśli katalog nie może odpowiedzieć</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>Jeśli harmonogram został dopiero co utworzony, należy sprawdzić ponownie po terminie jego pierwszego uruchomienia; w przeciwnym razie dziennik kopii zapasowych na stronie Dzienniki wyjaśnia, dlaczego uruchomienia są pomijane.</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>Jeśli harmonogram został dopiero co utworzony, należy sprawdzić ponownie po terminie jego pierwszego uruchomienia; w przeciwnym razie dziennik kopii zapasowych na stronie Dzienniki na żywo wyjaśnia, dlaczego uruchomienia są pomijane.</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Jeśli domena {0} już odbiera pocztę gdzie indziej - u dostawcy hostowanych skrzynek pocztowych, na innym serwerze - opublikowanie tego rekordu przeniesie tę pocztę tutaj. Zmień go dopiero wtedy, gdy ten serwer będzie gotowy ją przyjmować.</value>
@@ -5681,8 +5684,8 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Insert template…" xml:space="preserve">
     <value>Wstaw szablon…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>W tym oknie zaplanowane zadanie uruchamia zweryfikowany instalator bez kliknięcia: usługa zostaje zatrzymana, pliki i schemat zostają zaktualizowane, usługa zostaje uruchomiona, a wynik trafia do dziennika, dziennika zdarzeń systemu Windows i na stronę Stan. Usługa, która nie wróci, zostaje wycofana do poprzedniego instalatora, chyba że nowa wersja już zmieniła bazę danych.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>W tym oknie zaplanowane zadanie uruchamia zweryfikowany instalator bez kliknięcia: usługa zostaje zatrzymana, pliki i schemat zostają zaktualizowane, usługa zostaje uruchomiona, a wynik trafia do dziennika, dziennika zdarzeń systemu Windows i na stronę Stan serwera. Usługa, która nie wróci, zostaje wycofana do poprzedniego instalatora, chyba że nowa wersja już zmieniła bazę danych.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Zainstalować teraz aktualizację?
@@ -5953,8 +5956,8 @@ Zweryfikowany instalator zostaje przekazany pomocnikowi aktualizacji: usługa je
   <data name="Left Edge" xml:space="preserve">
     <value>Lewa krawędź</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Pozostawione puste, każe serwerowi użyć filtra dostarczonego z programem, pokazanego na szaro - najpierw objectCategory, ponieważ jest indeksowany w Active Directory, a następnie sAMAccountName, ponieważ to właśnie przechowuje karta Katalog konta. %u to nazwa użytkownika konta w Active Directory, %d jego domena AD, %m jego pełny adres pocztowy; wszystkie trzy są zabezpieczane znakami ucieczki przed podstawieniem, więc wroga nazwa logowania nie może przepisać filtra. Filtr, który pasuje do więcej niż jednego wpisu, celowo nie uwierzytelnia nikogo.</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Pozostawione puste, każe serwerowi użyć filtra dostarczonego z programem, pokazanego na szaro - najpierw objectCategory, ponieważ jest indeksowany w Active Directory, a następnie sAMAccountName, ponieważ to właśnie przechowuje karta Katalog Windows konta. %u to nazwa użytkownika konta w Active Directory, %d jego domena AD, %m jego pełny adres pocztowy; wszystkie trzy są zabezpieczane znakami ucieczki przed podstawieniem, więc wroga nazwa logowania nie może przepisać filtra. Filtr, który pasuje do więcej niż jednego wpisu, celowo nie uwierzytelnia nikogo.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Pozostawione tam, gdzie były: {0}. Pierwszy powód: {1}</value>
@@ -7169,6 +7172,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Nie ustawiono nazwy hosta, więc ten serwer ogłasza swoją nazwę komputera w systemie Windows, której nie zna żaden DNS w internecie.</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>Nie ustawiono nazwy hosta: pole „Nazwa hosta (powitanie HELO/EHLO)” na karcie SMTP strony Protokoły jest puste.</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Nie ustawiono nazwy hosta ani adresu.</value>
   </data>
@@ -7279,9 +7285,6 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Nie ma jeszcze folderów publicznych. Dodaj folder tworzy folder, który może otwierać kilka kont; Uprawnienia określa następnie, kto może w nim czytać i zapisywać.</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>W ustawieniach SMTP nie skonfigurowano publicznej nazwy hosta.</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>Brak jeszcze odbiorców, więc poczta wysłana na tę listę nie trafia do nikogo. Dodaj adres poniżej.</value>
@@ -7616,8 +7619,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>Domyślnie wyłączone, ponieważ kosztuje tablicę terminów o rozmiarze kilku kilobajtów na wiadomość oraz przebieg uzupełniający po każdej już dostarczonej wiadomości - to decyzja administratora, nigdy aktualizacji. Wyniki są identyczne przy włączonej i wyłączonej opcji: indeks jedynie zawęża zbiór wiadomości, które musi odczytać skanowanie po podciągu. Wymaga włączonego indeksowania wiadomości (powyżej); samo z siebie nie indeksuje niczego.</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>Domyślnie wyłączone i całkowicie bezczynne, gdy jest wyłączone: konta powiązane z katalogiem są wtedy sprawdzane po staremu, przez logowanie Windows. Gdy jest włączone, te same konta - te z wypełnioną kartą Katalog - są zamiast tego sprawdzane operacją bind LDAP względem serwera podanego poniżej. Kont niepowiązanych z katalogiem nie dotyczy to w żadnym przypadku.</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>Domyślnie wyłączone i całkowicie bezczynne, gdy jest wyłączone: konta powiązane z katalogiem są wtedy sprawdzane po staremu, przez logowanie Windows. Gdy jest włączone, te same konta - te z wypełnioną kartą Katalog Windows - są zamiast tego sprawdzane operacją bind LDAP względem serwera podanego poniżej. Kont niepowiązanych z katalogiem nie dotyczy to w żadnym przypadku.</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>Domyślnie wyłączone i jest to decyzja warta przemyślenia. Przy wyłączonej opcji silnik, który przestaje odpowiadać, przepuszcza spam, dopóki ktoś tego nie zauważy. Przy włączonej zatrzymuje zamiast tego pocztę - a wiadomość odroczona wtedy, gdy nikt nie patrzy, to wiadomość, która ostatecznie zostaje odbita. Wyłączenie to awaria odwracalna i dlatego jest wartością domyślną.</value>
@@ -7772,8 +7775,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>Na stronie Ustawienia antyspamowe należy wypisać domeny pieczętujące, którym się ufa (usługi list dyskusyjnych i przekazywania poczty, na których polegają użytkownicy), i włączyć korektę punktacji ARC. Wskazanie, komu się ufa, to ocena, której nikt inny dokonać nie może, i dlatego nie ma tu wartości domyślnej.</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>Na stronie Kopia zapasowa ustaw folder, do którego zapisywana jest kopia zapasowa, na innym dysku niż ten z magazynem wiadomości.</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>Na stronie Kopia zapasowa i przywracanie ustaw folder, do którego zapisywana jest kopia zapasowa, na innym dysku niż ten z magazynem wiadomości.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>Na karcie SMTP strony Protokoły ustaw w polu Nazwa hosta pełną nazwę DNS tego serwera, na przykład mail.example.com. Następnie poproś właściciela publicznego adresu serwera o rekord PTR wskazujący tę nazwę; strona Rekordy DNS pokazuje, o co poprosić.</value>
@@ -7913,8 +7916,8 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Otwórz Blokowane załączniki, gdzie znajduje się lista wzorców nazw plików</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>Otwórz Domeny, gdzie karta Katalog konta łączy je z katalogiem</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>Otwórz Domeny, gdzie karta Katalog Windows konta łączy je z katalogiem</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>Otwórz Domeny, gdzie dodaje się domeny</value>
@@ -8975,8 +8978,8 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Zapisuje przeszukiwalny wiersz dla każdego dostarczenia, odmowy i skierowania do kwarantanny, dzięki czemu na pytanie „co się stało z wiadomością, którą Jane wysłała o 14:20” można odpowiedzieć wyszukiwaniem, a nie przeczesywaniem dzienników. Są to te same zdarzenia, które od zawsze widzi dziennik AWStats; tutaj zyskują miejsce, o które da się pytać. Domyślnie wyłączone, ponieważ przechowuje adresy nadawców i odbiorców - czyli zapis tego, kto z kim koresponduje.</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>Zapisuje werdykt SPF dla każdej przyjętej wiadomości przychodzącej jako nagłówek Received-SPF (RFC 7208 sekcja 9.1). Nagłówek jest dopisywany tylko wtedy, gdy kontrola SPF rzeczywiście się odbyła, więc aby się pojawił, na stronie Antyspam musi być włączona opcja „Sprawdzaj SPF”.</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>Zapisuje werdykt SPF dla każdej przyjętej wiadomości przychodzącej jako nagłówek Received-SPF (RFC 7208 sekcja 9.1). Nagłówek jest dopisywany tylko wtedy, gdy kontrola SPF rzeczywiście się odbyła, więc aby się pojawił, na stronie Ustawienia antyspamowe musi być włączona opcja „Sprawdź SPF”.</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Zapisuje werdykty, do których ten serwer sam doszedł w sprawie każdej wiadomości przychodzącej - SPF, DKIM i DMARC - jako nagłówki śladu w dostarczonej wiadomości, na użytek filtrów położonych dalej i diagnostyki (RFC 8601, RFC 7208).</value>
@@ -9022,9 +9025,6 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Odrzucaj sesję z każdego adresu innego niż ten, na którym się zaczęła</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>Odrzuć odpowiada na zgłoszenie przy RCPT, podając powód, a wszystko inne - alias, przekierowanie, zaplanowaną wysyłkę - zwraca nadawcy w powiadomieniu o stanie doręczenia. Poczta już czekająca w kolejce do adresu trafi na listę przy następnej próbie doręczenia. Doręcz i tylko zapisz to bezpieczny sposób, by zobaczyć, co zrobiłaby lista, zanim to zrobi.</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>Odrzuć i powiadom nadawcę</value>
@@ -9689,8 +9689,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Uruchamiany jako &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; przy utworzeniu blokady i jako &lt;command&gt; unban &lt;address&gt;, gdy zakres znika, tak samo w Windows i w Linux - dla zapory w chmurze, routera lub SIEM. Ujmij ścieżkę programu w cudzysłów, jeśli zawiera spacje; serwer dopisuje argumenty. Niezerowy kod wyjścia lub program, którego nie da się uruchomić, jest zgłaszany raz w dzienniku błędów.</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>Prowadź lub subskrybuj piaskownicę obsługującą mały kontrakt HTTP z docs/Sandbox.md, ustaw jej adresy przesyłania i werdyktu na karcie Piaskownica strony Antywirus i włącz ją.</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Prowadź lub subskrybuj piaskownicę obsługującą mały kontrakt HTTP z docs/Sandbox.md, ustaw jej adresy przesyłania i werdyktu na karcie Piaskownica strony Ustawienia antywirusowe i włącz ją.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Uruchom funkcję skryptu</value>
@@ -11477,8 +11477,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>To nie jest bieżące hasło administratora.</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>To starsze, niż pozwala harmonogram, więc uruchomienia kończą się niepowodzeniem lub są pomijane - dziennik kopii zapasowych na stronie Dzienniki wyjaśnia, dlaczego.</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>To starsze, niż pozwala harmonogram, więc uruchomienia kończą się niepowodzeniem lub są pomijane - dziennik kopii zapasowych na stronie Dzienniki na żywo wyjaśnia, dlaczego.</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>To zatrzymanie potoku przyjmowania po odpowiedzi 354: czasy etapów w dzienniku diagnostycznym wskazują, o który etap chodzi.</value>
@@ -11504,8 +11504,8 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>Nie udało się odczytać z serwera ustawień filtrowania ARC, więc ta strona nie może stwierdzić, czy funkcja jest skonfigurowana.</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>Nazwa użytkownika Active Directory (sAMAccountName) - ta sama wartość, którą zawiera karta Katalog danego konta. Opcjonalne: pozostawiona pusta sprawia, że test kończy się po etapach połączenia i poświadczenia usługi.</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>Nazwa użytkownika Active Directory (sAMAccountName) - ta sama wartość, którą zawiera karta Katalog Windows danego konta. Opcjonalne: pozostawiona pusta sprawia, że test kończy się po etapach połączenia i poświadczenia usługi.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Aplikacja Control Panel jest połączona z innym hostem, więc nie da się stąd odczytać konta, na którym działa TAMTA usługa. Aby je zobaczyć, należy otworzyć aplikację Control Panel na samym serwerze.</value>
@@ -11944,8 +11944,8 @@ Należy zaznaczyć klucz powyżej i skopiować go ręcznie - nie zostanie pokaza
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Kontrola spójności jest wyłączona, więc żadne skanowanie nie zostało wykonane. Należy włączyć „Okresowo porównuj wiersze wiadomości z plikami na dysku” na stronie {0}; serwer będzie wtedy skanował przy uruchamianiu i co godzinę oraz zapisywał {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>Odpowiednik pieczętowania ARC po stronie poczty przychodzącej: poprawny łańcuch ARC od zaufanego pieczętującego może zrównoważyć punktację za niepowodzenie DMARC dla wiadomości, której pozytywny wynik DMARC zniszczyło przekazanie (RFC 8617). Konfiguruje się to na stronie Antyspam, w sekcji uwierzytelniania nadawcy, ponieważ ustawienie jest przechowywane razem z pozostałymi ustawieniami antyspamowymi, a nie w hMailServer.INI. Przy pustej liście zaufanych pieczętujących funkcja nie robi zupełnie nic i jest to zamierzone: każdy może sfabrykować cały łańcuch ARC i opieczętować go kluczami opublikowanymi we własnym DNS, a taki łańcuch przejdzie weryfikację bez zarzutu - poprawny łańcuch nie dowodzi więc niczego, o ile pieczętujący nie jest już wcześniej darzony zaufaniem. Lista nie jest opcją tej funkcji, lista jest tą funkcją. Zrównoważenie nigdy nie przekracza punktacji za niepowodzenie DMARC i obowiązuje wyłącznie wtedy, gdy na stronie Antyspam włączone jest punktowanie DMARC.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Odpowiednik pieczętowania ARC po stronie poczty przychodzącej: poprawny łańcuch ARC od zaufanego pieczętującego może zrównoważyć punktację za niepowodzenie DMARC dla wiadomości, której pozytywny wynik DMARC zniszczyło przekazanie (RFC 8617). Konfiguruje się to na karcie Uwierzytelnianie nadawcy strony Ustawienia antyspamowe, ponieważ ustawienie jest przechowywane razem z pozostałymi ustawieniami antyspamowymi, a nie w hMailServer.INI. Przy pustej liście zaufanych pieczętujących funkcja nie robi zupełnie nic i jest to zamierzone: każdy może sfabrykować cały łańcuch ARC i opieczętować go kluczami opublikowanymi we własnym DNS, a taki łańcuch przejdzie weryfikację bez zarzutu - poprawny łańcuch nie dowodzi więc niczego, o ile pieczętujący nie jest już wcześniej darzony zaufaniem. Lista nie jest opcją tej funkcji, lista jest tą funkcją. Zrównoważenie nigdy nie przekracza punktacji za niepowodzenie DMARC i obowiązuje wyłącznie wtedy, gdy na stronie Ustawienia antyspamowe włączone jest punktowanie DMARC.</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>Poświadczenia używane do administrowania tym serwerem.</value>
@@ -12548,8 +12548,8 @@ Dodać mimo to?</value>
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Wyszukiwanie dopasowało WIĘCEJ niż jeden wpis katalogu (filtr {0}, baza {1}). Serwer odmawia uwierzytelniania wobec niejednoznacznego dopasowania - UserSearchFilter lub SearchBase muszą wybierać dokładnie jeden wpis.</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>Wyszukiwanie nie dopasowało niczego (filtr {0} w {1}). Jako logowanie jest to odmowa, a nie awaria - należy sprawdzić nazwę użytkownika na karcie Katalog konta, a filtr i bazę wyszukiwania wobec katalogu.</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>Wyszukiwanie nie dopasowało niczego (filtr {0} w {1}). Jako logowanie jest to odmowa, a nie awaria - należy sprawdzić nazwę użytkownika na karcie Katalog Windows konta, a filtr i bazę wyszukiwania wobec katalogu.</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>Po osiągnięciu tej wartości wyszukiwanie zostaje przerwane, a klient jest informowany, że wyszukiwanie się nie powiodło, zamiast otrzymać wynik częściowy, który wziąłby za kompletny.</value>
@@ -12587,8 +12587,8 @@ Dodać mimo to?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Serwer odpowiedział czymś, czego ten Control Panel nie umiał odczytać ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Serwer potrafi zauważyć nowe wydanie, zweryfikować je względem własnego podpisu Sigstore tego wydania i zainstalować je - po kliknięciu na stronie Stan albo samodzielnie w wyznaczonym oknie. Wyłączone, dopóki sprawdzanie nie zostanie włączone; sprawdzanie nie wysyła niczego poza samym żądaniem.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Serwer potrafi zauważyć nowe wydanie, zweryfikować je względem własnego podpisu Sigstore tego wydania i zainstalować je - po kliknięciu na stronie Stan serwera albo samodzielnie w wyznaczonym oknie. Wyłączone, dopóki sprawdzanie nie zostanie włączone; sprawdzanie nie wysyła niczego poza samym żądaniem.</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Serwer nie może dosięgnąć swojej bazy danych. Należy sprawdzić połączenie z bazą danych oraz dziennik błędów hMailServer, a następnie spróbować ponownie. ({0})</value>
@@ -13443,8 +13443,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Używany jako nadawca koperty każdej kopii wysyłanej przez listę, aby niepowodzenia dostarczania - martwy subskrybent, pełna skrzynka - trafiały do właściciela listy zamiast do tego, kto akurat ostatnio napisał.</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>Używana dla symbolu zastępczego %d oraz przy wiązaniu Negotiate (NTLM potrzebuje jej na hoście niedołączonym do domeny). Serwer bierze ją z karty Katalog konta; wpisz tu tę samą wartość.</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>Używana dla symbolu zastępczego %d oraz przy wiązaniu Negotiate (NTLM potrzebuje jej na hoście niedołączonym do domeny). Serwer bierze ją z karty Katalog Windows konta; wpisz tu tę samą wartość.</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>Używane raz do testowego wiązania i nigdy nie zapisywane. Bez hasła test i tak dowodzi połączenia, transportu, poświadczenia usługi i wyszukiwania.</value>
@@ -14055,8 +14055,8 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Gdy to jest włączone, własna wiadomość o nieobecności konta nadal odpowiada współpracownikom, ale nadawcy z zewnątrz dostają ogólny tekst domeny - dzięki temu osobiste szczegóły z wiadomości o nieobecności zostają wewnątrz organizacji.</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>Gdy to jest włączone, hasło w ogóle nie jest tu przechowywane - o jego sprawdzenie prosi się Windows. Pozostaw wyłączone, a konto używa hasła z karty Konto.</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>Gdy to jest włączone, hasło w ogóle nie jest tu przechowywane - o jego sprawdzenie prosi się Windows. Pozostaw wyłączone, a konto używa hasła z karty Ogólne.</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Tekst na przycisku logowania SAML</value>

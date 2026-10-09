@@ -18,9 +18,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="&quot;Anyone in the domain&quot; means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
-    <value>«Любой в домене» означает, что адрес отправителя принадлежит домену, размещённому на этом сервере, а такой адрес может назвать и посторонний, если список дополнительно не требует аутентификации. Установите соответствующий флажок ниже, если список должен быть доступен только тем, кто вошёл в систему.</value>
-  </data>
   <data name="&quot;done spam-protection&quot;, then silence" xml:space="preserve">
     <value>«done spam-protection», затем тишина</value>
   </data>
@@ -29,6 +26,12 @@
   </data>
   <data name="&quot;{0}&quot; was not saved: {1}" xml:space="preserve">
     <value>«{0}» не сохранено: {1}</value>
+  </data>
+  <data name="'Anyone in the domain can send' means the sender's address is at a domain this server hosts, which an outsider can claim unless the list also requires authentication. Tick that below if the list must be restricted to people who have logged in." xml:space="preserve">
+    <value>«Отправлять может любой в домене» означает, что адрес отправителя принадлежит домену, размещённому на этом сервере, а такой адрес может назвать и посторонний, если список дополнительно не требует аутентификации. Установите соответствующий флажок ниже, если список должен быть доступен только тем, кто вошёл в систему.</value>
+  </data>
+  <data name="'Refuse it, with the reason' answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. 'Deliver it, and only record it' is the safe way to see what the list would do before it does it." xml:space="preserve">
+    <value>«Отклонить с указанием причины» отвечает на отправку при RCPT с указанием причины, а всё остальное - псевдоним, пересылку, запланированную отправку - возвращает отправителю в уведомлении о состоянии доставки. Почта, уже стоящая в очереди на адрес, встретит список при следующей попытке доставки. «Доставить и только записать» - безопасный способ увидеть, что сделает список, прежде чем он это сделает.</value>
   </data>
   <data name="'{0}' is not a 24-hour HH:MM time. The server accepts values like 02:00 or 23:45 and refuses anything else rather than guess. Leave the box empty for no daily backup." xml:space="preserve">
     <value>«{0}» не является временем в 24-часовом формате ЧЧ:ММ. Сервер принимает значения вида 02:00 или 23:45 и отклоняет всё остальное, вместо того чтобы гадать. Оставьте поле пустым, если ежедневное резервное копирование не нужно.</value>
@@ -429,8 +432,8 @@
   <data name="A domain may issue S/MIME certificates to its people from its own authority." xml:space="preserve">
     <value>Домен может выдавать своим людям сертификаты S/MIME от собственного центра сертификации.</value>
   </data>
-  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
-    <value>Имя домена здесь требует, чтобы сам компьютер СЕРВЕРА был присоединён к этому домену, поскольку Windows проверяет его через LogonUser. С компьютера, не присоединённого к домену, любая попытка завершается так, будто пароль неверен, — в том числе когда имя домена просто написано с ошибкой, — поэтому настроенный таким образом почтовый ящик на неприсоединённом сервере никогда не сможет войти и никогда не скажет почему. Если сервер не присоединён к домену, используйте вместо этого аутентификацию через каталог LDAP на странице «Аутентификация через каталог»: она выполняет привязку к каталогу по сети и присоединения к домену не требует.</value>
+  <data name="A domain name here needs the SERVER's own computer to be joined to that domain, because Windows validates it with LogonUser. From a computer that is not joined, every attempt fails as though the password were wrong - including when the domain name is simply misspelt - so a mailbox configured this way on an unjoined server can never log in and never says why. If the server is not domain-joined, use LDAP directory authentication on the Directory authentication (LDAP) page instead: it binds to the directory over the network and needs no domain join." xml:space="preserve">
+    <value>Имя домена здесь требует, чтобы сам компьютер СЕРВЕРА был присоединён к этому домену, поскольку Windows проверяет его через LogonUser. С компьютера, не присоединённого к домену, любая попытка завершается так, будто пароль неверен, — в том числе когда имя домена просто написано с ошибкой, — поэтому настроенный таким образом почтовый ящик на неприсоединённом сервере никогда не сможет войти и никогда не скажет почему. Если сервер не присоединён к домену, используйте вместо этого аутентификацию через каталог LDAP на странице «Аутентификация через каталог (LDAP)»: она выполняет привязку к каталогу по сети и присоединения к домену не требует.</value>
   </data>
   <data name="A domain named {0} is already on this server, and it is not the sample domain this page makes, so no sample can be made here and this page will not remove it. If you do not want that domain, delete it on the Domains page." xml:space="preserve">
     <value>Домен с именем {0} уже есть на этом сервере, и это не образцовый домен, который создаёт эта страница, поэтому образец здесь создать нельзя, а эта страница этот домен не удалит. Если этот домен вам не нужен, удалите его на странице «Домены».</value>
@@ -888,8 +891,8 @@ Control Panel может читать файлы сообщений только
   <data name="Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so these settings need no service restart." xml:space="preserve">
     <value>Учётные записи, помеченные как связанные с каталогом, входят по своему доменному паролю через привязку LDAP — в отличие от входа средствами Windows, это работает и с узла, не присоединённого к домену, что обычно и бывает у почтового сервера в DMZ. Изменяет раздел [LDAP] файла hMailServer.INI; сервер перечитывает этот раздел в течение двух секунд после сохранения, поэтому эти параметры не требуют перезапуска службы.</value>
   </data>
-  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Directory tab tick the Active Directory option and fill in the AD user name - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
-    <value>Учётные записи, помеченные как связанные с каталогом. Эта половина уже есть в данном интерфейсе: откройте «Домены», отредактируйте учётную запись и на её вкладке «Каталог» установите параметр Active Directory и укажите имя пользователя AD — sAMAccountName, именно его несёт %u. Учётные записи без такой пометки сохраняют обычный пароль hMailServer и к каталогу не обращаются никогда.</value>
+  <data name="Accounts marked as directory-linked. That half already lives in this GUI: open Domains, edit the account, and on its Windows directory tab tick 'Check this password against Windows (Active Directory, or a local Windows account)' and fill in 'Windows user name' - the sAMAccountName, which is what %u carries. Accounts without that mark keep their ordinary hMailServer password and never touch the directory." xml:space="preserve">
+    <value>Учётные записи, помеченные как связанные с каталогом. Эта половина уже есть в данном интерфейсе: откройте «Домены», отредактируйте учётную запись и на её вкладке «Каталог Windows» установите «Проверять этот пароль через Windows (Active Directory или локальную учётную запись Windows)» и заполните «Имя пользователя Windows» — sAMAccountName, именно его несёт %u. Учётные записи без такой пометки сохраняют обычный пароль hMailServer и к каталогу не обращаются никогда.</value>
   </data>
   <data name="Accounts of this domain may exchange mail with the domains named here and with nobody else: an outside sender not in a named domain is refused at RCPT TO, and an account here may send only to the named domains, its own domain and the postmaster. Other domains this server hosts count as outside unless named. Bounces always get through. Each account follows this unless its own dialog says restricted or exempt; empty means the domain is not restricted. An alias or a distribution list of this domain that reaches outside is yours, and a restricted account may write to it." xml:space="preserve">
     <value>Учётные записи этого домена могут переписываться только с перечисленными здесь доменами: внешний отправитель не из указанного домена отклоняется на RCPT TO, а учётная запись отсюда может писать только в указанные домены, в свой домен и постмастеру. Другие домены, размещённые на этом сервере, считаются внешними, если не указаны. Отчёты о недоставке проходят всегда. Каждая учётная запись следует этому, если в её собственном диалоге не выбрано ограничено или исключение; пусто означает, что домен не ограничен. Псевдоним или список рассылки этого домена, ведущий наружу, - ваш, и ограниченная учётная запись может писать на него.</value>
@@ -2077,8 +2080,8 @@ Control Panel может читать файлы сообщений только
   <data name="Both addresses are set. Whether the service answers cannot be told from here: send a message with an attached file of a submitted type from outside, and look for it under Held for a sandbox on the Deck's queue page or for a line saying it was submitted to the sandbox in the application log." xml:space="preserve">
     <value>Оба адреса заданы. Отвечает ли служба, отсюда определить нельзя: отправьте извне сообщение с вложенным файлом отправляемого типа и найдите его в разделе «Задержано для песочницы» на странице очереди в Deck или найдите в журнале приложения строку о том, что оно отправлено в песочницу.</value>
   </data>
-  <data name="Both overrides read the score this server recorded in the message, so they need &quot;Add reason to header&quot; switched on (Anti-spam settings). With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
-    <value>Оба переопределения читают оценку, которую этот сервер записал в сообщение, поэтому им нужен включённый параметр «Добавлять причину в заголовок» («Параметры антиспама»). Если он выключен, оценка не записывается, доказать нечего и ни одно переопределение не действует — учётная запись сохраняет поведение, заданное для всего сервера. Значению в файле в этом случае не доверяют, потому что ничто не мешает ОТПРАВИТЕЛЮ вписать его туда самому.</value>
+  <data name="Both overrides read the score this server recorded in the message, so they need 'Add X-hMailServer-Reason header' switched on, on the Anti-spam settings page. With it off no score is recorded, nothing is provable, and neither override acts - the account keeps the server-wide behaviour. The value in the file is not trusted in that case because nothing stops a SENDER putting one there." xml:space="preserve">
+    <value>Оба переопределения читают оценку, которую этот сервер записал в сообщение, поэтому им нужен включённый параметр «Добавлять заголовок X-hMailServer-Reason» на странице «Параметры антиспама». Если он выключен, оценка не записывается, доказать нечего и ни одно переопределение не действует — учётная запись сохраняет поведение, заданное для всего сервера. Значению в файле в этом случае не доверяют, потому что ничто не мешает ОТПРАВИТЕЛЮ вписать его туда самому.</value>
   </data>
   <data name="Both thresholds are 0, so no score can mark or refuse anything - the server tests them with &quot;greater than 0&quot; before using them. It also stops testing as soon as the running total reaches the higher threshold, which is 0, so exactly one check runs in each phase and its result is discarded." xml:space="preserve">
     <value>Оба порога равны 0, поэтому никакая оценка ничего не пометит и не отклонит — перед использованием сервер проверяет их условием «больше 0». К тому же он прекращает проверки, как только накопленный итог достигает большего порога, а тот равен 0, — так что в каждой фазе выполняется ровно одна проверка, и её результат отбрасывается.</value>
@@ -2239,8 +2242,8 @@ Control Panel может читать файлы сообщений только
   <data name="Cannot tell when the last backup ran: the backup settings could not be read from the server." xml:space="preserve">
     <value>Определить, когда выполнялось последнее резервное копирование, нельзя: параметры резервного копирования не удалось прочитать с сервера.</value>
   </data>
-  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Logs page." xml:space="preserve">
-    <value>Определить, когда выполнялось последнее резервное копирование, нельзя: {0} не удалось прочитать с этого компьютера. Проверьте папку на сервере или журнал резервного копирования на странице «Журналы».</value>
+  <data name="Cannot tell when the last backup ran: {0} could not be read from this machine. Check the folder on the server, or in the backup log on the Live logs page." xml:space="preserve">
+    <value>Определить, когда выполнялось последнее резервное копирование, нельзя: {0} не удалось прочитать с этого компьютера. Проверьте папку на сервере или журнал резервного копирования на странице «Журналы в реальном времени».</value>
   </data>
   <data name="Cannot tell whether a schedule is configured: hMailServer.ini was not found on this machine. Check the daily backup time and the backup interval on the server itself." xml:space="preserve">
     <value>Определить, настроено ли расписание, нельзя: файл hMailServer.ini на этом компьютере не найден. Проверьте время ежедневного резервного копирования и интервал резервного копирования на самом сервере.</value>
@@ -4124,8 +4127,8 @@ Control Panel может читать файлы сообщений только
   <data name="Each IMAP folder keeps a counter for the next message UID it will issue. If that counter falls behind the messages already in the folder - which a restored or hand-edited database can do - the folder issues a UID it has already used, and a client that caches by UID shows one message where another should be. This moves every counter up to the highest UID its folder actually holds. It never moves one down, so it cannot cause the fault it repairs." xml:space="preserve">
     <value>Каждая папка IMAP хранит счётчик следующего UID сообщения, который она выдаст. Если этот счётчик отстаёт от сообщений, уже находящихся в папке, — а восстановленная или отредактированная вручную база данных к этому приводит, — папка выдаёт UID, который уже использовала, и клиент, кэширующий по UID, показывает одно сообщение там, где должно быть другое. Эта операция поднимает каждый счётчик до наибольшего UID, который фактически есть в его папке. Она никогда не понижает счётчик, поэтому вызвать ту неисправность, которую исправляет, она не может.</value>
   </data>
-  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
-    <value>Каждое принятое входящее сообщение получает один заголовок Authentication-Results (RFC 8601) с вердиктами SPF, DKIM и DMARC, к которым пришёл этот сервер. Сообщаются только те проверки, которые действительно выполнялись, — состав проверок настраивается на странице «Антиспам», — а сообщение, для которого не выполнялась ни одна проверка, заголовка не получает. Если у пришедшего сообщения уже есть заголовок Authentication-Results, заявляющий собственную идентичность этого сервера, такой заголовок сначала удаляется: так отправитель не сможет добиться того, чтобы вердикту, написанному от имени этого сервера, поверили дальше по цепочке (RFC 8601, раздел 5).</value>
+  <data name="Each accepted inbound message gets one Authentication-Results header (RFC 8601) carrying the SPF, DKIM and DMARC verdicts this server reached about it. Only checks that actually ran are reported - which checks run is configured on the Anti-spam settings page - and a message on which no check ran gets no header. An arriving message that already carries an Authentication-Results header claiming this server's own identity has that header removed first, so a sender cannot have a verdict written in this server's name believed downstream (RFC 8601 section 5)." xml:space="preserve">
+    <value>Каждое принятое входящее сообщение получает один заголовок Authentication-Results (RFC 8601) с вердиктами SPF, DKIM и DMARC, к которым пришёл этот сервер. Сообщаются только те проверки, которые действительно выполнялись, — состав проверок настраивается на странице «Параметры антиспама», — а сообщение, для которого не выполнялась ни одна проверка, заголовка не получает. Если у пришедшего сообщения уже есть заголовок Authentication-Results, заявляющий собственную идентичность этого сервера, такой заголовок сначала удаляется: так отправитель не сможет добиться того, чтобы вердикту, написанному от имени этого сервера, поверили дальше по цепочке (RFC 8601, раздел 5).</value>
   </data>
   <data name="Each as [ipv4:|ipv6:]zone[=codes], separated by commas or spaces, such as ipv4:zen.spamhaus.org. By default four lists, asked for IPv4: Spamhaus ZEN, SpamCop, PSBL and Mailspike." xml:space="preserve">
     <value>Каждый в виде [ipv4:|ipv6:]zone[=codes], через запятую или пробел, например ipv4:zen.spamhaus.org. По умолчанию четыре списка, опрашиваемые для IPv4: Spamhaus ZEN, SpamCop, PSBL и Mailspike.</value>
@@ -5573,8 +5576,8 @@ Control Panel может читать файлы сообщений только
   <data name="If the directory cannot answer" xml:space="preserve">
     <value>Если каталог не может ответить</value>
   </data>
-  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Logs page says why runs are being skipped." xml:space="preserve">
-    <value>Если расписание только что настроено, проверьте ещё раз после того, как наступит время первого запуска; иначе журнал резервного копирования на странице «Журналы» объяснит, почему запуски пропускаются.</value>
+  <data name="If the schedule was only just set up, re-check after its first run was due; otherwise the backup log on the Live logs page says why runs are being skipped." xml:space="preserve">
+    <value>Если расписание только что настроено, проверьте ещё раз после того, как наступит время первого запуска; иначе журнал резервного копирования на странице «Журналы в реальном времени» объяснит, почему запуски пропускаются.</value>
   </data>
   <data name="If {0} already receives mail somewhere else - a hosted mailbox provider, another server - publishing this record moves that mail here. Change it only when this server is ready to take it." xml:space="preserve">
     <value>Если {0} уже получает почту где-то ещё — у поставщика размещённых почтовых ящиков, на другом сервере, — публикация этой записи перенесёт эту почту сюда. Меняйте запись, только когда этот сервер готов принимать эту почту.</value>
@@ -5681,8 +5684,8 @@ Control Panel может читать файлы сообщений только
   <data name="Insert template…" xml:space="preserve">
     <value>Вставить шаблон…</value>
   </data>
-  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
-    <value>Внутри окна запланированная задача устанавливает проверенный установщик без единого нажатия: служба останавливается, файлы и схема обновляются, служба запускается, а результат попадает в журнал, в журнал событий Windows и на страницу «Состояние». Служба, которая не вернулась, откатывается к предыдущему установщику, кроме случая, когда новая версия уже изменила базу данных.</value>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Внутри окна запланированная задача устанавливает проверенный установщик без единого нажатия: служба останавливается, файлы и схема обновляются, служба запускается, а результат попадает в журнал, в журнал событий Windows и на страницу «Состояние сервера». Служба, которая не вернулась, откатывается к предыдущему установщику, кроме случая, когда новая версия уже изменила базу данных.</value>
   </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Установить обновление сейчас?
@@ -5953,8 +5956,8 @@ Control Panel может читать файлы сообщений только
   <data name="Left Edge" xml:space="preserve">
     <value>К левому краю</value>
   </data>
-  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
-    <value>Если поле оставлено пустым, сервер использует поставляемый фильтр, показанный серым: сначала objectCategory, потому что он проиндексирован в Active Directory, и затем sAMAccountName, потому что именно его хранит вкладка «Каталог» учётной записи. %u — имя пользователя учётной записи в Active Directory, %d — её домен AD, %m — её полный почтовый адрес; все три экранируются перед подстановкой, поэтому враждебное имя для входа не может переписать фильтр. Фильтр, которому соответствует более одной записи, намеренно не аутентифицирует никого.</value>
+  <data name="Left empty, the server uses the shipped filter shown in grey - objectCategory first because it is indexed in Active Directory, and sAMAccountName because that is what the account's Windows directory tab stores. %u is the account's Active Directory user name, %d its AD domain, %m its full mail address; all three are escaped before substitution, so a hostile logon name cannot rewrite the filter. A filter that matches more than one entry authenticates nobody, by design." xml:space="preserve">
+    <value>Если поле оставлено пустым, сервер использует поставляемый фильтр, показанный серым: сначала objectCategory, потому что он проиндексирован в Active Directory, и затем sAMAccountName, потому что именно его хранит вкладка «Каталог Windows» учётной записи. %u — имя пользователя учётной записи в Active Directory, %d — её домен AD, %m — её полный почтовый адрес; все три экранируются перед подстановкой, поэтому враждебное имя для входа не может переписать фильтр. Фильтр, которому соответствует более одной записи, намеренно не аутентифицирует никого.</value>
   </data>
   <data name="Left where they were: {0}. The first reason: {1}" xml:space="preserve">
     <value>Оставлено на месте: {0}. Первая причина: {1}</value>
@@ -7169,6 +7172,9 @@ Control Panel может читать файлы сообщений только
   <data name="No host name is set, so this server announces its Windows computer name, which no DNS on the Internet knows." xml:space="preserve">
     <value>Имя узла не задано, поэтому этот сервер сообщает имя своего компьютера Windows, которое не знает ни один DNS в интернете.</value>
   </data>
+  <data name="No host name is set: 'Host name (HELO/EHLO greeting)' on the Protocols page's SMTP tab is empty." xml:space="preserve">
+    <value>Имя узла не задано: поле «Имя узла (приветствие HELO/EHLO)» на вкладке «SMTP» страницы «Протоколы» пусто.</value>
+  </data>
   <data name="No host name or address is set." xml:space="preserve">
     <value>Имя узла или адрес не заданы.</value>
   </data>
@@ -7279,9 +7285,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No public folders yet. Add folder creates one that several accounts can open; Permissions then decides who may read and write it." xml:space="preserve">
     <value>Общих папок пока нет. Добавить папку создаёт папку, которую могут открывать несколько учётных записей; Разрешения затем определяет, кто может читать и записывать в неё.</value>
-  </data>
-  <data name="No public host name is configured in the SMTP settings." xml:space="preserve">
-    <value>В параметрах SMTP не задано публичное имя узла.</value>
   </data>
   <data name="No recipients yet, so mail sent to this list reaches nobody. Add an address below." xml:space="preserve">
     <value>Получателей пока нет, поэтому почта, отправленная на этот список, никому не доходит. Добавьте адрес ниже.</value>
@@ -7616,8 +7619,8 @@ Control Panel может читать файлы сообщений только
   <data name="Off by default because it costs a term table of a few kilobytes per message and a backfill pass over every message already delivered - an administrator's decision, never an upgrade's. Results are identical on and off: the index only narrows which messages the substring scan has to read. Requires message indexing (above) to be enabled; on its own this indexes nothing." xml:space="preserve">
     <value>По умолчанию выключено, потому что обходится в таблицу терминов размером в несколько килобайт на сообщение и в проход дозаполнения по каждому уже доставленному сообщению — это решение администратора, а никак не обновления. Результаты одинаковы и при включении, и при выключении: индекс лишь сужает круг сообщений, которые придётся прочитать при поиске подстроки. Требует включённого индексирования сообщений (выше); само по себе оно не индексирует ничего.</value>
   </data>
-  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
-    <value>По умолчанию выключено и в выключенном состоянии бездействует: учётные записи, связанные с каталогом, тогда проверяются по-старому, через вход Windows. Во включённом состоянии те же учётные записи — те, у которых заполнена вкладка «Каталог», — вместо этого проверяются привязкой LDAP к указанному ниже серверу. Учётных записей, не связанных с каталогом, это не затрагивает ни в том, ни в другом случае.</value>
+  <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
+    <value>По умолчанию выключено и в выключенном состоянии бездействует: учётные записи, связанные с каталогом, тогда проверяются по-старому, через вход Windows. Во включённом состоянии те же учётные записи — те, у которых заполнена вкладка «Каталог Windows», — вместо этого проверяются привязкой LDAP к указанному ниже серверу. Учётных записей, не связанных с каталогом, это не затрагивает ни в том, ни в другом случае.</value>
   </data>
   <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
     <value>По умолчанию выключено, и именно над этим решением стоит подумать. При выключенном параметре движок, переставший отвечать, пропускает спам, пока кто-нибудь этого не заметит. При включённом он вместо этого останавливает почту, а сообщение, отложенное в тот момент, когда никто не смотрит, — это сообщение, которое в итоге вернётся отправителю. Выключенное состояние — это поправимый отказ, потому оно и является значением по умолчанию.</value>
@@ -7772,8 +7775,8 @@ Control Panel может читать файлы сообщений только
   <data name="On the Anti-spam settings page, list the sealing domains you trust (the mailing-list and forwarding services your users rely on) and turn on the ARC offset. Naming who you trust is a judgement only you can make, which is why there is no default." xml:space="preserve">
     <value>На странице «Параметры антиспама» перечислите домены-запечатыватели, которым вы доверяете (службы списков рассылки и пересылки, на которые полагаются ваши пользователи), и включите поправку оценки ARC. Назвать тех, кому вы доверяете, — это суждение, которое можете вынести только вы, поэтому значения по умолчанию здесь нет.</value>
   </data>
-  <data name="On the Backup page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
-    <value>На странице Резервное копирование задайте папку, в которую записывается резервная копия, на другом диске, чем тот, где лежит хранилище сообщений.</value>
+  <data name="On the Backup &amp; restore page, set the folder the backup is written to, on a disk other than the one the message store is on." xml:space="preserve">
+    <value>На странице «Резервное копирование и восстановление» задайте папку, в которую записывается резервная копия, на другом диске, чем тот, где лежит хранилище сообщений.</value>
   </data>
   <data name="On the Protocols page's SMTP tab, set Host name to this server's full DNS name, such as mail.example.com. Then ask whoever owns the server's public address for a PTR record naming it; the DNS records page shows what to ask for." xml:space="preserve">
     <value>На вкладке SMTP страницы «Протоколы» задайте в поле «Имя узла» полное DNS-имя этого сервера, например mail.example.com. Затем попросите владельца публичного адреса сервера создать запись PTR с этим именем; страница «Записи DNS» показывает, о чём просить.</value>
@@ -7913,8 +7916,8 @@ Control Panel может читать файлы сообщений только
   <data name="Open Blocked attachments, which owns the list of file-name patterns" xml:space="preserve">
     <value>Открыть «Заблокированные вложения», где находится список образцов имён файлов</value>
   </data>
-  <data name="Open Domains, where an account's Directory tab links it to the directory" xml:space="preserve">
-    <value>Открыть «Домены», где вкладка «Каталог» учётной записи связывает её с каталогом</value>
+  <data name="Open Domains, where an account's Windows directory tab links it to the directory" xml:space="preserve">
+    <value>Открыть «Домены», где вкладка «Каталог Windows» учётной записи связывает её с каталогом</value>
   </data>
   <data name="Open Domains, where domains are added" xml:space="preserve">
     <value>Открыть «Домены», где добавляются домены</value>
@@ -8975,8 +8978,8 @@ Control Panel может читать файлы сообщений только
   <data name="Records a queryable row for every delivery, refusal and quarantine, so &quot;what happened to the message Jane sent at 14:20&quot; can be answered by searching instead of grepping logs. The events are the same ones the AWStats journal has always seen; this gives them somewhere to be asked questions. Off by default, because it stores sender and recipient addresses - which makes it a record of who corresponds with whom." xml:space="preserve">
     <value>Записывает доступную для поиска строку о каждой доставке, каждом отказе и каждом помещении в карантин, чтобы на вопрос «что случилось с сообщением, которое Jane отправила в 14:20» можно было ответить поиском, а не разбором журналов. События те же самые, которые всегда видел журнал AWStats; теперь у них появилось место, где им можно задавать вопросы. По умолчанию выключено, поскольку сохраняются адреса отправителя и получателей, а это делает такую запись сведениями о том, кто с кем переписывается.</value>
   </data>
-  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam page for it to appear." xml:space="preserve">
-    <value>Записывает вердикт SPF для каждого принятого входящего сообщения в виде заголовка Received-SPF (RFC 7208, раздел 9.1). Заголовок записывается только тогда, когда проверка SPF действительно выполнялась, поэтому для его появления на странице антиспама должен быть включён параметр «Проверять SPF».</value>
+  <data name="Records the SPF verdict for each accepted inbound message as a Received-SPF header (RFC 7208 section 9.1). The header is only written when the SPF check actually ran, so 'Check SPF' must be enabled on the Anti-spam settings page for it to appear." xml:space="preserve">
+    <value>Записывает вердикт SPF для каждого принятого входящего сообщения в виде заголовка Received-SPF (RFC 7208, раздел 9.1). Заголовок записывается только тогда, когда проверка SPF действительно выполнялась, поэтому для его появления на странице «Параметры антиспама» должен быть включён параметр «Проверить SPF».</value>
   </data>
   <data name="Records the verdicts this server itself reached about each inbound message - SPF, DKIM and DMARC - as trace headers on the delivered message, for downstream filters and diagnostics (RFC 8601, RFC 7208)." xml:space="preserve">
     <value>Записывает вердикты, к которым сам этот сервер пришёл по каждому входящему сообщению — SPF, DKIM и DMARC, — в виде трассировочных заголовков доставленного сообщения, для фильтров дальше по цепочке и для диагностики (RFC 8601, RFC 7208).</value>
@@ -9022,9 +9025,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Refuse a session from any address but the one it began on" xml:space="preserve">
     <value>Отклонять сеанс с любого адреса, кроме того, с которого он начался</value>
-  </data>
-  <data name="Refuse answers a submission at RCPT with the reason, and returns anything else - an alias, a forward, a scheduled send - to its sender in a delivery status notification. Mail already queued to an address meets the list on its next delivery attempt. Deliver and record is the safe way to see what the list would do before it does it." xml:space="preserve">
-    <value>Отклонить отвечает на отправку при RCPT с указанием причины, а всё остальное - псевдоним, пересылку, запланированную отправку - возвращает отправителю в уведомлении о состоянии доставки. Почта, уже стоящая в очереди на адрес, встретит список при следующей попытке доставки. Доставить и только записать - безопасный способ увидеть, что сделает список, прежде чем он это сделает.</value>
   </data>
   <data name="Refuse it and tell the sender" xml:space="preserve">
     <value>Отклонить и уведомить отправителя</value>
@@ -9689,8 +9689,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Run as &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; when a ban is created and &lt;command&gt; unban &lt;address&gt; when the range goes, on Windows and on Linux alike - for a cloud firewall, a router or a SIEM. Quote the program's path if it contains spaces; the server appends the arguments. A non-zero exit or a program that cannot start is reported once in the error log." xml:space="preserve">
     <value>Запускается как &lt;command&gt; ban &lt;address&gt; &lt;minutes&gt; &lt;ports&gt; при создании бана и как &lt;command&gt; unban &lt;address&gt;, когда диапазон исчезает, одинаково в Windows и в Linux - для облачного межсетевого экрана, маршрутизатора или SIEM. Заключите путь к программе в кавычки, если он содержит пробелы; сервер добавляет аргументы. Ненулевой код выхода или программа, которая не запускается, сообщается один раз в журнале ошибок.</value>
   </data>
-  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus page's Sandbox tab, and turn it on." xml:space="preserve">
-    <value>Разверните песочницу или подпишитесь на песочницу, поддерживающую небольшой HTTP-контракт из docs/Sandbox.md, задайте её адреса отправки и вердикта на вкладке «Песочница» страницы «Антивирус» и включите её.</value>
+  <data name="Run or subscribe to a sandbox that speaks the small HTTP contract in docs/Sandbox.md, set its submit and verdict addresses on the Anti-virus settings page's Sandbox tab, and turn it on." xml:space="preserve">
+    <value>Разверните песочницу или подпишитесь на песочницу, поддерживающую небольшой HTTP-контракт из docs/Sandbox.md, задайте её адреса отправки и вердикта на вкладке «Песочница» страницы «Параметры антивируса» и включите её.</value>
   </data>
   <data name="Run script function" xml:space="preserve">
     <value>Выполнить функцию сценария</value>
@@ -11477,8 +11477,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="That is not the administrator password in use now." xml:space="preserve">
     <value>Это не текущий пароль администратора.</value>
   </data>
-  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Logs page says why." xml:space="preserve">
-    <value>Это старше, чем допускает расписание, значит запуски завершаются с ошибкой или пропускаются — журнал резервного копирования на странице «Журналы» объяснит почему.</value>
+  <data name="That is older than the schedule allows, so runs are failing or being skipped - the backup log on the Live logs page says why." xml:space="preserve">
+    <value>Это старше, чем допускает расписание, значит запуски завершаются с ошибкой или пропускаются — журнал резервного копирования на странице «Журналы в реальном времени» объяснит почему.</value>
   </data>
   <data name="That is the accept pipeline stalling after the 354: the stage timings in the debug log say which stage." xml:space="preserve">
     <value>Это конвейер приёма застревает после 354: тайминги этапов в отладочном журнале показывают, на каком именно этапе.</value>
@@ -11504,8 +11504,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The ARC filtering settings could not be read from the server, so this page cannot say whether the feature is configured." xml:space="preserve">
     <value>Параметры фильтрации ARC не удалось прочитать с сервера, поэтому эта страница не может сказать, настроена ли эта функция.</value>
   </data>
-  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
-    <value>Имя пользователя Active Directory (sAMAccountName) — то же значение, что хранится на вкладке «Каталог» учётной записи. Необязательно: если оставить поле пустым, проверка остановится после этапов подключения и учётных данных службы.</value>
+  <data name="The Active Directory user name (sAMAccountName) - the same value the account's Windows directory tab holds. Optional: left empty, the test stops after the connection and service-credential stages." xml:space="preserve">
+    <value>Имя пользователя Active Directory (sAMAccountName) — то же значение, что хранится на вкладке «Каталог Windows» учётной записи. Необязательно: если оставить поле пустым, проверка остановится после этапов подключения и учётных данных службы.</value>
   </data>
   <data name="The Control Panel is connected to another host, so the account ITS service runs as cannot be read from here. Open the Control Panel on the server itself to see it." xml:space="preserve">
     <value>Control Panel подключён к другому узлу, поэтому учётную запись, от имени которой работает ЕГО служба, отсюда прочитать нельзя. Чтобы её увидеть, откройте Control Panel на самом сервере.</value>
@@ -11944,8 +11944,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The consistency check is switched off, so no scan has run. Turn on 'Periodically cross-check message rows against files on disk' on the {0} page; the server then scans at start-up and hourly and writes {1}." xml:space="preserve">
     <value>Проверка целостности выключена, поэтому сканирование не выполнялось. Включите «Периодически сверять записи сообщений с файлами на диске» на странице {0}; тогда сервер будет сканировать при запуске и ежечасно и записывать {1}.</value>
   </data>
-  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam page, under sender authentication, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam page." xml:space="preserve">
-    <value>Обратная сторона запечатывания ARC: для входящей почты действительная цепочка ARC от доверенного запечатывающего может компенсировать оценку за провал DMARC у сообщения, чей успешный DMARC был разрушен пересылкой (RFC 8617). Настраивается на странице «Защита от спама», в разделе аутентификации отправителя, потому что хранится вместе с остальными параметрами защиты от спама, а не в hMailServer.INI. При пустом списке доверенных запечатывающих функция намеренно не делает вообще ничего: кто угодно может сфабриковать целую цепочку ARC и запечатать её ключами, опубликованными в собственном DNS, и она пройдёт проверку безупречно, поэтому проходящая цепочка ничего не доказывает, если вы уже не доверяете запечатывающему. Список - не параметр функции, он и есть функция. Компенсация никогда не превышает оценку за провал DMARC и действует только пока на странице «Защита от спама» включена оценка DMARC.</value>
+  <data name="The counterpart to ARC sealing: on inbound mail, a valid ARC chain from a trusted sealer can offset the DMARC failure score for a message whose DMARC pass was destroyed by forwarding (RFC 8617). It is configured on the Anti-spam settings page's Sender auth tab, because it is stored with the other anti-spam settings rather than in hMailServer.INI. With the trusted-sealer list empty the feature does nothing at all, by design: anyone can fabricate an entire ARC chain and seal it with keys published in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. The list is not an option of the feature - it is the feature. The offset never exceeds the DMARC failure score, and applies only while DMARC scoring is enabled on the Anti-spam settings page." xml:space="preserve">
+    <value>Обратная сторона запечатывания ARC: для входящей почты действительная цепочка ARC от доверенного запечатывающего может компенсировать оценку за провал DMARC у сообщения, чей успешный DMARC был разрушен пересылкой (RFC 8617). Настраивается на вкладке «Аутентификация отправителя» страницы «Параметры антиспама», потому что хранится вместе с остальными параметрами защиты от спама, а не в hMailServer.INI. При пустом списке доверенных запечатывающих функция намеренно не делает вообще ничего: кто угодно может сфабриковать целую цепочку ARC и запечатать её ключами, опубликованными в собственном DNS, и она пройдёт проверку безупречно, поэтому проходящая цепочка ничего не доказывает, если вы уже не доверяете запечатывающему. Список - не параметр функции, он и есть функция. Компенсация никогда не превышает оценку за провал DMARC и действует только пока на странице «Параметры антиспама» включена оценка DMARC.</value>
   </data>
   <data name="The credentials used to administer this server." xml:space="preserve">
     <value>Учётные данные, которыми администрируют этот сервер.</value>
@@ -12548,8 +12548,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The search matched MORE than one directory entry (filter {0}, base {1}). The server refuses to authenticate against an ambiguous match - make UserSearchFilter or SearchBase select exactly one entry." xml:space="preserve">
     <value>Поиск нашёл БОЛЬШЕ одной записи каталога (фильтр {0}, база {1}). Сервер отказывается аутентифицировать по неоднозначному совпадению - сделайте так, чтобы UserSearchFilter или SearchBase выбирали ровно одну запись.</value>
   </data>
-  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Directory tab, and the filter and search base against the directory." xml:space="preserve">
-    <value>Поиск ничего не нашёл (фильтр {0} под {1}). Как вход это отказ, а не сбой - сверьте имя пользователя со вкладкой «Каталог» учётной записи, а фильтр и базу поиска - с каталогом.</value>
+  <data name="The search matched nothing (filter {0} under {1}). As a logon this is a refusal, not an outage - check the user name against the account's Windows directory tab, and the filter and search base against the directory." xml:space="preserve">
+    <value>Поиск ничего не нашёл (фильтр {0} под {1}). Как вход это отказ, а не сбой - сверьте имя пользователя со вкладкой «Каталог Windows» учётной записи, а фильтр и базу поиска - с каталогом.</value>
   </data>
   <data name="The search stops when this is reached and the client is told the search failed, rather than being given a partial result it would mistake for a complete one." xml:space="preserve">
     <value>Поиск останавливается при достижении этого значения, и клиенту сообщается, что поиск не удался, вместо того чтобы отдать частичный результат, который он принял бы за полный.</value>
@@ -12587,8 +12587,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Сервер ответил так, что этот Control Panel не смог прочитать ответ ({0})</value>
   </data>
-  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
-    <value>Сервер может заметить новый выпуск, проверить его по собственной подписи Sigstore этого выпуска и установить его — по щелчку на странице «Состояние» или самостоятельно внутри заданного вами окна. Выключено, пока вы не включите проверку; проверка не отправляет ничего, кроме самого запроса.</value>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Сервер может заметить новый выпуск, проверить его по собственной подписи Sigstore этого выпуска и установить его — по щелчку на странице «Состояние сервера» или самостоятельно внутри заданного вами окна. Выключено, пока вы не включите проверку; проверка не отправляет ничего, кроме самого запроса.</value>
   </data>
   <data name="The server cannot reach its database. Check the database connection and the hMailServer error log, then try again. ({0})" xml:space="preserve">
     <value>Сервер не может обратиться к своей базе данных. Проверьте подключение к базе данных и журнал ошибок hMailServer, затем повторите попытку. ({0})</value>
@@ -13443,8 +13443,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Used as the envelope sender of every copy the list sends, so delivery failures - a dead subscriber, a full mailbox - reach the list owner instead of whoever happened to post last." xml:space="preserve">
     <value>Используется как отправитель конверта каждой копии, которую рассылает список, чтобы сбои доставки - умерший подписчик, полный ящик - доходили до владельца списка, а не до того, кто случайно написал последним.</value>
   </data>
-  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Directory tab; type the same value here." xml:space="preserve">
-    <value>Используется для подстановки %d и для привязки Negotiate (NTLM нужен на хосте, не присоединённом к домену). Сервер берёт это со вкладки «Каталог» учётной записи; введите здесь то же значение.</value>
+  <data name="Used for the %d placeholder and for a Negotiate bind (NTLM needs it on a host that is not domain-joined). The server takes this from the account's Windows directory tab; type the same value here." xml:space="preserve">
+    <value>Используется для подстановки %d и для привязки Negotiate (NTLM нужен на хосте, не присоединённом к домену). Сервер берёт это со вкладки «Каталог Windows» учётной записи; введите здесь то же значение.</value>
   </data>
   <data name="Used once for a test bind and never stored. With no password the test still proves the connection, the transport, the service credential and the search." xml:space="preserve">
     <value>Используется один раз для тестовой привязки и никогда не сохраняется. Без пароля тест всё равно доказывает соединение, транспорт, учётные данные службы и поиск.</value>
@@ -14055,8 +14055,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="With this on, an account's own vacation message still answers colleagues, but outside senders get the domain's generic text instead - so personal detail in a vacation message stays inside the organisation." xml:space="preserve">
     <value>Если это включено, собственное сообщение об отпуске учётной записи по-прежнему отвечает коллегам, а внешние отправители получают общий текст домена - так личные подробности из сообщения об отпуске остаются внутри организации.</value>
   </data>
-  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the Account tab." xml:space="preserve">
-    <value>Если это включено, пароль здесь вообще не хранится - его проверку просят у Windows. Оставьте выключенным, и учётная запись использует пароль со вкладки «Учётная запись».</value>
+  <data name="With this on, the password is not stored here at all - Windows is asked to check it. Leave it off and the account uses the password on the General tab." xml:space="preserve">
+    <value>Если это включено, пароль здесь вообще не хранится - его проверку просят у Windows. Оставьте выключенным, и учётная запись использует пароль со вкладки «Общие».</value>
   </data>
   <data name="Words on the SAML sign-in button" xml:space="preserve">
     <value>Текст на кнопке входа SAML</value>
