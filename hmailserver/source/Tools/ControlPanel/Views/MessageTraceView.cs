@@ -27,8 +27,11 @@ namespace hMailServer.ControlPanel.Views
    /// and no time-series, because nobody comes here to browse - they come with an
    /// address and a complaint.
    /// </summary>
-   public class MessageTraceView : UserControl
+   public class MessageTraceView : UserControl, IRefreshablePage
    {
+      // The last search, an address or a followed message, which F5 runs again.
+      private Action rerun_;
+
       /// <summary>
       /// The toolbar's search box is the address: the search runs on Enter or the
       /// Search button, not on every keystroke, because it is a query to the
@@ -162,14 +165,20 @@ namespace hMailServer.ControlPanel.Views
          status_.Visibility = Visibility.Visible;
       }
 
-      private void Search()
+      /// <summary>F5: the last search again, for what has happened since; nothing before the first.</summary>
+      void IRefreshablePage.Refresh() => rerun_?.Invoke();
+
+      private void Search() => Search_(toolbar_.SearchText.Trim());
+
+      private void Search_(string address)
       {
+         rerun_ = () => Search_(address);
          try
          {
             dynamic trace = OpenTrace();
             try
             {
-               trace.Search(toolbar_.SearchText.Trim());
+               trace.Search(address);
                Fill(trace, L("No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)."));
             }
             finally
@@ -199,6 +208,12 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
+         Follow_(queueId);
+      }
+
+      private void Follow_(int queueId)
+      {
+         rerun_ = () => Follow_(queueId);
          try
          {
             dynamic trace = OpenTrace();

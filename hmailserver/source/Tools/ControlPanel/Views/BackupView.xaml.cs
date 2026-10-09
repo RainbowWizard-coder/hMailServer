@@ -34,6 +34,23 @@ namespace hMailServer.ControlPanel.Views
       public BackupView()
       {
          InitializeComponent();
+
+         // Ctrl+S saves the card the keyboard is in - the backup's settings or the
+         // schedule - as each card's own Save does (Views/PageCommands, which
+         // presses the marked button nearest the keyboard). The settings card's
+         // Save has no name, and is found in its card by its caption once the
+         // card is drawn. F5 is not this page's: it has no Reload, and reading the
+         // settings again would throw what was typed away without asking.
+         PageCommands.SetCommand(SaveScheduleButton, PageCommand.Save);
+         Loaded += (_, _) =>
+         {
+            string saveSettings = L("Save s_ettings");
+            foreach (System.Windows.Controls.Primitives.ButtonBase button in PageCommands.Descendants_(BackupCard).OfType<System.Windows.Controls.Primitives.ButtonBase>())
+            {
+               if (button.Content as string == saveSettings)
+                  PageCommands.SetCommand(button, PageCommand.Save);
+            }
+         };
       }
 
       public void OnEnter()

@@ -15,7 +15,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Views
 {
    /// <summary>About page: versions, links and component overview.</summary>
-   public class AboutView : UserControl, IPageLifecycle
+   public class AboutView : UserControl, IPageLifecycle, IRefreshablePage
    {
       private readonly TextBlock serverVersion_ = new();
 
@@ -124,5 +124,7 @@ namespace hMailServer.ControlPanel.Views
       public void OnLeave()
       {
       }
+
+      void IRefreshablePage.Refresh() => OnEnter();
    }
 }

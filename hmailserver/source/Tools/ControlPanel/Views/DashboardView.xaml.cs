@@ -34,7 +34,7 @@ namespace hMailServer.ControlPanel.Views
    /// needs that page is the one who does not know it exists. The dashboard is
    /// where they land, so it is where "3 things need attention" has to appear.
    /// </summary>
-   public partial class DashboardView : UserControl, IPageLifecycle
+   public partial class DashboardView : UserControl, IPageLifecycle, IRefreshablePage
    {
       private const int HistoryLength = 90;
 
@@ -318,6 +318,13 @@ namespace hMailServer.ControlPanel.Views
          // heals and it enters the page again - starts it.
          if (Refresh())
             timer_.Start();
+         BeginSetupCheck_();
+      }
+
+      /// <summary>F5: the numbers and the setup check now, rather than at the next tick.</summary>
+      void IRefreshablePage.Refresh()
+      {
+         Refresh();
          BeginSetupCheck_();
       }
 

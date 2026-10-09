@@ -15,7 +15,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Views
 {
    /// <summary>Landing page shown after connecting.</summary>
-   public class WelcomeView : UserControl, IPageLifecycle
+   public class WelcomeView : UserControl, IPageLifecycle, IRefreshablePage
    {
       private readonly PageHeader header_ = new() { Title = L("Welcome") };
 
@@ -228,6 +228,8 @@ namespace hMailServer.ControlPanel.Views
 
          LoadSample_();
       }
+
+      void IRefreshablePage.Refresh() => OnEnter();
 
       private static void StartWalk_()
          => (Application.Current.MainWindow as MainWindow)?.StartTour(TourCatalog.FirstRun);

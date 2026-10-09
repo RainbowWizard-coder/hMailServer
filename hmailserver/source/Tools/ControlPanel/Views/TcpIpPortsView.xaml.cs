@@ -13,7 +13,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class TcpIpPortsView : UserControl, IPageLifecycle
+   public partial class TcpIpPortsView : UserControl, IPageLifecycle, IRefreshablePage
    {
       public class PortRow
       {
@@ -122,6 +122,8 @@ namespace hMailServer.ControlPanel.Views
       private static void Floor_(DataGridColumn column, double width) => column.MinWidth = Math.Max(column.MinWidth, width);
 
       public void OnEnter() => Reload();
+
+      void IRefreshablePage.Refresh() => Reload();
 
       public void OnLeave()
       {

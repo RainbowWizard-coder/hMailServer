@@ -1384,20 +1384,25 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Ctrl+K and F1 existed: a keyboard user tabbed through a page's header to refresh it, find its search box or save it,
   and tabbed through every control of the window to get from the navigation to the page or the help, which closed only
   by its own button or a second F1. F5 now presses the page's Refresh, or a settings page's Reload, which asks before
-  it throws edits away; Ctrl+S presses its Save changes; Ctrl+F puts the keyboard in its search box - on the domains
-  page the one beside the list the keyboard is in - and opens the palette on a page without one; F6 and Shift+F6 move
-  round the command bar, the navigation, the page, the help pane and the pending bar, to the sidebar's row for the
-  page on screen and back to the control of the page that last had the keyboard; and Escape in the help pane closes it
-  and puts the keyboard on the Help button. Each key presses the page's own button as a click does - the keyboard
-  moves to the button first, so that a number typed and not yet taken in by its box is what Save writes and what makes
-  Reload ask, and then comes back to where it was - and nothing a disabled button would not. Refresh is Alt+R on every
-  list page, where six pages said Re_fresh (Alt+F) because the R was taken - the domain white and black list's Remove
-  is now Delete, the delivery queue's and the suppression list's Remove is Alt+M, and the diagnostics page's Run
-  diagnostics is Alt+D - and the REST API keys, journaling and administrator roles pages, which are lists, say Refresh
-  where they said Reload, the settings pages' verb (the owner's decision of 9 October 2026). The palette's new
-  Keyboard shortcuts row lists every key in the reader's language - Strg+F and Entf in German.
-  `KeyboardShortcutsTests` holds the table, the order F6 moves in, the window's wiring, every re-read button to
-  Refresh or Reload with its one access key, and the keyboard's move to the button before it is pressed.
+  it throws edits away, and reads again the pages that have no such button - domains, routes, rules, incoming relays,
+  TCP/IP ports, SSL certificates, IP ranges (keeping the permissions not yet saved), live logs, stalled mail, the
+  message trace's last search, the dashboard, the welcome and about pages - leaving the keyboard on the list's
+  selected row; Ctrl+S presses its Save changes, IP ranges' Save permissions, and on Backup & restore the Save of the
+  card the keyboard is in; Ctrl+F puts the keyboard in its search box - on the domains page the one beside the list
+  the keyboard is in - and opens the palette on a page without one; F6 and Shift+F6 move round the command bar, the
+  navigation, the page, the help pane and the pending bar, to the sidebar's row for the page on screen and back to the
+  control of the page that last had the keyboard; and Escape in the help pane closes it and puts the keyboard on the
+  Help button. Each key presses the page's own button as a click does - the keyboard moves to the button first, so
+  that a number typed and not yet taken in by its box is what Save writes and what makes Reload ask, and then comes
+  back to where it was - and nothing a disabled button would not. Refresh is Alt+R on every list page, where six pages
+  said Re_fresh (Alt+F) because the R was taken - the domain white and black list's Remove is now Delete, the delivery
+  queue's and the suppression list's Remove is Alt+M, and the diagnostics page's Run diagnostics is Alt+D - and the
+  REST API keys, journaling and administrator roles pages, which are lists, say Refresh where they said Reload, the
+  settings pages' verb (the owner's decision of 9 October 2026). The palette's new Keyboard shortcuts row lists every
+  key in the reader's language - Strg+F and Entf in German. `KeyboardShortcutsTests` holds the table, the order F6
+  moves in, the window's wiring, every re-read button to Refresh or Reload with its one access key, every page read as
+  it opens to an F5 and every page that can hold an unsaved change to a Ctrl+S, and the keyboard's move to the button
+  before it is pressed.
 
 - **New: the Control Panel's lists answer Enter, F2, Delete and Insert, and Enter submits the forms on its pages.** No
   list answered a key: a keyboard user selected a row and tabbed to the page header's buttons to open or delete it, a

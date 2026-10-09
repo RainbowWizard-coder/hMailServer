@@ -86,7 +86,8 @@ namespace hMailServer.ControlPanel
             case ShellCommand.Refresh:
                if (!connected_)
                   return false;
-               PageCommands.Press(ContentHost.Content as DependencyObject, PageCommand.Refresh);
+               // The page's Refresh or Reload, or a page without one read again.
+               PageCommands.Refresh(ContentHost.Content as DependencyObject);
                return true;
 
             case ShellCommand.Save:

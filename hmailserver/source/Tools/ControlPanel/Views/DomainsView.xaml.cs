@@ -12,7 +12,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class DomainsView : UserControl, IPageLifecycle
+   public partial class DomainsView : UserControl, IPageLifecycle, IRefreshablePage
    {
       // The page's columns and cards keep a width below which what they hold runs
       // off their right edges: the domains column 280 pixels (its card 268, room
@@ -39,6 +39,9 @@ namespace hMailServer.ControlPanel.Views
       }
 
       public void OnEnter() => ReloadDomains();
+
+      /// <summary>F5: the domains again, the selected one kept, and with it its accounts, aliases and lists.</summary>
+      void IRefreshablePage.Refresh() => ReloadDomains();
 
       private void PageColumns_SizeChanged(object sender, SizeChangedEventArgs e)
          => ArrangeColumns(SideBySide.Fits(e.NewSize.Width, ColumnWeights, ColumnMinWidths));

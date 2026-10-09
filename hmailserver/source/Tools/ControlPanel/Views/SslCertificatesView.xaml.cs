@@ -47,7 +47,7 @@ namespace hMailServer.ControlPanel.Views
    /// start - a mail outage caused by a configuration mistake, which is why the
    /// wording here is blunt.
    /// </summary>
-   public partial class SslCertificatesView : UserControl, IPageLifecycle
+   public partial class SslCertificatesView : UserControl, IPageLifecycle, IRefreshablePage
    {
       /// <summary>Whether a passphrase is stored on the server for a certificate.</summary>
       internal enum StoredPassphrase
@@ -107,6 +107,9 @@ namespace hMailServer.ControlPanel.Views
       }
 
       public void OnEnter() => Reload();
+
+      /// <summary>F5: the certificates again, the selected one kept.</summary>
+      void IRefreshablePage.Refresh() => Reload((CertGrid.SelectedItem as CertRow)?.Id ?? 0);
 
       public void OnLeave()
       {

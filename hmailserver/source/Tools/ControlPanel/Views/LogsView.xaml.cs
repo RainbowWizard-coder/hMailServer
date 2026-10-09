@@ -18,7 +18,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class LogsView : UserControl, IPageLifecycle
+   public partial class LogsView : UserControl, IPageLifecycle, IRefreshablePage
    {
       public class LogLine
       {
@@ -127,6 +127,18 @@ namespace hMailServer.ControlPanel.Views
       }
 
       public void OnLeave() => timer_.Stop();
+
+      /// <summary>
+      /// F5: the newest log from its last 64 KB, as opening the page reads it -
+      /// the file of a new day once the server has moved to it - in place of the
+      /// lines shown, which opening the page again would have shown twice.
+      /// </summary>
+      void IRefreshablePage.Refresh()
+      {
+         timer_.Stop();
+         lines_.Clear();
+         OnEnter();
+      }
 
       private void Poll()
       {

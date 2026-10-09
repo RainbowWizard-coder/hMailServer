@@ -12,7 +12,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class RoutesView : UserControl, IPageLifecycle
+   public partial class RoutesView : UserControl, IPageLifecycle, IRefreshablePage
    {
       public class RouteRow
       {
@@ -40,6 +40,8 @@ namespace hMailServer.ControlPanel.Views
       }
 
       public void OnEnter() => Reload();
+
+      void IRefreshablePage.Refresh() => Reload();
 
       public void OnLeave()
       {

@@ -149,7 +149,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("KeyboardShortcuts.Resolve(", keys, StringComparison.Ordinal);
          Assert.Matches(new Regex(@"case ShellCommand\.Palette:[\s\S]{0,120}?ShowPalette\(\);"), keys);
          Assert.Matches(new Regex(@"case ShellCommand\.Help:[\s\S]{0,120}?ToggleHelp_\(\);"), keys);
-         Assert.Matches(new Regex(@"case ShellCommand\.Refresh:[\s\S]{0,160}?PageCommands\.Press\([^;]*PageCommand\.Refresh\)"), keys);
+         Assert.Matches(new Regex(@"case ShellCommand\.Refresh:[\s\S]{0,200}?PageCommands\.Refresh\(ContentHost\.Content as DependencyObject\);"), keys);
          Assert.Matches(new Regex(@"case ShellCommand\.Save:[\s\S]{0,160}?PageCommands\.Press\([^;]*PageCommand\.Save\)"), keys);
          Assert.Matches(new Regex(@"case ShellCommand\.Search:[\s\S]{0,400}?PageCommands\.FocusSearch\([\s\S]{0,200}?ShowPalette\(\);"), keys);
          Assert.Matches(new Regex(@"case ShellCommand\.NextPart:\s*case ShellCommand\.PreviousPart:\s*return MoveToPart_\("), keys);
@@ -257,6 +257,111 @@ namespace hMailServer.ControlPanel.Tests.Services
          // GridKeys.Press leaves a disabled or hidden button alone.
          string keys = ReadControlPanelFile(Path.Join("Views", "GridKeys.cs"));
          Assert.Contains("if (button == null || !button.IsEnabled || !button.IsVisible)", keys, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// F5 reaches every page that reads the server as it is opened, and Ctrl+S
+      /// every page that can hold an unsaved change. Each key found only a button
+      /// captioned exactly Refresh, Reload or Save changes, so F5 did nothing on
+      /// the domains, routes, rules, incoming relays, TCP/IP ports, SSL
+      /// certificates, IP ranges, live logs, stalled mail and message trace pages
+      /// and the dashboard, and Ctrl+S nothing on IP ranges ("Save permissions")
+      /// or Backup &amp; restore ("Save settings", "Save schedule") - while the
+      /// list of keys promised both on every page. A page answers F5 by a Refresh
+      /// or Reload button, a button marked PageCommand.Refresh, or as an
+      /// IRefreshablePage; Ctrl+S by a Save changes button or one marked
+      /// PageCommand.Save.
+      /// </summary>
+      [Fact]
+      public void EveryPageReadAsItOpens_AnswersF5_AndEveryPageThatCanHoldAnEdit_AnswersCtrlS()
+      {
+         string views = ControlPanelDirectory("Views");
+         string shell = ReadControlPanelFile("MainWindow.xaml.cs");
+         string specs = File.ReadAllText(Path.Join(views, "CollectionSpecs.cs"));
+
+         // The pages, as the shell makes them.
+         var pages = new SortedSet<string>(StringComparer.Ordinal);
+         foreach (Match m in Regex.Matches(shell, @"pageFactories_\[""\w+""\] = \(\) => (?:new (?<page>\w+)\(|CollectionSpecs\.(?<spec>\w+)\(\))"))
+         {
+            if (m.Groups["page"].Success)
+            {
+               pages.Add(m.Groups["page"].Value);
+               continue;
+            }
+
+            // A collection page is the CollectionEditorView, or the class a spec makes around one.
+            Match spec = Regex.Match(specs, @"public static (?<type>\w+) " + m.Groups["spec"].Value + @"\(\) => new\s*(?<made>\w+)?\s*\(");
+            Assert.True(spec.Success, "CollectionSpecs." + m.Groups["spec"].Value + " was not found.");
+            pages.Add(spec.Groups["made"].Success ? spec.Groups["made"].Value : spec.Groups["type"].Value);
+         }
+
+         Assert.Contains("DomainsView", pages);
+         Assert.Contains("CollectionEditorView", pages);
+         Assert.True(pages.Count > 40, "The shell's pages were not found: " + string.Join(", ", pages));
+
+         // A page that has no Reload, and whose settings reading again would throw
+         // away unasked, has no F5: Backup & restore keeps no unsaved state.
+         var noRefresh = new Dictionary<string, string>(StringComparer.Ordinal)
+         {
+            ["BackupView"] = "a settings page with no Reload, which does not know what is unsaved",
+         };
+
+         var refresh = new Regex(@"L\(""_(?:Refresh|Reload)""\)|\{loc:L '_(?:Refresh|Reload)'\}|PageCommand\.Refresh\)|\bIRefreshablePage\b|CollectionEditorView");
+         var save = new Regex(@"L\(""_Save changes""\)|\{loc:L '_Save changes'\}|PageCommand\.Save\)");
+         var bad = new List<string>();
+         foreach (string page in pages)
+         {
+            string source = ClassSource_(views, page);
+            Assert.False(string.IsNullOrEmpty(source), page + " was not found under Views.");
+
+            Match enter = Regex.Match(source, @"public void OnEnter\(\)\s*(?:=>\s*(?<expr>[^;]+);|\{(?<body>[\s\S]*?)\n      \})");
+            bool readsAsItOpens = enter.Success && (enter.Groups["expr"].Success || enter.Groups["body"].Value.Trim().Length > 0);
+            if (readsAsItOpens && !noRefresh.ContainsKey(page) && !refresh.IsMatch(source))
+               bad.Add(page + " is read as it is opened, and F5 does not reach it");
+
+            if (source.Contains("public bool HasUnsavedChanges", StringComparison.Ordinal) && !save.IsMatch(source))
+               bad.Add(page + " can hold an unsaved change, and Ctrl+S does not reach it");
+         }
+
+         Assert.True(bad.Count == 0, string.Join("\n", bad));
+
+         // The pages with no button of their own read themselves again.
+         foreach (string page in new[] { "DomainsView", "RoutesView", "TcpIpPortsView", "SslCertificatesView", "RulesView", "IncomingRelaysView", "LogsView", "MessageTraceView", "IPRangesView", "StalledMailView", "DashboardView" })
+            Assert.Matches(new Regex(@"class " + page + @"\b[^{]*\bIRefreshablePage\b[\s\S]*void IRefreshablePage\.Refresh\(\)"), ClassSource_(views, page));
+
+         // The window's F5 reaches an IRefreshablePage where Find finds no button.
+         string commands = File.ReadAllText(Path.Join(views, "PageCommands.cs"));
+         Assert.Matches(new Regex(@"public static bool Refresh\(DependencyObject page\)\s*\{\s*if \(Find\(page, PageCommand\.Refresh, [^)]*\) != null\)\s*return Press\(page, PageCommand\.Refresh\);\s*if \(page is not IRefreshablePage refreshable\)\s*return false;"), commands);
+
+         // Of several Save buttons, the one in the card the keyboard is in.
+         Assert.Contains("PageCommands.SetCommand(SaveScheduleButton, PageCommand.Save);", File.ReadAllText(Path.Join(views, "BackupView.xaml.cs")), StringComparison.Ordinal);
+         Assert.Contains("PageCommands.SetCommand(button, PageCommand.Save);", File.ReadAllText(Path.Join(views, "BackupView.xaml.cs")), StringComparison.Ordinal);
+         Assert.Contains("PageCommands.SetCommand(SavePermsButton, PageCommand.Save);", File.ReadAllText(Path.Join(views, "IPRangesView.xaml.cs")), StringComparison.Ordinal);
+         Assert.Matches(new Regex(@"foreach \(DependencyObject container in Ancestors_\(focused\)\)\s*\{\s*List<ButtonBase> near = found\.Where\(b => Ancestors_\(b\)\.Contains\(container\)\)"), commands);
+      }
+
+      /// <summary>The source of a page class: every part of it under Views, and the XAML of a XAML page.</summary>
+      private static string ClassSource_(string views, string name)
+      {
+         var parts = new List<string>();
+         foreach (string file in Directory.EnumerateFiles(views, "*.cs", SearchOption.AllDirectories))
+         {
+            string text = File.ReadAllText(file);
+            Match declared = Regex.Match(text, @"\n   public (?:sealed |partial )*class " + name + @"\b");
+            if (!declared.Success)
+               continue;
+
+            // The class runs to the next type at the namespace's level, or the end.
+            int start = declared.Index;
+            Match next = new Regex(@"\n   (?:public|internal) (?:sealed |static |partial |abstract )*(?:class|interface|enum|record|struct) ").Match(text, start + declared.Length);
+            parts.Add(next.Success ? text.Substring(start, next.Index - start) : text.Substring(start));
+
+            string xaml = file.EndsWith(".xaml.cs", StringComparison.Ordinal) ? file.Substring(0, file.Length - 3) : null;
+            if (xaml != null && File.Exists(xaml))
+               parts.Add(File.ReadAllText(xaml));
+         }
+
+         return string.Join("\n", parts);
       }
 
       private static string ReadControlPanelFile(string relative) => File.ReadAllText(Path.Join(ControlPanelDirectory(""), relative));

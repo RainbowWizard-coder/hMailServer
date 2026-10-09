@@ -26,7 +26,7 @@ namespace hMailServer.ControlPanel.Views
    /// debug logging, and only on request, because that is the first step of the
    /// guide and the one people skip.
    /// </summary>
-   public class StalledMailView : UserControl, IPageLifecycle
+   public class StalledMailView : UserControl, IPageLifecycle, IRefreshablePage
    {
       private const string GuideUrl =
          "https://gitlab.com/hmailserver/hmailserver/-/blob/master/hmailserver/docs/DiagnosingStalledMail.md";
@@ -74,6 +74,8 @@ namespace hMailServer.ControlPanel.Views
       {
          RefreshLoggingStatus();
       }
+
+      void IRefreshablePage.Refresh() => RefreshLoggingStatus();
 
       public void OnLeave()
       {

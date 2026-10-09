@@ -12,7 +12,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class RulesView : UserControl, IPageLifecycle
+   public partial class RulesView : UserControl, IPageLifecycle, IRefreshablePage
    {
       public class RuleRow
       {
@@ -133,6 +133,8 @@ namespace hMailServer.ControlPanel.Views
          LoadScopes();
          Reload();
       }
+
+      void IRefreshablePage.Refresh() => OnEnter();
 
       // The server's rules, or one domain's: the same page on Domain.Rules,
       // which is what a domain's rules are over COM. Hidden where the page is

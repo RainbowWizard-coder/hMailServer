@@ -16,7 +16,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Views
 {
    /// <summary>Incoming relays: trusted upstream servers whose IPs are skipped in spam host checks.</summary>
-   public class IncomingRelaysView : UserControl, IPageLifecycle
+   public class IncomingRelaysView : UserControl, IPageLifecycle, IRefreshablePage
    {
       private readonly ListView list_ = new()
       {
@@ -112,6 +112,8 @@ namespace hMailServer.ControlPanel.Views
       }
 
       public void OnEnter() => Reload();
+
+      void IRefreshablePage.Refresh() => Reload();
 
       public void OnLeave()
       {

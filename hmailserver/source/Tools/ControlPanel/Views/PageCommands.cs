@@ -28,6 +28,19 @@ namespace hMailServer.ControlPanel.Views
    }
 
    /// <summary>
+   /// A page that F5 reads again although it has no Refresh button of its own:
+   /// the domains, routes, TCP/IP ports, SSL certificates, rules, incoming
+   /// relays, live logs and message trace pages, the dashboard, the stalled mail
+   /// page and the welcome and about pages, each of which reads the server as it
+   /// is opened and showed nothing new on F5 until it was opened again.
+   /// </summary>
+   public interface IRefreshablePage
+   {
+      /// <summary>Reads what the page shows again, as opening it does, keeping what is unsaved on it.</summary>
+      void Refresh();
+   }
+
+   /// <summary>
    /// What the window's F5, Ctrl+S and Ctrl+F reach on the page on screen. Each
    /// presses the page's own button as a click presses it - the keyboard moving
    /// to the button first, so that what was typed in a box is taken in - so
@@ -38,12 +51,17 @@ namespace hMailServer.ControlPanel.Views
    ///
    /// A page's buttons are found by their captions: Refresh on a list page and
    /// Reload on a settings page (the owner's decision of 9 October 2026, one fixed
-   /// access key each), and Save changes. Those are the captions of every such
-   /// button on every page, which PageCommandsTests holds; a button whose caption
-   /// says more - the scripts page's "Reload from disk" - carries
-   /// <see cref="CommandProperty"/> instead. The button in the page's header is
-   /// preferred, then the first that can be seen and pressed, so a tab's own
-   /// buttons are found only while its tab is the one showing.
+   /// access key each), and Save changes. A button whose caption says more - the
+   /// scripts page's "Reload from disk", Backup &amp; restore's "Save settings"
+   /// and "Save schedule", IP ranges' "Save permissions" - carries
+   /// <see cref="CommandProperty"/> instead, and a page with no such button that
+   /// is read again on F5 is an <see cref="IRefreshablePage"/>.
+   /// KeyboardShortcutsTests holds every page that is read as it is opened to
+   /// one of the three for F5, and every page that can hold an unsaved change to
+   /// a Save for Ctrl+S. Of several, the button nearest the keyboard is pressed -
+   /// the one in the card the keyboard is in - then the one in the page's header,
+   /// then the first that can be seen and pressed, so a tab's own buttons are
+   /// found only while its tab is the one showing.
    /// </summary>
    public static class PageCommands
    {
@@ -80,11 +98,11 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public static bool Press(DependencyObject page, PageCommand command)
       {
-         ButtonBase button = Find(page, command);
+         IInputElement had = Keyboard.FocusedElement;
+         ButtonBase button = Find(page, command, had as DependencyObject);
          if (button == null)
             return false;
 
-         IInputElement had = Keyboard.FocusedElement;
          bool moved = button.Focusable && !ReferenceEquals(had, button) && ReferenceEquals(Keyboard.Focus(button), button);
 
          if (!GridKeys.Press(button))
@@ -110,6 +128,25 @@ namespace hMailServer.ControlPanel.Views
             }
          }
 
+         return true;
+      }
+
+      /// <summary>
+      /// F5: presses the page's Refresh or Reload, or reads an
+      /// <see cref="IRefreshablePage"/> without one again; says whether there was
+      /// either.
+      /// </summary>
+      public static bool Refresh(DependencyObject page)
+      {
+         if (Find(page, PageCommand.Refresh, Keyboard.FocusedElement as DependencyObject) != null)
+            return Press(page, PageCommand.Refresh);
+
+         if (page is not IRefreshablePage refreshable)
+            return false;
+
+         IInputElement had = Keyboard.FocusedElement;
+         refreshable.Refresh();
+         KeepTheKeyboard_(had, null);
          return true;
       }
 
@@ -147,8 +184,12 @@ namespace hMailServer.ControlPanel.Views
          => element is UIElement ui && !ReferenceEquals(element, except) && element is not Window
             && ui.IsVisible && ui.IsEnabled && ui.Focusable && PresentationSource.FromDependencyObject(ui) != null;
 
-      /// <summary>The page's button for <paramref name="command"/> that can be seen and pressed now, or null.</summary>
-      public static ButtonBase Find(DependencyObject page, PageCommand command)
+      /// <summary>
+      /// The page's button for <paramref name="command"/> that can be seen and
+      /// pressed now, or null: of several, the one nearest
+      /// <paramref name="focused"/>, the element that has the keyboard.
+      /// </summary>
+      public static ButtonBase Find(DependencyObject page, PageCommand command, DependencyObject focused = null)
       {
          if (page == null || command == PageCommand.None)
             return null;
@@ -161,8 +202,25 @@ namespace hMailServer.ControlPanel.Views
                && (GetCommand(b) == command || (GetCommand(b) == PageCommand.None && b.Content is string text && wanted.Contains(text))))
             .ToList();
 
-         return found.FirstOrDefault(b => Ancestors_(b).Any(a => a is Scaffold.PageHeader)) ?? found.FirstOrDefault();
+         if (found.Count > 1 && focused != null && Ancestors_(focused).Contains(page))
+         {
+            // The innermost part of the page that holds the keyboard and a
+            // button: on Backup & restore, the card the keyboard is in.
+            foreach (DependencyObject container in Ancestors_(focused))
+            {
+               List<ButtonBase> near = found.Where(b => Ancestors_(b).Contains(container)).ToList();
+               if (near.Count > 0)
+                  return InHeader_(near) ?? near[0];
+               if (ReferenceEquals(container, page))
+                  break;
+            }
+         }
+
+         return InHeader_(found) ?? found.FirstOrDefault();
       }
+
+      private static ButtonBase InHeader_(IEnumerable<ButtonBase> buttons)
+         => buttons.FirstOrDefault(b => Ancestors_(b).Any(a => a is Scaffold.PageHeader));
 
       /// <summary>
       /// Puts the keyboard in the page's search box: the one nearest the element

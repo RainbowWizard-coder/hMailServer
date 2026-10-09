@@ -13,7 +13,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 
 namespace hMailServer.ControlPanel.Views
 {
-   public partial class IPRangesView : UserControl, IPageLifecycle
+   public partial class IPRangesView : UserControl, IPageLifecycle, IRefreshablePage
    {
       // The narrowest a column of permissions may be before the card takes two
       // columns instead of four: at a quarter of a narrow card, the Portuguese
@@ -58,6 +58,10 @@ namespace hMailServer.ControlPanel.Views
          // Escape empties its three boxes and leaves the priority (Views/GridKeys, FormSubmit).
          GridKeys.Wire(RangeGrid, GridKeys.Pressing(PropertiesButton), GridKeys.Pressing(DeleteRangeButton), GridKeys.Focusing(NewName));
          FormSubmit.Bind((UIElement)AddRangeButton.Parent, AddRangeButton, NewName, NewLower, NewUpper);
+
+         // Ctrl+S saves the permissions the card holds, the page's one unsaved
+         // change (Views/PageCommands); F5 reads the ranges again (Refresh).
+         PageCommands.SetCommand(SavePermsButton, PageCommand.Save);
       }
 
       // What the card settled in after the range was read or saved: Clean, or Saved
@@ -105,6 +109,13 @@ namespace hMailServer.ControlPanel.Views
       public void OnLeave()
       {
       }
+
+      /// <summary>
+      /// F5: the ranges again, as a save or an add reads them - the selected range
+      /// kept, and the permission boxes' unsaved changes with it - where opening
+      /// the page forgets them.
+      /// </summary>
+      void IRefreshablePage.Refresh() => Reload();
 
       /// <summary>Whether a permission box holds something other than what the range has on the server.</summary>
       public bool HasUnsavedChanges => permsRow_ != null && PermGrid.IsEnabled && perms_.Differs(PermissionValues_());
