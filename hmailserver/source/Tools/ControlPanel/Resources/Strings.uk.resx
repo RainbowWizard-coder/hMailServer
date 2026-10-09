@@ -3072,6 +3072,9 @@
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Не вдалося зберегти маршрут: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Не вдалося зберегти рівні параметрів: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Не вдалося зберегти: {0}</value>
   </data>

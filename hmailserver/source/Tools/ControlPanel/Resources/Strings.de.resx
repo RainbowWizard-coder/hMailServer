@@ -3054,6 +3054,9 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Die Route konnte nicht gespeichert werden: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Die Einstellungsebenen konnten nicht gespeichert werden: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Speichern nicht möglich: {0}</value>
   </data>

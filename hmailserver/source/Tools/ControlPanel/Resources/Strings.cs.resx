@@ -3072,6 +3072,9 @@ Restartovat nyní Control Panel? Volbou Ne se pokusíte pokračovat v práci.</v
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Nepodařilo se uložit trasu: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Nepodařilo se uložit úrovně nastavení: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Nepodařilo se uložit: {0}</value>
   </data>

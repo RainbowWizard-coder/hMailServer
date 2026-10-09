@@ -3054,6 +3054,9 @@ Restart the Control Panel now? Choose No to try to keep working.</value>
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Could not save the route: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Could not save the setting levels: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Could not save: {0}</value>
   </data>

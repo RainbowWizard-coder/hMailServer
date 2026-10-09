@@ -3054,6 +3054,9 @@ Vil du genstarte Control Panel nu? Vælg Nej for at forsøge at fortsætte arbej
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Kunne ikke gemme ruten: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Kunne ikke gemme indstillingsniveauerne: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kunne ikke gemme: {0}</value>
   </data>

@@ -3054,6 +3054,9 @@
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>无法保存该路由：{0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>无法保存设置级别：{0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>无法保存：{0}</value>
   </data>

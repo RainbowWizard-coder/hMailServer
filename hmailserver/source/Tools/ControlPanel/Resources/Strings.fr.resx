@@ -3054,6 +3054,9 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Impossible d'enregistrer la route : {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Impossible d'enregistrer les niveaux de paramètres : {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Impossible d'enregistrer : {0}</value>
   </data>

@@ -3072,6 +3072,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Wybierz Nie, aby spróbować
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Nie udało się zapisać trasy: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Nie udało się zapisać poziomów ustawień: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Nie udało się zapisać: {0}</value>
   </data>

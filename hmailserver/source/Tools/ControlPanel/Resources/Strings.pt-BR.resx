@@ -3054,6 +3054,9 @@ Reiniciar o Control Panel agora? Escolha Não para tentar continuar trabalhando.
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Não foi possível salvar a rota: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Não foi possível salvar os níveis de configuração: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Não foi possível salvar: {0}</value>
   </data>

@@ -3054,6 +3054,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Çalışmayı sürdürmeyi de
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Rota kaydedilemedi: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Ayar düzeyleri kaydedilemedi: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kaydedilemedi: {0}</value>
   </data>

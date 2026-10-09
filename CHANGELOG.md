@@ -1208,7 +1208,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   first. The tab now says each at its level, in a notice: a failed read at Critical, "Could not read the setting
   levels:" and the reason, with Try again, which keeps its button and the keyboard when the read fails again and gives
   *Save levels now* back when it works; the older server and the save-it-first notes as Information; a save as Good,
-  or the settings it could not write as Critical. `FailureStateTests` holds the tab to each.
+  or the settings it could not write as Critical, and a save that could not open the domain or account at all as
+  "Could not save the setting levels:" and the reason. `FailureStateTests` holds the tab to each.
 
 ### Administration
 

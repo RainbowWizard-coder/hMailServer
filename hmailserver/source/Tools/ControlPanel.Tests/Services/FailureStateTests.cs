@@ -241,6 +241,8 @@ namespace hMailServer.ControlPanel.Tests.Services
       /// runtime's text bare showed the sentence bare once routed, opening in lower
       /// case and naming nothing: a message box, a dialog's notice, the Welcome
       /// page's warning, and "The mailbox could not be moved. the connection ...".
+      /// The Levels tab's save, whose failure the tab now says in a Critical notice,
+      /// is held to the same.
       /// </summary>
       [Theory]
       [InlineData("AdministratorTwoFactorDialog.cs", "F(\"Could not start the enrolment: {0}\", ServerSession.DescribeComError(ex))")]
@@ -250,6 +252,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("MailboxMoveDialog.cs", "F(\"The mailbox could not be moved: {0}\", ServerSession.DescribeComError(fatalCheck))")]
       [InlineData("WelcomeView.cs", "F(\"Could not make the sample domain: {0}\", failure)")]
       [InlineData("WelcomeView.cs", "F(\"Could not remove the sample domain: {0}\", failure)")]
+      [InlineData("SettingLevelsPanel.cs", "F(\"Could not save the setting levels: {0}\", ServerSession.DescribeComError(ex))")]
       public void ARoutedFailure_SaysWhatFailedBeforeItsReason(string file, string call)
       {
          Assert.Contains(call, ReadView(file), StringComparison.Ordinal);

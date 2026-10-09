@@ -3054,6 +3054,9 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Kunde inte spara rutten: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Kunde inte spara inställningsnivåerna: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kunde inte spara: {0}</value>
   </data>

@@ -249,7 +249,10 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            refused.Add(ServerSession.DescribeComError(ex));
+            // The domain or account could not be opened to write to, so nothing was
+            // saved: said after what failed, as the read's failure is, where the
+            // Critical notice carried DescribeComError's sentence alone.
+            refused.Add(F("Could not save the setting levels: {0}", ServerSession.DescribeComError(ex)));
          }
          finally
          {

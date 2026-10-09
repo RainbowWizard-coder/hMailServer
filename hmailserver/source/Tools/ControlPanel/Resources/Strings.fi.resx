@@ -3054,6 +3054,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Valitse Ei, jos haluat yrittä�
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Reittiä ei voitu tallentaa: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Asetustasoja ei voitu tallentaa: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Ei voitu tallentaa: {0}</value>
   </data>

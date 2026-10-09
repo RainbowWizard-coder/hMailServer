@@ -3054,6 +3054,9 @@
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>ルートを保存できませんでした: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>設定レベルを保存できませんでした: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>保存できませんでした: {0}</value>
   </data>

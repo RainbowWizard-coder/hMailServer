@@ -3054,6 +3054,9 @@ Riavviare il Control Panel adesso? Scegli No per provare a continuare a lavorare
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Impossibile salvare la rotta: {0}</value>
   </data>
+  <data name="Could not save the setting levels: {0}" xml:space="preserve">
+    <value>Impossibile salvare i livelli di impostazioni: {0}</value>
+  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Impossibile salvare: {0}</value>
   </data>
