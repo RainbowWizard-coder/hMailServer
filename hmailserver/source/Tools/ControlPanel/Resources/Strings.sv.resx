@@ -6727,6 +6727,9 @@ Inget som redan finns där tas bort.</value>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Övervakning &amp; felsökning</value>
   </data>
+  <data name="More ({0})" xml:space="preserve">
+    <value>Fler ({0})</value>
+  </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Fler än {0} meddelanden väntar på leverans.</value>
   </data>
@@ -9051,6 +9054,12 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   </data>
   <data name="Reject with a text" xml:space="preserve">
     <value>Avvisa med en text</value>
+  </data>
+  <data name="Related pages ({0})" xml:space="preserve">
+    <value>Relaterade sidor ({0})</value>
+  </data>
+  <data name="Related pages that do not fit beside the trail" xml:space="preserve">
+    <value>Relaterade sidor som inte får plats bredvid sökvägen</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Relaterat:</value>

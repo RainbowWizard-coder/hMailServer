@@ -127,6 +127,9 @@
     <!-- Where the sidebar scrolls after a jump, so the page's whole group is on
          screen (review finding F151). Held by SidebarScrollTests. -->
     <Compile Include="..\ControlPanel\Services\SidebarScroll.cs" />
+    <!-- How many Related links fit beside the breadcrumb, the rest in a drop-down
+         (review finding F271). Held by RelatedLinksTests. -->
+    <Compile Include="..\ControlPanel\Services\RelatedLinksFit.cs" />
     <!-- What a screen reader says for a list's row: its cells, a bare value with
          its column's name. Held by RowSpeechTests. -->
     <Compile Include="..\ControlPanel\Services\RowSpeech.cs" />

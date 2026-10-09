@@ -6800,6 +6800,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Monitorování a řešení potíží</value>
   </data>
+  <data name="More ({0})" xml:space="preserve">
+    <value>Další ({0})</value>
+  </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>Na doručení čeká více než {0} zpráv.</value>
   </data>
@@ -9142,6 +9145,12 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   </data>
   <data name="Reject with a text" xml:space="preserve">
     <value>Odmítnout s textem</value>
+  </data>
+  <data name="Related pages ({0})" xml:space="preserve">
+    <value>Související stránky ({0})</value>
+  </data>
+  <data name="Related pages that do not fit beside the trail" xml:space="preserve">
+    <value>Související stránky, které se vedle cesty nevejdou</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Související:</value>

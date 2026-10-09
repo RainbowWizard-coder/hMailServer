@@ -842,30 +842,10 @@ namespace hMailServer.ControlPanel
             }
          }
 
-         // Three is the most that fits beside a long page title on a narrow
-         // window without the bar wrapping into two lines; the map may list more.
-         foreach (string related in NavigationMap.Find(key).SeeAlso)
-         {
-            if (RelatedHost.Children.Count >= 3)
-               break;
-
-            NavNode target = NavigationMap.Find(related);
-            if (target != null)
-               RelatedHost.Children.Add(RelatedLink(target));
-         }
-
-         if (RelatedHost.Children.Count > 0)
-         {
-            var caption = new TextBlock
-            {
-               Text = L("Related:"),
-               FontSize = Typography.Caption,
-               Margin = new Thickness(0, 0, 2, 0),
-               VerticalAlignment = VerticalAlignment.Center
-            };
-            caption.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorTertiaryBrush");
-            RelatedHost.Children.Insert(0, caption);
-         }
+         // As many as fit beside the trail, in the map's order, and the rest in a
+         // drop-down (MainWindow.Related.cs, review finding F271): the first three
+         // alone were drawn, whatever the room.
+         BuildRelated_(NavigationMap.Find(key).SeeAlso.Select(NavigationMap.Find).Where(target => target != null));
       }
 
       /// <summary>

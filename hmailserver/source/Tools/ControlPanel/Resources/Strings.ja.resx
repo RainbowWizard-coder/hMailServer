@@ -6727,6 +6727,9 @@
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>監視とトラブルシューティング</value>
   </data>
+  <data name="More ({0})" xml:space="preserve">
+    <value>その他 ({0})</value>
+  </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>{0} 件を超えるメッセージが配信を待っています。</value>
   </data>
@@ -9051,6 +9054,12 @@
   </data>
   <data name="Reject with a text" xml:space="preserve">
     <value>テキストを付けて拒否</value>
+  </data>
+  <data name="Related pages ({0})" xml:space="preserve">
+    <value>関連ページ ({0})</value>
+  </data>
+  <data name="Related pages that do not fit beside the trail" xml:space="preserve">
+    <value>パンくずリストの横に収まらない関連ページ</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>関連:</value>

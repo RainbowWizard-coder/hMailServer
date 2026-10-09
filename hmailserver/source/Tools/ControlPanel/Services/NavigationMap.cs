@@ -65,7 +65,10 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>
       /// Page keys of the neighbouring subjects an administrator on this page
-      /// very often needs next. Rendered as signposts beside the breadcrumb.
+      /// very often needs next. Rendered as signposts beside the breadcrumb, as
+      /// many as fit in the order listed and the rest in a drop-down, so a page's
+      /// deliberate partner comes first; RelatedLinksTests holds every page to
+      /// being listed by another and each documented pair to listing each other.
       /// This is how a subject that genuinely spans several pages - transport
       /// security is five subsystems to us and one question to the user - stays
       /// navigable without duplicating pages into two branches of the tree.
@@ -481,7 +484,7 @@ namespace hMailServer.ControlPanel.Services
                Page("domains", N("Domains"),
                   N("Add domains, accounts, aliases, distribution lists, DKIM signing and external (POP3) collection."),
                   aliases: "Accounts|Users|Mailboxes|Add a user|Aliases|Distribution lists|Mailing list|Quota|Size limit|DKIM|External accounts|Domain aliases|Signatures|Forwarding",
-                  seeAlso: "publicfolders|groups|rules",
+                  seeAlso: "publicfolders|groups|rules|sendout",
                   needs: "administer_domain"),
 
                Page("groups", N("Groups"),
@@ -497,7 +500,7 @@ namespace hMailServer.ControlPanel.Services
                Page("roles", N("Administrator roles"),
                   N("Who may administer what: the named roles this server has, and the accounts that hold them."),
                   aliases: "Roles|Permissions|Help desk|Auditor|Domain administrator|Delegation|Least privilege|Who can do what",
-                  seeAlso: "groups|domains",
+                  seeAlso: "adminaccess|groups|domains",
                   needs: "view_configuration")),
 
             Group("MailArrowForward20", N("Mail flow & delivery"),
@@ -507,12 +510,12 @@ namespace hMailServer.ControlPanel.Services
                Page("delivery", N("Delivery of e-mail"),
                   N("Relaying to an upstream server, retry intervals, bounce handling and what happens to local mail."),
                   aliases: "SMTP relayer|Smarthost|Send through my ISP|Retries|Bounce|Non-delivery report|Deliver local to local",
-                  seeAlso: "routes|queue|ipranges"),
+                  seeAlso: "routes|queue|ipranges|servermessages"),
 
                Page("routes", N("Routes"),
                   N("Deliver mail for named domains to a chosen server instead of looking up its MX record."),
                   aliases: "Static route|Transport map|Send domain to server|Internal relay|Hybrid|Split delivery",
-                  seeAlso: "delivery|mxquery"),
+                  seeAlso: "delivery|remotedomains|mxquery"),
 
                // Beside the routes because that is where somebody who has just
                // set one up will look next, and because the two are the pair an
@@ -556,12 +559,12 @@ namespace hMailServer.ControlPanel.Services
                Page("protocols", N("Protocols"),
                   N("Per-protocol limits and behaviour for SMTP, POP3 and IMAP."),
                   aliases: "SMTP|POP3|IMAP|Timeouts|Max connections|Message size limit|Max message size|Host name|HELO name|EHLO|Authentication required|Welcome banner",
-                  seeAlso: "ports|delivery|authentication"),
+                  seeAlso: "ports|delivery|authentication|servermessages"),
 
                Page("webservices", N("Web services & autoconfiguration"),
                   N("The built-in HTTP listener: Autodiscover, autoconfig, the MTA-STS policy and ACME challenges."),
                   aliases: "HTTP|Autodiscover|Autoconfig|Outlook setup|Thunderbird setup|Mobile setup|MTA-STS policy|Well-known|Web server",
-                  seeAlso: "acme|security|api"),
+                  seeAlso: "acme|security|api|webmail"),
 
                // The webmail's settings, and the other browser pages people sign in to
                // (the self-service portal, the Control Deck): sign-in, sessions, what a
@@ -620,7 +623,7 @@ namespace hMailServer.ControlPanel.Services
                   // halves of the old "Auto-ban & SSL/TLS", and PageSplitTests holds
                   // them to signposting each other so a reader who followed the old
                   // title and landed on the wrong half can get to the right one.
-                  seeAlso: "tlsoverview|certs|ports|security|autoban"),
+                  seeAlso: "tlsoverview|security|autoban|certs|ports"),
 
                Page("security", N("Transport security"),
                   N("DANE, MTA-STS, ARC and TLS reporting - proving to other servers that TLS is required."),
@@ -660,12 +663,14 @@ namespace hMailServer.ControlPanel.Services
                Page("antispam", N("Anti-spam settings"),
                   N("Scores and thresholds, SPF, DKIM and DMARC checks, greylisting, and SpamAssassin."),
                   aliases: "Spam filter|Stop spam|Score|Threshold|SPF|DKIM|DMARC|ARC|Greylisting|SpamAssassin|Junk mail|PTR|HELO check|Subject prefix",
-                  seeAlso: "spamoverview|dnsbl|surbl|spamwhitelist|greylistwhitelist"),
+                  seeAlso: "spamoverview|quarantine|dnsbl|surbl|spamwhitelist|greylistwhitelist"),
 
-               // The overview is first in every one of these lists on purpose: it
-               // is the one page that says what the change just made on this page
-               // does to a message, and only three signposts fit beside the
-               // breadcrumb.
+               // The overview is first in most of these lists on purpose: it is the
+               // one page that says what the change just made on this page does to
+               // a message, and in a narrow window the first links are the ones
+               // drawn beside the breadcrumb (the rest go in its More drop-down). A
+               // page's own partner comes first where the two are a pair: the
+               // greylisting lists, the two sender lists.
                Page("surbl", N("SURBL servers"),
                   N("Block lists checked against the links found inside a message body."),
                   aliases: "SURBL|URI block list|Link blacklist|Body URL check|Spamhaus DBL",
@@ -674,7 +679,7 @@ namespace hMailServer.ControlPanel.Services
                Page("dnsbl", N("DNS block lists (DNSBL)"),
                   N("Block lists checked against the IP address that is connecting."),
                   aliases: "DNSBL|DNS blacklists (DNSBL)|DNS blacklists|DNS block lists|RBL|Blackhole list|Spamhaus|Barracuda|Block an IP by reputation",
-                  seeAlso: "spamoverview|antispam|surbl|ipranges"),
+                  seeAlso: "spamoverview|ipranges|antispam|surbl"),
 
                Page("spamwhitelist", N("Spam exemptions"),
                   N("Senders and IP ranges that bypass spam protection entirely."),
@@ -684,7 +689,7 @@ namespace hMailServer.ControlPanel.Services
                Page("blockedsenders", N("Blocked senders"),
                   N("Envelope senders refused outright or scored - one address, or a whole domain with its subdomains."),
                   aliases: "Blacklist|Block list|Deny list|Block a sender|Banned senders|Refuse mail from",
-                  seeAlso: "spamwhitelist|antispam|spamoverview"),
+                  seeAlso: "senderlist|domainpolicylist|spamwhitelist|antispam|spamoverview"),
 
                // Beside Blocked senders on purpose, because the two are easy to
                // confuse and are not the same thing: that list refuses during the
@@ -699,7 +704,7 @@ namespace hMailServer.ControlPanel.Services
                Page("greylistwhitelist", N("Greylisting exemptions"),
                   N("IP addresses exempt from the greylisting delay, for senders that will not retry."),
                   aliases: "Greylisting white list|Greylist whitelist|Greylist exemption|Greylisting delay|Slow mail|First message delayed|Retry delay",
-                  seeAlso: "spamoverview|antispam|spamwhitelist|greylistbypass"),
+                  seeAlso: "greylistbypass|spamoverview|antispam|spamwhitelist"),
 
                // Beside the greylisting exemptions on purpose: that list exempts an ADDRESS from
                // greylisting on no evidence, this one exempts a DOMAIN on the evidence
@@ -754,12 +759,12 @@ namespace hMailServer.ControlPanel.Services
                Page("adminaccess", N("Administrative access"),
                   N("The server administration password, and who is allowed to use these tools at all."),
                   aliases: "Admin password|Administrator password|Change the admin password|Remote administration|COM API access",
-                  seeAlso: "authentication"),
+                  seeAlso: "roles|authentication"),
 
                Page("ipranges", N("IP ranges"),
                   N("Which addresses may connect, which may relay without authenticating, and which must authenticate first."),
                   aliases: "IP range|Firewall|Block an IP|Allow an IP|Open relay|Relay permissions|Require authentication|Let a device send mail|Printer|Scanner|LAN|Localhost|My IP",
-                  seeAlso: "authentication|autoban|relays|delivery"),
+                  seeAlso: "autoban|authentication|dnsbl|relays|delivery"),
 
                // The brute-force half of what used to be "Auto-ban & SSL/TLS".
                // The two subjects on that page shared nothing: an administrator
@@ -773,10 +778,10 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Auto-ban & SSL/TLS|Autoban|Brute force|Bruteforce|Lockout|Locked out|Failed logons|Failed logins|Password guessing|Dictionary attack|Fail2ban|Hammering|Temporary ban|Logon failure list|Never ban|Never-ban list|Do not ban|Reverse name|Provider banned|Widen ban|Neighbours|Neighbors|PTR|Subnet ban",
                   // "tls" is here, and "autoban" is on the SSL/TLS page, so a
                   // reader who followed an old note about the combined page and
-                  // wanted the other half has a way across. Only the first three
-                  // are drawn beside the breadcrumb, and the order puts the escape
-                  // hatch inside that cut on this page rather than on the other
-                  // one, because this is the half the documented path resolves to.
+                  // wanted the other half has a way across. The breadcrumb draws as
+                  // many as fit and puts the rest in its More drop-down, and each
+                  // half lists the other among its first three, so the way across is
+                  // drawn in a narrow window as well (RelatedLinksTests).
                   seeAlso: "ipranges|authentication|tls|logs"),
 
                // Directory authentication is how accounts prove who they are, so it
@@ -785,7 +790,7 @@ namespace hMailServer.ControlPanel.Services
                Page("ldap", N("Directory authentication (LDAP)"),
                   N("Authenticate accounts against Active Directory or any LDAP directory, so users sign in with their domain password."),
                   aliases: "LDAP|Active Directory|AD|Directory|Domain password|Bind|LDAPS|StartTLS|Single sign-on|Domain accounts|DC",
-                  seeAlso: "authentication|adminaccess|domains|directorysync"),
+                  seeAlso: "directorysync|authentication|adminaccess|domains"),
 
                // Beside directory authentication, and deliberately not folded into it.
                // The two answer different questions: that page is about whether somebody
@@ -810,7 +815,7 @@ namespace hMailServer.ControlPanel.Services
                Page("queue", N("Delivery queue"),
                   N("Messages still waiting to be delivered, why each is waiting, and when it will be retried."),
                   aliases: "Spool|Stuck mail|Pending mail|Outbound queue|Retry|Not delivered|Backlog",
-                  seeAlso: "logs|delivery|status|stalledmail"),
+                  seeAlso: "stalledmail|messagetrace|logs|delivery|status"),
 
                Page("logs", N("Live logs"),
                   N("Stream the server log as it is written - the fastest way to see what happened to one message."),
@@ -820,7 +825,7 @@ namespace hMailServer.ControlPanel.Services
                Page("logging", N("Logging"),
                   N("Which log files the server writes, how much detail they carry, and how long they are kept."),
                   aliases: "Log level|Log files|Log folder|Retention|Delete old logs|Verbosity|Debug logging",
-                  seeAlso: "logs|performance"),
+                  seeAlso: "logs|messagetrace|audit|performance"),
 
                // The guide to mail that stops moving on a healthy-looking server,
                // as a page with a button beside each step. The queue shows that a
@@ -837,7 +842,7 @@ namespace hMailServer.ControlPanel.Services
                Page("messagetrace", N("Message trace"),
                   N("What happened to a particular message - searchable by sender or recipient, instead of grepping logs."),
                   aliases: "Message trace|Delivery history|Where did my email go|Did it arrive|Track a message|Was it delivered|Message log|Audit|What happened to|Trace",
-                  seeAlso: "queue|logs|quarantine"),
+                  seeAlso: "queue|suppressions|logs|quarantine"),
 
                Page("diagnostics", N("Diagnostics"),
                   N("Run the built-in connectivity and configuration checks, and read the last message-store consistency scan."),
@@ -868,7 +873,7 @@ namespace hMailServer.ControlPanel.Services
                Page("audit", N("Audit trail"),
                   N("Who changed what, when, over which interface and from where - every administrative change as one row in a hash chain - and a setting put back to the value it had."),
                   aliases: "Audit|Who changed|History|Change log|Put back|Undo a setting|Revert a change|Compliance",
-                  seeAlso: "adminaccess|logs",
+                  seeAlso: "journaling|discovery|adminaccess|logs",
                   needs: "administer_server"),
 
                // Beside the audit trail, because both answer a compliance

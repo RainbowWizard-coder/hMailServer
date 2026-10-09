@@ -6800,6 +6800,9 @@
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Моніторинг і усунення несправностей</value>
   </data>
+  <data name="More ({0})" xml:space="preserve">
+    <value>Ще ({0})</value>
+  </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>На доставку чекає понад {0} повідомлень.</value>
   </data>
@@ -9142,6 +9145,12 @@
   </data>
   <data name="Reject with a text" xml:space="preserve">
     <value>Відхилити з текстом</value>
+  </data>
+  <data name="Related pages ({0})" xml:space="preserve">
+    <value>Пов’язані сторінки ({0})</value>
+  </data>
+  <data name="Related pages that do not fit beside the trail" xml:space="preserve">
+    <value>Пов’язані сторінки, які не вміщуються поруч зі шляхом</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Пов’язане:</value>

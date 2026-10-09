@@ -6727,6 +6727,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>İzleme ve sorun giderme</value>
   </data>
+  <data name="More ({0})" xml:space="preserve">
+    <value>Diğer ({0})</value>
+  </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>{0} iletiden fazlası teslim edilmeyi bekliyor.</value>
   </data>
@@ -9051,6 +9054,12 @@ Her klasör için sayaç, o klasörün gerçekten tuttuğu en yüksek ileti UID'
   </data>
   <data name="Reject with a text" xml:space="preserve">
     <value>Bir metinle reddet</value>
+  </data>
+  <data name="Related pages ({0})" xml:space="preserve">
+    <value>İlgili sayfalar ({0})</value>
+  </data>
+  <data name="Related pages that do not fit beside the trail" xml:space="preserve">
+    <value>Yolun yanına sığmayan ilgili sayfalar</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>İlgili:</value>

@@ -2115,6 +2115,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   and, in a window too short for the group, puts the page's row a third of the way down; Welcome, the Dashboard and
   About, which have no group, are brought into view as before.
 
+- **Fixed: only three Related links were drawn beside the breadcrumb, so deliberate pairs were dropped and twelve
+  pages were reached by none.** The bar drew the first three entries of a page's list whatever the room: the queue
+  never offered Diagnosing stalled mail, LDAP never Directory synchronisation, the greylisting exemptions never the
+  bypass list, SSL/TLS never Auto-ban and the block lists never IP ranges; Anti-spam settings did not link the
+  quarantine, nor Logging the message trace or the audit trail; and Administrator roles, Remote domains, Server
+  messages, Server sendout, Webmail, the Allow and block list, the Greylisting bypass list, Allowed and blocked
+  domains, Directory synchronisation, Diagnosing stalled mail, the Suppression list and Discovery were the link of no
+  page. The bar now draws as many as fit beside the trail, in the order listed, again as the window is resized, with
+  the rest in a More (n) drop-down - Related pages (n) where not even the first fits - and each list begins with its
+  partners (Anti-spam settings: Spam filtering overview, Quarantine, DNS block lists; Logging: Live logs, Message
+  trace, Audit trail; SSL/TLS: Transport encryption overview, Transport security, Auto-ban). Every page but Welcome and
+  About is now the Related link of another, and each pair the navigation map puts side by side lists the other among
+  its first three, which a test holds.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

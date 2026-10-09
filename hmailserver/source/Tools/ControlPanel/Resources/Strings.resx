@@ -6727,6 +6727,9 @@ Nothing already there is removed.</value>
   <data name="Monitoring &amp; troubleshooting" xml:space="preserve">
     <value>Monitoring &amp; troubleshooting</value>
   </data>
+  <data name="More ({0})" xml:space="preserve">
+    <value>More ({0})</value>
+  </data>
   <data name="More than {0} messages are waiting to be delivered." xml:space="preserve">
     <value>More than {0} messages are waiting to be delivered.</value>
   </data>
@@ -9051,6 +9054,12 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   </data>
   <data name="Reject with a text" xml:space="preserve">
     <value>Reject with a text</value>
+  </data>
+  <data name="Related pages ({0})" xml:space="preserve">
+    <value>Related pages ({0})</value>
+  </data>
+  <data name="Related pages that do not fit beside the trail" xml:space="preserve">
+    <value>Related pages that do not fit beside the trail</value>
   </data>
   <data name="Related:" xml:space="preserve">
     <value>Related:</value>
