@@ -423,9 +423,10 @@ without a click - `03:00` (every day, for an hour), `Sun 03:00`, `Sat,Sun
 `UpdateBackupBeforeApply=1` (the default) the server backs up to the configured
 backup destination first and does not go ahead when there is no destination or the
 backup fails, because a rollback restores binaries, not the schema, and the backup
-is what would. The Control Panel's status page has *Check for updates*, *Download
-update* and *Install update* for doing any of it by hand, and shows the last
-update's outcome. Starting an install from it closes the Control Panel: the
+is what would. The Control Panel's Updates page has *Check for updates*, *Download
+update* and *Install update* for doing any of it by hand, beside the update policy,
+and shows the last update's outcome; Server status, the Dashboard and About say
+when a release is waiting. Starting an install from it closes the Control Panel: the
 installer replaces its files, and a silent installer stops at the first file it
 cannot.
 

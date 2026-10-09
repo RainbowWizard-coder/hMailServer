@@ -895,8 +895,9 @@ the update window or when *Install update* is clicked, as
 
 Under an account that is not an administrator the service still checks for the
 update, downloads it and verifies it, and from 6.3.6 **an administrator installs
-it with one click**: *Install update* on the Status page of the Control Panel on
-the server. Windows asks for permission once; everything after that happens by
+it with one click**: *Install update* on the Updates page of the Control Panel on
+the server (on Server status in 6.3.6). Windows asks for permission once;
+everything after that happens by
 itself, and the Control Panel comes back signed in, on the new version, when the
 service is running. The service never runs anything as an administrator, and
 nothing it can write decides what the administrator's side runs.
