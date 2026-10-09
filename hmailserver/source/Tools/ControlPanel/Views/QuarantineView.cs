@@ -137,6 +137,10 @@ namespace hMailServer.ControlPanel.Views
       // An icon button in a cell: a 16-pixel glyph, its padding and its margin.
       private const double CellIconWidth = 16 + 4 + 4 + 1 + 1;
 
+      // What the text columns' floors keep clear of the room, for layout rounding
+      // (LayOutTextColumns_).
+      private const double RoundingSlack = 2;
+
       // Held and Score at the width of their widest word, set as the rows are bound
       // (SizeFixedColumns_). As Auto columns they grew after the star columns had
       // shared the width out, and the grid cut Subject, its last column, to a few
@@ -1430,7 +1434,11 @@ namespace hMailServer.ControlPanel.Views
       /// beside cut addresses - the recipients where the floors fit, and the sender and
       /// the subject floored at what they need, so that both are whole wherever there is
       /// room for both. The room is the grid's viewport, its vertical scroll bar left
-      /// out, less the fixed columns.
+      /// out, less the fixed columns and two pixels: where the floors fill the room, as
+      /// they do where the sender and the subject share it, layout rounding at 125, 150
+      /// or 175 per cent could make the columns a fraction of a pixel wider than the
+      /// grid, and a grid whose scroll bars depend on each other never settles
+      /// (ControlPanelDesign.md, the rules page's lists).
       /// </summary>
       private void LayOutTextColumns_()
       {
@@ -1439,7 +1447,7 @@ namespace hMailServer.ControlPanel.Views
 
          ScrollViewer scroller = GridScroller_(list_);
          double viewport = scroller != null && scroller.ViewportWidth > 0 ? scroller.ViewportWidth : list_.ActualWidth;
-         double room = viewport - CheckWidth - ActionsWidth - heldColumn_.Width.Value - scoreColumn_.Width.Value;
+         double room = viewport - CheckWidth - ActionsWidth - heldColumn_.Width.Value - scoreColumn_.Width.Value - RoundingSlack;
 
          QuarantineColumnLayout layout = QuarantineReview.Columns(list_.ActualWidth, room, senderNeed_, recipientsNeed_, subjectNeed_);
          heloColumn_.Visibility = layout.ShowsHelo ? Visibility.Visible : Visibility.Collapsed;

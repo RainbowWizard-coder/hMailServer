@@ -254,6 +254,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("QuarantineReview.Columns(list_.ActualWidth, room, senderNeed_, recipientsNeed_, subjectNeed_)", layOut, StringComparison.Ordinal);
          Assert.Contains("heloColumn_.Visibility = layout.ShowsHelo", layOut, StringComparison.Ordinal);
          Assert.Contains("subjectColumn_.MinWidth", layOut, StringComparison.Ordinal);
+         Assert.Contains("- RoundingSlack;", layOut, StringComparison.Ordinal);
          string rebind = WithheldRowTests.MemberText(view, "private void Rebind_()");
          Assert.Contains("MeasureTextColumns_();", rebind, StringComparison.Ordinal);
 
