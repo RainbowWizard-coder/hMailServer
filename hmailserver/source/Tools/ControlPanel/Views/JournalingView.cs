@@ -405,7 +405,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          if (!Dialogs.Confirm(F("Remove the journaling rule for {0}? What it has already sent stays where it was sent.", row.Target),
-                              L("Control Panel"), L("_Remove"), destructive: true))
+                              L("Control Panel"), L("Re_move"), destructive: true))
             return;
 
          try

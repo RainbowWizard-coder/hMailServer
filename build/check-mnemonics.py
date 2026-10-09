@@ -42,8 +42,14 @@ What is checked
     collide with any method's keys. A caption the code behind a XAML page
     sets on one of the page's named buttons - the server status page's Pause
     and Resume - joins the XAML page's scope, where it is on screen.
+  * The button a confirmation names - Dialogs.Confirm(text, title, "Re_move")
+    - and the fixed answers of Dialogs' own questions (new Choice("_Save", ...)
+    for unsaved changes). A confirmation is a window of its own, its button
+    beside Cancel, so each is a scope of its own; it is held to one verb, one
+    key, which is where a page's Re_move opened a box whose Remove was Alt+R.
   * Exempt: Cancel, OK and Close (Escape and Enter are their keys, by platform
-    convention), the "…" browse buttons, and captions that come from data.
+    convention), a message box's Yes and No, the "…" browse buttons, and
+    captions that come from data.
   * One verb, one key: a button, check box or radio button carries the same
     key wherever its caption appears in English - Refresh is Alt+R on every
     page, never Alt+F on the pages where R was taken - so that a key learnt
@@ -76,6 +82,9 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hmailserver", "source", "Tools", "ControlPanel")
 EXEMPT = {"Cancel", "OK", "Close", "…", "...",
+          # A message box's answers (Views/Dialogs), Enter and Escape as for OK and
+          # Cancel; they carry no key in any language.
+          "Yes", "No",
           # The one action in a read-failure notice (Services/ReadFailure), on some
           # twenty pages and reached by Tab. No letter is free of a collision on every
           # page that shows it - in English T is Require TLS for auth, Add action, Take
@@ -280,6 +289,35 @@ CLASS = r"^\s*(?:public|private|protected|internal|static|sealed|partial|abstrac
 LITERAL = r"(?:L\()?\"((?:[^\"\\]|\\.)*)\"\)?"
 
 
+def call_args(src, start):
+    """The top-level arguments of the call whose opening parenthesis ends at start."""
+    depth, args, current, i = 1, [], "", start
+    while i < len(src) and depth > 0:
+        c = src[i]
+        if c == '"':
+            j = i + 1
+            while j < len(src) and src[j] != '"':
+                j += 2 if src[j] == "\\" else 1
+            current += src[i:j + 1]
+            i = j + 1
+            continue
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+            if depth == 0:
+                break
+        elif c == "," and depth == 1:
+            args.append(current.strip())
+            current = ""
+            i += 1
+            continue
+        current += c
+        i += 1
+    args.append(current.strip())
+    return args
+
+
 def cs_captions(path):
     with open(path, encoding="utf-8") as handle:
         src = handle.read()
@@ -305,14 +343,18 @@ def cs_captions(path):
             method = (builders or users or [None])[0]
         return (method[0] if method else class_name), class_name
 
-    def add(out, pos, literal, field=None, end=None, target=None, labels=False):
+    def add(out, pos, literal, field=None, end=None, target=None, labels=False, window=None):
         line = line_of(src, pos)
         # a caption repeated per row, card, record or setting cannot have a unique key, and says so
         # in a comment on the initialiser or on the literal; the rows are reached with the arrow keys
         span = "\n".join(lines[line - 1:line_of(src, end if end is not None else pos)])
         if re.search(r"//.*\bper (row|card|record|setting)\b", span):
             return
-        scope, class_name = scope_for(pos, field)
+        if window:
+            # a window of its own: a scope of its own, apart from the class that opens it
+            scope, class_name = window, None
+        else:
+            scope, class_name = scope_for(pos, field)
         out.append(Caption(path, line, scope, unescape_cs(literal), class_name, target=target, field=labels))
 
     out = []
@@ -336,6 +378,16 @@ def cs_captions(path):
         add(out, m.start(), m.group(1), end=m.end(), labels=True)
     for m in re.finditer(r"\b(?:FormField_|Captioned|Field)\(\s*" + LITERAL + r"\s*,", src):
         add(out, m.start(), m.group(1), labels=True)
+    # The button a confirmation names: Confirm's third argument, in the box's own window.
+    for m in re.finditer(r"\b(?:Dialogs|MessageBox)\.Confirm\(", src):
+        args = call_args(src, m.end())
+        literal = re.fullmatch(LITERAL, args[2]) if len(args) > 2 else None
+        if literal:
+            add(out, m.start(), literal.group(1), window=f"Confirm@{line_of(src, m.start())}")
+    # The fixed answers of Dialogs' own questions, one scope per method that asks one.
+    for m in re.finditer(r"\bnew\s+Choice\(\s*" + LITERAL, src):
+        method = innermost(methods, m.start())
+        add(out, m.start(), m.group(1), window="Choice@" + (method[0] if method else "?"))
     # something.Content = "..." (a button or check box whose caption changes with state)
     for m in re.finditer(r"\b(\w+)\.Content\s*=\s*(?:[^;\"]*\?\s*)?" + LITERAL + r"(?:\s*:\s*" + LITERAL + r")?", src):
         for g in (m.group(2), m.group(3)):
@@ -625,6 +677,18 @@ def self_test():
         both = xaml_captions(verbs) + xaml_captions(names)
         expect("Refresh as Alt+F and Alt+R", [p for p in one_key_per_caption(both) if '"Refresh"' in p], True)
         expect("the field Name as Alt+M and Alt+N", [p for p in one_key_per_caption(both) if '"Name"' in p], False)
+
+        # a confirmation's button is held to the verb's key, in a window of its own
+        members = page("Members.cs", "namespace T\n{\n   public class MembersDialog : Window\n   {\n"
+                       "      public MembersDialog()\n      {\n"
+                       "         var remove = new Button { Content = L(\"Re_move\") };\n      }\n\n"
+                       "      private void Remove_()\n      {\n"
+                       "         if (!Dialogs.Confirm(F(\"Remove {0}?\", name), L(\"Control Panel\"), L(\"_Remove\")))\n"
+                       "            return;\n      }\n   }\n}\n")
+        confirmed = cs_captions(members)
+        expect("a confirmation's _Remove beside the page's Re_move", [p for p in one_key_per_caption(confirmed) if '"Remove"' in p], True)
+        fixed = page("Fixed.cs", open(members, encoding="utf-8").read().replace('L(\"_Remove\")))', 'L(\"Re_move\")))'))
+        expect("a confirmation's Re_move beside the page's Re_move", one_key_per_caption(cs_captions(fixed)) + collisions(cs_captions(fixed)), False)
 
     print("self-test: " + ("FAIL" if failures else "OK"))
     return 1 if failures else 0

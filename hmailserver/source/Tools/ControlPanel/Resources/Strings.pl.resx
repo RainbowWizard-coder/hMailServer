@@ -14108,9 +14108,6 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Załaduj _ponownie z dysku</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Usuń</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>U_suń kryterium</value>
   </data>

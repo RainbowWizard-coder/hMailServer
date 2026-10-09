@@ -13950,9 +13950,6 @@ Continuerà a provare durante l'uso dell'applicazione.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Ricarica dal disco</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>R_imuovi</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>R_imuovi criterio</value>
   </data>

@@ -13950,9 +13950,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Reload from disk" xml:space="preserve">
     <value>从磁盘重新加载(_R)</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>移除(_R)</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>移除条件(_R)</value>
   </data>

@@ -13950,9 +13950,6 @@ It will keep trying as you use the application.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Reload from disk</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Remove</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>_Remove criterion</value>
   </data>

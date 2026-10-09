@@ -2864,7 +2864,7 @@ namespace hMailServer.ControlPanel.Views
             Destructive = true,
             Action = () =>
             {
-               if (!Dialogs.Confirm(L("Remove the sandbox's bearer token? Requests to the sandbox are then sent without one."), L("Sandbox"), L("_Remove"), destructive: true))
+               if (!Dialogs.Confirm(L("Remove the sandbox's bearer token? Requests to the sandbox are then sent without one."), L("Sandbox"), L("Re_move"), destructive: true))
                   return (true, L("Nothing was changed."));
 
                dynamic settings = ServerSession.Current.Application.Settings;

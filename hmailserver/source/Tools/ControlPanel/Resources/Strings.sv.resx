@@ -13950,9 +13950,6 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Ladda _om från disk</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>Ta _bort</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>Ta _bort kriterium</value>
   </data>

@@ -13950,9 +13950,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Diskten _yeniden yükle</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>K_aldır</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>Öl_çütü kaldır</value>
   </data>

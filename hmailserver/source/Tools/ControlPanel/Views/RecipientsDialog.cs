@@ -392,7 +392,7 @@ namespace hMailServer.ControlPanel.Views
          if (address == null)
             return;
 
-         if (!Dialogs.Confirm(F("Remove the recipient {0} from this list?", address), L("Control Panel"), L("_Remove"), destructive: true))
+         if (!Dialogs.Confirm(F("Remove the recipient {0} from this list?", address), L("Control Panel"), L("Re_move"), destructive: true))
             return;
 
          notice_.Hide();

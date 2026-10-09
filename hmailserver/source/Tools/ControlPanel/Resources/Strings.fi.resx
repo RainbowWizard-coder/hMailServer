@@ -13950,9 +13950,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Lataa uudelleen levyltä</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Poista</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>_Poista ehto</value>
   </data>

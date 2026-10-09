@@ -14108,9 +14108,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Reload from disk" xml:space="preserve">
     <value>Перезагрузить с _диска</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Убрать</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>У_брать критерий</value>
   </data>

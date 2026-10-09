@@ -14108,9 +14108,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Znovu _načíst z disku</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Odebrat</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>_Odebrat kritérium</value>
   </data>

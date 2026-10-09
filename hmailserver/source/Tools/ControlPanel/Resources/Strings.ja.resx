@@ -13950,9 +13950,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Reload from disk" xml:space="preserve">
     <value>ディスクから再読み込み(_R)</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>削除(_R)</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>条件を削除(_R)</value>
   </data>

@@ -13950,9 +13950,6 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Von der Festplatte _neu laden</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>E_ntfernen</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>Kriterium _entfernen</value>
   </data>

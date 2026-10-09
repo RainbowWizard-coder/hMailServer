@@ -13950,9 +13950,6 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Last _på nytt fra disk</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Fjern</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>_Fjern kriterium</value>
   </data>

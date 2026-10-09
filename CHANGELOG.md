@@ -1493,18 +1493,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Alt reached a page's buttons and none of its boxes. Each carries one now, and a field whose box has a button beside
   it - the backup file, the destination folder, a DKIM key file, a route's address to add - puts the keyboard in the
   box, where its key did nothing. A verb has one key on every page: Remove is Alt+M (the route and group member
-  dialogs and the two-factor panel said Alt+R), Browse… Alt+B, Copy Alt+C, Search Alt+S, Remove expired Alt+E and
-  Restore defaults Alt+F, and Resume is Alt+E, where on the server status page it was Alt+R beside Refresh; the route
-  dialog's Add is Add address. The Backup & restore page's five cards hold some thirty-five captions, more than there
-  are letters, and shared eight - Alt+P was the encryption passphrase, the archives to keep and Put the message back,
-  and WPF, given two targets for one key, only moves the focus between them: the card that holds the keyboard now
-  answers its own keys first, and a key it does not have goes to the page as before (`Views/AccessKeyScope`).
-  `build/check-mnemonics.py` reads field captions in XAML and in code and captions set in code on a XAML page's
-  buttons, holds a verb to one key and each card of such a page on its own, and holds a dialog tab's keys against the
-  Save button under every tab, which it meant to and did not: in 109 places, all in translations, a tab's key was its
-  dialog's Save - Starkes Passwort erzeugen and Speichern were both Alt+S on a German account's General tab.
-  Some 170 translated captions in fifteen languages took another letter to make room. `--self-test`, which CI runs,
-  proves each rule against a page made to break it; `AccessKeysTests` holds the pages.
+  dialogs and the two-factor panel said Alt+R) on the button and in the question it asks, whose Remove was Alt+R in
+  the group members, recipients, journaling, sample domain and sandbox token questions, Browse… Alt+B, Copy Alt+C,
+  Search Alt+S, Remove expired Alt+E and Restore defaults Alt+F, and Resume is Alt+E, where on the server status page
+  it was Alt+R beside Refresh; the route dialog's Add is Add address. The Backup & restore page's five cards hold some
+  thirty-five captions, more than there are letters, and shared eight - Alt+P was the encryption passphrase, the
+  archives to keep and Put the message back, and WPF, given two targets for one key, only moves the focus between
+  them: the card that holds the keyboard now answers its own keys first, and a key it does not have goes to the page
+  as before (`Views/AccessKeyScope`). `build/check-mnemonics.py` reads field captions in XAML and in code, captions
+  set in code on a XAML page's buttons and the buttons a confirmation names, holds a verb to one key and each card of
+  such a page on its own, and holds a dialog tab's keys against the Save button under every tab, which it meant to and
+  did not: in 109 places, all in translations, a tab's key was its dialog's Save - Starkes Passwort erzeugen and
+  Speichern were both Alt+S on a German account's General tab. Some 170 translated captions in fifteen languages took
+  another letter to make room. `--self-test`, which CI runs, proves each rule against a page made to break it;
+  `AccessKeysTests` holds the pages.
 
 - **Fixed: the dashboard's chart range did not say which range was chosen.** Live, 24 hours, 7 days and 30 days were
   four buttons that marked the chosen range by its colour alone: a screen reader heard "Show Live" and three more

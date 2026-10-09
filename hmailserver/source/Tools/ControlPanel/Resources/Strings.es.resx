@@ -13950,9 +13950,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>_Recargar desde el disco</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Quitar</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>_Quitar criterio</value>
   </data>

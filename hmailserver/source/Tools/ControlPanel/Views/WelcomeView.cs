@@ -338,7 +338,7 @@ namespace hMailServer.ControlPanel.Views
 
          bool removing = sampleState_ == "present";
          if (removing && !Dialogs.Confirm(L("Remove the sample domain with every mailbox, message and rule in it? Anything added to it goes too."),
-                L("Control Panel"), L("_Remove"), destructive: true))
+                L("Control Panel"), L("Re_move"), destructive: true))
             return;
 
          sampleBusy_ = true;

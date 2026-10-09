@@ -13950,9 +13950,6 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Opnieuw _laden vanaf schijf</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>V_erwijderen</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>Criterium _verwijderen</value>
   </data>

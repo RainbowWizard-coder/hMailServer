@@ -13950,9 +13950,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="_Reload from disk" xml:space="preserve">
     <value>Genindlæs _fra disken</value>
   </data>
-  <data name="_Remove" xml:space="preserve">
-    <value>_Fjern</value>
-  </data>
   <data name="_Remove criterion" xml:space="preserve">
     <value>_Fjern kriterium</value>
   </data>
