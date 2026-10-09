@@ -1171,11 +1171,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   vanished. Each such setting now keeps its caption and note on its card with a neutral *Not read* pill where its
   editor would be; the card says at its top, as a Warning, how many of its settings could not be read and that saving
   leaves them as they are on the server; and the page's sentence says the same of the page at the same level - one
-  sentence per number - with the first reason last. When the link to the service went, the page says so once, at
-  Critical, as every page says a lost link, and neither the cards nor a figure such as the message store's repeat it:
-  their rows say *Not read*. `FailureStateTests` holds both roads to an unread row, the REST key the server does not
-  answer and the COM read that threw, to the row, the count and whether the link went, and the page's sentence to its
-  wording and its level.
+  sentence per number - with the first reason last. A setting kept in hMailServer.ini whose read fell back to the file
+  on this computer is one of them: the file's value may not be what the server runs, and under a lost link the
+  delivery page's PIPELINING and CHUNKING boxes stood ticked and every idle timeout on Protocols was a live, editable
+  number, on the same cards as rows marked *Not read* and left out of the page's count. When the link to the service
+  went, the page says so once, at Critical, as every page says a lost link, and neither the cards nor a figure such as
+  the message store's repeat it: their rows say *Not read*. `FailureStateTests` holds every road to an unread row - the
+  REST key the server does not answer, the COM read that threw and the hMailServer.ini read that fell back - to the
+  row, the count and whether the link went, and the page's sentence to its wording and its level.
 - **Fixed: settings cards reached over the REST API said "Sign in to a server first." under a Connected pill, once
   per card.** Passkeys, OIDC, SAML, What people may do, OpenPGP, S/MIME, Web Push, Import, Reports, Managed mailing
   lists and Compromised accounts each carried that Warning - three times on the webmail page's Sign-in tab - when the

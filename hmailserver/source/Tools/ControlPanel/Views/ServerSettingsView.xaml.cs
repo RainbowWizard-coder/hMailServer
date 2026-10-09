@@ -5251,8 +5251,32 @@ namespace hMailServer.ControlPanel.Views
                      }
                   }
 
+                  // A row kept in hMailServer.ini reads its value as its editor is
+                  // built, from the server, and from the file on this computer when
+                  // the server cannot be asked (IniFeatureStore.Read). A value that
+                  // fell back is the file's, which may not be what the server runs:
+                  // the row is then what a COM row whose read threw is - counted,
+                  // marked Not read and left alone by a save - where it was a live,
+                  // editable value on the same card as the rows marked Not read, and
+                  // the page's count left it out.
+                  bool iniRow = setting is IIniSetting;
+                  if (iniRow)
+                     iniStore_.ForgetFallback();
+
                   setting.Changed = MarkUnsaved_;
                   lastRow = setting.CreateRow(value);
+
+                  if (iniRow && iniStore_.FallbackCause is Exception fellBack)
+                  {
+                     setting.Changed = null;
+                     failedReads_++;
+                     diag_ ??= ServerSession.DescribeComError(fellBack);
+                     linkLost_ |= ServerSession.IsTransportFailure(fellBack);
+                     unread++;
+                     fields.Children.Add(lastRow = UnreadRow_(setting));
+                     continue;   // the file's value is not shown, and Save leaves the setting alone
+                  }
+
                   built_.Add(setting);
                   fields.Children.Add(lastRow);
                }

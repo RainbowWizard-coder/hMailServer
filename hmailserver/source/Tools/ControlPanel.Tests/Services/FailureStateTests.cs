@@ -280,11 +280,12 @@ namespace hMailServer.ControlPanel.Tests.Services
 
       /// <summary>
       /// A setting whose value could not be read keeps its caption on its card with
-      /// "Not read" in place of its editor, by either road - a COM read that threw,
-      /// a REST group that does not answer its key - and the card says at its top
-      /// how many and that saving leaves them as they are. Before, the row was
-      /// skipped: a card that lost every row was a bare heading, and nothing said
-      /// which card had lost what.
+      /// "Not read" in place of its editor, by each road - a COM read that threw, a
+      /// REST group that does not answer its key, a row kept in hMailServer.ini whose
+      /// read fell back to the file - and the card says at its top how many and that
+      /// saving leaves them as they are. Before, the row was skipped: a card that
+      /// lost every row was a bare heading, and nothing said which card had lost
+      /// what.
       /// </summary>
       [Fact]
       public void ACardThatLostSettings_MarksEachAndSaysHowMany()
@@ -293,9 +294,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
          Assert.True(build != null, "ServerSettingsView.xaml.cs no longer has BuildUi.");
 
-         // Both roads to an unread row count it and mark it before they go on; the
-         // COM read also records whether the link went.
-         Assert.Equal(2, Regex.Matches(build, @"failedReads_\+\+;\s*diag_ \?\?= .+?;\s*(?:linkLost_ \|= ServerSession\.IsTransportFailure\(ex\);\s*)?unread\+\+;\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);\s*continue;").Count);
+         // Every road to an unread row counts it and marks it before it goes on; the
+         // COM read and the fall-back also record whether the link went.
+         Assert.Equal(3, Regex.Matches(build, @"failedReads_\+\+;\s*diag_ \?\?= .+?;\s*(?:linkLost_ \|= ServerSession\.IsTransportFailure\(\w+\);\s*)?unread\+\+;\s*fields\.Children\.Add\(lastRow = UnreadRow_\(setting\)\);\s*continue;").Count);
 
          // The card's own notice, one sentence per number.
          Assert.Contains("else if (unread > 0)", build, StringComparison.Ordinal);
@@ -309,6 +310,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("Text = L(\"Not read\")", row, StringComparison.Ordinal);
          Assert.Contains("MnemonicText.Escape(MnemonicText.Strip(", row, StringComparison.Ordinal);
          Assert.Contains("Hint = setting.Blurb", row, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// A row kept in hMailServer.ini whose read fell back to the file on this
+      /// computer - the link gone, or a server without GetIniSetting - is a setting
+      /// the server did not give, and takes the road a COM read that threw takes:
+      /// counted, with the link's loss recorded, marked Not read, and left out of
+      /// what a save writes. Before, it fell back without a word: under a lost link
+      /// the delivery page's PIPELINING and CHUNKING boxes stood ticked and every
+      /// idle timeout on Protocols was a live, editable number, on the same cards as
+      /// rows marked Not read, and the page's count of unread settings left them out.
+      /// </summary>
+      [Fact]
+      public void AnIniRowThatFellBackToTheFile_IsNotRead()
+      {
+         string source = ReadView("ServerSettingsView.xaml.cs");
+         string build = WithheldRowTests.MemberText(source, "private void BuildUi()");
+         Assert.True(build != null, "ServerSettingsView.xaml.cs no longer has BuildUi.");
+
+         // Each row's fall-back is its own: forgotten before its editor reads, asked
+         // after.
+         Match road = Regex.Match(build,
+            @"bool iniRow = setting is IIniSetting;\s*if \(iniRow\)\s*iniStore_\.ForgetFallback\(\);\s*setting\.Changed = MarkUnsaved_;\s*lastRow = setting\.CreateRow\(value\);\s*if \(iniRow && iniStore_\.FallbackCause is Exception (\w+)\)\s*\{(.*?)\}\s*built_\.Add\(setting\);",
+            RegexOptions.Singleline);
+         Assert.True(road.Success, "BuildUi does not ask each hMailServer.ini row whether its read fell back to the file.");
+
+         string cause = road.Groups[1].Value;
+         string unread = road.Groups[2].Value;
+         Assert.Contains("failedReads_++;", unread, StringComparison.Ordinal);
+         Assert.Contains("diag_ ??= ServerSession.DescribeComError(" + cause + ");", unread, StringComparison.Ordinal);
+         Assert.Contains("linkLost_ |= ServerSession.IsTransportFailure(" + cause + ");", unread, StringComparison.Ordinal);
+         Assert.Contains("fields.Children.Add(lastRow = UnreadRow_(setting));", unread, StringComparison.Ordinal);
+         Assert.Contains("continue;", unread, StringComparison.Ordinal);
+         Assert.DoesNotContain("built_.Add", unread, StringComparison.Ordinal);
       }
 
       /// <summary>

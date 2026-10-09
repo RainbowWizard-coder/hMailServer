@@ -26,8 +26,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          string source = WithheldRowTests.ReadServerSettingsView();
          Assert.False(source == null, "ServerSettingsView.xaml.cs could not be found from the test binaries.");
 
-         // BuildUi remembers each row it built an editor for, where it builds it...
-         Match remembered = Regex.Match(source, @"lastRow = setting\.CreateRow\(value\);\s*(\w+)\.Add\(setting\);");
+         // BuildUi remembers each row it built an editor for, where it builds it - once
+         // it knows that a row kept in hMailServer.ini did not read the file's value in
+         // place of the server's ...
+         Match remembered = Regex.Match(source, @"lastRow = setting\.CreateRow\(value\);(?:\s*if \([^()]*FallbackCause[^()]*\)\s*\{[^{}]*\})?\s*(\w+)\.Add\(setting\);");
          Assert.True(remembered.Success, "BuildUi does not remember the rows it built an editor for.");
          string built = remembered.Groups[1].Value;
 
