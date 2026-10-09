@@ -2970,6 +2970,9 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Impossibile leggere le impostazioni di backup: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Impossibile leggere i certificati: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Impossibile leggere il rapporto di coerenza: {0}</value>
   </data>

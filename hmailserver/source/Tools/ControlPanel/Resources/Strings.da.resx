@@ -2970,6 +2970,9 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Kunne ikke læse sikkerhedskopiindstillingerne: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Kunne ikke læse certifikaterne: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kunne ikke læse konsistensrapporten: {0}</value>
   </data>

@@ -2038,6 +2038,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   "Everything ErrorManager reports", and the directory authentication page's port is captioned Port, where it read
   "Port (Port)".
 
+- **Fixed: the SSL certificates page said a failed read with the reason alone and no way to read the list again.** It
+  now leads with "Could not read the certificates:", as the other list pages do, with Try again beside it, the list
+  emptied and Add disabled until a read works.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

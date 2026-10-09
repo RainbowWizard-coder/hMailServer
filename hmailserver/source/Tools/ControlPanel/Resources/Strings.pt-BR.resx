@@ -2970,6 +2970,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Não foi possível ler as configurações de backup: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Não foi possível ler os certificados: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Não foi possível ler o relatório de consistência: {0}</value>
   </data>

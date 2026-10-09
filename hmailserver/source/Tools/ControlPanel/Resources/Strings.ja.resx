@@ -2970,6 +2970,9 @@
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>バックアップ設定を読み取れませんでした: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>証明書を読み取れませんでした: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>整合性レポートを読み取れませんでした: {0}</value>
   </data>

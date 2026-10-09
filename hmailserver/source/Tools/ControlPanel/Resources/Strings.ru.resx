@@ -2994,6 +2994,9 @@ Control Panel может читать файлы сообщений только
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Не удалось прочитать параметры резервного копирования: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Не удалось прочитать сертификаты: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не удалось прочитать отчёт о проверке целостности: {0}</value>
   </data>

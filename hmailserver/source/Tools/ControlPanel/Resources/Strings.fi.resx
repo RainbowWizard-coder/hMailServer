@@ -2970,6 +2970,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Varmuuskopioinnin asetuksia ei voitu lukea: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Varmenteita ei voitu lukea: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Eheysraporttia ei voitu lukea: {0}</value>
   </data>

@@ -138,7 +138,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          var rows = new List<CertRow>();
-         string error = null;
+         Exception failure = null;
 
          try
          {
@@ -147,12 +147,12 @@ namespace hMailServer.ControlPanel.Views
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
             rows.Clear();
-            error = ServerSession.DescribeComError(ex);
+            failure = ex;
          }
 
          bool local = CertificateInspector.SessionIsLocal(ServerSession.Current?.Host);
 
-         if (error == null && rows.Count > 0)
+         if (failure == null && rows.Count > 0)
          {
             // The file checks are plain disk reads, but the paths may point at a
             // network share, so they stay off the UI thread. Inspect never throws.
@@ -173,7 +173,19 @@ namespace hMailServer.ControlPanel.Views
 
          CertGrid.ItemsSource = rows;
          ListSearch.Apply(CertGrid, SearchBar.SearchText);
-         StatusText.Show(EmptyStatus, LoadNotice, rows.Count, error, L("No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one."));
+         if (failure != null)
+         {
+            // A read that failed is said as on the other list pages (Services/ReadFailure):
+            // what could not be read and then why, with Try again, the list emptied and
+            // Add disabled until a read works - where the notice gave the reason alone,
+            // and nothing on the page read the list again.
+            ReadFailure.Show(LoadNotice, EmptyStatus, CertGrid, L("Could not read the certificates: "), failure, () => Reload(), AddCertButton);
+         }
+         else
+         {
+            ReadFailure.Clear(LoadNotice, AddCertButton);
+            StatusText.Show(EmptyStatus, LoadNotice, rows.Count, null, L("No certificates yet, so no port can offer TLS. Add one from PEM files below, or let ACME issue one."));
+         }
 
          if (reselectId != 0)
          {

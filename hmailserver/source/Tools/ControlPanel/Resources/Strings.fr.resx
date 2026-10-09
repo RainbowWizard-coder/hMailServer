@@ -2970,6 +2970,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Impossible de lire les réglages de sauvegarde : </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Impossible de lire les certificats : </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Impossible de lire le rapport de cohérence : {0}</value>
   </data>

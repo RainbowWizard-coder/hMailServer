@@ -2970,6 +2970,9 @@ Los detalles completos se escribieron en:
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>No se pudieron leer los ajustes de copia: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>No se pudieron leer los certificados: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>No se pudo leer el informe de consistencia: {0}</value>
   </data>

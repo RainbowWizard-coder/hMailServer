@@ -2970,6 +2970,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Kon de back-upinstellingen niet lezen: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Kon de certificaten niet lezen: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kon het consistentierapport niet lezen: {0}</value>
   </data>

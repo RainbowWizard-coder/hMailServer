@@ -2994,6 +2994,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Nepodařilo se přečíst nastavení zálohování: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Nepodařilo se přečíst certifikáty: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Nepodařilo se přečíst zprávu o konzistenci: {0}</value>
   </data>

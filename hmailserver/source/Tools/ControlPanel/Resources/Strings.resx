@@ -2970,6 +2970,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Could not read the backup settings: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Could not read the certificates: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Could not read the consistency report: {0}</value>
   </data>

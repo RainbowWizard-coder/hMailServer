@@ -2970,6 +2970,9 @@
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>无法读取备份设置： </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>无法读取证书：</value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>无法读取一致性报告：{0}</value>
   </data>

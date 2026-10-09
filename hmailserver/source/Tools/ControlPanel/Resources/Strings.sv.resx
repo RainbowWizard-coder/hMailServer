@@ -2970,6 +2970,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Kunde inte läsa inställningarna för säkerhetskopiering: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Kunde inte läsa certifikaten: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Kunde inte läsa konsistensrapporten: {0}</value>
   </data>

@@ -2994,6 +2994,9 @@
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Не вдалося прочитати параметри резервного копіювання: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Не вдалося прочитати сертифікати: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Не вдалося прочитати звіт про перевірку цілісності: {0}</value>
   </data>

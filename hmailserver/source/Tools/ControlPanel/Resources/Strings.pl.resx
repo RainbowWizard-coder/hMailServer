@@ -2994,6 +2994,9 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Nie udało się odczytać ustawień kopii zapasowej: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Nie udało się odczytać certyfikatów: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Nie udało się odczytać raportu spójności: {0}</value>
   </data>

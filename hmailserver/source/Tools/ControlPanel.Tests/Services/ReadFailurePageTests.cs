@@ -55,6 +55,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "DomainsView.xaml.cs", "private void ReloadAccounts()", "Could not read the accounts: " },
          { "SuppressionListView.cs", "private bool LoadDomains_()", "Could not read the domains: " },
          { "SuppressionListView.cs", "private void Unread_(string prefix, string why)", "Could not read the suppression list: " },
+         { "SslCertificatesView.xaml.cs", "private async void Reload(int reselectId = 0)", "Could not read the certificates: " },
       };
 
       [Theory]
@@ -118,6 +119,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          { "TcpIpPortsView.xaml", "Notice", new[] { "AddPortButton", "RestoreDefaultsButton" } },
          { "DomainsView.xaml", "DomainNotice", new[] { "AddDomainButton", "AccountNotice", "AccountForm" } },
          { "BackupView.xaml", "Notice", new[] { "BackupCard" } },
+         { "SslCertificatesView.xaml", "LoadNotice", new[] { "AddCertButton" } },
       };
 
       [Theory]

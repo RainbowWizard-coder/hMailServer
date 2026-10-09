@@ -2970,6 +2970,9 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Could not read the backup settings: " xml:space="preserve">
     <value>Yedekleme ayarları okunamadı: </value>
   </data>
+  <data name="Could not read the certificates: " xml:space="preserve">
+    <value>Sertifikalar okunamadı: </value>
+  </data>
   <data name="Could not read the consistency report: {0}" xml:space="preserve">
     <value>Tutarlılık raporu okunamadı: {0}</value>
   </data>
