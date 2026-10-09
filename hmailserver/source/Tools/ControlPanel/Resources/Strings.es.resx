@@ -9787,6 +9787,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Ca_mbiar la regla</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Guardar y _previsualizar</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Guardar permisos</value>
   </data>
@@ -9837,6 +9840,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Guardar la frase de contraseña de la clave privada del certificado seleccionado</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Guardar la selección en hMailServer.INI y después mostrar qué haría una sincronización con ella</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Guardar estos ajustes en hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>La sección de abajo está rellenada; marcar el interruptor de arriba la activaría.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>La selección de arriba tiene cambios que no se han guardado, y Vista previa y Aplicar leen la guardada. Guardar y previsualizar la guarda y después la previsualiza.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>L_a dirección del remitente, en la lista de permitidos y bloqueados del servidor</value>

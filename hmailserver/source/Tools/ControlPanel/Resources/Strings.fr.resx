@@ -9787,6 +9787,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Ba_sculer la règle</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Enregistrer et pré_visualiser</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Enregistrer les permissions</value>
   </data>
@@ -9837,6 +9840,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Enregistrer la phrase secrète de la clé privée du certificat sélectionné</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Enregistrer la sélection dans hMailServer.INI, puis montrer ce qu'une synchronisation en ferait</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Enregistrer ces réglages dans hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ L'ajouter quand même ?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>La section ci-dessous est remplie ; cocher l'interrupteur ci-dessus l'activerait.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>La sélection ci-dessus a des modifications qui ne sont pas enregistrées, et Aperçu et Appliquer lisent celle qui est enregistrée. Enregistrer et prévisualiser l'enregistre, puis la prévisualise.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>L'a_dresse de l'expéditeur, sur la liste d'autorisation et de blocage du serveur</value>

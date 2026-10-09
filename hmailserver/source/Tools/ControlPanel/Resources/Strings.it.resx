@@ -9787,6 +9787,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Co_mmuta la regola</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Salva _e visualizza l'anteprima</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Sal_va i permessi</value>
   </data>
@@ -9837,6 +9840,9 @@ Ogni cartella viene prima svuotata: la posta arrivata dopo il backup va perduta.
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Salva la passphrase della chiave privata per il certificato selezionato</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Salva la selezione in hMailServer.INI, poi mostra cosa ne farebbe una sincronizzazione</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Salva queste impostazioni in hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ Aggiungerlo comunque?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>La sezione qui sotto è compilata; attivando l'interruttore qui sopra entrerebbe in funzione.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>La selezione qui sopra ha modifiche non salvate, e Anteprima e Applica leggono quella salvata. Salva e visualizza l'anteprima la salva, poi ne mostra l'anteprima.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>L'in_dirizzo del mittente, nell'elenco consentiti e bloccati del server</value>

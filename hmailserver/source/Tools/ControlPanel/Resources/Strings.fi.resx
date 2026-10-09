@@ -9787,6 +9787,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Vaihda säännön tila</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Ta_llenna ja esikatsele</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Tallenna käytt_öoikeudet</value>
   </data>
@@ -9837,6 +9840,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Tallenna valitun varmenteen yksityisen avaimen tunnuslause</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Tallenna valinta hMailServer.INI-tiedostoon ja näytä sitten, mitä synkronointi tekisi sillä</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Tallenna nämä asetukset hMailServer.INI-tiedostoon</value>
@@ -12348,6 +12354,9 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Alla oleva osio on täytetty; yllä olevan kytkimen valitseminen aktivoisi sen.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Yllä olevassa valinnassa on muutoksia, joita ei ole tallennettu, ja Esikatsele ja Käytä lukevat tallennetun. Tallenna ja esikatsele tallentaa sen ja esikatselee sen sitten.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Lähettäjän _osoite, palvelimen sallittujen ja estettyjen luettelossa</value>

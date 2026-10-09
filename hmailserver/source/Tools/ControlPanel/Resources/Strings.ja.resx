@@ -9787,6 +9787,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="S_witch the rule over" xml:space="preserve">
     <value>ルールを切り替え(_W)</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>保存してプレビュー(_V)</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>権限を保存(_V)</value>
   </data>
@@ -9837,6 +9840,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>選択した証明書の秘密鍵パスフレーズを保存</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>選択内容を hMailServer.INI に保存してから、同期がそれで何を行うかを表示</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>これらの設定を hMailServer.INI に保存</value>
@@ -12348,6 +12354,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>下のセクションは入力済みです。上のスイッチをオンにすると有効になります。</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>上の選択内容には保存されていない変更があり、「プレビュー」と「適用」は保存済みの内容を読み取ります。「保存してプレビュー」は、それを保存してからプレビューします。</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>送信者のアドレス、サーバーの許可・ブロック一覧へ(_A)</value>

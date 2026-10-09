@@ -9787,6 +9787,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Slå regelen om</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Lagre _og forhåndsvis</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>L_agre tillatelser</value>
   </data>
@@ -9837,6 +9840,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Lagre passfrasen til den private nøkkelen for det valgte sertifikatet</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Lagre utvalget i hMailServer.INI, og vis deretter hva en synkronisering ville gjort med det</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Lagre disse innstillingene i hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ Legg til likevel?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Delen nedenfor er fylt ut; å krysse av bryteren ovenfor ville aktivere den.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Utvalget ovenfor har endringer som ikke er lagret, og Forhåndsvis og Bruk leser det lagrede. Lagre og forhåndsvis lagrer det og forhåndsviser det deretter.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Avsenderens _adresse, på serverens liste over tillatte og blokkerte</value>

@@ -9787,6 +9787,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="S_witch the rule over" xml:space="preserve">
     <value>A_lternar a regra</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Salvar e _visualizar</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Sal_var permissões</value>
   </data>
@@ -9837,6 +9840,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Salvar a frase secreta da chave privada do certificado selecionado</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Salvar a seleção em hMailServer.INI e depois mostrar o que uma sincronização faria com ela</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Salvar estas configurações em hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ Adicionar mesmo assim?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>A seção abaixo está preenchida; marcar a opção acima a ativaria.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>A seleção acima tem alterações que não foram salvas, e Prévia e Aplicar leem a salva. Salvar e visualizar a salva e depois mostra a prévia dela.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>O _endereço do remetente, na lista de permitidos e bloqueados do servidor</value>

@@ -9787,6 +9787,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="S_witch the rule over" xml:space="preserve">
     <value>切换规则(_W)</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>保存并预览(_V)</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>保存权限(_V)</value>
   </data>
@@ -9837,6 +9840,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>保存所选证书的私钥密码短语</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>将所选内容保存到 hMailServer.INI，然后显示同步会对其做什么</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>将这些设置保存到 hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>下面的部分已填写；勾选上面的开关即可激活它。</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>上面的所选内容有尚未保存的更改，而“预览”和“应用”读取的是已保存的内容。“保存并预览”会先保存它，然后预览它。</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>发件人的地址，写入服务器的允许与拦截名单(_A)</value>

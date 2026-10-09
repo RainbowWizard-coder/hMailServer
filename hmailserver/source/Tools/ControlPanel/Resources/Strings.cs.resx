@@ -9887,6 +9887,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="S_witch the rule over" xml:space="preserve">
     <value>P_řepnout pravidlo</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>U_ložit a zobrazit náhled</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>U_ložit oprávnění</value>
   </data>
@@ -9937,6 +9940,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Uložit přístupové heslo soukromého klíče pro vybraný certifikát</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Uložit výběr do hMailServer.INI a pak ukázat, co by s ním synchronizace udělala</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Uložit toto nastavení do hMailServer.INI</value>
@@ -12511,6 +12517,9 @@ Přesto přidat?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Část níže je vyplněná; zaškrtnutí přepínače výše by ji aktivovalo.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Výběr výše obsahuje neuložené změny a Náhled a Použít čtou ten uložený. Uložit a zobrazit náhled jej uloží a pak zobrazí jeho náhled.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>_Adresa odesílatele, na serverovém seznamu povolených a blokovaných</value>

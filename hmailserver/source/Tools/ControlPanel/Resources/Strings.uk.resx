@@ -9887,6 +9887,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="S_witch the rule over" xml:space="preserve">
     <value>П_еремкнути правило</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Збе_регти й переглянути</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Збере_гти дозволи</value>
   </data>
@@ -9937,6 +9940,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Зберегти парольну фразу закритого ключа для вибраного сертифіката</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Зберегти вибірку в hMailServer.INI, а потім показати, що зробила б із нею синхронізація</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Зберегти ці параметри в hMailServer.INI</value>
@@ -12511,6 +12517,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Розділ нижче заповнено; установлення перемикача вище його активує.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>У вибірці вище є незбережені зміни, а Попередній перегляд і Застосувати читають збережену. Зберегти й переглянути зберігає її, а потім показує її попередній перегляд.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>_Адреса відправника, у списку дозволених і заблокованих сервера</value>

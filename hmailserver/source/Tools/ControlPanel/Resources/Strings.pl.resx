@@ -9887,6 +9887,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Przełącz regułę</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Zapi_sz i wyświetl podgląd</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Zapisz _uprawnienia</value>
   </data>
@@ -9937,6 +9940,9 @@ Każdy folder zostanie najpierw opróżniony: poczta, która nadeszła od czasu 
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Zapisz hasło klucza prywatnego dla wybranego certyfikatu</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Zapisz wybór w hMailServer.INI, a potem pokaż, co zrobiłaby z nim synchronizacja</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Zapisz te ustawienia w hMailServer.INI</value>
@@ -12511,6 +12517,9 @@ Dodać mimo to?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Sekcja poniżej jest wypełniona; zaznaczenie przełącznika powyżej ją uaktywni.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Wybór powyżej ma niezapisane zmiany, a Podgląd i Zastosuj odczytują zapisany. Zapisz i wyświetl podgląd zapisuje go, a potem wyświetla jego podgląd.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>_Adres nadawcy, na liście dozwolonych i zablokowanych serwera</value>

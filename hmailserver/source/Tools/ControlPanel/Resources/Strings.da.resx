@@ -9787,6 +9787,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   <data name="S_witch the rule over" xml:space="preserve">
     <value>S_kift reglen om</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Gem _og forhåndsvis</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Ge_m tilladelser</value>
   </data>
@@ -9837,6 +9840,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Den gem
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Gem adgangssætningen til den private nøgle for det valgte certifikat</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Gem udvælgelsen i hMailServer.INI, og vis derefter, hvad en synkronisering ville gøre med den</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Gem disse indstillinger i hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ Tilføj alligevel?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Afsnittet nedenfor er udfyldt; at sætte kryds i kontakten ovenfor ville aktivere det.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Udvælgelsen ovenfor har ændringer, der ikke er gemt, og Forhåndsvis og Anvend læser den gemte. Gem og forhåndsvis gemmer den og forhåndsviser den derefter.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Afsenderens _adresse, på serverens liste over tilladte og blokerede</value>

@@ -9787,6 +9787,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   <data name="S_witch the rule over" xml:space="preserve">
     <value>_Växla regeln</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Spara och förhands_granska</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>Spara _behörigheter</value>
   </data>
@@ -9837,6 +9840,9 @@ Varje mapp töms först: post som kommit sedan säkerhetskopian är borta. Den b
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Spara lösenfrasen för det valda certifikatets privata nyckel</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Spara urvalet i hMailServer.INI och visa sedan vad en synkronisering skulle göra med det</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Spara de här inställningarna till hMailServer.INI</value>
@@ -12348,6 +12354,9 @@ Lägg till det ändå?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Sektionen nedan är ifylld; att kryssa i strömbrytaren ovan skulle aktivera den.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Urvalet ovan har ändringar som inte är sparade, och Förhandsgranska och Tillämpa läser det sparade. Spara och förhandsgranska sparar det och förhandsgranskar det sedan.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Avsändarens _adress, i serverns lista över tillåtna och blockerade</value>

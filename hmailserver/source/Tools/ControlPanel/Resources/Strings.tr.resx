@@ -9787,6 +9787,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Kuralı de_ğiştir</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Kaydet _ve ön izle</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>İzinleri _kaydet</value>
   </data>
@@ -9837,6 +9840,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Seçili sertifika için özel anahtar parola ifadesini kaydet</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Seçimi hMailServer.INI dosyasına kaydet, ardından bir eşitlemenin onunla ne yapacağını göster</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Bu ayarları hMailServer.INI'ye kaydet</value>
@@ -12348,6 +12354,9 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Aşağıdaki bölüm dolduruldu; yukarıdaki anahtarı işaretlemek onu etkinleştirir.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Yukarıdaki seçimde kaydedilmemiş değişiklikler var ve Ön izle ile Uygula kaydedilmiş olanı okur. Kaydet ve ön izle onu kaydeder, ardından ön izler.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Gönderenin _adresi, sunucunun izin ve engel listesinde</value>

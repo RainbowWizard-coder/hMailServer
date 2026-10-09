@@ -1967,6 +1967,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   meanwhile, with Save anyway and Cancel, Cancel the answer Enter gives; a section saved switched off is filled in at
   leisure, as before.
 
+- **Fixed: Directory synchronisation's Preview and Apply ran the saved selection while the editors above showed
+  unsaved changes.** A run reads the [LDAP] section as saved, so a preview pressed after the search filter was changed
+  and not saved showed the old filter, and Apply then applied it. While the search filter, the three attributes or the
+  maximum entries differ from what was read or saved, Preview and Apply are disabled and the run card says so at its
+  top, with Save and preview, which saves the selection and then previews it - and previews nothing when the save is
+  refused. The schedule, which a run does not read, does not count.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

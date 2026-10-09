@@ -9787,6 +9787,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   <data name="S_witch the rule over" xml:space="preserve">
     <value>Regel um_schalten</value>
   </data>
+  <data name="Sa_ve and preview" xml:space="preserve">
+    <value>Speichern und Vorschau _zeigen</value>
+  </data>
   <data name="Sa_ve permissions" xml:space="preserve">
     <value>_Berechtigungen speichern</value>
   </data>
@@ -9837,6 +9840,9 @@ Jeder Ordner wird zuerst geleert: Post, die seit der Sicherung eingegangen ist, 
   </data>
   <data name="Save the private key passphrase for the selected certificate" xml:space="preserve">
     <value>Die Passphrase des privaten Schlüssels für das ausgewählte Zertifikat speichern</value>
+  </data>
+  <data name="Save the selection to hMailServer.INI, then show what a synchronisation would do with it" xml:space="preserve">
+    <value>Die Auswahl in hMailServer.INI speichern und dann zeigen, was eine Synchronisierung damit tun würde</value>
   </data>
   <data name="Save these settings to hMailServer.INI" xml:space="preserve">
     <value>Diese Einstellungen in hMailServer.INI speichern</value>
@@ -12348,6 +12354,9 @@ Trotzdem hinzufügen?</value>
   </data>
   <data name="The section below is filled in; ticking the switch above would activate it." xml:space="preserve">
     <value>Der Abschnitt unten ist ausgefüllt; den Schalter oben einzuschalten würde ihn aktivieren.</value>
+  </data>
+  <data name="The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it." xml:space="preserve">
+    <value>Die Auswahl oben hat Änderungen, die nicht gespeichert sind, und Vorschau und Anwenden lesen die gespeicherte. Speichern und Vorschau zeigen speichert sie und zeigt dann ihre Vorschau.</value>
   </data>
   <data name="The sender's _address, on the server's allow and block list" xml:space="preserve">
     <value>Die _Adresse des Absenders, auf der Zulassungs- und Sperrliste des Servers</value>

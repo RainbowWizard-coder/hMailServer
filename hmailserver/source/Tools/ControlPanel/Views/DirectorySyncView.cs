@@ -76,6 +76,19 @@ namespace hMailServer.ControlPanel.Views
       private Wpf.Ui.Controls.Button applyButton_;
       private Wpf.Ui.Controls.Button saveButton_;
 
+      // While the selection above has changes not saved: a warning at the top of the
+      // run card, and Save and preview beside it, Preview and Apply disabled - a run
+      // reads the saved [LDAP] section, so a preview of the editors as they stand was
+      // a preview of the old selection (review finding F121).
+      private readonly InlineNotice unsavedSelection_ = new() { Level = StatusLevel.Warning, Visibility = Visibility.Collapsed };
+      private Wpf.Ui.Controls.Button saveAndPreviewButton_;
+
+      /// <summary>What the five selection editors held when they were last read from the INI or saved to it.</summary>
+      private readonly EditorBaseline selectionBaseline_ = new();
+
+      /// <summary>Whether a preview or an apply is running, which keeps both buttons disabled whatever is edited meanwhile.</summary>
+      private bool running_;
+
       // Whether a run can happen at all, as a notice at the level of the answer:
       // yes is good, a missing prerequisite is a warning, and an answer that
       // cannot be reached from this machine is information. Under it, one row
@@ -190,6 +203,10 @@ namespace hMailServer.ControlPanel.Views
          // fill of a read is not an edit, and the read settles the pill itself.
          foreach (Wpf.Ui.Controls.TextBox box in new[] { filter_, mailAttribute_, usernameAttribute_, displayNameAttribute_, maxUsers_, scheduleMinutes_ })
             box.TextChanged += (s, e) => { if (!loading_) saveState_.Follow(); };
+
+         // The five that decide what a run selects, also to the run card.
+         foreach (Wpf.Ui.Controls.TextBox box in new[] { filter_, mailAttribute_, usernameAttribute_, displayNameAttribute_, maxUsers_ })
+            box.TextChanged += (s, e) => { if (!loading_) FollowSelection_(); };
       }
 
       public void OnEnter()
@@ -216,6 +233,19 @@ namespace hMailServer.ControlPanel.Views
       /// next opened.
       /// </summary>
       public bool HasUnsavedChanges => store_.IsAvailable && baseline_.Differs(EditorValues_());
+
+      /// <summary>The editors whose saved values a run reads: the selection, not the schedule.</summary>
+      private IEnumerable<string> SelectionValues_() => new[]
+      {
+         filter_.Text, mailAttribute_.Text, usernameAttribute_.Text, displayNameAttribute_.Text, maxUsers_.Text
+      };
+
+      /// <summary>
+      /// Whether the selection on screen is not the one a run would read. Never while
+      /// the editors cannot be edited - hMailServer.INI out of reach or unreadable -
+      /// since a run then reads what nobody here can change.
+      /// </summary>
+      private bool SelectionUnsaved_ => store_.IsAvailable && denied_ == null && selectionBaseline_.Differs(SelectionValues_());
 
       /// <summary>The page's own Save; true when it wrote the settings.</summary>
       public bool SaveChanges() => Save_();
@@ -361,12 +391,31 @@ namespace hMailServer.ControlPanel.Views
          disableHint.SetResourceReference(StyleProperty, "TextCaptionTertiary");
          content.Children.Add(disableHint);
 
-         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 12) };
+         var buttons = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 12) };
+
+         // At the top of what the buttons below act on, in view of them.
+         unsavedSelection_.Text = L("The selection above has changes that are not saved, and Preview and Apply read the saved one. Save and preview saves it, then previews it.");
+         unsavedSelection_.Margin = new Thickness(0, 0, 0, 12);
+         System.Windows.Automation.AutomationProperties.SetAutomationId(unsavedSelection_, "dirsync-unsaved-selection");
+         content.Children.Insert(0, unsavedSelection_);
+
+         saveAndPreviewButton_ = new Wpf.Ui.Controls.Button
+         {
+            Content = L("Sa_ve and preview"),
+            Margin = new Thickness(0, 0, 8, 8),
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Primary,
+            Visibility = Visibility.Collapsed
+         };
+         ControlHelp.Explain(saveAndPreviewButton_,
+            L("Save the selection to hMailServer.INI, then show what a synchronisation would do with it"));
+         System.Windows.Automation.AutomationProperties.SetAutomationId(saveAndPreviewButton_, "dirsync-save-and-preview");
+         saveAndPreviewButton_.Click += async (s, e) => await SaveAndPreviewAsync_();
+         buttons.Children.Add(saveAndPreviewButton_);
 
          previewButton_ = new Wpf.Ui.Controls.Button
          {
             Content = L("_Preview"),
-            Margin = new Thickness(0, 0, 8, 0),
+            Margin = new Thickness(0, 0, 8, 8),
             Appearance = Wpf.Ui.Controls.ControlAppearance.Primary
          };
          ControlHelp.Explain(previewButton_,
@@ -375,7 +424,7 @@ namespace hMailServer.ControlPanel.Views
          previewButton_.Click += async (s, e) => await RunAsync_(false);
          buttons.Children.Add(previewButton_);
 
-         applyButton_ = new Wpf.Ui.Controls.Button { Content = L("_Apply"), IsEnabled = false };
+         applyButton_ = new Wpf.Ui.Controls.Button { Content = L("_Apply"), IsEnabled = false, Margin = new Thickness(0, 0, 0, 8) };
          ControlHelp.Explain(applyButton_,
             L("Create and update the accounts the preview listed"));
          System.Windows.Automation.AutomationProperties.SetAutomationId(applyButton_, "dirsync-apply");
@@ -383,6 +432,7 @@ namespace hMailServer.ControlPanel.Views
          buttons.Children.Add(applyButton_);
 
          content.Children.Add(buttons);
+         buttons.Margin = new Thickness(0, 0, 0, 4);
 
          summaryText_.Margin = new Thickness(0, 0, 0, 8);
          System.Windows.Automation.AutomationProperties.SetAutomationId(summaryText_, "dirsync-summary");
@@ -520,6 +570,7 @@ namespace hMailServer.ControlPanel.Views
          }
 
          baseline_.Take(EditorValues_());
+         selectionBaseline_.Take(SelectionValues_());
 
          // Unavailable says why in a Critical notice when hMailServer.INI is not on
          // this machine. A file that is here and could not be read is said already,
@@ -545,6 +596,7 @@ namespace hMailServer.ControlPanel.Views
             saveState_.Settle(SettingsPageState.Unavailable,
                L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server."));
          InvalidatePreview_();
+         FollowSelection_();
       }
 
       /// <summary>Writes the six settings; true when they were written.</summary>
@@ -579,6 +631,8 @@ namespace hMailServer.ControlPanel.Views
          // it no longer describes what Apply would do.
          InvalidatePreview_();
          baseline_.Take(EditorValues_());
+         selectionBaseline_.Take(SelectionValues_());
+         FollowSelection_();
 
          // The selection is live within two seconds; the schedule is registered as the
          // server starts, so one other than the server started with waits for a
@@ -816,6 +870,35 @@ namespace hMailServer.ControlPanel.Views
                 + "|" + IniRead_("SearchBase", "");
       }
 
+      /// <summary>
+      /// The run card as the selection stands: with it unsaved, the warning and Save and
+      /// preview, and Preview and Apply disabled; with it saved, Preview, and Apply while
+      /// the preview read is of the options in force. Nothing while a run is going.
+      /// </summary>
+      private void FollowSelection_()
+      {
+         if (previewButton_ == null)
+            return;
+
+         bool unsaved = SelectionUnsaved_;
+         unsavedSelection_.Visibility = unsaved ? Visibility.Visible : Visibility.Collapsed;
+         saveAndPreviewButton_.Visibility = unsaved ? Visibility.Visible : Visibility.Collapsed;
+         saveAndPreviewButton_.IsEnabled = !running_;
+         previewButton_.IsEnabled = !unsaved && !running_;
+         // Preview stays the primary only while it is the one that can be pressed.
+         previewButton_.Appearance = unsaved ? Wpf.Ui.Controls.ControlAppearance.Secondary : Wpf.Ui.Controls.ControlAppearance.Primary;
+         applyButton_.IsEnabled = !unsaved && !running_ && previewedOptions_ != null && previewedOptions_ == CurrentOptions_();
+      }
+
+      /// <summary>Save, then a preview of what was saved: nothing is previewed when the save is refused.</summary>
+      private async Task SaveAndPreviewAsync_()
+      {
+         if (!Save_())
+            return;
+
+         await RunAsync_(false);
+      }
+
       private void InvalidatePreview_()
       {
          if (loading_)
@@ -833,8 +916,10 @@ namespace hMailServer.ControlPanel.Views
          bool disableMissing = disableMissing_.IsChecked is true;
          string options = CurrentOptions_();
 
+         running_ = true;
          previewButton_.IsEnabled = false;
          applyButton_.IsEnabled = false;
+         saveAndPreviewButton_.IsEnabled = false;
          Summary_(StatusLevel.Information, apply ? L("Applying...") : L("Reading the directory..."));
          attentionText_.Visibility = Visibility.Collapsed;
          rows_.Children.Clear();
@@ -857,7 +942,12 @@ namespace hMailServer.ControlPanel.Views
             {
                previewedOptions_ = options;
                previewReport_ = report;
-               applyButton_.IsEnabled = true;
+            }
+            else if (!apply)
+            {
+               // Nor does a refused one keep an earlier preview's place: Apply is
+               // enabled again below only for the preview the page shows.
+               previewedOptions_ = null;
             }
             else if (apply)
             {
@@ -873,7 +963,10 @@ namespace hMailServer.ControlPanel.Views
          }
          finally
          {
-            previewButton_.IsEnabled = true;
+            // Preview, and Apply after a preview that worked, as the selection now
+            // stands: an edit made while the run went disables both again.
+            running_ = false;
+            FollowSelection_();
          }
       }
 
@@ -886,6 +979,13 @@ namespace hMailServer.ControlPanel.Views
          {
             Summary_(StatusLevel.Warning, L("Run a preview first: the options have changed since the last one, so it no longer describes what this would do."));
             applyButton_.IsEnabled = false;
+            return;
+         }
+
+         // Nor while the selection on screen is not the saved one a run reads.
+         if (SelectionUnsaved_)
+         {
+            FollowSelection_();
             return;
          }
 
