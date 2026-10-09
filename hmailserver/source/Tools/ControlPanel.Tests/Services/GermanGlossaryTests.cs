@@ -87,6 +87,40 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Equal("SPF-Softfail-Bewertung (0 = nicht bewertet)", German["SPF softfail score (0 = not scored)"]);
       }
 
+      /// <summary>
+      /// Every text that says what this version ships with says werkseitig in German, the
+      /// button with its access key as well: "A_usgelieferte Einstellungen behalten" stood
+      /// beside "Die werkseitigen Einstellungen bleiben" in one flow on the Setting profiles
+      /// page, and a case-sensitive match on the value with its underscore still in saw
+      /// neither it nor "Ausgelieferte". A text that also says a policy is served keeps
+      /// ausliefern for the serving, and must say werkseitig for what is shipped.
+      /// </summary>
+      [Fact]
+      public void NoTextThatSaysShippedSaysAusgeliefert()
+      {
+         var shipped = new Regex(@"\bship(s|ped)?\b", RegexOptions.IgnoreCase);
+         var served = new Regex(@"\bserved?\b", RegexOptions.IgnoreCase);
+         var ausliefern = new Regex("ausgeliefert|ausliefer", RegexOptions.IgnoreCase);
+         List<string> found = German
+            .Where(pair => shipped.IsMatch(WithoutAccessKey(pair.Key)))
+            .Where(pair => served.IsMatch(pair.Key)
+               ? !WithoutAccessKey(pair.Value).Contains("werkseitig", StringComparison.OrdinalIgnoreCase)
+               : ausliefern.IsMatch(WithoutAccessKey(pair.Value)))
+            .Select(pair => pair.Key + " = " + pair.Value)
+            .ToList();
+         Assert.True(found.Count == 0, "shipped as ausgeliefert:" + Environment.NewLine + string.Join(Environment.NewLine, found));
+
+         Assert.Equal("_Werkseitige Einstellungen behalten", German["Keep the _shipped settings"]);
+         Assert.Equal("Werkseitige Einstellungen behalten", German["Keep the shipped settings"]);
+         Assert.StartsWith("Die werkseitigen Einstellungen bleiben", German["The shipped settings are kept; no profile is applied."], StringComparison.Ordinal);
+      }
+
+      private static string WithoutAccessKey(string text)
+      {
+         int at = text.IndexOf('_', StringComparison.Ordinal);
+         return at < 0 ? text : text.Remove(at, 1);
+      }
+
       [Fact]
       public void AnAutoBanIsABann()
       {

@@ -1441,7 +1441,7 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
     <value>Eine ganze ausgehende Zustellsitzung. 0 = keine Grenze.</value>
   </data>
   <data name="An event script runs inside the server with the service account's rights, so what it may instantiate is a security decision rather than a convenience. As shipped this is *, which allows any object, so that upgrading never breaks a script an installation already runs - it is the setting to narrow, not the safe state. Name only what a script of yours actually needs - a scripting file system object, an HTTP client - and everything else is refused with the object's name in the error log; empty refuses everything beyond hMailServer's own objects." xml:space="preserve">
-    <value>Ein Ereignisskript läuft im Server mit den Rechten des Dienstkontos, was es instanziieren darf, ist also eine Sicherheitsentscheidung und keine Bequemlichkeit. Wie ausgeliefert steht hier *, was jedes Objekt erlaubt, damit ein Upgrade nie ein Skript zerstört, das eine Installation bereits ausführt - es ist die Einstellung, die einzuschränken ist, nicht der sichere Zustand. Nennen Sie nur, was ein Skript von Ihnen tatsächlich braucht - ein Skripting-Dateisystemobjekt, einen HTTP-Client - und alles andere wird mit dem Namen des Objekts im Fehlerprotokoll abgewiesen; leer weist alles außer den eigenen Objekten von hMailServer ab.</value>
+    <value>Ein Ereignisskript läuft im Server mit den Rechten des Dienstkontos, was es instanziieren darf, ist also eine Sicherheitsentscheidung und keine Bequemlichkeit. Werkseitig steht hier *, was jedes Objekt erlaubt, damit ein Upgrade nie ein Skript zerstört, das eine Installation bereits ausführt - es ist die Einstellung, die einzuschränken ist, nicht der sichere Zustand. Nennen Sie nur, was ein Skript von Ihnen tatsächlich braucht - ein Skripting-Dateisystemobjekt, einen HTTP-Client - und alles andere wird mit dem Namen des Objekts im Fehlerprotokoll abgewiesen; leer weist alles außer den eigenen Objekten von hMailServer ab.</value>
   </data>
   <data name="An external scanner process. 0 = no bound." xml:space="preserve">
     <value>Ein externer Scannerprozess. 0 = keine Grenze.</value>
@@ -2072,7 +2072,7 @@ Control Panel jetzt neu starten? Wählen Sie Nein, um zu versuchen weiterzuarbei
     <value>CC</value>
   </data>
   <data name="COM objects a script may create (* = any, as shipped; empty = none beyond hMailServer's own; ProgIDs or CLSIDs, comma separated)" xml:space="preserve">
-    <value>COM-Objekte, die ein Skript erzeugen darf (* = alle, wie ausgeliefert; leer = keine außer den eigenen von hMailServer; ProgIDs oder CLSIDs, kommagetrennt)</value>
+    <value>COM-Objekte, die ein Skript erzeugen darf (* = alle, werkseitig; leer = keine außer den eigenen von hMailServer; ProgIDs oder CLSIDs, kommagetrennt)</value>
   </data>
   <data name="COMPRESS=DEFLATE (RFC 4978)" xml:space="preserve">
     <value>COMPRESS=DEFLATE (RFC 4978)</value>
@@ -5383,16 +5383,16 @@ Der geprüfte Installer wird dem Update-Helfer übergeben: der Dienst stoppt, di
     <value>Gelesen/Ungelesen-Status behalten</value>
   </data>
   <data name="Keep the _shipped settings" xml:space="preserve">
-    <value>A_usgelieferte Einstellungen behalten</value>
+    <value>_Werkseitige Einstellungen behalten</value>
   </data>
   <data name="Keep the record of the retiring selector &quot;{0}&quot; published until {1}, for mail signed with it that is still on its way." xml:space="preserve">
     <value>Lassen Sie den Eintrag des auslaufenden Selektors „{0}“ bis {1} veröffentlicht, für Mail, die damit signiert wurde und noch unterwegs ist.</value>
   </data>
   <data name="Keep the settings this version ships with, and apply no profile? The checklist stops asking; any profile can still be applied later." xml:space="preserve">
-    <value>Die Einstellungen behalten, mit denen diese Version ausgeliefert wird, und kein Profil anwenden? Die Checkliste fragt nicht mehr; jedes Profil kann später noch angewendet werden.</value>
+    <value>Die werkseitigen Einstellungen dieser Version behalten und kein Profil anwenden? Die Checkliste fragt nicht mehr; jedes Profil kann später noch angewendet werden.</value>
   </data>
   <data name="Keep the shipped settings" xml:space="preserve">
-    <value>Ausgelieferte Einstellungen behalten</value>
+    <value>Werkseitige Einstellungen behalten</value>
   </data>
   <data name="Keeping several generations of messages needs compression: without 'Compress destination files (zip)' every backup writes its message files into the same DataBackup folder, overwriting the previous run's, so retention can only keep generations of the small settings-and-domains archives." xml:space="preserve">
     <value>Mehrere Generationen von Nachrichten zu behalten braucht Komprimierung: ohne „Zieldateien komprimieren (zip)" schreibt jede Sicherung ihre Nachrichtendateien in denselben DataBackup-Ordner und überschreibt die des vorherigen Laufs, sodass die Aufbewahrung nur Generationen der kleinen Einstellungs- und Domainarchive behalten kann.</value>
@@ -11230,7 +11230,7 @@ konnte nicht geladen werden. Die Nachricht wurde wahrscheinlich zugestellt und i
     <value>Die Gruppenmitglieder konnten nicht gelesen werden: </value>
   </data>
   <data name="The groups this server will agree a TLS key with, in OpenSSL's list form. As shipped it offers the two post-quantum hybrids first and falls back to X25519 and the NIST curves for a peer that has neither, so nothing changes for an older client. An empty list, or one OpenSSL rejects or that would leave no group enabled, is not applied: the server logs it and uses the classical fallback, so a mistake here cannot take TLS down - but it does silently give up the hybrids, which is why the shipped list is shown rather than a blank. Change it against a scan rather than in the dark." xml:space="preserve">
-    <value>Die Gruppen, mit denen dieser Server einen TLS-Schlüssel aushandeln wird, in der Listenform von OpenSSL. Werkseitig bietet er zuerst die beiden Post-Quanten-Hybride an und weicht für eine Gegenstelle, die keines von beiden hat, auf X25519 und die NIST-Kurven aus, sodass sich für einen älteren Client nichts ändert. Eine leere Liste, oder eine, die OpenSSL ablehnt oder die keine Gruppe aktiviert ließe, wird nicht übernommen: der Server protokolliert sie und verwendet die klassische Ausweichliste, ein Fehler hier kann TLS also nicht lahmlegen - er gibt aber stillschweigend die Hybride auf, weshalb die ausgelieferte Liste angezeigt wird und kein leeres Feld. Ändern Sie sie anhand eines Scans und nicht im Blindflug.</value>
+    <value>Die Gruppen, mit denen dieser Server einen TLS-Schlüssel aushandeln wird, in der Listenform von OpenSSL. Werkseitig bietet er zuerst die beiden Post-Quanten-Hybride an und weicht für eine Gegenstelle, die keines von beiden hat, auf X25519 und die NIST-Kurven aus, sodass sich für einen älteren Client nichts ändert. Eine leere Liste, oder eine, die OpenSSL ablehnt oder die keine Gruppe aktiviert ließe, wird nicht übernommen: der Server protokolliert sie und verwendet die klassische Ausweichliste, ein Fehler hier kann TLS also nicht lahmlegen - er gibt aber stillschweigend die Hybride auf, weshalb die werkseitige Liste angezeigt wird und kein leeres Feld. Ändern Sie sie anhand eines Scans und nicht im Blindflug.</value>
   </data>
   <data name="The guided path: which half, which log lines, and the setting that bounds each stage." xml:space="preserve">
     <value>Der geführte Weg: welche Hälfte, welche Protokollzeilen und die Einstellung, die jede Stufe begrenzt.</value>
@@ -11787,7 +11787,7 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
     <value>Die Einstellungen, die jede Stufe begrenzen</value>
   </data>
   <data name="The settings this version ships with were chosen on {0}, and no profile applied; any of the four can still be compared with this server." xml:space="preserve">
-    <value>Die Einstellungen, mit denen diese Version ausgeliefert wird, wurden am {0} gewählt, und kein Profil wurde angewendet; jedes der vier lässt sich weiterhin mit diesem Server vergleichen.</value>
+    <value>Die werkseitigen Einstellungen dieser Version wurden am {0} gewählt, und kein Profil wurde angewendet; jedes der vier lässt sich weiterhin mit diesem Server vergleichen.</value>
   </data>
   <data name="The shipped settings are kept; no profile is applied." xml:space="preserve">
     <value>Die werkseitigen Einstellungen bleiben; kein Profil ist angewendet.</value>

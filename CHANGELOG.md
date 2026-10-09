@@ -1022,10 +1022,13 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   glossary: a mail domain is a Domain (only a Windows or Active Directory domain stays a Domäne), the suppression list
   is the Unterdrückungsliste, an expiry "Läuft am 20.10.2026 ab", the digest a Digest, the row label Aktualisierung,
   the trust anchors Eigene Vertrauensanker, an auto-ban a Bann (a name's lockout stays a Sperre), the score a
-  Bewertung, a credential Anmeldedaten and the shipped default werkseitig; nearly four hundred texts follow.
+  Bewertung, a credential Anmeldedaten and whatever this version ships with werkseitig - the Setting profiles page's
+  button is "Werkseitige Einstellungen behalten", where it said "Ausgelieferte Einstellungen behalten" above the line
+  "Die werkseitigen Einstellungen bleiben" that the same click wrote; nearly four hundred texts follow.
   `build/check-catalogues.py` now holds a reference to any page in the navigation to that page's translated title,
   where it knew thirty: the German "on the Suppression list page" had kept the old name, and the Finnish, Japanese and
-  Chinese named the Administrative access page otherwise than its title. `GermanGlossaryTests` holds each.
+  Chinese named the Administrative access page otherwise than its title. `GermanGlossaryTests` holds each, and refuses
+  ausliefern in the translation of any text that says shipped, its access key's underscore taken out first.
 
 ### Administration
 
