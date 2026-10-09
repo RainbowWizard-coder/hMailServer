@@ -4387,6 +4387,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Süre sonunu YYYY-MM-DD HH:MM:SS olarak girin.</value>
   </data>
+  <data name="Enter the group's name." xml:space="preserve">
+    <value>Grubun adını girin.</value>
+  </data>
   <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
     <value>Teslim edilecek ana bilgisayarı girin: smtp.partner.com gibi bir ad veya bir IP adresi.</value>
   </data>
@@ -8676,6 +8679,9 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="Read" xml:space="preserve">
     <value>Okuma</value>
   </data>
+  <data name="Read and _write" xml:space="preserve">
+    <value>Okuma ve _yazma</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>MAIL FROM'da okunur: engellenen bir alan adı, başka bir şey çalışmadan önce her alıcı için 550 koduyla reddedilir. Kayıt, kuruluşun alan adını ve altındaki her şeyi kapsar.</value>
   </data>
@@ -12836,6 +12842,15 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
     <value>Önce onay kutusunu işaretleyin: bu profil burada bir dinleyiciyi kapatır, bir adres aralığına güvenir, bir filtreyi ya da denetimi kapatır veya verilerin ne kadar saklanacağını kısaltır.</value>
   </data>
+  <data name="Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest." xml:space="preserve">
+    <value>Arama, İletileri okuma ve Okundu/okunmadı durumunu koru'yu işaretler, gerisini kaldırır.</value>
+  </data>
+  <data name="Ticks every right, Administer included." xml:space="preserve">
+    <value>Yönet dahil tüm hakları işaretler.</value>
+  </data>
+  <data name="Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest." xml:space="preserve">
+    <value>Salt okuma haklarını ve Bayrakları ayarla, İleti ekleme / sona ekleme, İletileri sil ve Kalıcı silme'yi işaretler, gerisini kaldırır.</value>
+  </data>
   <data name="Time" xml:space="preserve">
     <value>Zaman</value>
   </data>
@@ -14123,6 +14138,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>_Tam yetki - oluşturabilir, değiştirebilir ve silebilir</value>
   </data>
+  <data name="_Full control" xml:space="preserve">
+    <value>_Tam denetim</value>
+  </data>
   <data name="_Generate" xml:space="preserve">
     <value>_Üret</value>
   </data>
@@ -14134,6 +14152,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>Rolü _ver</value>
+  </data>
+  <data name="_Group name" xml:space="preserve">
+    <value>_Grup adı</value>
   </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML imzası</value>
@@ -14392,6 +14413,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>Bu etki alanının postası ve hesapları hakkında webhook _olayları oluştur</value>
+  </data>
+  <data name="_Read only" xml:space="preserve">
+    <value>Yalnızca _okuma</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Salt okunur - listeleyebilir ve okuyabilir; her değişiklik reddedilir</value>

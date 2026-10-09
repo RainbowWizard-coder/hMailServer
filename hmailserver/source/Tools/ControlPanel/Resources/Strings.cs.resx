@@ -4433,6 +4433,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
   </data>
+  <data name="Enter the group's name." xml:space="preserve">
+    <value>Zadejte název skupiny.</value>
+  </data>
   <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
     <value>Zadejte hostitele, kterému se má doručovat: název jako smtp.partner.com, nebo IP adresu.</value>
   </data>
@@ -8764,6 +8767,9 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="Read" xml:space="preserve">
     <value>Čtení</value>
   </data>
+  <data name="Read and _write" xml:space="preserve">
+    <value>Čtení a _zápis</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Načteno při MAIL FROM: blokovaná doména je odmítnuta kódem 550 dříve, než proběhne cokoli dalšího, pro každého příjemce. Záznam pokrývá doménu organizace a vše pod ní.</value>
   </data>
@@ -13002,6 +13008,15 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
     <value>Nejprve zaškrtněte potvrzení: tento profil zde zavírá naslouchací službu, důvěřuje rozsahu adres, vypíná filtr nebo kontrolu, nebo zkracuje dobu uchování dat.</value>
   </data>
+  <data name="Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest." xml:space="preserve">
+    <value>Zaškrtne Vyhledání, Číst zprávy a Zachovat stav přečteno/nepřečteno a ostatní zruší.</value>
+  </data>
+  <data name="Ticks every right, Administer included." xml:space="preserve">
+    <value>Zaškrtne všechna práva včetně Spravovat.</value>
+  </data>
+  <data name="Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest." xml:space="preserve">
+    <value>Zaškrtne práva pro čtení a Nastavit příznaky, Vkládat / připojovat zprávy, Odstranit zprávy a Expunge a ostatní zruší.</value>
+  </data>
   <data name="Time" xml:space="preserve">
     <value>Čas</value>
   </data>
@@ -14295,6 +14310,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>Plná pravomoc – _může vytvářet, měnit a mazat</value>
   </data>
+  <data name="_Full control" xml:space="preserve">
+    <value>Úplná _kontrola</value>
+  </data>
   <data name="_Generate" xml:space="preserve">
     <value>_Generovat</value>
   </data>
@@ -14306,6 +14324,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Přidělit roli</value>
+  </data>
+  <data name="_Group name" xml:space="preserve">
+    <value>_Název skupiny</value>
   </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML podpis</value>
@@ -14564,6 +14585,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Vyvolávat události webhooků o poště a účtech této domény</value>
+  </data>
+  <data name="_Read only" xml:space="preserve">
+    <value>_Jen čtení</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Pouze pro čtení – může vypisovat a číst; každá změna je odmítnuta</value>

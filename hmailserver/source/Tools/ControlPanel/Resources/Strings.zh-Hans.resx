@@ -4387,6 +4387,9 @@
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>请以 YYYY-MM-DD HH:MM:SS 格式输入到期时间。</value>
   </data>
+  <data name="Enter the group's name." xml:space="preserve">
+    <value>请输入组的名称。</value>
+  </data>
   <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
     <value>请输入要投递到的主机：例如 smtp.partner.com 这样的名称，或一个 IP 地址。</value>
   </data>
@@ -8676,6 +8679,9 @@
   <data name="Read" xml:space="preserve">
     <value>读取</value>
   </data>
+  <data name="Read and _write" xml:space="preserve">
+    <value>读写(_W)</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>在 MAIL FROM 时读取：拦截的域会在任何其他检查运行之前，针对每个收件人以 550 拒绝。该条目覆盖该组织的域及其下的一切。</value>
   </data>
@@ -12836,6 +12842,15 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
     <value>请先勾选确认：此配置方案会在此关闭侦听器、信任某个地址范围、关闭某个过滤器或检查，或缩短数据的保留时间。</value>
   </data>
+  <data name="Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest." xml:space="preserve">
+    <value>勾选“查找”“读取邮件”和“保留已读/未读状态”，并取消其余勾选。</value>
+  </data>
+  <data name="Ticks every right, Administer included." xml:space="preserve">
+    <value>勾选所有权限，包括“管理”。</value>
+  </data>
+  <data name="Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest." xml:space="preserve">
+    <value>勾选只读权限以及“设置标志”“插入 / 追加邮件”“删除邮件”和“清除”，并取消其余勾选。</value>
+  </data>
   <data name="Time" xml:space="preserve">
     <value>时间</value>
   </data>
@@ -14123,6 +14138,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>完全权限(_F) - 可以创建、更改和删除</value>
   </data>
+  <data name="_Full control" xml:space="preserve">
+    <value>完全控制(_F)</value>
+  </data>
   <data name="_Generate" xml:space="preserve">
     <value>生成(_G)</value>
   </data>
@@ -14134,6 +14152,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>授予角色(_G)</value>
+  </data>
+  <data name="_Group name" xml:space="preserve">
+    <value>组名称(_G)</value>
   </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>HTML 签名(_H)</value>
@@ -14392,6 +14413,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>为此域的邮件和账户触发 Webhook 事件(_R)</value>
+  </data>
+  <data name="_Read only" xml:space="preserve">
+    <value>只读(_R)</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>只读(_R) - 可以列出和读取；任何更改都会被拒绝</value>

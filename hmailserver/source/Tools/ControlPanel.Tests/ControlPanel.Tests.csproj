@@ -117,6 +117,8 @@
          port, an address, a range's two ends, a host - read as the server reads
          them (review findings F129 and F212). -->
     <Compile Include="..\ControlPanel\Services\InlineFormChecks.cs" />
+    <!-- The three sets of rights the access-control entry ticks in one press (F205). -->
+    <Compile Include="..\ControlPanel\Services\FolderRightPresets.cs" />
     <!-- The words for when a saved setting reaches the running server, which
          IniFeatureStore's pending list is read through (docs/SettingsApply.md). -->
     <Compile Include="..\ControlPanel\Services\SettingApplies.cs" />

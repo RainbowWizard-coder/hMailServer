@@ -1920,6 +1920,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   server is brought into view; and List address says under it that changing it renames the list and keeps its members
   and settings. In every dialog a field refused below the fold is now scrolled to with its message.
 
+- **Fixed: a folder permission's account or group was checked only after its entry dialog had closed, and its eleven
+  rights had to be ticked one by one.** Save closed the access-control entry, the folder's permissions then looked
+  the name up and, finding none, said "No account found with address '...'" in their own notice with the entry typed
+  gone; the account or group was free text with nothing to pick from; and the IMAP rights were offered raw, in one
+  column. The entry resolves its account or group before it closes now, and says an empty box or a name the server
+  has none of under the box, with the entry kept; the box lists the server's accounts or groups to pick from, and
+  fills in as the first letters are typed; Read only, Read and write and Full control tick their rights in one press
+  (read only is Lookup, Read messages and Keep seen/unseen state; read and write adds Set flags, Insert, Delete
+  messages and Expunge, but not Post or the rights over the folder itself), and the rights are in two columns.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -4387,6 +4387,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Skriv inn utløpet som ÅÅÅÅ-MM-DD TT:MM:SS.</value>
   </data>
+  <data name="Enter the group's name." xml:space="preserve">
+    <value>Skriv inn gruppens navn.</value>
+  </data>
   <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
     <value>Skriv inn verten det skal leveres til: et navn som smtp.partner.com eller en IP-adresse.</value>
   </data>
@@ -8676,6 +8679,9 @@ Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows
   <data name="Read" xml:space="preserve">
     <value>Lese</value>
   </data>
+  <data name="Read and _write" xml:space="preserve">
+    <value>Lesing og _skriving</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Leses ved MAIL FROM: et blokkert domene avvises med 550 før noe annet kjører, for hver mottaker. Oppføringen dekker organisasjonens domene og alt under det.</value>
   </data>
@@ -12836,6 +12842,15 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
     <value>Kryss av for bekreftelsen først: denne profilen lukker en lytter, stoler på et adresseområde, slår av et filter eller en kontroll, eller forkorter hvor lenge data tas vare på her.</value>
   </data>
+  <data name="Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest." xml:space="preserve">
+    <value>Krysser av for Oppslag, Lese meldinger og Behold lest/ulest-status og fjerner resten.</value>
+  </data>
+  <data name="Ticks every right, Administer included." xml:space="preserve">
+    <value>Krysser av for alle rettigheter, også Administrere.</value>
+  </data>
+  <data name="Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest." xml:space="preserve">
+    <value>Krysser av for leserettighetene og Sett flagg, Sett inn / legg til meldinger, Slett meldinger og Expunge og fjerner resten.</value>
+  </data>
   <data name="Time" xml:space="preserve">
     <value>Tid</value>
   </data>
@@ -14123,6 +14138,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>_Full myndighet - kan opprette, endre og slette</value>
   </data>
+  <data name="_Full control" xml:space="preserve">
+    <value>F_ull kontroll</value>
+  </data>
   <data name="_Generate" xml:space="preserve">
     <value>_Generer</value>
   </data>
@@ -14134,6 +14152,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Tildel rollen</value>
+  </data>
+  <data name="_Group name" xml:space="preserve">
+    <value>_Gruppenavn</value>
   </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>_HTML-signatur</value>
@@ -14392,6 +14413,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Utløs webhook-hendelser om domenets post og kontoer</value>
+  </data>
+  <data name="_Read only" xml:space="preserve">
+    <value>_Bare lesing</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Skrivebeskyttet - kan liste og lese; enhver endring avvises</value>

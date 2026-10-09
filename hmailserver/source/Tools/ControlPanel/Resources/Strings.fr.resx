@@ -4387,6 +4387,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Saisissez l'expiration au format AAAA-MM-JJ HH:MM:SS.</value>
   </data>
+  <data name="Enter the group's name." xml:space="preserve">
+    <value>Saisissez le nom du groupe.</value>
+  </data>
   <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
     <value>Saisissez l'hôte auquel remettre le courrier : un nom comme smtp.partner.com, ou une adresse IP.</value>
   </data>
@@ -8676,6 +8679,9 @@ Aucune nouvelle connexion ne sera acceptée et aucun courrier ne sera livré jus
   <data name="Read" xml:space="preserve">
     <value>Lecture</value>
   </data>
+  <data name="Read and _write" xml:space="preserve">
+    <value>Lecture et é_criture</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>Lu à MAIL FROM : un domaine bloqué est refusé avec 550 avant que quoi que ce soit d'autre s'exécute, pour chaque destinataire. L'entrée couvre le domaine de l'organisation et tout ce qui se trouve en dessous.</value>
   </data>
@@ -12836,6 +12842,15 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
     <value>Cochez d'abord la confirmation : ce profil ferme ici un écouteur, fait confiance à une plage d'adresses, désactive un filtre ou une vérification, ou raccourcit la durée de conservation des données.</value>
   </data>
+  <data name="Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest." xml:space="preserve">
+    <value>Coche Consultation, Lire les messages et Conserver l'état lu/non lu, et décoche le reste.</value>
+  </data>
+  <data name="Ticks every right, Administer included." xml:space="preserve">
+    <value>Coche tous les droits, Administrer compris.</value>
+  </data>
+  <data name="Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest." xml:space="preserve">
+    <value>Coche les droits de lecture seule et Définir les indicateurs, Insérer / ajouter des messages, Supprimer les messages et Expunge, et décoche le reste.</value>
+  </data>
   <data name="Time" xml:space="preserve">
     <value>Heure</value>
   </data>
@@ -14123,6 +14138,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>_Pleine autorité - peut créer, modifier et supprimer</value>
   </data>
+  <data name="_Full control" xml:space="preserve">
+    <value>Contrôle _total</value>
+  </data>
   <data name="_Generate" xml:space="preserve">
     <value>_Générer</value>
   </data>
@@ -14134,6 +14152,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>_Attribuer le rôle</value>
+  </data>
+  <data name="_Group name" xml:space="preserve">
+    <value>_Nom du groupe</value>
   </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>Signature _HTML</value>
@@ -14392,6 +14413,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>_Déclencher des événements webhook sur le courrier et les comptes de ce domaine</value>
+  </data>
+  <data name="_Read only" xml:space="preserve">
+    <value>_Lecture seule</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>_Lecture seule - peut lister et lire ; tout changement est refusé</value>

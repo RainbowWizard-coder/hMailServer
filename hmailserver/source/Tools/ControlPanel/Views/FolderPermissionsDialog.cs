@@ -246,7 +246,15 @@ namespace hMailServer.ControlPanel.Views
 
       private void AddOrEdit(int existingId)
       {
-         var dlg = new PermissionEditDialog(this, Types, Flags);
+         // The entry's account or group is resolved in the dialog, which says on
+         // its box a name the server has none of and stays open with what was
+         // typed, where it was resolved after the dialog had closed and said in
+         // this dialog's notice with the entry gone (review finding F205).
+         var dlg = new PermissionEditDialog(this, Types, Flags)
+         {
+            Resolve = (type, subject) => type == 0 ? ResolveAccountId(subject) : ResolveGroupId(subject),
+            Suggest = SubjectsOf_
+         };
 
          // Pre-fill when editing.
          if (existingId >= 0)
@@ -272,17 +280,7 @@ namespace hMailServer.ControlPanel.Views
             return;
 
          notice_.Hide();
-         int subjectId = 0;
-         if (dlg.SelectedType == 0)
-         {
-            subjectId = ResolveAccountId(dlg.Subject);
-            if (subjectId == 0) { notice_.Show(StatusLevel.Warning, F("No account found with address '{0}'.", dlg.Subject)); return; }
-         }
-         else if (dlg.SelectedType == 1)
-         {
-            subjectId = ResolveGroupId(dlg.Subject);
-            if (subjectId == 0) { notice_.Show(StatusLevel.Warning, F("No group found named '{0}'.", dlg.Subject)); return; }
-         }
+         int subjectId = dlg.SubjectId;
 
          dynamic folders2 = ServerSession.Current.Application.Settings.PublicFolders;
          try
@@ -308,6 +306,64 @@ namespace hMailServer.ControlPanel.Views
             ServerSession.Release(folders2);
          }
          Reload();
+      }
+
+      /// <summary>
+      /// What the entry dialog's box offers to pick from: the server's account
+      /// addresses - up to a thousand, read domain by domain - or its groups'
+      /// names, in name order. What cannot be read is left out; the box still
+      /// takes what is typed.
+      /// </summary>
+      private static IReadOnlyList<string> SubjectsOf_(int type)
+      {
+         const int most = 1000;
+         var names = new List<string>();
+         try
+         {
+            if (type == 1)
+            {
+               dynamic groups = ServerSession.Current.Application.Settings.Groups;
+               try
+               {
+                  int count = (int)groups.Count;
+                  for (int i = 0; i < count; i++)
+                  {
+                     dynamic g = groups.Item[i];
+                     names.Add((string)g.Name);
+                     ServerSession.Release(g);
+                  }
+               }
+               finally { ServerSession.Release(groups); }
+            }
+            else if (type == 0)
+            {
+               dynamic domains = ServerSession.Current.Application.Domains;
+               try
+               {
+                  int domainCount = (int)domains.Count;
+                  for (int d = 0; d < domainCount && names.Count < most; d++)
+                  {
+                     dynamic domain = domains.Item[d];
+                     dynamic accounts = domain.Accounts;
+                     int count = (int)accounts.Count;
+                     for (int i = 0; i < count && names.Count < most; i++)
+                     {
+                        dynamic account = accounts.Item[i];
+                        names.Add((string)account.Address);
+                        ServerSession.Release(account);
+                     }
+                     ServerSession.Release(accounts);
+                     ServerSession.Release(domain);
+                  }
+               }
+               finally { ServerSession.Release(domains); }
+            }
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck)) { /* Deliberately ignored: the list is an offer only, and the box takes what is typed. */ }
+
+         names.RemoveAll(string.IsNullOrEmpty);
+         names.Sort(StringComparer.OrdinalIgnoreCase);
+         return names;
       }
 
       private static int ResolveAccountId(string address)
@@ -353,17 +409,36 @@ namespace hMailServer.ControlPanel.Views
       }
    }
 
-   /// <summary>Add/edit dialog for a single ACL entry, on the standard frame.</summary>
+   /// <summary>
+   /// Add/edit dialog for a single ACL entry, on the standard frame. The account
+   /// or group is picked from the server's or typed, and resolved here: a name the
+   /// server has none of is said on its box and the dialog stays open (review
+   /// finding F205). Read only, Read and write and Full control tick the rights in
+   /// one press, and the eleven rights are in two columns.
+   /// </summary>
    internal class PermissionEditDialog : FluentDialogWindow
    {
       private readonly ComboBox typeCombo_ = new();
-      private readonly TextBox subject_ = new();
+
+      // Typed, or picked from the server's accounts or groups (Suggest), the list
+      // filling in as the first letters are typed.
+      private readonly ComboBox subject_ = new() { IsEditable = true, IsTextSearchEnabled = true };
       private readonly FieldRow subjectRow_;
       private readonly List<(CheckBox Box, int Bit)> flagBoxes_ = new();
+      private readonly Dictionary<int, IReadOnlyList<string>> offered_ = new();
 
       public int SelectedType { get; private set; }
       public string Subject { get; private set; }
       public int Value { get; private set; }
+
+      /// <summary>The id of the account or group the dialog resolved Subject to; 0 for Anyone, or where no Resolve is set.</summary>
+      public int SubjectId { get; private set; }
+
+      /// <summary>The id of the account (type 0) or group (type 1) a name is, or 0 where the server has none.</summary>
+      public Func<int, string, int> Resolve { get; set; }
+
+      /// <summary>The account addresses (type 0) or group names (type 1) the box offers.</summary>
+      public Func<int, IReadOnlyList<string>> Suggest { get; set; }
 
       public PermissionEditDialog(Window owner, (int Value, string Label)[] types, (string Label, int Bit, string Note)[] flags)
       {
@@ -381,21 +456,48 @@ namespace hMailServer.ControlPanel.Views
          body.Children.Add(subjectRow_);
 
          body.Children.Add(DialogFields.Caption(L("Permissions")));
-         foreach ((string label, int bit, string note) in flags)
+
+         // The three sets of rights an entry is usually given, each one press that
+         // ticks its rights and clears the rest (Services/FolderRightPresets).
+         var presets = new WrapPanel { Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm) };
+         presets.Children.Add(Preset_(new Wpf.Ui.Controls.Button { Content = L("_Read only") }, FolderRightPresets.ReadOnly,
+            L("Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest.")));
+         presets.Children.Add(Preset_(new Wpf.Ui.Controls.Button { Content = L("Read and _write") }, FolderRightPresets.ReadAndWrite,
+            L("Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest.")));
+         presets.Children.Add(Preset_(new Wpf.Ui.Controls.Button { Content = L("_Full control") }, FolderRightPresets.FullControl,
+            L("Ticks every right, Administer included.")));
+         body.Children.Add(presets);
+
+         // Two columns, row by row, where one column of eleven at a 40-pixel pitch
+         // ran down the dialog.
+         var columns = new Grid();
+         columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+         for (int i = 0; i < flags.Length; i++)
          {
+            (string label, int bit, string note) = flags[i];
+            if (i % 2 == 0)
+               columns.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var cell = new StackPanel { Margin = new Thickness(0, 0, i % 2 == 0 ? DesignTokens.Space.Md : 0, 0) };
+            Grid.SetRow(cell, i / 2);
+            Grid.SetColumn(cell, i % 2);
+            columns.Children.Add(cell);
+
             var cb = new CheckBox { Content = label, Margin = new Thickness(0, DesignTokens.Space.Xs, 0, DesignTokens.Space.Xs) };
             flagBoxes_.Add((cb, bit));
-            body.Children.Add(cb);
+            cell.Children.Add(cb);
             // Under the box, not in its caption: "Post - and send as this mailbox's
             // address over SMTP (Send-As, when SmtpAuthenticatedSenderCheck is on)"
             // was wider than the dialog. The box is told it as help text, so that a
             // screen reader reading the box hears it as it did when the caption said it.
             if (note != null)
             {
-               body.Children.Add(DialogFields.Note(note));
+               cell.Children.Add(DialogFields.Note(note));
                AutomationProperties.SetHelpText(cb, note);
             }
          }
+         body.Children.Add(columns);
 
          // Enter saves, Escape cancels.
          var ok = new Wpf.Ui.Controls.Button { Content = L("_Save"), Appearance = Wpf.Ui.Controls.ControlAppearance.Primary, MinWidth = 88 };
@@ -403,8 +505,43 @@ namespace hMailServer.ControlPanel.Views
          var cancel = new Wpf.Ui.Controls.Button { Content = L("Cancel"), MinWidth = 88 };
          cancel.Click += (s, e) => Close();
 
-         UseFrame(L("Access-control entry"), body, ok, cancel, width: 420);
+         UseFrame(L("Access-control entry"), body, ok, cancel, width: 520);
+         KeepRoomForFieldErrors();
          UpdateSubjectState();
+
+         // The offer is read once the page has said where from (Suggest).
+         Loaded += (_, _) => Offer_();
+      }
+
+      private Wpf.Ui.Controls.Button Preset_(Wpf.Ui.Controls.Button button, int rights, string help)
+      {
+         button.Margin = new Thickness(0, 0, DesignTokens.Space.Sm, DesignTokens.Space.Xs);
+         AutomationProperties.SetHelpText(button, help);
+         button.ToolTip = help;
+         button.Click += (_, _) =>
+         {
+            foreach ((CheckBox box, int bit) in flagBoxes_)
+               box.IsChecked = (rights & bit) != 0;
+         };
+         return button;
+      }
+
+      /// <summary>The server's accounts or groups in the box's list, for the entry type chosen, read once a type.</summary>
+      private void Offer_()
+      {
+         int type = typeCombo_.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : 0;
+         if (Suggest == null || type == 2)
+            return;
+
+         if (!offered_.TryGetValue(type, out IReadOnlyList<string> names))
+            offered_[type] = names = Suggest(type) ?? Array.Empty<string>();
+
+         // The text typed stays: clearing the list would clear it.
+         string typed = subject_.Text;
+         subject_.Items.Clear();
+         foreach (string name in names)
+            subject_.Items.Add(name);
+         subject_.Text = typed;
       }
 
       public void Initialize(int type, string subject, int value)
@@ -422,25 +559,56 @@ namespace hMailServer.ControlPanel.Views
       {
          int type = typeCombo_.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : 0;
          bool needsSubject = type != 2; // Anyone needs no subject
-         subjectRow_.Label = type == 1 ? L("Group name") : L("Account address");
+         subjectRow_.Label = type == 1 ? L("_Group name") : L("_Account address");
          subjectRow_.Visibility = needsSubject ? Visibility.Visible : Visibility.Collapsed;
+         subjectRow_.Error = null;
 
          // The caption above this box changes with the entry type, so its accessible
          // name has to change with it. The row names the editor once, from the
          // caption it was built with; a group entry would otherwise announce
          // itself as "Account address".
-         AutomationProperties.SetName(subject_, subjectRow_.Label);
+         AutomationProperties.SetName(subject_, MnemonicText.Strip(subjectRow_.Label));
+
+         if (IsLoaded)
+            Offer_();
       }
 
       private void Commit()
       {
          SelectedType = typeCombo_.SelectedItem is ComboBoxItem cbi ? (int)cbi.Tag : 0;
-         Subject = subject_.Text.Trim();
+         Subject = (subject_.Text ?? "").Trim();
          int value = 0;
          foreach ((CheckBox box, int bit) in flagBoxes_)
             if (box.IsChecked is true)
                value |= bit;
          Value = value;
+
+         // The account or group resolved here, on its box, before the dialog
+         // closes: a name the server has none of was said by the folder's dialog
+         // after this one had closed, with the entry typed gone.
+         DialogFields.ClearErrors(subjectRow_);
+         SubjectId = 0;
+         if (SelectedType != 2)
+         {
+            if (Subject.Length == 0)
+            {
+               DialogFields.ShowError(subjectRow_, SelectedType == 1 ? L("Enter the group's name.") : L("Enter the account's address."));
+               return;
+            }
+
+            if (Resolve != null)
+            {
+               SubjectId = Resolve(SelectedType, Subject);
+               if (SubjectId == 0)
+               {
+                  DialogFields.ShowError(subjectRow_, SelectedType == 1
+                     ? F("No group found named '{0}'.", Subject)
+                     : F("No account found with address '{0}'.", Subject));
+                  return;
+               }
+            }
+         }
+
          DialogResult = true;
          Close();
       }

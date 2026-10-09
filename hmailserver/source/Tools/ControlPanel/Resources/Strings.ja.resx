@@ -4387,6 +4387,9 @@
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>有効期限を YYYY-MM-DD HH:MM:SS の形式で入力してください。</value>
   </data>
+  <data name="Enter the group's name." xml:space="preserve">
+    <value>グループの名前を入力してください。</value>
+  </data>
   <data name="Enter the host to deliver to: a name such as smtp.partner.com, or an IP address." xml:space="preserve">
     <value>配信先のホストを入力してください。smtp.partner.com のような名前か IP アドレスです。</value>
   </data>
@@ -8676,6 +8679,9 @@
   <data name="Read" xml:space="preserve">
     <value>読み取り</value>
   </data>
+  <data name="Read and _write" xml:space="preserve">
+    <value>読み書き(_W)</value>
+  </data>
   <data name="Read at MAIL FROM: a blocked domain is refused with 550 before anything else runs, for every recipient. The entry covers the organisation's domain and everything beneath it." xml:space="preserve">
     <value>MAIL FROM の時点で読み取られます: ブロックするドメインは、ほかの処理が動く前に、すべての受信者に対して 550 で拒否されます。エントリはその組織のドメインと、その配下のすべてに適用されます。</value>
   </data>
@@ -12836,6 +12842,15 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Tick the confirmation first: this profile closes a listener, trusts an address range, turns a filter or a check off, or shortens how long data is kept here." xml:space="preserve">
     <value>先に確認のチェックを入れてください: このプロファイルはここでリスナーを閉じる、アドレス範囲を信頼する、フィルターやチェックをオフにする、またはデータの保持期間を短くします。</value>
   </data>
+  <data name="Ticks Lookup, Read messages and Keep seen/unseen state, and clears the rest." xml:space="preserve">
+    <value>「参照」「メッセージを読み取り」「既読/未読の状態を保持する」をオンにし、ほかはオフにします。</value>
+  </data>
+  <data name="Ticks every right, Administer included." xml:space="preserve">
+    <value>「管理」を含め、すべての権限をオンにします。</value>
+  </data>
+  <data name="Ticks the read-only rights and Set flags, Insert / append messages, Delete messages and Expunge, and clears the rest." xml:space="preserve">
+    <value>読み取りの権限と「フラグを設定」「メッセージの挿入/追加」「メッセージを削除」「抹消 (Expunge)」をオンにし、ほかはオフにします。</value>
+  </data>
   <data name="Time" xml:space="preserve">
     <value>時刻</value>
   </data>
@@ -14123,6 +14138,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="_Full authority - can create, change and delete" xml:space="preserve">
     <value>完全な権限 - 作成、変更、削除ができます(_F)</value>
   </data>
+  <data name="_Full control" xml:space="preserve">
+    <value>フル コントロール(_F)</value>
+  </data>
   <data name="_Generate" xml:space="preserve">
     <value>生成(_G)</value>
   </data>
@@ -14134,6 +14152,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Give the role" xml:space="preserve">
     <value>ロールを割り当てる(_G)</value>
+  </data>
+  <data name="_Group name" xml:space="preserve">
+    <value>グループ名(_G)</value>
   </data>
   <data name="_HTML signature" xml:space="preserve">
     <value>HTML 署名(_H)</value>
@@ -14392,6 +14413,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Raise webhook events about this domain's mail and accounts" xml:space="preserve">
     <value>このドメインのメールとアカウントについて Webhook イベントを発生させる(_R)</value>
+  </data>
+  <data name="_Read only" xml:space="preserve">
+    <value>読み取りのみ(_R)</value>
   </data>
   <data name="_Read-only - can list and read; every change is refused" xml:space="preserve">
     <value>読み取り専用 - 一覧表示と読み取りができ、変更はすべて拒否されます(_R)</value>
