@@ -10866,7 +10866,7 @@ Seuraava viesti tähän osoitteeseen lähetetään, ja osoite palaa listalle vas
     <value>Ylläpitäjällä on toinen tekijä, ja REST API pyytää sen kertakäyttökoodia ennen vastaamista. Avaa sivu uudelleen, niin koodia kysytään.</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
-    <value>Järjestelmänvalvojan salasana ja kaksivaiheinen todennus ovat Hallinnollinen pääsy -sivulla.</value>
+    <value>Järjestelmänvalvojan salasana ja kaksivaiheinen todennus ovat Ylläpitokäyttöoikeus-sivulla.</value>
   </data>
   <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
     <value>Järjestelmänvalvojan salasana, joka valittiin hMailServerin asennuksessa.</value>

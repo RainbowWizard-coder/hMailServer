@@ -1013,6 +1013,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   exemptions beside it. `AllowBlockVocabularyTests` holds the names, the aliases, the headings, the English and
   German catalogues to the one vocabulary and every language to the four names.
 
+- **Fixed: the German Control Panel said one thing in several words, and some of them wrongly.** It said Domain and
+  Domäne on one screen; Sperrliste for the suppression list as for the block lists; "Läuft ab 2026-10-20", which reads
+  as "runs from"; Übersicht for the quarantine digest as for the overview pages; Aktualisieren, a verb, as the label
+  of the Update row; Vertrauensanker-Ausnahme for the trust anchors one sets oneself; Auto-Bann beside Sperre for one
+  ban; Punktzahl beside Bewertung for the score; Zugangsdatum for a credential; and "die ausgelieferte Vorgabe" for
+  the shipped default, where ausliefern is what a mail server does to a message. The German catalogue now has one
+  glossary: a mail domain is a Domain (only a Windows or Active Directory domain stays a Domäne), the suppression list
+  is the Unterdrückungsliste, an expiry "Läuft am 20.10.2026 ab", the digest a Digest, the row label Aktualisierung,
+  the trust anchors Eigene Vertrauensanker, an auto-ban a Bann (a name's lockout stays a Sperre), the score a
+  Bewertung, a credential Anmeldedaten and the shipped default werkseitig; nearly four hundred texts follow.
+  `build/check-catalogues.py` now holds a reference to any page in the navigation to that page's translated title,
+  where it knew thirty: the German "on the Suppression list page" had kept the old name, and the Finnish, Japanese and
+  Chinese named the Administrative access page otherwise than its title. `GermanGlossaryTests` holds each.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

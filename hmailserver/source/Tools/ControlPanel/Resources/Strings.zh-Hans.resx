@@ -10866,7 +10866,7 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
     <value>管理员设置了第二因素，REST API 在应答前要求输入其一次性代码。请重新打开页面，以便系统要求你输入代码。</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
-    <value>管理员密码和双因素身份验证在“管理访问”页。</value>
+    <value>管理员密码和双因素身份验证在“管理访问权限”页。</value>
   </data>
   <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
     <value>安装 hMailServer 时选择的管理员密码。</value>

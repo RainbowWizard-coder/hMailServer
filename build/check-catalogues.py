@@ -70,6 +70,23 @@ PAGE_TITLES = [
    "Backup", "Groups",
 ]
 
+
+def navigation_titles():
+   """Every page title the navigation map gives, so that a page renamed or added is
+   held to its references too: the list above named thirty, and the German "on the
+   Suppression list page" kept the old title when the page was renamed (review
+   finding F284)."""
+   path = os.path.join(ROOT, "hmailserver", "source", "Tools", "ControlPanel", "Services", "NavigationMap.cs")
+   try:
+      with open(path, encoding="utf-8-sig") as handle:
+         source = handle.read()
+   except OSError:
+      return []
+   return re.findall(r'\bPage\("[a-z0-9]+",\s*N\("((?:[^"\\]|\\.)*)"\)', source)
+
+
+PAGE_TITLES = sorted(set(PAGE_TITLES) | set(navigation_titles()))
+
 # What the server writes, and what the user types back verbatim.
 LITERALS = [
    "spam-protection", "done spam-protection", "script/save", "header-parsing",
@@ -249,6 +266,19 @@ def self_test():
       found = untranslated(tag, source, target)
       if found != expected:
          print("FAIL: [%s] %r -> %r is %s as untranslated" % (tag, source, target, "reported" if found else "not reported"))
+         failures += 1
+
+   # The page rule reads every navigation title: a page outside the old list of
+   # thirty, renamed in a catalogue, is held to the references to it.
+   for title in ("Suppression list", "Spam exemptions", "Allowed and blocked domains", "DNS block lists (DNSBL)"):
+      if title not in PAGE_TITLES:
+         print("FAIL: the page %r is not among the titles the page rule reads" % title)
+         failures += 1
+   reference = "Reads the refusals and delivery reports for this server's senders. The list is on the Suppression list page."
+   for value, expected in (("Die Liste steht auf der Seite Sperrliste.", True), ("Die Liste steht auf der Seite Unterdrückungsliste.", False)):
+      found = bool(check("de", {"Suppression list": "Unterdrückungsliste", reference: value}))
+      if found != expected:
+         print("FAIL: %r is %s as naming the page wrongly" % (value, "reported" if found else "not reported"))
          failures += 1
    print("self-test: %d failure(s)" % failures)
    return 1 if failures else 0

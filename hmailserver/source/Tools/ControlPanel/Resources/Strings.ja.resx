@@ -10866,7 +10866,7 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
     <value>管理者には 2 つ目の要素があり、REST API は応答する前にそのワンタイム コードを求めます。コードの入力を求められるように、ページを開き直してください。</value>
   </data>
   <data name="The administrator password and two-factor authentication are on the Administrative access page." xml:space="preserve">
-    <value>管理者パスワードと 2 要素認証は管理アクセス ページにあります。</value>
+    <value>管理者パスワードと 2 要素認証は管理者アクセス ページにあります。</value>
   </data>
   <data name="The administrator password chosen when hMailServer was installed." xml:space="preserve">
     <value>hMailServer のインストール時に選んだ管理者パスワード。</value>
