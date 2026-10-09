@@ -110,7 +110,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // Today's file of the chosen log, never the newest match of a wildcard.
          Assert.DoesNotContain("GetFiles(\"hmailserver_*.log\")", code, StringComparison.Ordinal);
          Assert.Contains("LiveLogFiles.FileName(kind_, DateTime.Today)", code, StringComparison.Ordinal);
-         Assert.Contains("LiveLogFiles.NextDay(logFile_, kind_, DateTime.Today, File.Exists)", code, StringComparison.Ordinal);
+         Assert.Contains("LiveLogFiles.NextDay(logFile_, kind_, DateTime.Today, path => LiveLogFiles.Access(path) != LiveLogAccess.NotThere)", code, StringComparison.Ordinal);
          Assert.Contains("… continued in {0}", code, StringComparison.Ordinal);
 
          // Problems in the list's place, not in the subtitle; Logging's page where that cures it.
@@ -126,6 +126,137 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The picker of logs, the protocols' own while the server writes them apart.
          Assert.Contains("x:Name=\"LogPicker\"", xaml, StringComparison.Ordinal);
          Assert.Contains("store.ReadBool(\"SepSvcLogs\", false)", code, StringComparison.Ordinal);
+      }
+
+      // ---- whether a log may be read ---------------------------------------------------
+
+      [Fact]
+      public void ALogThere_IsReadable_AndOneNotThereYet_OrInNoFolder_IsNotThere()
+      {
+         string folder = Path.Join(Path.GetTempPath(), "cp-livelog-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(folder);
+         try
+         {
+            string today = Path.Join(folder, "hmailserver_2026-10-09.log");
+            File.WriteAllText(today, "line\r\n");
+
+            Assert.Equal(LiveLogAccess.Readable, LiveLogFiles.TryOpen(today, out FileStream stream));
+            using (stream)
+               Assert.Equal(6, stream.Length);
+            Assert.Equal(LiveLogAccess.Readable, LiveLogFiles.FolderAccess(folder));
+
+            Assert.Equal(LiveLogAccess.NotThere, LiveLogFiles.TryOpen(Path.Join(folder, "hmailserver_2026-10-10.log"), out FileStream none));
+            Assert.Null(none);
+            Assert.Equal(LiveLogAccess.NotThere, LiveLogFiles.Access(Path.Join(folder, "nowhere", "x.log")));
+            Assert.Equal(LiveLogAccess.NotThere, LiveLogFiles.FolderAccess(Path.Join(folder, "nowhere")));
+            Assert.Equal(LiveLogAccess.NotThere, LiveLogFiles.FolderAccess(today));   // a file, not a folder
+            Assert.Equal(LiveLogAccess.NotThere, LiveLogFiles.FolderAccess(null));
+         }
+         finally
+         {
+            Directory.Delete(folder, true);
+         }
+      }
+
+      /// <summary>
+      /// A log folder that belongs to others, as hMailServer.exe /ProtectFolders leaves
+      /// the log folder for a Control Panel not run as administrator: opening the file
+      /// and listing the folder say that they may not be read, where File.Exists found
+      /// no file there and said nothing more (on server1, run without elevation against
+      /// a folder of the administrators' and SYSTEM's alone, File.Exists and
+      /// FileInfo.Exists were false and the open raised UnauthorizedAccessException),
+      /// which is how the page came to say Streaming over a log it could no longer
+      /// read. The folder is denied to this process's own account here, so that the
+      /// test needs no second account and no elevation.
+      /// </summary>
+      [Fact]
+      public void ALogInAFolderThatBelongsToOthers_IsDenied()
+      {
+         string folder = Path.Join(Path.GetTempPath(), "cp-livelog-" + Guid.NewGuid().ToString("N"));
+         Directory.CreateDirectory(folder);
+         string today = Path.Join(folder, "hmailserver_2026-10-09.log");
+         File.WriteAllText(today, "line\r\n");
+
+         var account = System.Security.Principal.WindowsIdentity.GetCurrent().User;
+         var deny = new System.Security.AccessControl.FileSystemAccessRule(account,
+            System.Security.AccessControl.FileSystemRights.ListDirectory | System.Security.AccessControl.FileSystemRights.ReadData | System.Security.AccessControl.FileSystemRights.ReadAttributes,
+            System.Security.AccessControl.InheritanceFlags.ContainerInherit | System.Security.AccessControl.InheritanceFlags.ObjectInherit,
+            System.Security.AccessControl.PropagationFlags.None,
+            System.Security.AccessControl.AccessControlType.Deny);
+         var directory = new DirectoryInfo(folder);
+         System.Security.AccessControl.DirectorySecurity security = directory.GetAccessControl();
+         security.AddAccessRule(deny);
+         directory.SetAccessControl(security);
+         try
+         {
+            bool bypassed;
+            try
+            {
+               File.ReadAllBytes(today);
+               bypassed = true;
+            }
+            catch (UnauthorizedAccessException)
+            {
+               bypassed = false;
+            }
+
+            Assert.SkipWhen(bypassed, "This account reads the file past a deny entry of its own, so the folder cannot be made another's here.");
+
+            Assert.Equal(LiveLogAccess.Denied, LiveLogFiles.TryOpen(today, out FileStream stream));
+            Assert.Null(stream);
+            Assert.Equal(LiveLogAccess.Denied, LiveLogFiles.Access(today));
+
+            // Listing the folder opens it for backup, which an account with the backup
+            // privilege enabled does past the deny entry; the Control Panel cannot.
+            if (!TokenPrivileges.IsEnabled("SeBackupPrivilege"))
+               Assert.Equal(LiveLogAccess.Denied, LiveLogFiles.FolderAccess(folder));
+
+            // A file not there yet is not there, in such a folder too: the page says
+            // that the folder may not be read, from its listing.
+            Assert.Equal(LiveLogAccess.NotThere, LiveLogFiles.Access(Path.Join(folder, "hmailserver_2026-10-10.log")));
+         }
+         finally
+         {
+            security = directory.GetAccessControl();
+            security.RemoveAccessRuleSpecific(deny);
+            directory.SetAccessControl(security);
+            Directory.Delete(folder, true);
+         }
+      }
+
+      /// <summary>
+      /// The page opens the log, and looks for neither the folder nor the file first:
+      /// Directory.Exists, File.Exists and FileInfo.Exists answer false, and raise
+      /// nothing, where they may not look, so a gate ahead of the open kept the page
+      /// from ever saying that the log may not be read.
+      /// </summary>
+      [Fact]
+      public void ThePage_OpensTheLog_AndSaysWhenItMayNotBeRead()
+      {
+         string code = ReadControlPanelFile(Path.Join("Views", "LogsView.xaml.cs"));
+         Assert.DoesNotContain("File.Exists(", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("File.Exists)", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("Directory.Exists(", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("new FileInfo(", code, StringComparison.Ordinal);
+
+         string poll = WithheldRowTests.MemberText(code, "private void Poll()");
+         Assert.True(poll != null, "LogsView.Poll is gone.");
+         int open = poll.IndexOf("switch (LiveLogFiles.TryOpen(logFile_, out FileStream stream))", StringComparison.Ordinal);
+         int denied = poll.IndexOf("case LiveLogAccess.Denied:", StringComparison.Ordinal);
+         int read = poll.IndexOf("Show_(tail_.Read(stream));", StringComparison.Ordinal);
+         Assert.True(open >= 0 && denied > open && read > denied, "Poll no longer opens the log and says Denied before it reads.");
+         Assert.Contains("Denied_();", poll.Substring(denied), StringComparison.Ordinal);
+
+         string start = WithheldRowTests.MemberText(code, "private void Open_(string denied, string folder)");
+         Assert.True(start != null, "LogsView.Open_ is gone.");
+         Assert.Contains("LiveLogFiles.FolderAccess(folder)", start, StringComparison.Ordinal);
+         Assert.Contains("switch (LiveLogFiles.Access(logFile_))", start, StringComparison.Ordinal);
+         Assert.Contains("Denied_();", start, StringComparison.Ordinal);
+
+         // And no Streaming left in the subtitle over a log no longer read.
+         string problem = WithheldRowTests.MemberText(code, "private void Problem_(string text, bool offerLogging)");
+         Assert.True(problem != null, "LogsView.Problem_ is gone.");
+         Assert.Contains("Header.Subtitle = L(\"The server log as it is written, read from the log folder on this computer.\");", problem, StringComparison.Ordinal);
       }
 
       private static string ReadControlPanelFile(string relative)

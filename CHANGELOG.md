@@ -1718,9 +1718,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the other logs as UTF-8. Pause says since when and how many new lines are waiting, Clear is Clear view with a tool
   tip saying the log file is not changed, and each line is laid out as its time, type, thread, session and text
   without the file's quotes and tabs; a copy is still the line as the file has it. A log folder that is not on this
-  computer, a log not written yet today and a Control Panel not run as administrator are each said in the list's
-  place, with Logging's page where switching logging on is the cure, where each replaced the subtitle above an empty
-  card; a file not there yet is shown as soon as the server writes it.
+  computer, a log not written yet today and a log folder that belongs to the administrators, for a Control Panel not
+  run as administrator, whether it did when the page opened it or was made theirs while the page streamed it, are each
+  said in the list's place, with Logging's page where switching logging on is the cure, where each replaced the
+  subtitle above an empty card; a file not there yet is shown as soon as the server writes it.
 
 - **Fixed: the Diagnostics and MX query results were raw text in a box that looked like an input, and an old scan read
   as a green OK.** Diagnostics showed "[ OK ]" and "[FAIL]" lines in a read-only text box with an input's underline,

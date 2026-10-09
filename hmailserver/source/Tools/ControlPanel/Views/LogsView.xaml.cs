@@ -50,6 +50,10 @@ namespace hMailServer.ControlPanel.Views
       private LiveLogTail tail_ = new();
       private bool paused_;
 
+      // A file there when the page opened it is read from its last 64 KB, which the
+      // first read that opens it sets; one that appears later is read from its start.
+      private bool startTail_;
+
       // The log folder, and which of its logs the picker has chosen.
       private string folder_;
       private LiveLogKind kind_ = LiveLogKind.Everything;
@@ -177,7 +181,12 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         if (folder == null || !Directory.Exists(folder))
+         // The folder is listed and the file opened, not looked for with Directory.Exists
+         // and File.Exists: in a log folder that belongs to the administrators those find
+         // no file, without an error, for a Control Panel not run as administrator, which
+         // then said that nothing had been logged today (Services/LiveLogFiles.TryOpen).
+         LiveLogAccess listing = LiveLogFiles.FolderAccess(folder);
+         if (listing == LiveLogAccess.NotThere)
          {
             LogPicker.IsEnabled = false;
             Problem_(L("The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them."), false);
@@ -187,24 +196,23 @@ namespace hMailServer.ControlPanel.Views
          LogPicker.IsEnabled = true;
          logFile_ = Path.Join(folder, LiveLogFiles.FileName(kind_, DateTime.Today));
          tail_ = new LiveLogTail();
+         startTail_ = false;
 
-         try
+         switch (LiveLogFiles.Access(logFile_))
          {
-            var file = new FileInfo(logFile_);
-            if (file.Exists)
-            {
-               tail_.StartAt(file.Length);   // the last 64 KB
+            case LiveLogAccess.Readable:
+            case LiveLogAccess.Busy:
+               startTail_ = true;   // the last 64 KB, from the first read
                Streaming_();
-            }
-            else
-            {
+               break;
+            case LiveLogAccess.NotThere when listing != LiveLogAccess.Denied:
                NotYet_();
-            }
-         }
-         catch (UnauthorizedAccessException)
-         {
-            Denied_();
-            return;
+               break;
+            default:
+               // The file may not be read, or the folder may not be listed and whether
+               // the file is there cannot be told: either way they are the administrators'.
+               Denied_();
+               return;
          }
 
          Poll();
@@ -241,6 +249,9 @@ namespace hMailServer.ControlPanel.Views
       /// <summary>The list's place says what keeps the log from being shown, with Logging's page where that is the cure.</summary>
       private void Problem_(string text, bool offerLogging)
       {
+         // The subtitle says what the page is, not Streaming over a log it has stopped
+         // reading (a folder made the administrators' while it was streamed).
+         Header.Subtitle = L("The server log as it is written, read from the log folder on this computer.");
          Problem.Text = text;
          Problem.Action = offerLogging ? OpenLogging_() : null;
          Problem.Visibility = Visibility.Visible;
@@ -304,45 +315,64 @@ namespace hMailServer.ControlPanel.Views
          {
             // The day turned over: the server opens the next day's file with its first
             // line after midnight. The rest of the old one is read first, then a line
-            // says where the log goes on, and the new file is read from its start.
-            string next = LiveLogFiles.NextDay(logFile_, kind_, DateTime.Today, File.Exists);
+            // says where the log goes on, and the new file is read from its start. A
+            // next file there but not to be read is there: opening it says so below.
+            string next = LiveLogFiles.NextDay(logFile_, kind_, DateTime.Today, path => LiveLogFiles.Access(path) != LiveLogAccess.NotThere);
             if (next != null)
             {
-               if (File.Exists(logFile_) && Problem.Visibility != Visibility.Visible)
+               if (Problem.Visibility != Visibility.Visible && LiveLogFiles.TryOpen(logFile_, out FileStream old) == LiveLogAccess.Readable)
                {
-                  using var old = new FileStream(logFile_, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                  Show_(tail_.Read(old));
+                  using (old)
+                     Show_(tail_.Read(old));
                   Show_(new[] { F("… continued in {0}", Path.GetFileName(next)) });
                }
 
                logFile_ = next;
                tail_ = new LiveLogTail();
+               startTail_ = false;
                Streaming_();
             }
 
-            if (!File.Exists(logFile_))
-               return;
-
-            // The file the page was waiting for has been written: shown from its start.
-            if (Problem.Visibility == Visibility.Visible)
+            // Opened, not looked for with File.Exists, which in a folder made the
+            // administrators' alone while it was streamed (hMailServer.exe
+            // /ProtectFolders) finds no file and no error, so that the page said
+            // Streaming over a log it could no longer read.
+            switch (LiveLogFiles.TryOpen(logFile_, out FileStream stream))
             {
-               tail_ = new LiveLogTail();
-               Streaming_();
+               case LiveLogAccess.NotThere:
+               case LiveLogAccess.Busy:
+                  return;   // not written yet, or held for a moment: looked at again next tick
+               case LiveLogAccess.Denied:
+                  Denied_();   // said once, not retried
+                  return;
             }
 
-            // Whole lines only, and the end followed only while it is in view: what
-            // is read and where the view goes are LiveLogTail's, which says why.
-            using var stream = new FileStream(logFile_, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            Show_(tail_.Read(stream));
+            using (stream)
+            {
+               // The file the page was waiting for has been written: shown from its start.
+               if (Problem.Visibility == Visibility.Visible)
+               {
+                  tail_ = new LiveLogTail();
+                  startTail_ = false;
+                  Streaming_();
+               }
+               else if (startTail_)
+               {
+                  tail_.StartAt(stream.Length);   // the last 64 KB
+                  startTail_ = false;
+               }
+
+               // Whole lines only, and the end followed only while it is in view: what
+               // is read and where the view goes are LiveLogTail's, which says why.
+               Show_(tail_.Read(stream));
+            }
          }
          catch (IOException)
          {
-            // File momentarily locked; retry next tick.
+            // A read that failed part-way: tried again on the next tick.
          }
          catch (UnauthorizedAccessException)
          {
-            // The log folder made the administrators' alone while it was streamed
-            // (hMailServer.exe /ProtectFolders): said once, not retried.
             Denied_();
          }
       }

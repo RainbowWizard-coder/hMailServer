@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -31,6 +32,22 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>hmailserver_POP3_&lt;date&gt;.log, written while SepSvcLogs is on.</summary>
       Pop3
+   }
+
+   /// <summary>What opening a log file, or listing the log folder, found (LiveLogFiles.TryOpen, FolderAccess).</summary>
+   public enum LiveLogAccess
+   {
+      /// <summary>There, and this Control Panel may read it.</summary>
+      Readable,
+
+      /// <summary>Not there, or not yet.</summary>
+      NotThere,
+
+      /// <summary>This Control Panel may not read it: it belongs to the administrators (hMailServer.exe /ProtectFolders).</summary>
+      Denied,
+
+      /// <summary>There, and held by somebody else for a moment: looked at again on the next tick.</summary>
+      Busy
    }
 
    /// <summary>
@@ -87,6 +104,86 @@ namespace hMailServer.ControlPanel.Services
             return null;
 
          return exists(want) ? want : null;
+      }
+
+      /// <summary>
+      /// Opens a log file to read beside the server, which goes on writing it; the
+      /// stream is the caller's to close, and null unless the file is Readable.
+      ///
+      /// The file is opened, and not looked for first: in a log folder that belongs to
+      /// the administrators - which hMailServer.exe /ProtectFolders leaves - a Control
+      /// Panel not run as administrator finds the folder with Directory.Exists and no
+      /// file in it with File.Exists, which answer false where they may not look, and
+      /// only opening the file says that it may not be read (review finding F249: the
+      /// page said Streaming over a log it could no longer read, or that nothing had
+      /// been logged today).
+      /// </summary>
+      public static LiveLogAccess TryOpen(string path, out FileStream stream)
+      {
+         stream = null;
+         try
+         {
+            stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            return LiveLogAccess.Readable;
+         }
+         catch (FileNotFoundException)
+         {
+            return LiveLogAccess.NotThere;
+         }
+         catch (DirectoryNotFoundException)
+         {
+            return LiveLogAccess.NotThere;
+         }
+         catch (UnauthorizedAccessException)
+         {
+            return LiveLogAccess.Denied;
+         }
+         catch (IOException)
+         {
+            return LiveLogAccess.Busy;
+         }
+         catch (ArgumentException)
+         {
+            return LiveLogAccess.NotThere;   // not a path at all
+         }
+      }
+
+      /// <summary>What opening the file finds, the file closed again.</summary>
+      public static LiveLogAccess Access(string path)
+      {
+         LiveLogAccess access = TryOpen(path, out FileStream stream);
+         stream?.Dispose();
+         return access;
+      }
+
+      /// <summary>
+      /// Whether the log folder is there and may be listed, by listing it: a folder that
+      /// belongs to the administrators cannot be, and Directory.Exists finds it there or
+      /// not as its parent may be listed or not.
+      /// </summary>
+      public static LiveLogAccess FolderAccess(string folder)
+      {
+         if (string.IsNullOrEmpty(folder))
+            return LiveLogAccess.NotThere;
+
+         try
+         {
+            using IEnumerator<string> entries = Directory.EnumerateFileSystemEntries(folder).GetEnumerator();
+            entries.MoveNext();
+            return LiveLogAccess.Readable;
+         }
+         catch (UnauthorizedAccessException)
+         {
+            return LiveLogAccess.Denied;
+         }
+         catch (IOException)
+         {
+            return LiveLogAccess.NotThere;   // not found, or a file and not a folder
+         }
+         catch (ArgumentException)
+         {
+            return LiveLogAccess.NotThere;
+         }
       }
 
       /// <summary>One line of a log, in the parts the page shows it in.</summary>
