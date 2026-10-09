@@ -9,9 +9,13 @@ namespace hMailServer.ControlPanel.Services
 {
    /// <summary>The state of the server settings page, as the pill in its header shows it.
    /// Distinct from <see cref="SettingsPageState"/>, which is the lifecycle of an
-   /// hMailServer.INI page: that one is read, written and then waits on a service
-   /// restart, and this one is read and written over COM and takes effect as it is
-   /// saved. Two pages, two lifecycles, two types.</summary>
+   /// hMailServer.INI page: that one is read, written and may then wait on a service
+   /// restart that the page itself runs, and this one is read and written over COM, is
+   /// saved in a pass that can fail row by row, and has no restart of its own. Two
+   /// lifecycles, two types - and one save-state model across them: no pill while the
+   /// page shows what it read, Unsaved changes from the first edit, and after a save
+   /// Saved, Reinitialise to apply or Restart to apply, in the same words and
+   /// levels.</summary>
    public enum ServerSettingsPageState
    {
       /// <summary>What is on screen is what the server holds. Nothing to say, so no pill.</summary>
@@ -23,8 +27,18 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>The writes are in progress.</summary>
       Saving,
 
-      /// <summary>Every write succeeded.</summary>
+      /// <summary>Every write succeeded, and every setting written is in effect.</summary>
       Saved,
+
+      /// <summary>Every write succeeded; some wait for a reinitialise, which the window's Apply now does.</summary>
+      WaitsForReinitialise,
+
+      /// <summary>
+      /// Every write succeeded; some wait for the service to be restarted - or the
+      /// server cannot say what waits, and applies its hMailServer.ini settings at its
+      /// next start.
+      /// </summary>
+      WaitsForRestart,
 
       /// <summary>At least one write failed; the sentence beside the pill says how many.</summary>
       PartlySaved
@@ -48,14 +62,20 @@ namespace hMailServer.ControlPanel.Services
          ServerSettingsPageState.Unsaved,
          ServerSettingsPageState.Saving,
          ServerSettingsPageState.Saved,
+         ServerSettingsPageState.WaitsForReinitialise,
+         ServerSettingsPageState.WaitsForRestart,
          ServerSettingsPageState.PartlySaved
       };
 
       /// <summary>
       /// Unsaved is a warning because leaving the page loses the change; Saving
-      /// is information because there is nothing to do but wait; a save with a
-      /// failure is critical because what is on screen is not what the server
-      /// holds and the reader has to find out which rows.
+      /// is information because there is nothing to do but wait, and so is a save
+      /// that waits for a reinitialise or a restart, which is written and leaves a
+      /// step to take when it suits; a save with a failure is critical because
+      /// what is on screen is not what the server holds and the reader has to find
+      /// out which rows. The words and levels are the hMailServer.INI pages'
+      /// (<see cref="SettingsPageStatus"/>), so that every settings page says the
+      /// same thing the same way.
       /// </summary>
       public static StatusLevel LevelFor(ServerSettingsPageState state)
       {
@@ -64,6 +84,8 @@ namespace hMailServer.ControlPanel.Services
             case ServerSettingsPageState.Unsaved:
                return StatusLevel.Warning;
             case ServerSettingsPageState.Saving:
+            case ServerSettingsPageState.WaitsForReinitialise:
+            case ServerSettingsPageState.WaitsForRestart:
                return StatusLevel.Information;
             case ServerSettingsPageState.Saved:
                return StatusLevel.Good;
@@ -85,6 +107,10 @@ namespace hMailServer.ControlPanel.Services
                return L("Saving…");
             case ServerSettingsPageState.Saved:
                return L("Saved");
+            case ServerSettingsPageState.WaitsForReinitialise:
+               return L("Reinitialise to apply");
+            case ServerSettingsPageState.WaitsForRestart:
+               return L("Restart to apply");
             case ServerSettingsPageState.PartlySaved:
                return L("Partly saved");
             default:
@@ -94,6 +120,28 @@ namespace hMailServer.ControlPanel.Services
 
       /// <summary>Whether the pill is shown at all. A clean page has nothing to say.</summary>
       public static bool ShowsPill(ServerSettingsPageState state) => state != ServerSettingsPageState.Clean;
+
+      /// <summary>
+      /// The state a save settles in: Partly saved when a write failed; otherwise
+      /// what still waits, as the server lists the page's keys - a restart when any of
+      /// them is marked restart, or when the server cannot say (null: one from before a
+      /// save could publish, whose hMailServer.ini settings all apply at its next
+      /// start), a reinitialise when the rest are marked reinitialize, and Saved when
+      /// nothing waits.
+      /// </summary>
+      /// <param name="failed">How many rows could not be written.</param>
+      /// <param name="waiting">How many written rows wait for a reinitialise or a restart; null when the server cannot say.</param>
+      /// <param name="waitingForRestart">How many of those wait for a restart.</param>
+      public static ServerSettingsPageState AfterSave(int failed, int? waiting, int waitingForRestart)
+      {
+         if (failed > 0)
+            return ServerSettingsPageState.PartlySaved;
+
+         if (waiting == null || waitingForRestart > 0)
+            return ServerSettingsPageState.WaitsForRestart;
+
+         return waiting > 0 ? ServerSettingsPageState.WaitsForReinitialise : ServerSettingsPageState.Saved;
+      }
 
       /// <summary>
       /// The sentence after a read: null when every value was read, which is the

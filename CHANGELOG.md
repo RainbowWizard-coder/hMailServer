@@ -1043,6 +1043,21 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   Chinese named the Administrative access page otherwise than its title. `GermanGlossaryTests` holds each, and refuses
   ausliefern in the translation of any text that says shipped, its access key's underscore taken out first.
 
+- **Fixed: the Control Panel's settings pages said in three ways whether what was on screen had reached the server,
+  and the feature settings pages said it wrongly.** Transport security, Certificates (ACME), API & monitoring,
+  Server limits & expert settings, Authentication, DNS resolver and Web services & autoconfiguration wore a grey
+  *Editing* pill as they opened, with nothing changed, and never marked an edit: nothing but the computed warnings
+  listened to their editors. After a save the pill turned a green *Saved*, though a setting that waits for a service
+  restart was not running yet, and it stayed green through every edit after it. The server settings pages said
+  *Saved* in green over a save whose settings waited for a reinitialise or a restart too. Every settings page now
+  keeps the one model the server settings pages began: no pill while the page shows what it read; *Unsaved changes*,
+  a warning, from the first edit and for as long as an editor differs from what was read or saved, so an edit undone
+  by hand takes the pill back to what the save had said; and after a save, until the next edit, *Saved* when every
+  setting written is in effect, *Reinitialise to apply* when some wait for **Apply now**, or *Restart to apply* when
+  some wait for a service restart or the server cannot say what waits. A save that could not be written says why in
+  a Critical notice under the header. The per-address overrides box of the per-account sending limits now says when
+  it changes as well, and a test holds every setting with a value to doing so.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

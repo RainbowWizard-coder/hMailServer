@@ -3955,9 +3955,6 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Modifié sur les autres onglets de cette boîte de dialogue.</value>
   </data>
-  <data name="Editing" xml:space="preserve">
-    <value>Édition</value>
-  </data>
   <data name="Editing {0}" xml:space="preserve">
     <value>Modification de {0}</value>
   </data>
@@ -8479,6 +8476,9 @@ Exécutez ceci si des clients signalent des messages apparaissant sous le mauvai
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Réinitialiser le serveur maintenant ? Tous les services s'arrêtent et redémarrent sur place, donc les clients connectés sont déconnectés puis se reconnectent.</value>
   </data>
+  <data name="Reinitialise to apply" xml:space="preserve">
+    <value>Appliqué à la réinitialisation</value>
+  </data>
   <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Réinitialisé - les réglages enregistrés sont en vigueur.</value>
   </data>
@@ -8812,6 +8812,9 @@ Chaque dossier est d'abord vidé : le courrier arrivé depuis la sauvegarde disp
   </data>
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Résolu par le serveur lui-même, un DNSServer personnalisé dans hMailServer.INI est donc honoré - c'est là que le courrier va réellement, ce qu'un nslookup depuis ce poste de travail ne peut pas promettre.</value>
+  </data>
+  <data name="Restart to apply" xml:space="preserve">
+    <value>Appliqué au redémarrage</value>
   </data>
   <data name="Restarting the hMailServer service..." xml:space="preserve">
     <value>Redémarrage du service hMailServer...</value>

@@ -3991,9 +3991,6 @@ Control Panel может читать файлы сообщений только
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Редактируется на других вкладках этого диалога.</value>
   </data>
-  <data name="Editing" xml:space="preserve">
-    <value>Редактирование</value>
-  </data>
   <data name="Editing {0}" xml:space="preserve">
     <value>Изменение {0}</value>
   </data>
@@ -8557,6 +8554,9 @@ Control Panel может читать файлы сообщений только
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Выполнить повторную инициализацию сервера сейчас? Все службы остановятся и запустятся заново на месте, поэтому подключённые клиенты будут отключены и подключатся снова.</value>
   </data>
+  <data name="Reinitialise to apply" xml:space="preserve">
+    <value>Ждёт повторной инициализации</value>
+  </data>
   <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Повторная инициализация выполнена — сохранённые параметры действуют.</value>
   </data>
@@ -8896,6 +8896,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Разрешается самим сервером, поэтому пользовательское значение DNSServer в hMailServer.INI учитывается — именно туда почта действительно уходит, а nslookup с этой рабочей станции такого гарантировать не может.</value>
+  </data>
+  <data name="Restart to apply" xml:space="preserve">
+    <value>Ждёт перезапуска</value>
   </data>
   <data name="Restarting the hMailServer service..." xml:space="preserve">
     <value>Перезапуск службы hMailServer...</value>
@@ -15271,9 +15274,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0} messages" xml:space="preserve">
     <value>{0} сообщений</value>
   </data>
-  <data name="{0} messages|few" xml:space="preserve">
-    <value>{0} сообщения</value>
-  </data>
   <data name="{0} messages cannot be listed and will be left where they are. The first reason: {1}" xml:space="preserve">
     <value>Для {0} сообщений нельзя создать запись; они останутся там, где есть. Первая причина: {1}</value>
   </data>
@@ -15303,6 +15303,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} messages waiting for delivery.|few" xml:space="preserve">
     <value>Сообщений в ожидании доставки: {0}.</value>
+  </data>
+  <data name="{0} messages|few" xml:space="preserve">
+    <value>{0} сообщения</value>
   </data>
   <data name="{0} minute ago" xml:space="preserve">
     <value>{0} мин. назад</value>

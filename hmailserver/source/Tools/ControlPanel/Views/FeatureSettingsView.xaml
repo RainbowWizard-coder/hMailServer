@@ -13,15 +13,16 @@
 
     <!-- A settings page on the scaffold: the page owns its ScrollViewer with
          AppPagePadding, a PageHeader carries the title, the page's sentence, the
-         pill that says where the page stands (SettingsPageStatus) and the two
-         actions; the state's sentence is an InlineNotice; the cards are built in
-         code from the section's definition, one Card holding one SettingsSection
-         of FieldRows. -->
+         pill that says where the page stands (SettingsPageStatus: none while the
+         editors hold what was read, Unsaved changes from the first edit, and what a
+         save settled in until the next) and the two actions; the state's sentence
+         is an InlineNotice; the cards are built in code from the section's
+         definition, one Card holding one SettingsSection of FieldRows. -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="{StaticResource AppPagePadding}">
         <StackPanel>
             <scaffold:PageHeader x:Name="Header">
                 <scaffold:PageHeader.Status>
-                    <scaffold:StatusPill x:Name="StatePill" AutomationProperties.AutomationId="feature-settings-state" />
+                    <scaffold:StatusPill x:Name="StatePill" Visibility="Collapsed" AutomationProperties.AutomationId="feature-settings-state" />
                 </scaffold:PageHeader.Status>
                 <scaffold:PageHeader.Actions>
                     <StackPanel Orientation="Horizontal">

@@ -3955,9 +3955,6 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Wordt bewerkt op de andere tabbladen van dit venster.</value>
   </data>
-  <data name="Editing" xml:space="preserve">
-    <value>Bewerken</value>
-  </data>
   <data name="Editing {0}" xml:space="preserve">
     <value>{0} wordt bewerkt</value>
   </data>
@@ -8479,6 +8476,9 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>De server nu herinitialiseren? Alle services stoppen en starten ter plekke opnieuw, dus verbonden clients worden verbroken en maken opnieuw verbinding.</value>
   </data>
+  <data name="Reinitialise to apply" xml:space="preserve">
+    <value>Van kracht na herinitialiseren</value>
+  </data>
   <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Geherinitialiseerd - de opgeslagen instellingen zijn van kracht.</value>
   </data>
@@ -8812,6 +8812,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   </data>
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Wordt door de server zelf opgezocht, dus een aangepaste DNSServer in hMailServer.INI wordt gerespecteerd - dit is waar mail werkelijk heen gaat, en dat kan een nslookup vanaf dit werkstation niet beloven.</value>
+  </data>
+  <data name="Restart to apply" xml:space="preserve">
+    <value>Van kracht na herstart</value>
   </data>
   <data name="Restarting the hMailServer service..." xml:space="preserve">
     <value>De hMailServer-service wordt opnieuw gestart...</value>

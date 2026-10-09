@@ -3955,9 +3955,6 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Editado nas outras guias desta caixa de diálogo.</value>
   </data>
-  <data name="Editing" xml:space="preserve">
-    <value>Edição</value>
-  </data>
   <data name="Editing {0}" xml:space="preserve">
     <value>Editando {0}</value>
   </data>
@@ -8479,6 +8476,9 @@ Execute isto se os clientes relatarem mensagens aparecendo com o UID errado, ou 
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinicializar o servidor agora? Todos os serviços param e voltam a iniciar no mesmo processo, então os clientes conectados são desconectados e se reconectam.</value>
   </data>
+  <data name="Reinitialise to apply" xml:space="preserve">
+    <value>Aplica-se ao reinicializar</value>
+  </data>
   <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Reinicializado - as configurações salvas estão valendo.</value>
   </data>
@@ -8812,6 +8812,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   </data>
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Resolvido pelo próprio servidor, então um DNSServer personalizado no hMailServer.INI é respeitado - é para cá que o e-mail realmente vai, o que um nslookup desta estação de trabalho não pode garantir.</value>
+  </data>
+  <data name="Restart to apply" xml:space="preserve">
+    <value>Aplica-se ao reiniciar</value>
   </data>
   <data name="Restarting the hMailServer service..." xml:space="preserve">
     <value>Reiniciando o serviço hMailServer...</value>

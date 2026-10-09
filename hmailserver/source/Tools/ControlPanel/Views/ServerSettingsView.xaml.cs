@@ -5914,9 +5914,11 @@ namespace hMailServer.ControlPanel.Views
       /// waiting counts the rows written here whose change the running server does
       /// not take until a restart or a reinitialize - the SNMP agent's, which it reads
       /// as it starts (AppliesMark) - so that the save does not say "applied
-      /// immediately" of a port the agent will go on answering on until then.
+      /// immediately" of a port the agent will go on answering on until then;
+      /// waitingForRestart counts those of them marked restart, which is what the
+      /// pill says they wait for.
       /// </summary>
-      private void SaveRest_(List<IRestSetting> rows, ref int saved, ref int failed, ref string firstFailure, ref int waiting)
+      private void SaveRest_(List<IRestSetting> rows, ref int saved, ref int failed, ref string firstFailure, ref int waiting, ref int waitingForRestart)
       {
          if (rows.Count == 0)
             return;
@@ -5958,6 +5960,8 @@ namespace hMailServer.ControlPanel.Views
                   row.Accepted();
                   if (row is ComSetting { AppliesMark: SettingApplies.Restart or SettingApplies.Reinitialize })
                      waiting++;
+                  if (row is ComSetting { AppliesMark: SettingApplies.Restart })
+                     waitingForRestart++;
                }
                saved += group.Count();
                continue;
@@ -6073,8 +6077,8 @@ namespace hMailServer.ControlPanel.Views
             }
          }
 
-         int restWaiting = 0;
-         SaveRest_(restRows, ref saved, ref failed, ref firstFailure, ref restWaiting);
+         int restWaiting = 0, restWaitingForRestart = 0;
+         SaveRest_(restRows, ref saved, ref failed, ref firstFailure, ref restWaiting, ref restWaitingForRestart);
 
          // A save publishes (docs/SettingsApply.md): a key marked now is in effect
          // already, and the ones that are not are what the server lists as pending.
@@ -6087,7 +6091,15 @@ namespace hMailServer.ControlPanel.Views
          // One read of the pending list for the whole save; the window's bar reuses
          // it. Null - the server cannot say, an older one whose keys all apply at its
          // next start - is not "none", and the sentence then says what it said then.
+         //
+         // What waits for a restart, of that: a changed [Database] row, a REST row
+         // marked restart and a pending key the server marks restart. The pill says
+         // Restart to apply for those, Reinitialise to apply when the rest wait for
+         // Apply now, and Saved only when nothing waits - the one save-state model
+         // (ServerSettingsPageStatus.AfterSave), where it said Saved, in green, over
+         // a save the server had not taken.
          int? waiting = databaseRowsChanged + restWaiting;
+         int waitingForRestart = databaseRowsChanged + restWaitingForRestart;
          if (iniKeys.Count > 0)
          {
             IReadOnlyList<string> pendingList = IniFeatureStore.PendingNames();
@@ -6099,10 +6111,11 @@ namespace hMailServer.ControlPanel.Views
             {
                var pending = new HashSet<string>(pendingList, StringComparer.OrdinalIgnoreCase);
                waiting = databaseRowsChanged + restWaiting + iniKeys.Count(pending.Contains);
+               waitingForRestart += iniKeys.Count(key => pending.Contains(key) && IniFeatureStore.AppliesFor(key) == SettingApplies.Restart);
             }
          }
 
-         ServerSettingsPageState outcome = failed == 0 ? ServerSettingsPageState.Saved : ServerSettingsPageState.PartlySaved;
+         ServerSettingsPageState outcome = ServerSettingsPageStatus.AfterSave(failed, waiting, waitingForRestart);
          ShowState_(outcome);
          string saveSentence = ServerSettingsPageStatus.SaveSentence(saved, failed, DateTime.Now.ToLongTimeString(), waiting);
          ShowNotice_(

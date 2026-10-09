@@ -26,7 +26,9 @@ namespace hMailServer.ControlPanel.Views
    /// resolver and the public web services listener.
    ///
    /// On the scaffold since the fourth wave: the header is a PageHeader with a
-   /// StatusPill for where the page stands (SettingsPageStatus), each card is a
+   /// StatusPill for where the page stands (SettingsPageStatus, kept by
+   /// IniPageSaveState: none while the editors hold what was read, Unsaved changes
+   /// from the first edit, and what a save settled in until the next), each card is a
    /// Card holding a SettingsSection of FieldRows, a computed warning is an
    /// InlineNotice, and the state's sentence is one too. The definition below -
    /// every Key and Label - is what build/generate-settings-index.ps1 and the
@@ -680,6 +682,12 @@ namespace hMailServer.ControlPanel.Views
          }
 
          public override string LiveValue => box_?.Text;
+
+         public override void OnEditorChanged(Action handler)
+         {
+            if (box_ != null && handler != null)
+               box_.TextChanged += (s, e) => handler();
+         }
       }
 
       /// <summary>
@@ -972,6 +980,9 @@ namespace hMailServer.ControlPanel.Views
       }
 
       private readonly List<WarningRow> warningRows_ = new();
+
+      /// <summary>The pill and the notice under the header, by the one save-state model.</summary>
+      private readonly IniPageSaveState saveState_;
 
       // ---- inputs for the computed warnings -----------------------------------
       //
@@ -1565,6 +1576,7 @@ namespace hMailServer.ControlPanel.Views
       public FeatureSettingsView(Section section)
       {
          InitializeComponent();
+         saveState_ = new IniPageSaveState(StatePill, StatusNotice, () => HasUnsavedChanges);
          section_ = section;
          BuildDefinition();
          BuildUi();
@@ -2885,10 +2897,11 @@ namespace hMailServer.ControlPanel.Views
          }
 
          // Wire every editor to the warnings AFTER all the editors exist, because
-         // a warning may read a setting on a later card than its own.
+         // a warning may read a setting on a later card than its own - and to the
+         // pill, which says Unsaved changes from the first edit.
          foreach (CardDef card in cards_)
             foreach (Setting setting in card.Settings)
-               setting.OnEditorChanged(RefreshWarnings_);
+               setting.OnEditorChanged(EditorChanged_);
 
          // What every editor was filled with, which is what an unsaved change is
          // measured from.
@@ -2900,7 +2913,14 @@ namespace hMailServer.ControlPanel.Views
          PathText.Text = F("Editing {0}", store_.IniPath);
          PathText.Visibility = Visibility.Visible;
          SaveButton.IsEnabled = true;
-         SetState_(SettingsPageState.Editing, null);
+         SetState_(SettingsPageState.Clean, null);
+      }
+
+      /// <summary>An editor changed: the warnings that read it, and the pill.</summary>
+      private void EditorChanged_()
+      {
+         RefreshWarnings_();
+         saveState_.Follow();
       }
 
       /// <summary>
@@ -2924,27 +2944,15 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
-      /// Where the page stands, in the header's pill and - when there is a
-      /// sentence to go with it - in the notice under the header. The notice
-      /// takes the state's level unless the caller says otherwise: a restart in
-      /// progress is a warning on the pill (what is on screen is not yet what
+      /// Where the page stands after a read, a save or a step of a restart, in the
+      /// header's pill - until the next edit, which the pill follows - and, when
+      /// there is a sentence to go with it, in the notice under the header. The
+      /// notice takes the state's level unless the caller says otherwise: a restart
+      /// in progress is a warning on the pill (what is on screen is not yet what
       /// runs) and information in the sentence.
       /// </summary>
       private void SetState_(SettingsPageState state, string message, StatusLevel? noticeLevel = null)
-      {
-         StatePill.Level = SettingsPageStatus.LevelFor(state);
-         StatePill.Text = SettingsPageStatus.WordFor(state);
-
-         if (string.IsNullOrEmpty(message))
-         {
-            StatusNotice.Visibility = Visibility.Collapsed;
-            return;
-         }
-
-         StatusNotice.Level = noticeLevel ?? SettingsPageStatus.LevelFor(state);
-         StatusNotice.Text = message;
-         StatusNotice.Visibility = Visibility.Visible;
-      }
+         => saveState_.Settle(state, message, noticeLevel);
 
       /// <summary>
       /// Re-evaluates every computed warning on the page against the editors as
@@ -3043,7 +3051,7 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            SetState_(SettingsPageState.Editing, F("Could not save: {0}", ex.Message), StatusLevel.Critical);
+            saveState_.Refuse(F("Could not save: {0}", ex.Message));
             return false;
          }
 
@@ -3064,7 +3072,7 @@ namespace hMailServer.ControlPanel.Views
             // A server that cannot say - one from before a save could publish, whose
             // [Settings] keys all apply at its next start, or one that did not answer.
             // What this page said then, and never that the save took effect.
-            SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", time));
+            SetState_(SettingsPageState.WaitsForRestart, F("Saved {0} - restart the service to apply.", time));
 
             if (MessageBox.Show(
                    L("Settings saved. The hMailServer service must be restarted for the changes to take effect.\n\nRestart it now?"),
@@ -3083,20 +3091,20 @@ namespace hMailServer.ControlPanel.Views
 
          if (waiting.Count == 0)
          {
-            SetState_(SettingsPageState.Applied, F("Saved {0} - every setting on this page is in effect.", time));
+            SetState_(SettingsPageState.Saved, F("Saved {0} - every setting on this page is in effect.", time));
             return true;
          }
 
          if (waitingForRestart == 0)
          {
-            SetState_(SettingsPageState.Saved, PluralF(waiting.Count,
+            SetState_(SettingsPageState.WaitsForReinitialise, PluralF(waiting.Count,
                "Saved {0} - {1} setting waits for a reinitialise; Apply now, in the bar at the foot of the window, takes it.",
                "Saved {0} - {1} settings wait for a reinitialise; Apply now, in the bar at the foot of the window, takes them.",
                time, waiting.Count));
             return true;
          }
 
-         SetState_(SettingsPageState.Saved, F("Saved {0} - restart the service to apply.", time));
+         SetState_(SettingsPageState.WaitsForRestart, F("Saved {0} - restart the service to apply.", time));
 
          if (MessageBox.Show(
                 Plural(waitingForRestart,

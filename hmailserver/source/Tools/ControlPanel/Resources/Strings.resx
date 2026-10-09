@@ -3955,9 +3955,6 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Edited on this dialog's other tabs." xml:space="preserve">
     <value>Edited on this dialog's other tabs.</value>
   </data>
-  <data name="Editing" xml:space="preserve">
-    <value>Editing</value>
-  </data>
   <data name="Editing {0}" xml:space="preserve">
     <value>Editing {0}</value>
   </data>
@@ -8479,6 +8476,9 @@ Run this if clients report messages appearing under the wrong UID, or after rest
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect.</value>
   </data>
+  <data name="Reinitialise to apply" xml:space="preserve">
+    <value>Reinitialise to apply</value>
+  </data>
   <data name="Reinitialised - the saved settings are in effect." xml:space="preserve">
     <value>Reinitialised - the saved settings are in effect.</value>
   </data>
@@ -8812,6 +8812,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   </data>
   <data name="Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise." xml:space="preserve">
     <value>Resolved by the server itself, so a custom DNSServer in hMailServer.INI is honoured - this is where mail actually goes, which an nslookup from this workstation cannot promise.</value>
+  </data>
+  <data name="Restart to apply" xml:space="preserve">
+    <value>Restart to apply</value>
   </data>
   <data name="Restarting the hMailServer service..." xml:space="preserve">
     <value>Restarting the hMailServer service...</value>

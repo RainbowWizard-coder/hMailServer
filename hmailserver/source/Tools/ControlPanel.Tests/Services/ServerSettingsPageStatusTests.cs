@@ -53,6 +53,9 @@ namespace hMailServer.ControlPanel.Tests.Services
          // Nothing to do but wait.
          Assert.Equal(StatusLevel.Information, ServerSettingsPageStatus.LevelFor(ServerSettingsPageState.Saving));
          Assert.Equal(StatusLevel.Good, ServerSettingsPageStatus.LevelFor(ServerSettingsPageState.Saved));
+         // Written, with a step left to take: not Good, since the server does not run it yet.
+         Assert.Equal(StatusLevel.Information, ServerSettingsPageStatus.LevelFor(ServerSettingsPageState.WaitsForReinitialise));
+         Assert.Equal(StatusLevel.Information, ServerSettingsPageStatus.LevelFor(ServerSettingsPageState.WaitsForRestart));
          // What is on screen is not what the server holds.
          Assert.Equal(StatusLevel.Critical, ServerSettingsPageStatus.LevelFor(ServerSettingsPageState.PartlySaved));
       }
