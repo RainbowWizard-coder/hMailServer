@@ -1093,6 +1093,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   captions and pages, under what each waits for. Directory synchronisation offers the same restart beside a saved
   schedule that waits for one.
 
+- **Fixed: a secret stored on the Control Panel's feature settings pages could not be removed.** The shared HMAC
+  secret and the introspection client secret on the Authentication page, the SRS and BATV signing secrets on
+  Transport security, the password pepper and the other secrets said "A secret is configured - leave blank to keep
+  it", and blank kept it while nothing cleared it; the Directory authentication page had always had a box for its
+  service account password. While a secret is stored, a box under its field now reads *Remove the stored secret when
+  saving*, and the page's save writes the empty value that is no secret, after which the field says none is stored.
+  Ticking it is an edit like any other - the pill says *Unsaved changes* and leaving the page asks - and the
+  computed warnings that ask whether a secret is set follow it. A new value typed with the box ticked is refused
+  before anything on the page is written, in the notice under the header, as the Directory authentication page
+  refuses its own; and removing the password pepper is asked about as changing it is, since it stops the passwords
+  peppered with it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

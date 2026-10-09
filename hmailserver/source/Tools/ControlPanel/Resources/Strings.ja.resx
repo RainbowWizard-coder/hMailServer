@@ -534,6 +534,9 @@
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>サービス アカウントの新しいパスワードが入力されており、同時に「保存されているパスワードを削除する」もオンになっています。どちらか一方を解除してください。どちらの意図だったかを推測するのは、このページが決めることではありません。</value>
   </data>
+  <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>「{0}」に新しい値が入力されており、同時にその下の「保存時に、保存済みのシークレットを削除する」もオンになっています。値を消去するか、チェックを外してください。どちらの意図だったかを推測するのは、このページが決めることではありません。</value>
+  </data>
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>感染したメッセージすべてについて、そのエンベロープ送信者に通知が送られます。ウイルスの送信者はほぼ例外なくそのアドレスを詐称するため、この通知は結局、何も送っていない人にメールを届けることになります。これがバックスキャッターであり、サーバーがブロック リストに載る原因です。</value>
   </data>
@@ -8622,6 +8625,12 @@
   </data>
   <data name="Remove the stored private key passphrase from the selected certificate" xml:space="preserve">
     <value>選択した証明書から、保存済みの秘密鍵パスフレーズを削除する</value>
+  </data>
+  <data name="Remove the stored secret when saving" xml:space="preserve">
+    <value>保存時に、保存済みのシークレットを削除する</value>
+  </data>
+  <data name="Remove the stored secret when saving - {0}" xml:space="preserve">
+    <value>保存時に、保存済みのシークレットを削除する - {0}</value>
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>保存時に、保存済みのサービス アカウント パスワードを削除する(_W)</value>

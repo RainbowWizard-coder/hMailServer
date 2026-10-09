@@ -95,7 +95,7 @@ namespace hMailServer.ControlPanel.Views
          /// last saved. A row with no editor value - a link to another page, a button
          /// - is never changed.
          /// </summary>
-         public bool IsChanged => LiveValue != null && !string.Equals(LiveValue, shown_, StringComparison.Ordinal);
+         public virtual bool IsChanged => LiveValue != null && !string.Equals(LiveValue, shown_, StringComparison.Ordinal);
 
          /// <summary>
          /// Calls <paramref name="handler"/> whenever the editor's value changes.
@@ -416,7 +416,9 @@ namespace hMailServer.ControlPanel.Views
       /// A write-only secret field. The current value is never shown (it may be a
       /// DPAPI-protected blob); a placeholder indicates whether one is already set,
       /// and the value is only written when the admin types a new one — so leaving
-      /// the field blank keeps the existing secret untouched.
+      /// the field blank keeps the existing secret untouched. While one is stored, a
+      /// box under the field removes it with the page's save, which nothing could
+      /// before (review finding F239): blank kept it, and nothing cleared it.
       /// </summary>
       private class SecretSetting : Setting
       {
@@ -444,14 +446,20 @@ namespace hMailServer.ControlPanel.Views
 
          private hMailServer.ControlPanel.Views.PasswordField box_;
          private bool hasStored_;
+         private FieldRow row_;
+         private CheckBox remove_;
+         private InlineNotice warning_;
 
          /// <summary>
          /// True when a secret is effectively configured: one is stored in the INI,
          /// or the administrator has typed one into the editor. What the computed
-         /// warnings ask, since a blank box keeps the stored value.
+         /// warnings ask, since a blank box keeps the stored value - unless the box
+         /// that removes it is ticked.
          /// </summary>
          public bool IsConfigured(IniFeatureStore store)
          {
+            if (box_ != null && RemovesStored && !Conflicts)
+               return false;
             if (box_ != null && !string.IsNullOrEmpty(box_.Password))
                return true;
             if (box_ != null)
@@ -459,34 +467,53 @@ namespace hMailServer.ControlPanel.Views
             return !string.IsNullOrEmpty(store.Read(Key, "").Trim());
          }
 
-         public override FrameworkElement CreateEditor(IniFeatureStore store)
-         {
-            hasStored_ = !string.IsNullOrEmpty(store.Read(Key, "").Trim());
-            string placeholder = hasStored_
+         /// <summary>Whether the page's save removes the stored secret.</summary>
+         public bool RemovesStored => remove_?.IsChecked == true;
+
+         /// <summary>
+         /// A new value typed since the page was read or saved, and the removal of the
+         /// stored one ticked, both: which was meant is not the page's to guess, and
+         /// the save refuses, as the Directory authentication page's does for its
+         /// service account password. The value a save just wrote, still in the box
+         /// to be copied - a generated token, say - is not a new one.
+         /// </summary>
+         public bool Conflicts => RemovesStored && base.IsChanged && !string.IsNullOrEmpty(box_?.Password);
+
+         /// <summary>The removal is a change the page has not saved, as a typed value is.</summary>
+         public override bool IsChanged => base.IsChanged || RemovesStored;
+
+         private string Placeholder_()
+            => hasStored_
                ? L("A secret is configured — leave blank to keep it")
                : (string.IsNullOrEmpty(Hint) ? L("Enter a secret") : Hint);
 
+         // A PasswordBox's placeholder is not part of its accessible name, and
+         // whether a secret is already stored is the one thing this control
+         // conveys that its label does not - leaving the field blank keeps the
+         // existing value, so a listener who cannot see the placeholder has no
+         // way to know whether there is one. The row's hint carries it, under
+         // the editor and in its help text alike.
+         private string Hint_()
+            => !hasStored_ ? Blurb
+               : Sentences(Placeholder_(), Blurb);
+
+         public override FrameworkElement CreateEditor(IniFeatureStore store)
+         {
+            hasStored_ = !string.IsNullOrEmpty(store.Read(Key, "").Trim());
+
             box_ = new hMailServer.ControlPanel.Views.PasswordField
             {
-               PlaceholderText = placeholder,
+               PlaceholderText = Placeholder_(),
                HorizontalAlignment = HorizontalAlignment.Stretch
             };
             Describe(box_, Key);
-
-            // A PasswordBox's placeholder is not part of its accessible name, and
-            // whether a secret is already stored is the one thing this control
-            // conveys that its label does not - leaving the field blank keeps the
-            // existing value, so a listener who cannot see the placeholder has no
-            // way to know whether there is one. The row's hint carries it, under
-            // the editor and in its help text alike.
-            string hint = !hasStored_ ? Blurb
-               : Sentences(placeholder, Blurb);
+            string hint = Hint_();
 
             if (!OfferGenerate)
             {
                box_.Width = EditorWidth;
                box_.HorizontalAlignment = HorizontalAlignment.Left;
-               return Warned_(Row(box_, Label, hint: hint));
+               return Arrange_(Row(box_, Label, hint: hint));
             }
 
             var row = new Grid { Width = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
@@ -512,36 +539,97 @@ namespace hMailServer.ControlPanel.Views
             Grid.SetColumn(generate, 1);
             row.Children.Add(generate);
 
-            return Warned_(Row(row, Label, box_, hint));
+            return Arrange_(Row(row, Label, box_, hint));
          }
 
          /// <summary>
-         /// The row, with <see cref="Warning"/> as a notice close under it when there
-         /// is one - a notice and not a hint, because it is a warning to be seen
-         /// before anything is typed, in the level's colour, mark and word.
+         /// The row; under it the box that removes the stored secret, shown while one
+         /// is stored; and <see cref="Warning"/> as a notice close under them when
+         /// there is one - a notice and not a hint, because it is a warning to be
+         /// seen before anything is typed, in the level's colour, mark and word. The
+         /// panel keeps the field's gap below it, so a card's last field gives it up
+         /// as a lone row does.
          /// </summary>
-         private FrameworkElement Warned_(FieldRow row)
+         private FrameworkElement Arrange_(FieldRow row)
          {
-            if (string.IsNullOrEmpty(Warning))
-               return row;
+            row_ = row;
 
-            row.Margin = new Thickness(0, 0, 0, DesignTokens.Space.Sm);
-            var notice = new InlineNotice { Level = StatusLevel.Warning, Text = Warning, MaxWidth = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left };
-            notice.SetResourceReference(MarginProperty, "AppFieldGap");
-            AutomationProperties.SetAutomationId(notice, Key + "Warning"); // no-loc
+            remove_ = new CheckBox   // per setting: no access key, the rows are reached with the arrow keys
+            {
+               Content = L("Remove the stored secret when saving")
+            };
+            SetAid(remove_, Key + "Remove"); // no-loc
+            // The visible words are the same under every secret, so the accessible
+            // name, which starts with them, says which secret this one removes.
+            AutomationProperties.SetName(remove_,
+               F("Remove the stored secret when saving - {0}", AccessibleName ?? Label ?? L("this secret")));
+
             var panel = new StackPanel();
+            panel.SetResourceReference(MarginProperty, "AppFieldGap");
             panel.Children.Add(row);
-            panel.Children.Add(notice);
+            panel.Children.Add(remove_);
+
+            if (!string.IsNullOrEmpty(Warning))
+            {
+               warning_ = new InlineNotice { Level = StatusLevel.Warning, Text = Warning, MaxWidth = EditorWidth, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0) };
+               AutomationProperties.SetAutomationId(warning_, Key + "Warning"); // no-loc
+               panel.Children.Add(warning_);
+            }
+
+            ShowStored_(hasStored_);
             return panel;
+         }
+
+         /// <summary>
+         /// Whether a secret is stored, in the placeholder, the hint and the removal
+         /// box - as the page is built, and again after a save that stored one or
+         /// removed it.
+         /// </summary>
+         private void ShowStored_(bool stored)
+         {
+            hasStored_ = stored;
+            box_.PlaceholderText = Placeholder_();
+            row_.Hint = Hint_();
+            remove_.IsChecked = false;
+            remove_.Visibility = stored ? Visibility.Visible : Visibility.Collapsed;
+            AutomationProperties.SetHelpText(box_, row_.Hint ?? "");
+
+            // The field's gap is the panel's; inside it, the small step between the
+            // parts that are on screen.
+            row_.Margin = new Thickness(0, 0, 0, stored || warning_ != null ? DesignTokens.Space.Sm : 0);
+            remove_.Margin = new Thickness(0, 0, 0, warning_ != null ? DesignTokens.Space.Sm : 0);
          }
 
          public override void Save(IniFeatureStore store)
          {
             string entered = box_.Password;
-            if (!string.IsNullOrEmpty(entered))
+
+            // The page refuses a save with both before it writes anything (Save_);
+            // a value that reaches here with both is not guessed at.
+            if (Conflicts)
+               throw new InvalidOperationException(ConflictSentence(Label));
+
+            if (RemovesStored)
+            {
+               store.Write(Key, "");
+               box_.Password = "";
+               ShowStored_(false);
+               return;
+            }
+
+            // A value is written when it is not the one a save just wrote and the box
+            // still holds, which stays there to be copied, as it always has.
+            if (!string.IsNullOrEmpty(entered) && base.IsChanged)
+            {
                store.Write(Key, entered);
+               ShowStored_(true);
+            }
             // Blank = keep the existing secret.
          }
+
+         /// <summary>What a save with a new value and the removal both ticked says.</summary>
+         public static string ConflictSentence(string label)
+            => F("A new value has been typed for \"{0}\", and \"Remove the stored secret when saving\" is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make.", label ?? "");
 
          public override string LiveValue => box_?.Password;
 
@@ -551,6 +639,14 @@ namespace hMailServer.ControlPanel.Views
             // the (masked) text changes - including when Generate fills it in.
             if (box_ != null && handler != null)
                box_.TextChanged += (s, e) => handler();
+
+            // The removal box is an edit of its own: the pill, and the warnings that
+            // ask whether a secret is configured, follow it.
+            if (remove_ != null && handler != null)
+            {
+               remove_.Checked += (s, e) => handler();
+               remove_.Unchecked += (s, e) => handler();
+            }
          }
       }
 
@@ -3037,6 +3133,15 @@ namespace hMailServer.ControlPanel.Views
          if (!store_.IsAvailable)
             return false;
 
+         // A secret given a new value and ticked for removal both: refused before
+         // anything on the page is written, in the notice under the header.
+         SecretSetting conflict = cards_.SelectMany(card => card.Settings).OfType<SecretSetting>().FirstOrDefault(secret => secret.Conflicts);
+         if (conflict != null)
+         {
+            saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label));
+            return false;
+         }
+
          // A new password pepper stops passwords working: asked about before anything
          // on the page is written, and a No writes nothing.
          if (!ConfirmPepperChange_())
@@ -3128,8 +3233,18 @@ namespace hMailServer.ControlPanel.Views
          if (FindSetting_(PepperChange.Key) is not SecretSetting pepper || !pepper.IsChanged)
             return true;
 
-         string typed = pepper.LiveValue;
+         // A pepper removed is a pepper changed: every password peppered with it stops
+         // working as surely as with a new one.
          string stored = store_.Read(PepperChange.Key, "");
+         if (pepper.RemovesStored)
+         {
+            int? holders = CountAccounts_();
+            return !PepperChange.RemovalAsksFirst(stored, holders)
+               || MessageBox.Confirm(PepperChange.Question(holders), L("Control Panel"), L("_Change the pepper"),
+                  destructive: true, cancelByDefault: true);
+         }
+
+         string typed = pepper.LiveValue;
          if (string.IsNullOrEmpty(typed) || string.Equals(typed, stored ?? "", StringComparison.Ordinal))
             return true;
 

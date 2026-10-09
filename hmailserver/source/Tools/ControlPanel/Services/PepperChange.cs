@@ -45,6 +45,18 @@ namespace hMailServer.ControlPanel.Services
             && !string.Equals(typed, stored ?? "", StringComparison.Ordinal)
             && (accounts == null || accounts.Value > 0);
 
+      /// <summary>
+      /// Whether a save that removes the stored pepper asks first: one is stored, on a
+      /// server that has accounts or whose accounts could not be counted. A pepper
+      /// removed stops the passwords peppered with it as surely as a new one does
+      /// (review finding F239 gave every stored secret a way to be removed).
+      /// </summary>
+      /// <param name="stored">The pepper hMailServer.ini holds now; empty when none is set.</param>
+      /// <param name="accounts">How many accounts the server has; null when they could not be counted.</param>
+      public static bool RemovalAsksFirst(string stored, int? accounts)
+         => !string.IsNullOrEmpty(stored)
+            && (accounts == null || accounts.Value > 0);
+
       /// <summary>The question, with the server's number of accounts when it could be counted.</summary>
       public static string Question(int? accounts)
          => accounts == null

@@ -1,0 +1,87 @@
+// https://www.progressiverobot.com
+// Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using System;
+using hMailServer.ControlPanel.Services;
+using Xunit;
+
+namespace hMailServer.ControlPanel.Tests.Services
+{
+   /// <summary>
+   /// A secret stored on the feature settings pages - the shared HMAC secret, the
+   /// introspection client secret, the SRS and BATV signing secrets, the metrics
+   /// token, the password pepper - could not be removed: a blank box kept it, and
+   /// nothing cleared it (review finding F239). While one is stored a box under the
+   /// field removes it with the page's save; a new value typed with the box ticked is
+   /// refused before anything is written, as the Directory authentication page refuses
+   /// its service account password; and a pepper removed is asked about as a pepper
+   /// changed. Scanned rather than rendered, as UnsavedChangesTests is: this assembly
+   /// has no WPF.
+   /// </summary>
+   public class StoredSecretRemovalTests
+   {
+      [Theory]
+      [InlineData("old pepper", 12, true)]    // stored, on a server with accounts
+      [InlineData("old pepper", null, true)]  // accounts not counted: asked as if there were some
+      [InlineData("old pepper", 0, false)]    // no accounts yet: nothing to break
+      [InlineData("", 12, false)]             // nothing stored: nothing to remove
+      [InlineData(null, 12, false)]
+      public void RemovingThePepper_AsksFirst_WhenAStoredPepperMeetsAccounts(string stored, int? accounts, bool asks)
+         => Assert.Equal(asks, PepperChange.RemovalAsksFirst(stored, accounts));
+
+      [Fact]
+      public void AStoredSecret_HasABoxThatRemovesIt_ShownOnlyWhileOneIsStored()
+      {
+         string page = SaveStateModelTests.ReadControlPanelFile("Views/FeatureSettingsView.xaml.cs");
+         string secret = SaveStateModelTests.ClassBody_(page, "private class SecretSetting : Setting");
+
+         Assert.Contains("Content = L(\"Remove the stored secret when saving\")", secret, StringComparison.Ordinal);
+         Assert.Contains("remove_.Visibility = stored ? Visibility.Visible : Visibility.Collapsed;", secret, StringComparison.Ordinal);
+
+         // The save writes the empty value that is no secret, and the field then says
+         // that none is stored.
+         string save = WithheldRowTests.MemberText(secret, "public override void Save(IniFeatureStore store)");
+         Assert.True(save != null, "SecretSetting.Save is gone.");
+         int removes = save.IndexOf("if (RemovesStored)", StringComparison.Ordinal);
+         Assert.True(removes >= 0 && save.IndexOf("store.Write(Key, \"\");", removes, StringComparison.Ordinal) > removes,
+            "Ticking the box does not remove the stored secret.");
+         Assert.Contains("ShowStored_(false)", save, StringComparison.Ordinal);
+
+         Assert.True(save.IndexOf("box_.Password = \"\";", removes, StringComparison.Ordinal) > removes,
+            "A removed secret's box keeps the value it held.");
+
+         // The value a save just wrote stays in the box to be copied - a generated
+         // metrics token, say - and is neither written again nor taken, beside a
+         // ticked removal box, for a new value typed: only a value typed since the
+         // last read or save is.
+         Assert.Contains("public bool Conflicts => RemovesStored && base.IsChanged && !string.IsNullOrEmpty(box_?.Password);", secret, StringComparison.Ordinal);
+         Assert.Contains("if (!string.IsNullOrEmpty(entered) && base.IsChanged)", save, StringComparison.Ordinal);
+
+         // Ticking the box is an edit: the pill says Unsaved changes, and leaving the
+         // page asks; the computed warnings that ask whether a secret is set follow it.
+         Assert.Contains("public override bool IsChanged => base.IsChanged || RemovesStored;", secret, StringComparison.Ordinal);
+         Assert.Contains("remove_.Checked += (s, e) => handler();", secret, StringComparison.Ordinal);
+         Assert.Contains("if (box_ != null && RemovesStored && !Conflicts)", secret, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void ANewValueAndTheRemovalBoth_AreRefusedBeforeAnythingIsWritten()
+      {
+         string page = SaveStateModelTests.ReadControlPanelFile("Views/FeatureSettingsView.xaml.cs");
+         string save = WithheldRowTests.MemberText(page, "private bool Save_()");
+         Assert.True(save != null, "FeatureSettingsView.Save_ is gone.");
+
+         int refuses = save.IndexOf("secret.Conflicts", StringComparison.Ordinal);
+         int asks = save.IndexOf("ConfirmPepperChange_()", StringComparison.Ordinal);
+         int writes = save.IndexOf("setting.Save(store_)", StringComparison.Ordinal);
+         Assert.True(refuses >= 0 && asks > refuses && writes > refuses,
+            "A secret given a new value and ticked for removal is written, or asked about, before the save refuses it.");
+         Assert.Contains("saveState_.Refuse(SecretSetting.ConflictSentence(conflict.Label))", save, StringComparison.Ordinal);
+
+         string confirm = WithheldRowTests.MemberText(page, "private bool ConfirmPepperChange_()");
+         Assert.True(confirm != null && confirm.Contains("PepperChange.RemovalAsksFirst(", StringComparison.Ordinal),
+            "Removing the password pepper is not asked about.");
+      }
+   }
+}

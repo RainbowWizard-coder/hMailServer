@@ -534,6 +534,9 @@
   <data name="A new service account password has been typed AND &quot;remove the stored password&quot; is ticked. Untick one of them - guessing which was meant is not this page's decision to make." xml:space="preserve">
     <value>Se ha escrito una nueva contraseña de cuenta de servicio Y está marcado "quitar la contraseña guardada". Desmarque una de las dos - adivinar cuál se quería no es decisión de esta página.</value>
   </data>
+  <data name="A new value has been typed for &quot;{0}&quot;, and &quot;Remove the stored secret when saving&quot; is ticked under it. Clear the value or untick the box - guessing which was meant is not this page's decision to make." xml:space="preserve">
+    <value>Se ha escrito un valor nuevo para "{0}" y debajo está marcado "Quitar al guardar el secreto guardado". Borre el valor o desmarque la casilla - adivinar cuál se quería no es decisión de esta página.</value>
+  </data>
   <data name="A notice is sent to the envelope sender of every infected message. Virus senders forge that address almost without exception, so this mostly delivers mail to people who did not send anything — which is backscatter, and it is what gets a server onto a block list." xml:space="preserve">
     <value>Se envía un aviso al remitente del sobre de cada mensaje infectado. Los remitentes de virus falsifican esa dirección casi sin excepción, así que esto entrega sobre todo correo a gente que no envió nada — eso es backscatter, y es lo que mete a un servidor en una lista de bloqueo.</value>
   </data>
@@ -8622,6 +8625,12 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   </data>
   <data name="Remove the stored private key passphrase from the selected certificate" xml:space="preserve">
     <value>Quitar del certificado seleccionado la frase de contraseña guardada de la clave privada</value>
+  </data>
+  <data name="Remove the stored secret when saving" xml:space="preserve">
+    <value>Quitar al guardar el secreto guardado</value>
+  </data>
+  <data name="Remove the stored secret when saving - {0}" xml:space="preserve">
+    <value>Quitar al guardar el secreto guardado - {0}</value>
   </data>
   <data name="Remove the stored service account pass_word when saving" xml:space="preserve">
     <value>_Quitar al guardar la contraseña guardada de la cuenta de servicio</value>
