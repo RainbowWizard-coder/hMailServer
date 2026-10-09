@@ -3657,6 +3657,16 @@ Control Panel jetzt neu starten? Ohne Neustart läuft es vielleicht weiter, oder
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Den Listeneintrag {0} löschen?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Die Nachricht ohne Betreff von {0} dauerhaft löschen?
+
+Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt und es gibt keine andere Kopie.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Die Nachricht „{0}“ von {1} dauerhaft löschen?
+
+Dem Absender wurde gesagt, sie sei angenommen, es wird also nichts wiederholt und es gibt keine andere Kopie.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Den öffentlichen Ordner {0} und jede Nachricht darin löschen?</value>
   </data>

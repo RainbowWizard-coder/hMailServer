@@ -3657,6 +3657,16 @@ Denetim Masası şimdi yeniden başlatılsın mı? Yeniden başlatılmazsa çal�
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>{0} liste kaydı silinsin mi?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>{0} kaynaklı, konusu olmayan ileti kalıcı olarak silinsin mi?
+
+Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyecek ve başka bir kopyası yok.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>{1} kaynaklı “{0}” iletisi kalıcı olarak silinsin mi?
+
+Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyecek ve başka bir kopyası yok.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>{0} genel klasörü ve içindeki her ileti silinsin mi?</value>
   </data>

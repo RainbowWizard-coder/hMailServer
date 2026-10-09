@@ -3657,6 +3657,16 @@
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>一覧のエントリ {0} を削除しますか?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>{0} からの件名のないメッセージを完全に削除しますか?
+
+送信者には受け入れたと伝えているため、再試行されることはなく、ほかにコピーもありません。</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>{1} からのメッセージ「{0}」を完全に削除しますか?
+
+送信者には受け入れたと伝えているため、再試行されることはなく、ほかにコピーもありません。</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>公開フォルダー {0} とその中のすべてのメッセージを削除しますか?</value>
   </data>

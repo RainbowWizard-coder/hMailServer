@@ -3657,6 +3657,16 @@
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>是否删除名单条目 {0}？</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>是否永久删除来自 {0} 的无主题邮件？
+
+发件方已被告知邮件已接受，因此不会有任何重试，也没有其他副本。</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>是否永久删除来自 {1} 的邮件“{0}”？
+
+发件方已被告知邮件已接受，因此不会有任何重试，也没有其他副本。</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>是否删除公用文件夹 {0} 及其中的每封邮件？</value>
   </data>

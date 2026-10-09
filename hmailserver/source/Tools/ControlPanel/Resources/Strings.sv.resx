@@ -3657,6 +3657,16 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Ta bort listposten {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Ta bort meddelandet utan ämne från {0} permanent?
+
+Avsändaren fick veta att det accepterades, så inget kommer att försöka igen och det finns ingen annan kopia.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Ta bort meddelandet ”{0}” från {1} permanent?
+
+Avsändaren fick veta att det accepterades, så inget kommer att försöka igen och det finns ingen annan kopia.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Ta bort den publika mappen {0} och varje meddelande i den?</value>
   </data>

@@ -3690,6 +3690,16 @@ Uruchomić teraz ponownie aplikację Control Panel? Bez ponownego uruchomienia m
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Usunąć wpis listy {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Usunąć trwale wiadomość bez tematu od {0}?
+
+Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi próby i nie ma innej kopii.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Usunąć trwale wiadomość „{0}” od {1}?
+
+Nadawca otrzymał informację, że została przyjęta, więc nic nie ponowi próby i nie ma innej kopii.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Usunąć folder publiczny {0} i każdą znajdującą się w nim wiadomość?</value>
   </data>

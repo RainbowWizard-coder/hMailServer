@@ -3657,6 +3657,16 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Excluir a entrada da lista {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Excluir a mensagem sem assunto de {0} permanentemente?
+
+O remetente foi informado de que ela foi aceita, então nada tentará de novo e não há outra cópia.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Excluir a mensagem “{0}” de {1} permanentemente?
+
+O remetente foi informado de que ela foi aceita, então nada tentará de novo e não há outra cópia.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Excluir a pasta pública {0} e cada mensagem nela?</value>
   </data>

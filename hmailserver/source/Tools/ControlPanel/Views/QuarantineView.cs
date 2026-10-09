@@ -930,7 +930,7 @@ namespace hMailServer.ControlPanel.Views
             switch (action)
             {
                case "delete":
-                  if (!ConfirmDelete_(ids.Count, groupTitle))
+                  if (!ConfirmDelete_(ids, groupTitle))
                      return;
 
                   answer = Bulk_(QuarantineReview.BulkRequest(ids, "delete")) ?? OneAtATime_(ids, false);
@@ -981,14 +981,21 @@ namespace hMailServer.ControlPanel.Views
          }
       }
 
-      private bool ConfirmDelete_(int count, string groupTitle)
+      private bool ConfirmDelete_(IReadOnlyList<int> ids, string groupTitle)
       {
          // Named Delete and drawn as the destructive act it is, like every other
          // destructive confirmation in the application (revoke key, delete folder,
          // empty mailbox), and Cancel takes Enter: for an action with no undo and
-         // no other copy, the keyboard default declines.
+         // no other copy, the keyboard default declines. One message - a row's, or
+         // a group's or the checked set's that holds one - is named by its subject
+         // and its sender, as the queue's question names its message, where it was
+         // "this message"; "this message" is left for one the list no longer holds.
+         int count = ids.Count;
+         HeldMessage one = count == 1 ? review_.MessagesWith(ids).FirstOrDefault() : null;
          string question = count == 1
-            ? L("Delete this message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.")
+            ? one != null
+               ? Confirmations.DeleteQuarantined(one.Subject, one.Sender)
+               : L("Delete this message permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.")
             : groupTitle != null
                ? PluralF(count,
                   "Delete the {0} message from {1} permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.",

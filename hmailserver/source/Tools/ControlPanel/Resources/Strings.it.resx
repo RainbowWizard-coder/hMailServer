@@ -3657,6 +3657,16 @@ Riavviare il Control Panel adesso? Senza un riavvio può continuare a funzionare
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Eliminare la voce di elenco {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Eliminare definitivamente il messaggio senza oggetto da {0}?
+
+Al mittente è stato detto che era stato accettato, quindi nulla riproverà e non esiste alcuna altra copia.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Eliminare definitivamente il messaggio «{0}» da {1}?
+
+Al mittente è stato detto che era stato accettato, quindi nulla riproverà e non esiste alcuna altra copia.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Eliminare la cartella pubblica {0} e ogni messaggio che contiene?</value>
   </data>

@@ -1368,8 +1368,9 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   restart, a reinitialise, an update's install, a pause - is never the one Enter presses. Each collection list asks
   its own whole question with the entry's name, *Delete the SURBL server multi.surbl.org?* or *Delete the security
   group Sales?* with what goes with the group, where it put the list's noun into one template; the queue's question
-  names the message's sender and recipients and says that it is deleted without a bounce; the restart after a save
-  says that a restart drops every open session and takes *Later* on Enter; and the account dialog's recovery tab,
+  names the message's sender and recipients and says that it is deleted without a bounce; the quarantine's delete of
+  one message names its subject and its sender, where it asked *Delete this message permanently?*; the restart after a
+  save says that a restart drops every open session and takes *Later* on Enter; and the account dialog's recovery tab,
   which still raised the grey Win32 box, uses the themed one. The Control Panel's tests hold every page to the one
   shape, so that a Yes and No question cannot come back.
 - **Fixed: the Domains & accounts and Public folders pages' deletes did not say what goes.** *Delete

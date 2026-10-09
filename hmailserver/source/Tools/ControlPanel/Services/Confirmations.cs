@@ -144,6 +144,20 @@ namespace hMailServer.ControlPanel.Services
                "Release the {0} checked messages to their recipients? They are delivered at once.");
       }
 
+      /// <summary>
+      /// The delete of one quarantined message - a row's own, or a group's or the
+      /// checked set's that holds one - named by its subject, quoted as the sendout
+      /// quotes one, and its sender, the null sender as the list shows it (&lt;&gt;),
+      /// where the question said "this message" and named none.
+      /// </summary>
+      public static string DeleteQuarantined(string subject, string sender)
+      {
+         string from = string.IsNullOrEmpty(sender) ? "<>" : sender;
+         return string.IsNullOrWhiteSpace(subject)
+            ? F("Delete the message with no subject from {0} permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.", from)
+            : F("Delete the message “{0}” from {1} permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.", subject.Trim(), from);
+      }
+
       /// <summary>Remove expired on the quarantine, with its retention in days (above 0).</summary>
       public static string DeleteExpiredQuarantine(int days)
          => days == 1

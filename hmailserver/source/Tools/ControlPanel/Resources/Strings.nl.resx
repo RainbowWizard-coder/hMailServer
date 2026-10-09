@@ -3657,6 +3657,16 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>De lijstvermelding {0} verwijderen?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Het bericht zonder onderwerp van {0} definitief verwijderen?
+
+De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert het opnieuw en er is geen andere kopie.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Het bericht ‘{0}’ van {1} definitief verwijderen?
+
+De afzender heeft te horen gekregen dat het is geaccepteerd, dus niets probeert het opnieuw en er is geen andere kopie.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>De openbare map {0} en elk bericht erin verwijderen?</value>
   </data>

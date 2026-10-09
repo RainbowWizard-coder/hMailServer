@@ -3657,6 +3657,16 @@ Los detalles completos se escribieron en:
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>¿Borrar la entrada de la lista {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>¿Borrar el mensaje sin asunto de {0} permanentemente?
+
+Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay otra copia.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>¿Borrar el mensaje «{0}» de {1} permanentemente?
+
+Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay otra copia.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>¿Borrar la carpeta pública {0} y cada mensaje que contiene?</value>
   </data>

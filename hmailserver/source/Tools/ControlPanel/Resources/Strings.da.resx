@@ -3657,6 +3657,16 @@ Vil du genstarte Control Panel nu? Uden en genstart kan det fortsætte, eller ra
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Slet listeposten {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Slet meddelelsen uden emne fra {0} permanent?
+
+Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der findes ingen anden kopi.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Slet meddelelsen »{0}« fra {1} permanent?
+
+Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der findes ingen anden kopi.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Slet den offentlige mappe {0} og hver eneste meddelelse i den?</value>
   </data>

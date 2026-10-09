@@ -189,6 +189,63 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.All(questions, text => Assert.Contains("delivered at once", text, StringComparison.Ordinal));
       }
 
+      /// <summary>
+      /// The quarantine's delete of one message names it by its subject and its
+      /// sender, as the queue's question names its message, where it asked "Delete
+      /// this message permanently?" of a row's own delete and of a group or a checked
+      /// set that held one.
+      /// </summary>
+      [Fact]
+      public void TheQuarantinesOneMessageQuestion_NamesTheMessageBySubjectAndSender()
+      {
+         string named = Confirmations.DeleteQuarantined("Invoice 42", "billing@mass-mail.example");
+         Assert.Contains("the message “Invoice 42” from billing@mass-mail.example permanently?", named, StringComparison.Ordinal);
+         Assert.Contains("no other copy", named, StringComparison.Ordinal);
+
+         string bare = Confirmations.DeleteQuarantined("  ", "billing@mass-mail.example");
+         Assert.Contains("the message with no subject from billing@mass-mail.example permanently?", bare, StringComparison.Ordinal);
+         Assert.Contains("from <> permanently?", Confirmations.DeleteQuarantined("Undelivered mail", ""), StringComparison.Ordinal);
+
+         string page = ConfirmationPatternTests.ReadControlPanelFile(Path.Join("Views", "QuarantineView.cs"));
+         string ask = WithheldRowTests.MemberText(page, "private bool ConfirmDelete_(IReadOnlyList<int> ids, string groupTitle)");
+         Assert.True(ask != null, "QuarantineView.ConfirmDelete_ is gone.");
+         Assert.Contains("review_.MessagesWith(ids)", ask, StringComparison.Ordinal);
+         Assert.Contains("Confirmations.DeleteQuarantined(one.Subject, one.Sender)", ask, StringComparison.Ordinal);
+         Assert.Contains("if (!ConfirmDelete_(ids, groupTitle))", page, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// Every language quotes the quarantined message's subject with the marks its
+      /// sendout question quotes a subject with.
+      /// </summary>
+      [Fact]
+      public void TheQuarantinesSubject_IsQuoted_AsEachLanguageQuotesTheSendoutsSubject()
+      {
+         const string Sendout = "Send “{0}” to every active account matching “{1}”?";
+         const string Delete = "Delete the message “{0}” from {1} permanently?\n\nThe sender was told it was accepted, so nothing will retry and there is no other copy.";
+
+         string resources = Path.GetDirectoryName(ConfirmationPatternTests.ControlPanelFile(Path.Join("Resources", "Strings.resx")));
+         int catalogues = 0;
+         foreach (string path in Directory.EnumerateFiles(resources, "Strings.*.resx"))
+         {
+            string tag = Path.GetFileNameWithoutExtension(path).Substring("Strings.".Length);
+            var catalogue = XDocument.Load(path).Root.Elements("data")
+               .ToDictionary(d => (string)d.Attribute("name"), d => (string)d.Element("value") ?? "", StringComparer.Ordinal);
+
+            Assert.True(catalogue.TryGetValue(Sendout, out string sendout) && sendout.Length > 0, tag + " does not translate the sendout question.");
+            int at = sendout.IndexOf("{0}", StringComparison.Ordinal);
+            string opening = sendout.Substring(sendout[at - 1] == ' ' ? at - 2 : at - 1, sendout[at - 1] == ' ' ? 2 : 1);
+            string closing = sendout.Substring(at + 3, sendout[at + 3] == ' ' ? 2 : 1);
+
+            Assert.True(catalogue.TryGetValue(Delete, out string delete) && delete.Length > 0, tag + " does not translate the quarantine's question for one message.");
+            Assert.True(delete.Contains(opening + "{0}" + closing, StringComparison.Ordinal),
+               tag + ": the subject is not quoted " + opening + "…" + closing + " in \"" + delete + "\".");
+            catalogues++;
+         }
+
+         Assert.Equal(17, catalogues);
+      }
+
       [Fact]
       public void TheSweepQuestions_NameTheRetentionWindow()
       {

@@ -3690,6 +3690,16 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Delete the list entry {0}?" xml:space="preserve">
     <value>Odstranit položku seznamu {0}?</value>
   </data>
+  <data name="Delete the message with no subject from {0} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Trvale odstranit zprávu bez předmětu od {0}?
+
+Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná kopie neexistuje.</value>
+  </data>
+  <data name="Delete the message “{0}” from {1} permanently?&#10;&#10;The sender was told it was accepted, so nothing will retry and there is no other copy." xml:space="preserve">
+    <value>Trvale odstranit zprávu „{0}“ od {1}?
+
+Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná kopie neexistuje.</value>
+  </data>
   <data name="Delete the public folder {0} and every message in it?" xml:space="preserve">
     <value>Odstranit veřejnou složku {0} a každou zprávu v ní?</value>
   </data>
