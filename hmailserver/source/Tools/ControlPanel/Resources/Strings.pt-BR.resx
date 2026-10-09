@@ -1891,6 +1891,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Backup e restauração</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Backup e restauração</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Arquivos de backup (HMBackup*.7z)|HMBackup*.7z|Todos os arquivos (*.*)|*.*</value>
   </data>
@@ -2514,6 +2517,9 @@ Reiniciar o Control Panel agora? Sem reiniciar, ele pode continuar funcionando o
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Limpo</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Limpa as linhas mostradas aqui. O arquivo de log não é alterado.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>ID do cliente</value>
@@ -4351,6 +4357,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>As entradas de erro carregam a gravidade que o próprio servidor registrou: critical, error, warning ou notice. Todo o resto é informational, exceto TCP/IP e depuração, que são debug.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Erros</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Erros e avisos (gravidade 4)</value>
   </data>
@@ -4468,8 +4477,14 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Todo mundo com uma caixa neste domínio vê isto ao lado do nome, na página Diretório do webmail, no campo Para e no catálogo somente leitura que um telefone sincroniza. Nada daqui atravessa um domínio.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Tudo</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Tudo o que o ErrorManager informa</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Todo o resto</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Tudo exceto depuração (gravidade 6)</value>
@@ -5886,9 +5901,6 @@ O instalador verificado é entregue ao auxiliar de atualização: o serviço par
   <data name="Log folder" xml:space="preserve">
     <value>Pasta de logs</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Pasta de logs não encontrada nesta máquina (logs ao vivo precisam de um servidor local).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Nível de log (3 ou acima = detalhe completo; 2 ou menos = mais silencioso)</value>
   </data>
@@ -6895,6 +6907,9 @@ Nada do que já está lá é removido.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Nenhuma entrada, então esta lista não permite nem bloqueia ninguém; a lista própria de uma conta e a do domínio dela continuam valendo.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>Nenhum erro foi registrado hoje: não há o arquivo {0} em {1}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Nenhum evento para esse endereço. Ou nada aconteceu com ele, ou o rastreamento estava desativado na época – ele só registra enquanto o rastreamento de mensagens está ativado (página Registro em log).</value>
   </data>
@@ -6951,9 +6966,6 @@ Nada do que já está lá é removido.</value>
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Nenhum ouvinte está configurado.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>Ainda não há arquivos de log em {0}. Ative o registro em log nas configurações do servidor.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Nenhuma pasta de logs pôde ser lida do hMailServer.INI nesta máquina.</value>
@@ -7219,11 +7231,17 @@ Nada do que já está lá é removido.</value>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Nada examina os e-mails de entrada. Nenhum verificador consegue rodar e o bloqueio de anexos está desligado, então uma mensagem infectada é entregue à caixa exatamente como chegou.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Nada foi registrado hoje: ainda não há o arquivo {0} em {1}. O registro em log pode estar desligado; as linhas aparecem aqui assim que o servidor as escreve.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Nada foi registrado ainda. Toda alteração administrativa aparece aqui.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Nada foi executado ainda. Clique em Executar diagnóstico e o resultado de cada verificação aparece aqui, com o que fazer nas que falharem.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Nada foi escrito ainda em {0} em {1}. As linhas aparecem aqui assim que o servidor as escreve.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Nada aqui exige uma decisão: nenhuma caixa está sendo pulada e nenhuma está sendo desativada.</value>
@@ -8042,6 +8060,15 @@ Nada do que já está lá é removido.</value>
     <value>Pausar o servidor de e-mail?
 
 Nenhuma conexão nova será aceita e nenhum e-mail será entregue até que ele seja retomado. O serviço do Windows continua em execução, então este Control Panel permanece conectado.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Pausado às {0}: 1 nova linha de {1} está aguardando.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Pausado às {0}: ainda não há novas linhas em {1}.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Pausado às {0}: {1} novas linhas de {2} estão aguardando.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>As pessoas podem registrar uma chave de acesso (WebAuthn) e fazer login com ela, no webmail e no Control Deck. Nada muda até alguém registrar uma: até lá, fazem login com a senha.</value>
@@ -9830,6 +9857,9 @@ Cada pasta é esvaziada antes: as mensagens recebidas desde o backup são perdid
   <data name="Script _function" xml:space="preserve">
     <value>_Função do script</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>Eventos de scripts</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10827,9 +10857,6 @@ Reiniciá-lo agora?</value>
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Transmita o log do servidor em tempo real.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Transmitindo o log do servidor em tempo real.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Transmitindo {0}</value>
@@ -11842,6 +11869,12 @@ não pôde ser carregado. A mensagem provavelmente já foi entregue e não está
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>O log tal como é gravado, filtrado por protocolo - a maneira mais rápida de ver o que aconteceu com uma mensagem.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>A partir da 6.3.6 os arquivos de log pertencem aos administradores, então este Painel de Controle não pode lê-los. Feche-o e inicie-o com Executar como administrador para ver o log ao vivo.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>A pasta de logs não foi encontrada neste computador. Logs ao vivo lê os arquivos de log onde o servidor é executado: inicie o Painel de Controle naquele computador para vê-los.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>O endereço de loopback e as redes privadas por padrão. Esvaziar isto faz sua própria rede ser avaliada como qualquer outra, o que uma lista de permissão rígida vai recusar - o webmail e o Control Deck inclusive.</value>
   </data>
@@ -12199,6 +12232,9 @@ Quem responde é o resolvedor do próprio servidor - o mesmo que a entrega SMTP 
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>O servidor não mantém histórico: MetricsHistoryDays é 0 no hMailServer.ini. Defina-o com os dias a manter.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>O log do servidor à medida que é escrito, lido da pasta de logs deste computador.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>O servidor não aceita mais novas conexões; o e-mail em andamento está terminando.</value>
@@ -13758,11 +13794,11 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Verificar esta senha no Windows (Active Directory, ou uma conta local do Windows)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Limpar</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Apagar o endereço de recuperação</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>_Limpar exibição</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Compactar os _arquivos de destino (zip)</value>
@@ -14040,6 +14076,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   <data name="_Local to local" xml:space="preserve">
     <value>_Local para local</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>Lo_g</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>Atributo _do nome de login</value>
   </data>
@@ -14126,6 +14165,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Abrir Configurações de antivírus</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>_Abrir Registro em log</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Abrir relatório</value>
@@ -14742,6 +14784,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>Não foi possível executar hMailServer.exe: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>A partir da 6.3.6 o hMailServer.ini e a pasta de logs pertencem aos administradores, então este Painel de Controle não pode lê-los. Feche-o e inicie-o com Executar como administrador para ver o log ao vivo.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Não foi possível ler hMailServer.ini: {0} A partir da 6.3.6 o arquivo pertence aos administradores. Feche o Painel de Controle e inicie-o com Executar como administrador para ver e alterar estas configurações.</value>
@@ -16227,6 +16272,9 @@ Ele continuará tentando enquanto você usa o aplicativo.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: o domínio diz que o cliente provavelmente não está autorizado e pede que a mensagem seja aceita mesmo assim. Muitas fontes de envio em massa se escondem atrás disso. Uma pontuação igual ou acima do limiar de exclusão recusa a mensagem durante a conversa SMTP como um fail faz; um softfail nunca é um pass para o desvio do greylisting.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… continua em {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ mover    Enter abrir    Esc fechar</value>

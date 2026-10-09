@@ -1708,6 +1708,19 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that cannot be pressed, the box takes digits only, typed or pasted, and the recovery text names the [Security]
   section of hMailServer.ini, the editor run as administrator and the service restart, as the server's own text does.
 
+- **Fixed: Live logs could stream the wrong file, went silent at midnight and put every problem in the grey
+  subtitle.** The page took the newest file matching hmailserver_*.log, which is as often the AWStats, backup or
+  events log or a per-service log as the day's, and kept it past midnight, when the server opens the next day's, while
+  still saying Streaming. It now follows today's file of the log chosen in a new Log list - everything, errors, script
+  events, backup and restore, and SMTP, IMAP and POP3 conversations while the server writes those apart - by the
+  server's own name for it, and moves to the next day's file once the server has opened it, with a line saying where
+  the log continues. Pause says since when and how many new lines are waiting, Clear is Clear view with a tool tip
+  saying the log file is not changed, and each line is laid out as its time, type, thread, session and text without
+  the file's quotes and tabs; a copy is still the line as the file has it. A log folder that is not on this computer,
+  a log not written yet today and a Control Panel not run as administrator are each said in the list's place, with
+  Logging's page where switching logging on is the cure, where each replaced the subtitle above an empty card; a file
+  not there yet is shown as soon as the server writes it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

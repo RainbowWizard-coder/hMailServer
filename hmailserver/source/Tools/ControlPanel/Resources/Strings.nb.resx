@@ -1891,6 +1891,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Sikkerhetskopiering og gjenoppretting</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Sikkerhetskopiering og gjenoppretting</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Sikkerhetskopiarkiver (HMBackup*.7z)|HMBackup*.7z|Alle filer (*.*)|*.*</value>
   </data>
@@ -2514,6 +2517,9 @@ Vil du starte Control Panel på nytt nå? Uten omstart kan det fortsette, eller 
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Tømt</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Tømmer linjene som vises her. Loggfilen endres ikke.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>Klient-ID</value>
@@ -4351,6 +4357,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Feilposter bærer alvorsgraden serveren selv registrerte: critical, error, warning eller notice. Alt annet er informational, bortsett fra TCP/IP og feilsøking, som er debug.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Feil</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Feil og advarsler (alvorsgrad 4)</value>
   </data>
@@ -4468,8 +4477,14 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Alle med postkasse i dette domenet ser disse ved siden av navnet, på Katalog-siden i nettposten, i Til-feltet sitt og i den skrivebeskyttede adresseboken en telefon synkroniserer. Ingenting herfra krysser et domene.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Alt</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Alt ErrorManager rapporterer</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Alt annet</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Alt unntatt feilsøking (alvorsgrad 6)</value>
@@ -5886,9 +5901,6 @@ Det verifiserte installasjonsprogrammet overleveres til oppdateringshjelperen: t
   <data name="Log folder" xml:space="preserve">
     <value>Loggmappe</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Loggmappen ble ikke funnet på denne maskinen (direktelogger krever en lokal server).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Loggnivå (3 eller høyere = full detalj; 2 eller lavere = roligere)</value>
   </data>
@@ -6895,6 +6907,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Ingen oppføringer, så denne listen tillater og blokkerer ingen; en kontos egen liste og domenets gjelder fortsatt.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>Ingen feil er logget i dag: det finnes ingen fil {0} i {1}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Ingen hendelser for den adressen. Enten har ingenting skjedd med den, eller sporingen var slått av på det tidspunktet – den registrerer bare mens meldingssporing er på (siden Logging).</value>
   </data>
@@ -6951,9 +6966,6 @@ Ingenting som allerede er der, fjernes.</value>
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Ingen lyttere er konfigurert.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>Ingen loggfiler i {0} ennå. Aktiver logging i serverinnstillingene.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Ingen loggmappe kunne leses fra hMailServer.INI på denne maskinen.</value>
@@ -7219,11 +7231,17 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Ingenting undersøker innkommende post. Ingen skanner kan kjøre og vedleggsblokkering er av, så en infisert melding leveres til postboksen nøyaktig slik den kom.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Ingenting er logget i dag: det finnes ennå ingen fil {0} i {1}. Logging kan være slått av; linjene vises her så snart serveren skriver dem.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Ingenting er registrert ennå. Hver administrativ endring vises her.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Ingenting er kjørt ennå. Trykk Kjør diagnostikk, så vises resultatet av hver kontroll her, med hva du skal gjøre med dem som feiler.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Ingenting er skrevet til {0} i {1} ennå. Linjene vises her så snart serveren skriver dem.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Ingenting her krever en beslutning: ingen postboks hoppes over og ingen deaktiveres.</value>
@@ -8042,6 +8060,15 @@ Ingenting som allerede er der, fjernes.</value>
     <value>Sette e-postserveren på pause?
 
 Ingen nye forbindelser godtas og ingen post leveres før den gjenopptas. Windows-tjenesten fortsetter å kjøre, så dette Control Panel forblir tilkoblet.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Satt på pause kl. {0}: 1 ny linje fra {1} venter.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Satt på pause kl. {0}: ingen nye linjer i {1} ennå.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Satt på pause kl. {0}: {1} nye linjer fra {2} venter.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>Folk kan registrere en tilgangsnøkkel (WebAuthn) og logge på med den, i webmailen og i Control Deck. Ingenting endres før noen registrerer en: til da logger de på med passordet sitt.</value>
@@ -9830,6 +9857,9 @@ Hver mappe tømmes først: post som har kommet siden sikkerhetskopien, er borte.
   <data name="Script _function" xml:space="preserve">
     <value>Skript_funksjon</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>Skripthendelser</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10827,9 +10857,6 @@ Starte den på nytt nå?</value>
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Strøm serverloggen i sanntid.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Strømmer serverloggen i sanntid.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Strømmer {0}</value>
@@ -11842,6 +11869,12 @@ kunne ikke lastes. Meldingen er sannsynligvis levert og ikke lenger i køen.</va
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Loggen slik den skrives, filtrert etter protokoll - den raskeste måten å se hva som skjedde med én melding.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Loggfilene tilhører fra 6.3.6 administratorene, så dette kontrollpanelet kan ikke lese dem. Lukk det og start det med Kjør som administrator for å se direkteloggen.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>Loggmappen ble ikke funnet på denne datamaskinen. Direktelogger leser loggfilene der serveren kjører: start kontrollpanelet på den datamaskinen for å se dem.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Loopback-adressen og de private nettverkene som standard. Tømmes den, vurderes ditt eget nettverk som alle andres, noe en streng tillatelsesliste avviser - webmailen og Control Deck medregnet.</value>
   </data>
@@ -12199,6 +12232,9 @@ Dette er serverens egen resolver som svarer - den samme som SMTP-levering bruker
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Serveren beholder ingen historikk: MetricsHistoryDays er 0 i hMailServer.ini. Sett den til antall dager som skal beholdes.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>Serverloggen etter hvert som den skrives, lest fra loggmappen på denne datamaskinen.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>Serveren tar ikke lenger imot nye tilkoblinger; e-posten som er underveis, fullføres.</value>
@@ -13758,11 +13794,11 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Kontroller dette passordet mot Windows (Active Directory, eller en lokal Windows-konto)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Tøm</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Slett gjenopprettingsadressen</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>_Tøm visningen</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Komprimer målfiler (zip)</value>
@@ -14040,6 +14076,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Local to local" xml:space="preserve">
     <value>Lokal _til lokal</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>_Logg</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>Attributt for _påloggingsnavn</value>
   </data>
@@ -14126,6 +14165,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Åpne Antivirus-innstillinger</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>_Åpne Logging</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Åpne rapport</value>
@@ -14742,6 +14784,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe kunne ikke kjøres: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>hMailServer.ini og loggmappen tilhører fra 6.3.6 administratorene, så dette kontrollpanelet kan ikke lese dem. Lukk det og start det med Kjør som administrator for å se direkteloggen.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kunne ikke leses: {0} Fra 6.3.6 tilhører filen administratorene. Lukk kontrollpanelet og start det med Kjør som administrator for å se og endre disse innstillingene.</value>
@@ -16227,6 +16272,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: domenet sier at klienten trolig ikke er autorisert, og ber om at meldingen godtas likevel. Mange masseutsendere gjemmer seg bak det. En poengsum på eller over sletteterskelen avviser meldingen under SMTP-samtalen slik en fail gjør; en softfail er aldri et pass for omgåelsen av grålisting.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… fortsetter i {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ flytt    Enter åpne    Esc lukk</value>

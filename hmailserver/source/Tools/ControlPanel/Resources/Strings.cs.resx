@@ -1906,6 +1906,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Zálohování a obnovení</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Zálohování a obnovení</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Archivy záloh (HMBackup*.7z)|HMBackup*.7z|Všechny soubory (*.*)|*.*</value>
   </data>
@@ -2532,6 +2535,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Vymazáno</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Vymaže řádky zobrazené zde. Soubor logu se nezmění.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>ID klienta</value>
@@ -4390,6 +4396,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Chybové záznamy nesou závažnost, kterou zaznamenal sám server: critical, error, warning nebo notice. Vše ostatní je informational, kromě TCP/IP a ladění, které jsou debug.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Chyby</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Chyby a varování (závažnost 4)</value>
   </data>
@@ -4513,8 +4522,14 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Každý, kdo má schránku v této doméně, vidí tyto údaje vedle jména, na stránce Adresář ve webmailu, v poli Komu a v adresáři jen ke čtení, který synchronizuje telefon. Nic odtud nepřekročí hranici domény.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Vše</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Vše, co hlásí ErrorManager</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Vše ostatní</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Vše kromě ladění (závažnost 6)</value>
@@ -5940,9 +5955,6 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   <data name="Log folder" xml:space="preserve">
     <value>Složka s logy</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Složka s logy nebyla na tomto počítači nalezena (živé logy vyžadují místní server).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Úroveň logování (3 a výše = plné podrobnosti; 2 a méně = tišší)</value>
   </data>
@@ -6958,6 +6970,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Žádné položky, takže tento seznam nikoho nepovoluje ani neblokuje; vlastní seznam účtu a seznam jeho domény stále platí.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>Dnes nebyly zaznamenány žádné chyby: v {1} není soubor {0}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Pro tuto adresu nejsou žádné události. Buď se s ní nic nestalo, nebo bylo trasování v té době vypnuté – zaznamenává pouze tehdy, když je trasování zpráv zapnuté (stránka Logování).</value>
   </data>
@@ -7014,9 +7029,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Nejsou nastaveny žádné listenery.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>V {0} zatím nejsou žádné soubory logu. Zapněte logování v nastavení serveru.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Z hMailServer.INI na tomto počítači se nepodařilo přečíst žádnou složku s logy.</value>
@@ -7291,11 +7303,17 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Příchozí poštu nikdo nezkoumá. Nemůže běžet žádný skener a blokování příloh je vypnuté, takže nakažená zpráva se do poštovní schránky doručí přesně tak, jak přišla.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Dnes se zatím nic nezaznamenalo: v {1} zatím není soubor {0}. Logování může být vypnuté; řádky se tu objeví, jakmile je server zapíše.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Zatím nebylo nic zaznamenáno. Každá administrativní změna se objeví zde.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Zatím nebylo nic spuštěno. Stiskněte Spustit diagnostiku a zde se zobrazí výsledek každé kontroly, u neúspěšných i s tím, co s nimi dělat.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Do {0} v {1} se zatím nic nezapsalo. Řádky se tu objeví, jakmile je server zapíše.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Nic zde nevyžaduje rozhodnutí: žádná poštovní schránka se nepřeskakuje a žádná se nezakazuje.</value>
@@ -8120,6 +8138,15 @@ Nic, co tam již je, se neodstraní.</value>
     <value>Pozastavit poštovní server?
 
 Do obnovení nebudou přijímána žádná nová připojení a nebude doručována žádná pošta. Služba Windows běží dál, takže tento Control Panel zůstane připojený.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Pozastaveno v {0}. Nové řádky z {1}, které čekají: 1.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Pozastaveno v {0}: v {1} zatím nejsou žádné nové řádky.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Pozastaveno v {0}. Nové řádky z {2}, které čekají: {1}.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>Lidé si mohou zaregistrovat přístupový klíč (WebAuthn) a přihlašovat se jím, ve webové poště i v Control Deck. Nic se nezmění, dokud si ho někdo nezaregistruje: do té doby se přihlašují heslem.</value>
@@ -9938,6 +9965,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Script _function" xml:space="preserve">
     <value>Funkce _skriptu</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>Události skriptů</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10940,9 +10970,6 @@ Restartovat ji nyní?</value>
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Sledujte log serveru v reálném čase.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Sledování logu serveru v reálném čase.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Sleduje se {0}</value>
@@ -11988,6 +12015,12 @@ nešlo načíst. Zpráva byla pravděpodobně doručena a už není ve frontě.<
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Log tak, jak se zapisuje, filtrovaný podle protokolu - nejrychlejší způsob, jak zjistit, co se stalo s jednou zprávou.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Soubory logu od verze 6.3.6 patří správcům, takže je tento Ovládací panel nesmí číst. Zavřete jej a spusťte pomocí Spustit jako správce, abyste viděli živý log.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>Složka logů nebyla na tomto počítači nalezena. Živé logy čtou soubory logu tam, kde server běží: spusťte Ovládací panel na tom počítači, abyste je viděli.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Výchozí je adresa zpětné smyčky a soukromé sítě. Vyprázdnění způsobí, že vaše vlastní síť se posuzuje jako kterákoli jiná, což přísný seznam povolených odmítne - včetně webové pošty a Control Deck.</value>
   </data>
@@ -12345,6 +12378,9 @@ Odpovídá vlastní resolver serveru - tentýž, který používá doručování
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Server neuchovává žádnou historii: MetricsHistoryDays je v hMailServer.ini 0. Nastavte ho na počet dní k uchování.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>Log serveru tak, jak je zapisován, čtený ze složky logů na tomto počítači.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>Server už nepřijímá nová připojení; probíhající pošta se dokončuje.</value>
@@ -13916,11 +13952,11 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Ověřit toto heslo proti Windows (Active Directory, nebo místní účet Windows)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Vymazat</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Smazat adresu pro obnovu</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>_Vymazat zobrazení</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Komprimovat cílové soubory (zip)</value>
@@ -14198,6 +14234,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Local to local" xml:space="preserve">
     <value>_Místní do místní</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>_Log</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>_Atribut přihlašovacího jména</value>
   </data>
@@ -14284,6 +14323,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Otevřít Nastavení antiviru</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>_Otevřít Logování</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Otevřít hlášení</value>
@@ -14906,6 +14948,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe nelze spustit: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Soubor hMailServer.ini a složka logů od verze 6.3.6 patří správcům, takže je tento Ovládací panel nesmí číst. Zavřete jej a spusťte pomocí Spustit jako správce, abyste viděli živý log.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Soubor hMailServer.ini se nepodařilo přečíst: {0} Od verze 6.3.6 soubor patří správcům. Zavřete Ovládací panel a spusťte jej pomocí Spustit jako správce, abyste tato nastavení viděli a mohli měnit.</value>
@@ -16595,6 +16640,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: doména říká, že klient pravděpodobně není oprávněn, a žádá, aby byla zpráva přesto přijata. Mnoho hromadných rozesílatelů se za tím schovává. Skóre na prahu smazání nebo nad ním odmítne zprávu během SMTP dialogu stejně jako fail; softfail se pro obejití greylistingu nikdy nepočítá jako pass.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… pokračuje v {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ přesun    Enter otevřít    Esc zavřít</value>

@@ -18,13 +18,21 @@
         </Grid.RowDefinitions>
 
         <scaffold:PageHeader x:Name="Header" Title="{loc:L 'Live logs'}"
-                             Subtitle="{loc:L 'Streaming the server log in real time.'}">
+                             Subtitle="{loc:L 'The server log as it is written, read from the log folder on this computer.'}">
             <scaffold:PageHeader.Actions>
                 <StackPanel Orientation="Horizontal">
+                    <!-- Which of the server's logs: the day's, its errors, the script
+                         events, the backup, and each protocol's own while the server
+                         writes them apart (review finding F249). -->
+                    <Label Content="{loc:L '_Log'}" Target="{Binding ElementName=LogPicker}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox x:Name="LogPicker" MinWidth="170" Margin="0,0,8,0" VerticalAlignment="Center"
+                              SelectionChanged="LogPicker_SelectionChanged"
+                              AutomationProperties.AutomationId="logs-picker" />
                     <ui:Button x:Name="PauseButton" Content="{loc:L '_Pause'}" Click="Pause_Click" Margin="0,0,8,0">
                         <ui:Button.Icon><ui:SymbolIcon x:Name="PauseButtonIcon" Symbol="Pause24" /></ui:Button.Icon>
                     </ui:Button>
-                    <ui:Button Content="{loc:L '_Clear'}" Click="Clear_Click">
+                    <ui:Button Content="{loc:L '_Clear view'}" Click="Clear_Click"
+                               ToolTip="{loc:L 'Clears the lines shown here. The log file is not changed.'}">
                         <ui:Button.Icon><ui:SymbolIcon Symbol="Broom24" /></ui:Button.Icon>
                     </ui:Button>
                 </StackPanel>
@@ -35,7 +43,12 @@
              design token; each line holds one of ThemeTokens' shared brushes, which
              are recoloured in place on a theme change. Extended selection: lines are
              chosen as a list's rows are (click, Shift+click, Ctrl+click, Ctrl+A) and
-             copied with Ctrl+C or the list's menu - see the code-behind.
+             copied with Ctrl+C or the list's menu - see the code-behind. Each line is
+             laid out as its time, type, thread, session and text, the file's quotes
+             taken off (Services/LiveLogFiles), the columns as wide as their widest
+             line in view; a copy is the line as the file has it. What keeps the log
+             from being shown - no folder, no file yet, a file the Control Panel may
+             not read - is the empty state in the list's place.
              A line is the application's list row (App.xaml), the hover grey, the
              selection fill and pill and the keyboard's ring, made dense: no height
              floor, no gap between lines, its content past the pill as every list
@@ -44,26 +57,48 @@
              selection put the dark lines at 3.8 to 3.9:1, and its grey one, once
              the list lost the keyboard, at 2.9 to 3.0:1. -->
         <scaffold:Card Grid.Row="1" Padding="4">
-            <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
-                     FontFamily="Cascadia Mono, Consolas" FontSize="12"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                     AutomationProperties.Name="{loc:L 'Live logs'}">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                        <Setter Property="Padding" Value="10,0" />
-                        <Setter Property="MinHeight" Value="0" />
-                        <Setter Property="Margin" Value="0" />
-                        <Setter Property="BorderThickness" Value="0" />
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Text}" Foreground="{Binding Brush}" TextWrapping="NoWrap"
-                                   LineHeight="17" LineStackingStrategy="BlockLineHeight" />
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <Grid>
+                <ListBox x:Name="LogList" Background="Transparent" BorderThickness="0" SelectionMode="Extended"
+                         FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                         Grid.IsSharedSizeScope="True"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                         AutomationProperties.Name="{loc:L 'Live logs'}">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                            <Setter Property="Padding" Value="10,0" />
+                            <Setter Property="MinHeight" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="BorderThickness" Value="0" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogTime" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogType" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogThread" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogSession" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Time}" Foreground="{Binding Brush}" Margin="0,0,12,0"
+                                           LineHeight="17" LineStackingStrategy="BlockLineHeight" />
+                                <TextBlock Grid.Column="1" Text="{Binding Type}" Foreground="{Binding Brush}" Margin="0,0,12,0"
+                                           LineHeight="17" LineStackingStrategy="BlockLineHeight" />
+                                <TextBlock Grid.Column="2" Text="{Binding Thread}" Foreground="{Binding Brush}" Margin="0,0,12,0" TextAlignment="Right"
+                                           LineHeight="17" LineStackingStrategy="BlockLineHeight" />
+                                <TextBlock Grid.Column="3" Text="{Binding Session}" Foreground="{Binding Brush}" Margin="0,0,12,0" TextAlignment="Right"
+                                           LineHeight="17" LineStackingStrategy="BlockLineHeight" />
+                                <TextBlock Grid.Column="4" Text="{Binding Message}" Foreground="{Binding Brush}" TextWrapping="NoWrap"
+                                           LineHeight="17" LineStackingStrategy="BlockLineHeight" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <scaffold:EmptyState x:Name="Problem" Icon="DocumentBulletList24" Visibility="Collapsed"
+                                     AutomationProperties.AutomationId="logs-problem" />
+            </Grid>
         </scaffold:Card>
     </Grid>
 </UserControl>

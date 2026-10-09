@@ -1906,6 +1906,9 @@ Control Panel может читать файлы сообщений только
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Резервное копирование и восстановление</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Резервное копирование и восстановление</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Архивы резервных копий (HMBackup*.7z)|HMBackup*.7z|Все файлы (*.*)|*.*</value>
   </data>
@@ -2532,6 +2535,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Очищено</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Очищает показанные здесь строки. Файл журнала не изменяется.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>Идентификатор клиента</value>
@@ -4390,6 +4396,9 @@ Control Panel может читать файлы сообщений только
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Записи об ошибках несут ту важность, которую зафиксировал сам сервер: critical, error, warning или notice. Всё остальное - informational, кроме TCP/IP и отладки, которые относятся к debug.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Ошибки</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Ошибки и предупреждения (важность 4)</value>
   </data>
@@ -4513,8 +4522,14 @@ Control Panel может читать файлы сообщений только
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Все, у кого есть ящик в этом домене, видят это рядом с именем, на странице «Каталог» в веб-почте, в поле «Кому» и в адресной книге только для чтения, которую синхронизирует телефон. Ничто отсюда не выходит за пределы домена.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Всё</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Всё, о чём сообщает ErrorManager</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Всё остальное</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Всё, кроме отладки (важность 6)</value>
@@ -5940,9 +5955,6 @@ Control Panel может читать файлы сообщений только
   <data name="Log folder" xml:space="preserve">
     <value>Папка журналов</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Папка журналов на этом компьютере не найдена (для журналов в реальном времени нужен локальный сервер).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Уровень журнала (3 и выше — полная подробность; 2 и ниже — тише)</value>
   </data>
@@ -6958,6 +6970,9 @@ Control Panel может читать файлы сообщений только
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Нет записей, поэтому этот список никого не разрешает и не блокирует; собственный список учётной записи и список её домена по-прежнему действуют.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>Сегодня ошибок не записано: в {1} нет файла {0}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Событий для этого адреса нет. Либо с ним ничего не происходило, либо трассировка в то время была выключена – она записывает только пока трассировка сообщений включена (страница «Журналирование»).</value>
   </data>
@@ -7014,9 +7029,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Прослушиватели не настроены.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>В {0} пока нет файлов журналов. Включите журналирование в параметрах сервера.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Прочитать папку журналов из hMailServer.INI на этом компьютере не удалось.</value>
@@ -7291,11 +7303,17 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Входящую почту не исследует ничто. Ни один сканер работать не может, а блокировка вложений выключена, поэтому заражённое сообщение доставляется в почтовый ящик ровно в том виде, в каком пришло.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Сегодня пока ничего не записано: в {1} ещё нет файла {0}. Возможно, журналирование выключено; строки появятся здесь, как только сервер их запишет.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Пока ничего не записано. Каждое административное изменение появляется здесь.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Пока ничего не запускалось. Нажмите Запустить диагностику, и здесь появится результат каждой проверки, а для неудачных - что с ними делать.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>В {0} в {1} пока ничего не записано. Строки появятся здесь, как только сервер их запишет.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Здесь ничего решать не нужно: ни один почтовый ящик не пропускается и ни один не отключается.</value>
@@ -8120,6 +8138,15 @@ Control Panel может читать файлы сообщений только
     <value>Приостановить почтовый сервер?
 
 До возобновления новые подключения приниматься не будут и почта доставляться не будет. Служба Windows продолжает работать, поэтому этот Control Panel остаётся подключённым.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Приостановлено в {0}. Новых строк из {1} ожидает: 1.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Приостановлено в {0}: в {1} пока нет новых строк.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Приостановлено в {0}. Новых строк из {2} ожидает: {1}.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>Люди могут зарегистрировать ключ доступа (WebAuthn) и входить с ним в веб-почту и Control Deck. Ничего не меняется, пока кто-нибудь его не зарегистрирует: до тех пор они входят с паролем.</value>
@@ -9938,6 +9965,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Script _function" xml:space="preserve">
     <value>_Функция сценария</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>События сценариев</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10940,9 +10970,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Просмотр журнала сервера в реальном времени.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Идёт потоковый просмотр журнала сервера в реальном времени.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Потоковый просмотр {0}</value>
@@ -11988,6 +12015,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Журнал по мере записи, с фильтром по протоколу - самый быстрый способ увидеть, что случилось с одним сообщением.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Начиная с 6.3.6 файлы журналов принадлежат администраторам, поэтому эта панель управления не может их читать. Закройте её и запустите через «Запуск от имени администратора», чтобы увидеть журнал в реальном времени.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>Папка журналов на этом компьютере не найдена. «Журналы в реальном времени» читают файлы журналов там, где работает сервер: запустите панель управления на том компьютере, чтобы их увидеть.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>По умолчанию адрес обратной петли и частные сети. Если очистить, ваша собственная сеть будет оцениваться как любая другая, что строгий список разрешённых отклонит — включая веб-почту и Control Deck.</value>
   </data>
@@ -12345,6 +12378,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Сервер не хранит историю: MetricsHistoryDays в hMailServer.ini равен 0. Задайте число дней хранения.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>Журнал сервера по мере записи, читаемый из папки журналов на этом компьютере.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>Сервер больше не принимает новые подключения; текущая почта доставляется до конца.</value>
@@ -13916,11 +13952,11 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Проверять этот пароль через Windows (Active Directory или локальную учётную запись Windows)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Очистить</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Удалить адрес восстановления</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>_Очистить окно</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Сжимать _файлы назначения (zip)</value>
@@ -14198,6 +14234,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Local to local" xml:space="preserve">
     <value>_Локальное → локальное</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>_Журнал</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>Атрибут _имени для входа</value>
   </data>
@@ -14284,6 +14323,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Открыть «Параметры антивируса»</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>От_крыть «Журналирование»</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Открыть отчёт</value>
@@ -14906,6 +14948,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>Не удалось запустить hMailServer.exe: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Начиная с 6.3.6 hMailServer.ini и папка журналов принадлежат администраторам, поэтому эта панель управления не может их читать. Закройте её и запустите через «Запуск от имени администратора», чтобы увидеть журнал в реальном времени.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Не удалось прочитать hMailServer.ini: {0} Начиная с 6.3.6 файл принадлежит администраторам. Закройте панель управления и запустите её через «Запуск от имени администратора», чтобы увидеть и изменить эти параметры.</value>
@@ -16595,6 +16640,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: домен говорит, что клиент, вероятно, не авторизован, и просит всё же принять письмо. За этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail; softfail никогда не считается pass для обхода серых списков.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… продолжение в {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ перемещение    Enter открыть    Esc закрыть</value>

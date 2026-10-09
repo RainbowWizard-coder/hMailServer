@@ -28,6 +28,12 @@
     <Compile Include="..\ControlPanel\Services\LiveLogTail.cs" />
   </ItemGroup>
 
+  <!-- And which file it reads - today's, by the server's own name, the next day's
+       once the server opens it - and the parts a line is shown in. -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\LiveLogFiles.cs" />
+  </ItemGroup>
+
   <!-- Chart accessibility: the palette, the catalogue, the table view and the
        status vocabulary. These are compiled straight into the test assembly rather
        than routed through ControlPanel.Core, because the app compiles them too (they

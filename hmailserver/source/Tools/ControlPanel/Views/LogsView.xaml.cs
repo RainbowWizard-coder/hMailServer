@@ -22,15 +22,26 @@ namespace hMailServer.ControlPanel.Views
    {
       public class LogLine
       {
+         /// <summary>The line as the file has it: what a copy takes and what the line's colour is read from.</summary>
          public string Text { get; set; }
          public Brush Brush { get; set; }
+
+         // The parts the line is shown in (Services/LiveLogFiles), the file's quotes
+         // and tabs taken off.
+         public string Time { get; set; } = "";
+         public string Type { get; set; } = "";
+         public string Thread { get; set; } = "";
+         public string Session { get; set; } = "";
+         public string Message { get; set; } = "";
 
          // The log is a ListBox with an ItemTemplate, so a ListBoxItem's accessible
          // name falls back to ToString() on the bound object rather than the text
          // shown. Without this a screen reader announces the type name for every
          // line of the live log, which is the page an administrator is most likely
-         // to be reading aloud when something is wrong.
-         public override string ToString() => Text;
+         // to be reading aloud when something is wrong. The parts as shown, not the
+         // file's quotes and tabs.
+         public override string ToString()
+            => string.Join(" ", new[] { Time, Type, Thread, Session, Message }.Where(part => !string.IsNullOrEmpty(part)));
       }
 
       private readonly ObservableCollection<LogLine> lines_ = new();
@@ -38,6 +49,15 @@ namespace hMailServer.ControlPanel.Views
       private string logFile_;
       private LiveLogTail tail_ = new();
       private bool paused_;
+
+      // The log folder, and which of its logs the picker has chosen.
+      private string folder_;
+      private LiveLogKind kind_ = LiveLogKind.Everything;
+      private bool filling_;
+
+      // Read while paused, so that Paused can say how many are waiting; shown on Resume.
+      private readonly List<string> waiting_ = new();
+      private DateTime pausedAt_;
 
       // Theme-aware, shared brush instances. Because each line holds a reference
       // to one of these, recolouring on a theme switch updates every visible
@@ -84,49 +104,184 @@ namespace hMailServer.ControlPanel.Views
          // administrator says it could not read them, not that there is no log
          // folder on this machine.
          string denied = store.ReadDenied();
-         if (denied != null)
+         string folder = denied == null ? store.GetLogFolder() : null;
+
+         // The protocols' own logs are offered while the server writes them apart.
+         FillPicker_(denied == null && store.ReadBool("SepSvcLogs", false));
+         Open_(denied, folder);
+      }
+
+      public void OnLeave() => timer_.Stop();
+
+      /// <summary>The logs the picker offers, the chosen one kept where it is still offered.</summary>
+      private void FillPicker_(bool separate)
+      {
+         var kinds = new List<(LiveLogKind Kind, string Caption)>
          {
-            Header.Subtitle = F("Could not read the file: {0}", denied);
-            return;
+            (LiveLogKind.Everything, separate ? L("Everything else") : L("Everything")),
+            (LiveLogKind.Errors, L("Errors")),
+            (LiveLogKind.Events, L("Script events")),
+            (LiveLogKind.Backup, L("Backup and restore"))
+         };
+         if (separate)
+         {
+            kinds.Add((LiveLogKind.Smtp, L("SMTP conversations")));
+            kinds.Add((LiveLogKind.Imap, L("IMAP conversations")));
+            kinds.Add((LiveLogKind.Pop3, L("POP3 conversations")));
          }
 
-         string folder = store.GetLogFolder();
+         if (!kinds.Any(k => k.Kind == kind_))
+            kind_ = LiveLogKind.Everything;
+
+         filling_ = true;
+         LogPicker.Items.Clear();
+         foreach ((LiveLogKind kind, string caption) in kinds)
+         {
+            var item = new ComboBoxItem { Content = caption, Tag = kind };
+            LogPicker.Items.Add(item);
+            if (kind == kind_)
+               LogPicker.SelectedItem = item;
+         }
+         filling_ = false;
+      }
+
+      private void LogPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
+      {
+         if (filling_ || LogPicker.SelectedItem is not ComboBoxItem { Tag: LiveLogKind kind } || kind == kind_)
+            return;
+
+         kind_ = kind;
+         Open_(null, folder_);
+      }
+
+      /// <summary>
+      /// Starts following the chosen log: today's file of it, by the server's own name,
+      /// from its last 64 KB. What keeps it from being shown is said in the list's
+      /// place, each with what to do, where it was the grey subtitle under the title,
+      /// over an empty card (review finding F249). A file not there yet is waited for:
+      /// the page starts showing it with the server's first line.
+      /// </summary>
+      private void Open_(string denied, string folder)
+      {
+         timer_.Stop();
+         lines_.Clear();
+         waiting_.Clear();
+         logFile_ = null;
+         folder_ = folder;
+         Header.Subtitle = L("The server log as it is written, read from the log folder on this computer.");
+
+         if (denied != null)
+         {
+            LogPicker.IsEnabled = false;
+            Problem_(L("hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log."), false);
+            return;
+         }
 
          if (folder == null || !Directory.Exists(folder))
          {
-            Header.Subtitle = L("Log folder not found on this machine (live logs need a local server).");
+            LogPicker.IsEnabled = false;
+            Problem_(L("The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them."), false);
             return;
          }
 
-         FileInfo newest;
+         LogPicker.IsEnabled = true;
+         logFile_ = Path.Join(folder, LiveLogFiles.FileName(kind_, DateTime.Today));
+         tail_ = new LiveLogTail();
+
          try
          {
-            newest = new DirectoryInfo(folder).GetFiles("hmailserver_*.log")
-               .OrderByDescending(f => f.LastWriteTimeUtc)
-               .FirstOrDefault();
+            var file = new FileInfo(logFile_);
+            if (file.Exists)
+            {
+               tail_.StartAt(file.Length);   // the last 64 KB
+               Streaming_();
+            }
+            else
+            {
+               NotYet_();
+            }
          }
-         catch (UnauthorizedAccessException readDenied)
+         catch (UnauthorizedAccessException)
          {
-            Header.Subtitle = F("Could not read the file: {0}", readDenied.Message);
+            Denied_();
             return;
          }
-
-         if (newest == null)
-         {
-            Header.Subtitle = F("No log files in {0} yet. Enable logging in the server settings.", folder);
-            return;
-         }
-
-         logFile_ = newest.FullName;
-         tail_ = new LiveLogTail();
-         tail_.StartAt(newest.Length);   // the last 64 KB
-         Header.Subtitle = F("Streaming {0}", newest.Name);
 
          Poll();
          timer_.Start();
       }
 
-      public void OnLeave() => timer_.Stop();
+      /// <summary>What the page says while the chosen log has no file yet today, or ever.</summary>
+      private void NotYet_()
+      {
+         string name = Path.GetFileName(logFile_);
+         switch (kind_)
+         {
+            case LiveLogKind.Errors:
+               Problem_(F("No errors have been logged today: there is no {0} in {1}.", name, folder_), false);
+               break;
+            case LiveLogKind.Events:
+            case LiveLogKind.Backup:
+               Problem_(F("Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them.", name, folder_), false);
+               break;
+            default:
+               Problem_(F("Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them.", name, folder_), true);
+               break;
+         }
+      }
+
+      /// <summary>A log file this Control Panel may not read, said once; it is not retried.</summary>
+      private void Denied_()
+      {
+         timer_.Stop();
+         lines_.Clear();
+         Problem_(L("The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log."), false);
+      }
+
+      /// <summary>The list's place says what keeps the log from being shown, with Logging's page where that is the cure.</summary>
+      private void Problem_(string text, bool offerLogging)
+      {
+         Problem.Text = text;
+         Problem.Action = offerLogging ? OpenLogging_() : null;
+         Problem.Visibility = Visibility.Visible;
+         LogList.Visibility = Visibility.Collapsed;
+      }
+
+      private void Streaming_()
+      {
+         Problem.Visibility = Visibility.Collapsed;
+         Problem.Action = null;
+         LogList.Visibility = Visibility.Visible;
+         SayState_();
+      }
+
+      private static Wpf.Ui.Controls.Button OpenLogging_()
+      {
+         var button = new Wpf.Ui.Controls.Button { Content = L("_Open Logging") };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "logs-open-logging");
+         button.Click += (_, _) => (Application.Current?.MainWindow as MainWindow)?.NavigateTo("logging");
+         return button;
+      }
+
+      /// <summary>
+      /// The subtitle: the file followed, or, while paused, since when and how many
+      /// lines are waiting - where Pause left "Streaming" standing.
+      /// </summary>
+      private void SayState_()
+      {
+         if (logFile_ == null || Problem.Visibility == Visibility.Visible)
+            return;
+
+         string name = Path.GetFileName(logFile_);
+         if (!paused_)
+            Header.Subtitle = F("Streaming {0}", name);
+         else if (waiting_.Count == 0)
+            Header.Subtitle = F("Paused at {0}: no new lines in {1} yet.", pausedAt_.ToShortTimeString(), name);
+         else if (waiting_.Count == 1)
+            Header.Subtitle = F("Paused at {0}: 1 new line of {1} is waiting.", pausedAt_.ToShortTimeString(), name);
+         else
+            Header.Subtitle = F("Paused at {0}: {1} new lines of {2} are waiting.", pausedAt_.ToShortTimeString(), waiting_.Count, name);
+      }
 
       /// <summary>
       /// F5: the newest log from its last 64 KB, as opening the page reads it -
@@ -142,48 +297,106 @@ namespace hMailServer.ControlPanel.Views
 
       private void Poll()
       {
-         if (paused_ || logFile_ == null)
+         if (logFile_ == null)
             return;
 
          try
          {
+            // The day turned over: the server opens the next day's file with its first
+            // line after midnight. The rest of the old one is read first, then a line
+            // says where the log goes on, and the new file is read from its start.
+            string next = LiveLogFiles.NextDay(logFile_, kind_, DateTime.Today, File.Exists);
+            if (next != null)
+            {
+               if (File.Exists(logFile_) && Problem.Visibility != Visibility.Visible)
+               {
+                  using var old = new FileStream(logFile_, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                  Show_(tail_.Read(old));
+                  Show_(new[] { F("… continued in {0}", Path.GetFileName(next)) });
+               }
+
+               logFile_ = next;
+               tail_ = new LiveLogTail();
+               Streaming_();
+            }
+
+            if (!File.Exists(logFile_))
+               return;
+
+            // The file the page was waiting for has been written: shown from its start.
+            if (Problem.Visibility == Visibility.Visible)
+            {
+               tail_ = new LiveLogTail();
+               Streaming_();
+            }
+
             // Whole lines only, and the end followed only while it is in view: what
             // is read and where the view goes are LiveLogTail's, which says why.
             using var stream = new FileStream(logFile_, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            IReadOnlyList<string> read = tail_.Read(stream);
-            if (read.Count == 0)
-               return;
-
-            ScrollViewer scroller = Scroller_();
-            bool atEnd = scroller == null || LiveLogTail.IsAtEnd(scroller.VerticalOffset, scroller.ScrollableHeight);
-            double offset = scroller?.VerticalOffset ?? 0;
-
-            foreach (string line in read)
-               lines_.Add(new LogLine { Text = line, Brush = Classify(line) });
-
-            int dropped = LiveLogTail.Trim(lines_, LiveLogTail.MaxLines);
-
-            if (LiveLogTail.Follows(atEnd, read.Count))
-            {
-               if (LogList.Items.Count > 0)
-                  LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
-            }
-            else if (scroller != null && LiveLogTail.OffsetAfterDrop(atEnd, offset, dropped) is double back)
-            {
-               scroller.ScrollToVerticalOffset(back);
-            }
+            Show_(tail_.Read(stream));
          }
          catch (IOException)
          {
             // File momentarily locked; retry next tick.
          }
-         catch (UnauthorizedAccessException readDenied)
+         catch (UnauthorizedAccessException)
          {
             // The log folder made the administrators' alone while it was streamed
             // (hMailServer.exe /ProtectFolders): said once, not retried.
-            timer_.Stop();
-            Header.Subtitle = F("Could not read the file: {0}", readDenied.Message);
+            Denied_();
          }
+      }
+
+      /// <summary>
+      /// Lines into the view, or, while paused, into the lines waiting, which the
+      /// subtitle counts; the end followed only while it is in view (LiveLogTail).
+      /// </summary>
+      private void Show_(IReadOnlyList<string> read)
+      {
+         if (read.Count == 0)
+            return;
+
+         if (paused_)
+         {
+            waiting_.AddRange(read);
+            LiveLogTail.Trim(waiting_, LiveLogTail.MaxLines);
+            SayState_();
+            return;
+         }
+
+         ScrollViewer scroller = Scroller_();
+         bool atEnd = scroller == null || LiveLogTail.IsAtEnd(scroller.VerticalOffset, scroller.ScrollableHeight);
+         double offset = scroller?.VerticalOffset ?? 0;
+
+         foreach (string line in read)
+            lines_.Add(Line_(line));
+
+         int dropped = LiveLogTail.Trim(lines_, LiveLogTail.MaxLines);
+
+         if (LiveLogTail.Follows(atEnd, read.Count))
+         {
+            if (LogList.Items.Count > 0)
+               LogList.ScrollIntoView(LogList.Items[LogList.Items.Count - 1]);
+         }
+         else if (scroller != null && LiveLogTail.OffsetAfterDrop(atEnd, offset, dropped) is double back)
+         {
+            scroller.ScrollToVerticalOffset(back);
+         }
+      }
+
+      private LogLine Line_(string line)
+      {
+         LiveLogFiles.Parts parts = LiveLogFiles.Split(line, kind_);
+         return new LogLine
+         {
+            Text = line,
+            Brush = Classify(line),
+            Time = parts.Time,
+            Type = parts.Type,
+            Thread = parts.Thread,
+            Session = parts.Session,
+            Message = parts.Text
+         };
       }
 
       private static Brush Classify(string line)
@@ -206,8 +419,23 @@ namespace hMailServer.ControlPanel.Views
          paused_ = !paused_;
          PauseButton.Content = paused_ ? L("R_esume") : L("_Pause");
          PauseButtonIcon.Symbol = paused_ ? Wpf.Ui.Controls.SymbolRegular.Play24 : Wpf.Ui.Controls.SymbolRegular.Pause24;
+
+         if (paused_)
+         {
+            pausedAt_ = DateTime.Now;
+         }
+         else if (waiting_.Count > 0)
+         {
+            string[] held = waiting_.ToArray();
+            waiting_.Clear();
+            Show_(held);
+         }
+
+         SayState_();
       }
 
+      // The view only: the file is the server's and is not changed (the button's
+      // tool tip says so).
       private void Clear_Click(object sender, RoutedEventArgs e) => lines_.Clear();
 
       /// <summary>

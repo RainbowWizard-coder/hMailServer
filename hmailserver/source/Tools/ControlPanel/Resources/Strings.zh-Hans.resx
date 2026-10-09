@@ -1891,6 +1891,9 @@
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>备份与还原</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>备份和还原</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>备份存档 (HMBackup*.7z)|HMBackup*.7z|所有文件 (*.*)|*.*</value>
   </data>
@@ -2514,6 +2517,9 @@
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>已清除</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>清除这里显示的行。日志文件不会被更改。</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>客户端 ID</value>
@@ -4351,6 +4357,9 @@
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>错误条目带有服务器自身记录的严重级别：critical、error、warning 或 notice。其余一律为 informational，只有 TCP/IP 和调试属于 debug。</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>错误</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>错误和警告（严重级别 4）</value>
   </data>
@@ -4468,8 +4477,14 @@
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>在此域拥有邮箱的每个人都会在姓名旁、网页邮件的通讯录页面、收件人栏以及手机同步的只读通讯录中看到这些内容。这里的内容不会跨域。</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>全部</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>ErrorManager 报告的所有内容</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>其他全部</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>除调试外的全部（严重级别 6）</value>
@@ -5886,9 +5901,6 @@
   <data name="Log folder" xml:space="preserve">
     <value>日志文件夹</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>在本机上未找到日志文件夹（实时日志需要本地服务器）。</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>日志级别（3 或以上 = 完整详细信息；2 或以下 = 更安静）</value>
   </data>
@@ -6895,6 +6907,9 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>没有条目，因此此名单不允许也不拦截任何人；账户自己的名单和其所在域的名单仍然适用。</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>今天没有记录任何错误：{1} 中没有 {0}。</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>该地址没有事件。要么它没有发生任何事情，要么当时跟踪已关闭 - 它只在邮件跟踪开启时记录（“日志记录”页面）。</value>
   </data>
@@ -6951,9 +6966,6 @@
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>未配置任何监听器。</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>{0} 中尚无日志文件。请在服务器设置中启用日志记录。</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>无法从本机上的 hMailServer.INI 读取日志文件夹。</value>
@@ -7219,11 +7231,17 @@
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>没有任何东西检查传入邮件。没有扫描器可以运行，附件拦截也已关闭，因此受感染的邮件会按到达时的原样投递到邮箱。</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>今天还没有记录任何内容：{1} 中还没有 {0}。日志记录可能已关闭；服务器一写入，这些行就会显示在这里。</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>尚未记录任何内容。每项管理更改都会显示在这里。</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>尚未运行任何内容。点击 运行诊断，每项检查的结果会显示在这里，失败的检查还会说明该怎么做。</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>{1} 中的 {0} 还没有写入任何内容。服务器一写入，这些行就会显示在这里。</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>此处不需要做任何决定：没有邮箱被跳过，也没有邮箱被禁用。</value>
@@ -8042,6 +8060,15 @@
     <value>是否暂停邮件服务器？
 
 在恢复之前，不会接受新连接，也不会投递任何邮件。Windows 服务保持运行，因此此控制面板保持连接。</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>已于 {0} 暂停：{1} 有 1 行新内容等待显示。</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>已于 {0} 暂停：{1} 中还没有新行。</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>已于 {0} 暂停：{2} 有 {1} 行新内容等待显示。</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>用户可以注册通行密钥（WebAuthn），并用它登录网页邮箱和 Control Deck。在有人注册之前没有任何变化：在此之前他们用密码登录。</value>
@@ -9830,6 +9857,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Script _function" xml:space="preserve">
     <value>脚本函数(_F)</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>脚本事件</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10827,9 +10857,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>实时流式显示服务器日志。</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>正在实时流式显示服务器日志。</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>正在流式显示 {0}</value>
@@ -11842,6 +11869,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>按写入时序显示的日志，按协议筛选 - 这是查看某一封邮件遭遇了什么的最快方法。</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>从 6.3.6 起，日志文件属于管理员，因此本控制面板无法读取它们。请关闭控制面板，并以“以管理员身份运行”启动它，以查看实时日志。</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>在这台计算机上找不到日志文件夹。实时日志读取服务器所在计算机上的日志文件：请在那台计算机上启动控制面板来查看它们。</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>默认是环回地址和专用网络。清除后，你自己的网络会像其他网络一样被判断，严格的允许列表会拒绝它，包括网页邮箱和 Control Deck。</value>
   </data>
@@ -12199,6 +12232,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>服务器不保留历史: hMailServer.ini 中的 MetricsHistoryDays 为 0。请将其设为要保留的天数。</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>服务器日志随写随显，读取自这台计算机上的日志文件夹。</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>服务器不再接受新连接；正在处理的邮件即将完成。</value>
@@ -13758,11 +13794,11 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>对照 Windows 检查此密码(_C)（Active Directory 或本地 Windows 账户）</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>清除(_C)</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>清除恢复地址(_C)</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>清除视图(_C)</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>压缩目标文件(_C)（zip）</value>
@@ -14040,6 +14076,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Local to local" xml:space="preserve">
     <value>本地到本地(_L)</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>日志(_L)</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>登录名属性(_L)</value>
   </data>
@@ -14126,6 +14165,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>打开反病毒设置(_O)</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>打开日志记录(_O)</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>打开报告(_O)</value>
@@ -14742,6 +14784,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>无法运行 hMailServer.exe：{0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>从 6.3.6 起，hMailServer.ini 和日志文件夹属于管理员，因此本控制面板无法读取它们。请关闭控制面板，并以“以管理员身份运行”启动它，以查看实时日志。</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>无法读取 hMailServer.ini：{0} 从 6.3.6 起，该文件属于管理员。请关闭控制面板，并以“以管理员身份运行”启动它，以查看和更改这些设置。</value>
@@ -16227,6 +16272,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件。许多群发来源就藏在它后面。达到或超过删除阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件；softfail 永远不会被视为灰名单豁免的 pass。</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… 接续于 {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ 移动    Enter 打开    Esc 关闭</value>

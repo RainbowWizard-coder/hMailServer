@@ -1891,6 +1891,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Backup &amp; restore</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Backup and restore</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*</value>
   </data>
@@ -2514,6 +2517,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Cleared</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Clears the lines shown here. The log file is not changed.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>Client ID</value>
@@ -4351,6 +4357,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Errors</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Errors and warnings (severity 4)</value>
   </data>
@@ -4468,8 +4477,14 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Everything</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Everything ErrorManager reports</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Everything else</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Everything except debug (severity 6)</value>
@@ -5886,9 +5901,6 @@ The verified installer is handed to the update helper: the service stops, the ne
   <data name="Log folder" xml:space="preserve">
     <value>Log folder</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Log folder not found on this machine (live logs need a local server).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Log level (3 or above = full detail; 2 or lower = quieter)</value>
   </data>
@@ -6895,6 +6907,9 @@ Nothing already there is removed.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>No errors have been logged today: there is no {0} in {1}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page).</value>
   </data>
@@ -6951,9 +6966,6 @@ Nothing already there is removed.</value>
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>No listeners are configured.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>No log files in {0} yet. Enable logging in the server settings.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>No log folder could be read from hMailServer.INI on this machine.</value>
@@ -7219,11 +7231,17 @@ Nothing already there is removed.</value>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Nothing has been recorded yet. Every administrative change appears here.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Nothing here needs a decision: no mailbox is being skipped and none is being disabled.</value>
@@ -8042,6 +8060,15 @@ Nothing already there is removed.</value>
     <value>Pause the mail server?
 
 No new connections will be accepted and no mail will be delivered until it is resumed. The Windows service keeps running, so this Control Panel stays connected.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Paused at {0}: 1 new line of {1} is waiting.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Paused at {0}: no new lines in {1} yet.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Paused at {0}: {1} new lines of {2} are waiting.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password.</value>
@@ -9830,6 +9857,9 @@ Every folder is emptied first: mail that arrived since the backup is gone. It is
   <data name="Script _function" xml:space="preserve">
     <value>Script _function</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>Script events</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10827,9 +10857,6 @@ Restart it now?</value>
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Stream the server log in real time.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Streaming the server log in real time.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Streaming {0}</value>
@@ -11842,6 +11869,12 @@ could not be loaded. The message has probably been delivered and is no longer in
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>The log as it is written, filtered by protocol - the fastest way to see what happened to one message.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included.</value>
   </data>
@@ -12199,6 +12232,9 @@ This is the server's own resolver answering - the same one SMTP delivery uses, i
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>The server log as it is written, read from the log folder on this computer.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>The server no longer accepts new connections; the mail in progress is finishing.</value>
@@ -13758,11 +13794,11 @@ It will keep trying as you use the application.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Check this password against Windows (Active Directory, or a local Windows account)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Clear</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Clear the recovery address</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>_Clear view</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Compress destination files (zip)</value>
@@ -14040,6 +14076,9 @@ It will keep trying as you use the application.</value>
   <data name="_Local to local" xml:space="preserve">
     <value>_Local to local</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>_Log</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>_Logon name attribute</value>
   </data>
@@ -14126,6 +14165,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Open Anti-virus settings</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>_Open Logging</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Open report</value>
@@ -14742,6 +14784,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe could not be run: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings.</value>
@@ -16227,6 +16272,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… continued in {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ move    Enter open    Esc close</value>

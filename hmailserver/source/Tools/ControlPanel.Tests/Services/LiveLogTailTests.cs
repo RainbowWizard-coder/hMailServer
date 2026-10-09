@@ -230,6 +230,14 @@ namespace hMailServer.ControlPanel.Tests.Services
          string poll = WithheldRowTests.MemberText(code, "private void Poll()");
          Assert.True(poll != null, "LogsView.Poll is gone.");
 
+         // Poll reads, and Show_ puts what it read into the view - or, while the view
+         // is paused, among the lines waiting, which the subtitle counts (review
+         // finding F249) - so the two are read as one here.
+         string show = WithheldRowTests.MemberText(code, "private void Show_(IReadOnlyList<string> read)");
+         Assert.True(show != null, "LogsView.Show_ is gone.");
+         Assert.Contains("Show_(tail_.Read(stream));", poll);
+         poll += show;
+
          int read = poll.IndexOf("tail_.Read(stream)", StringComparison.Ordinal);
          int atEnd = poll.IndexOf("LiveLogTail.IsAtEnd(scroller.VerticalOffset, scroller.ScrollableHeight)", StringComparison.Ordinal);
          int add = poll.IndexOf("lines_.Add(", StringComparison.Ordinal);

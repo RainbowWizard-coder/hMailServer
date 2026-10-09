@@ -1906,6 +1906,9 @@
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Резервне копіювання та відновлення</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Резервне копіювання й відновлення</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Архіви резервних копій (HMBackup*.7z)|HMBackup*.7z|Усі файли (*.*)|*.*</value>
   </data>
@@ -2532,6 +2535,9 @@
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Очищено</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Очищає показані тут рядки. Файл журналу не змінюється.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>Ідентифікатор клієнта</value>
@@ -4390,6 +4396,9 @@
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Записи про помилки несуть ту важливість, яку зафіксував сам сервер: critical, error, warning або notice. Усе інше - informational, окрім TCP/IP та налагодження, які є debug.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Помилки</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Помилки та попередження (важливість 4)</value>
   </data>
@@ -4513,8 +4522,14 @@
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Усі, хто має скриньку в цьому домені, бачать це поряд з іменем, на сторінці «Каталог» у вебпошті, у полі «Кому» та в адресній книзі лише для читання, яку синхронізує телефон. Ніщо звідси не виходить за межі домену.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Усе</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Усе, про що повідомляє ErrorManager</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Усе інше</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Усе, крім налагодження (важливість 6)</value>
@@ -5940,9 +5955,6 @@
   <data name="Log folder" xml:space="preserve">
     <value>Папка журналів</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Папку журналів не знайдено на цьому комп’ютері (живим журналам потрібен локальний сервер).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Рівень журналу (3 і вище = повна деталізація; 2 і нижче = тихіше)</value>
   </data>
@@ -6958,6 +6970,9 @@
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Немає записів, тому цей список нікого не дозволяє й не блокує; власний список облікового запису та список його домену й далі діють.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>Сьогодні помилок не записано: у {1} немає файлу {0}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Подій для цієї адреси немає. Або з нею нічого не відбувалося, або трасування тоді було вимкнене – воно записує лише доки трасування повідомлень увімкнене (сторінка «Журналювання»).</value>
   </data>
@@ -7014,9 +7029,6 @@
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Слухачі не налаштовано.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>У {0} ще немає файлів журналів. Увімкніть журналювання в параметрах сервера.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>На цьому комп’ютері не вдалося прочитати папку журналів із hMailServer.INI.</value>
@@ -7291,11 +7303,17 @@
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Вхідну пошту ніщо не перевіряє. Жоден сканер не може працювати, а блокування вкладень вимкнено, тому заражене повідомлення доставляється до поштової скриньки точно таким, яким надійшло.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Сьогодні ще нічого не записано: у {1} ще немає файлу {0}. Можливо, журналювання вимкнено; рядки з'являться тут, щойно сервер їх запише.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Поки нічого не записано. Кожна адміністративна зміна з'являється тут.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Ще нічого не запускалося. Натисніть Запустити діагностику, і тут з'явиться результат кожної перевірки, а для невдалих - що з ними робити.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>У {0} в {1} ще нічого не записано. Рядки з'являться тут, щойно сервер їх запише.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Тут нічого не потребує рішення: жодну поштову скриньку не пропущено й жодну не вимикають.</value>
@@ -8120,6 +8138,15 @@
     <value>Призупинити поштовий сервер?
 
 Нові підключення не прийматимуться, а пошта не доставлятиметься, доки роботу не буде відновлено. Служба Windows працює далі, тому ця Панель керування залишається підключеною.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Призупинено о {0}. Нових рядків із {1} очікує: 1.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Призупинено о {0}: у {1} ще немає нових рядків.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Призупинено о {0}. Нових рядків із {2} очікує: {1}.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>Люди можуть зареєструвати ключ доступу (WebAuthn) і входити з ним до вебпошти й Control Deck. Нічого не змінюється, доки хтось його не зареєструє: до того часу вони входять із паролем.</value>
@@ -9938,6 +9965,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Script _function" xml:space="preserve">
     <value>_Функція скрипту</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>Події сценаріїв</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10940,9 +10970,6 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Показувати журнал сервера в реальному часі.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Журнал сервера показується в реальному часі.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>Показується {0}</value>
@@ -11988,6 +12015,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Журнал у міру запису, з фільтром за протоколом - найшвидший спосіб побачити, що сталося з одним повідомленням.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Починаючи з 6.3.6 файли журналів належать адміністраторам, тому ця панель керування не може їх читати. Закрийте її та запустіть через «Запуск від імені адміністратора», щоб побачити журнал у реальному часі.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>Папку журналів на цьому комп'ютері не знайдено. «Живі журнали» читають файли журналів там, де працює сервер: запустіть панель керування на тому комп'ютері, щоб їх побачити.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Типово адреса зворотної петлі та приватні мережі. Якщо очистити, ваша власна мережа оцінюватиметься як будь-яка інша, що суворий список дозволених відхилить — зокрема вебпошту й Control Deck.</value>
   </data>
@@ -12345,6 +12378,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>Сервер не зберігає історії: MetricsHistoryDays у hMailServer.ini дорівнює 0. Задайте кількість днів зберігання.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>Журнал сервера в міру запису, прочитаний із папки журналів на цьому комп'ютері.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>Сервер більше не приймає нових з'єднань; поточна пошта доставляється до кінця.</value>
@@ -13916,11 +13952,11 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Перевіряти цей пароль через Windows (Active Directory або локальний обліковий запис Windows)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Очистити</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Видалити адресу відновлення</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>_Очистити перегляд</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>_Стискати файли призначення (zip)</value>
@@ -14198,6 +14234,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Local to local" xml:space="preserve">
     <value>_Локальне → локальне</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>_Журнал</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>Атрибут _імені для входу</value>
   </data>
@@ -14284,6 +14323,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>_Відкрити «Параметри захисту від вірусів»</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>_Відкрити «Журналювання»</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>_Відкрити звіт</value>
@@ -14906,6 +14948,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>Не вдалося запустити hMailServer.exe: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>Починаючи з 6.3.6 hMailServer.ini і папка журналів належать адміністраторам, тому ця панель керування не може їх читати. Закрийте її та запустіть через «Запуск від імені адміністратора», щоб побачити журнал у реальному часі.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Не вдалося прочитати hMailServer.ini: {0} Починаючи з 6.3.6 файл належить адміністраторам. Закрийте панель керування та запустіть її через «Запуск від імені адміністратора», щоб побачити й змінити ці параметри.</value>
@@ -16595,6 +16640,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: домен каже, що клієнт, імовірно, не авторизований, і просить усе ж прийняти лист. За цим ховається багато масових розсилок. Бал на порозі видалення або вище відхиляє лист під час SMTP-діалогу, як це робить fail; softfail ніколи не вважається pass для обходу сірого списку.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… продовження в {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ перехід    Enter відкрити    Esc закрити</value>

@@ -1891,6 +1891,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Backup &amp; restore" xml:space="preserve">
     <value>Back-up en herstel</value>
   </data>
+  <data name="Backup and restore" xml:space="preserve">
+    <value>Back-up en herstel</value>
+  </data>
   <data name="Backup archives (HMBackup*.7z)|HMBackup*.7z|All files (*.*)|*.*" xml:space="preserve">
     <value>Back-uparchieven (HMBackup*.7z)|HMBackup*.7z|Alle bestanden (*.*)|*.*</value>
   </data>
@@ -2514,6 +2517,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Cleared" xml:space="preserve">
     <value>Gewist</value>
+  </data>
+  <data name="Clears the lines shown here. The log file is not changed." xml:space="preserve">
+    <value>Wist de regels die hier worden getoond. Het logbestand wordt niet gewijzigd.</value>
   </data>
   <data name="Client ID" xml:space="preserve">
     <value>Client-ID</value>
@@ -4351,6 +4357,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Error entries carry the severity the server itself recorded: critical, error, warning or notice. Everything else is informational, except TCP/IP and debug, which are debug." xml:space="preserve">
     <value>Foutregels dragen de ernst die de server zelf heeft vastgelegd: critical, error, warning of notice. Al het overige is informational, behalve TCP/IP en debug, die debug zijn.</value>
   </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Fouten</value>
+  </data>
   <data name="Errors and warnings (severity 4)" xml:space="preserve">
     <value>Fouten en waarschuwingen (ernst 4)</value>
   </data>
@@ -4468,8 +4477,14 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Everyone with a mailbox at this domain sees these beside the name, on the webmail's Directory page, in their To field and in the read-only address book a phone syncs. Nothing here crosses a domain." xml:space="preserve">
     <value>Iedereen met een postbus in dit domein ziet deze naast de naam, op de Adresboek-pagina van de webmail, in hun Aan-veld en in het alleen-lezen adresboek dat een telefoon synchroniseert. Niets hiervan gaat over een domeingrens.</value>
   </data>
+  <data name="Everything" xml:space="preserve">
+    <value>Alles</value>
+  </data>
   <data name="Everything ErrorManager reports" xml:space="preserve">
     <value>Alles wat ErrorManager meldt</value>
+  </data>
+  <data name="Everything else" xml:space="preserve">
+    <value>Al het overige</value>
   </data>
   <data name="Everything except debug (severity 6)" xml:space="preserve">
     <value>Alles behalve debug (ernst 6)</value>
@@ -5886,9 +5901,6 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   <data name="Log folder" xml:space="preserve">
     <value>Logmap</value>
   </data>
-  <data name="Log folder not found on this machine (live logs need a local server)." xml:space="preserve">
-    <value>Logmap niet gevonden op deze machine (live logboeken vereisen een lokale server).</value>
-  </data>
   <data name="Log level (3 or above = full detail; 2 or lower = quieter)" xml:space="preserve">
     <value>Logniveau (3 of hoger = volledig detail; 2 of lager = stiller)</value>
   </data>
@@ -6895,6 +6907,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="No entries, so this list allows and blocks nobody; an account's own list and its domain's still apply." xml:space="preserve">
     <value>Geen vermeldingen, dus deze lijst staat niemand toe en blokkeert niemand; de eigen lijst van een account en die van zijn domein gelden nog steeds.</value>
   </data>
+  <data name="No errors have been logged today: there is no {0} in {1}." xml:space="preserve">
+    <value>Er zijn vandaag geen fouten gelogd: er is geen bestand {0} in {1}.</value>
+  </data>
   <data name="No events for that address. Either nothing has happened to it, or the trace was switched off at the time - it records only while message tracing is on (Logging page)." xml:space="preserve">
     <value>Geen gebeurtenissen voor dat adres. Of er is niets mee gebeurd, of de tracering stond op dat moment uit – ze legt alleen vast zolang berichttracering aan staat (pagina Logboekregistratie).</value>
   </data>
@@ -6951,9 +6966,6 @@ Niets wat er al staat wordt verwijderd.</value>
   </data>
   <data name="No listeners are configured." xml:space="preserve">
     <value>Er zijn geen listeners geconfigureerd.</value>
-  </data>
-  <data name="No log files in {0} yet. Enable logging in the server settings." xml:space="preserve">
-    <value>Nog geen logbestanden in {0}. Schakel logboekregistratie in bij de serverinstellingen.</value>
   </data>
   <data name="No log folder could be read from hMailServer.INI on this machine." xml:space="preserve">
     <value>Er kon geen logmap worden gelezen uit hMailServer.INI op deze machine.</value>
@@ -7219,11 +7231,17 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Niets onderzoekt inkomende mail. Geen enkele scanner kan draaien en bijlageblokkering staat uit, dus een geïnfecteerd bericht wordt precies zo aan het postvak bezorgd als het binnenkwam.</value>
   </data>
+  <data name="Nothing has been logged today: there is no {0} in {1} yet. Logging may be switched off; its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Er is vandaag nog niets gelogd: er is nog geen bestand {0} in {1}. Logboekregistratie staat misschien uit; de regels verschijnen hier zodra de server ze schrijft.</value>
+  </data>
   <data name="Nothing has been recorded yet. Every administrative change appears here." xml:space="preserve">
     <value>Er is nog niets vastgelegd. Elke beheerwijziging verschijnt hier.</value>
   </data>
   <data name="Nothing has been run yet. Press Run diagnostics and the result of each check appears here, with what to do about any that fails." xml:space="preserve">
     <value>Er is nog niets uitgevoerd. Klik op Diagnose uitvoeren en het resultaat van elke controle verschijnt hier, met wat u moet doen bij een controle die mislukt.</value>
+  </data>
+  <data name="Nothing has been written to {0} in {1} yet. Its lines appear here as soon as the server writes them." xml:space="preserve">
+    <value>Er is nog niets naar {0} in {1} geschreven. De regels verschijnen hier zodra de server ze schrijft.</value>
   </data>
   <data name="Nothing here needs a decision: no mailbox is being skipped and none is being disabled." xml:space="preserve">
     <value>Hier hoeft niets te worden besloten: er wordt geen postvak overgeslagen en er wordt er geen uitgeschakeld.</value>
@@ -8042,6 +8060,15 @@ Niets wat er al staat wordt verwijderd.</value>
     <value>De mailserver pauzeren?
 
 Er worden geen nieuwe verbindingen geaccepteerd en er wordt geen mail bezorgd totdat hij wordt hervat. De Windows-service blijft draaien, dus dit Control Panel blijft verbonden.</value>
+  </data>
+  <data name="Paused at {0}: 1 new line of {1} is waiting." xml:space="preserve">
+    <value>Gepauzeerd om {0}: 1 nieuwe regel uit {1} wacht.</value>
+  </data>
+  <data name="Paused at {0}: no new lines in {1} yet." xml:space="preserve">
+    <value>Gepauzeerd om {0}: nog geen nieuwe regels in {1}.</value>
+  </data>
+  <data name="Paused at {0}: {1} new lines of {2} are waiting." xml:space="preserve">
+    <value>Gepauzeerd om {0}: {1} nieuwe regels uit {2} wachten.</value>
   </data>
   <data name="People may enrol a passkey (WebAuthn) and sign in with it, in the webmail and in the Control Deck. Nothing changes until somebody enrols one: until then they sign in with their password." xml:space="preserve">
     <value>Mensen kunnen een passkey (WebAuthn) registreren en zich daarmee aanmelden, in de webmail en in het Control Deck. Er verandert niets totdat iemand er een registreert: tot dan melden ze zich aan met hun wachtwoord.</value>
@@ -9830,6 +9857,9 @@ Elke map wordt eerst geleegd: post die sinds de back-up is binnengekomen, is weg
   <data name="Script _function" xml:space="preserve">
     <value>Script_functie</value>
   </data>
+  <data name="Script events" xml:space="preserve">
+    <value>Scriptgebeurtenissen</value>
+  </data>
   <data name="ScriptTimeout (60)" xml:space="preserve">
     <value>ScriptTimeout (60)</value>
   </data>
@@ -10827,9 +10857,6 @@ Nu opnieuw starten?</value>
   </data>
   <data name="Stream the server log in real time." xml:space="preserve">
     <value>Stream het serverlogboek in realtime.</value>
-  </data>
-  <data name="Streaming the server log in real time." xml:space="preserve">
-    <value>Het serverlogboek wordt in realtime gestreamd.</value>
   </data>
   <data name="Streaming {0}" xml:space="preserve">
     <value>{0} wordt gestreamd</value>
@@ -11842,6 +11869,12 @@ kon niet worden geladen. Het bericht is waarschijnlijk bezorgd en staat niet mee
   <data name="The log as it is written, filtered by protocol - the fastest way to see what happened to one message." xml:space="preserve">
     <value>Het logboek zoals het wordt geschreven, gefilterd op protocol - de snelste manier om te zien wat er met één bericht is gebeurd.</value>
   </data>
+  <data name="The log files belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>De logbestanden zijn vanaf 6.3.6 van de beheerders, dus dit Configuratiescherm mag ze niet lezen. Sluit het en start het met Als administrator uitvoeren om het live logboek te zien.</value>
+  </data>
+  <data name="The log folder was not found on this computer. Live logs read the log files where the server runs: start the Control Panel on that computer to see them." xml:space="preserve">
+    <value>De logmap is niet gevonden op deze computer. Live logboeken leest de logbestanden waar de server draait: start het Configuratiescherm op die computer om ze te zien.</value>
+  </data>
   <data name="The loopback address and the private networks by default. Emptying it has your own network judged like anybody else's, which a strict allow list will refuse - the webmail and the Control Deck included." xml:space="preserve">
     <value>Standaard het loopbackadres en de privénetwerken. Leegmaken laat uw eigen netwerk beoordelen als ieder ander, wat een strenge toegestaan-lijst zal weigeren - de webmail en het Control Deck inbegrepen.</value>
   </data>
@@ -12199,6 +12232,9 @@ Dit is de eigen resolver van de server die antwoordt - dezelfde die de SMTP-bezo
   </data>
   <data name="The server keeps no history: MetricsHistoryDays is 0 in hMailServer.ini. Set it to the days to keep." xml:space="preserve">
     <value>De server bewaart geen geschiedenis: MetricsHistoryDays is 0 in hMailServer.ini. Zet die op het aantal te bewaren dagen.</value>
+  </data>
+  <data name="The server log as it is written, read from the log folder on this computer." xml:space="preserve">
+    <value>Het serverlogboek zoals het wordt geschreven, gelezen uit de logmap op deze computer.</value>
   </data>
   <data name="The server no longer accepts new connections; the mail in progress is finishing." xml:space="preserve">
     <value>De server accepteert geen nieuwe verbindingen meer; de mail die onderweg is, wordt afgerond.</value>
@@ -13758,11 +13794,11 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Check this password against Windows (Active Directory, or a local Windows account)" xml:space="preserve">
     <value>_Dit wachtwoord controleren bij Windows (Active Directory of een lokaal Windows-account)</value>
   </data>
-  <data name="_Clear" xml:space="preserve">
-    <value>_Wissen</value>
-  </data>
   <data name="_Clear the recovery address" xml:space="preserve">
     <value>_Hersteladres wissen</value>
+  </data>
+  <data name="_Clear view" xml:space="preserve">
+    <value>Weergave _wissen</value>
   </data>
   <data name="_Compress destination files (zip)" xml:space="preserve">
     <value>Doelbestanden _comprimeren (zip)</value>
@@ -14040,6 +14076,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Local to local" xml:space="preserve">
     <value>_Lokaal naar lokaal</value>
   </data>
+  <data name="_Log" xml:space="preserve">
+    <value>_Logboek</value>
+  </data>
   <data name="_Logon name attribute" xml:space="preserve">
     <value>_Aanmeldnaamattribuut</value>
   </data>
@@ -14126,6 +14165,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Open Anti-virus settings" xml:space="preserve">
     <value>Antivirusinstellingen o_penen</value>
+  </data>
+  <data name="_Open Logging" xml:space="preserve">
+    <value>Logboekregistratie _openen</value>
   </data>
   <data name="_Open report" xml:space="preserve">
     <value>Rapport _openen</value>
@@ -14742,6 +14784,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="hMailServer.exe could not be run: {0}" xml:space="preserve">
     <value>hMailServer.exe kon niet worden uitgevoerd: {0}</value>
+  </data>
+  <data name="hMailServer.ini and the log folder belong to the administrators from 6.3.6, so this Control Panel may not read them. Close it and start it with Run as administrator to see the live log." xml:space="preserve">
+    <value>hMailServer.ini en de logmap zijn vanaf 6.3.6 van de beheerders, dus dit Configuratiescherm mag ze niet lezen. Sluit het en start het met Als administrator uitvoeren om het live logboek te zien.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kon niet worden gelezen: {0} Vanaf 6.3.6 is het bestand van de beheerders. Sluit het Configuratiescherm en start het met Als administrator uitvoeren om deze instellingen te zien en te wijzigen.</value>
@@ -16227,6 +16272,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
     <value>~all: het domein zegt dat de client waarschijnlijk niet gemachtigd is en vraagt het bericht toch te accepteren. Veel bulkverzenders schuilen erachter. Een score op of boven de verwijderdrempel weigert het bericht tijdens het SMTP-gesprek zoals een fail dat doet; een softfail is nooit een pass voor de greylisting-vrijstelling.</value>
+  </data>
+  <data name="… continued in {0}" xml:space="preserve">
+    <value>… gaat verder in {0}</value>
   </data>
   <data name="↑↓ move    Enter open    Esc close" xml:space="preserve">
     <value>↑↓ navigeren    Enter openen    Esc sluiten</value>
