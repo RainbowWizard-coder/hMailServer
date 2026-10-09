@@ -1015,8 +1015,9 @@ namespace hMailServer.ControlPanel.Views
       private void RenderRows_(DirectorySyncReport report)
       {
          // The sentence about what needs a person, written by Render_ just before,
-         // at the summary's level.
-         attentionText_.Level = summaryText_.Level;
+         // at the summary's level - but for a run that did not happen and changed
+         // nothing, whose "Nothing was changed." is reassurance, not a failure.
+         attentionText_.Level = !report.Succeeded && report.Rows.Count == 0 ? StatusLevel.Information : summaryText_.Level;
          attentionText_.Visibility = string.IsNullOrEmpty(attentionText_.Text) ? Visibility.Collapsed : Visibility.Visible;
 
          // The rows that cost something first. Four hundred lines of equal weight is a

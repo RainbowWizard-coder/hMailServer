@@ -992,7 +992,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   differed only by bold text.** A run was Information whenever it completed, so "1 of 4 changes could not be carried
   out" was a grey caption under an Information notice. The run's summary is now at the level of its outcome - Good
   for an apply with nothing failed, Warning for one with changes that failed and for a preview with rows to read,
-  Critical for a run that did not happen - and the sentence about what needs a person is a notice at the same level.
+  Critical for a run that did not happen - and the sentence about what needs a person is a notice at the same level,
+  or Information where a run that did not happen changed nothing.
   Each row carries its outcome's mark and word before the address: *Change failed* (Critical), *Entry skipped* and
   *To mark inactive* or *Marked inactive* (Warning), *To create*, *Mailbox created*, *To update* or *Mailbox updated*
   (Good), *Unchanged* (Normal), *Not in the directory* (Information), and *Not reported* where an older server does

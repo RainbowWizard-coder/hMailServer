@@ -26,7 +26,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = Source();
          Assert.Contains("Summary_(report.SummaryLevel(applied), report.Summary);", code, StringComparison.Ordinal);
          Assert.Contains("private readonly InlineNotice attentionText_", code, StringComparison.Ordinal);
-         Assert.Contains("attentionText_.Level = summaryText_.Level;", code, StringComparison.Ordinal);
+         Assert.Contains("attentionText_.Level = !report.Succeeded && report.Rows.Count == 0 ? StatusLevel.Information : summaryText_.Level;", code, StringComparison.Ordinal);
          Assert.DoesNotContain("attentionText_.SetResourceReference(StyleProperty, \"TextCaption\")", code, StringComparison.Ordinal);
       }
 
