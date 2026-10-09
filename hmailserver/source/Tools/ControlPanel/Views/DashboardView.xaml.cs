@@ -433,9 +433,13 @@ namespace hMailServer.ControlPanel.Views
             return;
          }
 
-         ShapeMarkVisuals.ApplyMark(KpiQueueShape, status.Shape, status.BrushKey);
+         // The badge's word and its mark in the level's fill-text shade, as every
+         // status word on a card is: the status colours are measured against the
+         // page and lose contrast on a card. The number above keeps the status
+         // colour - at 28 pixels it is large text, whose floor is 3:1.
+         ShapeMarkVisuals.ApplyMark(KpiQueueShape, status.Shape, status.FillTextBrushKey);
          KpiQueueBadgeText.Text = L("Backlog");
-         KpiQueueBadgeText.SetResourceReference(TextBlock.ForegroundProperty, status.BrushKey);
+         KpiQueueBadgeText.SetResourceReference(TextBlock.ForegroundProperty, status.FillTextBrushKey);
          KpiQueueBadge.Visibility = Visibility.Visible;
          KpiQueueBadge.ToolTip = F("More than {0} messages are waiting to be delivered.", StatusSemantics.QueueBacklogThreshold.ToString("N0"));
 

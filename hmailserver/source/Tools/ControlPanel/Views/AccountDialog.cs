@@ -1147,12 +1147,14 @@ namespace hMailServer.ControlPanel.Views
          // By key, never by a held brush: a resolved brush keeps the colour of
          // the theme it was resolved under, and this line outlives a theme
          // switch. The verdict is in the words too - the colour only repeats it.
+         // The level's fill-text shade, as every status word on a surface: the
+         // light warning colour measured 4.4:1 on the dialog.
          string key = level switch
          {
             PasswordStrength.Level.Empty => "TextFillColorSecondaryBrush",
-            PasswordStrength.Level.Strong => StatusSemantics.For(StatusLevel.Good).BrushKey,
-            PasswordStrength.Level.Fair => StatusSemantics.For(StatusLevel.Warning).BrushKey,
-            _ => StatusSemantics.For(StatusLevel.Critical).BrushKey,
+            PasswordStrength.Level.Strong => StatusSemantics.For(StatusLevel.Good).FillTextBrushKey,
+            PasswordStrength.Level.Fair => StatusSemantics.For(StatusLevel.Warning).FillTextBrushKey,
+            _ => StatusSemantics.For(StatusLevel.Critical).FillTextBrushKey,
          };
          pwStrength_.SetResourceReference(TextBlock.ForegroundProperty, key);
       }

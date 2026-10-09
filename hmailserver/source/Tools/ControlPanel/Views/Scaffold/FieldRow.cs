@@ -92,8 +92,12 @@ namespace hMailServer.ControlPanel.Views.Scaffold
       {
          base.OnApplyTemplate();
 
+         // The mark in the shade of the message beside it (Scaffold.xaml): the
+         // critical level's fill-text shade, which a message on a card needs -
+         // the dark theme's danger colour measured 4.1:1 there.
+         StatusPresentation critical = StatusSemantics.For(StatusLevel.Critical);
          if (Part<Path>("PART_ErrorMark") is { } mark)
-            ShapeMarkVisuals.ApplyMark(mark, StatusSemantics.For(StatusLevel.Critical).Shape, "AppDangerBrush");
+            ShapeMarkVisuals.ApplyMark(mark, critical.Shape, critical.FillTextBrushKey);
 
          Apply_();
       }

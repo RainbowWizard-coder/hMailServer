@@ -440,5 +440,52 @@ namespace hMailServer.ControlPanel.Services
                return new SurfaceArgb(0x0FFFFFFF, 0x14FFFFFF, 0x15FFFFFF, 0x14FFFFFF);
          }
       }
+
+      /// <summary>
+      /// The live log's colour for each kind of line, as 0xAARRGGBB: a line that
+      /// is none of the others, SMTP, IMAP, POP3, the server's own application
+      /// lines, and errors. Not design tokens - the log viewer's own palette - but
+      /// held here with them so that a test can measure them: every one clears
+      /// 4.5:1 on the card the log sits on and on a line under the pointer. The
+      /// dark values were measured against #1B1B1B only, and on the dark card
+      /// (#2D2D2D) the error and IMAP lines were 4.1:1 and the application's
+      /// 4.3:1; the light theme's application and POP3 lines were 4.3 and 4.5:1
+      /// on a hovered line. Under High Contrast each is a system colour.
+      /// </summary>
+      public readonly struct LogArgb
+      {
+         public LogArgb(uint other, uint smtp, uint imap, uint pop3, uint application, uint error)
+         {
+            Other = other;
+            Smtp = smtp;
+            Imap = imap;
+            Pop3 = pop3;
+            Application = application;
+            Error = error;
+         }
+
+         public uint Other { get; }
+         public uint Smtp { get; }
+         public uint Imap { get; }
+         public uint Pop3 { get; }
+         public uint Application { get; }
+         public uint Error { get; }
+      }
+
+      /// <summary>The live log's colours for a theme (<see cref="LogArgb"/>).</summary>
+      public static LogArgb Log(ChartTheme theme, ChartSystemColors system)
+      {
+         switch (theme)
+         {
+            case ChartTheme.HighContrast:
+               return new LogArgb(system.GrayText, system.WindowText, system.WindowText, system.WindowText, system.Highlight, system.HotTrack);
+
+            case ChartTheme.Light:
+               return new LogArgb(0xFF57606A, 0xFF1A7F37, 0xFF6639BA, 0xFF8A5C00, 0xFF1F62D0, 0xFFCF222E);
+
+            default:
+               return new LogArgb(0xFF9DA7B0, 0xFF3FB950, 0xFFBC8CFF, 0xFFD29922, 0xFF58A6FF, 0xFFFF7B72);
+         }
+      }
    }
 }

@@ -16,7 +16,12 @@ namespace hMailServer.ControlPanel.Services
    /// typical vision. The status shape and word carry the meaning regardless
    /// (<see cref="StatusSemantics"/>), but the colour is what a glance reads.
    /// The light set clears 4.5:1 against a white surface; the dark set against
-   /// #1B1B1B.
+   /// #1B1B1B, but not against the dark card (#2D2D2D), where the danger red
+   /// measures 4.1:1, nor on a hovered or selected row (3.5:1). So the status
+   /// colours are for marks - shapes, glyphs, a chart's series, a notice's
+   /// tint and outline - and a status word or sentence on a surface is drawn in
+   /// its level's fill-text shade (<see cref="DesignTokens.StatusFill"/>), which
+   /// clears 4.5:1 on every surface in both themes.
    /// </summary>
    public static class StatusPalette
    {

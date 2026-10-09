@@ -127,7 +127,7 @@ namespace hMailServer.ControlPanel.Views
          {
             status_.Text = text;
             status_.Visibility = Visibility.Visible;
-            status_.SetResourceReference(TextBlock.ForegroundProperty, ok ? "AppSuccessBrush" : "AppDangerBrush");
+            status_.SetResourceReference(TextBlock.ForegroundProperty, ok ? "AppSuccessFillTextBrush" : "AppDangerFillTextBrush");
             Announce.Request(status_);
          }
 

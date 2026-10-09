@@ -289,7 +289,10 @@ namespace hMailServer.ControlPanel.Views
       /// this application uses, so none of them is load-bearing on its own.
       /// Built in code because the brush must be a resource REFERENCE
       /// (ThemeTokens republishes the status brushes on every theme change; a
-      /// bound brush would keep the old colour).
+      /// bound brush would keep the old colour). The mark and the word take the
+      /// level's fill-text shade, not its status colour: the word sits on the
+      /// card, or on a hovered or selected row, where the dark theme's danger
+      /// and information colours measured 4.1:1 and 3.5:1.
       /// </summary>
       private static FrameworkElement Badge(CertificateFinding finding)
       {
@@ -300,12 +303,12 @@ namespace hMailServer.ControlPanel.Views
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
          var mark = new Path { Width = 11, Height = 11, Stretch = Stretch.Fill, Margin = new Thickness(0, 3, 6, 0), VerticalAlignment = VerticalAlignment.Top };
-         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.BrushKey);
+         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.FillTextBrushKey);
          row.Children.Add(mark);
 
          var text = new TextBlock { FontSize = Typography.Label, TextWrapping = TextWrapping.Wrap };
          var word = new Run(finding.Word) { FontWeight = FontWeights.SemiBold };
-         word.SetResourceReference(TextElement.ForegroundProperty, presentation.BrushKey);
+         word.SetResourceReference(TextElement.ForegroundProperty, presentation.FillTextBrushKey);
          text.Inlines.Add(word);
 
          // The cell is compact; the full sentence is in the details pane below
@@ -330,13 +333,13 @@ namespace hMailServer.ControlPanel.Views
          row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
          var mark = new Path { Width = 11, Height = 11, Stretch = Stretch.Fill, Margin = new Thickness(0, 4, 8, 0), VerticalAlignment = VerticalAlignment.Top };
-         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.BrushKey);
+         ShapeMarkVisuals.ApplyMark(mark, presentation.Shape, presentation.FillTextBrushKey);
          row.Children.Add(mark);
 
          var text = new TextBlock { FontSize = Typography.Label, TextWrapping = TextWrapping.Wrap };
          text.Inlines.Add(new Run(caption + ": ") { FontWeight = FontWeights.SemiBold });
          var word = new Run(finding.Word + " — ") { FontWeight = FontWeights.SemiBold };
-         word.SetResourceReference(TextElement.ForegroundProperty, presentation.BrushKey);
+         word.SetResourceReference(TextElement.ForegroundProperty, presentation.FillTextBrushKey);
          text.Inlines.Add(word);
          text.Inlines.Add(new Run(finding.Detail));
 

@@ -1151,7 +1151,7 @@ namespace hMailServer.ControlPanel.Views
             result_.Text = text;
             result_.Visibility = Visibility.Visible;
             result_.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty,
-               ok ? "AppSuccessBrush" : "AppDangerBrush");
+               ok ? "AppSuccessFillTextBrush" : "AppDangerFillTextBrush");
             Announce.Request(result_);
          }
 

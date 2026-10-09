@@ -185,8 +185,6 @@ namespace hMailServer.ControlPanel.Services
       /// <summary>Recomputes every token colour for the current theme.</summary>
       public static void Refresh()
       {
-         Color logDefault, logSmtp, logImap, logPop3, logApp, logError;
-
          // Snapshot what the charts need before we start branching, so there is
          // exactly one decision about which theme is in force.
          CurrentSystemColors = ReadSystemColors();
@@ -194,13 +192,16 @@ namespace hMailServer.ControlPanel.Services
             ? ChartTheme.HighContrast
             : IsLight() ? ChartTheme.Light : ChartTheme.Dark;
 
-         // The status palette and the surfaces come from DesignTokens - the one
-         // WPF-free table, held by a test - for the theme decided above. The
-         // log-severity palette stays here: it is the log viewer's own, not a
-         // design token. Under High Contrast both take every colour from the
-         // system palette that ReadSystemColors just snapshotted.
+         // The status palette, the surfaces and the live log's palette come from
+         // DesignTokens - the one WPF-free table, held by a test - for the theme
+         // decided above. The log's palette is the log viewer's own, not a design
+         // token, but it is measured there with the rest: its dark values were
+         // once chosen against #1B1B1B and failed 4.5:1 on the card the log sits
+         // on. Under High Contrast every one is a colour of the system palette
+         // that ReadSystemColors just snapshotted.
          DesignTokens.StatusArgb status = DesignTokens.Status(CurrentChartTheme, CurrentSystemColors);
          DesignTokens.SurfaceArgb surfaces = DesignTokens.Surfaces(CurrentChartTheme, CurrentSystemColors);
+         DesignTokens.LogArgb log = DesignTokens.Log(CurrentChartTheme, CurrentSystemColors);
 
          Color brand = FromArgb(status.Brand);
          Color success = FromArgb(status.Success);
@@ -209,33 +210,12 @@ namespace hMailServer.ControlPanel.Services
          Color info = FromArgb(status.Info);
          Color neutral = FromArgb(status.Neutral);
 
-         if (IsHighContrast)
-         {
-            logApp = SystemColors.HighlightColor;
-            logDefault = SystemColors.GrayTextColor;
-            logSmtp = logImap = logPop3 = SystemColors.WindowTextColor;
-            logError = SystemColors.HotTrackColor;
-         }
-         else if (IsLight())
-         {
-            // Darker, saturated values: each clears 4.5:1 on a white surface.
-            logDefault = Hex("#57606A");
-            logSmtp = Hex("#1A7F37");
-            logImap = Hex("#6639BA");
-            logPop3 = Hex("#9A6700");
-            logApp = Hex("#2F6FE0");
-            logError = Hex("#CF222E");
-         }
-         else
-         {
-            // Lighter, brighter values for dark surfaces.
-            logDefault = Hex("#9DA7B0");
-            logSmtp = Hex("#3FB950");
-            logImap = Hex("#A371F7");
-            logPop3 = Hex("#D29922");
-            logApp = Hex("#4C8DFF");
-            logError = Hex("#F85149");
-         }
+         Color logDefault = FromArgb(log.Other);
+         Color logSmtp = FromArgb(log.Smtp);
+         Color logImap = FromArgb(log.Imap);
+         Color logPop3 = FromArgb(log.Pop3);
+         Color logApp = FromArgb(log.Application);
+         Color logError = FromArgb(log.Error);
 
          // Channel 1: mutate the shared, never-frozen instances in place.
          Set(Brand, brand);
@@ -430,7 +410,5 @@ namespace hMailServer.ControlPanel.Services
             return;
          Application.Current.Resources[key] = value;
       }
-
-      private static Color Hex(string hex) => (Color)ColorConverter.ConvertFromString(hex);
    }
 }

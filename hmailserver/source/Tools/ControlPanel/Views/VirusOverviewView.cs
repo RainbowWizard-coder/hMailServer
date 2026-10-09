@@ -454,8 +454,11 @@ namespace hMailServer.ControlPanel.Views
          var detail = new TextBlock { Text = scanner.Problem ?? scanner.Detail, TextWrapping = TextWrapping.Wrap };
          detail.SetResourceReference(StyleProperty, "TextCaption");
 
+         // The problem in the critical level's fill-text shade: the danger
+         // colour itself is a mark's, and as words on the dark card it
+         // measured 4.1:1.
          if (scanner.Problem != null)
-            detail.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
+            detail.SetResourceReference(TextBlock.ForegroundProperty, StatusSemantics.For(StatusLevel.Critical).FillTextBrushKey);
 
          text.Children.Add(detail);
          Grid.SetRow(text, row);
