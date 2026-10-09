@@ -85,7 +85,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // not always counted once the grid scrolls sideways, and at 64 the
          // smallest window read "ステー…".
          string fitted = WithheldRowTests.MemberText(Source(), "private static DataGridTextColumn Fitted_(string header, string path, double minWidth)");
-         Assert.True(fitted != null && fitted.Contains("Width = DataGridLength.Auto, MinWidth = minWidth", StringComparison.Ordinal), "A fitted column has no floor.");
+         Assert.True(fitted != null && fitted.Contains("Width = DataGridLength.Auto, MinWidth = Floor_(header, minWidth)", StringComparison.Ordinal), "A fitted column has no floor.");
       }
 
       [Fact]
@@ -106,7 +106,52 @@ namespace hMailServer.ControlPanel.Tests.Services
          // A fixed column's width is its floor too, so a narrow window scrolls
          // the grid sideways rather than squeezing the dates.
          string text = WithheldRowTests.MemberText(code, "private static DataGridTextColumn Text_(string header, string path, DataGridLength width)");
-         Assert.True(text != null && text.Contains("MinWidth = width.IsAbsolute ? width.Value : 0", StringComparison.Ordinal), "A fixed column can be squeezed below its width.");
+         Assert.True(text != null && text.Contains("double floor = Floor_(header, width.IsAbsolute ? width.Value : 0);", StringComparison.Ordinal) && text.Contains("MinWidth = floor", StringComparison.Ordinal), "A fixed column can be squeezed below its width.");
+      }
+
+      /// <summary>
+      /// No column of either grid is narrower than its own header, measured in the
+      /// header's font: an Auto column's header is not always counted once the grid
+      /// is narrower than its columns and scrolls sideways, and a fixed column's is
+      /// cut wherever a translation is wider than the column, so in the smallest
+      /// window the counts read "メール…" for メールボックス満杯 (Mailbox full) over
+      /// their 64-pixel floor and "最後のステ…" for 最後のステータス (Last status)
+      /// in its 90-pixel column.
+      /// </summary>
+      [Fact]
+      public void NoColumn_IsNarrowerThanItsHeader()
+      {
+         string code = Source();
+         Assert.Contains("private static double Floor_(string header, double floor) => Math.Max(floor, GridStyles.HeaderWidth(header));", code, StringComparison.Ordinal);
+         foreach (string member in new[]
+         {
+            "private static DataGridTextColumn Text_(string header, string path, DataGridLength width)",
+            "private static DataGridTextColumn Trimmed_(string header, string path, DataGridLength width, double minWidth)",
+            "private static DataGridTextColumn Fitted_(string header, string path, double minWidth)",
+         })
+         {
+            string text = WithheldRowTests.MemberText(code, member);
+            Assert.True(text != null && text.Contains("Floor_(header, ", StringComparison.Ordinal), member + " does not floor its column at its header's width.");
+         }
+      }
+
+      /// <summary>
+      /// A header's width is its words in the header's font - the application's
+      /// DataGridColumnHeader style's size and weight, 12 pixels semibold, in the
+      /// window's family - and the style's padding. GridStyles is WPF and is not
+      /// compiled into the tests, so the measure is held by its text.
+      /// </summary>
+      [Fact]
+      public void AHeadersWidth_IsItsWordsInTheHeaderFont_AndThePadding()
+      {
+         string width = WithheldRowTests.MemberText(ReadControlPanelFile(Path.Join("Services", "GridStyles.cs")), "public static double HeaderWidth(string header)");
+         Assert.True(width != null, "GridStyles.HeaderWidth is gone, so no column can be floored at its header.");
+         Assert.Contains("TryFindResource(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader))", width, StringComparison.Ordinal);
+         Assert.Contains("Setting(style, Control.FontSizeProperty, 12.0)", width, StringComparison.Ordinal);
+         Assert.Contains("Setting(style, Control.FontWeightProperty, FontWeights.SemiBold)", width, StringComparison.Ordinal);
+         Assert.Contains("Setting(style, Control.PaddingProperty, new Thickness(10, 8, 10, 8))", width, StringComparison.Ordinal);
+         Assert.Contains("new FormattedText(header, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,", width, StringComparison.Ordinal);
+         Assert.Contains("Math.Ceiling(words.WidthIncludingTrailingWhitespace) + padding.Left + padding.Right", width, StringComparison.Ordinal);
       }
 
       private static string Build() => WithheldRowTests.MemberText(Source(), "private void Build()");

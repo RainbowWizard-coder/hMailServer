@@ -2,8 +2,11 @@
 // Copyright (c) 2026 Christopher Holloway / Progressive Robot Ltd
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace hMailServer.ControlPanel.Services
 {
@@ -38,6 +41,47 @@ namespace hMailServer.ControlPanel.Services
          style.Triggers.Add(empty);
          column.ElementStyle = style;
          return column;
+      }
+
+      /// <summary>
+      /// The width a column header's words take in the header's font - 12 pixels
+      /// semibold in the window's family, read off the application's header style
+      /// where there is one - with the header's padding, so that a column can be
+      /// floored at it. An Auto column's header is not always counted once the
+      /// grid is narrower than its columns and scrolls sideways, and a fixed
+      /// column's header is cut wherever a translation is wider than the column:
+      /// the Suppression list's bounce counts read "メール…" for メールボックス満杯
+      /// (Mailbox full) over a 64-pixel floor and "最後のステ…" for 最後のステータス
+      /// (Last status) in a 90-pixel column, in the smallest window.
+      /// </summary>
+      public static double HeaderWidth(string header)
+      {
+         if (string.IsNullOrEmpty(header))
+            return 0;
+
+         Style style = Application.Current?.TryFindResource(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader)) as Style;
+         double size = Setting(style, Control.FontSizeProperty, 12.0);
+         FontWeight weight = Setting(style, Control.FontWeightProperty, FontWeights.SemiBold);
+         Thickness padding = Setting(style, Control.PaddingProperty, new Thickness(10, 8, 10, 8));
+         FontFamily family = Application.Current?.MainWindow?.FontFamily ?? new FontFamily("Segoe UI Variable Text, Segoe UI"); // no-loc
+         var words = new FormattedText(header, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+            new Typeface(family, FontStyles.Normal, weight, FontStretches.Normal), size, Brushes.Black, 1.0);
+         return Math.Ceiling(words.WidthIncludingTrailingWhitespace) + padding.Left + padding.Right;
+      }
+
+      /// <summary>A style's own value of a property, or the nearest base style's, or the fallback.</summary>
+      private static T Setting<T>(Style style, DependencyProperty property, T fallback)
+      {
+         for (Style s = style; s != null; s = s.BasedOn)
+         {
+            foreach (SetterBase setter in s.Setters)
+            {
+               if (setter is Setter set && set.Property == property && set.Value is T value)
+                  return value;
+            }
+         }
+
+         return fallback;
       }
 
       /// <summary>Right-aligns a number column's cells and its header.</summary>

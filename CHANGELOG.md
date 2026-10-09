@@ -763,7 +763,10 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   trimmed too, Status is 84 or its header's width (84 holds ステータス, which a floor of 64 cut to "ステー…" in the
   smallest window, where the header is not always counted once the grid scrolls sideways), the six counts 64 or
   theirs, Since, Expires and the dates 150 and Listed 70 - so a narrow window scrolls a grid sideways rather than
-  squeezing a column out.
+  squeezing a column out. No column of either grid is narrower than its own header, measured in the header's
+  font, so that the counts' *Mailbox full* and *Last status* are whole in Japanese (メールボックス満杯 and
+  最後のステータス), where a count's floor of 64 and Last status's 90 cut them to "メール…" and "最後のステ…" in
+  the smallest window.
 - **Fixed: the Control Panel's distribution lists card cut every address to about ten characters beside two
   10-pixel word buttons.** Properties and Members were words at 10 pixels, the only text in the Control Panel below
   the 12-pixel caption size, and with the trash button took most of a half-width card from the address, the row's

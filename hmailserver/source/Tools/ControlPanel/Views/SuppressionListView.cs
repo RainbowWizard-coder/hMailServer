@@ -482,6 +482,9 @@ namespace hMailServer.ControlPanel.Views
       // holds its widest header, ステータス, on its own: an Auto column's header is
       // not always counted once the grid is narrower than its columns and scrolls
       // sideways, and floored at 64 the column read "ステー…" in the smallest window.
+      // The same cut the counts' Mailbox full to "メール…" over its 64, and Last
+      // status, fixed at 90, to "最後のステ…": no column of either grid is narrower
+      // than its own header now, measured in the header's font (Floor_).
       private void BuildColumns_()
       {
          entries_.Columns.Add(Trimmed_(L("Address"), nameof(EntryView.Address), new DataGridLength(1, DataGridLengthUnitType.Star), 200));
@@ -515,16 +518,23 @@ namespace hMailServer.ControlPanel.Views
          counts_.Columns.Add(Text_(L("Listed"), nameof(CountView.Listed), new DataGridLength(70)));
       }
 
+      /// <summary>A column of so many pixels, or its header's width where that is more, which is its floor; a star column keeps its star.</summary>
       private static DataGridTextColumn Text_(string header, string path, DataGridLength width)
-         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width, MinWidth = width.IsAbsolute ? width.Value : 0 };
+      {
+         double floor = Floor_(header, width.IsAbsolute ? width.Value : 0);
+         return new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width.IsAbsolute ? new DataGridLength(floor) : width, MinWidth = floor };
+      }
 
       /// <summary>A column of names: a star's share of the width over a floor, each cut short with an ellipsis and whole in its tool tip.</summary>
       private static DataGridTextColumn Trimmed_(string header, string path, DataGridLength width, double minWidth)
-         => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width, MinWidth = minWidth });
+         => GridStyles.Trimmed(new DataGridTextColumn { Header = header, Binding = new System.Windows.Data.Binding(path), Width = width, MinWidth = Floor_(header, minWidth) });
 
-      /// <summary>A column of short codes: so many pixels, or its header's width where that is more. The header's width is not counted every time the grid scrolls sideways, so a header that must be whole in the smallest window is held by the floor.</summary>
+      /// <summary>A column of short codes: its cells' width over a floor of so many pixels, or its header's width where that is more.</summary>
       private static DataGridTextColumn Fitted_(string header, string path, double minWidth)
-         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = DataGridLength.Auto, MinWidth = minWidth };
+         => new() { Header = header, Binding = new System.Windows.Data.Binding(path), Width = DataGridLength.Auto, MinWidth = Floor_(header, minWidth) };
+
+      /// <summary>A column's floor: so many pixels, or its header's width where that is more, so that no header of either grid is cut in any language - an Auto column's header is not always counted once the grid scrolls sideways.</summary>
+      private static double Floor_(string header, double floor) => Math.Max(floor, GridStyles.HeaderWidth(header));
 
       /// <summary>A column of counts: 64 pixels, or its header's width where that is more, the digits and the header right-aligned.</summary>
       private static DataGridTextColumn Number_(string header, string path)
