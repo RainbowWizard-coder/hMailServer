@@ -3030,9 +3030,6 @@ Control Panel может читать файлы сообщений только
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Не удалось сохранить маршрут: {0}</value>
   </data>
-  <data name="Could not save: " xml:space="preserve">
-    <value>Не удалось сохранить: </value>
-  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Не удалось сохранить: {0}</value>
   </data>
@@ -9357,6 +9354,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Сохранено: {0} — чтобы изменения применились, перезапустите службу.</value>
   </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
+    <value>Сохранено: {0} — выбор сервер подхватит в течение двух секунд; перезапуск службы не нужен.</value>
+  </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Сохранено: {0} — выбор сервер подхватит в течение двух секунд; новое расписание вступит в силу после перезапуска службы.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Сохранено: {0} — сервер подхватит это в течение двух секунд. Перезапуск службы не нужен.</value>
   </data>
@@ -9431,9 +9434,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>Сохранено. Сервер продолжает прослушивать порты по-прежнему, пока его службы не будут повторно инициализированы — остановлены и запущены заново на месте, из-за чего подключённые клиенты на мгновение отключатся. Выполнить повторную инициализацию сервера сейчас?</value>
-  </data>
-  <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
-    <value>Сохранено. Выбор сервер подхватит в течение двух секунд; изменение расписания требует перезапуска службы.</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Сохранено. Действующее значение показано рядом с каждым параметром.</value>
@@ -14181,9 +14181,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>Не удалось прочитать hMailServer.ini, поэтому этот выбор не показан и не может быть изменён здесь. «Предварительный просмотр» и «Применить» по-прежнему работают: они выполняются внутри сервера.</value>
-  </data>
-  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
-    <value>Не удалось прочитать hMailServer.ini, поэтому эти параметры не показаны и не могут быть изменены здесь.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Не удалось прочитать hMailServer.ini: {0} Начиная с 6.3.6 файл принадлежит администраторам. Закройте панель управления и запустите её через «Запуск от имени администратора», чтобы увидеть и изменить эти параметры.</value>

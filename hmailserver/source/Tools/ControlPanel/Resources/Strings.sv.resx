@@ -3012,9 +3012,6 @@ Starta om Kontrollpanelen nu? Välj Nej för att försöka fortsätta arbeta.</v
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Kunde inte spara rutten: {0}</value>
   </data>
-  <data name="Could not save: " xml:space="preserve">
-    <value>Kunde inte spara: </value>
-  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Kunde inte spara: {0}</value>
   </data>
@@ -9273,6 +9270,12 @@ Fortsätt?</value>
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Sparat {0} - starta om tjänsten för att tillämpa.</value>
   </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
+    <value>Sparat {0} - servern plockar upp valet inom två sekunder; ingen omstart av tjänsten behövs.</value>
+  </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Sparat {0} - servern plockar upp valet inom två sekunder; det nya schemat gäller när tjänsten startas om.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Sparat {0} - servern plockar upp detta inom två sekunder. Ingen omstart av tjänsten behövs.</value>
   </data>
@@ -9326,9 +9329,6 @@ Fortsätt?</value>
   </data>
   <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>Sparat. Servern fortsätter att lyssna som tidigare tills dess tjänster ominitieras - stoppas och startas igen på plats, vilket kopplar från anslutna klienter en kort stund. Ominitiera servern nu?</value>
-  </data>
-  <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
-    <value>Sparat. Servern plockar upp valet inom två sekunder; en ändring av schemat kräver en omstart av tjänsten.</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Sparat. Det som gäller visas bredvid varje inställning.</value>
@@ -14017,9 +14017,6 @@ Inget meddelande tas bort och inget konto avlägsnas. Fortsätt?</value>
   </data>
   <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>hMailServer.ini kunde inte läsas, så de här valen visas inte och kan inte redigeras här. Förhandsgranska och Tillämpa fungerar ändå: de körs inne i servern.</value>
-  </data>
-  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
-    <value>hMailServer.ini kunde inte läsas, så de här inställningarna visas inte och kan inte redigeras här.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>hMailServer.ini kunde inte läsas: {0} Från 6.3.6 tillhör filen administratörerna. Stäng kontrollpanelen och starta den med Kör som administratör för att se och ändra de här inställningarna.</value>

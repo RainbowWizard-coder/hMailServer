@@ -88,6 +88,54 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("ServerSettingsPageStatus.AfterSave(failed, waiting, waitingForRestart)", save, StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The two directory pages had Reload and Save changes in a footer under the
+      /// scroller, the result beside them in grey caption text, and no pill; a failed
+      /// save was a message box on one and grey text on the other (review finding
+      /// F119). Both now put the actions and the pill in the page header and say where
+      /// they stand by the model the other settings pages keep.
+      /// </summary>
+      [Theory]
+      [InlineData("Views/LdapSettingsView.cs")]
+      [InlineData("Views/DirectorySyncView.cs")]
+      public void TheDirectoryPages_KeepTheirActionsAndStateInTheHeader(string file)
+      {
+         string code = ReadControlPanelFile(file);
+
+         Assert.DoesNotContain("footerStatus_", code, StringComparison.Ordinal);
+         Assert.DoesNotContain("BuildFooter_", code, StringComparison.Ordinal);
+         Assert.Contains("Status = statePill_", code, StringComparison.Ordinal);
+         Assert.Contains("Actions = BuildActions_()", code, StringComparison.Ordinal);
+         Assert.Contains("new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges)", code, StringComparison.Ordinal);
+
+         string load = WithheldRowTests.MemberText(code, "private void Load_()");
+         Assert.True(load != null && load.Contains("saveState_.Settle(", StringComparison.Ordinal), file + ".Load_ does not settle the pill.");
+
+         string save = WithheldRowTests.MemberText(code, "private bool Save_()");
+         Assert.True(save != null, file + ".Save_ is gone.");
+         Assert.Contains("saveState_.Refuse(F(\"Could not save: {0}\"", save, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Settle(SettingsPageState.Saved", save, StringComparison.Ordinal);
+         Assert.DoesNotContain("MessageBox.Show(F(\"Could not save", save, StringComparison.Ordinal);
+      }
+
+      [Fact]
+      public void DirectorySynchronisation_SaysWhenItCouldNotWrite_AndWhenTheScheduleWaits()
+      {
+         string code = ReadControlPanelFile("Views/DirectorySyncView.cs");
+         string save = WithheldRowTests.MemberText(code, "private bool Save_()");
+         Assert.True(save != null, "DirectorySyncView.Save_ is gone.");
+
+         // Each write is checked: the six ProfileApi.WriteString calls were not, so a
+         // file that could be read and not written was reported saved.
+         Assert.DoesNotContain("ProfileApi.WriteString(", save, StringComparison.Ordinal);
+         string write = WithheldRowTests.MemberText(code, "private void Write_(string key, string value)");
+         Assert.True(write != null && write.Contains("if (!ProfileApi.WriteString(", StringComparison.Ordinal), "A refused write is not noticed.");
+
+         // A changed schedule waits for the service; nothing else here does.
+         Assert.Contains("SettingsPageState.WaitsForRestart", save, StringComparison.Ordinal);
+         Assert.Contains("scheduleChanged", save, StringComparison.Ordinal);
+      }
+
       // ---- helpers -------------------------------------------------------------------------
 
       /// <summary>The text of a class from its declaration to its closing brace.</summary>

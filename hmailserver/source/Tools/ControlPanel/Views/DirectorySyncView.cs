@@ -16,6 +16,7 @@ using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
+using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -85,7 +86,20 @@ namespace hMailServer.ControlPanel.Views
       private readonly InlineNotice summaryText_ = new() { Visibility = Visibility.Collapsed };
       private readonly TextBlock attentionText_ = new();
       private readonly StackPanel rows_ = new();
-      private readonly TextBlock footerStatus_ = new();
+
+      // Where the page stands, by the one save-state model of the settings pages
+      // (IniPageSaveState): the pill beside the title, the notice under the header,
+      // and the line that names the file. They were a footer under the scroller,
+      // the result - Could not save among them - in grey 12-pixel text, with Reload
+      // and Save changes beside it.
+      private readonly StatusPill statePill_ = new() { Visibility = Visibility.Collapsed };
+      private readonly InlineNotice statusNotice_ = new() { Visibility = Visibility.Collapsed };
+      private readonly TextBlock pathText_ = new();
+      private readonly IniPageSaveState saveState_;
+
+      // The schedule as it was last read or saved: a save that changes it waits for
+      // a service restart, since the task is registered as the server starts.
+      private string savedSchedule_ = "";
 
       // Why hMailServer.ini is here and cannot be read, or null. From 6.3.6 the
       // file belongs to SYSTEM, the Administrators and the service
@@ -119,35 +133,50 @@ namespace hMailServer.ControlPanel.Views
 
       public DirectorySyncView()
       {
-         var root = new Grid();
-         root.SetResourceReference(MarginProperty, "AppPagePadding");
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         saveState_ = new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges);
 
-         root.Children.Add(new PageHeader
+         // The page scrolls whole, header and all, as the feature settings pages do:
+         // Reload and Save changes in the header's actions, the pill beside the title,
+         // and under the header the notice that says where the page stands and the
+         // line that names the file - then the cards.
+         var page = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
+
+         System.Windows.Automation.AutomationProperties.SetAutomationId(statePill_, "dirsync-state-pill");
+         page.Children.Add(new PageHeader
          {
             Title = L("Directory synchronisation"),
-            Subtitle = L("Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to.")
+            Subtitle = L("Creates and updates mailboxes to match an LDAP directory. Only domains that have an Active Directory domain name set take part, so this cannot provision into a hosted domain by accident. Nothing here ever deletes an account or a message: the most it does is mark one inactive, and only when you ask it to."),
+            Status = statePill_,
+            Actions = BuildActions_()
          });
 
-         var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 860, HorizontalAlignment = HorizontalAlignment.Left };
+         var cards = new StackPanel { MaxWidth = 860, HorizontalAlignment = HorizontalAlignment.Left };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(statusNotice_, "dirsync-status");
+         cards.Children.Add(statusNotice_);
+         pathText_.TextWrapping = TextWrapping.Wrap;
+         pathText_.MaxWidth = 760;
+         pathText_.HorizontalAlignment = HorizontalAlignment.Left;
+         pathText_.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         pathText_.SetResourceReference(MarginProperty, "AppCardGap");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(pathText_, "dirsync-path");
+         cards.Children.Add(pathText_);
          System.Windows.Automation.AutomationProperties.SetAutomationId(deniedNotice_, "dirsync-ini-denied");
          cards.Children.Add(deniedNotice_);
          cards.Children.Add(BuildStateCard_());
          cards.Children.Add(BuildSelectionCard_());
          cards.Children.Add(BuildRunCard_());
          cards.Children.Add(BuildScheduleCard_());
+         page.Children.Add(cards);
 
-         var scroll = new ScrollViewer { Content = cards, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-         Grid.SetRow(scroll, 1);
-         root.Children.Add(scroll);
+         var scroll = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+         scroll.SetResourceReference(MarginProperty, "AppPagePadding");
+         Content = scroll;
 
-         FrameworkElement footer = BuildFooter_();
-         Grid.SetRow(footer, 2);
-         root.Children.Add(footer);
-
-         Content = root;
+         // Every editor a save writes, wired to the pill: Unsaved changes from the
+         // first edit, for as long as one differs from what was read or saved. The
+         // fill of a read is not an edit, and the read settles the pill itself.
+         foreach (Wpf.Ui.Controls.TextBox box in new[] { filter_, mailAttribute_, usernameAttribute_, displayNameAttribute_, maxUsers_, scheduleMinutes_ })
+            box.TextChanged += (s, e) => { if (!loading_) saveState_.Follow(); };
       }
 
       public void OnEnter()
@@ -370,18 +399,10 @@ namespace hMailServer.ControlPanel.Views
          return card;
       }
 
-      private FrameworkElement BuildFooter_()
+      /// <summary>Reload and Save changes, for the header's actions: Save the primary.</summary>
+      private FrameworkElement BuildActions_()
       {
-         var footer = new Grid { Margin = new Thickness(0, 14, 12, 0) };
-
-         footerStatus_.VerticalAlignment = VerticalAlignment.Center;
-         footerStatus_.TextWrapping = TextWrapping.Wrap;
-         footerStatus_.MaxWidth = 520;
-         footerStatus_.HorizontalAlignment = HorizontalAlignment.Left;
-         footerStatus_.SetResourceReference(StyleProperty, "TextCaption");
-         footer.Children.Add(footerStatus_);
-
-         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+         var buttons = new StackPanel { Orientation = Orientation.Horizontal };
 
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
          System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read these settings from hMailServer.INI"));
@@ -399,8 +420,7 @@ namespace hMailServer.ControlPanel.Views
          saveButton_.Click += (s, e) => Save_();
          buttons.Children.Add(saveButton_);
 
-         footer.Children.Add(buttons);
-         return footer;
+         return buttons;
       }
 
       // =========================================================================
@@ -471,8 +491,10 @@ namespace hMailServer.ControlPanel.Views
             LoadDomains_();
             RefreshState_();
 
-            footerStatus_.Text = editable
-               ? ""
+            // The file the editors show, under the header; with the file unread, the
+            // Critical notice above the cards says why, and this line what still works.
+            pathText_.Text = editable
+               ? F("Editing {0}", store_.IniPath)
                : denied_ != null
                   ? L("hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server.")
                   : L("hMailServer.INI cannot be reached from this computer, so these selections cannot be edited here. Preview and Apply still work: they run inside the server.");
@@ -483,6 +505,8 @@ namespace hMailServer.ControlPanel.Views
          }
 
          baseline_.Take(EditorValues_());
+         savedSchedule_ = scheduleMinutes_.Text.Trim();
+         saveState_.Settle(store_.IsAvailable && denied_ == null ? SettingsPageState.Clean : SettingsPageState.Unavailable, null);
          InvalidatePreview_();
       }
 
@@ -494,30 +518,54 @@ namespace hMailServer.ControlPanel.Views
 
          try
          {
-            ProfileApi.WriteString(IniSection, "SyncFilter", filter_.Text.Trim(), store_.IniPath);
-            ProfileApi.WriteString(IniSection, "SyncMailAttribute", mailAttribute_.Text.Trim(), store_.IniPath);
-            ProfileApi.WriteString(IniSection, "SyncUsernameAttribute", usernameAttribute_.Text.Trim(), store_.IniPath);
-            ProfileApi.WriteString(IniSection, "SyncDisplayNameAttribute", displayNameAttribute_.Text.Trim(), store_.IniPath);
-            ProfileApi.WriteString(IniSection, "SyncMaxUsers", maxUsers_.Text.Trim(), store_.IniPath);
-            ProfileApi.WriteString(IniSection, "SyncScheduleMinutes", scheduleMinutes_.Text.Trim(), store_.IniPath);
+            Write_("SyncFilter", filter_.Text.Trim());
+            Write_("SyncMailAttribute", mailAttribute_.Text.Trim());
+            Write_("SyncUsernameAttribute", usernameAttribute_.Text.Trim());
+            Write_("SyncDisplayNameAttribute", displayNameAttribute_.Text.Trim());
+            Write_("SyncMaxUsers", maxUsers_.Text.Trim());
+            Write_("SyncScheduleMinutes", scheduleMinutes_.Text.Trim());
 
             // Flush the cache the API keeps, so the value is on disk before the server
             // next compares the file's write time.
             ProfileApi.Flush(store_.IniPath);
-
-            footerStatus_.Text = L("Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart.");
-
-            // A saved change alters what a run would select, so a preview taken before
-            // it no longer describes what Apply would do.
-            InvalidatePreview_();
-            baseline_.Take(EditorValues_());
-            return true;
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            footerStatus_.Text = L("Could not save: ") + ex.Message;
+            // Under the header, in a Critical notice, where it was grey caption text
+            // in the footer; the pill keeps saying Unsaved changes, which they still are.
+            saveState_.Refuse(F("Could not save: {0}", ex.Message));
             return false;
          }
+
+         // A saved change alters what a run would select, so a preview taken before
+         // it no longer describes what Apply would do.
+         InvalidatePreview_();
+         baseline_.Take(EditorValues_());
+
+         // The selection is live within two seconds; the schedule is registered as the
+         // server starts, so a changed one waits for a restart, and the pill says so -
+         // where the sentence said a change to the schedule needs a restart after
+         // every save, whether or not it had changed.
+         string time = DateTime.Now.ToLongTimeString();
+         bool scheduleChanged = !string.Equals(scheduleMinutes_.Text.Trim(), savedSchedule_, StringComparison.Ordinal);
+         savedSchedule_ = scheduleMinutes_.Text.Trim();
+         if (scheduleChanged)
+            saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.", time));
+         else
+            saveState_.Settle(SettingsPageState.Saved, F("Saved {0} - the server picks the selection up within two seconds; no service restart is needed.", time));
+         return true;
+      }
+
+      /// <summary>
+      /// Writes one [LDAP] key, and throws when the file refused it: the six writes
+      /// were not checked, so a file the Control Panel may read and not write was
+      /// reported saved.
+      /// </summary>
+      private void Write_(string key, string value)
+      {
+         if (!ProfileApi.WriteString(IniSection, key, value, store_.IniPath))
+            throw new System.ComponentModel.Win32Exception(System.Runtime.InteropServices.Marshal.GetLastWin32Error(),
+               F("Could not write {0} to {1}", key, store_.IniPath));
       }
 
       // =========================================================================

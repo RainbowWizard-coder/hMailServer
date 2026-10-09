@@ -1058,6 +1058,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   a Critical notice under the header. The per-address overrides box of the per-account sending limits now says when
   it changes as well, and a test holds every setting with a value to doing so.
 
+- **Fixed: the Directory authentication (LDAP) and Directory synchronisation pages kept Reload and Save changes in a
+  footer, where their result was grey caption text and a failed save a message box.** Every other settings page in
+  the Sign-in & access group puts its actions at the top right of the page header; these two put them at the foot of
+  the window, under a scroller whose last card simply stopped, beside the "Editing" sentence in a 12-pixel caption,
+  and in a 760 by 520 window the sentence ran into Reload. Both pages now carry Reload and Save changes in the page
+  header, with Save the primary and the same automation ids, the file they edit in a caption under the header, and
+  the one save-state model of the settings pages: a pill beside the title that says *Unsaved changes* from the first
+  edit, compared with what was read, and *Saved* after a save, its sentence in a notice under the header, and a save
+  that could not be written in a Critical notice - Directory synchronisation's in the same grey caption as its
+  success, LDAP's in a message box. The page scrolls whole, as the feature settings pages do, so the smallest window
+  keeps the cards. Directory synchronisation says *Restart to apply* only when the save changed the schedule, which
+  the server registers as it starts, where it said that a change to the schedule needs a restart after every save;
+  and it now notices when hMailServer.ini refused a write, which it reported as saved.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

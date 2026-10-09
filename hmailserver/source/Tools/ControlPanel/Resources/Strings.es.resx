@@ -3012,9 +3012,6 @@ Los detalles completos se escribieron en:
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>No se pudo guardar la ruta: {0}</value>
   </data>
-  <data name="Could not save: " xml:space="preserve">
-    <value>No se pudo guardar: </value>
-  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>No se pudo guardar: {0}</value>
   </data>
@@ -9273,6 +9270,12 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>Guardado {0} - reinicie el servicio para aplicarlo.</value>
   </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
+    <value>Guardado {0} - el servidor recoge la selección en menos de dos segundos; no hace falta reiniciar el servicio.</value>
+  </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
+    <value>Guardado {0} - el servidor recoge la selección en menos de dos segundos; la nueva programación se aplica cuando se reinicia el servicio.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>Guardado {0} - el servidor lo recoge en menos de dos segundos. No hace falta reiniciar el servicio.</value>
   </data>
@@ -9326,9 +9329,6 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   </data>
   <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>Guardado. El servidor sigue escuchando como hasta ahora hasta que sus servicios se reinicialicen - se detengan y vuelvan a arrancar en el mismo proceso, lo que desconecta un momento a los clientes conectados. ¿Reinicializar el servidor ahora?</value>
-  </data>
-  <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
-    <value>Guardado. El servidor recoge la selección en menos de dos segundos; un cambio en la programación necesita reiniciar el servicio.</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Guardado. El valor vigente se muestra junto a cada ajuste.</value>
@@ -14017,9 +14017,6 @@ No se borra ningún mensaje ni se elimina ninguna cuenta. ¿Continuar?</value>
   </data>
   <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>No se pudo leer hMailServer.ini, así que estas selecciones no se muestran y no se pueden editar aquí. Vista previa y Aplicar siguen funcionando: se ejecutan dentro del servidor.</value>
-  </data>
-  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
-    <value>No se pudo leer hMailServer.ini, así que estos ajustes no se muestran y no se pueden editar aquí.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>No se pudo leer hMailServer.ini: {0} Desde 6.3.6 el archivo pertenece a los administradores. Cierre el Panel de control e inícielo con Ejecutar como administrador para ver y cambiar estos ajustes.</value>

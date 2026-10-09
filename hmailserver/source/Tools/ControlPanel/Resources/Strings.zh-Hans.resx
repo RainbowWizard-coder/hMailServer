@@ -3012,9 +3012,6 @@
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>无法保存该路由：{0}</value>
   </data>
-  <data name="Could not save: " xml:space="preserve">
-    <value>无法保存： </value>
-  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>无法保存：{0}</value>
   </data>
@@ -9273,6 +9270,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>已保存 {0} - 重启服务以应用。</value>
   </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
+    <value>已于 {0} 保存 - 服务器会在两秒内读取所选内容；无需重启服务。</value>
+  </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
+    <value>已于 {0} 保存 - 服务器会在两秒内读取所选内容；新的计划在服务重启后生效。</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>已保存 {0} - 服务器会在两秒内读取。无需重启服务。</value>
   </data>
@@ -9326,9 +9329,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>已保存。在服务重新初始化之前，服务器会照旧监听 - 重新初始化即就地停止并重新启动，会让已连接的客户端短暂断开。现在重新初始化服务器吗？</value>
-  </data>
-  <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
-    <value>已保存。服务器会在两秒内读取所选内容；计划的更改需要重启服务。</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>已保存。每项设置旁显示其生效值。</value>
@@ -14017,9 +14017,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>无法读取 hMailServer.ini，因此这些选择不会显示，也无法在此处编辑。“预览”和“应用”仍然可用：它们在服务器内运行。</value>
-  </data>
-  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
-    <value>无法读取 hMailServer.ini，因此这些设置不会显示，也无法在此处编辑。</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>无法读取 hMailServer.ini：{0} 从 6.3.6 起，该文件属于管理员。请关闭控制面板，并以“以管理员身份运行”启动它，以查看和更改这些设置。</value>

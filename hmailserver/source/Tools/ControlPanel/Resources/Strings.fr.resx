@@ -3012,9 +3012,6 @@ Redémarrer le Control Panel maintenant ? Choisissez Non pour essayer de continu
   <data name="Could not save the route: {0}" xml:space="preserve">
     <value>Impossible d'enregistrer la route : {0}</value>
   </data>
-  <data name="Could not save: " xml:space="preserve">
-    <value>Impossible d'enregistrer : </value>
-  </data>
   <data name="Could not save: {0}" xml:space="preserve">
     <value>Impossible d'enregistrer : {0}</value>
   </data>
@@ -9273,6 +9270,12 @@ Continuer ?</value>
   <data name="Saved {0} - restart the service to apply." xml:space="preserve">
     <value>{0} enregistré - redémarrez le service pour appliquer.</value>
   </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; no service restart is needed." xml:space="preserve">
+    <value>{0} enregistré - le serveur prend la sélection en compte en moins de deux secondes ; aucun redémarrage du service n'est nécessaire.</value>
+  </data>
+  <data name="Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts." xml:space="preserve">
+    <value>{0} enregistré - le serveur prend la sélection en compte en moins de deux secondes ; la nouvelle planification s'applique au redémarrage du service.</value>
+  </data>
   <data name="Saved {0} - the server picks this up within two seconds. No service restart is needed." xml:space="preserve">
     <value>{0} enregistré - le serveur le prend en compte en moins de deux secondes. Aucun redémarrage du service n'est nécessaire.</value>
   </data>
@@ -9326,9 +9329,6 @@ Continuer ?</value>
   </data>
   <data name="Saved. The server goes on listening as it did until its services are reinitialised - stopped and started again in place, which disconnects connected clients for a moment. Reinitialise the server now?" xml:space="preserve">
     <value>Enregistré. Le serveur continue d'écouter comme avant jusqu'à ce que ses services soient réinitialisés - arrêtés et redémarrés sur place, ce qui déconnecte un instant les clients connectés. Réinitialiser le serveur maintenant ?</value>
-  </data>
-  <data name="Saved. The server picks the selection up within two seconds; a change to the schedule needs a service restart." xml:space="preserve">
-    <value>Enregistré. Le serveur prend la sélection en compte en moins de deux secondes ; un changement de la planification nécessite un redémarrage du service.</value>
   </data>
   <data name="Saved. What is in effect is shown beside each setting." xml:space="preserve">
     <value>Enregistré. La valeur en vigueur est indiquée à côté de chaque paramètre.</value>
@@ -14017,9 +14017,6 @@ Aucun message n'est supprimé et aucun compte n'est retiré. Continuer ?</value>
   </data>
   <data name="hMailServer.ini could not be read, so these selections are not shown and cannot be edited here. Preview and Apply still work: they run inside the server." xml:space="preserve">
     <value>Impossible de lire hMailServer.ini, ces sélections ne sont donc pas affichées et ne peuvent pas être modifiées ici. Aperçu et Appliquer fonctionnent toujours : ils s'exécutent dans le serveur.</value>
-  </data>
-  <data name="hMailServer.ini could not be read, so these settings are not shown and cannot be edited here." xml:space="preserve">
-    <value>Impossible de lire hMailServer.ini, ces réglages ne sont donc pas affichés et ne peuvent pas être modifiés ici.</value>
   </data>
   <data name="hMailServer.ini could not be read: {0} From 6.3.6 the file belongs to the administrators. Close the Control Panel and start it with Run as administrator to see and change these settings." xml:space="preserve">
     <value>Impossible de lire hMailServer.ini : {0} Depuis 6.3.6 le fichier appartient aux administrateurs. Fermez le Panneau de contrôle et relancez-le avec Exécuter en tant qu'administrateur pour voir et modifier ces réglages.</value>

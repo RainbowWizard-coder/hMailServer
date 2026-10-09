@@ -22,6 +22,7 @@ using Card = hMailServer.ControlPanel.Views.Scaffold.Card;
 using FieldRow = hMailServer.ControlPanel.Views.Scaffold.FieldRow;
 using InlineNotice = hMailServer.ControlPanel.Views.Scaffold.InlineNotice;
 using PageHeader = hMailServer.ControlPanel.Views.Scaffold.PageHeader;
+using StatusPill = hMailServer.ControlPanel.Views.Scaffold.StatusPill;
 using MessageBox = hMailServer.ControlPanel.Views.Dialogs;
 using static hMailServer.ControlPanel.Services.Loc;
 
@@ -103,9 +104,18 @@ namespace hMailServer.ControlPanel.Views
       private Wpf.Ui.Controls.Button testButton_;
       private readonly InlineNotice testText_ = new();
 
-      // ---- footer ---------------------------------------------------------------
+      // ---- header ---------------------------------------------------------------
 
-      private readonly TextBlock footerStatus_ = new();
+      // Where the page stands, by the one save-state model of the settings pages
+      // (IniPageSaveState): the pill beside the title, the notice under the header,
+      // and the line that names the file. They were a footer under the scroller -
+      // the result in grey 12-pixel text, a failed save in a message box - with
+      // Reload and Save changes beside it, and nothing kept the two apart: at 760
+      // pixels the sentence ran into Reload.
+      private readonly StatusPill statePill_ = new() { Visibility = Visibility.Collapsed };
+      private readonly InlineNotice statusNotice_ = new() { Visibility = Visibility.Collapsed };
+      private readonly TextBlock pathText_ = new();
+      private readonly IniPageSaveState saveState_;
       private Wpf.Ui.Controls.Button saveButton_;
 
       // ---- a file that cannot be read ----------------------------------------------
@@ -133,19 +143,31 @@ namespace hMailServer.ControlPanel.Views
 
       public LdapSettingsView()
       {
-         var root = new Grid();
-         root.SetResourceReference(MarginProperty, "AppPagePadding");
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+         saveState_ = new IniPageSaveState(statePill_, statusNotice_, () => HasUnsavedChanges);
 
-         root.Children.Add(new PageHeader
+         // The page scrolls whole, header and all, as the feature settings pages do:
+         // Reload and Save changes in the header's actions, the pill beside the title,
+         // and under the header the notice that says where the page stands and the
+         // line that names the file - then the cards.
+         var page = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
+
+         System.Windows.Automation.AutomationProperties.SetAutomationId(statePill_, "ldap-state");
+         page.Children.Add(new PageHeader
          {
             Title = L("Directory authentication (LDAP)"),
-            Subtitle = L("Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed.")
+            Subtitle = L("Accounts marked as directory-linked log on with their domain password through an LDAP bind - unlike Windows logon, this works from a host that is not joined to the domain, which is the usual situation for a mail server in a DMZ. Edits the [LDAP] section of hMailServer.INI; the server re-reads that section within two seconds of a save, so no service restart is needed."),
+            Status = statePill_,
+            Actions = BuildActions_()
          });
 
-         var cards = new StackPanel { Margin = new Thickness(0, 0, 12, 0), MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left };
+         var cards = new StackPanel { MaxWidth = 760, HorizontalAlignment = HorizontalAlignment.Left };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(statusNotice_, "ldap-status");
+         cards.Children.Add(statusNotice_);
+         pathText_.TextWrapping = TextWrapping.Wrap;
+         pathText_.SetResourceReference(StyleProperty, "TextCaptionTertiary");
+         pathText_.SetResourceReference(MarginProperty, "AppCardGap");
+         System.Windows.Automation.AutomationProperties.SetAutomationId(pathText_, "ldap-path");
+         cards.Children.Add(pathText_);
          System.Windows.Automation.AutomationProperties.SetAutomationId(deniedNotice_, "ldap-ini-denied");
          cards.Children.Add(deniedNotice_);
          cards.Children.Add(BuildStateCard_());
@@ -156,18 +178,14 @@ namespace hMailServer.ControlPanel.Views
          }
          cards.Children.Add(BuildPrerequisitesCard_());
          cards.Children.Add(BuildTestCard_());
+         page.Children.Add(cards);
 
-         var scroll = new ScrollViewer { Content = cards, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
-         Grid.SetRow(scroll, 1);
-         root.Children.Add(scroll);
-
-         FrameworkElement footer = BuildFooter_();
-         Grid.SetRow(footer, 2);
-         root.Children.Add(footer);
-
-         Content = root;
+         var scroll = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+         scroll.SetResourceReference(MarginProperty, "AppPagePadding");
+         Content = scroll;
 
          WireLiveState_();
+         WireSaveState_();
       }
 
       public void OnEnter()
@@ -234,18 +252,10 @@ namespace hMailServer.ControlPanel.Views
       // Layout
       // =========================================================================
 
-      private FrameworkElement BuildFooter_()
+      /// <summary>Reload and Save changes, for the header's actions: Save the primary.</summary>
+      private FrameworkElement BuildActions_()
       {
-         var footer = new Grid { Margin = new Thickness(0, 14, 12, 0) };
-
-         footerStatus_.VerticalAlignment = VerticalAlignment.Center;
-         footerStatus_.TextWrapping = TextWrapping.Wrap;
-         footerStatus_.MaxWidth = 480;
-         footerStatus_.HorizontalAlignment = HorizontalAlignment.Left;
-         footerStatus_.SetResourceReference(StyleProperty, "TextCaption");
-         footer.Children.Add(footerStatus_);
-
-         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+         var buttons = new StackPanel { Orientation = Orientation.Horizontal };
 
          var reload = new Wpf.Ui.Controls.Button { Content = L("_Reload"), Margin = new Thickness(0, 0, 8, 0) };
          System.Windows.Automation.AutomationProperties.SetName(reload, L("Re-read the LDAP settings from hMailServer.INI"));
@@ -259,8 +269,7 @@ namespace hMailServer.ControlPanel.Views
          saveButton_.Click += (s, e) => Save_();
          buttons.Children.Add(saveButton_);
 
-         footer.Children.Add(buttons);
-         return footer;
+         return buttons;
       }
 
       /// <summary>One section of the page. Named Section_ and not Card_ because
@@ -673,7 +682,6 @@ namespace hMailServer.ControlPanel.Views
          if (denied_ != null)
          {
             saveButton_.IsEnabled = false;
-            footerStatus_.Text = L("hMailServer.ini could not be read, so these settings are not shown and cannot be edited here.");
             ClearEditors_();
             loading_ = false;
             RefreshState_();
@@ -681,18 +689,23 @@ namespace hMailServer.ControlPanel.Views
             // reload that found the file unreadable after an earlier read that
             // worked must not hold the cleared boxes against that read's values.
             baseline_.Take(EditorValues_());
+            // The Critical notice above the cards says why; the pill says that
+            // nothing here can be edited.
+            pathText_.Visibility = Visibility.Collapsed;
+            saveState_.Settle(SettingsPageState.Unavailable, null);
             return;
          }
 
          if (!store_.IsAvailable)
          {
             saveButton_.IsEnabled = false;
-            footerStatus_.Text = L("hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here.");
+            pathText_.Visibility = Visibility.Collapsed;
          }
          else
          {
             saveButton_.IsEnabled = true;
-            footerStatus_.Text = F("Editing {0} - saved changes are live within two seconds; no service restart.", store_.IniPath);
+            pathText_.Text = F("Editing {0} - saved changes are live within two seconds; no service restart.", store_.IniPath);
+            pathText_.Visibility = Visibility.Visible;
          }
 
          enabled_.IsChecked = IniReadInt_("Enabled", 0) != 0;
@@ -740,6 +753,11 @@ namespace hMailServer.ControlPanel.Views
          loading_ = false;
          RefreshState_();
          baseline_.Take(EditorValues_());
+
+         if (store_.IsAvailable)
+            saveState_.Settle(SettingsPageState.Clean, null);
+         else
+            saveState_.Settle(SettingsPageState.Unavailable, L("hMailServer.INI was not found on this machine. These settings can only be edited on the server itself; the connection test still works with the values typed here."));
       }
 
       /// <summary>
@@ -821,15 +839,11 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            MessageBox.Show(F("Could not save: {0}", ex.Message), L("Control Panel"), MessageBoxButton.OK, MessageBoxImage.Error);
+            // Under the header, in a Critical notice, where a message box said it and
+            // went away; the pill keeps saying Unsaved changes, which they still are.
+            saveState_.Refuse(F("Could not save: {0}", ex.Message));
             return false;
          }
-
-         // No restart offer, and that is the point of this section's design: the
-         // server keys its cache on the INI's write time and re-reads within two
-         // seconds, precisely so a broken directory configuration can be fixed
-         // while the administrator is still looking at the screen.
-         footerStatus_.Text = F("Saved {0} - the server picks this up within two seconds. No service restart is needed.", DateTime.Now.ToLongTimeString());
 
          storedServicePassword_ = IniRead_("ServicePassword", "").Length > 0;
          servicePassword_.Password = "";
@@ -840,7 +854,37 @@ namespace hMailServer.ControlPanel.Views
 
          RefreshState_();
          baseline_.Take(EditorValues_());
+
+         // No restart offer, and that is the point of this section's design: the
+         // server keys its cache on the INI's write time and re-reads within two
+         // seconds, precisely so a broken directory configuration can be fixed
+         // while the administrator is still looking at the screen. So Saved, which
+         // on these pages means in effect.
+         saveState_.Settle(SettingsPageState.Saved,
+            F("Saved {0} - the server picks this up within two seconds. No service restart is needed.", DateTime.Now.ToLongTimeString()));
          return true;
+      }
+
+      /// <summary>
+      /// Every editor a save writes, wired to the pill: Unsaved changes from the first
+      /// edit, for as long as one differs from what was read or saved. The fill of a
+      /// read is not an edit, and the read settles the pill itself.
+      /// </summary>
+      private void WireSaveState_()
+      {
+         void Follow() { if (!loading_) saveState_.Follow(); }
+
+         foreach (CheckBox box in new[] { enabled_, verifyCertificate_, allowUnprotected_, clearServicePassword_, fallback_ })
+         {
+            box.Checked += (s, e) => Follow();
+            box.Unchecked += (s, e) => Follow();
+         }
+
+         foreach (TextBox box in new TextBox[] { server_, port_, timeout_, searchBase_, userSearchFilter_, userDnTemplate_, serviceUsername_, servicePassword_ })
+            box.TextChanged += (s, e) => Follow();
+
+         security_.SelectionChanged += (s, e) => Follow();
+         bindMethod_.SelectionChanged += (s, e) => Follow();
       }
 
       // =========================================================================
