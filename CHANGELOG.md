@@ -948,6 +948,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   checks say they were not run, and *Pause* and the three update buttons are disabled until a read works. The button
   to another page is `Services/NoticeActions`, captioned from the navigation map's title; `NoticeActionsTests` holds
   every page a notice opens to a page of the map, and `StatusWarningLevelTests` each check to its level and its page.
+- **Fixed: the TCP/IP ports page's listening warning led with the wrong cause, offered nothing to do about it, and
+  printed an IPv6 listener as "IMAP :::993".** The warning under the list named a port conflict, a missing address
+  and a certificate first and sent the reader to an error-log entry that a port never bound does not have, while the
+  commonest cause by far - each row's tool tip already led with it - is a port added or changed since the server
+  started, which is not bound until the server reinitialises, since it reads its port list at start-up. It now says
+  so first, in one whole sentence for one port and one for several, and carries *Reinitialise now*, which asks first
+  (every connected client is disconnected for a moment), with Cancel the answer Enter gives, and reads the page again
+  after. An IPv6 address is written in brackets, *IMAP [::]:993*, in the warning and in each row's accessible name
+  (`ListenerProbe.Endpoint`). `ListenerProbeTests` and `TcpIpPortsPageTests` hold the sentence, the brackets and the
+  action.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

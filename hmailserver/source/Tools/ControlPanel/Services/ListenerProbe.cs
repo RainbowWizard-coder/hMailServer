@@ -182,6 +182,38 @@ namespace hMailServer.ControlPanel.Services
          return ListenerState.NotListening;
       }
 
+      /// <summary>
+      /// A listener's address and port as an endpoint is written: an IPv6 address
+      /// in brackets, "[::]:993", where address, colon and port read ":::993",
+      /// which is no address at all; an IPv4 address or a name as it is,
+      /// "0.0.0.0:25".
+      /// </summary>
+      public static string Endpoint(string address, int port)
+      {
+         string host = (address ?? "").Trim();
+         return host.Contains(':') && !host.StartsWith('[')
+            ? "[" + host + "]:" + port.ToString(System.Globalization.CultureInfo.InvariantCulture)
+            : host + ":" + port.ToString(System.Globalization.CultureInfo.InvariantCulture);
+      }
+
+      /// <summary>
+      /// The sentence under the list when configured ports are not being
+      /// listened on, naming them. It leads with the commonest cause, as each
+      /// row's tool tip does (<see cref="ExplainFor"/>): a port added or changed
+      /// since the server started is not bound until the server reinitialises,
+      /// since it reads its port list at start-up. It led with a port conflict and
+      /// sent the reader to an error-log entry that a port never bound does not
+      /// have. One whole sentence for one port and one for several, so that a
+      /// language can agree its words with the count.
+      /// </summary>
+      public static string NotListeningSummary(IReadOnlyList<string> endpoints)
+      {
+         string names = string.Join(", ", endpoints ?? Array.Empty<string>());
+         return endpoints == null || endpoints.Count <= 1
+            ? F("One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.", names)
+            : F("{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which.", endpoints.Count, names);
+      }
+
       /// <summary>The word shown beside the badge. Always present, never colour alone.</summary>
       public static string WordFor(ListenerState state) => state switch
       {

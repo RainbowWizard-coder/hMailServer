@@ -7501,6 +7501,9 @@
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>有一个已配置的端口未被监听：{0}。</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>有一个已配置的端口未被监听：{0}。如果你刚刚添加或更改了它，请重新初始化服务器：服务器在启动时读取端口列表。否则就是另一个程序占用了该端口、该地址在本机上不存在，或者无法加载某个 TLS 端口的证书 - 错误日志会说明是哪一种。</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>单次事件脚本调用。0 = 不限制。</value>
   </data>
@@ -8737,8 +8740,14 @@
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>将服务重新注册为 LocalSystem，从服务器安装实时更新或为自动封禁写入防火墙规则都需要这样做。服务在重新启动前保留原来的账户。</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>立即重新初始化(_N)</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>现在重新初始化服务器吗？所有服务会就地停止并重新启动，因此已连接的客户端会断开并重新连接。</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>现在重新初始化服务器吗？其服务会就地停止并重新启动，重新读取端口列表，所有已连接的客户端都会短暂断开。</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>需重新初始化才能生效</value>
@@ -14097,6 +14106,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="_Refresh" xml:space="preserve">
     <value>刷新(_R)</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>重新初始化(_R)</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>立即重新初始化(_R)</value>
   </data>
@@ -15438,6 +15450,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>有 {0} 个已配置的端口未被监听：{1}。</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>有 {0} 个已配置的端口未被监听：{1}。如果你刚刚添加或更改了其中一个，请重新初始化服务器：服务器在启动时读取端口列表。否则就是另一个程序占用了该端口、该地址在本机上不存在，或者无法加载某个 TLS 端口的证书 - 错误日志会说明是哪一种。</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>无法从本机获取 {0}：{1} 可能的原因：mta-sts.{2} 没有 A/CNAME 记录、HTTPS 监听器没有运行（WebServicesHttpsPort=0 是出厂默认值），或者证书没有覆盖 mta-sts.{2}。仅从本机检查。</value>

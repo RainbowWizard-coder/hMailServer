@@ -7501,6 +7501,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Yhtä määritettyä porttia ei kuunnella: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Yhtä määritettyä porttia ei kuunnella: {0}. Jos lisäsit tai muutit sen juuri, alusta palvelin uudelleen: se lukee porttiluettelonsa käynnistyessään. Muuten toinen ohjelma varaa portin, osoitetta ei ole tällä koneella tai TLS-portin varmennetta ei voitu ladata - virheloki kertoo, mikä näistä.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Yksi tapahtumakomentosarjan kutsu. 0 = ei rajaa.</value>
   </data>
@@ -8737,8 +8740,14 @@ Aja tämä, jos asiakkaat raportoivat viestien näkyvän väärän UID:n alla, t
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Rekisteröi palvelun uudelleen LocalSystem-tiliksi, mitä palvelimelta asennettava live-päivitys tai automaattisen eston palomuurisääntöjen kirjoittaminen tarvitsee. Palvelu pitää vanhan tilinsä, kunnes se käynnistetään uudelleen.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Alusta uudelleen _nyt</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Alustetaanko palvelin uudelleen nyt? Kaikki palvelut pysähtyvät ja käynnistyvät uudelleen paikallaan, joten yhdistetyt asiakkaat katkaistaan ja ne yhdistävät uudelleen.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Alustetaanko palvelin uudelleen nyt? Sen palvelut pysäytetään ja käynnistetään uudelleen paikallaan, jolloin porttiluettelo luetaan uudelleen, ja jokainen yhdistetty asiakas katkaistaan hetkeksi.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Voimaan uudelleenalustuksessa</value>
@@ -14097,6 +14106,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>Päiv_itä</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Alusta uudelleen</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Alusta uudelleen nyt</value>
   </data>
@@ -15438,6 +15450,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>{0} määritettyä porttia ei kuunnella: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} määritettyä porttia ei kuunnella: {1}. Jos lisäsit tai muutit jonkin niistä juuri, alusta palvelin uudelleen: se lukee porttiluettelonsa käynnistyessään. Muuten toinen ohjelma varaa portin, osoitetta ei ole tällä koneella tai TLS-portin varmennetta ei voitu ladata - virheloki kertoo, mikä näistä.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} ei voitu noutaa tältä koneelta: {1} Todennäköiset syyt: ei A/CNAME-tietuetta kohteelle mta-sts.{2}, HTTPS-kuuntelija ei ole käynnissä (WebServicesHttpsPort=0 on mukana toimitettu oletus), tai varmenne, joka ei kata kohdetta mta-sts.{2}. Tarkistettu vain tältä koneelta.</value>

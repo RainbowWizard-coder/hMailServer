@@ -30,7 +30,7 @@ namespace hMailServer.ControlPanel.Views
          // What a screen reader says for the row: its cells, not the name of
          // this class, which is what a grid row is announced as otherwise.
          public override string ToString()
-            => string.Join(", ", new[] { Protocol + " " + Address + ":" + Port, Security, string.IsNullOrEmpty(Auth) ? "" : F("AUTH {0}", Auth), ListeningWord, Certificate }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            => string.Join(", ", new[] { Protocol + " " + ListenerProbe.Endpoint(Address, Port), Security, string.IsNullOrEmpty(Auth) ? "" : F("AUTH {0}", Auth), ListeningWord, Certificate }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
          /// <summary>"Listening", "Not listening", "Server off" or "Unknown".</summary>
          public string ListeningWord { get; set; }
@@ -274,25 +274,45 @@ namespace hMailServer.ControlPanel.Views
 
          var names = new List<string>();
          foreach (PortRow row in down)
-            names.Add(row.Protocol + " " + row.Address + ":" + row.Port);
+            names.Add(row.Protocol + " " + ListenerProbe.Endpoint(row.Address, row.Port));
 
-         // The first sentence says which, the second why, written whole with the
-         // first placed in it.
-         string which = down.Count == 1
-            ? F("One configured port is not being listened on: {0}.", string.Join(", ", names))
-            : PluralF(down.Count, "{0} configured port is not being listened on: {1}.", "{0} configured ports are not being listened on: {1}.",
-               down.Count, string.Join(", ", names));
-         ShowSummary_(StatusLevel.Warning,
-            F("{0} Connections to a port that is not listened on are refused. The usual causes are another program already holding the port, a bind address that does not exist on this machine, or - on a TLS port - a certificate the server could not load; the server records which, once, in the error log at start-up.", which));
+         // With the action that the commonest cause needs: the server reads its
+         // port list when it starts, and Reinitialise now starts its services
+         // again in place.
+         ShowSummary_(StatusLevel.Warning, ListenerProbe.NotListeningSummary(names), ReinitialiseButton_());
       }
 
       /// <summary>The summary as a notice at its level: a warning for a dead port,
       /// information when the answer cannot be read from this machine.</summary>
-      private void ShowSummary_(StatusLevel level, string text)
+      private void ShowSummary_(StatusLevel level, string text, object action = null)
       {
          ListenerSummary.Level = level;
          ListenerSummary.Text = text;
+         ListenerSummary.Content = action;
          ListenerSummary.Visibility = Visibility.Visible;
+      }
+
+      /// <summary>
+      /// The listener warning's action, which asks first, naming what it does to
+      /// the clients that are connected, with Cancel the answer Enter gives.
+      /// </summary>
+      private Wpf.Ui.Controls.Button ReinitialiseButton_()
+      {
+         var button = new Wpf.Ui.Controls.Button
+         {
+            Content = L("Reinitialise _now"),
+            Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+            VerticalAlignment = VerticalAlignment.Center
+         };
+         System.Windows.Automation.AutomationProperties.SetAutomationId(button, "ports-reinitialise-now");
+         button.Click += (_, _) =>
+         {
+            if (MessageBox.Confirm(
+                   L("Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment."),
+                   L("Control Panel"), L("_Reinitialise"), destructive: false, cancelByDefault: true))
+               Reinitialise_();
+         };
+         return button;
       }
 
       /// <summary>
@@ -388,6 +408,12 @@ namespace hMailServer.ControlPanel.Views
                 L("Control Panel"), L("_Reinitialise now"), cancelByDefault: true, decline: L("_Later")))
             return;
 
+         Reinitialise_();
+      }
+
+      /// <summary>Application.Reinitialize, with the outcome said and the page read again.</summary>
+      private void Reinitialise_()
+      {
          Mouse.OverrideCursor = Cursors.Wait;
          string failure = null;
          try

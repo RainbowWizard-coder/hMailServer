@@ -7579,6 +7579,9 @@
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Один налаштований порт не прослуховується: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Один налаштований порт не прослуховується: {0}. Якщо ви щойно його додали або змінили, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Один виклик скрипту подій. 0 = без обмеження.</value>
   </data>
@@ -8815,8 +8818,14 @@
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Знову реєструє службу як LocalSystem, що потрібно для встановлення оновлення з сервера на льоту або для запису правил брандмауера для автоблокування. Служба зберігає попередній обліковий запис до перезапуску.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Повторно ініціалізувати _зараз</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Виконати повторну ініціалізацію сервера зараз? Усі служби зупиняться й знову запустяться на місці, тож підключені клієнти від'єднаються й під'єднаються знову.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Виконати повторну ініціалізацію сервера зараз? Його служби буде зупинено й знову запущено на місці з повторним читанням списку портів, і всі підключені клієнти на мить від'єднаються.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Чекає на повторну ініціалізацію</value>
@@ -14255,6 +14264,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="_Refresh" xml:space="preserve">
     <value>О_новити</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Повторно ініціалізувати</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Повторно ініціалізувати зараз</value>
   </data>
@@ -15662,6 +15674,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>{0} налаштованих портів не прослуховуються: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Налаштованих портів, які не прослуховуються: {0} ({1}). Якщо ви щойно додали або змінили один із них, виконайте повторну ініціалізацію сервера: він читає список портів під час запуску. Інакше порт утримує інша програма, такої адреси немає на цьому комп’ютері або не вдалося завантажити сертифікат порту TLS — яка з причин, сказано в журналі помилок.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}.|few" xml:space="preserve">
     <value>{0} налаштовані порти не прослуховуються: {1}.</value>

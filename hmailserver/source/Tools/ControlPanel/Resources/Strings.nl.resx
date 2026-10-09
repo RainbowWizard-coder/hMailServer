@@ -7501,6 +7501,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Op één geconfigureerde poort wordt niet geluisterd: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Op één geconfigureerde poort wordt niet geluisterd: {0}. Als u die net hebt toegevoegd of gewijzigd, herinitialiseer dan de server: die leest zijn poortlijst bij het opstarten. Anders houdt een ander programma de poort vast, bestaat het adres niet op deze machine, of kon het certificaat van een TLS-poort niet worden geladen - het foutenlogboek zegt welke.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Eén aanroep van een gebeurtenisscript. 0 = geen grens.</value>
   </data>
@@ -8737,8 +8740,14 @@ Voer dit uit als clients melden dat berichten onder de verkeerde UID verschijnen
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Registreert de service weer als LocalSystem, wat het installeren van een live-update vanaf de server of het schrijven van firewallregels voor de automatische blokkering nodig heeft. De service houdt zijn oude account tot hij opnieuw wordt gestart.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Nu _herinitialiseren</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>De server nu herinitialiseren? Alle services stoppen en starten ter plekke opnieuw, dus verbonden clients worden verbroken en maken opnieuw verbinding.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>De server nu herinitialiseren? Zijn services worden ter plekke gestopt en opnieuw gestart en lezen de poortlijst opnieuw, en elke verbonden client wordt even verbroken.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Van kracht na herinitialiseren</value>
@@ -14097,6 +14106,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>Ver_nieuwen</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Herinitialiseren</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>Nu _herinitialiseren</value>
   </data>
@@ -15438,6 +15450,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>Er wordt niet geluisterd op {0} geconfigureerde poorten: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Er wordt niet geluisterd op {0} geconfigureerde poorten: {1}. Als u er net een hebt toegevoegd of gewijzigd, herinitialiseer dan de server: die leest zijn poortlijst bij het opstarten. Anders houdt een ander programma de poort vast, bestaat het adres niet op deze machine, of kon het certificaat van een TLS-poort niet worden geladen - het foutenlogboek zegt welke.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} kon niet vanaf deze machine worden opgehaald: {1} Waarschijnlijke oorzaken: geen A/CNAME-record voor mta-sts.{2}, de HTTPS-listener draait niet (WebServicesHttpsPort=0 is de meegeleverde standaard), of een certificaat dat mta-sts.{2} niet dekt. Alleen vanaf deze machine gecontroleerd.</value>

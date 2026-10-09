@@ -7579,6 +7579,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Na jednym skonfigurowanym porcie nie odbywa się nasłuch: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Na jednym skonfigurowanym porcie nie odbywa się nasłuch: {0}. Jeśli dopiero go dodano lub zmieniono, należy ponownie zainicjalizować serwer: listę portów odczytuje przy uruchamianiu. W przeciwnym razie port zajmuje inny program, adres nie istnieje na tym komputerze albo nie udało się wczytać certyfikatu portu TLS - dziennik błędów mówi, która z tych przyczyn.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Jedno wywołanie skryptu zdarzenia. 0 = brak ograniczenia.</value>
   </data>
@@ -8815,8 +8818,14 @@ Warto to uruchomić, gdy klienty zgłaszają wiadomości pojawiające się pod n
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Ponownie rejestruje usługę jako LocalSystem, czego wymaga instalacja aktualizacji na żywo z serwera lub zapisywanie reguł zapory dla automatycznej blokady. Usługa zachowuje stare konto do ponownego uruchomienia.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Zainicjalizuj ponownie _teraz</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Ponownie zainicjalizować serwer teraz? Wszystkie usługi zatrzymają się i uruchomią ponownie na miejscu, więc połączeni klienci zostaną rozłączeni i połączą się ponownie.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Ponownie zainicjalizować serwer teraz? Jego usługi zatrzymają się i uruchomią ponownie na miejscu, odczytując listę portów od nowa, a każdy połączony klient zostanie na chwilę rozłączony.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Czeka na ponowną inicjalizację</value>
@@ -14255,6 +14264,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>Odś_wież</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Zainicjalizuj ponownie</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Zainicjuj ponownie teraz</value>
   </data>
@@ -15662,6 +15674,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>Na {0} skonfigurowanych portach nie ma nasłuchu: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Skonfigurowane porty bez nasłuchu: {0} ({1}). Jeśli któryś z nich dopiero dodano lub zmieniono, należy ponownie zainicjalizować serwer: listę portów odczytuje przy uruchamianiu. W przeciwnym razie port zajmuje inny program, adres nie istnieje na tym komputerze albo nie udało się wczytać certyfikatu portu TLS - dziennik błędów mówi, która z tych przyczyn.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}.|few" xml:space="preserve">
     <value>Na {0} skonfigurowanych portach nie ma nasłuchu: {1}.</value>

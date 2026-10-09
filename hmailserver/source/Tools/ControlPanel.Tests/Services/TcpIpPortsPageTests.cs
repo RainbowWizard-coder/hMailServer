@@ -95,6 +95,34 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("<Setter Property=\"FontSize\" Value=\"13\" />", xaml.Substring(cell, template - cell), StringComparison.Ordinal);
       }
 
+      /// <summary>
+      /// The listener warning offers what its commonest cause needs: Reinitialise
+      /// now, as the notice's action, which asks first with Cancel the answer Enter
+      /// gives - every connected client is disconnected for a moment - and reads
+      /// the page again after. The sentence is ListenerProbe's whole one, which
+      /// names each port as an endpoint is written.
+      /// </summary>
+      [Fact]
+      public void TheListenerWarning_OffersReinitialiseNow()
+      {
+         string code = Source();
+         string summary = WithheldRowTests.MemberText(code, "private void ShowListenerSummary(List<PortRow> rows, bool local)");
+         Assert.True(summary != null, "ShowListenerSummary is gone.");
+         Assert.Contains("ListenerProbe.NotListeningSummary(names), ReinitialiseButton_()", summary, StringComparison.Ordinal);
+         Assert.Contains("ListenerProbe.Endpoint(row.Address, row.Port)", summary, StringComparison.Ordinal);
+
+         string button = WithheldRowTests.MemberText(code, "private Wpf.Ui.Controls.Button ReinitialiseButton_()");
+         Assert.True(button != null, "ReinitialiseButton_ is gone.");
+         Assert.Contains("MessageBox.Confirm(", button, StringComparison.Ordinal);
+         Assert.Contains("cancelByDefault: true", button, StringComparison.Ordinal);
+         Assert.Contains("Reinitialise_();", button, StringComparison.Ordinal);
+
+         string reinitialise = WithheldRowTests.MemberText(code, "private void Reinitialise_()");
+         Assert.True(reinitialise != null, "Reinitialise_ is gone.");
+         Assert.Contains("Application.Reinitialize()", reinitialise, StringComparison.Ordinal);
+         Assert.Contains("Reload();", reinitialise, StringComparison.Ordinal);
+      }
+
       private static string Source() => ReadControlPanelFile(Path.Join("Views", "TcpIpPortsView.xaml.cs"));
 
       private static string ReadControlPanelFile(string relative)

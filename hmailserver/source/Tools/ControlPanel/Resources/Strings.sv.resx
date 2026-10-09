@@ -7501,6 +7501,9 @@ Inget som redan finns där tas bort.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>En konfigurerad port lyssnas inte på: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>En konfigurerad port lyssnas inte på: {0}. Om du nyss har lagt till eller ändrat den, ominitiera servern: den läser sin portlista vid start. Annars håller ett annat program porten, adressen finns inte på den här datorn, eller så kunde en TLS-ports certifikat inte läsas in - felloggen säger vilket.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Ett anrop av händelseskriptet. 0 = ingen gräns.</value>
   </data>
@@ -8737,8 +8740,14 @@ Kör detta om klienter rapporterar meddelanden som dyker upp under fel UID, elle
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Registrerar tjänsten som LocalSystem igen, vilket installation av en liveuppdatering från servern eller skrivning av brandväggsregler för den automatiska spärren kräver. Tjänsten behåller sitt gamla konto tills den startas om.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Ominitiera _nu</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Ominitiera servern nu? Alla tjänster stoppas och startar igen på plats, så anslutna klienter kopplas från och ansluter igen.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Ominitiera servern nu? Dess tjänster stoppas och startas igen på plats och läser portlistan på nytt, och alla anslutna klienter kopplas från en kort stund.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Gäller efter ominitiering</value>
@@ -14097,6 +14106,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>Upp_datera</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Ominitiera</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Ominitiera nu</value>
   </data>
@@ -15438,6 +15450,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>{0} konfigurerade portar lyssnas inte på: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} konfigurerade portar lyssnas inte på: {1}. Om du nyss har lagt till eller ändrat en av dem, ominitiera servern: den läser sin portlista vid start. Annars håller ett annat program porten, adressen finns inte på den här datorn, eller så kunde en TLS-ports certifikat inte läsas in - felloggen säger vilket.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} kunde inte hämtas från den här datorn: {1} Troliga orsaker: ingen A-/CNAME-post för mta-sts.{2}, HTTPS-lyssnaren körs inte (WebServicesHttpsPort=0 är standard vid leverans), eller ett certifikat som inte täcker mta-sts.{2}. Kontrollerat bara från den här datorn.</value>

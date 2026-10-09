@@ -7501,6 +7501,9 @@ Ingenting som allerede er der, fjernes.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Én konfigurert port lyttes ikke på: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Én konfigurert port lyttes ikke på: {0}. Hvis du nettopp har lagt den til eller endret den, reinitialiser serveren: den leser portlisten sin ved oppstart. Ellers holder et annet program porten, adressen finnes ikke på denne maskinen, eller sertifikatet til en TLS-port kunne ikke lastes - feilloggen sier hvilket.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Én kjøring av hendelsesskript. 0 = ingen grense.</value>
   </data>
@@ -8737,8 +8740,14 @@ Kjør dette hvis klienter melder om meldinger som dukker opp under feil UID, ell
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Registrerer tjenesten som LocalSystem igjen, noe installasjon av en liveoppdatering fra serveren eller skriving av brannmurregler for den automatiske utestengingen krever. Tjenesten beholder den gamle kontoen til den startes på nytt.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Reinitialiser _nå</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinitialisere serveren nå? Alle tjenester stopper og starter igjen på stedet, så tilkoblede klienter kobles fra og kobler til på nytt.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Reinitialisere serveren nå? Tjenestene dens stoppes og startes igjen på stedet og leser portlisten på nytt, og alle tilkoblede klienter kobles fra et øyeblikk.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Trer i kraft ved reinitialisering</value>
@@ -14097,6 +14106,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>Opp_dater</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Reinitialiser</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Reinitialiser nå</value>
   </data>
@@ -15438,6 +15450,9 @@ Det fortsetter å prøve mens du bruker programmet.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>{0} konfigurerte porter blir det ikke lyttet på: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>{0} konfigurerte porter blir det ikke lyttet på: {1}. Hvis du nettopp har lagt til eller endret en av dem, reinitialiser serveren: den leser portlisten sin ved oppstart. Ellers holder et annet program porten, adressen finnes ikke på denne maskinen, eller sertifikatet til en TLS-port kunne ikke lastes - feilloggen sier hvilket.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} kunne ikke hentes fra denne maskinen: {1} Sannsynlige årsaker: ingen A/CNAME-oppføring for mta-sts.{2}, HTTPS-lytteren kjører ikke (WebServicesHttpsPort=0 er standarden som følger med), eller et sertifikat som ikke dekker mta-sts.{2}. Kontrollert bare fra denne maskinen.</value>

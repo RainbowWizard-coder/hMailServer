@@ -7579,6 +7579,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Na jednom nastaveném portu se nenaslouchá: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Na jednom nastaveném portu se nenaslouchá: {0}. Pokud jste ho právě přidali nebo změnili, reinicializujte server: seznam portů čte při spuštění. Jinak port drží jiný program, adresa na tomto počítači neexistuje, nebo se na portu s TLS nepodařilo načíst certifikát - kterou z možností, uvádí chybový log.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Jedno volání skriptu události. 0 = bez omezení.</value>
   </data>
@@ -8815,8 +8818,14 @@ Spusťte to, pokud klienti hlásí zprávy pod špatným UID, nebo po obnovení 
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Znovu zaregistruje službu jako LocalSystem, což potřebuje instalace aktualizace za běhu ze serveru nebo zápis pravidel brány firewall pro automatické blokování. Služba si ponechá starý účet, dokud se nerestartuje.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Reinicializovat _nyní</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Reinicializovat server nyní? Všechny služby se zastaví a znovu spustí na místě, takže připojení klienti se odpojí a připojí znovu.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Reinicializovat server nyní? Jeho služby se na místě zastaví a znovu spustí, přičemž znovu načtou seznam portů, a všichni připojení klienti se na okamžik odpojí.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Projeví se po reinicializaci</value>
@@ -14255,6 +14264,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>O_bnovit</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Reinicializovat</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Reinicializovat nyní</value>
   </data>
@@ -15662,6 +15674,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>Na {0} nastavených portech se nenaslouchá: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Počet nastavených portů, na kterých se nenaslouchá: {0} ({1}). Pokud jste některý z nich právě přidali nebo změnili, reinicializujte server: seznam portů čte při spuštění. Jinak port drží jiný program, adresa na tomto počítači neexistuje, nebo se na portu s TLS nepodařilo načíst certifikát - kterou z možností, uvádí chybový log.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}.|few" xml:space="preserve">
     <value>Na {0} nastavených portech se nenaslouchá: {1}.</value>

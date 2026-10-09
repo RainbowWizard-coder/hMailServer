@@ -254,5 +254,44 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          Assert.NotNull(ListenerProbe.ActiveListeners());
       }
+
+      /// <summary>
+      /// An endpoint as it is written: an IPv6 address in brackets, so that the
+      /// summary under the ports list no longer printed IMAP on :: as ":::993".
+      /// </summary>
+      [Theory]
+      [InlineData("::", 993, "[::]:993")]
+      [InlineData("2001:db8::25", 25, "[2001:db8::25]:25")]
+      [InlineData("[::1]", 143, "[::1]:143")]
+      [InlineData("0.0.0.0", 25, "0.0.0.0:25")]
+      [InlineData("192.168.1.10", 587, "192.168.1.10:587")]
+      public void Endpoint_BracketsAnIPv6Address(string address, int port, string expected)
+      {
+         Assert.Equal(expected, ListenerProbe.Endpoint(address, port));
+      }
+
+      /// <summary>
+      /// The summary under the list leads with the commonest cause - a port added
+      /// or changed since the server started is not bound until it reinitialises -
+      /// as each row's tool tip does, and is one whole sentence for one port and
+      /// one for several; it led with a port conflict and an error-log entry that
+      /// a port never bound does not have.
+      /// </summary>
+      [Fact]
+      public void NotListeningSummary_LeadsWithReinitialising_AndNamesThePorts()
+      {
+         string one = ListenerProbe.NotListeningSummary(new[] { "IMAP [::]:993" });
+         Assert.StartsWith("One configured port is not being listened on: IMAP [::]:993. If you have just added or changed it, reinitialise the server", one);
+
+         string two = ListenerProbe.NotListeningSummary(new[] { "SMTP 0.0.0.0:587", "IMAP [::]:993" });
+         Assert.StartsWith("2 configured ports are not being listened on: SMTP 0.0.0.0:587, IMAP [::]:993. If you have just added or changed one, reinitialise the server", two);
+
+         foreach (string text in new[] { one, two })
+         {
+            Assert.True(text.IndexOf("reinitialise", System.StringComparison.Ordinal) < text.IndexOf("another program", System.StringComparison.Ordinal),
+               "The summary names a port conflict before the commonest cause.");
+            Assert.EndsWith("the error log says which.", text);
+         }
+      }
    }
 }

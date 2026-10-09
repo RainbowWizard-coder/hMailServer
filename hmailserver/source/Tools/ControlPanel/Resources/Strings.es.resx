@@ -7501,6 +7501,9 @@ No se elimina nada de lo que ya está.</value>
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Hay un puerto configurado en el que no se está escuchando: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Hay un puerto configurado en el que no se está escuchando: {0}. Si acaba de añadirlo o cambiarlo, reinicialice el servidor: lee su lista de puertos al arrancar. Si no, otro programa ocupa el puerto, la dirección no existe en esta máquina o no se pudo cargar el certificado de un puerto TLS - el registro de errores dice cuál.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Una invocación de script de evento. 0 = sin límite.</value>
   </data>
@@ -8737,8 +8740,14 @@ Ejecute esto si los clientes informan de mensajes que aparecen con un UID equivo
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Vuelve a registrar el servicio como LocalSystem, algo que necesitan la instalación de una actualización en vivo desde el servidor o la escritura de reglas de firewall para el bloqueo automático. El servicio conserva su cuenta anterior hasta que se reinicia.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Reinicializar a_hora</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>¿Reinicializar el servidor ahora? Todos los servicios se detienen y vuelven a arrancar en el mismo proceso, así que los clientes conectados se desconectan y vuelven a conectarse.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>¿Reinicializar el servidor ahora? Sus servicios se detienen y vuelven a arrancar en el mismo proceso, leyendo de nuevo la lista de puertos, y todos los clientes conectados se desconectan un momento.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Se aplica tras reinicializar</value>
@@ -14097,6 +14106,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="_Refresh" xml:space="preserve">
     <value>Ac_tualizar</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Reinicializar</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Reinicializar ahora</value>
   </data>
@@ -15438,6 +15450,9 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>No se está escuchando en {0} puertos configurados: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>No se está escuchando en {0} puertos configurados: {1}. Si acaba de añadir o cambiar uno, reinicialice el servidor: lee su lista de puertos al arrancar. Si no, otro programa ocupa el puerto, la dirección no existe en esta máquina o no se pudo cargar el certificado de un puerto TLS - el registro de errores dice cuál.</value>
   </data>
   <data name="{0} could not be fetched from this machine: {1} Likely causes: no A/CNAME record for mta-sts.{2}, the HTTPS listener is not running (WebServicesHttpsPort=0 is the shipped default), or a certificate that does not cover mta-sts.{2}. Checked from this machine only." xml:space="preserve">
     <value>{0} no pudo obtenerse desde esta máquina: {1} Causas probables: no hay registro A/CNAME para mta-sts.{2}, el oyente HTTPS no está en marcha (WebServicesHttpsPort=0 es el valor de fábrica), o un certificado que no cubre mta-sts.{2}. Comprobado solo desde esta máquina.</value>

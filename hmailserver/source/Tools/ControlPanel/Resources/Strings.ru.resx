@@ -7579,6 +7579,9 @@ Control Panel может читать файлы сообщений только
   <data name="One configured port is not being listened on: {0}." xml:space="preserve">
     <value>Один из настроенных портов не прослушивается: {0}.</value>
   </data>
+  <data name="One configured port is not being listened on: {0}. If you have just added or changed it, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Один из настроенных портов не прослушивается: {0}. Если вы только что добавили или изменили его, выполните повторную инициализацию сервера: он читает список портов при запуске. Иначе порт занят другой программой, адреса нет на этом компьютере или не удалось загрузить сертификат порта TLS — какая из причин, сказано в журнале ошибок.</value>
+  </data>
   <data name="One event script invocation. 0 = no bound." xml:space="preserve">
     <value>Один вызов сценария события. 0 — без предела.</value>
   </data>
@@ -8815,8 +8818,14 @@ Control Panel может читать файлы сообщений только
   <data name="Registers the service as LocalSystem again, which installing a live update from the server or writing firewall rules for the auto-ban needs. The service keeps its old account until it is restarted." xml:space="preserve">
     <value>Снова регистрирует службу как LocalSystem, что нужно для установки обновления с сервера на ходу или для записи правил брандмауэра для автоблокировки. Служба сохраняет прежнюю учётную запись до перезапуска.</value>
   </data>
+  <data name="Reinitialise _now" xml:space="preserve">
+    <value>Повторно инициализировать _сейчас</value>
+  </data>
   <data name="Reinitialise the server now? Every service stops and starts again in place, so connected clients are disconnected and reconnect." xml:space="preserve">
     <value>Выполнить повторную инициализацию сервера сейчас? Все службы остановятся и запустятся заново на месте, поэтому подключённые клиенты будут отключены и подключатся снова.</value>
+  </data>
+  <data name="Reinitialise the server now? Its services stop and start again in place, reading the port list afresh, and every connected client is disconnected for a moment." xml:space="preserve">
+    <value>Выполнить повторную инициализацию сервера сейчас? Его службы будут остановлены и запущены заново на месте и заново прочитают список портов, а все подключённые клиенты на мгновение отключатся.</value>
   </data>
   <data name="Reinitialise to apply" xml:space="preserve">
     <value>Ждёт повторной инициализации</value>
@@ -14255,6 +14264,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="_Refresh" xml:space="preserve">
     <value>О_бновить</value>
   </data>
+  <data name="_Reinitialise" xml:space="preserve">
+    <value>_Повторно инициализировать</value>
+  </data>
   <data name="_Reinitialise now" xml:space="preserve">
     <value>_Повторно инициализировать сейчас</value>
   </data>
@@ -15662,6 +15674,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="{0} configured ports are not being listened on: {1}." xml:space="preserve">
     <value>{0} настроенных портов не прослушиваются: {1}.</value>
+  </data>
+  <data name="{0} configured ports are not being listened on: {1}. If you have just added or changed one, reinitialise the server: it reads its port list at start-up. Otherwise another program holds the port, the address does not exist on this machine, or a TLS port's certificate could not be loaded - the error log says which." xml:space="preserve">
+    <value>Настроенных портов, которые не прослушиваются: {0} ({1}). Если вы только что добавили или изменили один из них, выполните повторную инициализацию сервера: он читает список портов при запуске. Иначе порт занят другой программой, адреса нет на этом компьютере или не удалось загрузить сертификат порта TLS — какая из причин, сказано в журнале ошибок.</value>
   </data>
   <data name="{0} configured ports are not being listened on: {1}.|few" xml:space="preserve">
     <value>{0} настроенных порта не прослушиваются: {1}.</value>
