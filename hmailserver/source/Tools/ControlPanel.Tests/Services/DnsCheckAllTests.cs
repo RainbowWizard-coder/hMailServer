@@ -77,6 +77,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          string all = WithheldRowTests.MemberText(page, "private async Task CheckAll_()");
          Assert.True(all != null, "DnsRecordsView.CheckAll_ is gone.");
          Assert.Contains("await Task.WhenAll(checks.Select(check => check.Run()));", all, StringComparison.Ordinal);
+
+         // A check that throws is summed up as its pill was left, and the exception
+         // goes no further than the button's async handler, which has no caller.
+         Assert.Contains("catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))", all, StringComparison.Ordinal);
          Assert.Contains("checkSummary_.Level = DnsCheckSummary.Worst(results);", all, StringComparison.Ordinal);
          Assert.Contains("checkSummary_.Text = DnsCheckSummary.Text(domain.Name, results);", all, StringComparison.Ordinal);
 

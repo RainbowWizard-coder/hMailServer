@@ -1947,6 +1947,13 @@ namespace hMailServer.ControlPanel.Views
          {
             await Task.WhenAll(checks.Select(check => check.Run()));
          }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            // A check that threw left its pill as it was, and is summed up as
+            // that: the other checks' verdicts are still worth saying, and an
+            // exception let out of here would reach the dispatcher, since a
+            // button's async handler has no caller to catch it.
+         }
          finally
          {
             checkAll_.IsEnabled = SelectedDomain() != null;
