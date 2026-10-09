@@ -7333,6 +7333,9 @@ Control Panel может читать файлы сообщений только
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Между 354 и тишиной — ничего</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Входящую почту не исследует ничто. Ни один сканер работать не может, а у блокировки вложений нет шаблонов, поэтому заражённое сообщение доставляется в почтовый ящик ровно в том виде, в каком пришло.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Входящую почту не исследует ничто. Ни один сканер работать не может, а блокировка вложений выключена, поэтому заражённое сообщение доставляется в почтовый ящик ровно в том виде, в каком пришло.</value>
   </data>

@@ -1024,8 +1024,8 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   problems in the last card, and said "In the clear" of port 25 and of a client port in two colours.** Each verdict -
   "No message is scanned for viruses... Everything is delivered as it arrives." - was plain body text, and the Critical
   and Warning notes were the last card several screens down with no action. The notes are now under the verdict, worst
-  first, each with a button to the page that fixes it - TCP/IP ports, IP ranges, SSL certificates, SSL/TLS, Anti-spam or
-  Anti-virus settings, Blocked attachments, Domains - and the page's title carries their count, *3 problems* at the
+  first, each with a button to the page that fixes it - TCP/IP ports, IP ranges, SSL certificates, SSL/TLS, Anti-spam
+  or Anti-virus settings, Blocked attachments, Domains - and the page's title carries their count, *3 problems* at the
   worst one's level, or *No problems found* where every value could be read - with a value not read, the notes that
   follow from it are left out, and the count said *No problems found* in green beside "Some values could not be read...
   The sections below may be incomplete.", so it now says nothing unless a problem was found; the notes below Warning
@@ -1033,15 +1033,18 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   level or above is said by the notes under it, so it is not a notice as well, which said each problem twice, with the
   same button, and drew more notices than the count: the spam and virus verdicts are then the card's lead sentence, at
   no level, since they still say what becomes of every message ("Messages up to 10,240 KB (10 MB) are scanned by one
-  scanner..."), and where the transport encryption verdict is about listeners - none at all, one with no encryption, one
-  whose STARTTLS a client may skip, one that cannot serve TLS - the notes are the verdict, such as "POP3 on port 110 has
-  no encryption available..." with *Open TCP/IP ports*, where "1 client listener has no encryption available" named
-  neither the port nor the fix. Port 25 unencrypted reads *Unencrypted (server mail)*. An enabled spam check that scores
-  0 reads *On, scores 0* and SpamAssassin with no host *On, no host*, both Warnings, where each showed the green *On* of
-  a check that works. The verdict and the notes also count listeners by what they amount to rather than by their word,
-  which they compared with "Will not start" and so missed in every language but English. `TlsPostureTests`,
-  `SpamPipelineTests`, `VirusPipelineTests`, `OverviewProblemCountTests` and `OverviewPagesTests` hold the levels, the
-  pages, the words, the count and the layout.
+  scanner..."), and where the transport encryption verdict is about listeners - none at all, one with no encryption,
+  one whose STARTTLS a client may skip, one that cannot serve TLS - the notes are the verdict, such as "POP3 on port
+  110 has no encryption available..." with *Open TCP/IP ports*, where "1 client listener has no encryption available"
+  named neither the port nor the fix. Port 25 unencrypted reads *Unencrypted (server mail)*. An enabled spam check that
+  scores 0 reads *On, scores 0* and SpamAssassin with no host *On, no host*, both Warnings, where each showed the green
+  *On* of a check that works. The verdict and the notes also count listeners by what they amount to rather than by
+  their word, which they compared with "Will not start" and so missed in every language but English. With no scanner
+  that can run and attachment blocking switched on with no pattern, the virus overview's Critical note says that
+  nothing examines incoming mail, as the verdict ("no attachment is blocked") and the Warning that blocking does
+  nothing at all say, where it said that attachment blocking still strips the file-name patterns on its page.
+  `TlsPostureTests`, `SpamPipelineTests`, `VirusPipelineTests`, `OverviewProblemCountTests` and `OverviewPagesTests`
+  hold the levels, the pages, the words, the count and the layout.
 
 - **Fixed: a notice's severity word could stay English in another language, and Japanese left three status words in
   English.** The word a notice or a status pill puts before its sentence - Warning, Critical, Information, OK - was

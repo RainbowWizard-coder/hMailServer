@@ -7251,6 +7251,9 @@
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>354 之后便没有下文</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>没有任何东西检查传入邮件。没有扫描器可以运行，附件拦截也没有任何模式，因此受感染的邮件会按到达时的原样投递到邮箱。</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>没有任何东西检查传入邮件。没有扫描器可以运行，附件拦截也已关闭，因此受感染的邮件会按到达时的原样投递到邮箱。</value>
   </data>

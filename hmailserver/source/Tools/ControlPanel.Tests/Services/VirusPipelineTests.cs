@@ -337,6 +337,28 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.True(HasNote(config, StatusLevel.Critical, "No virus scanner can run"));
       }
 
+      /// <summary>
+      /// Attachment blocking switched on with no pattern strips nothing, so with no
+      /// scanner that can run nothing examines incoming mail - as the verdict says,
+      /// "no attachment is blocked", and the Warning that blocking does nothing at
+      /// all - where the Critical note said that attachment blocking still strips
+      /// the file-name patterns on its own page.
+      /// </summary>
+      [Fact]
+      public void NoScannerAndBlockingWithNoPatterns_IsNothingExaminingIncomingMail()
+      {
+         VirusPipelineConfig config = Defaults();
+         config.AttachmentBlockingEnabled = true;
+         config.BlockedAttachmentPatterns = 0;
+
+         Assert.Contains("no attachment is blocked", VirusPipeline.Verdict(config));
+         Assert.True(HasNote(config, StatusLevel.Critical, "Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns"));
+         Assert.False(HasNote(config, StatusLevel.Critical, "still strips"));
+         Assert.False(HasNote(config, StatusLevel.Critical, "attachment blocking is off"));
+         Assert.True(HasNote(config, StatusLevel.Warning, "no patterns to block"));
+         Assert.Single(VirusPipeline.Notes(config), n => n.Level == StatusLevel.Critical);
+      }
+
       // ---- the shared vocabulary ---------------------------------------------
 
       [Fact]
@@ -621,6 +643,11 @@ namespace hMailServer.ControlPanel.Tests.Services
          VirusPipelineConfig noPatterns = Scanning();
          noPatterns.BlockedAttachmentPatterns = 0;
          configs.Add(noPatterns);
+
+         VirusPipelineConfig noScannerNoPatterns = Defaults();
+         noScannerNoPatterns.AttachmentBlockingEnabled = true;
+         noScannerNoPatterns.BlockedAttachmentPatterns = 0;
+         configs.Add(noScannerNoPatterns);
 
          foreach (VirusPipelineConfig config in configs)
          {

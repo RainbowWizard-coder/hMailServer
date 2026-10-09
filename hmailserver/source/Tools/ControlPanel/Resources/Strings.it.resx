@@ -7251,6 +7251,9 @@ Nulla di ciò che è già presente viene rimosso.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Nulla tra il 354 e il silenzio</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Nulla esamina la posta in ingresso. Nessuno scanner può essere eseguito e il blocco degli allegati non ha schemi, quindi un messaggio infetto viene consegnato alla casella esattamente come è arrivato.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Nulla esamina la posta in ingresso. Nessuno scanner può essere eseguito e il blocco degli allegati è disattivato, quindi un messaggio infetto viene consegnato alla casella esattamente come è arrivato.</value>
   </data>

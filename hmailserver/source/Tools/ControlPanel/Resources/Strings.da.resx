@@ -7251,6 +7251,9 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Intet mellem 354 og stilhed</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Intet undersøger indgående post. Ingen scanner kan køre, og blokering af vedhæftede filer har ingen mønstre, så en inficeret meddelelse leveres til postkassen nøjagtigt, som den ankom.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Intet undersøger indgående post. Ingen scanner kan køre, og blokering af vedhæftede filer er slået fra, så en inficeret meddelelse leveres til postkassen nøjagtigt, som den ankom.</value>
   </data>

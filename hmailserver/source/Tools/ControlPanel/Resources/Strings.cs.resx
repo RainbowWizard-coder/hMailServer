@@ -7333,6 +7333,9 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Mezi 354 a tichem nic</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Příchozí poštu nikdo nezkoumá. Nemůže běžet žádný skener a blokování příloh nemá žádné vzory, takže nakažená zpráva se do poštovní schránky doručí přesně tak, jak přišla.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Příchozí poštu nikdo nezkoumá. Nemůže běžet žádný skener a blokování příloh je vypnuté, takže nakažená zpráva se do poštovní schránky doručí přesně tak, jak přišla.</value>
   </data>

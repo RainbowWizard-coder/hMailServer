@@ -7251,6 +7251,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Ei mitään 354:n ja hiljaisuuden välissä</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Mikään ei tutki saapuvaa postia. Yksikään tarkistin ei voi toimia eikä liitteiden estolla ole malleja, joten tartunnan saanut viesti toimitetaan postilaatikkoon täsmälleen sellaisena kuin se saapui.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Mikään ei tutki saapuvaa postia. Yksikään tarkistin ei voi toimia ja liitteiden esto on pois päältä, joten tartunnan saanut viesti toimitetaan postilaatikkoon täsmälleen sellaisena kuin se saapui.</value>
   </data>

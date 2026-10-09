@@ -7333,6 +7333,9 @@
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Між 354 і тишею — нічого</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Вхідну пошту ніщо не перевіряє. Жоден сканер не може працювати, а блокування вкладень не має шаблонів, тому заражене повідомлення доставляється до поштової скриньки точно таким, яким надійшло.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Вхідну пошту ніщо не перевіряє. Жоден сканер не може працювати, а блокування вкладень вимкнено, тому заражене повідомлення доставляється до поштової скриньки точно таким, яким надійшло.</value>
   </data>

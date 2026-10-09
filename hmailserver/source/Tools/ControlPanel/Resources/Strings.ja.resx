@@ -7251,6 +7251,9 @@
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>354 の後、何もなく沈黙</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>受信メールを調べるものは何もありません。実行できるスキャナーがなく、添付ファイルのブロックにもパターンが 1 つもないため、感染したメッセージは到着したそのままの状態でメールボックスに配信されます。</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>受信メールを調べるものは何もありません。実行できるスキャナーがなく、添付ファイルのブロックもオフなので、感染したメッセージは到着したそのままの状態でメールボックスに配信されます。</value>
   </data>

@@ -7333,6 +7333,9 @@ Nic, co już tam jest, nie zostanie usunięte.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Nic pomiędzy 354 a ciszą</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Nic nie bada poczty przychodzącej. Żaden skaner nie może zostać uruchomiony, a blokowanie załączników nie ma żadnych wzorców, więc zainfekowana wiadomość jest dostarczana do skrzynki pocztowej dokładnie w takiej postaci, w jakiej przyszła.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Nic nie bada poczty przychodzącej. Żaden skaner nie może zostać uruchomiony, a blokowanie załączników jest wyłączone, więc zainfekowana wiadomość jest dostarczana do skrzynki pocztowej dokładnie w takiej postaci, w jakiej przyszła.</value>
   </data>

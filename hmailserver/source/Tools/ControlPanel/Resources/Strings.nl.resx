@@ -7251,6 +7251,9 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>Niets tussen 354 en stilte</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Niets onderzoekt inkomende mail. Geen enkele scanner kan draaien en bijlageblokkering heeft geen patronen, dus een geïnfecteerd bericht wordt precies zo aan het postvak bezorgd als het binnenkwam.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Niets onderzoekt inkomende mail. Geen enkele scanner kan draaien en bijlageblokkering staat uit, dus een geïnfecteerd bericht wordt precies zo aan het postvak bezorgd als het binnenkwam.</value>
   </data>

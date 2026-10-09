@@ -472,10 +472,15 @@ namespace hMailServer.ControlPanel.Services
                : F("{0} is switched on but cannot run. {1} Every scan it is asked for fails, and a failed scan is not a failed message: the error is logged and the message is delivered as though it had been examined and found clean.", scanner.Name, scanner.Problem)));
          }
 
-         if (scannersRead && blocking && usable == 0 && !config.AttachmentBlockingEnabled)
+         // Blocking switched on with no pattern strips nothing, as the verdict says
+         // ("no attachment is blocked") and the Warning below: with no scanner
+         // that can run, nothing examines incoming mail, where the note said that
+         // attachment blocking still strips the patterns on its page.
+         if (scannersRead && blocking && usable == 0 && (!config.AttachmentBlockingEnabled || config.BlockedAttachmentPatterns <= 0))
          {
-            notes.Add(new VirusPipelineNote(StatusLevel.Critical,
-               L("Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived.")));
+            notes.Add(new VirusPipelineNote(StatusLevel.Critical, config.AttachmentBlockingEnabled
+               ? L("Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived.")
+               : L("Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived.")));
          }
          else if (scannersRead && blocking && usable == 0)
          {

@@ -7251,6 +7251,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Nothing between 354 and silence" xml:space="preserve">
     <value>354 ile sessizlik arasında hiçbir şey yok</value>
   </data>
+  <data name="Nothing examines incoming mail. No scanner can run and attachment blocking has no patterns, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
+    <value>Hiçbir şey gelen postayı incelemiyor. Hiçbir tarayıcı çalışamıyor ve ek engellemenin hiç deseni yok; bu yüzden virüslü bir ileti posta kutusuna tam geldiği gibi teslim ediliyor.</value>
+  </data>
   <data name="Nothing examines incoming mail. No scanner can run and attachment blocking is off, so an infected message is delivered to the mailbox exactly as it arrived." xml:space="preserve">
     <value>Hiçbir şey gelen postayı incelemiyor. Hiçbir tarayıcı çalışamıyor ve ek engelleme kapalı; bu yüzden virüslü bir ileti posta kutusuna tam geldiği gibi teslim ediliyor.</value>
   </data>
