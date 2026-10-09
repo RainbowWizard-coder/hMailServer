@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 meddelande kan inte listas och lämnas kvar där det är: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 vid det första leveransförsöket, 2 vid det första nya försöket och så vidare.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 mönster</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>En inloggningsuppgift är satt men lyssnaren har ingen TLS, så uppgiften går över nätverket i klartext vid varje skrapning och kan spelas upp igen av vem som helst på vägen. Ange certifikat- och nyckelfilerna, eller bind till 127.0.0.1. Servern startar ändå - den loggar samma varning.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Ett kriterium i regeln ”{0}”.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>En egen virusskanner eller ett externt verktyg som hänger sig - begränsat av ExternalProcessTimeout.</value>
@@ -960,6 +966,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Lägg till en förbigångspost</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Lägg till ett kriterium i regeln ”{0}”.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Lägg till ett domänalias</value>
   </data>
@@ -1028,6 +1037,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Lägg till ett konto under domänen på sidan Domäner: en adress och lösenordet som en e-postklient loggar in med.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Lägg till en åtgärd i regeln ”{0}”.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Lägg till en post</value>
@@ -1427,6 +1439,9 @@ Kontrollpanelen kan bara läsa meddelandefiler när den körs på samma dator so
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Ett konto är en brevlåda i en domän: adressen folk skriver till, och det en klient loggar in som.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>En åtgärd i regeln ”{0}”.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>En adress krävs.</value>
@@ -4300,6 +4315,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Ange ett domännamn, till exempel example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Ange ett rubriknamn.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Ange ett värdnamn och en port först.</value>
   </data>
@@ -4341,6 +4359,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Ange ett giltigt portnummer.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Ange ett värde.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Ange ett helt antal timmar från 1 till 720.</value>
@@ -4399,6 +4420,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Ange intervallets nedre adress, till exempel 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Ange försökets nummer som ett heltal, till exempel 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Ange lösenfrasen som arkivet ska krypteras med, och skriv den igen nedan.</value>
   </data>
@@ -4413,6 +4437,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Ange tjänstekontots lösenord</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Ange storleken som ett heltal i byte, till exempel 1048576 för 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Ange intervallets övre adress, till exempel 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Storleksgränsen kunde inte läsas.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Storleken på hela meddelandet, bilagor inräknade: 1048576 byte är 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smartvärden, dess port och inloggningsuppgifter, och omförsöksschemat för leverans.</value>
   </data>
@@ -14584,6 +14614,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>_Värde</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>_Värde (försök)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>_Värde (byte)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>_Verifieringskod från din autentiseringsapp</value>

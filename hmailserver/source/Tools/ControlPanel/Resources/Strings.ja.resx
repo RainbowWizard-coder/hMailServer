@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 件のメッセージは一覧に登録できないため、そのままにします: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>最初の配信試行で 1、最初の再試行で 2 というように数えます。</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>パターン 1 件</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>資格情報は設定されていますが、リスナーに TLS がありません。そのため資格情報はスクレイプのたびに平文でネットワークを流れ、経路上の誰でも再生できます。証明書ファイルと鍵ファイルを設定するか、127.0.0.1 にバインドしてください。サーバーはそれでも起動し、これと同じ警告をログに記録します。</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>ルール「{0}」の条件です。</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>カスタムのウイルス スキャナーや外部ツールが応答しなくなった場合 - ExternalProcessTimeout によって制限されます。</value>
@@ -960,6 +966,9 @@
   <data name="Add a bypass entry" xml:space="preserve">
     <value>バイパス エントリを追加</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>ルール「{0}」に条件を追加します。</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>ドメイン エイリアスを追加</value>
   </data>
@@ -1028,6 +1037,9 @@
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>ドメイン ページでドメインの下にアカウントを追加します。アドレスと、メールクライアントがサインインに使うパスワードです。</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>ルール「{0}」にアクションを追加します。</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>エントリを追加</value>
@@ -1427,6 +1439,9 @@
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>アカウントはドメイン内のメールボックスです。人が宛先にする住所であり、クライアントがサインインする際の名義です。</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>ルール「{0}」のアクションです。</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>アドレスが必要です。</value>
@@ -4300,6 +4315,9 @@
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>example.com のようなドメイン名を入力してください。</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>ヘッダー名を入力してください。</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>先にホスト名とポートを入力してください。</value>
   </data>
@@ -4341,6 +4359,9 @@
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>有効なポート番号を入力してください。</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>値を入力してください。</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>1 から 720 までの整数の時間数を入力してください。</value>
@@ -4399,6 +4420,9 @@
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>範囲の下限アドレスを入力してください (例: 10.0.0.0)。</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>試行の回数を整数で入力してください (例: 3)。</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>アーカイブを暗号化するパスフレーズを入力し、下にもう一度入力してください。</value>
   </data>
@@ -4413,6 +4437,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>サービス アカウントのパスワードを入力してください</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>サイズをバイト単位の整数で入力してください (例: 1 MB なら 1048576)。</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>範囲の上限アドレスを入力してください (例: 10.0.0.255)。</value>
@@ -12473,6 +12500,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The size limit could not be read." xml:space="preserve">
     <value>サイズ上限を読み取れませんでした。</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>添付ファイルを含むメッセージ全体のサイズです。1048576 バイトが 1 MB です。</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>スマート ホスト、そのポートと資格情報、配信の再試行スケジュール。</value>
   </data>
@@ -14584,6 +14614,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="_Value" xml:space="preserve">
     <value>値(_V)</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>値 (試行回数)(_V)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>値 (バイト)(_V)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>認証アプリの確認コード(_V)</value>

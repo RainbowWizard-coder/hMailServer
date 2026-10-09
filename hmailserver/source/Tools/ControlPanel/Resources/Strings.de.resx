@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 Nachricht kann nicht aufgelistet werden und bleibt, wo sie ist: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 beim ersten Zustellversuch, 2 bei der ersten Wiederholung und so weiter.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 Muster</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Eine Anmeldeinformation ist gesetzt, aber der Listener hat kein TLS, die Anmeldedaten überqueren das Netz also bei jedem Abruf im Klartext und kann von jedem auf dem Weg wiederverwendet werden. Setzen Sie Zertifikat- und Schlüsseldatei, oder binden Sie an 127.0.0.1. Der Server startet trotzdem - er protokolliert dieselbe Warnung.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Ein Kriterium der Regel „{0}“.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Ein eigener Virenscanner oder ein externes Werkzeug, das hängt - begrenzt durch ExternalProcessTimeout.</value>
@@ -960,6 +966,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Umgehungseintrag hinzufügen</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Ein Kriterium zur Regel „{0}“ hinzufügen.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Domainalias hinzufügen</value>
   </data>
@@ -1028,6 +1037,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Legen Sie auf der Seite Domains unter der Domain ein Konto an: eine Adresse und das Passwort, mit dem sich ein Mailprogramm anmeldet.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Eine Aktion zur Regel „{0}“ hinzufügen.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Eintrag hinzufügen</value>
@@ -1427,6 +1439,9 @@ Das Control Panel kann Nachrichtendateien nur lesen, wenn es auf demselben Rechn
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Ein Konto ist ein Postfach in einer Domain: die Adresse, an die geschrieben wird, und das, als was sich ein Client anmeldet.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Eine Aktion der Regel „{0}“.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Eine Adresse ist erforderlich.</value>
@@ -4300,6 +4315,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Geben Sie einen Domainnamen wie example.com ein.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Geben Sie einen Header-Namen ein.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Geben Sie zuerst einen Hostnamen und einen Port ein.</value>
   </data>
@@ -4341,6 +4359,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Geben Sie eine gültige Portnummer ein.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Geben Sie einen Wert ein.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Geben Sie eine ganze Zahl von Stunden zwischen 1 und 720 ein.</value>
@@ -4399,6 +4420,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Geben Sie die untere Adresse des Bereichs ein, etwa 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Geben Sie die Nummer des Versuchs als ganze Zahl ein, zum Beispiel 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Geben Sie die Passphrase ein, mit der das Archiv verschlüsselt werden soll, und tippen Sie sie unten noch einmal.</value>
   </data>
@@ -4413,6 +4437,9 @@ Keine Mail wird angerührt - der Index ist daraus abgeleitet - aber bis der Neua
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Geben Sie das Passwort des Dienstkontos ein</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Geben Sie die Größe als ganze Zahl in Byte ein, zum Beispiel 1048576 für 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Geben Sie die obere Adresse des Bereichs ein, etwa 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Die Größenbegrenzung konnte nicht gelesen werden.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Die Größe der ganzen Nachricht, Anhänge eingeschlossen: 1048576 Byte sind 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Der Smart Host, sein Port und seine Zugangsdaten sowie der Wiederholungsplan für die Zustellung.</value>
   </data>
@@ -14584,6 +14614,12 @@ Es versucht es weiter, während Sie die Anwendung benutzen.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>_Wert</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>_Wert (Versuche)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>_Wert (Byte)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>_Bestätigungscode aus Ihrer Authenticator-App</value>

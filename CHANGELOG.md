@@ -1935,6 +1935,16 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   (read only is Lookup, Read messages and Keep seen/unseen state; read and write adds Set flags, Insert, Delete
   messages and Expunge, but not Post or the rights over the folder itself), and the rights are in two columns.
 
+- **Fixed: a rule's criterion was saved with no header name or no value, and the message size and the delivery attempt
+  opened on "contains" with no unit.** The criterion dialog wrote a custom header with no name, which matches nothing,
+  and an empty value, which "contains" finds in every message and "does not contain" in none. It now says "Enter a
+  header name." or "Enter a value." on the field and saves nothing, an empty value being kept only for "equals" and
+  "does not equal", which ask whether the field is empty. Message size and Delivery attempts open on "is greater
+  than", offer the four comparisons a number has, are captioned Value (bytes) and Value (attempts) over a line that
+  says what the number counts - the whole message, attachments included, and 1 on the first delivery attempt - and
+  take a whole number; a criterion saved with another comparison keeps it. The IF and THEN dialogs name the rule under
+  their heading: "Add a criterion to the rule “Invoices”.", "An action of the rule “Invoices”.".
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

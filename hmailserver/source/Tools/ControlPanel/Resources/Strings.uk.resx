@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 повідомлення не можна створити запис; воно залишиться там, де є: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 під час першої спроби доставки, 2 під час першої повторної спроби і так далі.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>Шаблонів: 1</value>
   </data>
@@ -398,6 +401,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Облікові дані задано, але слухач не має TLS, тому під час кожного збирання метрик вони передаються мережею відкритим текстом, і будь-хто на шляху може їх відтворити. Задайте файли сертифіката та ключа або прив’яжіться до 127.0.0.1. Сервер усе одно запуститься — він записує в журнал це саме попередження.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Критерій правила «{0}».</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Власний антивірусний сканер або зовнішній засіб, який зависає, — обмежується параметром ExternalProcessTimeout.</value>
@@ -966,6 +972,9 @@
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Додати запис обходу</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Додавання критерію до правила «{0}».</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Додати псевдонім домену</value>
   </data>
@@ -1034,6 +1043,9 @@
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Додайте обліковий запис під доменом на сторінці Домени: адресу та пароль, з яким входить поштовий клієнт.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Додавання дії до правила «{0}».</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Додати запис</value>
@@ -1439,6 +1451,9 @@
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Обліковий запис — це поштова скринька в домені: адреса, на яку пишуть, і те, під чим входить клієнт.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Дія правила «{0}».</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Потрібна адреса.</value>
@@ -4346,6 +4361,9 @@
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Введіть ім'я домену, наприклад example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Введіть ім’я заголовка.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Спершу введіть ім'я вузла та порт.</value>
   </data>
@@ -4387,6 +4405,9 @@
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Введіть дійсний номер порту.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Введіть значення.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Введіть ціле число годин від 1 до 720.</value>
@@ -4445,6 +4466,9 @@
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Введіть нижню адресу діапазону, наприклад 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Введіть номер спроби цілим числом, наприклад 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введіть парольну фразу, якою буде зашифровано архів, і наберіть її ще раз нижче.</value>
   </data>
@@ -4459,6 +4483,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введіть пароль облікового запису служби</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Введіть розмір у байтах цілим числом, наприклад 1048576 для 1 МБ.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Введіть верхню адресу діапазону, наприклад 10.0.0.255.</value>
@@ -12636,6 +12663,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Обмеження розміру не вдалося прочитати.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Розмір усього повідомлення разом із вкладеннями: 1 МБ дорівнює 1048576 байтам.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Смарт-хост, його порт і облікові дані, а також розклад повторних спроб доставки.</value>
   </data>
@@ -14756,6 +14786,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="_Value" xml:space="preserve">
     <value>З_начення</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>З_начення (спроби)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>З_начення (байти)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>Код підтвердження _з вашого застосунку-автентифікатора</value>

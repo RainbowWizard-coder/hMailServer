@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 message cannot be listed and will be left where it is: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 on the first delivery attempt, 2 on the first retry, and so on.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 pattern</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>A criterion of the rule “{0}”.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout.</value>
@@ -960,6 +966,9 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Add a bypass entry</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Add a criterion to the rule “{0}”.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Add a domain alias</value>
   </data>
@@ -1028,6 +1037,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Add an account under the domain on the Domains page: an address, and the password a mail client signs in with.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Add an action to the rule “{0}”.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Add an entry</value>
@@ -1427,6 +1439,9 @@ The Control Panel can only read message files when it runs on the same machine a
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>An account is a mailbox in a domain: the address people write to, and what a client signs in as.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>An action of the rule “{0}”.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>An address is required.</value>
@@ -4300,6 +4315,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Enter a domain name such as example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Enter a header name.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Enter a host name and port first.</value>
   </data>
@@ -4341,6 +4359,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Enter a valid port number.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Enter a value.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Enter a whole number of hours from 1 to 720.</value>
@@ -4399,6 +4420,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Enter the lower address of the range, such as 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Enter the number of the attempt as a whole number, such as 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Enter the passphrase the archive is to be encrypted with, and type it again below.</value>
   </data>
@@ -4413,6 +4437,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Enter the service account password</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Enter the size as a whole number of bytes, such as 1048576 for 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Enter the upper address of the range, such as 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ It will keep trying as you use the application.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>The size limit could not be read.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>The size of the whole message, attachments included: 1048576 bytes is 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>The smart host, its port and credentials, and the retry schedule for delivery.</value>
   </data>
@@ -14584,6 +14614,12 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>_Value</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>_Value (attempts)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>_Value (bytes)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>_Verification code from your authenticator app</value>

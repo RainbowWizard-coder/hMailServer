@@ -50,6 +50,7 @@ namespace hMailServer.ControlPanel.Views
       private readonly StackPanel warnPanel_ = new();
       private readonly TextBlock noParams_ = DialogFields.Note(L("This action has no additional parameters."));
       private readonly InlineNotice notice_ = DialogFields.Notice();
+      private readonly DialogFrame frame_;
 
       public RuleActionDialog(Window owner, int ruleId, int actionId, Func<dynamic> rulesProvider = null, bool serverLevel = true)
       {
@@ -137,8 +138,9 @@ namespace hMailServer.ControlPanel.Views
 
          // Upper-case deliberately, sentence-case sweep notwithstanding: "THEN"
          // is the rule grammar's keyword, not prose - the pair to RuleCriteria-
-         // Dialog's "IF", both echoing RulesView's editor panes.
-         UseFrame(L("THEN"), body, save, cancel, width: 520);
+         // Dialog's "IF", both echoing RulesView's editor panes. The description
+         // under it names the rule (review finding F227), once Load has read it.
+         frame_ = UseFrame(L("THEN"), body, save, cancel, width: 520);
          Loaded += (s, e) => Load();
       }
 
@@ -180,8 +182,31 @@ namespace hMailServer.ControlPanel.Views
 
       private dynamic FindRule(dynamic rules) => rules.ItemByDBID[ruleId_];
 
+      /// <summary>The rule's name, for the description; null when it cannot be read, which only leaves the dialog undescribed.</summary>
+      private string RuleName_()
+      {
+         dynamic rules = null;
+         dynamic rule = null;
+         try
+         {
+            rules = rulesProvider_();
+            rule = FindRule(rules);
+            return rule == null ? null : (string)rule.Name;
+         }
+         catch (Exception fatalCheck) when (!ExceptionPolicy.IsFatal(fatalCheck))
+         {
+            return null;
+         }
+         finally
+         {
+            ServerSession.Release((object)rule);
+            ServerSession.Release((object)rules);
+         }
+      }
+
       private void Load()
       {
+         frame_.Description = RuleCriterionInput.ActionDescription(RuleName_(), actionId_ == 0);
          LoadRoutes();
 
          if (actionId_ == 0)

@@ -129,6 +129,13 @@
     <Compile Include="..\ControlPanel\Services\ListOutcome.cs" />
   </ItemGroup>
 
+  <!-- What the forms ask of their fields before they save, and what they ask
+       first (T2.4, part 2): a rule's criterion - its header name, its value, and
+       the comparisons a number offers (review finding F227). -->
+  <ItemGroup>
+    <Compile Include="..\ControlPanel\Services\RuleCriterionInput.cs" />
+  </ItemGroup>
+
   <!-- The operator documentation, embedded straight from the repository as
        Help.<Name>.md, exactly as ControlPanel.csproj embeds it for the program:
        the same glob, the same two exclusions, the same names. The program does

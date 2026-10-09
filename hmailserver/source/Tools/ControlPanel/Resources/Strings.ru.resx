@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Для 1 сообщения нельзя создать запись; оно останется там, где есть: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 при первой попытке доставки, 2 при первой повторной попытке и так далее.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>Шаблонов: 1</value>
   </data>
@@ -398,6 +401,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Учётные данные заданы, но у прослушивателя нет TLS, поэтому при каждом сборе метрик они передаются по сети открытым текстом и могут быть воспроизведены любым, кто находится на пути. Задайте файлы сертификата и ключа либо привяжитесь к 127.0.0.1. Сервер всё равно запускается — он записывает в журнал это же предупреждение.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Критерий правила «{0}».</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Зависший пользовательский антивирусный сканер или внешняя программа — ограничивается параметром ExternalProcessTimeout.</value>
@@ -966,6 +972,9 @@ Control Panel может читать файлы сообщений только
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Добавить запись обхода</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Добавление критерия в правило «{0}».</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Добавить псевдоним домена</value>
   </data>
@@ -1034,6 +1043,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Добавьте учётную запись под доменом на странице Домены: адрес и пароль, с которым входит почтовый клиент.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Добавление действия в правило «{0}».</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Добавить запись</value>
@@ -1439,6 +1451,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Учётная запись — это почтовый ящик в домене: адрес, на который пишут, и то, под чем входит клиент.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Действие правила «{0}».</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Требуется адрес.</value>
@@ -4346,6 +4361,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Введите имя домена, например example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Введите имя заголовка.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Сначала укажите имя узла и порт.</value>
   </data>
@@ -4387,6 +4405,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Введите корректный номер порта.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Введите значение.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Введите целое число часов от 1 до 720.</value>
@@ -4445,6 +4466,9 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Введите нижний адрес диапазона, например 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Введите номер попытки целым числом, например 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
   </data>
@@ -4459,6 +4483,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введите пароль учётной записи службы</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Введите размер в байтах целым числом, например 1048576 для 1 МБ.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Введите верхний адрес диапазона, например 10.0.0.255.</value>
@@ -12636,6 +12663,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Ограничение размера не удалось прочитать.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Размер всего сообщения вместе с вложениями: 1 МБ равен 1048576 байтам.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Смарт-хост, его порт и учётные данные, а также расписание повторных попыток доставки.</value>
   </data>
@@ -14756,6 +14786,12 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="_Value" xml:space="preserve">
     <value>З_начение</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>З_начение (попытки)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>З_начение (байты)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>Код _подтверждения из вашего приложения-аутентификатора</value>

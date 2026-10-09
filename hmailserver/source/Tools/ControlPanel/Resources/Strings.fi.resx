@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 viesti ei mahdu luetteloon, ja se jätetään paikalleen: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 ensimmäisellä toimitusyrityksellä, 2 ensimmäisellä uusintayrityksellä ja niin edelleen.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 kuvio</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Tunnistetiedot on asetettu, mutta kuuntelijalla ei ole TLS:ää, joten tunnistetiedot kulkevat verkossa selväkielisinä jokaisella keruukerralla ja kuka tahansa reitillä oleva voi toistaa ne. Aseta varmenne- ja avaintiedostot tai sido kuuntelija osoitteeseen 127.0.0.1. Palvelin käynnistyy silti – se kirjaa lokiin tämän saman varoituksen.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Säännön ”{0}” ehto.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Mukautettu virustarkistin tai ulkoinen työkalu, joka jumittuu – rajana ExternalProcessTimeout.</value>
@@ -960,6 +966,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Lisää ohitusmerkintä</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Lisää ehto sääntöön ”{0}”.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Lisää verkkotunnuksen alias</value>
   </data>
@@ -1028,6 +1037,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Lisää tili verkkotunnuksen alle sivulla Verkkotunnukset: osoite ja salasana, jolla sähköpostiohjelma kirjautuu.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Lisää toiminto sääntöön ”{0}”.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Lisää merkintä</value>
@@ -1427,6 +1439,9 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Tili on postilaatikko verkkotunnuksessa: osoite, johon kirjoitetaan, ja se, minä asiakasohjelma kirjautuu.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Säännön ”{0}” toiminto.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Osoite on pakollinen.</value>
@@ -4300,6 +4315,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Anna verkkotunnus, esimerkiksi example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Anna otsakkeen nimi.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Anna ensin konenimi ja portti.</value>
   </data>
@@ -4341,6 +4359,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Anna kelvollinen portin numero.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Anna arvo.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Anna kokonainen tuntimäärä väliltä 1–720.</value>
@@ -4399,6 +4420,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Anna alueen alempi osoite, esimerkiksi 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Anna yrityksen numero kokonaislukuna, esimerkiksi 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Anna salasanalause, jolla arkisto salataan, ja kirjoita se uudelleen alle.</value>
   </data>
@@ -4413,6 +4437,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Anna palvelutilin salasana</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Anna koko kokonaislukuna tavuina, esimerkiksi 1048576, joka on 1 Mt.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Anna alueen ylempi osoite, esimerkiksi 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Kokorajaa ei voitu lukea.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Koko viestin koko liitteineen: 1048576 tavua on 1 Mt.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smart host, sen portti ja tunnistetiedot sekä toimituksen uudelleenyritysten aikataulu.</value>
   </data>
@@ -14584,6 +14614,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>A_rvo</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>A_rvo (yritykset)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>A_rvo (tavua)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>Vahvistuskoodi _todennussovelluksestasi</value>

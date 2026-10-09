@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 meddelelse kan ikke vises på listen og efterlades, hvor den er: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 ved det første leveringsforsøg, 2 ved det første genforsøg og så videre.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 mønster</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Der er angivet legitimationsoplysninger, men lytteren har ingen TLS, så de krydser netværket i klartekst ved hver scrape og kan afspilles igen af enhver på vejen. Angiv certifikat- og nøglefilerne, eller bind til 127.0.0.1. Serveren starter stadig – den logger netop denne advarsel.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Et kriterium i reglen »{0}«.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>En brugerdefineret virusscanner eller et eksternt værktøj, der hænger – begrænset af ExternalProcessTimeout.</value>
@@ -960,6 +966,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Tilføj en omgåelsespost</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Tilføj et kriterium til reglen »{0}«.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Tilføj et domænealias</value>
   </data>
@@ -1028,6 +1037,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Tilføj en konto under domænet på siden Domæner: en adresse og den adgangskode, en e-mailklient logger ind med.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Tilføj en handling til reglen »{0}«.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Tilføj en post</value>
@@ -1427,6 +1439,9 @@ Control Panel kan kun læse meddelelsesfiler, når det kører på samme maskine 
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>En konto er en postkasse i et domæne: adressen folk skriver til, og det en klient logger ind som.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>En handling i reglen »{0}«.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>En adresse er påkrævet.</value>
@@ -4300,6 +4315,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Indtast et domænenavn, f.eks. example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Indtast et headernavn.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Indtast først et værtsnavn og en port.</value>
   </data>
@@ -4341,6 +4359,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Indtast et gyldigt portnummer.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Indtast en værdi.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Indtast et helt antal timer fra 1 til 720.</value>
@@ -4399,6 +4420,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Indtast områdets nedre adresse, f.eks. 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Indtast forsøgets nummer som et helt tal, f.eks. 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Angiv den adgangssætning, arkivet skal krypteres med, og skriv den igen nedenfor.</value>
   </data>
@@ -4413,6 +4437,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Indtast tjenestekontoens adgangskode</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Indtast størrelsen som et helt antal byte, f.eks. 1048576 for 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Indtast områdets øvre adresse, f.eks. 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Størrelsesgrænsen kunne ikke læses.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Størrelsen på hele meddelelsen, inklusive vedhæftede filer: 1048576 byte er 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smart-værten, dens port og legitimationsoplysninger samt tidsplanen for gentagne leveringsforsøg.</value>
   </data>
@@ -14584,6 +14614,12 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>_Værdi</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>_Værdi (forsøg)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>_Værdi (byte)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>_Bekræftelseskode fra din authenticator-app</value>

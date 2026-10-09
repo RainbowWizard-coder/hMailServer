@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Dla 1 wiadomości nie można zapisać wpisu; pozostanie tam, gdzie jest: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 przy pierwszej próbie dostarczenia, 2 przy pierwszym ponowieniu i tak dalej.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>Wzorce: 1</value>
   </data>
@@ -398,6 +401,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Poświadczenie jest ustawione, ale nasłuch nie ma TLS, więc poświadczenie przechodzi przez sieć jawnym tekstem przy każdym pobraniu metryk i może zostać odtworzone przez kogokolwiek na trasie. Należy wskazać pliki certyfikatu i klucza albo powiązać nasłuch z 127.0.0.1. Serwer i tak się uruchamia - zapisuje w dzienniku to samo ostrzeżenie.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Kryterium reguły „{0}”.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Własny skaner antywirusowy lub zewnętrzne narzędzie, które się zawiesza - ograniczone przez ExternalProcessTimeout.</value>
@@ -966,6 +972,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Dodaj wpis pominięcia</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Dodaj kryterium do reguły „{0}”.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Dodaj alias domeny</value>
   </data>
@@ -1034,6 +1043,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Dodaj konto pod domeną na stronie Domeny: adres i hasło, którym loguje się program pocztowy.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Dodaj akcję do reguły „{0}”.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Dodaj wpis</value>
@@ -1439,6 +1451,9 @@ Control Panel może czytać pliki wiadomości tylko wtedy, gdy działa na tym sa
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Konto to skrzynka w domenie: adres, na który się pisze, i tożsamość, jaką loguje się klient.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Akcja reguły „{0}”.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Wymagany jest adres.</value>
@@ -4346,6 +4361,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Należy podać nazwę domeny, np. example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Należy podać nazwę nagłówka.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Najpierw należy podać nazwę hosta i port.</value>
   </data>
@@ -4387,6 +4405,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Należy podać prawidłowy numer portu.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Należy podać wartość.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Należy podać całkowitą liczbę godzin od 1 do 720.</value>
@@ -4445,6 +4466,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Należy podać dolny adres zakresu, np. 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Należy podać numer próby jako liczbę całkowitą, np. 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Wpisz hasło, którym ma zostać zaszyfrowane archiwum, i wpisz je jeszcze raz poniżej.</value>
   </data>
@@ -4459,6 +4483,9 @@ Poczta nie jest ruszana - indeks jest z niej wyprowadzany - ale dopóki odbudowa
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Wpisz hasło konta usługi</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Należy podać rozmiar jako liczbę całkowitą bajtów, np. 1048576 dla 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Należy podać górny adres zakresu, np. 10.0.0.255.</value>
@@ -12636,6 +12663,9 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Nie udało się odczytać limitu rozmiaru.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Rozmiar całej wiadomości wraz z załącznikami: 1048576 bajtów to 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smart host, jego port i poświadczenia oraz harmonogram ponownych prób dostarczania.</value>
   </data>
@@ -14756,6 +14786,12 @@ Będzie próbował dalej podczas korzystania z aplikacji.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>Warto_ść</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>Warto_ść (próby)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>Warto_ść (bajty)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>Kod weryfikacyjny _z aplikacji uwierzytelniającej</value>

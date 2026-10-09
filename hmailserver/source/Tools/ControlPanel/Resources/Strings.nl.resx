@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 bericht kan niet worden vermeld en blijft waar het is: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 bij de eerste bezorgpoging, 2 bij de eerste herhaling, enzovoort.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 patroon</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Er is een referentie ingesteld maar de listener heeft geen TLS, dus de referentie gaat bij elke scrape in klare tekst over het netwerk en kan door iedereen onderweg opnieuw worden gebruikt. Stel de certificaat- en sleutelbestanden in, of bind aan 127.0.0.1. De server start toch - hij logt dezelfde waarschuwing.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Een criterium van de regel ‘{0}’.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Een aangepaste virusscanner of extern hulpmiddel dat blijft hangen - begrensd door ExternalProcessTimeout.</value>
@@ -960,6 +966,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Een omzeiling toevoegen</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Een criterium toevoegen aan de regel ‘{0}’.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Een domeinalias toevoegen</value>
   </data>
@@ -1028,6 +1037,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Voeg op de pagina Domeinen onder het domein een account toe: een adres en het wachtwoord waarmee een mailprogramma zich aanmeldt.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Een actie toevoegen aan de regel ‘{0}’.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Een vermelding toevoegen</value>
@@ -1427,6 +1439,9 @@ Het Control Panel kan berichtbestanden alleen lezen wanneer het op dezelfde mach
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Een account is een postvak in een domein: het adres waarnaar mensen schrijven en waarmee een client zich aanmeldt.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Een actie van de regel ‘{0}’.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Een adres is vereist.</value>
@@ -4300,6 +4315,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Voer een domeinnaam in, zoals example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Voer een headernaam in.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Voer eerst een hostnaam en poort in.</value>
   </data>
@@ -4341,6 +4359,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Voer een geldig poortnummer in.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Voer een waarde in.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Voer een geheel aantal uren van 1 tot 720 in.</value>
@@ -4399,6 +4420,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Voer het laagste adres van het bereik in, zoals 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Voer het nummer van de poging in als een geheel getal, bijvoorbeeld 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Voer de wachtwoordzin in waarmee het archief versleuteld moet worden, en typ hem hieronder nog eens.</value>
   </data>
@@ -4413,6 +4437,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Voer het wachtwoord van het serviceaccount in</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Voer de grootte in als een geheel aantal bytes, bijvoorbeeld 1048576 voor 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Voer het bovenste adres van het bereik in, zoals 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>De maximumgrootte kon niet worden gelezen.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>De grootte van het hele bericht, inclusief bijlagen: 1048576 bytes is 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>De smart host, zijn poort en referenties, en het schema voor nieuwe bezorgpogingen.</value>
   </data>
@@ -14584,6 +14614,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>Waa_rde</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>Waa_rde (pogingen)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>Waa_rde (bytes)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>_Verificatiecode uit uw authenticator-app</value>

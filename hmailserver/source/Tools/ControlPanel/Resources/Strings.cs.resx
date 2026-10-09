@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>Pro 1 zprávu nelze zapsat záznam; zůstane tam, kde je: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>1 při prvním pokusu o doručení, 2 při prvním opakování a tak dále.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>Vzory: 1</value>
   </data>
@@ -398,6 +401,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Přihlašovací údaje jsou nastaveny, ale listener nemá TLS, takže při každém odběru metrik procházejí sítí v otevřeném textu a kdokoli na cestě je může přehrát znovu. Nastavte soubory certifikátu a klíče, nebo naslouchejte na 127.0.0.1. Server se přesto spustí – zapíše do logu totéž varování.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>Kritérium pravidla „{0}“.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Vlastní antivirový skener nebo externí nástroj, který se zasekne – omezeno hodnotou ExternalProcessTimeout.</value>
@@ -966,6 +972,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Přidat položku obejití</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>Přidat kritérium do pravidla „{0}“.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Přidat alias domény</value>
   </data>
@@ -1034,6 +1043,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Přidejte účet pod doménou na stránce Domény: adresu a heslo, kterým se přihlašuje poštovní klient.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>Přidat akci do pravidla „{0}“.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Přidat položku</value>
@@ -1439,6 +1451,9 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Účet je schránka v doméně: adresa, na kterou se píše, a to, jako co se klient přihlašuje.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>Akce pravidla „{0}“.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Je vyžadována adresa.</value>
@@ -4346,6 +4361,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>Zadejte název domény, například example.com.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Zadejte název hlavičky.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Nejdřív zadejte název hostitele a port.</value>
   </data>
@@ -4387,6 +4405,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Zadejte platné číslo portu.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Zadejte hodnotu.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>Zadejte celý počet hodin od 1 do 720.</value>
@@ -4445,6 +4466,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Zadejte dolní adresu rozsahu, například 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Zadejte číslo pokusu jako celé číslo, například 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Zadejte heslo, kterým se má archiv šifrovat, a napište je znovu níže.</value>
   </data>
@@ -4459,6 +4483,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Zadejte heslo servisního účtu</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Zadejte velikost jako celé číslo v bajtech, například 1048576 pro 1 MB.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Zadejte horní adresu rozsahu, například 10.0.0.255.</value>
@@ -12636,6 +12663,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Limit velikosti se nepodařilo přečíst.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Velikost celé zprávy včetně příloh: 1048576 bajtů je 1 MB.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Smart host, jeho port a přihlašovací údaje a plán opakování doručování.</value>
   </data>
@@ -14756,6 +14786,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>_Hodnota</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>_Hodnota (pokusy)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>_Hodnota (bajty)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>_Ověřovací kód z vaší ověřovací aplikace</value>

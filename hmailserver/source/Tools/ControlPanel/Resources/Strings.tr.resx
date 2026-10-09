@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 ileti için liste kaydı oluşturulamıyor; olduğu yerde bırakılacak: {0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>İlk teslim denemesinde 1, ilk yeniden denemede 2 ve bu böyle devam eder.</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 desen</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>Bir kimlik bilgisi ayarlanmış ama dinleyicide TLS yok; bu nedenle kimlik bilgisi her toplamada ağ üzerinden düz metin olarak geçer ve yol üzerindeki herkes tarafından yeniden oynatılabilir. Sertifika ve anahtar dosyalarını ayarlayın ya da 127.0.0.1 adresine bağlayın. Sunucu yine de başlar - aynı uyarıyı günlüğe yazar.</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>“{0}” kuralının bir ölçütü.</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>Yanıt vermeyi kesen özel bir virüs tarayıcısı veya harici araç - ExternalProcessTimeout ile sınırlanır.</value>
@@ -960,6 +966,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Add a bypass entry" xml:space="preserve">
     <value>Atlama kaydı ekle</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>“{0}” kuralına bir ölçüt ekleyin.</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>Etki alanı diğer adı ekle</value>
   </data>
@@ -1028,6 +1037,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>Etki alanları sayfasında alan adının altına bir hesap ekleyin: bir adres ve posta istemcisinin oturum açtığı parola.</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>“{0}” kuralına bir eylem ekleyin.</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>Kayıt ekle</value>
@@ -1427,6 +1439,9 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>Hesap, bir alan adındaki posta kutusudur: insanların yazdığı adres ve bir istemcinin oturum açtığı kimlik.</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>“{0}” kuralının bir eylemi.</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>Bir adres gerekli.</value>
@@ -4300,6 +4315,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>example.com gibi bir etki alanı adı girin.</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>Bir başlık adı girin.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Önce bir ana bilgisayar adı ve port girin.</value>
   </data>
@@ -4341,6 +4359,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>Geçerli bir port numarası girin.</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>Bir değer girin.</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>1 ile 720 arasında tam sayı olarak saat girin.</value>
@@ -4399,6 +4420,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>Aralığın alt adresini girin, örneğin 10.0.0.0.</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>Deneme numarasını bir tam sayı olarak girin; örneğin 3.</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Arşivin şifreleneceği parola tümcesini girin ve aşağıya bir kez daha yazın.</value>
   </data>
@@ -4413,6 +4437,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Hizmet hesabı parolasını girin</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>Boyutu bayt cinsinden bir tam sayı olarak girin; örneğin 1 MB için 1048576.</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>Aralığın üst adresini girin, örneğin 10.0.0.255.</value>
@@ -12473,6 +12500,9 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="The size limit could not be read." xml:space="preserve">
     <value>Boyut sınırı okunamadı.</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>Ekler dahil iletinin tamamının boyutu; 1 MB, 1048576 bayttır.</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>Akıllı ana bilgisayar, portu ve kimlik bilgileri ile teslimat için yeniden deneme zamanlaması.</value>
   </data>
@@ -14584,6 +14614,12 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="_Value" xml:space="preserve">
     <value>Değe_r</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>Değe_r (deneme)</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>Değe_r (bayt)</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>Kimlik doğrulayıcı _uygulamanızdaki doğrulama kodu</value>

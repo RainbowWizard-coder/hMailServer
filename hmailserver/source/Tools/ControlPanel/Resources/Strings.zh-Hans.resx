@@ -171,6 +171,9 @@
   <data name="1 message cannot be listed and will be left where it is: {0}" xml:space="preserve">
     <value>1 封邮件无法列入名单，将保留原状：{0}</value>
   </data>
+  <data name="1 on the first delivery attempt, 2 on the first retry, and so on." xml:space="preserve">
+    <value>首次投递尝试为 1，首次重试为 2，依此类推。</value>
+  </data>
   <data name="1 pattern" xml:space="preserve">
     <value>1 个模式</value>
   </data>
@@ -395,6 +398,9 @@
   </data>
   <data name="A credential is set but the listener has no TLS, so the credential crosses the network in clear text on every scrape and can be replayed by anyone on the path. Set the certificate and key files, or bind to 127.0.0.1. The server still starts - it logs this same warning." xml:space="preserve">
     <value>已设置凭据，但监听器没有 TLS，因此凭据会在每次抓取时以明文穿越网络，路径上的任何人都可以重放它。请设置证书和密钥文件，或者绑定到 127.0.0.1。服务器仍会启动 - 它会记录这条同样的警告。</value>
+  </data>
+  <data name="A criterion of the rule “{0}”." xml:space="preserve">
+    <value>规则“{0}”的条件。</value>
   </data>
   <data name="A custom virus scanner or external tool that hangs - bounded by ExternalProcessTimeout." xml:space="preserve">
     <value>会挂起的自定义病毒扫描器或外部工具 - 由 ExternalProcessTimeout 限定。</value>
@@ -960,6 +966,9 @@
   <data name="Add a bypass entry" xml:space="preserve">
     <value>添加绕过条目</value>
   </data>
+  <data name="Add a criterion to the rule “{0}”." xml:space="preserve">
+    <value>向规则“{0}”添加条件。</value>
+  </data>
   <data name="Add a domain alias" xml:space="preserve">
     <value>添加域别名</value>
   </data>
@@ -1028,6 +1037,9 @@
   </data>
   <data name="Add an account under the domain on the Domains page: an address, and the password a mail client signs in with." xml:space="preserve">
     <value>在域页面的域下添加账户：一个地址，以及邮件客户端登录用的密码。</value>
+  </data>
+  <data name="Add an action to the rule “{0}”." xml:space="preserve">
+    <value>向规则“{0}”添加操作。</value>
   </data>
   <data name="Add an entry" xml:space="preserve">
     <value>添加条目</value>
@@ -1427,6 +1439,9 @@
   </data>
   <data name="An account is a mailbox in a domain: the address people write to, and what a client signs in as." xml:space="preserve">
     <value>账户是域中的邮箱：人们写信的地址，也是客户端登录时使用的身份。</value>
+  </data>
+  <data name="An action of the rule “{0}”." xml:space="preserve">
+    <value>规则“{0}”的操作。</value>
   </data>
   <data name="An address is required." xml:space="preserve">
     <value>需要地址。</value>
@@ -4300,6 +4315,9 @@
   <data name="Enter a domain name such as example.com." xml:space="preserve">
     <value>请输入域名，例如 example.com。</value>
   </data>
+  <data name="Enter a header name." xml:space="preserve">
+    <value>请输入标头名称。</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>请先输入主机名和端口。</value>
   </data>
@@ -4341,6 +4359,9 @@
   </data>
   <data name="Enter a valid port number." xml:space="preserve">
     <value>请输入有效的端口号。</value>
+  </data>
+  <data name="Enter a value." xml:space="preserve">
+    <value>请输入值。</value>
   </data>
   <data name="Enter a whole number of hours from 1 to 720." xml:space="preserve">
     <value>请输入 1 到 720 之间的整数小时数。</value>
@@ -4399,6 +4420,9 @@
   <data name="Enter the lower address of the range, such as 10.0.0.0." xml:space="preserve">
     <value>请输入范围的起始地址，例如 10.0.0.0。</value>
   </data>
+  <data name="Enter the number of the attempt as a whole number, such as 3." xml:space="preserve">
+    <value>请以整数输入第几次尝试，例如 3。</value>
+  </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>请输入用来加密存档的口令，并在下面再输入一次。</value>
   </data>
@@ -4413,6 +4437,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>输入服务账户密码</value>
+  </data>
+  <data name="Enter the size as a whole number of bytes, such as 1048576 for 1 MB." xml:space="preserve">
+    <value>请以字节为单位输入整数大小，例如 1 MB 为 1048576。</value>
   </data>
   <data name="Enter the upper address of the range, such as 10.0.0.255." xml:space="preserve">
     <value>请输入范围的上限地址，例如 10.0.0.255。</value>
@@ -12473,6 +12500,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The size limit could not be read." xml:space="preserve">
     <value>大小限制无法读取。</value>
   </data>
+  <data name="The size of the whole message, attachments included: 1048576 bytes is 1 MB." xml:space="preserve">
+    <value>整封邮件（含附件）的大小：1048576 字节为 1 MB。</value>
+  </data>
   <data name="The smart host, its port and credentials, and the retry schedule for delivery." xml:space="preserve">
     <value>智能主机、其端口和凭据，以及投递的重试计划。</value>
   </data>
@@ -14584,6 +14614,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="_Value" xml:space="preserve">
     <value>值(_V)</value>
+  </data>
+  <data name="_Value (attempts)" xml:space="preserve">
+    <value>值(_V)（尝试次数）</value>
+  </data>
+  <data name="_Value (bytes)" xml:space="preserve">
+    <value>值(_V)（字节）</value>
   </data>
   <data name="_Verification code from your authenticator app" xml:space="preserve">
     <value>来自身份验证器应用的验证码(_V)</value>
