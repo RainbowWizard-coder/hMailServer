@@ -11666,6 +11666,9 @@ Yine de eklensin mi?</value>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Korumalı alan ayarları sunucudan okunamadı, bu yüzden bu sayfa yapılandırılmış olup olmadığını söyleyemiyor.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>Kaydedilen zamanlama hizmet yeniden başlatıldığında geçerli olur: sunucu hâlâ başlarken aldığı zamanlamayla çalışıyor.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Tarama sonucu yalnızca sunucu makinesinde okunabilir - hMailServer.INI burada bulunamadı. Sunucu aynı sayıyı hmailserver_messagestore_missing_files ölçümü olarak yayımlar.</value>
   </data>

@@ -97,10 +97,6 @@ namespace hMailServer.ControlPanel.Views
       private readonly TextBlock pathText_ = new();
       private readonly IniPageSaveState saveState_;
 
-      // The schedule as it was last read or saved: a save that changes it waits for
-      // a service restart, since the task is registered as the server starts.
-      private string savedSchedule_ = "";
-
       // Why hMailServer.ini is here and cannot be read, or null. From 6.3.6 the
       // file belongs to SYSTEM, the Administrators and the service
       // (hMailServer.exe /ProtectFolders), so a Control Panel the administrator
@@ -509,14 +505,25 @@ namespace hMailServer.ControlPanel.Views
          }
 
          baseline_.Take(EditorValues_());
-         savedSchedule_ = scheduleMinutes_.Text.Trim();
 
          // Unavailable says why in a Critical notice when hMailServer.INI is not on
          // this machine. A file that is here and could not be read is said already,
          // in the Critical notice above the cards (deniedNotice_), and the state card
          // says that Preview still runs, so a second box would only repeat it.
+         //
+         // A schedule in the file that the running server did not start with waits
+         // for a restart, whenever it was saved: the page says so as it opens, with
+         // the restart, as it did after the save.
          if (store_.IsAvailable && denied_ == null)
-            saveState_.Settle(SettingsPageState.Clean, null);
+         {
+            DirectorySyncSchedule.Shared.Read(ServerStarted_(), scheduleMinutes_.Text);
+            if (DirectorySyncSchedule.Shared.Waits)
+               saveState_.Settle(SettingsPageState.WaitsForRestart,
+                  L("The saved schedule takes effect when the service restarts: the server is still running the one it started with."),
+                  action: RestartAction_());
+            else
+               saveState_.Settle(SettingsPageState.Clean, null);
+         }
          else if (denied_ != null)
             saveState_.Settle(SettingsPageState.Unavailable, null);
          else
@@ -558,18 +565,46 @@ namespace hMailServer.ControlPanel.Views
          baseline_.Take(EditorValues_());
 
          // The selection is live within two seconds; the schedule is registered as the
-         // server starts, so a changed one waits for a restart, and the pill says so -
-         // where the sentence said a change to the schedule needs a restart after
-         // every save, whether or not it had changed.
+         // server starts, so one other than the server started with waits for a
+         // restart, and the pill says so - where the sentence said a change to the
+         // schedule needs a restart after every save, whether or not it had changed.
+         // Measured from the schedule the server started with (DirectorySyncSchedule),
+         // never from the last save: a second save after a schedule change, with no
+         // restart between, said that no restart was needed.
          string time = DateTime.Now.ToLongTimeString();
-         bool scheduleChanged = !string.Equals(scheduleMinutes_.Text.Trim(), savedSchedule_, StringComparison.Ordinal);
-         savedSchedule_ = scheduleMinutes_.Text.Trim();
-         if (scheduleChanged)
+         bool scheduleWaits = DirectorySyncSchedule.Shared.Saved(ServerStarted_(), scheduleMinutes_.Text);
+         if (scheduleWaits)
             saveState_.Settle(SettingsPageState.WaitsForRestart, F("Saved {0} - the server picks the selection up within two seconds; the new schedule takes effect when the service restarts.", time),
                action: RestartAction_());
          else
             saveState_.Settle(SettingsPageState.Saved, F("Saved {0} - the server picks the selection up within two seconds; no service restart is needed.", time));
          return true;
+      }
+
+      /// <summary>
+      /// When the server last started or reinitialised - the moment it read the
+      /// schedule - as its status reports it, or null when it cannot say.
+      /// </summary>
+      private static string ServerStarted_()
+      {
+         dynamic status = null;
+         try
+         {
+            ServerSession session = ServerSession.Current;
+            if (session == null)
+               return null;
+
+            status = session.Application.Status;
+            return (string)status.StartTime;
+         }
+         catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
+         {
+            return null;
+         }
+         finally
+         {
+            ServerSession.Release((object)status);
+         }
       }
 
       /// <summary>

@@ -11666,6 +11666,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>サーバーからサンドボックスの設定を読み取れなかったため、このページでは設定されているかどうかを判断できません。</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>保存したスケジュールは、サービスを再起動すると有効になります。サーバーはまだ起動時のスケジュールで動作しています。</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>スキャン結果はサーバー マシンでのみ読み取れます。hMailServer.INI がここには見つかりませんでした。サーバーは同じ数値を hmailservermessagestore_missing_files メトリクスとして公開しています。(_M)</value>
   </data>

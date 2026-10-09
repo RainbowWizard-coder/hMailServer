@@ -11666,6 +11666,9 @@ Lägg till det ändå?</value>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Sandlådans inställningar kunde inte läsas från servern, så den här sidan kan inte säga om någon är konfigurerad.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>Det sparade schemat gäller när tjänsten startas om: servern kör fortfarande med det schema den startades med.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Genomsökningsresultatet går bara att läsa på serverdatorn - hMailServer.INI hittades inte här. Servern publicerar samma tal som mätvärdet hmailserver_messagestore_missing_files.</value>
   </data>

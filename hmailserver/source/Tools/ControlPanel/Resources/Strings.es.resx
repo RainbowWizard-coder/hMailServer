@@ -11666,6 +11666,9 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>No se pudo leer la configuración del sandbox del servidor, así que esta página no puede decir si hay uno configurado.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>La programación guardada se aplica cuando se reinicia el servicio: el servidor sigue usando la programación con la que arrancó.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>El resultado del análisis solo puede leerse en la máquina del servidor - aquí no se encontró hMailServer.INI. El servidor publica el mismo número como la métrica hmailserver_messagestore_missing_files.</value>
   </data>

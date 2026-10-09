@@ -11812,6 +11812,9 @@ Dodać mimo to?</value>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Nie udało się odczytać ustawień piaskownicy z serwera, więc ta strona nie może powiedzieć, czy jakaś jest skonfigurowana.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>Zapisany harmonogram zacznie obowiązywać po ponownym uruchomieniu usługi: serwer nadal używa harmonogramu, z którym został uruchomiony.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Wynik skanowania da się odczytać tylko na komputerze serwera - nie znaleziono tu pliku hMailServer.INI. Serwer udostępnia tę samą liczbę jako metrykę hmailserver_messagestore_missing_files.</value>
   </data>

@@ -180,9 +180,24 @@ namespace hMailServer.ControlPanel.Tests.Services
          string write = WithheldRowTests.MemberText(code, "private void Write_(string key, string value)");
          Assert.True(write != null && write.Contains("if (!ProfileApi.WriteString(", StringComparison.Ordinal), "A refused write is not noticed.");
 
-         // A changed schedule waits for the service; nothing else here does.
+         // A changed schedule waits for the service; nothing else here does. Measured
+         // from the schedule the server started with, not from the last save, which
+         // called a second save after a schedule change applied (DirectorySyncScheduleTests).
          Assert.Contains("SettingsPageState.WaitsForRestart", save, StringComparison.Ordinal);
-         Assert.Contains("scheduleChanged", save, StringComparison.Ordinal);
+         Assert.Contains("DirectorySyncSchedule.Shared.Saved(ServerStarted_(), scheduleMinutes_.Text)", save, StringComparison.Ordinal);
+         Assert.DoesNotContain("savedSchedule_", code, StringComparison.Ordinal);
+
+         // And the page says so as it opens, while the schedule still waits.
+         string load = WithheldRowTests.MemberText(code, "private void Load_()");
+         Assert.True(load != null, "DirectorySyncView.Load_ is gone.");
+         int read = load.IndexOf("DirectorySyncSchedule.Shared.Read(ServerStarted_(), scheduleMinutes_.Text);", StringComparison.Ordinal);
+         int waits = load.IndexOf("if (DirectorySyncSchedule.Shared.Waits)", StringComparison.Ordinal);
+         Assert.True(read >= 0 && waits > read, "Directory synchronisation does not say, as it opens, that a saved schedule waits.");
+         Assert.Contains("SettingsPageState.WaitsForRestart", load.Substring(waits), StringComparison.Ordinal);
+
+         string started = WithheldRowTests.MemberText(code, "private static string ServerStarted_()");
+         Assert.True(started != null && started.Contains("status.StartTime", StringComparison.Ordinal),
+            "The page no longer asks the server when it started.");
       }
 
       /// <summary>

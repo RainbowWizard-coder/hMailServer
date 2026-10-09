@@ -1069,9 +1069,11 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   that could not be written in a Critical notice - Directory synchronisation's in the same grey caption as its
   success, LDAP's in a message box. When hMailServer.INI is not on this computer, both say so in that notice beside
   an *Unavailable* pill, where Directory synchronisation said it in the footer's caption. The page scrolls whole, as
-  the feature settings pages do, so the smallest window keeps the cards. Directory synchronisation says *Restart to apply* only when the save changed the schedule, which
-  the server registers as it starts, where it said that a change to the schedule needs a restart after every save;
-  and it now notices when hMailServer.ini refused a write, which it reported as saved.
+  the feature settings pages do, so the smallest window keeps the cards. Directory synchronisation says *Restart to
+  apply* - after a save, and when the page is opened again before the service has restarted - while the schedule
+  this Control Panel saved is not the one the server registered as it last started or reinitialised, where it said
+  after every save that a change to the schedule needs a restart; and it now notices when hMailServer.ini refused a
+  write, which it reported as saved.
 
 - **Fixed: the lists on the domain and account dialogs' tabs saved as they were edited, under a dialog whose Cancel
   suggested nothing had been.** Adding, editing or deleting a domain alias or an entry of the domain's allow and

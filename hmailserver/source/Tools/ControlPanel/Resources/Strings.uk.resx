@@ -11812,6 +11812,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Не вдалося прочитати налаштування пісочниці із сервера, тож ця сторінка не може сказати, чи налаштовано її.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>Збережений розклад набуде чинності після перезапуску служби: сервер досі працює за розкладом, з яким його було запущено.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Результат сканування читається лише на комп'ютері сервера - hMailServer.INI тут не знайдено. Сервер публікує те саме число в метриці hmailserver_messagestore_missing_files.</value>
   </data>

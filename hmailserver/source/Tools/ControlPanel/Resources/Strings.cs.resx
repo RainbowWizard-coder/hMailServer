@@ -11812,6 +11812,9 @@ Přesto přidat?</value>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Nastavení sandboxu se nepodařilo načíst ze serveru, takže tato stránka nemůže říct, zda je nějaký nakonfigurován.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>Uložený plán se projeví po restartu služby: server stále používá plán, se kterým byl spuštěn.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Výsledek skenu je čitelný jen na počítači serveru - hMailServer.INI zde nebyl nalezen. Server publikuje totéž číslo jako metriku hmailserver_messagestore_missing_files.</value>
   </data>

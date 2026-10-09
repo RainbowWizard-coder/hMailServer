@@ -11666,6 +11666,9 @@ Trotzdem hinzufügen?</value>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Die Sandbox-Einstellungen konnten nicht vom Server gelesen werden, daher kann diese Seite nicht sagen, ob eine konfiguriert ist.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>Der gespeicherte Zeitplan wirkt, sobald der Dienst neu startet: Der Server läuft noch mit dem Zeitplan, mit dem er gestartet wurde.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Das Scanergebnis ist nur auf dem Serverrechner lesbar - hMailServer.INI wurde hier nicht gefunden. Der Server veröffentlicht dieselbe Zahl als Messwert hmailserver_messagestore_missing_files.</value>
   </data>

@@ -11666,6 +11666,9 @@ L'ajouter quand même ?</value>
   <data name="The sandbox settings could not be read from the server, so this page cannot say whether one is configured." xml:space="preserve">
     <value>Les paramètres du bac à sable n'ont pas pu être lus sur le serveur ; cette page ne peut donc pas dire si un bac à sable est configuré.</value>
   </data>
+  <data name="The saved schedule takes effect when the service restarts: the server is still running the one it started with." xml:space="preserve">
+    <value>La planification enregistrée s'applique au redémarrage du service : le serveur utilise toujours celle avec laquelle il a démarré.</value>
+  </data>
   <data name="The scan result is only readable on the server machine - hMailServer.INI was not found here. The server publishes the same number as the hmailserver_messagestore_missing_files metric." xml:space="preserve">
     <value>Le résultat de l'analyse n'est lisible que sur la machine du serveur - hMailServer.INI n'a pas été trouvé ici. Le serveur publie le même nombre sous la métrique hmailserver_messagestore_missing_files.</value>
   </data>

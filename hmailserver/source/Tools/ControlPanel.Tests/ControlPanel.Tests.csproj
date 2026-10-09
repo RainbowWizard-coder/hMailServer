@@ -133,6 +133,12 @@
          here on its own and is tested here on its own. -->
     <Compile Include="..\ControlPanel\Services\DirectorySyncReport.cs" />
 
+    <!-- Whether the directory synchronisation schedule in the file waits for the
+         server to start again: a record of the schedule the running server took,
+         WPF- and COM-free, held here to the sequences of reads, saves and starts
+         a page goes through. -->
+    <Compile Include="..\ControlPanel\Services\DirectorySyncSchedule.cs" />
+
     <!-- The sign-in screen's reachability pre-check, and the host-name rules it
          shares with ServerSession. Connecting used to run three blocking COM
          calls on the UI thread, so an unreachable host froze the first window
