@@ -3227,7 +3227,8 @@ namespace hMailServer.ControlPanel.Views
          }
          catch (Exception ex) when (!ExceptionPolicy.IsFatal(ex))
          {
-            saveState_.Refuse(F("Could not save: {0}", ServerSession.DescribeComError(ex)));
+            // A failure, not a refusal: the settings before the one that failed are written.
+            saveState_.Fail(F("Could not save: {0}", ServerSession.DescribeComError(ex)));
             return false;
          }
 

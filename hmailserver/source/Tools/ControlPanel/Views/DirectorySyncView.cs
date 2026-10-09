@@ -568,7 +568,8 @@ namespace hMailServer.ControlPanel.Views
          {
             // Under the header, in a Critical notice, where it was grey caption text
             // in the footer; the pill keeps saying Unsaved changes, which they still are.
-            saveState_.Refuse(F("Could not save: {0}", ex.Message));
+            // A failure, not a refusal: the keys before the one that failed are written.
+            saveState_.Fail(F("Could not save: {0}", ex.Message));
             return false;
          }
 

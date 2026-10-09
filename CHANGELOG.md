@@ -1179,9 +1179,14 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   or saved, so that an edit undone by hand takes the pill back to what the save had said; and after a save, until
   the next edit, *Saved* when every setting written is in effect, *Reinitialise to apply* when some wait for **Apply
   now**, or *Restart to apply* when some wait for a service restart or the server cannot say what waits. A save that
-  could not be written says why in a Critical notice under the header. The per-address overrides box of the
-  per-account sending limits now says when it changes as well, and a test holds every setting with a value to doing
-  so.
+  could not be written says why in a Critical notice under the header. A save the hMailServer.ini pages refused
+  before writing anything - Directory authentication's port out of range, or a new secret typed with the removal of
+  the stored one ticked - is withdrawn once the edits it refused are all taken back, and the notice says again what
+  the last read or save had said, where the refusal stayed, Critical, until the next save, saying "Clear the value or
+  untick the box" over a value cleared and a box unticked beside a page with no pill; a save that failed as it wrote
+  keeps saying so, since the settings before the one that failed are in the file. The per-address overrides box of
+  the per-account sending limits now says when it changes as well, and a test holds every setting with a value to
+  doing so.
 
 - **Fixed: the Directory authentication (LDAP) and Directory synchronisation pages kept Reload and Save changes in a
   footer, where their result was grey caption text and a failed save a message box.** Every other settings page in

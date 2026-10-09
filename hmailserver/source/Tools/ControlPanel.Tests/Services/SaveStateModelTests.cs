@@ -162,7 +162,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string code = ReadControlPanelFile("Views/FeatureSettingsView.xaml.cs");
          string save = WithheldRowTests.MemberText(code, "private bool Save_()");
          Assert.True(save != null, "FeatureSettingsView.Save_ is gone.");
-         Assert.Contains("saveState_.Refuse(F(\"Could not save: {0}\"", save, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Fail(F(\"Could not save: {0}\"", save, StringComparison.Ordinal);
 
          // The pill is collapsed in the markup, so a page that has not settled yet
          // shows none either.
@@ -224,7 +224,7 @@ namespace hMailServer.ControlPanel.Tests.Services
 
          string save = WithheldRowTests.MemberText(code, "private bool Save_()");
          Assert.True(save != null, file + ".Save_ is gone.");
-         Assert.Contains("saveState_.Refuse(F(\"Could not save: {0}\"", save, StringComparison.Ordinal);
+         Assert.Contains("saveState_.Fail(F(\"Could not save: {0}\"", save, StringComparison.Ordinal);
          Assert.Contains("saveState_.Settle(SettingsPageState.Saved", save, StringComparison.Ordinal);
 
          // Every refusal, not only a failed write, is the Critical notice: Directory
@@ -250,9 +250,47 @@ namespace hMailServer.ControlPanel.Tests.Services
          // The notice is brought into view: the save the question before leaving a page
          // makes can be refused with the page scrolled down to the edit.
          string shared = ReadControlPanelFile("Views/IniPageSaveState.cs");
-         string refuse = WithheldRowTests.MemberText(shared, "public void Refuse(string sentence)");
-         Assert.True(refuse != null && refuse.Contains("notice_.BringIntoView();", StringComparison.Ordinal),
+         string say = WithheldRowTests.MemberText(shared, "private void SayRefusal_()");
+         Assert.True(say != null && say.Contains("notice_.BringIntoView();", StringComparison.Ordinal),
             "A refused save's notice is not brought into view.");
+         foreach (string member in new[] { "public void Refuse(string sentence)", "public void Fail(string sentence)" })
+         {
+            string body = WithheldRowTests.MemberText(shared, member);
+            Assert.True(body != null && body.Contains("SayRefusal_();", StringComparison.Ordinal), member + " does not say the refusal as the others do.");
+         }
+      }
+
+      /// <summary>
+      /// A save refused before it wrote anything is withdrawn once the edits it refused
+      /// are taken back, and a save that failed as it wrote is not: the three pages say
+      /// which kind each of theirs is (SaveStateNoticeTests holds the rule). Every
+      /// refusal here was the one kind, so the Authentication page's "Clear the value or
+      /// untick the box" stayed, Critical, over a value cleared and a box unticked, under
+      /// a pill that said nothing was unsaved.
+      /// </summary>
+      [Theory]
+      [InlineData("Views/FeatureSettingsView.xaml.cs", 1)]
+      [InlineData("Views/LdapSettingsView.cs", 3)]
+      [InlineData("Views/DirectorySyncView.cs", 0)]
+      public void ARefusalBeforeWriting_IsTheKindThatIsWithdrawn(string file, int refusals)
+      {
+         string save = WithheldRowTests.MemberText(ReadControlPanelFile(file), "private bool Save_()");
+         Assert.True(save != null, file + ".Save_ is gone.");
+
+         // Every Refuse comes before the first write, and the write's own failure is a Fail.
+         int firstWrite = new[] { "setting.Save(store_)", "IniWrite_(", "Write_(\"" }
+            .Select(call => save.IndexOf(call, StringComparison.Ordinal)).Where(at => at >= 0).DefaultIfEmpty(-1).Min();
+         Assert.True(firstWrite >= 0, file + ".Save_ writes nothing this test knows.");
+         MatchCollection refuse = Regex.Matches(save, @"saveState_\.Refuse\(");
+         Assert.Equal(refusals, refuse.Count);
+         Assert.All(refuse, m => Assert.True(m.Index < firstWrite, file + " refuses after it has begun to write: that is a failure, saveState_.Fail."));
+         Assert.Single(Regex.Matches(save, @"saveState_\.Fail\("));
+
+         // And the shared state withdraws the first kind as the editors follow.
+         string shared = ReadControlPanelFile("Views/IniPageSaveState.cs");
+         string follow = WithheldRowTests.MemberText(shared, "public void Follow()");
+         Assert.True(follow != null && follow.Contains("sentence_.Follow(unsaved)", StringComparison.Ordinal),
+            "IniPageSaveState.Follow does not withdraw a refusal whose edits were taken back.");
       }
 
       /// <summary>

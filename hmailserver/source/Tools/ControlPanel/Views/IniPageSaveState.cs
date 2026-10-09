@@ -31,13 +31,16 @@ namespace hMailServer.ControlPanel.Views
    /// from the first edit, and after a save the state the save settled in, Saved,
    /// Reinitialise to apply or Restart to apply, until the next edit. The sentence that
    /// goes with a state is a notice at its level, with room for one action, and a save
-   /// that wrote nothing says why in a Critical notice.
+   /// that wrote nothing says why in a Critical notice - withdrawn, when it was refused
+   /// before anything was written, once the edits it refused are taken back
+   /// (Services/SaveStateNotice).
    /// </summary>
    internal sealed class IniPageSaveState
    {
       private readonly StatusPill pill_;
       private readonly InlineNotice notice_;
       private readonly Func<bool> hasUnsavedChanges_;
+      private readonly SaveStateNotice sentence_ = new();
       private SettingsPageState settled_ = SettingsPageState.Clean;
 
       /// <param name="pill">The pill in the page header's Status slot.</param>
@@ -63,21 +66,30 @@ namespace hMailServer.ControlPanel.Views
       public void Settle(SettingsPageState state, string sentence, StatusLevel? level = null, object action = null)
       {
          settled_ = state;
-         Say_(sentence, level ?? SettingsPageStatus.LevelFor(state), action);
+         sentence_.Settle(sentence, level ?? SettingsPageStatus.LevelFor(state), action);
+         Say_();
          Follow();
       }
 
       /// <summary>
       /// After an edit: Unsaved changes while an editor differs from what was read or
-      /// saved, and the settled state again once none does. The notice is left alone:
-      /// what a save or a read said stays true after the first keystroke.
+      /// saved, and the settled state again once none does. The notice is left alone -
+      /// what a save or a read said stays true after the first keystroke - but for a
+      /// refusal made before anything was written, which goes once the editors hold
+      /// what was read or saved again, the settled sentence coming back in its place.
       /// </summary>
       public void Follow()
-         => Show_(SettingsPageStatus.Follow(settled_, hasUnsavedChanges_?.Invoke() == true));
+      {
+         bool unsaved = hasUnsavedChanges_?.Invoke() == true;
+         if (sentence_.Follow(unsaved))
+            Say_();
+         Show_(SettingsPageStatus.Follow(settled_, unsaved));
+      }
 
       /// <summary>
-      /// A save that wrote nothing, or not everything: why, in a Critical notice under
-      /// the header - never in grey caption text or a message box. The pill keeps
+      /// A save refused before it wrote anything: why, in a Critical notice under the
+      /// header - never in grey caption text or a message box - until the next read or
+      /// save, or until the edits it refused are all taken back. The pill keeps
       /// following the editors, which still hold what was not saved. The notice is
       /// brought into view, with the page header above it where both fit: the save the
       /// question before leaving a page makes is refused with the page scrolled wherever
@@ -86,7 +98,24 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       public void Refuse(string sentence)
       {
-         Say_(sentence, StatusLevel.Critical, null);
+         sentence_.Refuse(sentence);
+         SayRefusal_();
+      }
+
+      /// <summary>
+      /// A save that failed as it wrote, and may have written part of what it was asked
+      /// to: why, as <see cref="Refuse"/> says it, until the next read or save - kept
+      /// when the edits are taken back by hand, since the file may hold some of them.
+      /// </summary>
+      public void Fail(string sentence)
+      {
+         sentence_.Fail(sentence);
+         SayRefusal_();
+      }
+
+      private void SayRefusal_()
+      {
+         Say_();
          Follow();
 
          if (notice_ == null || notice_.Visibility != Visibility.Visible)
@@ -167,20 +196,21 @@ namespace hMailServer.ControlPanel.Views
          pill_.Visibility = SettingsPageStatus.ShowsPill(state) ? Visibility.Visible : Visibility.Collapsed;
       }
 
-      private void Say_(string sentence, StatusLevel level, object action)
+      /// <summary>Draws what the notice says now (<see cref="sentence_"/>).</summary>
+      private void Say_()
       {
          if (notice_ == null)
             return;
 
-         notice_.Content = action;
-         if (string.IsNullOrEmpty(sentence))
+         notice_.Content = sentence_.Action;
+         if (sentence_.Sentence == null)
          {
             notice_.Visibility = Visibility.Collapsed;
             return;
          }
 
-         notice_.Level = level;
-         notice_.Text = sentence;
+         notice_.Level = sentence_.Level;
+         notice_.Text = sentence_.Sentence;
          notice_.Visibility = Visibility.Visible;
       }
    }

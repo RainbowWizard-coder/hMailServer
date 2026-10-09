@@ -161,6 +161,11 @@
          a page goes through. -->
     <Compile Include="..\ControlPanel\Services\DirectorySyncSchedule.cs" />
 
+    <!-- What the notice under an hMailServer.INI settings page's header says: the
+         settled sentence, a refusal over it, and the refusal withdrawn once the edits
+         it refused are taken back, when nothing was written. -->
+    <Compile Include="..\ControlPanel\Services\SaveStateNotice.cs" />
+
     <!-- The sign-in screen's reachability pre-check, and the host-name rules it
          shares with ServerSession. Connecting used to run three blocking COM
          calls on the UI thread, so an unreachable host froze the first window
