@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 no emite caducidad alguna, que es el valor seguro: una caducidad es una promesa sobre correo ya en tránsito, y una ventana más corta que el retraso que añade un reintento, un greylist o una lista de correo le cuesta al mensaje su aprobado DKIM y su alineación DMARC en el otro extremo. 604800 es una semana, la elección habitual de un remitente que quiere una. La marca de tiempo de la firma se envía siempre, sea cual sea este valor.</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 es una respuesta real, no una desactivada - lo conserva todo, que es lo que quiere un administrador que reúne pruebas. Todo lo demás es una promesa al disco.</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 es el valor de fábrica y desactiva todo el mecanismo.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 es el valor de fábrica. 2 es un comienzo razonable: una contraseña mal escrita le cuesta a una persona dos segundos una vez, y a un cliente de password spraying dos, cuatro, seis... segundos por intento.</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 conserva cada mensaje hasta que se libere o se elimine, así que vigile el disco.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 mantiene la entrada hasta que se quite.</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 cuenta externa</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 es lo que interpreta todo consumidor de informes desplegado hoy; 2 es DMARCbis, para el día en que los consumidores se hayan puesto al día. Cualquier otro valor se informa como error y se trata como 1.</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 elemento</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>14 por defecto. Las copias no leídas se eliminan; las leídas se quedan.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>1440 por defecto. El bloqueo es un rango de IP que caduca, como un bloqueo automático. Una sesión autenticada, las exenciones antispam, un relé entrante y una dirección de la lista de nunca bloquear no se bloquean nunca.</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>1440 por defecto; el bloqueo es un rango de IP que caduca, como un bloqueo automático. Una sesión autenticada, las exenciones antispam, un relé entrante y una dirección de 'Nunca bloquear automáticamente estas direcciones' en la página Bloqueo automático no se bloquean nunca.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>15 por defecto, contados desde que ninguna sesión IMAP o POP3 tiene la clave. Después, el correo solo vuelve a poder leerse tras el siguiente inicio de sesión con la contraseña.</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>16 retenciones de 15 minutos son unas cuatro horas. 0 significa no encolar nunca correo sin analizar - decírselo al remitente de inmediato. Un mensaje retenido se entrega en cuanto responde cualquier analizador; el recuento se guarda en memoria, así que un reinicio del servicio da a un mensaje retenido un presupuesto nuevo.</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>16 retenciones de 15 minutos son unas cuatro horas; 0 devuelve de inmediato a su remitente un mensaje sin analizar. Un mensaje retenido se entrega en cuanto responde un analizador, y un reinicio del servicio vuelve a empezar su recuento.</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>161 por defecto.</value>
@@ -486,8 +489,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Un mensaje marcado no se modifica de ningún modo visible: sin cabecera X-hMailServer-Spam, sin cabecera de motivo y sin prefijo en el asunto, así que un cliente de correo no tiene nada por lo que archivar. La marca interna de spam se establece igualmente, lo que suprime las respuestas automáticas y los reenvíos para las cuentas configuradas así.</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>Un mensaje por encima de esto pasa sin enviarse al motor. Enviar por la red un adjunto de cincuenta megabytes para que le digan que no es spam cuesta más de lo que vale la respuesta. 0 quita el tope, lo cual es razonable para un motor en esta máquina.</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>Un mensaje por encima de esto pasa sin enviarse al motor, porque enviar un adjunto grande por la red cuesta más de lo que vale la respuesta. 0 quita el tope, lo cual es razonable para un motor en esta máquina.</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Un mensaje que no está en el disco local se busca en el almacén de objetos mientras haya uno indicado, así que volver atrás no oculta nada. Se aplica en menos de cinco segundos.</value>
@@ -600,8 +603,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Una ruta sustituye la búsqueda MX para los dominios indicados.</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>Un análisis que da error, agota el tiempo o no puede alcanzar su motor no es un veredicto limpio - nadie miró. El comportamiento de fábrica es entregar el mensaje igualmente, que es lo que este servidor ha hecho siempre; retenerlo en su lugar es la opción más estricta y la que se toma deliberadamente.</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>Un análisis que da error, agota el tiempo o no puede alcanzar su motor no es un veredicto limpio: nadie miró.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Un analizador que no puede ejecutarse no rechaza el mensaje. El error se escribe en el registro y el análisis pasa al siguiente analizador; cuando ninguno puede responder, el mensaje se retiene y se vuelve a analizar, y se devuelve a su remitente cuando se agotan las retenciones (Si un mensaje no puede analizarse, en la página Ajustes de antivirus). Por eso esta página informa de si cada analizador puede ejecutarse y no de si está activado.</value>
@@ -666,8 +669,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Un inicio de sesión correcto borra los contadores del nombre, y los intentos hechos mientras está bloqueado no se cuentan - así que un atacante no puede mantener un buzón bloqueado indefinidamente con un goteo de intentos.</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>Un triplete que reintenta demasiado pronto tantas veces recibe 550 en lugar de 451 durante el bloqueo de abajo, que es lo que detiene a un remitente que martillea el mismo mensaje cada pocos segundos. Un bucle de reintentos mal configurado queda varado hasta que pasa el bloqueo, tras lo cual el triplete empieza de nuevo como primer intento. El operador que lo pidió usa 20.</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>Un triplete que reintenta demasiado pronto tantas veces recibe 550 en lugar de 451 durante el bloqueo de abajo, que es lo que detiene a un remitente que martillea el mismo mensaje cada pocos segundos. Un bucle de reintentos mal configurado queda varado hasta que pasa el bloqueo, tras lo cual el triplete empieza de nuevo como primer intento.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Una tripleta que ya se ha visto pero aún no se ha confirmado está en una ventana antes de que caduque su registro. Desactivar esto deja pasar el correo durante esa ventana en vez de volver a aplicarle greylisting, lo que es más amable con los remitentes que reintentan despacio y más débil frente a un remitente que reintenta una sola vez.</value>
@@ -680,6 +683,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>Hay un registro v=TLSRPTv1 activo en {0} con rua={1} - un buzón de informes distinto del de arriba, lo cual está bien mientras exista y se lea. Publicado: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>Una cadena ARC válida (RFC 8617) de un sellador indicado abajo cancela la puntuación de fallo DMARC de un mensaje que el reenvío rompió, y nunca más que esa puntuación. Necesita 'Evaluar las políticas DMARC' arriba activado.</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>Un valor propio de esta cuenta prevalece sobre el de su dominio y el del servidor. Marque un ajuste para dar a la cuenta un valor propio, desmárquelo para tomar el de su dominio y guarde los niveles: se escriben de inmediato, no con el botón Guardar del cuadro de diálogo.</value>
@@ -3806,9 +3812,6 @@ Al remitente se le dijo que fue aceptado, así que nada lo reintentará y no hay
   <data name="Delivering" xml:space="preserve">
     <value>Entregando</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>Entregarlo es el valor predeterminado de fábrica y lo que este servidor ha hecho siempre. Retenerlo nunca entrega correo sin analizar: se vuelve a analizar con el intervalo de abajo y se devuelve al remitente tras el número de retenciones de abajo.</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Entregando: el mensaje se acepta pero nunca sale</value>
   </data>
@@ -4870,6 +4873,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Buscando la entrada de directorio del usuario</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Encuentra el dominio organizativo para la alineación relajada de DMARC preguntando al DNS (RFC 9989) en vez de a la Public Suffix List compilada; la lista se sigue usando cuando el DNS no puede responder. Hasta ocho consultas por dominio, en caché cinco minutos.</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>Encuentra al resto de los miembros entre las cuentas del servidor cada vez que se envía un mensaje a la lista, de modo que nadie tenga que mantenerla a mano. Déjelo vacío para una lista cuyos miembros son solo sus destinatarios; domain para todas las cuentas activas de este dominio; domain:other.example para otro dominio alojado en este servidor; pattern:sales-*@example.com para las direcciones que coinciden con un comodín, donde * es cualquier serie de caracteres y ? uno solo; everyone para todas las cuentas activas del servidor. Las cuentas desactivadas nunca se incluyen.</value>
   </data>
@@ -4974,9 +4980,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>Reenviar un mensaje conserva el remitente de sobre original, así que el siguiente salto comprueba SPF para un dominio que nunca autorizó a este servidor y el mensaje falla. Estas son las dos respuestas. SRS reescribe el remitente de sobre en uno por el que este servidor puede responder y que puede deshacer a la vuelta, para que los rebotes sigan llegando al remitente original; BATV etiqueta el remitente de sobre del correo saliente para que un rebote falsificado - por un mensaje que este servidor nunca envió - pueda distinguirse de uno real. Ambos usan un secreto de todo el servidor y no hacen nada en absoluto hasta que se define uno.</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>El reenvío rompe SPF, porque cambia el remitente de sobre, y a menudo rompe DKIM, porque se modifica el cuerpo - así que una lista de correo o un buzón reenviado pueden convertir un mensaje que pasó DMARC en el remitente en uno que falla aquí. Una cadena ARC válida (RFC 8617) de un reenviador de confianza transporta el resultado original, y esto cancela exactamente la puntuación de fallo DMARC, nunca más. Necesita 'Evaluar las políticas DMARC' arriba activado, ya que solo compensa una penalización que añade esa prueba.</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>ClamWin encontrado en {0}</value>
@@ -5251,6 +5254,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Retener los mensajes para revisión en vez de rechazarlos</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Retenerlo nunca entrega correo sin analizar: se vuelve a analizar con el intervalo de abajo y se devuelve al remitente tras el número de retenciones de abajo.</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Retiene un mensaje de fuera con un ejecutable o un documento adjunto hasta que un sandbox haya abierto el archivo y respondido limpio o malicioso.</value>
   </data>
@@ -5374,6 +5380,9 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Cuántas cuentas externas, configuradas bajo las cuentas de un dominio como descargas POP3 externas, se recogen a la vez. Cada una mantiene una conexión al servidor de otro mientras dura la descarga.</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>Cuántos términos de la política SPF de un remitente (a:, mx:, exists:) pueden no encontrar ningún registro DNS antes de que el resultado sea permerror. La RFC 7208 fija 2; 0 quita el límite.</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>Cuántas veces retener antes de devolverlo al remitente</value>
   </data>
@@ -5400,9 +5409,6 @@ No se toca ningún correo - el índice se deriva de él - pero hasta que la reco
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>Cómo se demuestra la contraseña</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>Cómo decide el servidor que mail.example.com y example.com pertenecen a la misma organización, que es lo que compara la alineación relajada por defecto de DMARC. La respuesta antigua era la Public Suffix List - un archivo con las reglas de delegación de cada registro, compilado y refrescado al construir. DMARCbis la sustituyó por un recorrido hacia arriba del DNS preguntando a cada nivel si es un límite organizativo, para que un propietario de dominio pueda declarar dónde está su límite en vez de pedirlo a una lista. Desactivarlo recurre a la lista compilada, que es también lo que ocurre con cualquier búsqueda que el recorrido no pueda completar porque el DNS no estaba disponible - una caída del resolutor no debe convertir en silencio la alineación relajada en estricta. Cuesta hasta ocho consultas DNS por dominio, en caché cinco minutos.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Cómo usa el servidor la base de datos para la que ya está configurado. Dónde está esa base de datos - el servidor, el nombre, las credenciales y el tipo - lo configura el asistente de instalación y deliberadamente no es editable aquí, porque un valor incorrecto ahí impide que el servidor arranque en vez de hacerlo más lento. Se aplica tras reiniciar el servicio.</value>
@@ -7534,9 +7540,6 @@ No se elimina nada de lo que ya está.</value>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Desactivado por defecto, e inerte cuando está desactivado: las cuentas vinculadas al directorio se validan entonces a la manera antigua, mediante el inicio de sesión de Windows. Cuando está activado, esas mismas cuentas - las que tienen la pestaña Directorio de Windows rellenada - se validan en su lugar con un bind LDAP contra el servidor de abajo. Las cuentas no vinculadas al directorio no se ven afectadas en ningún caso.</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>Desactivado por defecto, y esta es la decisión que merece la pena pensar. Desactivado, un motor que deja de responder deja pasar el spam hasta que alguien se da cuenta. Activado, detiene el correo en su lugar - y un mensaje aplazado mientras nadie mira es un mensaje que acaba rebotando. Desactivado es el fallo recuperable, y por eso es el valor por defecto.</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>Desactivado por defecto.</value>
   </data>
@@ -7563,9 +7566,6 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>Desactivado por defecto. Solo cuando el nombre inverso de la propia dirección bloqueada resuelve de vuelta a ella; como mucho 32 direcciones hacia cada lado; nunca hacia otro /24, ni más allá de una dirección que cualquiera de las dos listas de arriba exime, ni más allá de un rango IP suyo que cubra una dirección y no la otra; nunca para IPv6 ni para una dirección privada, compartida, de bucle invertido (loopback) o de enlace local, cuyas vecinas son las máquinas de su propia red. Una búsqueda inversa sin respuesta deja la dirección sola. Una red de alojamiento cuyos clientes llevan todos un mismo dominio inverso se extiende entera: inclúyala arriba o deje esto desactivado.</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>Desactivado de forma predeterminada. Quien hoy lo rechaza en un script puede borrar el script cuando esto esté activado.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>Desactivado por defecto. Lo sirve el oyente de servicios web en /.well-known/openpgpkey; un dominio y la cuenta también tienen que permitirlo, en sus cuadros de diálogo.</value>
@@ -7606,8 +7606,11 @@ No se elimina nada de lo que ya está.</value>
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>Desactivado por defecto: el servidor se conecta desde dentro de su red por la palabra de la persona. Actívelo para dejar que se recoja correo de un servidor de correo antiguo dentro de la red.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>Desactivado, y desactivado es lo que exige el RFC 8301: eliminó rsa-sha1 de DKIM por completo, así que un firmante no debe usarlo y un verificador debe tratar como no válida una firma que lo use. Una firma DKIM es una afirmación de identidad y la alineación DMARC se construye sobre ella, y las colisiones de SHA-1 son prácticas desde 2020 - una firma que alguien puede falsificar vale menos que ninguna firma, porque lleva el dominio del firmante más allá de una comprobación DMARC alineada. Activar esto restaura ambas mitades: las firmas que lo usan vuelven a verificarse, y un dominio configurado para firmar con él lo hace en vez de ser ascendido a rsa-sha256. Las claves de menos de 1024 bits se rechazan igualmente, y este ajuste no afecta a eso.</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>Desactivado, como exige la RFC 8301: una firma que usa rsa-sha1 se trata como no válida, porque SHA-1 se puede falsificar. Activado, esas firmas vuelven a verificarse, y un dominio configurado para firmar con rsa-sha1 no se asciende a rsa-sha256.</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>Desactivado, el valor por defecto: un motor que deja de responder deja pasar el spam hasta que alguien se da cuenta, que es el fallo recuperable. Activado, detiene el correo en su lugar, y un mensaje aplazado mientras nadie mira acaba rebotando.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Desactivado. Las cuentas vinculadas al directorio se validan mediante el inicio de sesión de Windows (LogonUser), que solo funciona cuando este host está unido al dominio - todos los fallos ahí parecen una contraseña incorrecta.</value>
@@ -7707,6 +7710,9 @@ No se elimina nada de lo que ya está.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>En el servidor, desde un símbolo del sistema con privilegios elevados en la carpeta Bin: hMailServer.exe --create-stored-secrets-key crea la clave y hMailServer.exe --export-stored-secrets-key FILE la exporta. Guarde el archivo con las copias de seguridad de la base de datos, pero aparte de ellas.</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Activado, una comprobación que no pudo completarse se responde con 451 4.4.3, para que el remitente reintente cuando el DNS funcione, y la puntuación de temperror de arriba no se usa. Desactivado, un temperror se acepta y se puntúa; un remitente de un dominio permitido nunca se aplaza.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Activado, pero no puede ejecutarse</value>
@@ -8649,12 +8655,6 @@ No se aceptarán conexiones nuevas ni se entregará correo hasta que se reanude.
   <data name="REST listener settings…" xml:space="preserve">
     <value>Ajustes del oyente REST…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 4.6.4. Una "búsqueda vacía" es un término de la política SPF de un remitente - un a:, mx: o exists: - cuya consulta DNS vuelve sin absolutamente nada. El límite aparte de diez términos que consultan DNS acota lo que una política puede pedir a este servidor que busque; no acota lo que una política puede desperdiciar, y diez términos que nombran hosts inexistentes cuestan una resolución completa cada uno por un registro que nunca podrá coincidir. Dos es lo que dice la RFC. También detecta el caso corriente: una política que sigue listando hosts retirados hace años, algo que su propietario preferiría que le contaran. Subirlo es seguro; 0 desactiva el límite, que es el ajuste para un corresponsal cuya política está mal exactamente de esta forma y cuyo correo prefiere aceptar.</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>La respuesta que la propia RFC 7208 da a una comprobación que no pudo completarse: reintentar cuando el DNS funcione. La transacción se aplaza con 451 4.4.3 y la puntuación de temperror de arriba se ignora, porque un mensaje aplazado nunca se acepta. Desactivado, un temperror se acepta y se puntúa. Un remitente de un dominio permitido nunca se aplaza.</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Archivo de clave pública RSA/EC (PEM, para tokens RS*/ES*)</value>
   </data>
@@ -9349,8 +9349,8 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Obligatorio. El controlador de dominio de Active Directory u otro servidor LDAP contra el que enlazar. Para LDAPS el nombre debe coincidir con el certificado del servidor, así que use el nombre DNS, no una dirección IP.</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>Obligatorio. Con esto vacío el ajuste de arriba no hace absolutamente nada, y es deliberado, no un descuido: cualquiera puede fabricar una cadena ARC completa y sellarla con una clave que publique en su propio DNS, y validará a la perfección, así que una cadena que pasa no demuestra nada salvo que ya confíe en el sellador. Esta lista no es una opción de la función - es la función. Nombre los dominios exactos cuyos sellos honra (el d= de su ARC-Seal), separados por comas, puntos y comas o espacios; la coincidencia es exacta, así que un sufijo de un nombre de confianza no es de confianza.</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>Obligatorio: mientras esté vacío, ARC nunca compensa nada, porque cualquiera puede sellar una cadena válida con su propia clave. Nombre los dominios exactos en cuyos sellos confía (el d= de su ARC-Seal), separados por comas, puntos y comas o espacios.</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>Requiere que estén activados 'Preferir el orden de cifrados del servidor' y TLS 1.2 o 1.3.</value>
@@ -11515,6 +11515,9 @@ Cada carpeta se vacía primero: el correo llegado desde la copia de seguridad de
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>La cuenta deja de enviar antes de dejar de recibir: el dueño ve el rechazo en su propio cliente, con el motivo, mientras el correo dirigido a él sigue llegando hasta el límite y el margen. Cada dominio puede fijar el suyo. Se aplica al instante.</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>La dirección se bloquea como lo hace una racha de inicios de sesión fallidos, con un rango de IP que caduca, pero nunca una dirección de 'Nunca bloquear automáticamente estas direcciones' en la página Bloqueo automático ni un relé entrante. Desactivado de forma predeterminada, y no hace nada mientras el rechazo de arriba esté desactivado.</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>La dirección se muestra enmascarada aquí y en todas partes, y ninguna interfaz la devuelve entera: es un buzón de esa persona, y nada de lo que hace un administrador necesita leerla.</value>
   </data>
@@ -12348,9 +12351,6 @@ no se pudo cargar. Probablemente el mensaje ya se ha entregado y ya no está en 
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>La ejecución falló: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>El mismo rango IP con caducidad que crea una racha de inicios de sesión fallidos, levantado por el mismo barrido y reflejado en el cortafuegos por la misma conciliación; nunca para una dirección de 'Nunca bloquear automáticamente estas direcciones' en la página Bloqueo automático ni para un relé entrante. Desactivado de forma predeterminada, para que un informe mal enviado a dos destinatarios no bloquee un servidor de correo real. No hace nada mientras el rechazo de arriba esté desactivado.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Las mismas líneas, categorías y máscara que reciben los archivos de registro, con el id de traza y de span adjunto siempre que haya un span activo en el hilo que registró. El exportador nunca exporta sus propias líneas de fallo, o un colector caído se alimentaría a sí mismo.</value>
@@ -13771,9 +13771,6 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Qué servicios ejecuta este servidor, los límites de conexión y los saludos.</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>Qué variante del informe agregado DMARC sale hacia los dominios sobre los que informa este servidor. 1 es lo que interpreta todo consumidor de informes desplegado hoy; 2 es DMARCbis, para el día en que los consumidores se hayan puesto al día. Cualquier otro valor se informa como error y se trata como 1, porque una errata no debe decidir lo que va por el cable.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>En qué sentido</value>
@@ -16563,8 +16560,8 @@ Seguirá intentándolo mientras usa la aplicación.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} no contiene ningún bloque de certificado PEM, así que no contiene ningún certificado de CA utilizable (error del servidor 6140). Exporte el certificado de CA en formato PEM (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: el dominio dice que el cliente probablemente no está autorizado y pide que el mensaje se acepte de todos modos. Muchas fuentes de envíos masivos se esconden ahí. Una puntuación igual o superior al umbral de borrado rechaza el mensaje durante la conversación SMTP como lo haría un fallo; un softfail nunca cuenta como pass para la omisión del greylisting.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: el dominio dice que el cliente probablemente no está autorizado pero pide que el mensaje se acepte de todos modos, y muchas fuentes de envíos masivos se esconden ahí. Una puntuación igual o superior al umbral de borrado rechaza el mensaje durante la conversación SMTP, como lo haría un fallo.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… continúa en {0}</value>

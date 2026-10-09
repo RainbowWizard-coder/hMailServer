@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 вообще не выставляет срок действия — это безопасное значение по умолчанию: срок действия является обещанием относительно писем, уже находящихся в пути, а окно короче задержки, которую добавляют повторная попытка, серый список или список рассылки, стоит сообщению успешной проверки DKIM и выравнивания DMARC на дальней стороне. 604800 — это неделя, обычный выбор для отправителя, которому срок действия нужен. Отметка времени подписи отправляется всегда, независимо от этого значения.</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 — это настоящий ответ, а не «выключено»: он сохраняет всё, что и нужно администратору, собирающему доказательства. Любое другое значение — это обещание, данное диску.</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 — значение по умолчанию в поставке; оно отключает механизм целиком.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 — значение по умолчанию в поставке. 2 — разумное начало: опечатка в пароле стоит человеку двух секунд один раз, а клиенту, перебирающему пароли, — двух, четырёх, шести... секунд на попытку.</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 сохраняет каждое сообщение, пока его не выпустят или не удалят, поэтому следите за диском.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 оставляет запись, пока её не удалят.</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>Внешних учётных записей: 1</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 - то, что разбирает каждый развёрнутый сегодня потребитель отчётов; 2 - DMARCbis, на тот день, когда потребители его догонят. Любое другое значение сообщается как ошибка и трактуется как 1.</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>Элементов: 1</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>По умолчанию 14. Непрочитанные копии удаляются; прочитанные остаются.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>По умолчанию 1440. Блокировка — это истекающий диапазон IP, как при автоблокировке. Аутентифицированный сеанс, исключения антиспама, входящий ретранслятор и адрес из списка никогда не блокируемых никогда не блокируются.</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>По умолчанию 1440; блокировка — это истекающий диапазон IP, как при автоблокировке. Аутентифицированный сеанс, исключения антиспама, входящий ретранслятор и адрес из «Никогда не банить автоматически эти адреса» на странице «Автоблокировка» никогда не блокируются.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>По умолчанию 15, считая с момента, когда ни один сеанс IMAP или POP3 не держит ключ. После этого почта снова читается только после следующего входа с паролем.</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>16 задержек по 15 минут — это около четырёх часов. 0 означает, что непроверенная почта не ставится в очередь вовсе: отправителю сообщают об этом сразу. Задержанное сообщение доставляется, как только ответит любой сканер; счётчик хранится в памяти, поэтому после перезапуска службы у задержанного сообщения появляется новый запас.</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>16 задержек по 15 минут — это около четырёх часов; 0 сразу возвращает непроверенное сообщение отправителю. Задержанное сообщение доставляется, как только ответит сканер, а перезапуск службы начинает его счёт заново.</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>По умолчанию 161.</value>
@@ -489,8 +492,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Помеченное сообщение внешне не меняется никак: ни заголовка X-hMailServer-Spam, ни заголовка с причиной, ни префикса в теме — почтовому клиенту не по чему сортировать. Внутренний признак спама при этом всё равно выставляется, а он подавляет автоответы и пересылку для учётных записей, настроенных соответствующим образом.</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>Сообщение крупнее этого пропускается, не отправляясь в движок. Передавать по сети пятидесятимегабайтное вложение ради ответа «это не спам» дороже, чем стоит сам ответ. 0 снимает верхнюю границу, что разумно для движка на этой же машине.</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>Сообщение крупнее этого пропускается, не отправляясь в движок, потому что передавать большое вложение по сети дороже, чем стоит сам ответ. 0 снимает верхнюю границу, что разумно для движка на этой же машине.</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Сообщение, которого нет на локальном диске, ищется в хранилище объектов, пока оно указано, поэтому возврат назад ничего не скрывает. Применяется в течение пяти секунд.</value>
@@ -603,8 +606,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Маршрут заменяет собой поиск MX для указанных доменов.</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>Проверка, завершившаяся ошибкой, тайм-аутом или не сумевшая связаться со своим движком, — это не вердикт «чисто»: никто ничего не смотрел. Поведение в поставке — всё равно доставить сообщение, именно так этот сервер поступал всегда; задержать его — более строгий выбор, и делать его следует осознанно.</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>Проверка, завершившаяся ошибкой, тайм-аутом или не сумевшая связаться со своим движком, — это не вердикт «чисто»: никто ничего не смотрел.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Сканер, который не может работать, сообщение не отклоняет. Ошибка записывается в журнал, и проверка переходит к следующему сканеру; когда ответить не может ни один из них, сообщение задерживается и проверяется снова, а когда задержки исчерпаны, возвращается отправителю («Если сообщение не удаётся проверить» на странице «Параметры антивируса»). Именно поэтому эта страница сообщает, может ли каждый сканер работать, а не включён ли он.</value>
@@ -672,8 +675,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Успешный вход сбрасывает счётчики для этого имени, а попытки, сделанные во время блокировки, не учитываются, — поэтому злоумышленник не сможет держать почтовый ящик заблокированным бесконечно, подбирая пароли по капле.</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>Триплет, повторивший попытку слишком рано столько раз, получает 550 вместо 451 на время блокировки ниже - именно это останавливает отправителя, долбящего одним и тем же сообщением каждые несколько секунд. Неверно настроенный цикл повторов застревает, пока блокировка не истечёт, после чего триплет начинает заново как первая попытка. Оператор, попросивший об этом, использует 20.</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>Триплет, повторивший попытку слишком рано столько раз, получает 550 вместо 451 на время блокировки ниже - именно это останавливает отправителя, долбящего одним и тем же сообщением каждые несколько секунд. Неверно настроенный цикл повторов застревает, пока блокировка не истечёт, после чего триплет начинает заново как первая попытка.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Тройка, которая уже встречалась, но ещё не подтверждена, находится в окне до истечения срока её записи. Отключение этого параметра пропускает почту в течение этого окна вместо повторной задержки серым списком: мягче к отправителям, повторяющим попытку медленно, и слабее против отправителя, повторяющего её один раз.</value>
@@ -686,6 +689,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>По адресу {0} опубликована запись v=TLSRPTv1 с rua={1} — это иной почтовый ящик для отчётов, чем указанный выше, и это нормально, пока он существует и его читают. Опубликовано: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>Действительная цепочка ARC (RFC 8617) от запечатывающего, указанного ниже, отменяет оценку за отказ DMARC у сообщения, которое сломала пересылка, и никогда не больше этой оценки. Для этого нужно, чтобы был включён параметр «Оценивать политики DMARC» выше.</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>Собственное значение этой учётной записи имеет приоритет над значениями её домена и сервера. Отметьте параметр, чтобы задать учётной записи собственное значение, снимите отметку, чтобы взять значение домена, и сохраните уровни: они записываются сразу, а не кнопкой «Сохранить» диалога.</value>
@@ -3852,9 +3858,6 @@ Control Panel может читать файлы сообщений только
   <data name="Delivering" xml:space="preserve">
     <value>Доставляется</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>Доставка — это поведение по умолчанию в поставке и то, что этот сервер делал всегда. При задержке непроверенная почта никогда не доставляется: сообщение проверяется снова с указанным ниже интервалом и возвращается отправителю после указанного ниже числа задержек.</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Доставка: сообщение принимается, но так и не уходит</value>
   </data>
@@ -4934,6 +4937,9 @@ Control Panel может читать файлы сообщений только
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Поиск записи пользователя в каталоге</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Определяет организационный домен для мягкого выравнивания DMARC запросами к DNS (RFC 9989) вместо вкомпилированного Public Suffix List; список по-прежнему используется, когда DNS не может ответить. До восьми запросов на домен, с кэшированием на пять минут.</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>При каждой отправке сообщения в список находит остальных участников среди учётных записей сервера, так что вести список вручную не нужно. Оставьте пустым для списка, участниками которого являются только его получатели; domain — каждая активная учётная запись этого домена; domain:other.example — другой домен на этом сервере; pattern:sales-*@example.com — адреса, подходящие под шаблон, где * заменяет любую последовательность символов, а ? — один; everyone — каждая активная учётная запись сервера. Отключённые учётные записи не включаются никогда.</value>
   </data>
@@ -5038,9 +5044,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>При пересылке сообщения отправитель конверта остаётся прежним, поэтому следующий узел проверяет SPF для домена, который этот сервер никогда не уполномочивал, и сообщение проверку не проходит. Вот два ответа на это. SRS переписывает отправителя конверта в такого, за которого этот сервер может поручиться и которого может развернуть обратно, поэтому отчёты о недоставке по-прежнему доходят до исходного отправителя; BATV помечает отправителя конверта исходящей почты, чтобы поддельный отчёт о недоставке — по сообщению, которого этот сервер никогда не отправлял, — можно было отличить от настоящего. Оба используют общий для всего сервера секрет и не делают ровно ничего, пока он не задан.</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>Пересылка ломает SPF, поскольку меняется отправитель конверта, и часто ломает DKIM, поскольку изменяется тело письма, — поэтому список рассылки или пересылающий почтовый ящик способны превратить сообщение, прошедшее DMARC у отправителя, в такое, которое не проходит его здесь. Действительная цепочка ARC (RFC 8617) от пересылающего сервера, которому вы доверяете, несёт исходный результат, и это в точности компенсирует оценку за отказ DMARC, но никогда не больше. Для этого нужно, чтобы был включён параметр «Оценивать политики DMARC» выше, поскольку компенсируется только тот штраф, который добавляет эта проверка.</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>ClamWin найден в {0}</value>
@@ -5315,6 +5318,9 @@ Control Panel может читать файлы сообщений только
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Задерживать сообщения на проверку вместо отказа от них</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>При задержке непроверенная почта никогда не доставляется: сообщение проверяется снова с указанным ниже интервалом и возвращается отправителю после указанного ниже числа задержек.</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Задерживает сообщение извне с вложенным исполняемым файлом или документом, пока песочница не откроет файл и не ответит «чистый» или «вредоносный».</value>
   </data>
@@ -5438,6 +5444,9 @@ Control Panel может читать файлы сообщений только
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Сколько внешних учётных записей, настроенных в учётных записях домена как внешний сбор по POP3, собирается одновременно. Каждая из них удерживает подключение к чужому серверу на всё время загрузки.</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>Сколько элементов политики SPF отправителя (a:, mx:, exists:) могут не найти ни одной записи DNS, прежде чем результатом станет permerror. RFC 7208 задаёт 2; 0 снимает ограничение.</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>Сколько раз задерживать, прежде чем вернуть сообщение отправителю</value>
   </data>
@@ -5464,9 +5473,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>Как проверяется пароль</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>Как сервер решает, что mail.example.com и example.com относятся к одной организации, — именно это сравнивает мягкое выравнивание, применяемое DMARC по умолчанию. Прежним ответом был Public Suffix List — файл с правилами делегирования всех реестров, вкомпилированный внутрь и обновляемый при сборке. DMARCbis заменил его обходом дерева DNS вверх, при котором у каждого уровня спрашивают, является ли он организационной границей, — так владелец домена может сам объявить, где проходит его граница, вместо того чтобы проситься в список. Отключение этого параметра возвращает вкомпилированный список; к нему же сервер возвращается для любого отдельного запроса, который обход не смог завершить из-за недоступности DNS, — сбой резолвера не должен незаметно превращать мягкое выравнивание в строгое. Обходится до восьми запросов DNS на домен, с кэшированием на пять минут.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Как сервер использует базу данных, для которой он уже настроен. То, где эта база находится, — сервер, имя, учётные данные и тип — задаётся мастером установки и намеренно не редактируется здесь, поскольку неверное значение там не замедлит сервер, а не даст ему запуститься. Вступает в силу после перезапуска службы.</value>
@@ -7622,9 +7628,6 @@ Control Panel может читать файлы сообщений только
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>По умолчанию выключено и в выключенном состоянии бездействует: учётные записи, связанные с каталогом, тогда проверяются по-старому, через вход Windows. Во включённом состоянии те же учётные записи — те, у которых заполнена вкладка «Каталог Windows», — вместо этого проверяются привязкой LDAP к указанному ниже серверу. Учётных записей, не связанных с каталогом, это не затрагивает ни в том, ни в другом случае.</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>По умолчанию выключено, и именно над этим решением стоит подумать. При выключенном параметре движок, переставший отвечать, пропускает спам, пока кто-нибудь этого не заметит. При включённом он вместо этого останавливает почту, а сообщение, отложенное в тот момент, когда никто не смотрит, — это сообщение, которое в итоге вернётся отправителю. Выключенное состояние — это поправимый отказ, потому оно и является значением по умолчанию.</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>По умолчанию выключено.</value>
   </data>
@@ -7651,9 +7654,6 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>По умолчанию выключено. Только когда собственное обратное имя забаненного адреса разрешается обратно в него; не более 32 адресов в каждую сторону; никогда в другую /24, через адрес, который щадит любой из двух списков выше, или через ваш диапазон IP, охватывающий один адрес, но не другой; никогда для IPv6 и для частного, общего (shared), loopback- или link-local-адреса, соседи которого — машины вашей собственной сети. Обратный запрос без ответа оставляет одиночный адрес. Хостинговая сеть, все клиенты которой носят один обратный домен, расширяется целиком: внесите её выше или оставьте это выключенным.</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>По умолчанию выключено. Те, кто сегодня отклоняет это скриптом, могут удалить скрипт, когда это включено.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>По умолчанию выключено. Отдаётся по пути /.well-known/openpgpkey прослушивателем веб-служб; домен и учётная запись тоже должны это разрешить в своих диалогах.</value>
@@ -7694,8 +7694,11 @@ Control Panel может читать файлы сообщений только
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>По умолчанию выключено: сервер подключается изнутри вашей сети по слову человека. Включите, чтобы люди могли забирать почту со старого почтового сервера внутри сети.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>Выключено, и именно выключенного состояния требует RFC 8301: он полностью убрал rsa-sha1 из DKIM, поэтому подписывающая сторона не должна его использовать, а проверяющая обязана считать использующую его подпись недействительной. Подпись DKIM — это утверждение об идентичности, и на ней построено выравнивание DMARC, а коллизии SHA-1 практически осуществимы с 2020 года: подпись, которую кто-то может подделать, стоит меньше, чем отсутствие подписи вообще, потому что она проводит домен подписывающего через выровненную проверку DMARC. Включение этого параметра восстанавливает обе половины: подписи с этим алгоритмом снова проверяются, а домен, настроенный на подписывание им, именно им и подписывает, вместо того чтобы быть повышенным до rsa-sha256. Ключи короче 1024 бит отклоняются в любом случае, и на это данный параметр не влияет.</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>Выключено, как требует RFC 8301: подпись с rsa-sha1 считается недействительной, потому что SHA-1 можно подделать. Включено: такие подписи снова проверяются, а домен, настроенный на подписывание rsa-sha1, не повышается до rsa-sha256.</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>Выключено (по умолчанию): движок, переставший отвечать, пропускает спам, пока кто-нибудь этого не заметит, и это поправимый отказ. Включено: вместо этого останавливается почта, а сообщение, отложенное, когда никто не смотрит, в итоге вернётся отправителю.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Выключено. Учётные записи, связанные с каталогом, проверяются через вход Windows (LogonUser), который работает, только когда этот компьютер присоединён к домену, — и любая неудача там выглядит как неверный пароль.</value>
@@ -7795,6 +7798,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>На сервере, в командной строке с повышенными правами в папке Bin: hMailServer.exe --create-stored-secrets-key создаёт ключ, а hMailServer.exe --export-stored-secrets-key FILE экспортирует его. Храните файл вместе с резервными копиями базы данных, но отдельно от них.</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Включено: на проверку, которую не удалось завершить, отвечают 451 4.4.3, чтобы отправитель повторил попытку, когда заработает DNS, а балл temperror выше не используется. Выключено: temperror принимается и оценивается; отправитель из разрешённого домена никогда не откладывается.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Включено, но работать не может</value>
@@ -8737,12 +8743,6 @@ Control Panel может читать файлы сообщений только
   <data name="REST listener settings…" xml:space="preserve">
     <value>Параметры прослушивателя REST…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208, 4.6.4. «Пустой поиск» — это элемент политики SPF отправителя (a:, mx: или exists:), DNS-запрос по которому не возвращает вообще ничего. Отдельное ограничение в десять элементов, требующих запросов к DNS, ограничивает то, о поиске чего политика может попросить этот сервер; оно не ограничивает того, что политика может потратить впустую, а десять элементов, называющих несуществующие узлы, стоят по полному разрешению каждый ради записи, которая никогда не совпадёт. Два — это значение из RFC. Оно ловит и обычный случай: политику, в которой до сих пор перечислены узлы, выведенные из эксплуатации годы назад, о чём её владельцу лучше бы узнать. Увеличивать значение безопасно; 0 отключает ограничение — это настройка для корреспондента, чья политика ошибочна именно таким образом и чью почту вы всё же предпочитаете принимать.</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>Собственный ответ RFC 7208 на проверку, которую не удалось завершить: повторить, когда заработает DNS. Транзакция откладывается с 451 4.4.3, а балл temperror выше игнорируется, потому что отложенное письмо никогда не принимается. Выключено: temperror принимается и оценивается. Отправитель из разрешённого домена никогда не откладывается.</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Файл открытого ключа RSA/EC (PEM, для токенов RS*/ES*)</value>
   </data>
@@ -9449,8 +9449,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Обязательно. Контроллер домена Active Directory или другой сервер LDAP, к которому выполняется привязка. Для LDAPS имя должно совпадать с сертификатом сервера, поэтому используйте DNS-имя, а не IP-адрес.</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>Обязательно. Если оставить это поле пустым, параметр выше не делает вообще ничего, и это сделано намеренно, а не по недосмотру: кто угодно может сфабриковать целую цепочку ARC и запечатать её ключом, который сам же опубликует в своём DNS, и она пройдёт проверку безупречно, поэтому успешно проверенная цепочка ничего не доказывает, если вы уже не доверяете тому, кто её запечатал. Этот список — не дополнительная возможность функции, а сама функция. Перечислите точные домены, чьи печати вы признаёте (значение d= в их ARC-Seal), разделяя их запятыми, точками с запятой или пробелами; сопоставление точное, поэтому суффикс доверенного имени доверенным не считается.</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>Обязательно: пока это поле пусто, ARC ничего не компенсирует, потому что кто угодно может запечатать действительную цепочку собственным ключом. Перечислите точные домены, чьим печатям вы доверяете (значение d= в их ARC-Seal), разделяя их запятыми, точками с запятой или пробелами.</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>Требует, чтобы были включены «Предпочитать порядок шифров сервера» и TLS 1.2 или 1.3.</value>
@@ -11645,6 +11645,9 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Учётная запись перестаёт отправлять раньше, чем получать: владелец видит отказ в своём клиенте с причиной, а почта ему по-прежнему приходит до лимита и запаса сверх него. Каждый домен может задать свой. Действует сразу.</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>Адрес блокируется так же, как после серии неудачных входов, истекающим диапазоном IP, но никогда не адрес из «Никогда не банить автоматически эти адреса» на странице «Автоблокировка» и не входящий ретранслятор. По умолчанию выключено и ничего не делает, пока отказ выше выключен.</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Адрес показывается замаскированным здесь и везде, и ни один интерфейс не выдаёт его целиком: это почтовый ящик этого человека, и ничто из того, что делает администратор, не требует его читать.</value>
   </data>
@@ -12511,9 +12514,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Прогон не удался: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>Тот же истекающий диапазон IP, который создаёт серия неудачных входов, снимаемый той же уборкой и отражаемый в брандмауэре той же сверкой; никогда для адреса из «Никогда не банить автоматически эти адреса» на странице «Автоблокировка» или входящего ретранслятора. По умолчанию выключено, чтобы один ошибочно отправленный отчёт с двумя получателями не заблокировал настоящий почтовый сервер. Ничего не делает, пока отказ выше выключен.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Те же строки, категории и маска, что получают файлы журналов, с прикреплёнными идентификаторами трассы и спана всякий раз, когда на записавшем потоке активен спан. Экспортёр никогда не экспортирует строки о собственных сбоях, иначе мёртвый коллектор кормил бы сам себя.</value>
@@ -13940,9 +13940,6 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Какие службы запускает этот сервер, пределы соединений и приветствия.</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>В каком написании агрегированный отчёт DMARC уходит доменам, о которых этот сервер отчитывается. 1 - то, что разбирает каждый развёрнутый сегодня потребитель отчётов; 2 - DMARCbis, на тот день, когда потребители его догонят. Любое другое значение сообщается как ошибка и трактуется как 1, потому что опечатка не должна решать, что уйдёт в сеть.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>В какую сторону</value>
@@ -16948,8 +16945,8 @@ SMTP 25 и 587, POP3 110, IMAP 143 — без защиты подключени�
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} не содержит блока сертификата PEM, поэтому в нём нет пригодного сертификата ЦС (ошибка сервера 6140). Экспортируйте сертификат ЦС в формате PEM (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: домен говорит, что клиент, вероятно, не авторизован, и просит всё же принять письмо. За этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail; softfail никогда не считается pass для обхода серых списков.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: домен говорит, что клиент, вероятно, не авторизован, но просит всё же принять письмо, и за этим прячутся многие массовые рассылки. Балл на пороге удаления или выше отклоняет письмо в ходе SMTP-диалога, как это делает fail.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… продолжение в {0}</value>

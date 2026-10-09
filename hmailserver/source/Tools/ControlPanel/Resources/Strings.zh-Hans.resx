@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 表示完全不发出到期时间，这是安全的默认值：到期时间是对已在传输途中的邮件所作的承诺，而只要这个窗口短于重试、灰名单或邮件列表所增加的延迟，邮件就会在对端失去 DKIM 通过和 DMARC 对齐。604800 是一周，是希望设置到期时间的发件方通常的选择。无论此值为何，签名时间戳都始终会发送。</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 是一个真实的答案，而不是“已禁用”——它会保留全部内容，这正是收集证据的管理员想要的。其余任何值都是对磁盘作出的承诺。</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 是出厂默认值，会禁用整个机制。</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 是出厂默认值。2 是一个合理的起点：密码输错一次只会让人多等两秒，而对密码喷洒的客户端来说，每猜一次要等两秒、四秒、六秒……。</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 会保留每封邮件，直到它被放行或删除，因此请留意磁盘空间。</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 表示保留该条目，直到被移除。</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 个外部账户</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 是当今部署的每个报告消费者都能解析的；2 是 DMARCbis，留给消费者跟上的那一天。任何其他值都会被报告为错误并按 1 处理。</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 项</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>默认 14。未读的副本会被删除；已读的保留。</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>默认 1440。封禁是一个会过期的 IP 范围，与自动封禁相同。已认证的会话、反垃圾邮件豁免、传入中继以及永不封禁列表中的地址永远不会被封禁。</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>默认 1440；封禁是一个会过期的 IP 范围，与自动封禁相同。已认证的会话、反垃圾邮件豁免、传入中继以及“自动封禁”页上“永不自动封禁这些地址”中的地址永远不会被封禁。</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>默认 15，从没有任何 IMAP 或 POP3 会话持有该密钥时开始计算。此后只有在下次用密码登录后才能再次读取邮件。</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>按每次 15 分钟计算，暂挂 16 次约为四小时。0 表示完全不把未扫描的邮件排队 - 立即告知发件人。只要有任何扫描器给出答复，被暂挂的邮件就会立即投递；计数保存在内存中，因此重启服务后，被暂挂的邮件会重新获得完整的额度。</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>按每次 15 分钟计算，暂挂 16 次约为四小时；0 会立即把未扫描的邮件退回给发件人。只要有扫描器给出答复，被暂挂的邮件就会投递；重启服务会让计数重新开始。</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>默认 161。</value>
@@ -486,8 +489,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>被标记的邮件在外观上不会有任何变化：没有 X-hMailServer-Spam 标头，没有原因标头，也没有主题前缀，因此邮件客户端无从据以归类。内部的垃圾邮件标志仍会设置，这会对做了相应配置的账户抑制自动回复和转发。</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>超过此大小的邮件会直接放行，不再送交引擎。把五十兆字节的附件通过网络送过去，只为得到“不是垃圾邮件”的结论，代价大于这个答案的价值。0 表示取消该上限，对于运行在本机上的引擎这是合理的。</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>超过此大小的邮件会直接放行，不再送交引擎，因为通过网络发送大附件的代价大于答案的价值。0 表示取消该上限，对于运行在本机上的引擎这是合理的。</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>不在本地磁盘上的邮件，只要指定了对象存储，就会到那里查找，因此切换回来不会隐藏任何内容。五秒内生效。</value>
@@ -600,8 +603,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>路由会为指定的域覆盖 MX 查询。</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>出错、超时或者连不上引擎的扫描不是一个明确的结论 - 等于没有人看过。出厂行为是照常投递该邮件，这也是本服务器一贯的做法；改为暂挂它是更严格的选择，需要有意为之。</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>出错、超时或者连不上引擎的扫描不是一个明确的结论：等于没有人看过。</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>无法运行的扫描器并不会拒收邮件。错误会写入日志，扫描继续交给下一个扫描器；当所有扫描器都无法作答时，该邮件会被暂挂并再次扫描，暂挂次数用完后退回给发件人（“反病毒设置”页面上的“如果邮件无法扫描”）。这正是本页报告每个扫描器是否能够运行、而不是报告它是否被打开的原因。</value>
@@ -666,8 +669,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>一次成功登录会清除该名称的计数器，而锁定期间的尝试不计入计数 - 因此攻击者无法靠涓滴式的猜测把一个邮箱无限期地锁住。</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>过早重试达到这么多次的三元组，在下方锁定期间会收到 550 而不是 451，这正是阻止发件人每隔几秒反复投递同一封邮件的办法。配置错误的重试循环会被困住直到锁定结束，之后三元组作为首次尝试重新开始。提出此需求的运维者使用 20。</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>过早重试达到这么多次的三元组，在下方锁定期间会收到 550 而不是 451，这正是阻止发件人每隔几秒反复投递同一封邮件的办法。配置错误的重试循环会被困住直到锁定结束，之后三元组作为首次尝试重新开始。</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>此前见过、但尚未确认的三元组会在其记录到期之前处于一个窗口期内。关闭此项会让该窗口期内的邮件直接通过，而不是再次以灰名单拦截，这对重试较慢的发件方更友好，对只重试一次的发件方则防护更弱。</value>
@@ -680,6 +683,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>{0} 上有一条 v=TLSRPTv1 记录处于生效状态，rua={1} - 与上面的报告邮箱不同，只要它确实存在并且有人查看，这就没有问题。发布时间：{2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>来自下方所列密封者的有效 ARC 链（RFC 8617）会抵消因转发而失败的邮件的 DMARC 失败分数，且绝不超过该分数。它需要打开上面的“评估 DMARC 策略”。</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>此账户自己的值优先于其域和服务器的值。勾选一项设置可为账户指定自己的值，取消勾选则采用其域的值，然后保存级别：它们会立即写入，而不是随对话框的保存一起写入。</value>
@@ -3806,9 +3812,6 @@
   <data name="Delivering" xml:space="preserve">
     <value>投递中</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>投递是出厂默认设置，也是本服务器一贯的做法。暂挂则绝不会投递未扫描的邮件：邮件会按下方的间隔再次扫描，并在达到下方的暂挂次数后退回给发件人。</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>投递中：邮件已被接受，但始终没有发出</value>
   </data>
@@ -4870,6 +4873,9 @@
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>查找用户的目录条目</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>通过查询 DNS（RFC 9989）而不是编译进来的公共后缀列表，为 DMARC 宽松对齐查找组织域；DNS 无法应答时仍会使用该列表。每个域最多八次查询，缓存五分钟。</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>每当有邮件发往该列表时，在服务器的账户中找出其余成员，无需任何人手工维护列表。成员只有收件人的列表请留空；domain 表示本域的每个启用账户；domain:other.example 表示本服务器托管的另一个域；pattern:sales-*@example.com 表示与通配符匹配的地址，其中 * 代表任意长度的字符，? 代表一个字符；everyone 表示服务器上的每个启用账户。已停用的账户永远不会包含在内。</value>
   </data>
@@ -4974,9 +4980,6 @@
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>转发邮件会保留原始的信封发件人，因此下一跳会针对一个从未授权本服务器的域检查 SPF，邮件就会失败。这里是两种解决办法。SRS 把信封发件人改写成本服务器能够担保、并能在返回时还原的地址，这样退信仍能到达原始发件人；BATV 给出站邮件的信封发件人加上标记，这样伪造的退信 - 针对本服务器从未发送过的邮件的退信 - 就能与真实退信区分开。两者都使用一个服务器范围的机密，在设置机密之前什么都不做。</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>转发会破坏 SPF，因为信封发件人变了；也常常破坏 DKIM，因为正文被修改了 - 因此邮件列表或转发邮箱可能把一封在发件方通过了 DMARC 的邮件变成在此处失败的邮件。来自您信任的转发方的有效 ARC 链（RFC 8617）会携带原始结果，此项恰好抵消 DMARC 失败分数，不会多抵消。它需要打开上面的“评估 DMARC 策略”，因为它只会抵消该测试所加的处罚。</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>在 {0} 找到了 ClamWin</value>
@@ -5251,6 +5254,9 @@
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>暂挂邮件等待审核，而不是拒绝</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>暂挂绝不会投递未扫描的邮件：邮件会按下方的间隔再次扫描，并在达到下方的暂挂次数后退回给发件人。</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>保留附有可执行文件或文档的外部邮件，直到沙箱打开文件并答复干净或恶意。</value>
   </data>
@@ -5374,6 +5380,9 @@
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>同时收取多少个外部账户（在域的账户下配置为外部 POP3 下载）。每一个在下载期间都会一直占用一条到别人服务器的连接。</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>发件人 SPF 策略中最多可以有多少项（a:、mx:、exists:）找不到 DNS 记录，超过后结果即为 permerror。RFC 7208 规定为 2；0 表示取消限制。</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>在退回给发件人之前暂挂多少次</value>
   </data>
@@ -5400,9 +5409,6 @@
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>密码如何证明</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>服务器如何判定 mail.example.com 和 example.com 属于同一个组织，这正是 DMARC 默认的宽松对齐所比较的内容。旧的答案是公共后缀列表 - 一个包含每个注册机构委派规则的文件，编译进程序并在构建时刷新。DMARCbis 用沿 DNS 向上遍历、逐级询问是否为组织边界的方式取代了它，这样域所有者可以自行声明边界在哪里，而不必向列表申请。关闭此项会回退到编译进来的列表；对于因 DNS 不可用而无法完成遍历的任何单次查询也是如此 - 解析器故障绝不能悄悄把宽松对齐变成严格对齐。每个域最多花费八次 DNS 查询，缓存五分钟。</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>服务器如何使用它已经配置好的数据库。该数据库在哪里 - 服务器、名称、凭据和类型 - 由安装向导设置，并且有意不在此处提供编辑，因为那里的错误值会让服务器无法启动，而不仅仅是变慢。在重启服务后生效。</value>
@@ -7534,9 +7540,6 @@
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>默认关闭，关闭时不起作用：关联目录的账户此时按旧方式通过 Windows 登录验证。打开时，同样的这些账户 - 填写了“Windows 目录”选项卡的账户 - 改为通过对下面的服务器进行 LDAP 绑定来验证。非目录账户在任何情况下都不受影响。</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>默认关闭，而这是值得考虑的决定。关闭时，停止应答的引擎会放垃圾邮件通过，直到有人注意到。打开时，它会改为拦下邮件 - 而在无人看管时被推迟的邮件最终会被退回。关闭是可以挽回的失败，这就是它作为默认值的原因。</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>默认关闭。</value>
   </data>
@@ -7563,9 +7566,6 @@
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>默认关闭。仅当被封禁地址自身的反向名称能解析回该地址时才进行；每个方向最多 32 个地址；绝不进入另一个 /24，绝不越过上方任一列表豁免的地址，也绝不越过您设置的只覆盖其中一个地址的 IP 范围；绝不用于 IPv6，也绝不用于私有、共享、环回或链路本地地址（其相邻地址是您自己网络中的机器）。未得到应答的反向查询会保持单个地址不变。所有客户都使用同一反向域的托管网络会被整体扩展：请将其列入上方，或保持此项关闭。</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>默认关闭。目前用脚本拒绝这种邮件的管理员，在开启后可以删除该脚本。</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>默认关闭。由 Web 服务监听器在 /.well-known/openpgpkey 下提供；域和账户也必须在各自的对话框中允许。</value>
@@ -7606,8 +7606,11 @@
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>默认关闭：服务器会按用户的指示从你的网络内部发起连接。打开后，用户可以从网络内的旧邮件服务器收取邮件。</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>关闭，而关闭正是 RFC 8301 的要求：它把 rsa-sha1 从 DKIM 中彻底移除，因此签名方不得使用它，验证方必须把使用它的签名视为无效。DKIM 签名是身份声明，DMARC 对齐建立在它之上，而 SHA-1 碰撞自 2020 年起已切实可行 - 一个别人能伪造的签名比没有签名更糟，因为它能让签名方的域通过对齐的 DMARC 检查。打开此项会恢复两个方面：使用它的签名重新可以通过验证，配置为用它签名的域也会照此签名，而不是被升级到 rsa-sha256。短于 1024 位的密钥无论如何都会被拒绝，此设置不影响这一点。</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>按 RFC 8301 的要求关闭：使用 rsa-sha1 的签名被视为无效，因为 SHA-1 可以被伪造。打开后，这类签名会重新通过验证，配置为用 rsa-sha1 签名的域也不会被升级到 rsa-sha256。</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>关闭（默认）时，停止应答的引擎会放垃圾邮件通过，直到有人注意到，这是可以挽回的失败。打开时，它会改为拦下邮件，而在无人看管时被推迟的邮件最终会被退回。</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>关闭。关联目录的账户通过 Windows 登录（LogonUser）验证，这只有在本主机加入了域时才有效 - 那里的每一次失败看起来都像密码错误。</value>
@@ -7707,6 +7710,9 @@
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>在服务器上，从 Bin 文件夹中以管理员身份运行的命令提示符：hMailServer.exe --create-stored-secrets-key 创建密钥，hMailServer.exe --export-stored-secrets-key FILE 将其导出。请将该文件与数据库备份一起保存，但要与备份分开存放。</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>打开时，对无法完成的检查以 451 4.4.3 应答，让发件人在 DNS 恢复后再试，上面的 temperror 分数不再使用。关闭时，temperror 会被接受并计分；来自允许的域的发件人从不被延迟。</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>已打开，但无法运行</value>
@@ -8649,12 +8655,6 @@
   <data name="REST listener settings…" xml:space="preserve">
     <value>REST 监听器设置…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 第 4.6.4 节。“空查询”指的是发件人 SPF 策略中的某一项 - a:、mx: 或 exists: - 其 DNS 查询完全没有返回任何结果。另一条“最多十个发起 DNS 查询的项”的限制约束的是一份策略可以要求本服务器查询多少次；它并不约束一份策略能浪费多少，而十个指向并不存在的主机的项，每一个都要为一条永远不可能匹配的记录付出一次完整的解析。RFC 给出的数值是二。它同时也能发现一种寻常情形：一份策略仍然列着多年前就已下线的主机，而它的所有者多半也希望有人告诉他这件事。调高这个值是安全的；0 表示关闭该限制，这正是为那种策略恰好错在此处、而您又宁愿收下其邮件的通信方准备的设置。</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>RFC 7208 对无法完成的检查给出的答案：等 DNS 恢复后再试。事务以 451 4.4.3 延迟，上面的 temperror 分数被忽略，因为延迟的邮件永远不会被接受。关闭时，temperror 会被接受并计分。来自允许的域的发件人从不被延迟。</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC 公钥文件（PEM，用于 RS*/ES* 令牌）</value>
   </data>
@@ -9349,8 +9349,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>必填。用于绑定的 Active Directory 域控制器或其他 LDAP 服务器。对于 LDAPS，名称必须与服务器的证书相符，因此请使用 DNS 名称，而不是 IP 地址。</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>必填。此项留空时，上面的设置将完全不起作用，而这是有意为之，不是疏漏：任何人都可以伪造一整条 ARC 链，并用自己在其 DNS 中发布的密钥为它加封，而它会完美通过验证，因此除非您本来就信任加封方，否则一条通过验证的链什么都证明不了。这份列表不是该功能的一个选项 - 它就是该功能本身。请写明您认可其封印的确切域（即其 ARC-Seal 的 d=），以逗号、分号或空格分隔；匹配是精确匹配，因此受信任名称的某个后缀并不会被信任。</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>必填：此项为空时，ARC 永远不会抵消任何分数，因为任何人都可以用自己的密钥为一条有效的链加封。请写明您信任其封印的确切域（即其 ARC-Seal 的 d=），以逗号、分号或空格分隔。</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>需要启用“优先使用服务器的密码套件顺序”以及 TLS 1.2 或 1.3。</value>
@@ -11515,6 +11515,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>账户先停止发送，再停止接收：所有者在自己的客户端中看到带原因的拒绝，而发给他的邮件在限额及其宽限之内仍会送达。每个域可各自设置。立即生效。</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>该地址会像连续登录失败那样被一个会过期的 IP 范围封禁，但“自动封禁”页上“永不自动封禁这些地址”中的地址和入站中继永远不会被封禁。默认关闭，上面的拒绝关闭时不起任何作用。</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>地址在这里和其他任何地方都以掩码形式显示，没有任何接口会返回完整地址：那是本人的邮箱，管理员所做的任何事都不需要读取它。</value>
   </data>
@@ -12348,9 +12351,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>运行失败: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>与连续登录失败创建的相同的到期 IP 范围，由同一清理解除，由同一同步映射到防火墙；绝不适用于“自动封禁”页上“永不自动封禁这些地址”中的地址或入站中继。默认关闭，这样一封误发给两个收件人的报告不会封禁真正的邮件服务器。上面的拒绝关闭时不起任何作用。</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>与日志文件所得的行、类别和掩码相同，只要记录日志的线程上有活动的跨度，就会附加跟踪 id 和跨度 id。导出器永远不会导出自己的失败行，否则一个失效的收集器会自我喂养。</value>
@@ -13771,9 +13771,6 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>本服务器运行哪些服务、连接限制和问候语。</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>DMARC 汇总报告以哪种写法发往本服务器所报告的域。1 是当今部署的每个报告消费者都能解析的；2 是 DMARCbis，留给消费者跟上的那一天。任何其他值都会被报告为错误并按 1 处理，因为拼写错误不应决定线路上发出的内容。</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>哪个方向</value>
@@ -16563,8 +16560,8 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}：{1} 不包含任何 PEM 证书块，因此它没有可用的 CA 证书（服务器错误 6140）。请以 PEM（Base64）格式导出该 CA 证书。</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件。许多群发来源就藏在它后面。达到或超过删除阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件；softfail 永远不会被视为灰名单豁免的 pass。</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all：该域表示客户端可能未获授权，但请求仍然接受邮件，许多群发来源就藏在它后面。达到或超过删除阈值的分数会像 fail 一样在 SMTP 会话期间拒绝邮件。</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… 接续于 {0}</value>

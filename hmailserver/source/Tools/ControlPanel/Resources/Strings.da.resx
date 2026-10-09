@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 udsender slet intet udløb, hvilket er den sikre standard: et udløb er et løfte om post, der allerede er undervejs, og et vindue, der er kortere end den forsinkelse, som et genforsøg, en greylist eller en mailingliste tilføjer, koster meddelelsen dens DKIM-godkendelse og dens DMARC-alignment i den anden ende. 604800 er en uge, det sædvanlige valg for en afsender, der ønsker et udløb. Der sendes altid et signeringstidsstempel uanset denne værdi.</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 er et rigtigt svar, ikke et deaktiveret – det beholder alt, hvilket er, hvad en administrator, der indsamler beviser, ønsker. Alt andet er et løfte til disken.</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 er den medfølgende standard og deaktiverer hele mekanismen.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 er den medfølgende standard. 2 er et fornuftigt udgangspunkt: en fejlindtastet adgangskode koster et menneske to sekunder én gang, og en klient, der gennemprøver adgangskoder, to, fire, seks… sekunder pr. gæt.</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 beholder hver meddelelse, indtil den frigives eller slettes, så hold øje med disken.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 beholder posten, til den fjernes.</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 ekstern konto</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 er det, hver rapportforbruger, der er udrullet i dag, kan parse; 2 er DMARCbis, til den dag forbrugerne har indhentet det. Enhver anden værdi rapporteres som en fejl og behandles som 1.</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 element</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>14 som standard. De ulæste kopier slettes; de læste bliver.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>1440 som standard. Blokeringen er et IP-interval, der udløber, som ved automatisk blokering. En godkendt session, spamundtagelserne, et indgående relæ og en adresse på listen over aldrig at blokere bliver aldrig blokeret.</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>1440 som standard; blokeringen er et IP-interval, der udløber, som ved automatisk blokering. En godkendt session, spamundtagelserne, et indgående relæ og en adresse i 'Udeluk aldrig disse adresser automatisk' på siden Automatisk blokering bliver aldrig blokeret.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>15 som standard, talt fra det øjeblik ingen IMAP- eller POP3-session holder nøglen. Derefter kan posten først læses igen efter næste log på med adgangskoden.</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>16 tilbageholdelser à 15 minutter er cirka fire timer. 0 betyder, at uscannet post aldrig sættes i kø – afsenderen får besked med det samme. En tilbageholdt meddelelse leveres, så snart en scanner svarer; tællingen holdes i hukommelsen, så en genstart af tjenesten giver en tilbageholdt meddelelse et nyt budget.</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>16 tilbageholdelser à 15 minutter er cirka fire timer; 0 returnerer en uscannet meddelelse til afsenderen med det samme. En tilbageholdt meddelelse leveres, så snart en scanner svarer, og en genstart af tjenesten starter dens tælling forfra.</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>161 som standard.</value>
@@ -486,8 +489,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>En markeret meddelelse ændres ikke på nogen synlig måde: ingen X-hMailServer-Spam-header, ingen årsagsheader og intet emnepræfiks, så en mailklient har intet at sortere efter. Det interne spamflag sættes stadig, hvilket undertrykker autosvar og videresendelse for konti, der er sat op på den måde.</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>En meddelelse over dette sendes videre uden at blive sendt til motoren. At sende en vedhæftet fil på halvtreds megabyte over netværket for at få at vide, at den ikke er spam, koster mere, end svaret er værd. 0 fjerner loftet, hvilket er rimeligt for en motor på denne maskine.</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>En meddelelse over dette sendes videre uden at blive sendt til motoren, fordi det at sende en stor vedhæftet fil over netværket koster mere, end svaret er værd. 0 fjerner loftet, hvilket er rimeligt for en motor på denne maskine.</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>En meddelelse, der ikke ligger på den lokale disk, søges i objektlageret, så længe et er angivet, så det skjuler intet at skifte tilbage. Tages i brug inden for fem sekunder.</value>
@@ -600,8 +603,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>En rute tilsidesætter MX-opslag for navngivne domæner.</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>En scanning, der fejler, får timeout eller ikke kan nå sin motor, er ikke en ren dom – ingen har set efter. Den medfølgende adfærd er at levere meddelelsen alligevel, hvilket er, hvad denne server altid har gjort; at tilbageholde den i stedet er det strengere valg og det, man skal træffe bevidst.</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>En scanning, der fejler, får timeout eller ikke kan nå sin motor, er ikke en ren dom: ingen har set efter.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>En scanner, der ikke kan køre, afviser ikke meddelelsen. Fejlen skrives til loggen, og scanningen fortsætter til den næste scanner; når ingen af dem kan svare, tilbageholdes meddelelsen og scannes igen, og den returneres til sin afsender, når tilbageholdelserne er brugt op (Hvis en meddelelse ikke kan scannes, på siden Antivirus-indstillinger). Derfor rapporterer denne side, om hver enkelt scanner kan køre, frem for om den er slået til.</value>
@@ -666,8 +669,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>En vellykket pålogning nulstiller navnets tællere, og forsøg foretaget, mens det er låst, tælles ikke med – så en angriber kan ikke holde en postkasse låst i det uendelige med en jævn strøm af gæt.</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>En triplet, der prøver igen for tidligt så mange gange, besvares med 550 i stedet for 451 i låsen nedenfor, hvilket er det, der stopper en afsender, der hamrer med den samme besked med få sekunders mellemrum. En fejlkonfigureret genforsøgsløkke strander, indtil låsen udløber, hvorefter tripletten begynder forfra som et første forsøg. Operatøren, der bad om det, bruger 20.</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>En triplet, der prøver igen for tidligt så mange gange, besvares med 550 i stedet for 451 i låsen nedenfor, hvilket er det, der stopper en afsender, der hamrer med den samme besked med få sekunders mellemrum. En fejlkonfigureret genforsøgsløkke strander, indtil låsen udløber, hvorefter tripletten begynder forfra som et første forsøg.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>En triplet, der er set før, men endnu ikke er bekræftet, ligger i et vindue, før dens post udløber. Slås dette fra, slippes post igennem i det vindue i stedet for at blive greylistet igen, hvilket er mildere over for afsendere, der genforsøger langsomt, og svagere over for en afsender, der kun genforsøger én gang.</value>
@@ -680,6 +683,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>En v=TLSRPTv1-post er aktiv på {0} med rua={1} – en anden rapportpostkasse end den ovenfor, hvilket er i orden, så længe den findes og bliver læst. Offentliggjort: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>En gyldig ARC-kæde (RFC 8617) fra en forsegler, der er nævnt nedenfor, ophæver DMARC-fejlscoren for en meddelelse, som videresendelse har brudt, og aldrig mere end den score. Det kræver, at 'Evaluér DMARC-politikker' ovenfor er slået til.</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>En egen værdi på denne konto går forud for domænets og serverens. Markér en indstilling for at give kontoen en egen værdi, fjern markeringen for at bruge domænets, og gem niveauerne: de skrives med det samme, ikke med dialogens Gem.</value>
@@ -3806,9 +3812,6 @@ Afsenderen fik at vide, at den var accepteret, så intet forsøger igen, og der 
   <data name="Delivering" xml:space="preserve">
     <value>Leverer</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>At levere den er den medfølgende standard og det, denne server altid har gjort. Tilbageholdelse leverer aldrig uscannet post: den scannes igen med intervallet nedenfor og returneres til afsenderen efter det antal tilbageholdelser, der er angivet nedenfor.</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Leverer: meddelelsen er accepteret, men kommer aldrig af sted</value>
   </data>
@@ -4870,6 +4873,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Finder brugerens katalogpost</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Finder det organisatoriske domæne til DMARCs afslappede alignment ved at spørge DNS (RFC 9989) i stedet for den kompilerede Public Suffix List; listen bruges stadig, når DNS ikke kan svare. Op til otte forespørgsler pr. domæne, cachet i fem minutter.</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>Finder resten af medlemmerne blandt serverens konti, hver gang en besked sendes til listen, så ingen behøver at holde listen opdateret i hånden. Lad den være tom for en liste, hvis medlemmer kun er dens modtagere; domain for hver aktiv konto i dette domæne; domain:other.example for et andet domæne, som denne server er vært for; pattern:sales-*@example.com for de adresser, der matcher et jokertegn, hvor * er et vilkårligt antal tegn og ? ét tegn; everyone for hver aktiv konto på serveren. Konti, der er slået fra, medtages aldrig.</value>
   </data>
@@ -4974,9 +4980,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>Videresendelse af en meddelelse beholder den oprindelige konvolutafsender, så næste hop kontrollerer SPF for et domæne, der aldrig har autoriseret denne server, og meddelelsen fejler. Dette er de to svar. SRS omskriver konvolutafsenderen til en, som denne server kan stå inde for og kan gøre om på vejen tilbage, så bounces stadig når frem til den oprindelige afsender; BATV mærker konvolutafsenderen på udgående post, så en forfalsket bounce – en for en meddelelse, denne server aldrig har sendt – kan skelnes fra en ægte. Begge bruger en serverdækkende hemmelighed og gør slet ingenting, før en er sat.</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>Videresendelse bryder SPF, fordi konvolutafsenderen ændres, og bryder ofte DKIM, fordi brødteksten ændres – så en mailingliste eller en videresendt postkasse kan forvandle en meddelelse, der bestod DMARC hos afsenderen, til en, der fejler den her. En gyldig ARC-kæde (RFC 8617) fra en videresender, du stoler på, bærer det oprindelige resultat, og dette ophæver nøjagtigt DMARC-fejlscoren, aldrig mere. Det kræver, at 'Evaluér DMARC-politikker' ovenfor er slået til, da det kun nogensinde udligner en straf, som den test lægger til.</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>Fandt ClamWin i {0}</value>
@@ -5251,6 +5254,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Tilbagehold meddelelser til gennemsyn i stedet for at afvise dem</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Tilbageholdelse leverer aldrig uscannet post: den scannes igen med intervallet nedenfor og returneres til afsenderen efter det antal tilbageholdelser, der er angivet nedenfor.</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Tilbageholder en besked udefra med en vedhæftet eksekverbar fil eller et dokument, indtil en sandkasse har åbnet filen og svaret ren eller skadelig.</value>
   </data>
@@ -5374,6 +5380,9 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Hvor mange eksterne konti, konfigureret under et domænes konti som eksterne POP3-afhentninger, der afhentes samtidig. Hver enkelt holder en forbindelse til en andens server, så længe afhentningen tager.</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>Hvor mange led i en afsenders SPF-politik (a:, mx:, exists:) der må finde ingen DNS-post, før resultatet er permerror. RFC 7208 fastsætter 2; 0 fjerner grænsen.</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>Hvor mange gange der tilbageholdes, før den returneres til afsenderen</value>
   </data>
@@ -5400,9 +5409,6 @@ Ingen post røres – indekset er udledt af den – men indtil genopbygningen ha
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>Hvordan adgangskoden bevises</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>Hvordan serveren afgør, at mail.example.com og example.com hører til den samme organisation, hvilket er det, DMARCs standard, afslappet alignment, sammenligner. Det gamle svar var Public Suffix List – en fil med hvert registers delegeringsregler, kompileret ind og opdateret ved byggetid. DMARCbis erstattede den med en gennemgang op ad DNS, der spørger hvert niveau, om det er en organisatorisk grænse, så en domæneejer kan angive, hvor deres grænse går, i stedet for at anmode en liste. Slås dette fra, falder serveren tilbage til den kompilerede liste, hvilket også er, hvad der sker for ethvert enkelt opslag, som gennemgangen ikke kan fuldføre, fordi DNS var utilgængelig – et resolverudfald må ikke stille og roligt forvandle afslappet alignment til streng. Koster op til otte DNS-forespørgsler pr. domæne, cachet i fem minutter.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Hvordan serveren bruger den database, den allerede er konfigureret til. Hvor den database er – serveren, navnet, legitimationsoplysningerne og typen – sættes op af installationsguiden og kan med vilje ikke redigeres her, fordi en forkert værdi dér forhindrer serveren i at starte frem for at gøre den langsommere. Gælder efter en genstart af tjenesten.</value>
@@ -7534,9 +7540,6 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Slået fra som standard og uvirksom, når den er fra: katalogtilknyttede konti valideres så på den gamle måde, gennem Windows-pålogning. Når den er slået til, valideres de samme konti - dem med fanen Windows-katalog udfyldt - i stedet ved en LDAP-binding mod serveren nedenfor. Konti uden katalogtilknytning påvirkes aldrig, hverken den ene eller den anden vej.</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>Slået fra som standard, og dette er den beslutning, der er værd at tænke over. Slået fra lader en motor, der holder op med at svare, spam slippe igennem, indtil nogen opdager det. Slået til stopper den i stedet posten - og en meddelelse, der udsættes, mens ingen holder øje, er en meddelelse, der til sidst bouncer. Fra er den fejl, der kan rettes op på, og derfor er det standarden.</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>Slået fra som standard.</value>
   </data>
@@ -7563,9 +7566,6 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>Slået fra som standard. Kun når den blokerede adresses eget omvendte navn peger tilbage på den; højst 32 adresser i hver retning; aldrig ind i et andet /24, forbi en adresse, som en af de to lister ovenfor undtager, eller forbi et af dine IP-intervaller, der dækker den ene adresse og ikke den anden; aldrig for IPv6 eller for en privat, delt, loopback- eller link-local-adresse, hvis naboer er dit eget netværks maskiner. Et omvendt opslag, der ikke besvares, lader den ene adresse stå. Et hostingnet, hvis kunder alle bærer ét omvendt domæne, udvides helt: angiv det ovenfor, eller lad dette være slået fra.</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>Fra som standard. Den, der i dag afviser dette i et script, kan slette scriptet, når dette er slået til.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>Slået fra som standard. Leveres under /.well-known/openpgpkey af webtjenestelytteren; et domæne og kontoen skal også tillade det, i deres dialogbokse.</value>
@@ -7606,8 +7606,11 @@ Intet, der allerede er der, fjernes.</value>
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>Slået fra som standard: serveren forbinder indefra dit netværk på personens ord. Slå det til for at lade folk hente fra en gammel mailserver inde på netværket.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>Fra, og fra er, hvad RFC 8301 kræver: den fjernede rsa-sha1 fra DKIM helt og aldeles, så en signerer må ikke bruge den, og en verificerer skal behandle en signatur, der gør, som ugyldig. En DKIM-signatur er en påstand om identitet, og DMARC-alignment er bygget på den, og SHA-1-kollisioner har været praktisk mulige siden 2020 - en signatur, nogen kan forfalske, er mindre værd end ingen signatur overhovedet, fordi den bærer signererens domæne forbi en aligned DMARC-kontrol. At slå dette til genopretter begge halvdele: signaturer, der bruger den, verificeres igen, og et domæne, der er konfigureret til at signere med den, gør det i stedet for at blive opgraderet til rsa-sha256. Nøgler kortere end 1024 bit afvises uanset hvad, og denne indstilling påvirker ikke det.</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>Fra, som RFC 8301 kræver: en signatur, der bruger rsa-sha1, behandles som ugyldig, fordi SHA-1 kan forfalskes. Til: sådanne signaturer verificeres igen, og et domæne, der er sat til at signere med rsa-sha1, opgraderes ikke til rsa-sha256.</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>Fra, standarden: en motor, der holder op med at svare, lader spam slippe igennem, indtil nogen opdager det, og det er den fejl, der kan rettes op på. Til: den stopper i stedet posten, og en meddelelse, der udsættes, mens ingen holder øje, bouncer til sidst.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Fra. Katalogtilknyttede konti valideres gennem Windows-pålogning (LogonUser), som kun virker, når denne vært er meldt ind i domænet - hver fejl dér ligner en forkert adgangskode.</value>
@@ -7707,6 +7710,9 @@ Intet, der allerede er der, fjernes.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>På serveren, fra en kommandoprompt med administratorrettigheder i mappen Bin: hMailServer.exe --create-stored-secrets-key laver nøglen, og hMailServer.exe --export-stored-secrets-key FILE eksporterer den. Opbevar filen sammen med databasens sikkerhedskopier, men adskilt fra dem.</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Til: en kontrol, der ikke kunne fuldføres, besvares med 451 4.4.3, så afsenderen prøver igen, når DNS virker, og temperror-scoren ovenfor bruges ikke. Fra: en temperror accepteres og scores; en afsender fra et tilladt domæne udsættes aldrig.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Til, men kan ikke køre</value>
@@ -8649,12 +8655,6 @@ Der accepteres ingen nye forbindelser, og der leveres ingen post, før den genop
   <data name="REST listener settings…" xml:space="preserve">
     <value>Indstillinger for REST-lytteren…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 4.6.4. Et "void lookup" er et led i en afsenders SPF-politik - et a:, mx: eller exists: - hvis DNS-forespørgsel kommer tilbage med slet ingenting. Den særskilte grænse på ti DNS-forespørgende led begrænser, hvad en politik kan bede denne server om at slå op; den begrænser ikke, hvad en politik kan spilde, og ti led, der nævner værter, som ikke findes, koster en fuld opløsning hver for en post, der aldrig kan matche. To er, hvad RFC'en siger. Det fanger også det almindelige tilfælde: en politik, der stadig nævner værter, der blev taget ud af drift for år siden, hvilket dens ejer hellere vil have at vide. At hæve den er sikkert; 0 slår grænsen fra, hvilket er indstillingen for en korrespondent, hvis politik er forkert på nøjagtigt denne måde, og hvis post du hellere vil tage imod.</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>RFC 7208’s eget svar på en kontrol, der ikke kunne fuldføres: prøv igen, når DNS virker. Transaktionen udsættes med 451 4.4.3, og temperror-scoren ovenfor ignoreres, fordi en udsat besked aldrig accepteres. Fra: en temperror accepteres og scores. En afsender fra et tilladt domæne udsættes aldrig.</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Fil med offentlig RSA-/EC-nøgle (PEM, til RS*-/ES*-tokens)</value>
   </data>
@@ -9349,8 +9349,8 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Påkrævet. Den Active Directory-domænecontroller eller anden LDAP-server, der bindes mod. Ved LDAPS skal navnet svare til serverens certifikat, så brug DNS-navnet, ikke en IP-adresse.</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>Påkrævet. Står dette tomt, gør indstillingen ovenfor slet ingenting, og det er med vilje og ikke en forglemmelse: enhver kan fabrikere en hel ARC-kæde og forsegle den med en nøgle, de offentliggør i deres egen DNS, og den vil validere perfekt, så en kæde, der består, beviser ingenting, medmindre du allerede stoler på forsegleren. Denne liste er ikke en indstilling ved funktionen - den er funktionen. Nævn de nøjagtige domæner, hvis segl du anerkender (d= i deres ARC-Seal), adskilt af kommaer, semikoloner eller mellemrum; matchningen er nøjagtig, så et suffiks af et betroet navn er ikke betroet.</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>Påkrævet: så længe dette står tomt, opvejer ARC aldrig noget, fordi enhver kan forsegle en gyldig kæde med sin egen nøgle. Nævn de nøjagtige domæner, hvis segl du stoler på (d= i deres ARC-Seal), adskilt af kommaer, semikoloner eller mellemrum.</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>Kræver, at 'Foretræk serverens cipher-rækkefølge' og TLS 1.2 eller 1.3 er aktiveret.</value>
@@ -11515,6 +11515,9 @@ Hver mappe tømmes først: post, der er kommet siden backuppen, er væk. Persone
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Kontoen holder op med at sende, før den holder op med at modtage: ejeren ser afvisningen i sit eget program, med årsagen, mens post til vedkommende stadig ankommer op til grænsen og margenen forbi den. Hvert domæne kan sætte sin egen. Gælder straks.</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>Adressen udelukkes, som en stribe mislykkede logins udelukker en, med et udløbende IP-område, men aldrig en adresse i 'Udeluk aldrig disse adresser automatisk' på siden Automatisk blokering eller et indgående relæ. Fra som standard, og gør intet, så længe afvisningen ovenfor er fra.</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Adressen vises maskeret her som alle andre steder, og ingen grænseflade udleverer den hel: den er en postkasse, personen har, og intet, en administrator gør, har brug for at læse den.</value>
   </data>
@@ -12348,9 +12351,6 @@ Tilføj alligevel?</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Kørslen mislykkedes: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>Det samme udløbende IP-område, som en stribe mislykkede logins opretter, ophævet af den samme oprydning og spejlet i firewallen af den samme afstemning; aldrig for en adresse i 'Udeluk aldrig disse adresser automatisk' på siden Automatisk blokering eller et indgående relæ. Fra som standard, så én fejlsendt rapport med to modtagere ikke udelukker en rigtig mailserver. Gør intet, så længe afvisningen ovenfor er fra.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>De samme linjer, kategorier og maske, som logfilerne får, med trace- og span-id vedhæftet, når et span er aktivt på den tråd, der loggede. Eksportøren eksporterer aldrig sine egne fejllinjer, ellers ville en død collector fodre sig selv.</value>
@@ -13771,9 +13771,6 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Hvilke tjenester denne server kører, forbindelsesgrænser og hilsner.</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>Hvilken stavemåde af DMARC-aggregatrapporten der går ud til de domæner, denne server rapporterer om. 1 er det, hver rapportforbruger, der er udrullet i dag, kan parse; 2 er DMARCbis, til den dag forbrugerne har indhentet det. Enhver anden værdi rapporteres som en fejl og behandles som 1, fordi en tastefejl ikke må afgøre, hvad der går over ledningen.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Hvilken vej</value>
@@ -16563,8 +16560,8 @@ Det bliver ved med at prøve, mens du bruger programmet.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} indeholder ingen PEM-certifikatblok, så den rummer intet brugbart CA-certifikat (serverfejl 6140). Eksportér CA-certifikatet i PEM-format (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: domænet siger, at klienten formentlig ikke er autoriseret, og beder om, at beskeden alligevel accepteres. Mange masseudsendere gemmer sig bag det. En score på eller over sletningstærsklen afviser beskeden under SMTP-samtalen, som et fail gør; en softfail er aldrig et pass for greylisting-omgåelsen.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: domænet siger, at klienten formentlig ikke er autoriseret, men beder om, at beskeden alligevel accepteres, og mange masseudsendere gemmer sig bag det. En score på eller over sletningstærsklen afviser beskeden under SMTP-samtalen, som et fail gør.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… fortsætter i {0}</value>

@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 を指定すると有効期限をまったく付けません。これが安全な既定値です。有効期限は、すでに送信途上にあるメールについての約束であり、再試行・グレイリスティング・メーリング リストが加える遅延より短い期間を指定すると、そのメッセージは受信側で DKIM の検証に失敗し、DMARC のアライメントも失われます。604800 は 1 週間で、有効期限を付けたい送信者が通常選ぶ値です。署名のタイムスタンプは、この値にかかわらず常に送られます。</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 は「無効」ではなく、れっきとした答えです。すべてを保持するという意味で、証拠を集めている管理者が求める動作です。それ以外の値はすべて、ディスクに対する約束になります。</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 は出荷時の既定値で、この仕組み全体を無効にします。</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 は出荷時の既定値です。2 は妥当な出発点です。パスワードを打ち間違えた人が失うのは一度きりの 2 秒ですが、パスワード スプレー攻撃を行うクライアントは 1 回の推測ごとに 2 秒、4 秒、6 秒…と失います。</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 にすると、各メッセージは解放または削除されるまで保持されます。ディスクの空きに注意してください。</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 にすると、削除されるまでエントリーを保持します。</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>外部アカウント 1 件</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 は今日展開されているすべてのレポート消費者が解析できるもの、2 は消費者が追いついた日のための DMARCbis です。それ以外の値はエラーとして報告され、1 として扱われます。</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>項目 1 件</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>既定は 14 です。未読のコピーは削除され、既読のものは残ります。</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>既定は 1440 です。ブロックは自動ブロックと同じく期限付きの IP 範囲です。認証済みのセッション、スパム対策の除外、受信リレー、ブロックしないリストのアドレスはブロックされません。</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>既定は 1440 で、ブロックは自動ブロックと同じく期限付きの IP 範囲です。認証済みのセッション、スパム対策の除外、受信リレー、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にあるアドレスはブロックされません。</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>既定は 15 で、IMAP や POP3 のセッションがキーを保持しなくなった時点から数えます。その後は、次にパスワードでサインインするまでメールを読めません。</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>15 分間隔で 16 回保留すると約 4 時間になります。0 は、スキャンされていないメールをキューにまったく入れず、送信者に直ちに通知することを意味します。保留されたメッセージは、いずれかのスキャナーが応答した時点で配信されます。回数はメモリ上に保持されるため、サービスを再起動すると、保留中のメッセージには新たな回数の枠が与えられます。</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>15 分間隔で 16 回保留すると約 4 時間になり、0 を指定するとスキャンされていないメッセージは直ちに送信者に返されます。保留されたメッセージはスキャナーが応答した時点で配信され、サービスを再起動すると回数は最初から数え直されます。</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>既定は 161 です。</value>
@@ -486,8 +489,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>マークされたメッセージは、目に見える形では一切変更されません。X-hMailServer-Spam ヘッダーも、理由のヘッダーも、件名のプレフィックスも付かないため、メール クライアントには振り分けの手掛かりがありません。内部的なスパム フラグは設定されるので、そのように構成されたアカウントでは自動応答と転送が抑止されます。</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>これを超えるメッセージは、エンジンに送られずにそのまま通過します。50 メガバイトの添付ファイルをネットワーク越しに送ってスパムではないと言われるのは、その答えに見合わないコストです。0 を指定すると上限がなくなります。エンジンがこのコンピューター上にある場合には妥当な選択です。</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>これを超えるメッセージは、大きな添付ファイルをネットワーク越しに送るコストが答えに見合わないため、エンジンに送られずにそのまま通過します。0 を指定すると上限がなくなり、エンジンがこのコンピューター上にある場合には妥当な選択です。</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>ローカル ディスクにないメッセージは、オブジェクト ストアが指定されている間はそこで探されるため、元に戻しても何も隠れません。5 秒以内に適用されます。</value>
@@ -600,8 +603,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>ルートは、指定したドメインについて MX の参照を上書きします。</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>エラーになったスキャン、タイムアウトしたスキャン、エンジンに到達できなかったスキャンは、「問題なし」という判定ではありません。誰も中身を見ていないからです。出荷時の動作は、それでもメッセージを配信するというもので、このサーバーが従来から行ってきた動作です。代わりに保留するのはより厳しい選択であり、意図して選ぶべきものです。</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>エラーになったスキャン、タイムアウトしたスキャン、エンジンに到達できなかったスキャンは、「問題なし」という判定ではありません。誰も中身を見ていないからです。</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>実行できないスキャナーがメッセージを拒否することはありません。エラーはログに記録され、スキャンは次のスキャナーへ進みます。どのスキャナーも応答できない場合、そのメッセージは保留されて再度スキャンされ、保留の回数を使い切ると送信者に返されます (ウイルス対策の設定ページの「メッセージをスキャンできない場合」)。このページが、各スキャナーが有効かどうかではなく実行できるかどうかを報告しているのは、そのためです。</value>
@@ -666,8 +669,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>ログオンに成功すると、その名前のカウンターは消去されます。またロックされている間の試行は数えられません。そのため攻撃者が、少しずつ推測を続けてメールボックスを無期限にロックし続けることはできません。</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>これだけの回数、早すぎる再試行をしたトリプレットは、下のロックの間 451 ではなく 550 で応答されます。これが、数秒おきに同じメッセージを叩き続ける送信者を止めるものです。設定を誤った再試行ループはロックが解けるまで立ち往生し、その後トリプレットは最初の試行としてやり直します。これを求めた運用者は 20 を使っています。</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>これだけの回数、早すぎる再試行をしたトリプレットは、下のロックの間 451 ではなく 550 で応答され、数秒おきに同じメッセージを叩き続ける送信者はこれで止まります。設定を誤った再試行ループはロックが解けるまで立ち往生し、その後トリプレットは最初の試行としてやり直します。</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>一度見たことはあるがまだ確認されていないトリプレットは、そのレコードが期限切れになるまでの期間に置かれます。これを無効にすると、その期間中のメールは再びグレイリスティングされずに通過します。再試行の遅い送信者には優しくなりますが、1 度だけ再試行する送信者に対しては弱くなります。</value>
@@ -680,6 +683,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>v=TLSRPTv1 のレコードが rua={1} で {0} に公開されています。上に示したものとは別のレポート用メールボックスですが、それが実在して読まれているのであれば問題ありません。公開されている値: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>下に指定したシーラーからの有効な ARC チェーン (RFC 8617) は、転送によって壊れたメッセージの DMARC 失敗スコアを相殺し、そのスコアを超えて差し引くことはありません。上の「DMARC ポリシーを評価する」がオンである必要があります。</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>このアカウント独自の値は、ドメインとサーバーの値より優先されます。設定にチェックを入れるとアカウント独自の値を持たせ、外すとドメインの値を使います。そのあとレベルを保存してください。ダイアログの保存ではなく、その場で書き込まれます。</value>
@@ -3806,9 +3812,6 @@
   <data name="Delivering" xml:space="preserve">
     <value>配信中</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>配信するのが出荷時の既定であり、このサーバーが従来から行ってきた動作です。保留にすると、スキャンされていないメールが配信されることはありません。メッセージは下の間隔で再度スキャンされ、下に指定した回数だけ保留された後に送信者に返されます。</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>配信中: メッセージは受け入れられたが、決して出ていかない</value>
   </data>
@@ -4870,6 +4873,9 @@
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>ユーザーのディレクトリ エントリの検索</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>DMARC の緩やかなアライメントに使う組織ドメインを、コンパイル済みの Public Suffix List ではなく DNS に問い合わせて (RFC 9989) 求め、DNS が応答できないときは引き続きリストを使います。ドメインあたり最大 8 回のクエリで、5 分間キャッシュされます。</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>リストにメッセージが送られるたびに、サーバーのアカウントの中から残りのメンバーを見つけます。誰も手作業でリストを保守する必要はありません。メンバーが宛先だけのリストでは空欄のままにします。domain はこのドメインのすべての有効なアカウント、domain:other.example はこのサーバーが持つ別のドメイン、pattern:sales-*@example.com はワイルドカードに一致する宛先（* は任意の長さの文字列、? は 1 文字）、everyone はサーバー上のすべての有効なアカウントです。無効なアカウントが含まれることはありません。</value>
   </data>
@@ -4974,9 +4980,6 @@
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>メッセージを転送すると元のエンベロープ送信者がそのまま残るため、次のホップは、このサーバーを一度も承認していないドメインの SPF を確認し、メッセージは失敗します。その答えがこの 2 つです。SRS はエンベロープ送信者を、このサーバーが保証でき、戻りの際に元に戻せるものに書き換えるため、バウンスは引き続き元の送信者に届きます。BATV は送信メールのエンベロープ送信者にタグを付けるため、偽造されたバウンス (このサーバーが送っていないメッセージに対するもの) を本物と見分けられます。どちらもサーバー全体のシークレットを使い、それが設定されるまでは何もしません。</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>転送は、エンベロープ送信者が変わるため SPF を壊し、本文が変更されるため DKIM もしばしば壊します。そのためメーリング リストや転送されたメールボックスは、送信元では DMARC に合格していたメッセージを、ここで失敗するものに変えてしまいます。信頼している転送元からの有効な ARC チェーン (RFC 8617) は元の結果を運んでおり、これは DMARC 失敗スコアをちょうど相殺し、それ以上は決して差し引きません。上の「DMARC ポリシーを評価する」がオンである必要があります。このテストが加えるペナルティを相殺するだけだからです。</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>{0} に ClamWin が見つかりました</value>
@@ -5251,6 +5254,9 @@
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>メッセージを拒否する代わりに確認のために保留する</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>保留にすると、スキャンされていないメールが配信されることはありません。メッセージは下の間隔で再度スキャンされ、下に指定した回数だけ保留された後に送信者に返されます。</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>実行ファイルまたは文書が添付された外部からのメッセージを、サンドボックスがファイルを開いてクリーンまたは悪意ありと回答するまで保留します。</value>
   </data>
@@ -5374,6 +5380,9 @@
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>ドメインのアカウントの下で外部 POP3 ダウンロードとして設定された外部アカウントを、同時にいくつ収集するか。それぞれがダウンロードにかかる間、他人のサーバーへの接続を保持します。</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>送信者の SPF ポリシーの項 (a:、mx:、exists:) のうち、DNS レコードが見つからなくてもよい数で、これを超えると結果は permerror になります。RFC 7208 では 2 と定められており、0 で上限がなくなります。</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>送信者に返すまでに保留する回数</value>
   </data>
@@ -5400,9 +5409,6 @@
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>パスワードの証明方法</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>mail.example.com と example.com が同じ組織に属するとサーバーがどう判断するか。これが DMARC の既定である緩やかなアライメントで比較されるものです。かつての答えは Public Suffix List で、すべてのレジストリの委任規則を集めたファイルをコンパイル時に組み込み、ビルド時に更新していました。DMARCbis はこれを、DNS を上へ辿って各レベルに組織の境界かどうかを尋ねる方式に置き換え、ドメイン所有者がリストに申請する代わりに自分で境界を宣言できるようにしました。これをオフにするとコンパイル済みリストにフォールバックします。DNS が利用できずウォークを完了できなかった個々の参照でも同じことが起きます。リゾルバーの障害が、緩やかなアライメントを黙って厳密なものに変えてはならないからです。ドメインあたり最大 8 回の DNS クエリを要し、5 分間キャッシュされます。</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>すでに設定されているデータベースをサーバーがどう使うか。そのデータベースがどこにあるか(サーバー、名前、資格情報、種類) はインストール ウィザードが設定するもので、ここでは意図的に編集できません。そこでの誤った値はサーバーを遅くするのではなく、起動できなくするからです。サービスの再起動後に適用されます。</value>
@@ -7534,9 +7540,6 @@
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>既定ではオフで、オフの間は何もしません: ディレクトリ連携アカウントは従来どおり Windows ログオンで検証されます。オンにすると、同じアカウント ([Windows ディレクトリ] タブが入力されているもの) が代わりに下のサーバーへの LDAP バインドで検証されます。ディレクトリ連携でないアカウントはどちらでも影響を受けません。</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>既定ではオフで、これは考える価値のある決定です。オフの場合、応答しなくなったエンジンは、誰かが気付くまでスパムを通してしまいます。オンの場合は代わりにメールを止めます。そして、誰も見ていない間に延期されたメッセージは、いずれバウンスします。オフは回復可能な失敗であり、だからこそ既定値です。</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>既定ではオフです。</value>
   </data>
@@ -7563,9 +7566,6 @@
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>既定はオフです。BAN されたアドレス自身の逆引き名がそのアドレスに正引きで戻る場合だけです。各方向に最大 32 アドレスまでです。別の /24 には決して入らず、上のどちらかのリストが除外するアドレスや、片方のアドレスだけを含むあなたの IP 範囲を越えることもありません。IPv6 や、プライベート、共有、ループバック、リンクローカルのアドレスには決して行いません (その近隣はあなた自身のネットワークのマシンです)。応答のない逆引きでは単一アドレスのままです。すべての顧客がひとつの逆引きドメインを持つホスティング ネットは丸ごと広げられます: 上のリストに記載するか、これをオフのままにしてください。</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>既定ではオフです。現在これをスクリプトで拒否している運用者は、これをオンにすればそのスクリプトを削除できます。</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>既定ではオフです。Web サービスのリスナーが /.well-known/openpgpkey で提供します。ドメインとアカウントも、それぞれのダイアログで許可する必要があります。</value>
@@ -7606,8 +7606,11 @@
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>既定ではオフです。サーバーは利用者の指定に従ってネットワーク内部から接続します。ネットワーク内の古いメール サーバーからメールを収集できるようにするにはオンにします。</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>オフで、RFC 8301 が求めているのもオフです。RFC 8301 は rsa-sha1 を DKIM から完全に削除したため、署名者はこれを使ってはならず、検証者はこれを使った署名を無効として扱わなければなりません。DKIM 署名は ID の主張であり、DMARC アライメントはその上に築かれています。SHA-1 の衝突は 2020 年以降現実的になりました。誰かが偽造できる署名は署名がないより価値が低く、署名者のドメインをアライメントされた DMARC チェックに通してしまいます。これをオンにすると両方が復活します: これを使った署名が再び検証され、これで署名するように設定されたドメインは rsa-sha256 にアップグレードされる代わりにそのまま署名します。1024 ビット未満の鍵はいずれにせよ拒否され、この設定はそれに影響しません。</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>RFC 8301 の要求どおりオフで、SHA-1 は偽造できるため、rsa-sha1 を使った署名は無効として扱われます。オンにするとそのような署名が再び検証され、rsa-sha1 で署名するよう設定されたドメインは rsa-sha256 にアップグレードされません。</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>既定のオフでは、応答しなくなったエンジンは誰かが気付くまでスパムを通してしまいますが、これは回復可能な失敗です。オンにすると代わりにメールを止め、誰も見ていない間に延期されたメッセージはいずれバウンスします。</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>オフ。ディレクトリ連携アカウントは Windows ログオン (LogonUser) で検証されます。これはこのホストがドメインに参加している場合にのみ機能し、そこでの失敗はすべてパスワードの誤りのように見えます。</value>
@@ -7707,6 +7710,9 @@
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>サーバー上で、Bin フォルダーの管理者として実行したコマンド プロンプトから: hMailServer.exe --create-stored-secrets-key で鍵を作成し、hMailServer.exe --export-stored-secrets-key FILE でエクスポートします。そのファイルはデータベースのバックアップと一緒に、ただし別の場所に保管してください。</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>オンにすると、完了できなかったチェックには 451 4.4.3 で応答して DNS が復旧してから送信者に再試行させ、上の temperror スコアは使いません。オフでは temperror は受け入れられてスコア付けされ、許可するドメインの送信者は決して保留されません。</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>オンですが、実行できません</value>
@@ -8649,12 +8655,6 @@
   <data name="REST listener settings…" xml:space="preserve">
     <value>REST リスナーの設定…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 4.6.4。「void lookup」とは、送信者の SPF ポリシーの項 (a:、mx:、exists:) のうち、その DNS クエリがまったく何も返さないものを指します。DNS を照会する項を 10 個までとする別の制限は、ポリシーがこのサーバーに参照させられる回数を制限しますが、ポリシーが無駄にできる量までは制限しません。存在しないホストを指す 10 個の項は、決して一致し得ないレコードのために、それぞれ完全な名前解決を消費します。RFC が定めている値は 2 です。この制限は、ありふれたケースも捕らえます。何年も前に廃止したホストをいまだに列挙しているポリシーは、その所有者にとってはむしろ知らせてほしいものでしょう。値を上げるのは安全です。0 にすると制限を無効にします。まさにこの形でポリシーが誤っている相手のメールを、それでも受け取りたい場合の設定です。</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>完了できなかった検査に対する RFC 7208 自身の答えです。DNS が復旧してから再試行させます。トランザクションは 451 4.4.3 で保留され、上の temperror スコアは無視されます。保留されたメッセージは決して受け入れられないためです。オフの場合、temperror は受け入れられ、スコア付けされます。許可するドメインの送信者は決して保留されません。</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC 公開鍵ファイル (PEM。RS*/ES* トークン用)</value>
   </data>
@@ -9349,8 +9349,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>必須です。バインド先となる Active Directory のドメイン コントローラー、またはほかの LDAP サーバーです。LDAPS ではその名前がサーバーの証明書と一致している必要があるため、IP アドレスではなく DNS 名を使用してください。</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>必須です。これが空だと上の設定はまったく何もしませんが、これは見落としではなく意図的な動作です。誰でも ARC チェーン全体を捏造し、自分の DNS で公開した鍵でシールでき、それは完璧に検証を通ります。つまり、シーラーをあらかじめ信頼していない限り、チェーンが検証を通っても何も証明しません。このリストは機能のオプションではなく、機能そのものです。シールを尊重するドメイン (その ARC-Seal の d=) を、カンマ、セミコロン、または空白で区切って正確に指定してください。照合は完全一致なので、信頼している名前の接尾辞は信頼されません。</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>必須です。これが空の間、誰でも自分の鍵で有効なチェーンにシールできるため、ARC は何も相殺しません。シールを信頼するドメイン (その ARC-Seal の d=) を、カンマ、セミコロン、または空白で区切って正確に指定してください。</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>「サーバーの暗号順序を優先する」と、TLS 1.2 または 1.3 が有効になっている必要があります。</value>
@@ -11515,6 +11515,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>受信が止まる前に送信が止まります。所有者は自分のクライアントで理由付きの拒否を目にし、その人宛のメールは上限とその猶予までは届き続けます。ドメインごとに設定できます。すぐに適用されます。</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>連続したログオン失敗と同じく期限付きの IP 範囲でアドレスをブロックしますが、[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にあるアドレスや受信リレーは決してブロックしません。既定ではオフで、上の拒否がオフの間は何もしません。</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>アドレスはここでも他のどこでもマスクして表示され、どのインターフェイスも完全な形では返しません。本人のメールボックスであり、管理者が行う作業にそれを読む必要はありません。</value>
   </data>
@@ -12348,9 +12351,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>実行に失敗しました: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>ログオン失敗の連続で作成されるものと同じ期限付き IP 範囲で、同じ掃除処理で解除され、同じ照合処理でファイアウォールに反映されます。[自動ブロック] ページの「これらのアドレスは決して自動 BAN しない」にあるアドレスや受信リレーには決して適用されません。既定ではオフで、宛先が 2 つある誤送信のレポート 1 通で本物のメールサーバーを遮断しないためです。上の拒否がオフの間は何もしません。</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>ログ ファイルが受け取るのと同じ行、カテゴリ、マスクに、ログを記録したスレッドでスパンがアクティブなときはいつでもトレース ID とスパン ID が付加されます。エクスポーターは自身の失敗行を決してエクスポートしません。そうしないと、停止したコレクターが自分自身を養うことになります。</value>
@@ -13771,9 +13771,6 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>このサーバーが実行するサービス、接続制限、挨拶。</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>DMARC 集約レポートを、このサーバーがレポートするドメインにどの書式で送るか。1 は今日展開されているすべてのレポート消費者が解析できるもの、2 は消費者が追いついた日のための DMARCbis です。それ以外の値はエラーとして報告され 1 として扱われます。入力ミスがネットワークに流れる内容を決めてはならないからです。</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>方向</value>
@@ -16563,8 +16560,8 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} には PEM 証明書ブロックが含まれていないため、使用できる CA 証明書がありません (サーバー エラー 6140)。CA 証明書を PEM (Base64) 形式でエクスポートしてください。</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: ドメインはクライアントがおそらく承認されていないと述べつつ、それでもメッセージを受け入れるよう求めています。多くの大量送信元がその陰に隠れています。削除しきい値以上のスコアは fail と同様に SMTP の会話中にメッセージを拒否します。softfail はグレイリスト免除の pass には決してなりません。</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: ドメインはクライアントがおそらく承認されていないと述べつつ、それでもメッセージを受け入れるよう求めており、多くの大量送信元がその陰に隠れています。削除しきい値以上のスコアは、fail と同様に SMTP の会話中にメッセージを拒否します。</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… {0} に続きます</value>

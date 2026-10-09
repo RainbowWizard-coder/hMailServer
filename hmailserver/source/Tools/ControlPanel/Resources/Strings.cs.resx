@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 neuvádí žádné vypršení platnosti, což je bezpečná výchozí hodnota: vypršení platnosti je slib týkající se pošty, která je již na cestě, a okno kratší než zpoždění, které přidá opakovaný pokus, greylisting nebo poštovní konference, stojí zprávu úspěšné ověření DKIM a zarovnání DMARC na druhé straně. 604800 je týden, obvyklá volba odesílatele, který vypršení platnosti chce. Časové razítko podpisu se odesílá vždy, bez ohledu na tuto hodnotu.</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 je skutečná odpověď, ne vypnutí – uchová se vše, což je to, co potřebuje správce shromažďující důkazy. Cokoli jiného je slib vůči disku.</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 je dodávaná výchozí hodnota a celý mechanismus vypíná.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 je dodávaná výchozí hodnota. 2 je rozumný začátek: překlep v hesle stojí člověka jednou dvě sekundy, zatímco klienta zkoušejícího hesla ve velkém dvě, čtyři, šest... sekund na každý pokus.</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 uchová každou zprávu, dokud nebude uvolněna nebo smazána, takže hlídejte disk.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 ponechá záznam, dokud nebude odebrán.</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>Externí účty: 1</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 je to, co dnes parsuje každý nasazený konzument hlášení; 2 je DMARCbis, pro den, kdy konzumenti dohnali vývoj. Jakákoli jiná hodnota se nahlásí jako chyba a bere se jako 1.</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>Položky: 1</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>Výchozí 14. Nepřečtené kopie se smažou; přečtené zůstanou.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>Výchozí 1440. Zákaz je rozsah IP s vypršením, stejně jako u auto-banu. Ověřená relace, výjimky z antispamu, příchozí relay a adresa ze seznamu nikdy nezakazovaných nejsou nikdy zakázány.</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>Výchozí 1440; zákaz je rozsah IP s vypršením, stejně jako u auto-banu. Ověřená relace, výjimky z antispamu, příchozí relay a adresa v „Tyto adresy nikdy automaticky nezakazovat“ na stránce Auto-ban nejsou nikdy zakázány.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>Výchozí 15, počítáno od chvíle, kdy klíč nedrží žádná relace IMAP ani POP3. Poté lze poštu číst znovu až po dalším přihlášení heslem.</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>16 pozdržení po 15 minutách jsou přibližně čtyři hodiny. 0 znamená nezařazovat nezkontrolovanou poštu do fronty vůbec – odesílateli se to sdělí okamžitě. Pozdržená zpráva je doručena, jakmile odpoví kterýkoli skener; počet je uložen v paměti, takže restart služby dá pozdržené zprávě nový rozpočet.</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>16 pozdržení po 15 minutách jsou přibližně čtyři hodiny; 0 vrátí nezkontrolovanou zprávu odesílateli okamžitě. Pozdržená zpráva je doručena, jakmile odpoví skener, a restart služby začne její počítání znovu.</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>Výchozí 161.</value>
@@ -489,8 +492,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Označená zpráva se nijak viditelně nemění: žádná hlavička X-hMailServer-Spam, žádná hlavička s důvodem a žádná předpona předmětu, takže poštovní klient nemá podle čeho třídit. Interní příznak spamu se přesto nastaví, což u takto nastavených účtů potlačí automatické odpovědi a přeposílání.</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>Zpráva nad touto hranicí projde, aniž by byla odeslána do enginu. Poslat padesátimegabajtovou přílohu přes síť jen proto, abyste se dozvěděli, že to není spam, stojí víc, než kolik ta odpověď vydá. 0 strop ruší, což je rozumné u enginu na tomto počítači.</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>Zpráva nad touto hranicí projde, aniž by byla odeslána do enginu, protože poslat velkou přílohu přes síť stojí víc, než kolik ta odpověď vydá. 0 strop ruší, což je rozumné u enginu na tomto počítači.</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Zpráva, která není na místním disku, se hledá v úložišti objektů, dokud je nějaké zadané, takže přepnutí zpět nic neskryje. Převezme se do pěti sekund.</value>
@@ -603,8 +606,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Trasa nahrazuje vyhledávání MX pro uvedené domény.</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>Kontrola, která skončí chybou, vyprší nebo nedosáhne na svůj engine, neznamená verdikt „čistá“ – nikdo se nedíval. Dodávané chování je zprávu přesto doručit, což tento server dělal odjakživa; pozdržet ji je přísnější volba a je třeba ji učinit vědomě.</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>Kontrola, která skončí chybou, vyprší nebo nedosáhne na svůj engine, neznamená verdikt „čistá“: nikdo se nedíval.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Skener, který nelze spustit, zprávu neodmítne. Chyba se zapíše do logu a kontrola pokračuje dalším skenerem; když nedokáže odpovědět žádný z nich, zpráva se pozdrží a zkontroluje znovu, a když se pozdržení vyčerpají, vrátí se odesílateli („Pokud zprávu nelze skenovat“ na stránce Nastavení antiviru). Proto tato stránka hlásí, zda lze každý skener spustit, a ne zda je zapnutý.</value>
@@ -672,8 +675,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Úspěšné přihlášení vynuluje čítače daného jména a pokusy provedené během jeho uzamčení se nezapočítávají – útočník tak nemůže držet poštovní schránku uzamčenou donekonečna slabým proudem pokusů.</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>Triplet, který zkusil znovu příliš brzy tolikrát, dostane odpověď 550 místo 451 po dobu zámku níže, což zastaví odesílatele bušícího stejnou zprávou každých pár sekund. Špatně nastavená smyčka opakování uvázne, dokud zámek nevyprší, poté triplet začíná znovu jako první pokus. Operátor, který o to požádal, používá 20.</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>Triplet, který zkusil znovu příliš brzy tolikrát, dostane odpověď 550 místo 451 po dobu zámku níže, což zastaví odesílatele bušícího stejnou zprávou každých pár sekund. Špatně nastavená smyčka opakování uvázne, dokud zámek nevyprší, poté triplet začíná znovu jako první pokus.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Trojice, která už byla viděna, ale zatím nebyla potvrzena, se nachází v okně před vypršením svého záznamu. Vypnutí této volby poštu v tomto okně propustí, místo aby ji znovu greylistovalo, což je šetrnější k odesílatelům, kteří opakují pomalu, a slabší proti odesílateli, který to zkusí jen jednou.</value>
@@ -686,6 +689,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>Záznam v=TLSRPTv1 je publikován na {0} s rua={1} – jiná poštovní schránka pro hlášení než ta výše, což je v pořádku, dokud existuje a někdo ji čte. Publikováno: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>Platný řetězec ARC (RFC 8617) od pečetitele uvedeného níže zruší skóre za selhání DMARC u zprávy, kterou rozbilo přeposlání, a nikdy víc než toto skóre. Vyžaduje zapnuté „Vyhodnocovat politiky DMARC“ výše.</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>Vlastní hodnota tohoto účtu má přednost před hodnotou jeho domény i serveru. Zaškrtněte nastavení, abyste účtu dali vlastní hodnotu, zrušte zaškrtnutí, aby převzal hodnotu domény, a uložte úrovně: zapisují se hned, ne tlačítkem Uložit v dialogu.</value>
@@ -3852,9 +3858,6 @@ Odesílateli bylo řečeno, že byla přijata, takže nic ji nezopakuje a jiná 
   <data name="Delivering" xml:space="preserve">
     <value>Doručuje se</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>Doručení je dodávané výchozí nastavení a to, co tento server dělal odjakživa. Pozdržení nikdy nedoručí nezkontrolovanou poštu: zpráva se znovu zkontroluje v intervalu níže a po počtu pozdržení níže se vrátí odesílateli.</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Doručování: zpráva je přijata, ale nikdy neodejde</value>
   </data>
@@ -4934,6 +4937,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Hledání položky uživatele v adresáři</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Hledá organizační doménu pro uvolněné zarovnání DMARC dotazy do DNS (RFC 9989) místo zakompilovaného Public Suffix List; seznam se stále použije, když DNS nedokáže odpovědět. Až osm dotazů na doménu, kešováno pět minut.</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>Při každém odeslání zprávy do konference najde zbývající členy mezi účty serveru, takže seznam nemusí nikdo udržovat ručně. Ponechte prázdné pro konferenci, jejímiž členy jsou pouze její příjemci; domain pro každý aktivní účet této domény; domain:other.example pro jinou doménu hostovanou tímto serverem; pattern:sales-*@example.com pro adresy odpovídající masce, kde * je libovolný počet znaků a ? jeden znak; everyone pro každý aktivní účet na serveru. Vypnuté účty nejsou zahrnuty nikdy.</value>
   </data>
@@ -5038,9 +5044,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>Přeposlání zprávy zachová původního odesílatele obálky, takže další skok kontroluje SPF pro doménu, která tento server nikdy neautorizovala, a zpráva selže. Toto jsou dvě odpovědi. SRS přepíše odesílatele obálky na takového, za kterého se tento server může zaručit a který dokáže na zpáteční cestě vrátit, takže vrácené zprávy stále dojdou původnímu odesílateli; BATV označí odesílatele obálky odchozí pošty, takže padělanou vrácenou zprávu - pro zprávu, kterou tento server nikdy neposlal - lze odlišit od skutečné. Obojí používá celoserverový tajný klíč a nedělá vůbec nic, dokud není nastaven.</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>Přeposílání rozbíjí SPF, protože se mění odesílatel obálky, a často rozbíjí DKIM, protože se mění tělo - takže distribuční seznam nebo přeposílaná schránka mohou zprávu, která u odesílatele prošla DMARC, změnit v takovou, která zde selže. Platný řetězec ARC (RFC 8617) od přeposílajícího serveru, kterému důvěřujete, nese původní výsledek a toto ruší přesně skóre za selhání DMARC, nikdy víc. Vyžaduje zapnuté „Vyhodnocovat politiky DMARC“ výše, protože jen kompenzuje penalizaci, kterou ten test přidává.</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>ClamWin nalezen v {0}</value>
@@ -5315,6 +5318,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Pozdržet zprávy ke kontrole místo odmítnutí</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Pozdržení nikdy nedoručí nezkontrolovanou poštu: zpráva se znovu zkontroluje v intervalu níže a po počtu pozdržení níže se vrátí odesílateli.</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Zadrží zprávu zvenčí s přiloženým spustitelným souborem nebo dokumentem, dokud sandbox soubor neotevře a neodpoví čistý, nebo škodlivý.</value>
   </data>
@@ -5438,6 +5444,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Kolik externích účtů, nakonfigurovaných v účtech domény jako externí stahování POP3, se stahuje současně. Každý drží spojení s cizím serverem tak dlouho, jak stahování trvá.</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>Kolik členů SPF politiky odesílatele (a:, mx:, exists:) smí nenajít žádný záznam DNS, než je výsledkem permerror. RFC 7208 stanoví 2; 0 limit ruší.</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>Kolikrát pozdržet, než se vrátí odesílateli</value>
   </data>
@@ -5464,9 +5473,6 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>Jak se prokazuje heslo</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>Jak server rozhoduje, že mail.example.com a example.com patří téže organizaci, což je to, co porovnává výchozí uvolněné zarovnání DMARC. Stará odpověď byl Public Suffix List - soubor s delegačními pravidly každého registru, zakompilovaný a obnovovaný při sestavení. DMARCbis ho nahradil procházením DNS vzhůru s dotazem na každou úroveň, zda je organizační hranicí, takže vlastník domény může říct, kde jeho hranice je, místo aby žádal seznam. Vypnutí spadne na zakompilovaný seznam, což se stane i u každého jednotlivého dotazu, který průchod nemůže dokončit, protože DNS nebylo dostupné - výpadek resolveru nesmí potichu změnit uvolněné zarovnání na striktní. Stojí až osm dotazů DNS na doménu, kešováno pět minut.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Jak server používá databázi, pro kterou je už nakonfigurován. Kde ta databáze je - server, název, přihlašovací údaje a typ - nastavuje instalační průvodce a zde to záměrně nelze upravit, protože špatná hodnota tam server zastaví, místo aby ho zpomalila. Projeví se po restartu služby.</value>
@@ -7622,9 +7628,6 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Ve výchozím nastavení vypnuto a ve vypnutém stavu nečinné: účty propojené s adresářem se pak ověřují postaru, přes přihlášení Windows. Když je to zapnuto, ověřují se tytéž účty – ty s vyplněnou kartou Adresář Windows – místo toho bindem LDAP proti serveru níže. Účtů nepropojených s adresářem se to tak ani tak nikdy nedotkne.</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>Ve výchozím nastavení vypnuto a je to rozhodnutí, nad kterým stojí za to přemýšlet. Vypnuto: engine, který přestane odpovídat, propouští spam, dokud si toho někdo nevšimne. Zapnuto: zastaví místo toho poštu – a zpráva odložená ve chvíli, kdy se nikdo nedívá, je zpráva, která se nakonec vrátí odesílateli. Vypnuto je zotavitelné selhání, a proto je to výchozí volba.</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>Ve výchozím stavu vypnuto.</value>
   </data>
@@ -7651,9 +7654,6 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>Ve výchozím stavu vypnuto. Jen když vlastní reverzní název zakázané adresy ukazuje zpět na ni; nejvýše 32 adres na každou stranu; nikdy do jiného /24, přes adresu, kterou ušetří kterýkoli ze dvou seznamů výše, ani přes váš rozsah IP, který pokrývá jednu adresu a druhou ne; nikdy pro IPv6 ani pro soukromou, sdílenou, loopback nebo link-local adresu, jejímiž sousedy jsou stroje vaší vlastní sítě. Reverzní dotaz, na který nepřijde odpověď, ponechá jedinou adresu. Hostingová síť, jejíž zákazníci všichni nesou jednu reverzní doménu, se rozšíří celá: uveďte ji výše, nebo nechte toto vypnuté.</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>Ve výchozím stavu vypnuto. Kdo to dnes odmítá skriptem, může skript smazat, jakmile je toto zapnuto.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>Ve výchozím stavu vypnuto. Poskytuje ho listener webových služeb pod /.well-known/openpgpkey; povolit to musí i doména a účet ve svých dialozích.</value>
@@ -7694,8 +7694,11 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>Ve výchozím stavu vypnuto: server se připojuje zevnitř vaší sítě na slovo dané osoby. Zapněte to, aby si lidé mohli stahovat poštu ze starého poštovního serveru uvnitř sítě.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>Vypnuto – a vypnuto je to, co vyžaduje RFC 8301: rsa-sha1 z DKIM zcela odstranilo, takže je podepisující strana nesmí použít a ověřující strana musí podpis, který je používá, považovat za neplatný. Podpis DKIM je tvrzení o identitě a je na něm postaveno zarovnání DMARC, a kolize SHA-1 jsou prakticky proveditelné od roku 2020 – podpis, který někdo dokáže padělat, má menší cenu než žádný podpis, protože protáhne doménu podepisujícího přes zarovnanou kontrolu DMARC. Zapnutím se vrátí obě poloviny: podpisy, které jej používají, se opět ověří, a doména nastavená k podepisování tímto algoritmem jím skutečně podepisuje, místo aby byla povýšena na rsa-sha256. Klíče kratší než 1024 bitů jsou odmítány tak jako tak a toto nastavení na tom nic nemění.</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>Vypnuto, jak vyžaduje RFC 8301: podpis používající rsa-sha1 se považuje za neplatný, protože SHA-1 lze padělat. Zapnuto: takové podpisy se opět ověří a doména nastavená k podepisování pomocí rsa-sha1 se nepovýší na rsa-sha256.</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>Vypnuto (výchozí): engine, který přestane odpovídat, propouští spam, dokud si toho někdo nevšimne, což je zotavitelné selhání. Zapnuto: zastaví místo toho poštu a zpráva odložená ve chvíli, kdy se nikdo nedívá, se nakonec vrátí odesílateli.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Vypnuto. Účty propojené s adresářem se ověřují přes přihlášení Windows (LogonUser), což funguje jen tehdy, když je tento počítač připojen do domény – každé selhání tam vypadá jako špatné heslo.</value>
@@ -7795,6 +7798,9 @@ Nic, co tam již je, se neodstraní.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Na serveru, z příkazového řádku se zvýšenými oprávněními ve složce Bin: hMailServer.exe --create-stored-secrets-key vytvoří klíč a hMailServer.exe --export-stored-secrets-key FILE jej exportuje. Soubor uchovávejte se zálohami databáze, ale odděleně od nich.</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Zapnuto: na kontrolu, kterou nebylo možné dokončit, se odpoví 451 4.4.3, takže to odesílatel zkusí znovu, až bude DNS fungovat, a skóre temperror výše se nepoužije. Vypnuto: temperror se přijme a oboduje; odesílatel z povolené domény se nikdy neodkládá.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Zapnuto, ale nemůže běžet</value>
@@ -8737,12 +8743,6 @@ Do obnovení nebudou přijímána žádná nová připojení a nebude doručová
   <data name="REST listener settings…" xml:space="preserve">
     <value>Nastavení REST listeneru…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 4.6.4. „Prázdné vyhledání“ (void lookup) je člen SPF politiky odesílatele – a:, mx: nebo exists: –, jehož DNS dotaz se vrátí úplně bez ničeho. Samostatný limit deseti členů dotazujících se DNS omezuje, kolik toho politika může po tomto serveru chtít vyhledat; neomezuje, kolik toho politika může promarnit, a deset členů pojmenovávajících neexistující hostitele stojí každý plné vyhledání u záznamu, který se nikdy nemůže shodovat. Dva je hodnota podle RFC. Zachytí to i běžný případ: politiku, která stále uvádí hostitele vyřazené před lety, o čemž by její vlastník raději věděl. Zvýšení je bezpečné; 0 limit vypíná, což je nastavení pro korespondenta, jehož politika je chybná přesně takto a jehož poštu byste raději přijali.</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>Vlastní odpověď RFC 7208 na kontrolu, kterou nebylo možné dokončit: zkuste to znovu, až bude DNS fungovat. Transakce se odloží s 451 4.4.3 a výše uvedené skóre temperror se ignoruje, protože odložená zpráva se nikdy nepřijme. Vypnuto: temperror se přijme a oboduje. Odesílatel z povolené domény se nikdy neodkládá.</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>Soubor veřejného klíče RSA/EC (PEM, pro tokeny RS*/ES*)</value>
   </data>
@@ -9449,8 +9449,8 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Povinné. Řadič domény Active Directory nebo jiný LDAP server, proti kterému se provádí bind. Pro LDAPS musí název odpovídat certifikátu serveru, takže použijte DNS název, ne IP adresu.</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>Povinné. S prázdným polem nastavení výše nedělá vůbec nic, a to je záměr, ne opomenutí: kdokoli může vyrobit celý řetěz ARC a zapečetit jej klíčem, který publikuje ve vlastním DNS, a ověří se bezchybně, takže procházející řetěz nedokazuje nic, pokud pečetiteli už nedůvěřujete. Tento seznam není volbou funkce – je tou funkcí. Uveďte přesné domény, jejichž pečeti uznáváte (d= jejich ARC-Seal), oddělené čárkami, středníky nebo mezerami; shoda je přesná, takže přípona důvěryhodného názvu důvěryhodná není.</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>Povinné: dokud je pole prázdné, ARC nikdy nic nevyrovná, protože kdokoli může zapečetit platný řetěz vlastním klíčem. Uveďte přesné domény, jejichž pečetím důvěřujete (d= jejich ARC-Seal), oddělené čárkami, středníky nebo mezerami.</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>Vyžaduje zapnuté „Upřednostnit pořadí šifer serveru“ a TLS 1.2 nebo 1.3.</value>
@@ -11645,6 +11645,9 @@ Každá složka se nejprve vyprázdní: pošta, která přišla od zálohy, bude
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Účet přestane odesílat dřív, než přestane přijímat: majitel vidí odmítnutí ve vlastním programu i s důvodem, zatímco pošta pro něj dál přichází až do limitu a tolerance za ním. Každá doména může nastavit vlastní. Platí ihned.</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>Adresa se zakáže stejně jako po řadě neúspěšných přihlášení, rozsahem IP s vypršením, ale nikdy adresa v „Tyto adresy nikdy automaticky nezakazovat“ na stránce Auto-ban ani příchozí relay. Ve výchozím stavu vypnuto a nedělá nic, dokud je odmítání výše vypnuto.</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Adresa se zde jako všude jinde zobrazuje zamaskovaná a žádné rozhraní ji nevydá celou: je to schránka té osoby a nic, co správce dělá, ji nepotřebuje číst.</value>
   </data>
@@ -12511,9 +12514,6 @@ Přesto přidat?</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Běh selhal: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>Stejný vypršující rozsah IP, který vytvoří řada neúspěšných přihlášení, rušený stejným úklidem a zrcadlený do firewallu stejným sladěním; nikdy pro adresu v „Tyto adresy nikdy automaticky nezakazovat“ na stránce Auto-ban ani pro příchozí přenos. Ve výchozím stavu vypnuto, aby jedna chybně odeslaná zpráva o doručení se dvěma příjemci nezablokovala skutečný poštovní server. Nedělá nic, dokud je odmítání výše vypnuto.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Stejné řádky, kategorie a maska jako u souborů logu, s připojeným id trasování a spanu, kdykoli je na vlákně, které logovalo, aktivní span. Exportér nikdy neexportuje řádky o vlastním selhání, jinak by se mrtvý kolektor krmil sám.</value>
@@ -13940,9 +13940,6 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Které služby tento server provozuje, limity spojení a pozdravy.</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>Ve kterém zápisu odchází souhrnné hlášení DMARC doménám, o kterých tento server hlásí. 1 je to, co dnes parsuje každý nasazený konzument hlášení; 2 je DMARCbis, pro den, kdy konzumenti dohnali vývoj. Jakákoli jiná hodnota se nahlásí jako chyba a bere se jako 1, protože překlep nesmí rozhodovat o tom, co jde po drátě.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Kterým směrem</value>
@@ -16948,8 +16945,8 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} neobsahuje žádný blok certifikátu PEM, takže nenese žádný použitelný certifikát CA (chyba serveru 6140). Exportujte certifikát CA ve formátu PEM (Base64).</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: doména říká, že klient pravděpodobně není oprávněn, a žádá, aby byla zpráva přesto přijata. Mnoho hromadných rozesílatelů se za tím schovává. Skóre na prahu smazání nebo nad ním odmítne zprávu během SMTP dialogu stejně jako fail; softfail se pro obejití greylistingu nikdy nepočítá jako pass.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: doména říká, že klient pravděpodobně není oprávněn, ale žádá, aby byla zpráva přesto přijata, a mnoho hromadných rozesílatelů se za tím schovává. Skóre na prahu smazání nebo nad ním odmítne zprávu během SMTP dialogu, stejně jako fail.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… pokračuje v {0}</value>

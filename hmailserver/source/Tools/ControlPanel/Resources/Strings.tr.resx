@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 hiçbir süre sonu yayımlamaz; güvenli varsayılan budur: süre sonu, hâlihazırda yolda olan postalar hakkında verilmiş bir sözdür ve yeniden denemenin, greylisting'in veya bir posta listesinin eklediği gecikmeden daha kısa bir pencere, iletiye karşı taraftaki DKIM geçerliliğine ve DMARC hizalamasına mal olur. 604800 bir haftadır ve süre sonu isteyen bir gönderenin olağan tercihidir. İmzalama zaman damgası bu değerden bağımsız olarak her zaman gönderilir.</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 gerçek bir yanıttır, devre dışı bırakma değil - her şeyi saklar ve kanıt toplayan bir yöneticinin istediği de budur. Bunun dışındaki her değer diske verilmiş bir sözdür.</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0, ürünle gelen varsayılandır ve mekanizmanın tamamını devre dışı bırakır.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0, ürünle gelen varsayılandır. 2 makul bir başlangıçtır: yanlış yazılan bir parola kişiye bir kez iki saniyeye mal olur, parola püskürtme yapan bir istemciye ise her deneme için iki, dört, altı... saniyeye.</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0, her iletiyi serbest bırakılana ya da silinene kadar saklar; bu yüzden diski gözünüzden kaçırmayın.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0, kayıt kaldırılana kadar tutar.</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 dış hesap</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1, bugün konuşlandırılmış her rapor tüketicisinin ayrıştırdığı şeydir; 2, tüketicilerin yetiştiği gün için DMARCbis'tir. Başka bir değer hata olarak bildirilir ve 1 olarak ele alınır.</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 öğe</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>Varsayılan 14. Okunmamış kopyalar silinir; okunanlar kalır.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>Varsayılan 1440. Yasak, otomatik yasaklamada olduğu gibi süresi dolan bir IP aralığıdır. Kimliği doğrulanmış bir oturum, spam istisnaları, gelen bir aktarıcı ve asla yasaklanmayacaklar listesindeki bir adres asla yasaklanmaz.</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>Varsayılan 1440; yasak, otomatik yasaklamada olduğu gibi süresi dolan bir IP aralığıdır. Kimliği doğrulanmış bir oturum, spam istisnaları, gelen bir aktarıcı ve Otomatik yasaklama sayfasındaki 'Bu adresleri hiçbir zaman otomatik yasaklama' alanında bulunan bir adres asla yasaklanmaz.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>Varsayılan 15; hiçbir IMAP veya POP3 oturumu anahtarı tutmadığı andan itibaren sayılır. Bundan sonra posta ancak parolayla yapılan bir sonraki oturum açmada yeniden okunabilir.</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>15 dakikalık 16 bekletme yaklaşık dört saat eder. 0, taranmamış postanın hiçbir zaman kuyruğa alınmaması demektir - gönderene hemen bildirilir. Bekletilen bir ileti, herhangi bir tarayıcı yanıt verir vermez teslim edilir; sayı bellekte tutulduğundan hizmetin yeniden başlatılması bekletilen bir iletiye yeni bir bütçe verir.</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>15 dakikalık 16 bekletme yaklaşık dört saat eder; 0, taranmamış bir iletiyi hemen gönderene geri döndürür. Bekletilen bir ileti, bir tarayıcı yanıt verir vermez teslim edilir ve hizmetin yeniden başlatılması sayımı baştan başlatır.</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>Varsayılan 161.</value>
@@ -486,8 +489,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>İşaretlenen bir ileti görünür hiçbir biçimde değiştirilmez: X-hMailServer-Spam başlığı, gerekçe başlığı ve konu ön eki yoktur; dolayısıyla posta istemcisinin dosyalama yapacağı bir şey olmaz. Dahili spam bayrağı yine de ayarlanır ve bu, öyle yapılandırılmış hesaplarda otomatik yanıtları ve iletmeyi bastırır.</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>Bunun üzerindeki bir ileti, motora gönderilmeden geçirilir. Elli megabaytlık bir eki ağ üzerinden gönderip spam olmadığını öğrenmek, yanıtın değerinden daha pahalıya mal olur. 0, üst sınırı kaldırır; bu da bu makinede çalışan bir motor için makuldür.</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>Bunun üzerindeki bir ileti motora gönderilmeden geçirilir, çünkü büyük bir eki ağ üzerinden göndermek yanıtın değerinden daha pahalıya mal olur. 0, üst sınırı kaldırır; bu da bu makinede çalışan bir motor için makuldür.</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Yerel diskte olmayan bir ileti, nesne deposu adlandırıldığı sürece orada aranır; bu yüzden geri dönmek hiçbir şeyi gizlemez. Beş saniye içinde uygulanır.</value>
@@ -600,8 +603,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Bir rota, adı verilen etki alanları için MX aramasının yerine geçer.</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>Hata veren, zaman aşımına uğrayan veya motoruna ulaşamayan bir tarama temiz bir hüküm değildir - kimse bakmamıştır. Ürünle gelen davranış, iletiyi yine de teslim etmektir; bu sunucu her zaman böyle yapmıştır. Bunun yerine iletiyi bekletmek daha katı olan ve bilinçli olarak verilmesi gereken karardır.</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>Hata veren, zaman aşımına uğrayan veya motoruna ulaşamayan bir tarama temiz bir hüküm değildir: kimse bakmamıştır.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Çalışamayan bir tarayıcı iletiyi reddetmez. Hata günlüğe yazılır ve tarama bir sonraki tarayıcıyla sürer; hiçbiri yanıt veremediğinde ileti bekletilir ve yeniden taranır, bekletme hakkı tükendiğinde de gönderene geri döndürülür (Virüsten koruma ayarları sayfasındaki "Bir ileti taranamazsa"). Bu sayfanın her tarayıcının açık olup olmadığını değil, çalışıp çalışamadığını bildirmesinin nedeni budur.</value>
@@ -666,8 +669,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Başarılı bir oturum açma, adın sayaçlarını sıfırlar ve kilitliyken yapılan denemeler sayılmaz - böylece bir saldırgan, damla damla denemelerle bir posta kutusunu süresiz kilitli tutamaz.</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>Bu kadar kez çok erken yeniden deneyen bir üçlü, aşağıdaki kilit süresince 451 yerine 550 ile yanıtlanır; aynı iletiyi birkaç saniyede bir vuran göndereni durduran budur. Yanlış yapılandırılmış bir yeniden deneme döngüsü kilit geçene kadar takılı kalır, sonra üçlü ilk deneme olarak baştan başlar. Bunu isteyen operatör 20 kullanıyor.</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>Bu kadar kez çok erken yeniden deneyen bir üçlü, aşağıdaki kilit süresince 451 yerine 550 ile yanıtlanır; aynı iletiyi birkaç saniyede bir vuran göndereni durduran budur. Yanlış yapılandırılmış bir yeniden deneme döngüsü kilit geçene kadar takılı kalır, sonra üçlü ilk deneme olarak baştan başlar.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Daha önce görülmüş ama henüz onaylanmamış bir üçlü, kaydının süresi dolmadan önce bir pencerede bekler. Bunu kapatmak, o pencere boyunca postaya yeniden greylisting uygulamak yerine postanın geçmesine izin verir; bu, yavaş yeniden deneyen gönderenlere karşı daha yumuşak, bir kez yeniden deneyen bir gönderene karşı ise daha zayıftır.</value>
@@ -680,6 +683,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>{0} konumunda rua={1} olan bir v=TLSRPTv1 kaydı yayında - yukarıdakinden farklı bir rapor posta kutusu; var olduğu ve okunduğu sürece bu sorun değil. Yayımlandı: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>Aşağıda adı verilen bir mühürleyiciden gelen geçerli bir ARC zinciri (RFC 8617), iletmenin bozduğu bir iletinin DMARC başarısızlık puanını götürür, asla o puandan fazlasını değil. Yukarıdaki 'DMARC ilkelerini değerlendir' seçeneğinin açık olması gerekir.</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>Bu hesabın kendi değeri, etki alanının ve sunucunun değerinden önce gelir. Hesaba kendi değerini vermek için bir ayarı işaretleyin, etki alanınınkini almak için işareti kaldırın ve düzeyleri kaydedin: hemen yazılırlar, iletişim kutusunun Kaydet düğmesiyle değil.</value>
@@ -3806,9 +3812,6 @@ Gönderene kabul edildiği söylendi; bu nedenle hiçbir şey yeniden denemeyece
   <data name="Delivering" xml:space="preserve">
     <value>Teslim ediliyor</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>Teslim etmek, ürünle gelen varsayılandır ve bu sunucunun her zaman yaptığı budur. Bekletmek taranmamış postayı asla teslim etmez: ileti aşağıdaki aralıkla yeniden taranır ve aşağıdaki bekletme sayısından sonra gönderene geri döndürülür.</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Teslim ediliyor: ileti kabul ediliyor ama hiç çıkmıyor</value>
   </data>
@@ -4870,6 +4873,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Kullanıcının dizin girdisi bulunuyor</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>DMARC gevşek hizalaması için kuruluş etki alanını derlenmiş Public Suffix List yerine DNS'e sorarak (RFC 9989) bulur; DNS yanıt veremediğinde liste yine kullanılır. Etki alanı başına en çok sekiz sorgu, beş dakika önbelleğe alınır.</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>Listeye her ileti gönderildiğinde geri kalan üyeleri sunucunun hesapları arasında bulur, böylece listeyi kimsenin elle güncel tutması gerekmez. Üyeleri yalnızca alıcıları olan bir liste için boş bırakın; domain bu alan adının her etkin hesabı; domain:other.example bu sunucunun barındırdığı başka bir alan adı; pattern:sales-*@example.com joker karaktere uyan adresler, burada * herhangi bir karakter dizisi, ? ise tek bir karakterdir; everyone sunucudaki her etkin hesap demektir. Kapatılmış hesaplar hiçbir zaman dahil edilmez.</value>
   </data>
@@ -4974,9 +4980,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>Bir iletiyi iletmek özgün zarf gönderenini korur; bu yüzden bir sonraki durak, bu sunucuyu hiç yetkilendirmemiş bir etki alanı için SPF denetler ve ileti başarısız olur. Bunlar iki yanıttır. SRS, zarf gönderenini bu sunucunun kefil olabileceği ve dönüş yolunda geri alabileceği bir adrese yeniden yazar; böylece geri dönmeler yine özgün gönderene ulaşır. BATV, giden postanın zarf gönderenini etiketler; böylece sahte bir geri dönme - bu sunucunun hiç göndermediği bir iletiye ait olan - gerçeğinden ayırt edilebilir. İkisi de sunucu geneli bir gizli anahtar kullanır ve biri ayarlanana kadar hiçbir şey yapmaz.</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>İletme SPF'yi bozar, çünkü zarf gönderen değişir; DKIM'i de çoğu zaman bozar, çünkü gövde değiştirilir - bu yüzden bir posta listesi ya da iletilen bir posta kutusu, gönderende DMARC'yi geçen bir iletiyi burada geçemeyen bir iletiye dönüştürebilir. Güvendiğiniz bir ileticiden gelen geçerli bir ARC zinciri (RFC 8617) özgün sonucu taşır ve bu, tam olarak DMARC başarısızlık puanını götürür, asla daha fazlasını değil. Yukarıdaki 'DMARC ilkelerini değerlendir' seçeneğinin açık olması gerekir, çünkü yalnızca o sınamanın eklediği bir cezayı dengeler.</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>ClamWin {0} konumunda bulundu</value>
@@ -5251,6 +5254,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>İletileri reddetmek yerine incelenmek üzere beklet</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Bekletmek taranmamış postayı asla teslim etmez: ileti aşağıdaki aralıkla yeniden taranır ve aşağıdaki bekletme sayısından sonra gönderene geri döndürülür.</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Eki yürütülebilir dosya veya belge olan dışarıdan gelen bir iletiyi, bir korumalı alan dosyayı açıp temiz ya da kötü amaçlı yanıtını verene kadar bekletir.</value>
   </data>
@@ -5374,6 +5380,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Bir etki alanının hesapları altında dış POP3 indirmesi olarak yapılandırılan kaç dış hesabın aynı anda toplandığı. Her biri, indirme sürdüğü sürece başkasının sunucusuna bir bağlantı tutar.</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>Bir gönderenin SPF ilkesindeki terimlerden (a:, mx:, exists:) kaçının, sonuç permerror olmadan önce hiçbir DNS kaydı bulamayabileceği. RFC 7208 bunu 2 olarak belirler; 0 sınırı kaldırır.</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>Gönderene geri döndürmeden önce kaç kez bekletileceği</value>
   </data>
@@ -5400,9 +5409,6 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>Parolanın nasıl kanıtlandığı</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>Sunucunun mail.example.com ile example.com'un aynı kuruluşa ait olduğuna nasıl karar verdiği; DMARC'nin varsayılan gevşek hizalamasının karşılaştırdığı budur. Eski yanıt Public Suffix List idi - her kayıt otoritesinin yetki devri kurallarını içeren, derlemeye gömülen ve derleme zamanında yenilenen bir dosya. DMARCbis bunun yerine, her düzeye kuruluş sınırı olup olmadığını sorarak DNS'te yukarı doğru yürümeyi getirdi; böylece bir etki alanı sahibi bir listeye başvurmak yerine sınırının nerede olduğunu kendisi belirtebilir. Bunu kapatmak derlenmiş listeye geri döner; DNS erişilemez olduğu için yürüyüşün tamamlayamadığı her tekil arama için de olan budur - bir çözümleyici kesintisi gevşek hizalamayı sessizce katı hizalamaya çevirmemelidir. Etki alanı başına en çok sekiz DNS sorgusuna mal olur ve beş dakika önbelleğe alınır.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Sunucunun zaten yapılandırılmış olduğu veritabanını nasıl kullandığı. O veritabanının nerede olduğu - sunucu, ad, kimlik bilgileri ve tür - kurulum sihirbazı tarafından ayarlanır ve burada bilinçli olarak düzenlenemez, çünkü oradaki yanlış bir değer sunucuyu yavaşlatmak yerine başlamasını engeller. Hizmet yeniden başlatıldıktan sonra uygulanır.</value>
@@ -7534,9 +7540,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Varsayılan olarak kapalıdır ve kapalıyken etkisizdir: dizine bağlı hesaplar o zaman eski yoldan, Windows oturum açması üzerinden doğrulanır. Açıkken aynı hesaplar - Windows dizini sekmesi doldurulmuş olanlar - bunun yerine aşağıdaki sunucuya karşı LDAP bind ile doğrulanır. Dizine bağlı olmayan hesaplar hiçbir durumda etkilenmez.</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>Varsayılan olarak kapalıdır ve üzerinde düşünmeye değer karar budur. Kapalıyken, yanıt vermeyi kesen bir motor biri fark edene kadar spam'in geçmesine izin verir. Açıkken bunun yerine postayı durdurur - ve kimse bakmazken ertelenen bir ileti, sonunda geri dönen bir iletidir. Kapalı, kurtarılabilir başarısızlıktır; varsayılan olmasının nedeni budur.</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>Varsayılan olarak kapalı.</value>
   </data>
@@ -7563,9 +7566,6 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>Varsayılan olarak kapalı. Yalnızca yasaklanan adresin kendi ters adı yeniden ona çözümlendiğinde; her yönde en fazla 32 adres; asla başka bir /24 bloğuna girmez, yukarıdaki iki listeden birinin esirgediği bir adresin ya da bir adresi kapsayıp diğerini kapsamayan bir IP aralığınızın ötesine geçmez; IPv6 için ve komşuları kendi ağınızın makineleri olan özel, paylaşılan, geri döngü (loopback) ya da bağlantı-yerel (link-local) bir adres için asla. Yanıtlanmayan bir ters sorgu tek adresi olduğu gibi bırakır. Tüm müşterileri tek bir ters etki alanı taşıyan bir barındırma ağı bütünüyle genişletilir: onu yukarıya ekleyin ya da bunu kapalı bırakın.</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>Varsayılan olarak kapalı. Bunu bugün bir betikle reddedenler, bu açıldığında betiği silebilir.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>Varsayılan olarak kapalı. Web hizmetleri dinleyicisi tarafından /.well-known/openpgpkey altında sunulur; etki alanı ve hesap da kendi iletişim kutularında buna izin vermelidir.</value>
@@ -7606,8 +7606,11 @@ Zaten orada olan hiçbir şey silinmez.</value>
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>Varsayılan olarak kapalı: sunucu, bir kişinin sözüyle ağınızın içinden bağlanır. Kişilerin ağ içindeki eski bir posta sunucusundan posta toplayabilmesi için açın.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>Kapalı ve RFC 8301'in gerektirdiği de kapalı olmasıdır: rsa-sha1'i DKIM'den doğrudan kaldırdı; bu yüzden bir imzalayıcı onu kullanmamalı ve bir doğrulayıcı onu kullanan bir imzayı geçersiz saymalıdır. Bir DKIM imzası bir kimlik iddiasıdır ve DMARC hizalaması onun üzerine kuruludur; SHA-1 çakışmaları ise 2020'den beri uygulanabilir durumdadır - birinin sahteleyebileceği bir imza hiç imza olmamasından daha az değerlidir, çünkü imzalayanın etki alanını hizalanmış bir DMARC denetiminden geçirir. Bunu açmak iki yarıyı da geri getirir: onu kullanan imzalar yeniden doğrulanır ve onunla imzalamak üzere yapılandırılmış bir etki alanı, rsa-sha256'ya yükseltilmek yerine onunla imzalar. 1024 bitten kısa anahtarlar her durumda reddedilir ve bu ayar bunu etkilemez.</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>RFC 8301'in gerektirdiği gibi kapalı: rsa-sha1 kullanan bir imza geçersiz sayılır, çünkü SHA-1 sahtelenebilir. Açıkken bu tür imzalar yeniden doğrulanır ve rsa-sha1 ile imzalamaya ayarlanmış bir etki alanı rsa-sha256'ya yükseltilmez.</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>Kapalı (varsayılan): yanıt vermeyi kesen bir motor, biri fark edene kadar spam'in geçmesine izin verir; bu kurtarılabilir başarısızlıktır. Açıkken bunun yerine postayı durdurur ve kimse bakmazken ertelenen bir ileti sonunda geri döner.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Kapalı. Dizine bağlı hesaplar Windows oturum açması (LogonUser) üzerinden doğrulanır; bu yalnızca bu ana bilgisayar etki alanına katılmışken çalışır - oradaki her başarısızlık yanlış parola gibi görünür.</value>
@@ -7707,6 +7710,9 @@ Zaten orada olan hiçbir şey silinmez.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Sunucuda, Bin klasöründe yükseltilmiş bir komut isteminden: hMailServer.exe --create-stored-secrets-key anahtarı oluşturur, hMailServer.exe --export-stored-secrets-key FILE ise dışa aktarır. Dosyayı veritabanı yedekleriyle birlikte, ama onlardan ayrı saklayın.</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Açıkken tamamlanamayan bir denetime 451 4.4.3 ile yanıt verilir; böylece gönderen DNS çalışınca yeniden dener ve yukarıdaki temperror puanı kullanılmaz. Kapalıyken temperror kabul edilir ve puanlanır; izin verilen bir alan adından gelen gönderen asla ertelenmez.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Açık, ama çalışamıyor</value>
@@ -8649,12 +8655,6 @@ Sürdürülene kadar yeni bağlantı kabul edilmez ve posta teslim edilmez. Wind
   <data name="REST listener settings…" xml:space="preserve">
     <value>REST dinleyicisi ayarları…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 4.6.4. "Boş arama", bir gönderenin SPF ilkesindeki, DNS sorgusu hiçbir şeyle dönmeyen bir terimdir - bir a:, mx: ya da exists:. DNS sorgulayan on terimlik ayrı sınır, bir ilkenin bu sunucudan aramasını isteyebileceklerini sınırlar; bir ilkenin neyi boşa harcayabileceğini sınırlamaz ve var olmayan ana bilgisayarları adlandıran on terim, hiçbir zaman eşleşemeyecek bir kayıt için her biri tam bir çözümlemeye mal olur. RFC'nin söylediği ikidir. Sıradan durumu da yakalar: yıllar önce hizmetten kaldırılmış ana bilgisayarları hâlâ listeleyen ve sahibinin haberdar edilmeyi yeğleyeceği bir ilke. Yükseltmek güvenlidir; 0 sınırı kapatır ki bu, ilkesi tam bu biçimde yanlış olan ve postasını almayı yeğlediğiniz bir muhabir için ayardır.</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>RFC 7208’in tamamlanamayan bir denetime kendi yanıtı: DNS çalışınca yeniden dene. İşlem 451 4.4.3 ile ertelenir ve yukarıdaki temperror puanı yok sayılır, çünkü ertelenen bir ileti asla kabul edilmez. Kapalıyken temperror kabul edilir ve puanlanır. İzin verilen bir alan adından gelen gönderen asla ertelenmez.</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA/EC ortak anahtar dosyası (PEM, RS*/ES* belirteçleri için)</value>
   </data>
@@ -9349,8 +9349,8 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Gerekli. Bind yapılacak Active Directory etki alanı denetleyicisi ya da başka bir LDAP sunucusu. LDAPS için adın sunucunun sertifikasıyla eşleşmesi gerekir; bu yüzden IP adresi değil DNS adı kullanın.</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>Gerekli. Bu boşken yukarıdaki ayar hiçbir şey yapmaz ve bu bir gözden kaçma değil, bilinçli bir tercihtir: herkes baştan sona bir ARC zinciri uydurup kendi DNS'inde yayımladığı bir anahtarla mühürleyebilir ve zincir kusursuz doğrulanır; bu yüzden geçen bir zincir, mühürleyene zaten güvenmiyorsanız hiçbir şey kanıtlamaz. Bu liste özelliğin bir seçeneği değil, özelliğin kendisidir. Mühürlerine uyduğunuz etki alanlarının tam adlarını (ARC-Seal'lerinin d= değeri) virgül, noktalı virgül ya da boşlukla ayırarak yazın; eşleştirme tamdır; bu yüzden güvenilen bir adın son eki güvenilmez.</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>Gerekli: bu boş kaldıkça ARC hiçbir şeyi dengelemez, çünkü herkes geçerli bir zinciri kendi anahtarıyla mühürleyebilir. Mühürlerine güvendiğiniz etki alanlarının tam adlarını (ARC-Seal'lerinin d= değeri) virgül, noktalı virgül ya da boşlukla ayırarak yazın.</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>'Sunucu şifre sırasını yeğle' seçeneğinin ve TLS 1.2 ya da 1.3'ün etkin olmasını gerektirir.</value>
@@ -11515,6 +11515,9 @@ SMTP 25 ve 587, POP3 110, IMAP 143 - bağlantı güvenliği olmadan ve her iki S
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Hesap almayı bırakmadan önce göndermeyi bırakır: sahibi reddi kendi istemcisinde nedeniyle görür, ona gelen posta ise sınıra ve onu aşan paya kadar gelmeye devam eder. Her alan kendi değerini belirleyebilir. Hemen geçerlidir.</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>Adres, bir dizi başarısız oturum açmanın yasakladığı gibi süresi dolan bir IP aralığıyla yasaklanır; ancak Otomatik yasaklama sayfasındaki 'Bu adresleri hiçbir zaman otomatik yasaklama' alanında bulunan bir adres veya gelen bir aktarıcı asla yasaklanmaz. Varsayılan olarak kapalıdır ve yukarıdaki ret kapalıyken hiçbir şey yapmaz.</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Adres burada olduğu gibi başka her yerde de maskelenmiş gösterilir ve hiçbir arayüz onu bütün olarak vermez: o kişiye ait bir posta kutusudur ve yöneticinin yaptığı hiçbir şey onu okumayı gerektirmez.</value>
   </data>
@@ -12348,9 +12351,6 @@ Yine de eklensin mi?</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Çalıştırma başarısız oldu: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>Bir dizi başarısız oturum açmanın oluşturduğu, aynı süpürmeyle kaldırılan ve aynı uzlaştırmayla güvenlik duvarına yansıtılan, süresi dolan aynı IP aralığı; Otomatik yasaklama sayfasındaki 'Bu adresleri hiçbir zaman otomatik yasaklama' alanında bulunan bir adres veya gelen bir aktarıcı için asla. Varsayılan olarak kapalı; böylece iki alıcıya yanlışlıkla gönderilmiş tek bir rapor gerçek bir posta sunucusunu yasaklamaz. Yukarıdaki ret kapalıyken hiçbir şey yapmaz.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Günlük dosyalarının aldığı satırlar, kategoriler ve maskeyle aynı; günlüğe yazan iş parçacığında bir aralık etkinken izleme ve aralık kimliği eklenir. Dışa aktarıcı kendi başarısızlık satırlarını hiçbir zaman dışa aktarmaz; aksi hâlde ölü bir toplayıcı kendi kendini beslerdi.</value>
@@ -13771,9 +13771,6 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Bu sunucunun hangi hizmetleri çalıştırdığı, bağlantı sınırları ve karşılamalar.</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>DMARC toplu raporunun bu sunucunun raporladığı etki alanlarına hangi yazımla gittiği. 1, bugün konuşlandırılmış her rapor tüketicisinin ayrıştırdığı şeydir; 2, tüketicilerin yetiştiği gün için DMARCbis'tir. Başka bir değer hata olarak bildirilir ve 1 olarak ele alınır, çünkü bir yazım hatası hatta neyin gideceğine karar vermemelidir.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Hangi yön</value>
@@ -16563,8 +16560,8 @@ Uygulamayı kullanırken denemeye devam edecek.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} hiçbir PEM sertifika bloğu içermiyor; bu yüzden kullanılabilir bir CA sertifikası tutmuyor (sunucu hatası 6140). CA sertifikasını PEM (Base64) biçiminde dışa aktarın.</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: alan adı, istemcinin büyük olasılıkla yetkili olmadığını söyler ve iletinin yine de kabul edilmesini ister. Pek çok toplu gönderim kaynağı bunun arkasına saklanır. Silme eşiğine eşit veya üstünde bir puan, iletiyi SMTP görüşmesi sırasında bir fail gibi reddeder; softfail, greylisting muafiyeti için asla pass sayılmaz.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: alan adı, istemcinin büyük olasılıkla yetkili olmadığını söyler ama iletinin yine de kabul edilmesini ister ve pek çok toplu gönderim kaynağı bunun arkasına saklanır. Silme eşiğine eşit veya üstünde bir puan, iletiyi SMTP görüşmesi sırasında bir fail gibi reddeder.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… {0} içinde devam ediyor</value>

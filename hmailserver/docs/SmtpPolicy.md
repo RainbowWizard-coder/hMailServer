@@ -18,6 +18,12 @@ white list covers: it sits at the layer greylisting sits at. None of it
 overrides authentication. One of our own people who has authenticated is not
 "inbound".
 
+The Anti-spam settings page keeps each hint to what a setting does and what its
+safe value is. Why the sender-authentication settings, the quarantine's
+retention and the external filter engine are set as they are is in
+[The reasons behind the Anti-spam settings page](#the-reasons-behind-the-anti-spam-settings-page),
+at the end.
+
 ## SPF's other results (#286)
 
 `SpamTestSPF` has always written all seven RFC 7208 results into
@@ -60,8 +66,8 @@ Where they are: `Settings.AntiSpam` over COM (`UseSPFSoftFailScore`,
 `UseSPFTempErrorScore`, `UseSPFPermErrorScore`, `SPFTempErrorDefer`),
 `PUT /api/v1/settings/antispam` (`use_spf_softfail_score`,
 `use_spf_temperror_score`, `use_spf_permerror_score`, `spf_temperror_defer`),
-the Control Panel's Anti-spam page under *Sender authentication*, and the Deck's
-Settings view.
+the Control Panel's Anti-spam settings page on its *Sender auth* tab, and the
+Deck's Settings view.
 
 ## A null sender with several recipients (#283)
 
@@ -93,8 +99,8 @@ filter matches, beside the logon-failure and spam-trap lines.
 
 Where they are: `Settings.AntiSpam` over COM, `PUT /api/v1/settings/antispam`
 (`reject_multi_rcpt_null_sender`, `ban_multi_rcpt_null_sender`,
-`ban_multi_rcpt_null_sender_hours`), the Control Panel's Anti-spam page under
-*Host checks* (the card *Null sender with several recipients*), and the Deck's
+`ban_multi_rcpt_null_sender_hours`), the Control Panel's Anti-spam settings page
+on its *Host checks* tab (the card *Null sender with several recipients*), and the Deck's
 Settings view. Operators who drop this in an `OnSMTPData` script today can
 delete the script.
 
@@ -212,7 +218,7 @@ the Public Suffix List's `2.7`.
 Where they are: `Settings.AntiSpam` over COM (`RefuseHeloNotFqdn`,
 `RefuseMailFromDomainNotFqdn`), `PUT /api/v1/settings/antispam`
 (`refuse_helo_not_fqdn`, `refuse_mail_from_domain_not_fqdn`), the Control
-Panel's Anti-spam page under *Host checks* (the card *HELO names and sender
+Panel's Anti-spam settings page on its *Host checks* tab (the card *HELO names and sender
 domains that are not host names*), and the Deck's Settings view, beside the
 host checks. Both are rows of the settings table, created at the next start
 with the value 0; there is no schema step.
@@ -366,3 +372,94 @@ settings over REST, read back on their own and by COM, a value that is not a
 boolean refused, and the OpenAPI document. `FqdnCheckTester` (in the class
 tests, and on Linux in `public-suffix-tests`): every rule name by name, and the
 decision's switches and carve-outs one at a time.
+
+## The reasons behind the Anti-spam settings page
+
+The page's hints say what a setting does and what its safe value or its
+consequence is, in two sentences at most. This is the rest.
+
+### Void SPF lookups
+
+*Void SPF lookups allowed before permerror* (`SpfVoidLookupLimit`, 2) is RFC
+7208 section 4.6.4. A *void lookup* is a term of a sender's SPF policy - an
+`a:`, `mx:` or `exists:` - whose DNS query comes back with nothing at all. The
+separate limit of ten DNS-querying terms bounds what a policy can ask this
+server to look up; it does not bound what a policy can waste, and ten terms
+naming hosts that do not exist cost a full resolution each for a record that can
+never match. Two is what the RFC says. It also catches the ordinary case: a
+policy still listing hosts decommissioned years ago, which its owner would
+rather be told about. Raising it is safe; 0 switches the limit off, which is the
+setting for a correspondent whose policy is wrong in exactly this way and whose
+mail you would rather take.
+
+### DKIM signatures that use rsa-sha1
+
+*Accept DKIM signatures that use rsa-sha1* (`DkimAcceptSha1`) is off because RFC
+8301 removed rsa-sha1 from DKIM outright: a signer must not use it, and a
+verifier must treat a signature that does as invalid. A DKIM signature is an
+assertion of identity and DMARC alignment is built on it, and SHA-1 collisions
+have been practical since 2020 - a signature somebody can forge is worth less
+than no signature at all, because it carries the signer's domain past an aligned
+DMARC check. Turning it on restores both halves: signatures using rsa-sha1
+verify again, and a domain configured to sign with it does so instead of being
+upgraded to rsa-sha256. Keys shorter than 1024 bits are refused whatever the
+setting.
+
+### Organizational domains by DNS tree walk
+
+DMARC's default relaxed alignment asks whether two names - `mail.example.com`
+and `example.com` - belong to the same organization. The old answer was the
+Public Suffix List, a file of every registry's delegation rules compiled in and
+refreshed at build time. DMARCbis (RFC 9989) replaced it with a walk up the DNS
+asking each level whether it is an organizational boundary, so a domain owner
+can state where their boundary is instead of petitioning a list. Turning *Find
+organizational domains by DNS tree walk (RFC 9989)* (`DmarcTreeWalkEnabled`, on)
+off falls back to the compiled list, which is also what happens for any single
+lookup the walk cannot complete because DNS was unavailable: a resolver outage
+must not quietly turn relaxed alignment into strict. The walk costs up to eight
+DNS queries per domain, cached for five minutes.
+
+### The aggregate-report schema
+
+*Aggregate-report schema this server sends* (`DmarcRptSchemaVersion`, 1) is the
+spelling of the DMARC aggregate report that goes out to the domains this server
+reports on: 1 is RFC 7489 Appendix C, which every report consumer deployed today
+parses, and 2 is RFC 9990, DMARCbis's, for the day the consumers have caught up.
+Any other value is reported as an error and treated as 1, because a typo must
+not decide what goes on the wire.
+
+### ARC from trusted forwarders
+
+Forwarding breaks SPF, because the envelope sender changes, and often breaks
+DKIM, because the body is modified - so a mailing list or a forwarded mailbox
+can turn a message that passed DMARC at the sender into one that fails it here.
+A valid ARC chain (RFC 8617) from a forwarder you trust carries the original
+result, and *Use ARC results from trusted forwarders to offset a DMARC failure*
+(`ArcFilteringEnabled`) cancels exactly the DMARC failure score, never more. It
+needs *Evaluate DMARC policies* on, since it only ever offsets a penalty that
+test adds.
+
+*Trusted ARC sealer domains* (`ArcTrustedSealers`) is required. With it empty
+the switch does nothing at all, and that is deliberate rather than an
+oversight: anyone can fabricate a whole ARC chain and seal it with a key they
+publish in their own DNS, and it will validate perfectly, so a passing chain
+proves nothing unless you already trust the sealer. The list is not an option
+of the feature - it is the feature. Matching is exact, so a suffix of a trusted
+name is not trusted.
+
+### Quarantine retention
+
+*Delete quarantined messages after (days; 0 = never)* (`QuarantineRetentionDays`,
+30): 0 is a real answer, not a disabled one. It keeps everything, which is what
+an administrator collecting evidence wants, and the disk is then the only limit.
+
+### The external filter engine
+
+*Treat an unanswered check as spam* (`FilterHookFailClosed`, off) is the
+decision on the SpamAssassin tab worth thinking about. Off, an engine that stops
+answering lets spam through until somebody notices; on, it stops the mail
+instead, and a message deferred while nobody is watching is a message that
+eventually bounces. Off is the recoverable failure, which is why it is the
+default. *Do not send messages larger than* (`FilterHookMaxMessageSizeKB`,
+10240) exists because posting a fifty-megabyte attachment across the network to
+be told it is not spam costs more than the answer is worth.

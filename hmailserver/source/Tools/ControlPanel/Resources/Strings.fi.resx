@@ -117,14 +117,14 @@
   <data name="0 emits no expiry at all, which is the safe default: an expiry is a promise about mail already in flight, and a window shorter than the delay a retry, a greylist or a mailing list adds costs the message its DKIM pass and its DMARC alignment at the far end. 604800 is a week, the usual choice for a sender who wants one. A signing timestamp is always sent regardless of this value." xml:space="preserve">
     <value>0 ei liitä lainkaan vanhenemisaikaa, mikä on turvallinen oletus: vanhenemisaika on lupaus jo matkalla olevasta postista, ja aikaikkuna joka on lyhyempi kuin uudelleenyrityksen, harmaalistauksen tai postituslistan lisäämä viive maksaa viestille sen DKIM-hyväksynnän ja DMARC-kohdistuksen vastaanottopäässä. 604800 on viikko, tavallisin valinta lähettäjälle joka haluaa vanhenemisajan. Allekirjoituksen aikaleima lähetetään aina tästä arvosta riippumatta.</value>
   </data>
-  <data name="0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk." xml:space="preserve">
-    <value>0 on todellinen vastaus, ei käytöstä poistoa tarkoittava arvo – se säilyttää kaiken, mitä todistusaineistoa keräävä ylläpitäjä haluaa. Mikä tahansa muu arvo on lupaus levylle.</value>
-  </data>
   <data name="0 is the shipped default and disables the whole mechanism." xml:space="preserve">
     <value>0 on toimitettu oletusarvo ja poistaa koko mekanismin käytöstä.</value>
   </data>
   <data name="0 is the shipped default. 2 is a reasonable start: a mistyped password costs a person two seconds once, and a password-spraying client two, four, six... seconds per guess." xml:space="preserve">
     <value>0 on toimitettu oletusarvo. 2 on järkevä lähtökohta: väärin kirjoitettu salasana maksaa ihmiselle kaksi sekuntia kerran, ja salasanoja haravoivalle asiakkaalle kaksi, neljä, kuusi… sekuntia arvausta kohden.</value>
+  </data>
+  <data name="0 keeps every message until it is released or deleted, so watch the disk." xml:space="preserve">
+    <value>0 säilyttää jokaisen viestin, kunnes se vapautetaan tai poistetaan, joten pidä levytilaa silmällä.</value>
   </data>
   <data name="0 keeps the entry until it is removed." xml:space="preserve">
     <value>0 säilyttää merkinnän, kunnes se poistetaan.</value>
@@ -164,6 +164,9 @@
   </data>
   <data name="1 external account" xml:space="preserve">
     <value>1 ulkoinen tili</value>
+  </data>
+  <data name="1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1." xml:space="preserve">
+    <value>1 on se, mitä jokainen tänään käytössä oleva raporttien vastaanottaja osaa jäsentää; 2 on DMARCbis, sitä päivää varten, kun vastaanottajat ovat ottaneet sen kiinni. Mikä tahansa muu arvo raportoidaan virheenä ja käsitellään arvona 1.</value>
   </data>
   <data name="1 item" xml:space="preserve">
     <value>1 kohde</value>
@@ -213,14 +216,14 @@
   <data name="14 by default. The unread copies are deleted; the read ones stay." xml:space="preserve">
     <value>Oletus 14. Lukemattomat kopiot poistetaan; luetut jäävät.</value>
   </data>
-  <data name="1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned." xml:space="preserve">
-    <value>Oletus 1440. Esto on vanheneva IP-alue, kuten automaattisessa estossa. Todennettua istuntoa, roskapostipoikkeuksia, saapuvaa välittäjää ja aina sallittujen luettelon osoitetta ei koskaan estetä.</value>
+  <data name="1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned." xml:space="preserve">
+    <value>Oletus 1440; esto on vanheneva IP-alue, kuten automaattisessa estossa. Todennettua istuntoa, roskapostipoikkeuksia, saapuvaa välittäjää ja kohdassa 'Älä koskaan estä automaattisesti näitä osoitteita' sivulla Automaattinen esto olevaa osoitetta ei koskaan estetä.</value>
   </data>
   <data name="15 by default, counted once no IMAP or POP3 session holds the key. After that the mail is readable again only after the next sign-in with the password." xml:space="preserve">
     <value>Oletus 15, laskettuna siitä, kun mikään IMAP- tai POP3-istunto ei enää pidä avainta. Sen jälkeen posti on luettavissa vasta seuraavan salasanalla kirjautumisen jälkeen.</value>
   </data>
-  <data name="16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget." xml:space="preserve">
-    <value>16 pidätystä 15 minuutin välein on noin neljä tuntia. 0 tarkoittaa, ettei tarkistamatonta postia jonoteta koskaan – lähettäjälle kerrotaan heti. Pidätetty viesti toimitetaan heti kun jokin tarkistin vastaa; laskuria pidetään muistissa, joten palvelun uudelleenkäynnistys antaa pidätetylle viestille uuden kiintiön.</value>
+  <data name="16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again." xml:space="preserve">
+    <value>16 pidätystä 15 minuutin välein on noin neljä tuntia; 0 palauttaa tarkistamattoman viestin lähettäjälleen heti. Pidätetty viesti toimitetaan heti kun tarkistin vastaa, ja palvelun uudelleenkäynnistys aloittaa sen laskennan alusta.</value>
   </data>
   <data name="161 by default." xml:space="preserve">
     <value>Oletus 161.</value>
@@ -486,8 +489,8 @@
   <data name="A marked message is changed in no visible way: no X-hMailServer-Spam header, no reason header and no subject prefix, so a mail client has nothing to file on. The internal spam flag is still set, which suppresses auto-replies and forwarding for accounts configured that way." xml:space="preserve">
     <value>Merkittyä viestiä ei muuteta näkyvästi millään tavalla: ei X-hMailServer-Spam-otsaketta, ei syyotsaketta eikä aiheen etuliitettä, joten sähköpostiohjelmalla ei ole mitään mihin lajittelun voisi perustaa. Sisäinen roskapostimerkintä asetetaan silti, ja se estää automaattivastaukset ja edelleenlähetyksen niin määritetyillä tileillä.</value>
   </data>
-  <data name="A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
-    <value>Tätä suurempi viesti päästetään läpi lähettämättä sitä moottorille. Viidenkymmenen megatavun liitteen siirtäminen verkon yli vain sen kuulemiseksi, ettei se ole roskapostia, maksaa enemmän kuin vastaus on arvoinen. 0 poistaa ylärajan, mikä on järkevää tällä koneella sijaitsevalle moottorille.</value>
+  <data name="A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine." xml:space="preserve">
+    <value>Tätä suurempi viesti päästetään läpi lähettämättä sitä moottorille, koska suuren liitteen siirtäminen verkon yli maksaa enemmän kuin vastaus on arvoinen. 0 poistaa ylärajan, mikä on järkevää tällä koneella sijaitsevalle moottorille.</value>
   </data>
   <data name="A message not on the local disk is looked for in the object store while one is named, so switching back hides nothing. Taken within five seconds." xml:space="preserve">
     <value>Viestiä, joka ei ole paikallisella levyllä, etsitään objektivarastosta niin kauan kuin sellainen on nimetty, joten takaisin vaihtaminen ei piilota mitään. Otetaan käyttöön viidessä sekunnissa.</value>
@@ -600,8 +603,8 @@
   <data name="A route overrides MX lookup for named domains." xml:space="preserve">
     <value>Reitti ohittaa MX-haun nimetyille verkkotunnuksille.</value>
   </data>
-  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately." xml:space="preserve">
-    <value>Tarkistus joka päättyy virheeseen, aikakatkaistaan tai ei tavoita moottoriaan ei ole puhdas tuomio – kukaan ei katsonut. Toimitettu oletustoiminta on toimittaa viesti silti, kuten tämä palvelin on aina tehnyt; sen pidättäminen sen sijaan on tiukempi valinta ja tehtävä tietoisesti.</value>
+  <data name="A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked." xml:space="preserve">
+    <value>Tarkistus, joka päättyy virheeseen, aikakatkaistaan tai ei tavoita moottoriaan, ei ole puhdas tuomio: kukaan ei katsonut.</value>
   </data>
   <data name="A scanner that cannot run does not refuse the message. The error is written to the log and the scan continues to the next scanner; when none of them can answer, the message is held and scanned again, and returned to its sender when the holds run out (If a message cannot be scanned, on the Anti-virus settings page). That is why this page reports whether each scanner can run rather than whether it is switched on." xml:space="preserve">
     <value>Tarkistin, joka ei voi suorittaa tarkistusta, ei hylkää viestiä. Virhe kirjoitetaan lokiin ja tarkistus jatkuu seuraavaan tarkistimeen; kun yksikään niistä ei voi vastata, viesti pidätetään ja tarkistetaan uudelleen, ja se palautetaan lähettäjälleen, kun pidätykset loppuvat (Jos viestiä ei voi skannata, sivulla Virustorjunnan asetukset). Siksi tämä sivu kertoo, voiko kukin tarkistin suorittaa tarkistuksen, eikä sitä, onko se kytketty päälle.</value>
@@ -666,8 +669,8 @@
   <data name="A successful logon clears the name's counters, and attempts made while it is locked are not counted - so an attacker cannot hold a mailbox locked indefinitely with a trickle of guesses." xml:space="preserve">
     <value>Onnistunut kirjautuminen nollaa nimen laskurit, eikä lukituksen aikana tehtyjä yrityksiä lasketa – joten hyökkääjä ei voi pitää postilaatikkoa lukittuna loputtomiin harvakseltaan arvailemalla.</value>
   </data>
-  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20." xml:space="preserve">
-    <value>Tripletti, joka yrittää uudelleen liian aikaisin näin monta kertaa, saa vastauksen 550 eikä 451 alla olevan lukituksen ajaksi, mikä pysäyttää lähettäjän, joka takoo samaa viestiä muutaman sekunnin välein. Väärin määritetty uudelleenyrityssilmukka jää jumiin, kunnes lukitus päättyy, minkä jälkeen tripletti alkaa alusta ensimmäisenä yrityksenä. Sitä pyytänyt ylläpitäjä käyttää arvoa 20.</value>
+  <data name="A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt." xml:space="preserve">
+    <value>Tripletti, joka yrittää uudelleen liian aikaisin näin monta kertaa, saa vastauksen 550 eikä 451 alla olevan lukituksen ajaksi, mikä pysäyttää lähettäjän, joka takoo samaa viestiä muutaman sekunnin välein. Väärin määritetty uudelleenyrityssilmukka jää jumiin, kunnes lukitus päättyy, minkä jälkeen tripletti alkaa alusta ensimmäisenä yrityksenä.</value>
   </data>
   <data name="A triplet that has been seen before but has not yet been confirmed sits in a window before its record expires. Turning this off lets mail through during that window instead of greylisting it again, which is gentler on senders that retry slowly and weaker against a sender that retries once." xml:space="preserve">
     <value>Aiemmin nähty mutta vielä vahvistamaton kolmikko on aikaikkunassa ennen kuin sen merkintä vanhenee. Tämän poistaminen käytöstä päästää postin läpi tuon ikkunan aikana sen sijaan että se harmaalistattaisiin uudelleen, mikä on lempeämpää hitaasti uudelleen yrittäviä lähettäjiä kohtaan ja heikompaa vain kerran uudelleen yrittävää lähettäjää vastaan.</value>
@@ -680,6 +683,9 @@
   </data>
   <data name="A v=TLSRPTv1 record is live at {0} with rua={1} - a different report mailbox than the one above, which is fine as long as it exists and is read. Published: {2}" xml:space="preserve">
     <value>Osoitteessa {0} on julkaistuna v=TLSRPTv1-tietue, jossa rua={1} – eri raporttipostilaatikko kuin yllä oleva, mikä on kunnossa niin kauan kuin se on olemassa ja sitä luetaan. Julkaistu: {2}</value>
+  </data>
+  <data name="A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on." xml:space="preserve">
+    <value>Kelvollinen ARC-ketju (RFC 8617) alla nimetyltä sinetöijältä kumoaa DMARC-epäonnistumisen pistemäärän viestiltä, jonka edelleenlähetys rikkoi, eikä koskaan enempää kuin tuon pistemäärän. Se vaatii yllä olevan 'Arvioi DMARC-käytännöt' -asetuksen päälle.</value>
   </data>
   <data name="A value this account holds of its own wins over its domain's and the server's. Tick a setting to give the account a value of its own, untick it to take its domain's, and save the levels: they are written at once, not with the dialog's Save." xml:space="preserve">
     <value>Tämän tilin oma arvo ohittaa sen verkkotunnuksen ja palvelimen arvon. Valitse asetus antaaksesi tilille oman arvon, poista valinta käyttääksesi verkkotunnuksen arvoa ja tallenna tasot: ne kirjoitetaan heti, ei valintaikkunan Tallenna-painikkeella.</value>
@@ -3806,9 +3812,6 @@ Lähettäjälle kerrottiin, että se hyväksyttiin, joten mikään ei yritä uud
   <data name="Delivering" xml:space="preserve">
     <value>Toimitetaan</value>
   </data>
-  <data name="Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below." xml:space="preserve">
-    <value>Toimittaminen on ohjelman mukana tuleva oletus ja se, mitä tämä palvelin on aina tehnyt. Pidättäminen ei koskaan toimita tarkistamatonta postia: viesti tarkistetaan uudelleen alla olevin väliajoin ja palautetaan lähettäjälle alla olevan pidätysmäärän jälkeen.</value>
-  </data>
   <data name="Delivering: the message is accepted but never leaves" xml:space="preserve">
     <value>Toimitus: viesti hyväksytään, mutta se ei koskaan lähde</value>
   </data>
@@ -4870,6 +4873,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Finding the user's directory entry" xml:space="preserve">
     <value>Käyttäjän hakemistomerkinnän etsiminen</value>
   </data>
+  <data name="Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes." xml:space="preserve">
+    <value>Etsii DMARC:n väljän kohdistuksen organisaatioverkkotunnuksen kysymällä DNS:ltä (RFC 9989) käännetyn Public Suffix Listin sijaan; listaa käytetään edelleen, kun DNS ei pysty vastaamaan. Enintään kahdeksan kyselyä verkkotunnusta kohden, välimuistissa viisi minuuttia.</value>
+  </data>
   <data name="Finds the rest of the members among the server's accounts each time a message is sent to the list, so nobody has to keep the list up to date by hand. Leave it empty for a list whose members are its recipients alone; domain for every active account of this domain; domain:other.example for another domain this server hosts; pattern:sales-*@example.com for the addresses matching a wildcard, with * for any run of characters and ? for one; everyone for every active account on the server. Accounts that are switched off are never included." xml:space="preserve">
     <value>Etsii loput jäsenet palvelimen tileistä aina kun listalle lähetetään viesti, joten kenenkään ei tarvitse ylläpitää listaa käsin. Jätä tyhjäksi, jos listan jäseniä ovat vain sen vastaanottajat; domain tarkoittaa jokaista tämän toimialueen aktiivista tiliä; domain:other.example toista tämän palvelimen toimialuetta; pattern:sales-*@example.com jokerimerkkiin täsmääviä osoitteita, joissa * on mikä tahansa merkkijono ja ? yksi merkki; everyone jokaista palvelimen aktiivista tiliä. Pois käytöstä otettuja tilejä ei koskaan oteta mukaan.</value>
   </data>
@@ -4974,9 +4980,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Forwarding a message keeps the original envelope sender, so the next hop checks SPF for a domain that never authorised this server and the message fails. These are the two answers. SRS rewrites the envelope sender into one this server can vouch for and can undo on the way back, so bounces still reach the original sender; BATV tags the envelope sender of outbound mail so a forged bounce - one for a message this server never sent - can be told apart from a real one. Both use a server-wide secret and do nothing at all until one is set." xml:space="preserve">
     <value>Viestin edelleenlähetys säilyttää alkuperäisen kuoren lähettäjän, joten seuraava välietappi tarkistaa SPF:n verkkotunnukselle, joka ei koskaan valtuuttanut tätä palvelinta, ja viesti epäonnistuu. Nämä ovat kaksi vastausta. SRS kirjoittaa kuoren lähettäjän muotoon, jonka tämä palvelin voi taata ja purkaa paluumatkalla, joten palautukset tavoittavat yhä alkuperäisen lähettäjän; BATV merkitsee lähtevän postin kuoren lähettäjän, jotta väärennetty palautus - viestistä, jota tämä palvelin ei koskaan lähettänyt - voidaan erottaa aidosta. Molemmat käyttävät palvelimenlaajuista salaisuutta eivätkä tee yhtään mitään, ennen kuin sellainen on asetettu.</value>
-  </data>
-  <data name="Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds." xml:space="preserve">
-    <value>Edelleenlähetys rikkoo SPF:n, koska kuoren lähettäjä vaihtuu, ja usein DKIM:n, koska runkoa muokataan - joten postituslista tai edelleenlähetetty postilaatikko voi muuttaa lähettäjällä DMARC:n läpäisseen viestin sellaiseksi, joka epäonnistuu täällä. Kelvollinen ARC-ketju (RFC 8617) luotetulta edelleenlähettäjältä kantaa alkuperäisen tuloksen, ja tämä kumoaa täsmälleen DMARC-epäonnistumisen pistemäärän, ei koskaan enempää. Se vaatii yllä olevan "Arvioi DMARC-käytännöt" -asetuksen päälle, koska se vain kompensoi rangaistuksen, jonka tuo testi lisää.</value>
   </data>
   <data name="Found ClamWin at {0}" xml:space="preserve">
     <value>ClamWin löytyi sijainnista {0}</value>
@@ -5251,6 +5254,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Hold messages for review instead of refusing them" xml:space="preserve">
     <value>Pidätä viestit tarkastukseen hylkäämisen sijaan</value>
   </data>
+  <data name="Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below." xml:space="preserve">
+    <value>Pidättäminen ei koskaan toimita tarkistamatonta postia: viesti tarkistetaan uudelleen alla olevin väliajoin ja palautetaan lähettäjälle alla olevan pidätysmäärän jälkeen.</value>
+  </data>
   <data name="Holds a message from outside with an executable or document attached until a sandbox has opened the file and answered clean or malicious." xml:space="preserve">
     <value>Pidättää ulkopuolelta tulevan viestin, jonka liitteenä on suoritettava tiedosto tai asiakirja, kunnes hiekkalaatikko on avannut tiedoston ja vastannut puhdas tai haitallinen.</value>
   </data>
@@ -5374,6 +5380,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How many external accounts, configured under a domain's accounts as external POP3 downloads, are collected at the same time. Each one holds a connection to somebody else's server for as long as the download takes." xml:space="preserve">
     <value>Kuinka monta ulkoista tiliä, jotka on määritetty verkkotunnuksen tileissä ulkoisiksi POP3-latauksiksi, noudetaan samanaikaisesti. Jokainen pitää yhteyttä jonkun toisen palvelimeen niin kauan kuin lataus kestää.</value>
   </data>
+  <data name="How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit." xml:space="preserve">
+    <value>Kuinka moni lähettäjän SPF-käytännön termi (a:, mx:, exists:) saa jäädä ilman DNS-tietuetta, ennen kuin tulos on permerror. RFC 7208 määrää 2; 0 poistaa rajan.</value>
+  </data>
   <data name="How many times to hold before returning it to the sender" xml:space="preserve">
     <value>Kuinka monta kertaa pidätetään, ennen kuin se palautetaan lähettäjälle</value>
   </data>
@@ -5400,9 +5409,6 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="How the password is proved" xml:space="preserve">
     <value>Miten salasana todistetaan</value>
-  </data>
-  <data name="How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes." xml:space="preserve">
-    <value>Miten palvelin päättää, että mail.example.com ja example.com kuuluvat samalle organisaatiolle, mitä DMARC:n oletusarvoinen väljä kohdistus vertaa. Vanha vastaus oli Public Suffix List - tiedosto jokaisen rekisterin delegointisäännöistä, käännetty mukaan ja päivitetty koontiaikana. DMARCbis korvasi sen DNS-puun kävelyllä ylöspäin kysyen jokaiselta tasolta, onko se organisaatioraja, jotta verkkotunnuksen omistaja voi ilmoittaa rajansa listan anomisen sijaan. Tämän poistaminen käytöstä palaa käännettyyn listaan, mikä tapahtuu myös jokaiselle yksittäiselle haulle, jota kävely ei voi suorittaa loppuun, koska DNS ei ollut käytettävissä - nimiselvittimen katko ei saa hiljaa muuttaa väljää kohdistusta tiukaksi. Maksaa enintään kahdeksan DNS-kyselyä verkkotunnusta kohden, välimuistissa viisi minuuttia.</value>
   </data>
   <data name="How the server uses the database it is already configured for. Where that database is - the server, name, credentials and type - is set up by the installation wizard and is deliberately not editable here, because a wrong value there stops the server from starting rather than making it slower. Applies after a service restart." xml:space="preserve">
     <value>Miten palvelin käyttää tietokantaa, johon se on jo määritetty. Missä tuo tietokanta on - palvelin, nimi, tunnistetiedot ja tyyppi - asetetaan asennusohjelmassa eikä sitä voi tarkoituksella muokata täällä, koska väärä arvo siellä estää palvelinta käynnistymästä sen sijaan, että hidastaisi sitä. Tulee voimaan palvelun uudelleenkäynnistyksen jälkeen.</value>
@@ -7534,9 +7540,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Off by default, and inert when off: directory-linked accounts are then validated the old way, through Windows logon. When on, the same accounts - the ones with the Windows directory tab filled in - are validated by an LDAP bind against the server below instead. Non-directory accounts are never affected either way." xml:space="preserve">
     <value>Oletuksena pois päältä ja pois ollessaan vaikutukseton: hakemistoon liitetyt tilit todennetaan silloin vanhaan tapaan Windows-kirjautumisen kautta. Päällä ollessaan samat tilit - ne, joilla Windows-hakemisto-välilehti on täytetty - todennetaan sen sijaan LDAP-sidonnalla alla olevaa palvelinta vasten. Tämä ei koskaan vaikuta tileihin, jotka eivät ole hakemistotilejä.</value>
   </data>
-  <data name="Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default." xml:space="preserve">
-    <value>Oletuksena pois päältä, ja tämä on se päätös, jota kannattaa miettiä. Pois päältä moottori, joka lakkaa vastaamasta, päästää roskapostin läpi, kunnes joku huomaa. Päällä se pysäyttää postin sen sijaan - ja viesti, joka lykätään kenenkään katsomatta, on viesti, joka lopulta palautuu. Pois on korjattavissa oleva vika, minkä vuoksi se on oletus.</value>
-  </data>
   <data name="Off by default." xml:space="preserve">
     <value>Oletuksena pois päältä.</value>
   </data>
@@ -7563,9 +7566,6 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="Off by default. Only when the banned address's own reverse name resolves back to it; at most 32 addresses each way; never into another /24, across an address either never-ban list above spares, or across an IP range of yours that covers one address and not the other; never for IPv6, nor for a private, shared, loopback or link-local address, whose neighbours are your own network's machines. A reverse lookup that is not answered leaves the single address. A hosting net whose customers all carry one reverse domain is widened whole: list it above, or leave this off." xml:space="preserve">
     <value>Oletuksena pois päältä. Vain kun estetyn osoitteen oma käänteinen nimi osoittaa takaisin siihen; enintään 32 osoitetta kumpaankin suuntaan; ei koskaan toiseen /24-verkkoon, ei sellaisen osoitteen yli, jonka jompikumpi yllä olevista listoista vapauttaa, eikä sellaisen oman IP-alueesi yli, joka kattaa toisen osoitteen mutta ei toista; ei koskaan IPv6-osoitteille eikä yksityiselle, jaetulle, loopback- tai link-local-osoitteelle, jonka naapurit ovat oman verkkosi koneita. Käänteinen haku, johon ei vastata, jättää yksittäisen osoitteen ennalleen. Palvelinverkko, jonka kaikilla asiakkailla on sama käänteinen verkkotunnus, laajennetaan kokonaan: lisää se yllä olevaan listaan tai jätä tämä pois päältä.</value>
-  </data>
-  <data name="Off by default. Operators who drop this in a script today can delete the script when this is on." xml:space="preserve">
-    <value>Oletuksena pois. Ne, jotka hylkäävät tämän nykyään skriptillä, voivat poistaa skriptin, kun tämä on päällä.</value>
   </data>
   <data name="Off by default. Served under /.well-known/openpgpkey by the web services listener; a domain and the account have to allow it too, in their dialogs." xml:space="preserve">
     <value>Oletuksena pois päältä. Verkkopalvelujen kuuntelija tarjoaa sen polussa /.well-known/openpgpkey; myös verkkotunnuksen ja tilin on sallittava se valintaikkunoissaan.</value>
@@ -7606,8 +7606,11 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Off by default: the server connects from inside your network on the person's word. Turn it on to let people collect from an old mail server inside the network." xml:space="preserve">
     <value>Oletuksena pois päältä: palvelin muodostaa yhteyden verkkosi sisältä henkilön sanan varassa. Ota se käyttöön, jotta ihmiset voivat noutaa postia verkon sisällä olevalta vanhalta postipalvelimelta.</value>
   </data>
-  <data name="Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that." xml:space="preserve">
-    <value>Pois, ja pois on se, mitä RFC 8301 vaatii: se poisti rsa-sha1:n DKIM:stä kokonaan, joten allekirjoittaja ei saa käyttää sitä ja tarkistajan on käsiteltävä sitä käyttävä allekirjoitus virheellisenä. DKIM-allekirjoitus on väite identiteetistä ja DMARC-kohdistus rakentuu sen varaan, ja SHA-1-törmäykset ovat olleet käytännöllisiä vuodesta 2020 - allekirjoitus, jonka joku voi väärentää, on arvottomampi kuin ei allekirjoitusta lainkaan, koska se kuljettaa allekirjoittajan verkkotunnuksen kohdistetun DMARC-tarkistuksen ohi. Tämän kytkeminen päälle palauttaa molemmat puoliskot: sitä käyttävät allekirjoitukset tarkistuvat taas, ja sillä allekirjoittamaan määritetty verkkotunnus tekee niin sen sijaan, että se päivitettäisiin rsa-sha256:een. Alle 1024-bittiset avaimet hylätään joka tapauksessa, eikä tämä asetus vaikuta siihen.</value>
+  <data name="Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256." xml:space="preserve">
+    <value>Pois, kuten RFC 8301 vaatii: rsa-sha1:tä käyttävä allekirjoitus käsitellään virheellisenä, koska SHA-1 voidaan väärentää. Päällä tällaiset allekirjoitukset tarkistuvat taas, eikä rsa-sha1:llä allekirjoittamaan määritettyä verkkotunnusta päivitetä rsa-sha256:een.</value>
+  </data>
+  <data name="Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces." xml:space="preserve">
+    <value>Pois päältä (oletus) moottori, joka lakkaa vastaamasta, päästää roskapostin läpi, kunnes joku huomaa, mikä on korjattavissa oleva vika. Päällä se pysäyttää postin sen sijaan, ja viesti, joka lykätään kenenkään katsomatta, palautuu lopulta.</value>
   </data>
   <data name="Off. Directory-linked accounts are validated through Windows logon (LogonUser), which only works when this host is joined to the domain - every failure there looks like a wrong password." xml:space="preserve">
     <value>Pois. Hakemistoon liitetyt tilit todennetaan Windows-kirjautumisen (LogonUser) kautta, mikä toimii vain, kun tämä kone on liitetty toimialueeseen - jokainen epäonnistuminen siellä näyttää väärältä salasanalta.</value>
@@ -7707,6 +7710,9 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   </data>
   <data name="On the server, from an elevated prompt in the Bin folder: hMailServer.exe --create-stored-secrets-key makes the key, and hMailServer.exe --export-stored-secrets-key FILE exports it. Keep the file with the database backups, stored apart from them." xml:space="preserve">
     <value>Palvelimella, korotetuin oikeuksin avatussa komentokehotteessa Bin-kansiossa: hMailServer.exe --create-stored-secrets-key luo avaimen, ja hMailServer.exe --export-stored-secrets-key FILE vie sen. Säilytä tiedosto tietokannan varmuuskopioiden kanssa, mutta erillään niistä.</value>
+  </data>
+  <data name="On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred." xml:space="preserve">
+    <value>Päällä tarkistukseen, jota ei voitu saattaa loppuun, vastataan 451 4.4.3, jotta lähettäjä yrittää uudelleen, kun DNS toimii, eikä yllä olevaa temperror-pistemäärää käytetä. Pois: temperror hyväksytään ja pisteytetään; sallitusta verkkotunnuksesta tulevaa lähettäjää ei koskaan lykätä.</value>
   </data>
   <data name="On, but cannot run" xml:space="preserve">
     <value>Päällä, mutta ei voi toimia</value>
@@ -8649,12 +8655,6 @@ Uusia yhteyksiä ei hyväksytä eikä postia toimiteta, ennen kuin se jatketaan.
   <data name="REST listener settings…" xml:space="preserve">
     <value>REST-kuuntelijan asetukset…</value>
   </data>
-  <data name="RFC 7208 4.6.4. A &quot;void lookup&quot; is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take." xml:space="preserve">
-    <value>RFC 7208 4.6.4. "Tyhjä haku" on lähettäjän SPF-käytännön termi - a:, mx: tai exists: - jonka DNS-kysely palaa täysin tyhjänä. Erillinen kymmenen DNS-kyselytermin raja rajaa, mitä käytäntö voi pyytää tätä palvelinta hakemaan; se ei rajaa, mitä käytäntö voi tuhlata, ja kymmenen termiä, jotka nimeävät olemattomia koneita, maksavat kukin täyden selvityksen tietueesta, joka ei voi koskaan täsmätä. Kaksi on se, mitä RFC sanoo. Se nappaa myös tavallisen tapauksen: käytännön, joka luettelee yhä vuosia sitten poistettuja koneita, mistä sen omistaja mieluummin kuulisi. Nostaminen on turvallista; 0 kytkee rajan pois, mikä on asetus kirjeenvaihtajalle, jonka käytäntö on väärä juuri tällä tavalla ja jonka postin mieluummin otat vastaan.</value>
-  </data>
-  <data name="RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred." xml:space="preserve">
-    <value>RFC 7208:n oma vastaus tarkistukseen, jota ei voitu saattaa loppuun: yritä uudelleen, kun DNS toimii. Tapahtuma lykätään vastauksella 451 4.4.3 ja yllä oleva temperror-pistemäärä ohitetaan, koska lykättyä viestiä ei koskaan hyväksytä. Pois: temperror hyväksytään ja pisteytetään. Sallitusta verkkotunnuksesta tulevaa lähettäjää ei koskaan lykätä.</value>
-  </data>
   <data name="RSA/EC public key file (PEM, for RS*/ES* tokens)" xml:space="preserve">
     <value>RSA-/EC-julkisen avaimen tiedosto (PEM, RS*-/ES*-tokeneille)</value>
   </data>
@@ -9349,8 +9349,8 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="Required. The Active Directory domain controller or other LDAP server to bind against. For LDAPS the name must match the server's certificate, so use the DNS name, not an IP address." xml:space="preserve">
     <value>Pakollinen. Active Directory -toimialueen ohjauskone tai muu LDAP-palvelin, johon sidotaan. LDAPS:ssä nimen on vastattava palvelimen varmennetta, joten käytä DNS-nimeä, ei IP-osoitetta.</value>
   </data>
-  <data name="Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted." xml:space="preserve">
-    <value>Pakollinen. Tämän ollessa tyhjä yllä oleva asetus ei tee yhtään mitään, ja se on tarkoituksellista eikä unohdus: kuka tahansa voi sepittää kokonaisen ARC-ketjun ja sinetöidä sen avaimella, jonka julkaisee omassa DNS:ssään, ja se tarkistuu täydellisesti, joten läpäisevä ketju ei todista mitään, ellet jo luota sinetöijään. Tämä luettelo ei ole ominaisuuden asetus - se on ominaisuus. Nimeä täsmälleen ne verkkotunnukset, joiden sinetit hyväksyt (niiden ARC-Sealin d=), eroteltuina pilkuin, puolipistein tai välilyönnein; täsmäys on tarkka, joten luotetun nimen loppuosaan ei luoteta.</value>
+  <data name="Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces." xml:space="preserve">
+    <value>Pakollinen: niin kauan kuin tämä on tyhjä, ARC ei koskaan kumoa mitään, koska kuka tahansa voi sinetöidä kelvollisen ketjun omalla avaimellaan. Nimeä täsmälleen ne verkkotunnukset, joiden sinetteihin luotat (niiden ARC-Sealin d=), eroteltuina pilkuin, puolipistein tai välilyönnein.</value>
   </data>
   <data name="Requires 'Prefer server cipher order' and TLS 1.2 or 1.3 to be enabled." xml:space="preserve">
     <value>Vaatii, että 'Suosi palvelimen salausjärjestystä' ja TLS 1.2 tai 1.3 ovat käytössä.</value>
@@ -11515,6 +11515,9 @@ Jokainen kansio tyhjennetään ensin: varmuuskopion jälkeen saapunut posti häv
   <data name="The account stops sending before it stops receiving: the owner sees the refusal in their own client, with the reason, while mail to them still arrives up to the limit and the grace past it. Each domain may set its own. Applies at once." xml:space="preserve">
     <value>Tili lakkaa lähettämästä ennen kuin se lakkaa vastaanottamasta: omistaja näkee hylkäyksen omassa ohjelmassaan syineen, kun taas posti hänelle saapuu yhä rajaan ja sen ylittävään joustovaraan asti. Jokainen toimialue voi asettaa omansa. Voimassa heti.</value>
   </data>
+  <data name="The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off." xml:space="preserve">
+    <value>Osoite estetään samoin kuin sarja epäonnistuneita kirjautumisia estää, vanhenevalla IP-alueella, mutta ei koskaan osoitetta, joka on kohdassa 'Älä koskaan estä automaattisesti näitä osoitteita' sivulla Automaattinen esto, eikä saapuvaa välittäjää. Oletuksena pois, eikä se tee mitään, kun yllä oleva hylkäys on pois päältä.</value>
+  </data>
   <data name="The address is shown masked here and everywhere else, and no interface answers it whole: it is a mailbox belonging to the person, and nothing an administrator does needs to read it." xml:space="preserve">
     <value>Osoite näytetään peitettynä täällä kuten kaikkialla muuallakin, eikä mikään rajapinta anna sitä kokonaisena: se on kyseisen henkilön postilaatikko, eikä mikään ylläpitäjän tekemä vaadi sen lukemista.</value>
   </data>
@@ -12348,9 +12351,6 @@ Lisätäänkö silti?</value>
   </data>
   <data name="The run failed: " xml:space="preserve">
     <value>Ajo epäonnistui: </value>
-  </data>
-  <data name="The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off." xml:space="preserve">
-    <value>Sama vanheneva IP-alue, jonka sarja epäonnistuneita kirjautumisia luo, saman siivouksen purkama ja saman täsmäytyksen palomuuriin peilaama; ei koskaan osoitteelle, joka on kohdassa 'Älä koskaan estä automaattisesti näitä osoitteita' sivulla Automaattinen esto, eikä saapuvalle välittäjälle. Oletuksena pois, jotta yksi kahdelle vastaanottajalle väärin lähetetty raportti ei estä oikeaa postipalvelinta. Ei tee mitään, kun yllä oleva hylkäys on pois päältä.</value>
   </data>
   <data name="The same lines, categories and mask the log files get, with the trace and span id attached whenever a span is active on the thread that logged. The exporter never exports its own failure lines, or a dead collector would feed itself." xml:space="preserve">
     <value>Samat rivit, luokat ja maski, jotka lokitiedostot saavat, jäljitys- ja jänne-tunnisteet liitettyinä aina, kun lokittaneessa säikeessä on aktiivinen jänne. Viejä ei koskaan vie omia virherivejään, muuten kuollut kerääjä ruokkisi itseään.</value>
@@ -13771,9 +13771,6 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Which services this server runs, connection limits and greetings." xml:space="preserve">
     <value>Mitä palveluita tämä palvelin ajaa, yhteysrajat ja tervehdykset.</value>
-  </data>
-  <data name="Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire." xml:space="preserve">
-    <value>Missä kirjoitusasussa DMARC-koosteraportti lähtee verkkotunnuksille, joista tämä palvelin raportoi. 1 on se, mitä jokainen tänään käytössä oleva raporttien vastaanottaja osaa jäsentää; 2 on DMARCbis, sitä päivää varten, kun vastaanottajat ovat ottaneet sen kiinni. Mikä tahansa muu arvo raportoidaan virheenä ja käsitellään arvona 1, koska kirjoitusvirhe ei saa päättää, mitä verkkoon menee.</value>
   </data>
   <data name="Which way" xml:space="preserve">
     <value>Kumpaan suuntaan</value>
@@ -16563,8 +16560,8 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="{0}: {1} contains no PEM certificate block, so it holds no usable CA certificate (server error 6140). Export the CA certificate in PEM (Base64) format." xml:space="preserve">
     <value>{0}: {1} ei sisällä PEM-varmennelohkoa, joten siinä ei ole käyttökelpoista CA-varmennetta (palvelinvirhe 6140). Vie CA-varmenne PEM (Base64) -muodossa.</value>
   </data>
-  <data name="~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass." xml:space="preserve">
-    <value>~all: verkkotunnus sanoo, että asiakas ei luultavasti ole valtuutettu, ja pyytää hyväksymään viestin silti. Moni massalähettäjä piileskelee sen takana. Poistokynnyksen saavuttava pistemäärä hylkää viestin SMTP-keskustelun aikana kuten fail; softfail ei koskaan ole pass greylisting-poikkeukselle.</value>
+  <data name="~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does." xml:space="preserve">
+    <value>~all: verkkotunnus sanoo, että asiakas ei luultavasti ole valtuutettu, mutta pyytää hyväksymään viestin silti, ja moni massalähettäjä piileskelee sen takana. Poistokynnyksen saavuttava pistemäärä hylkää viestin SMTP-keskustelun aikana, kuten fail.</value>
   </data>
   <data name="… continued in {0}" xml:space="preserve">
     <value>… jatkuu tiedostossa {0}</value>

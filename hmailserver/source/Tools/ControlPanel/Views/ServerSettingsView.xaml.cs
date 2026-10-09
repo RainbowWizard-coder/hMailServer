@@ -2461,7 +2461,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "QuarantineRetentionDays",
             Label = L("Delete quarantined messages after (days; 0 = never)"),
             Default = 30,
-            Blurb = L("0 is a real answer, not a disabled one - it keeps everything, which is what an administrator collecting evidence wants. Everything else is a promise to the disk."),
+            Blurb = L("0 keeps every message until it is released or deleted, so watch the disk."),
             IniStore = iniStore_
          });
          Tab(L("General")).Cards.Add(quarantine);
@@ -2477,7 +2477,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AntiSpam.UseSPFSoftFailScore",
             Label = L("SPF softfail score (0 = not scored)"),
             Numeric = true,
-            Blurb = L("~all: the domain says the client is probably not authorised and asks that the message be accepted anyway. Many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation as a fail does; a softfail is never a pass for the greylisting bypass.")
+            Blurb = L("~all: the domain says the client is probably not authorised but asks that the message be accepted anyway, and many spray sources live behind it. A score at or above the delete threshold refuses the message during the SMTP conversation, as a fail does.")
          });
          auth.Settings.Add(new ComText
          {
@@ -2490,7 +2490,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.SPFTempErrorDefer",
             Label = L("Answer 451 to an SPF temperror instead of accepting it"),
-            Blurb = L("RFC 7208's own answer to a check that could not be completed: try again when DNS works. The transaction is deferred with 451 4.4.3 and the temperror score above is ignored, because a deferred message is never accepted. Off, a temperror is accepted and scored. A sender from an allowed domain is never deferred.")
+            Blurb = L("On, a check that could not be completed is answered 451 4.4.3, so the sender tries again when DNS works, and the temperror score above is not used. Off, a temperror is accepted and scored; a sender from an allowed domain is never deferred.")
          });
          auth.Settings.Add(new ComText
          {
@@ -2503,7 +2503,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "SpfVoidLookupLimit",
             Label = L("Void SPF lookups allowed before permerror (0 = no limit)"),
-            Blurb = L("RFC 7208 4.6.4. A \"void lookup\" is a term of a sender's SPF policy - an a:, mx: or exists: - whose DNS query comes back with nothing at all. The separate limit of ten DNS-querying terms bounds what a policy can ask this server to look up; it does not bound what a policy can waste, and ten terms naming hosts that do not exist cost a full resolution each for a record that can never match. Two is what the RFC says. It also catches the ordinary case: a policy still listing hosts decommissioned years ago, which its owner would rather be told about. Raising it is safe; 0 switches the limit off, which is the setting for a correspondent whose policy is wrong in exactly this way and whose mail you would rather take."),
+            Blurb = L("How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is permerror. RFC 7208 sets 2; 0 removes the limit."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new ComBool { Path = "AntiSpam.DKIMVerificationEnabled", Label = L("Verify DKIM signatures") });
@@ -2512,7 +2512,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "DkimAcceptSha1",
             Label = L("Accept DKIM signatures that use rsa-sha1"),
-            Blurb = L("Off, and off is what RFC 8301 requires: it removed rsa-sha1 from DKIM outright, so a signer must not use it and a verifier must treat a signature that does as invalid. A DKIM signature is an assertion of identity and DMARC alignment is built on it, and SHA-1 collisions have been practical since 2020 - a signature somebody can forge is worth less than no signature at all, because it carries the signer's domain past an aligned DMARC check. Turning this on restores both halves: signatures using it verify again, and a domain configured to sign with it does so instead of being upgraded to rsa-sha256. Keys shorter than 1024 bits are refused regardless, and this setting does not affect that."),
+            Blurb = L("Off, as RFC 8301 requires: a signature using rsa-sha1 is treated as invalid, because SHA-1 can be forged. On, such signatures verify again, and a domain set to sign with rsa-sha1 is not upgraded to rsa-sha256."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new ComBool { Path = "AntiSpam.DMARCEnabled", Label = L("Evaluate DMARC policies") });
@@ -2521,7 +2521,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "DmarcTreeWalkEnabled",
             Label = L("Find organizational domains by DNS tree walk (RFC 9989)"),
-            Blurb = L("How the server decides that mail.example.com and example.com belong to the same organization, which is what DMARC's default relaxed alignment compares. The old answer was the Public Suffix List - a file of every registry's delegation rules, compiled in and refreshed at build time. DMARCbis replaced it with a walk up the DNS asking each level whether it is an organizational boundary, so a domain owner can state where their boundary is instead of petitioning a list. Turning this off falls back to the compiled list, which is also what happens for any single lookup the walk cannot complete because DNS was unavailable - a resolver outage must not quietly turn relaxed alignment into strict. Costs up to eight DNS queries per domain, cached for five minutes."),
+            Blurb = L("Finds the organizational domain for DMARC relaxed alignment by asking DNS (RFC 9989) rather than the compiled Public Suffix List; the list is still used when DNS cannot answer. Up to eight queries per domain, cached for five minutes."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new IniNumber
@@ -2530,20 +2530,20 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Aggregate-report schema this server sends: 1 = RFC 7489 Appendix C, 2 = RFC 9990"),
             Default = 1,
             MinimumValue = 1,
-            Blurb = L("Which spelling of the DMARC aggregate report goes out to the domains this server reports on. 1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1, because a typo must not decide what goes on the wire."),
+            Blurb = L("1 is what every report consumer deployed today parses; 2 is DMARCbis, for the day the consumers have caught up. Any other value is reported as an error and treated as 1."),
             IniStore = iniStore_
          });
          auth.Settings.Add(new ComBool
          {
             Path = "AntiSpam.ArcFilteringEnabled",
             Label = L("Use ARC results from trusted forwarders to offset a DMARC failure"),
-            Blurb = L("Forwarding breaks SPF, because the envelope sender changes, and often breaks DKIM, because the body is modified - so a mailing list or a forwarded mailbox can turn a message that passed DMARC at the sender into one that fails it here. A valid ARC chain (RFC 8617) from a forwarder you trust carries the original result, and this cancels exactly the DMARC failure score, never more. It needs 'Evaluate DMARC policies' above to be on, since it only ever offsets a penalty that test adds.")
+            Blurb = L("A valid ARC chain (RFC 8617) from a sealer named below cancels the DMARC failure score of a message that forwarding broke, and never more than that score. It needs 'Evaluate DMARC policies' above to be on.")
          });
          auth.Settings.Add(new ComText
          {
             Path = "AntiSpam.ArcTrustedSealers",
             Label = L("Trusted ARC sealer domains"),
-            Blurb = L("Required. With this empty the setting above does nothing at all, and that is deliberate rather than an oversight: anyone can fabricate a whole ARC chain and seal it with a key they publish in their own DNS, and it will validate perfectly, so a passing chain proves nothing unless you already trust the sealer. This list is not an option of the feature - it is the feature. Name the exact domains whose seals you honour (the d= of their ARC-Seal), separated by commas, semicolons or spaces; matching is exact, so a suffix of a trusted name is not trusted.")
+            Blurb = L("Required: while this is empty, ARC never offsets anything, because anyone can seal a valid chain with their own key. Name the exact domains whose seals you trust (the d= of their ARC-Seal), separated by commas, semicolons or spaces.")
          });
          Tab(L("Sender auth")).Cards.Add(auth);
 
@@ -2565,13 +2565,13 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "AntiSpam.RejectMultiRcptNullSender",
             Label = L("Refuse a null sender that names more than one recipient"),
-            Blurb = L("Off by default. Operators who drop this in a script today can delete the script when this is on.")
+            Blurb = L("Off by default.")
          });
          nullSender.Settings.Add(new ComBool
          {
             Path = "AntiSpam.BanMultiRcptNullSender",
             Label = L("Also ban the connecting address for a while"),
-            Blurb = L("The same expiring IP range a run of failed logons creates, lifted by the same sweep and mirrored into the firewall by the same reconciliation; never for an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, so one mis-sent report with two recipients does not ban a real mail server. Does nothing while the refusal above is off.")
+            Blurb = L("The address is banned as a run of failed logons bans one, by an expiring IP range, but never an address in 'Never auto-ban these addresses' on the Auto-ban page or an incoming relay. Off by default, and it does nothing while the refusal above is off.")
          });
          nullSender.Settings.Add(new ComText { Path = "AntiSpam.BanMultiRcptNullSenderHours", Label = L("Ban for (hours, 1 to 8760)"), Numeric = true });
          Tab(L("Host checks")).Cards.Add(nullSender);
@@ -2619,7 +2619,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AntiSpam.GreyListingAbuseThreshold",
             Label = L("Refuse with 550 after this many retries before the window opens (0 never refuses)"),
             Numeric = true,
-            Blurb = L("A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt. The operator who asked for it uses 20.")
+            Blurb = L("A triplet retried too soon this many times is answered 550 instead of 451 for the lock below, which is what stops a sender hammering the same message every few seconds. A misconfigured retry loop is stranded until the lock passes, after which the triplet starts over as a first attempt.")
          });
          grey.Settings.Add(new ComText
          {
@@ -2758,7 +2758,7 @@ namespace hMailServer.ControlPanel.Views
          {
             Path = "FilterHookFailClosed",
             Label = L("Treat an unanswered check as spam"),
-            Blurb = L("Off by default, and this is the decision worth thinking about. Off, an engine that stops answering lets spam through until somebody notices. On, it stops the mail instead - and a message deferred while nobody is watching is a message that eventually bounces. Off is the recoverable failure, which is why it is the default."),
+            Blurb = L("Off, the default, an engine that stops answering lets spam through until somebody notices, which is the recoverable failure. On, it stops the mail instead, and a message deferred while nobody is watching eventually bounces."),
             IniStore = iniStore_
          });
          hook.Settings.Add(new IniNumber
@@ -2774,7 +2774,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "FilterHookMaxMessageSizeKB",
             Label = L("Do not send messages larger than (KB; 0 = no limit)"),
             Default = 10240,
-            Blurb = L("A message above this is passed without being sent to the engine. Posting a fifty-megabyte attachment across the network to be told it is not spam costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine."),
+            Blurb = L("A message above this is passed without being sent to the engine, because sending a large attachment across the network costs more than the answer is worth. 0 removes the ceiling, which is reasonable for an engine on this machine."),
             IniStore = iniStore_
          });
          Tab(L("SpamAssassin")).Cards.Add(hook);
@@ -2790,7 +2790,7 @@ namespace hMailServer.ControlPanel.Views
             Label = L("Minutes the sending address is banned (0 = no ban; up to 525600)"),
             Numeric = true,
             Maximum = 525600,
-            Blurb = L("1440 by default. The ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address on the never-ban list are never banned.")
+            Blurb = L("1440 by default; the ban is an expiring IP range, as an auto-ban is. An authenticated session, the spam exemptions, an incoming relay and an address in 'Never auto-ban these addresses' on the Auto-ban page are never banned.")
          });
          traps.Settings.Add(new ComText
          {
@@ -2848,14 +2848,14 @@ namespace hMailServer.ControlPanel.Views
          // so it belongs here, next to the scanners it applies to, rather than in
          // an ini file the people who care about it will never open.
          var failure = Card(L("When a scanner cannot run"),
-            L("A scan that errors, times out or cannot reach its engine is not a clean verdict - nobody looked. The shipped behaviour is to deliver the message anyway, which is what this server has always done; holding it instead is the stricter choice and the one to make deliberately."));
+            L("A scan that errors, times out or cannot reach its engine is not a clean verdict: nobody looked."));
          failure.Settings.Add(new IniChoice
          {
             Path = "AVFailAction",
             Label = L("If a message cannot be scanned"),
             Default = 0,
             Options = AvFailAction,
-            Blurb = L("Delivering it is the shipped default and what this server has always done. Holding it never delivers unscanned mail: it is scanned again at the interval below, and returned to the sender after the number of holds below."),
+            Blurb = L("Holding never delivers unscanned mail: it is scanned again at the interval below and returned to the sender after the number of holds below."),
             IniStore = iniStore_
          });
          failure.Settings.Add(new IniNumber
@@ -2870,7 +2870,7 @@ namespace hMailServer.ControlPanel.Views
             Path = "AVFailMaxHolds",
             Label = L("How many times to hold before returning it to the sender"),
             Default = 16,
-            Blurb = L("16 holds at 15 minutes is about four hours. 0 means never queue unscanned mail at all - tell the sender immediately. A held message is delivered as soon as any scanner answers; the count is kept in memory, so a service restart gives a held message a fresh budget."),
+            Blurb = L("16 holds at 15 minutes is about four hours; 0 returns an unscanned message to its sender at once. A held message is delivered as soon as a scanner answers, and a service restart starts its count again."),
             IniStore = iniStore_
          });
          Tab(L("General")).Cards.Add(failure);

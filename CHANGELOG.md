@@ -2064,6 +2064,17 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   build/check-catalogues.py holds every "the X tab", "its X tab" and "the page's X tab" in the English to a tab
   header a view declares.
 
+- **Fixed: the Anti-spam settings and Anti-virus settings pages' hints were essays - the void SPF lookups hint ran to
+  137 words, the rsa-sha1 one to 122 and the DMARC tree walk one to 127, with RFC and project history and asides such
+  as "The operator who asked for it uses 20.", and the scanner-failure card said its default three times.** Every hint
+  on the two pages now says what the setting does and what its safe value or its consequence is, in two sentences at
+  most - "How many terms of a sender's SPF policy (a:, mx:, exists:) may find no DNS record before the result is
+  permerror. RFC 7208 sets 2; 0 removes the limit." - and the default of the scanner-failure choice is stated once, in
+  the option "Deliver it (default)". The reasons the hints lost are in the pages' help topics: a new section of
+  docs/SmtpPolicy.md, "The reasons behind the Anti-spam settings page", and "When a scanner cannot run" under "The
+  virus scanner" in docs/SealedMail.md, where the help opens for the Anti-virus settings page. In all seventeen
+  languages.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

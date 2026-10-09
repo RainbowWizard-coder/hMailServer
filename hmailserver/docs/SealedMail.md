@@ -125,6 +125,24 @@ server cannot scan must not be delivered, that is a rule or a Sieve script on
 The plain sentence for a reader: **a message that arrives encrypted is not scanned.
 Your mail client, and you, are the last check.**
 
+### When a scanner cannot run
+
+The Anti-virus settings page's card *When a scanner cannot run* answers the
+question the rest of the page cannot: what happens to a message when a scanner
+is switched on and the scan errors, times out or cannot reach its engine. That
+is not a clean verdict - nobody looked. *If a message cannot be scanned*
+(`AVFailAction`) is *Deliver it (default)*, which is what this server has
+always done; until the setting existed the only trace was one line in the error
+log, which reads the same as "scanned and found clean". *Hold it and scan it
+again, then return it to the sender* is the stricter choice and the one to make
+deliberately: a held message is never delivered unscanned. It is scanned again
+every *Minutes between scan attempts while held* (`AVFailRetryMinutes`, 15),
+delivered as soon as a scanner answers, and returned to the sender after *How
+many times to hold before returning it to the sender* (`AVFailMaxHolds`, 16 -
+about four hours at 15 minutes); 0 returns it at once, so unscanned mail is
+never queued. The count is kept in memory, so a service restart gives a held
+message a fresh budget.
+
 ## The "delete attachments" anti-virus action
 
 **An encrypted message is never stripped.** When the anti-virus action is *delete
