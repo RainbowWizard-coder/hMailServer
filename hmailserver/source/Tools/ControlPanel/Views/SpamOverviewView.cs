@@ -343,7 +343,12 @@ namespace hMailServer.ControlPanel.Views
          IReadOnlyList<SpamPipelineNote> notes = SpamPipeline.Notes(config);
          List<SpamPipelineNote> problems = OverviewNotices.Problems(notes, n => n.Level);
          List<SpamPipelineNote> worthKnowing = OverviewNotices.WorthKnowing(notes, n => n.Level);
-         header_.Status = OverviewNotices.ProblemsPill(problems.Count, problems.Count == 0 ? StatusLevel.Good : problems[0].Level);
+
+         // "No problems found" only where every value was read: the notes that
+         // follow from a value not read are left out, and the count said so in
+         // green beside the Warning that says the sections may be incomplete.
+         header_.Status = OverviewNotices.ProblemsPill(problems.Count, problems.Count == 0 ? StatusLevel.Good : problems[0].Level,
+            failedReads_ == 0 && SpamPipeline.VerdictLevel(config) != StatusLevel.Information);
 
          body_.Children.Add(VerdictCard(config, problems));
          body_.Children.Add(ChecksCard(config));

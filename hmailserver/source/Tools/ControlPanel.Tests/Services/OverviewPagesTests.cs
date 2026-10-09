@@ -40,8 +40,10 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("body_.Children.Add(NotesCard(worthKnowing));", code, StringComparison.Ordinal);
          Assert.DoesNotContain("body_.Children.Add(NotesCard(notes));", code, StringComparison.Ordinal);
 
-         // Their count beside the title, and none while nothing could be read.
+         // Their count beside the title, and none while nothing could be read,
+         // nor "No problems found" while some value could not be.
          Assert.Contains("header_.Status = OverviewNotices.ProblemsPill(problems.Count,", code, StringComparison.Ordinal);
+         Assert.Contains("failedReads_ == 0 && " + pipeline + ".VerdictLevel(config) != StatusLevel.Information);", code, StringComparison.Ordinal);
          Assert.Contains("header_.Status = null;", code, StringComparison.Ordinal);
 
          // The verdict is no longer a paragraph of body text.
@@ -105,6 +107,19 @@ namespace hMailServer.ControlPanel.Tests.Services
          Assert.Contains("\"TextBody\"", lead, StringComparison.Ordinal);
          Assert.DoesNotContain("Level", lead, StringComparison.Ordinal);
          Assert.DoesNotContain("NoticeActions", lead, StringComparison.Ordinal);
+      }
+
+      /// <summary>
+      /// The pill is drawn from OverviewProblemCount, which says nothing where no
+      /// problem was found and a value could not be read.
+      /// </summary>
+      [Fact]
+      public void TheProblemsPill_IsTheCountOverviewProblemCountGives()
+      {
+         string helper = ReadView("OverviewNotices.cs");
+         Assert.Contains("OverviewProblemCount.Of(problems, worst, everythingRead);", helper, StringComparison.Ordinal);
+         Assert.Contains("if (count == null)", helper, StringComparison.Ordinal);
+         Assert.DoesNotContain("L(\"No problems found\")", helper, StringComparison.Ordinal);
       }
 
       [Fact]

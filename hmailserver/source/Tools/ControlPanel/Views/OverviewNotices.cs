@@ -68,17 +68,18 @@ namespace hMailServer.ControlPanel.Views
 
       /// <summary>
       /// The pill beside the page's title: how many problems there are, at the
-      /// worst one's level, or that none was found.
+      /// worst one's level, or that none was found - only where
+      /// <paramref name="everythingRead"/>, since a value not read leaves out the
+      /// notes that follow from it; then no pill, and the page's own Warning says
+      /// what could not be read (Services/OverviewProblemCount).
       /// </summary>
-      public static StatusPill ProblemsPill(int problems, StatusLevel worst)
+      public static StatusPill ProblemsPill(int problems, StatusLevel worst, bool everythingRead)
       {
-         var pill = new StatusPill
-         {
-            Level = problems == 0 ? StatusLevel.Good : worst,
-            Text = problems == 0 ? L("No problems found")
-               : problems == 1 ? L("1 problem")
-               : F("{0} problems", problems)
-         };
+         (StatusLevel Level, string Text)? count = OverviewProblemCount.Of(problems, worst, everythingRead);
+         if (count == null)
+            return null;
+
+         var pill = new StatusPill { Level = count.Value.Level, Text = count.Value.Text };
          System.Windows.Automation.AutomationProperties.SetAutomationId(pill, "overview-problems");
          return pill;
       }
