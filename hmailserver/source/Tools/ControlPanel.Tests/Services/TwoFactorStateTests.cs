@@ -105,6 +105,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          // raising PreviewTextInput, held off as a key.
          Assert.Contains("code_.PreviewTextInput += (s, e) => e.Handled = !VerificationCode.IsTyped(e.Text);", dialog, StringComparison.Ordinal);
          Assert.Contains("if (e.Key == Key.Space)", dialog, StringComparison.Ordinal);
+         Assert.Contains("InputMethod.SetIsInputMethodEnabled(code_, false);", dialog, StringComparison.Ordinal);
          Assert.Contains("DataObject.AddPastingHandler(code_,", dialog, StringComparison.Ordinal);
          Assert.Contains("string code = VerificationCode.FromPaste(pasted, code_.MaxLength);", dialog, StringComparison.Ordinal);
          string apply = WithheldRowTests.MemberText(dialog, "private void Apply()");

@@ -99,6 +99,9 @@ namespace hMailServer.ControlPanel.Views
          // which a TextBox handles itself, so it is held off as a key: a code typed as
          // the authenticator shows it, "123 456", went in as "123 45". A pasted code
          // keeps its digits: authenticator apps copy "123 456".
+         // No input method on it either: with a Japanese or Chinese one on, a digit
+         // typed arrives as a full-width one, which the box refuses.
+         InputMethod.SetIsInputMethodEnabled(code_, false);
          code_.PreviewTextInput += (s, e) => e.Handled = !VerificationCode.IsTyped(e.Text);
          code_.PreviewKeyDown += (s, e) =>
          {
