@@ -1345,6 +1345,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   its surface under the pointer, and the disabled text colour when it cannot be followed. Under High Contrast a link
   is the system's own link colour.
 
+- **Fixed: after a change of theme the Control Panel's quarantine page kept the old theme's green and red on its
+  action buttons, and every refused field its old red ring.** The page gave its row template the shared success and
+  danger brushes themselves, and a template freezes what it is given, so once a row had been shown the theme switch
+  could no longer recolour those brushes: the 28 release, delete, allow and block glyphs on the rows, the groups and
+  the column's header stayed the light theme's colours on the dark card, 2.5 to 2.7:1, and the ring a field draws
+  when its value is refused, which read the same brush, stayed the old red in every window. The glyphs and the ring
+  now take their colours by name, as every other colour in the Control Panel does, and follow the theme; the Control
+  Panel's log says so if a shared colour is ever found frozen again, and a test refuses a page that holds one.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

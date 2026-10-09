@@ -317,8 +317,13 @@ namespace hMailServer.ControlPanel.Services
 
             // The tokens ThemeTokens publishes for the theme in force; the table's
             // own values only if a window cannot reach the application's resources.
+            // The danger ring of a field whose value is refused by its key too, not
+            // by the shared brush: a template that took that brush once froze it,
+            // and a frozen brush keeps the colour of the theme it was frozen in.
             DesignTokens.FocusArgb focus = DesignTokens.Focus(ThemeTokens.CurrentChartTheme, ThemeTokens.CurrentSystemColors);
-            Color ring = Validation.GetHasError(field) ? ThemeTokens.Danger.Color : Token_(field, "AppFocusBrush", focus.Ring);
+            Color ring = Validation.GetHasError(field)
+               ? Token_(field, "AppDangerBrush", DesignTokens.Status(ThemeTokens.CurrentChartTheme, ThemeTokens.CurrentSystemColors).Danger)
+               : Token_(field, "AppFocusBrush", focus.Ring);
             Color glow = Token_(field, "AppFocusGlowBrush", focus.Glow);
 
             Size size = field.RenderSize;

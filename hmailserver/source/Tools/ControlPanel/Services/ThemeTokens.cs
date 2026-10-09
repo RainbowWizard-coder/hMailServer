@@ -74,6 +74,9 @@ namespace hMailServer.ControlPanel.Services
 
       private static bool initialised_;
 
+      // The shared brushes found frozen, each reported once (Set).
+      private static readonly System.Collections.Generic.HashSet<SolidColorBrush> frozenReported_ = new();
+
       /// <summary>
       /// Computes the initial colours and subscribes to theme changes.
       /// Safe to call more than once.
@@ -425,7 +428,22 @@ namespace hMailServer.ControlPanel.Services
       private static void Set(SolidColorBrush brush, Color color)
       {
          if (!brush.IsFrozen)
+         {
             brush.Color = color;
+            return;
+         }
+
+         // A shared brush that something froze - handed to a template factory,
+         // whose seal freezes every value it was given - keeps the colour of the
+         // theme it was frozen in, and so does everything drawn with it. That
+         // cannot be undone here, and once happened unseen on the quarantine
+         // page, so it is said once in the Control Panel's log, which is where
+         // the next one will be found.
+         if (frozenReported_.Add(brush))
+         {
+            App.LogException(new InvalidOperationException(
+               "A shared ThemeTokens brush is frozen and keeps the colour of the theme it was frozen in (" + color + " was not applied). Reference the token by its resource key instead of handing the brush to a template factory.")); // no-loc
+         }
       }
 
       private static void Publish(string key, Color color)

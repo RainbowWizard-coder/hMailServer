@@ -63,6 +63,11 @@ namespace hMailServer.ControlPanel.Views
       private const double ActionsWidth = 136;
       private const double BoxWidth = 22;
 
+      // The action glyphs' colours, by resource key (IconButton_): the success
+      // colour for what keeps a message, the danger colour for what removes it.
+      private const string KeepColourKey = "AppSuccessBrush";
+      private const string RemoveColourKey = "AppDangerBrush";
+
       // What the server answers COM with for a member it does not have: a Control
       // Panel newer than the server it is connected to.
       private const int UnknownName = unchecked((int)0x80020006);
@@ -277,8 +282,16 @@ namespace hMailServer.ControlPanel.Views
 
       // ---------------------------------------------------------------- the grid
 
-      /// <summary>An icon button whose click the grid's own handler reads by its Tag.</summary>
-      private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, Brush colour, bool filled, string tipPath)
+      /// <summary>
+      /// An icon button whose click the grid's own handler reads by its Tag, its
+      /// glyph in the colour of a resource key. A key and not a brush: a value a
+      /// template factory is given is frozen when the template is sealed, and the
+      /// shared ThemeTokens brushes this took once then kept the theme they were
+      /// frozen in - after a theme change the row and group glyphs stayed the old
+      /// theme's green and red, 2.5:1 on the new card, and every field's danger
+      /// ring with them.
+      /// </summary>
+      private static FrameworkElementFactory IconButton_(string action, SymbolRegular symbol, string colourKey, bool filled, string tipPath)
       {
          var button = new FrameworkElementFactory(typeof(Wpf.Ui.Controls.Button));
          button.SetValue(FrameworkElement.TagProperty, action);
@@ -295,8 +308,8 @@ namespace hMailServer.ControlPanel.Views
          icon.SetValue(SymbolIcon.FilledProperty, filled);
          icon.SetValue(SymbolIcon.FontSizeProperty, 16.0);
 
-         if (colour != null)
-            icon.SetValue(IconElement.ForegroundProperty, colour);
+         if (colourKey != null)
+            icon.SetResourceReference(IconElement.ForegroundProperty, colourKey);
 
          button.AppendChild(icon);
          return button;
@@ -310,10 +323,10 @@ namespace hMailServer.ControlPanel.Views
          panel.SetValue(FrameworkElement.WidthProperty, ActionsWidth);
          panel.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
 
-         panel.AppendChild(IconButton_("release", SymbolRegular.CheckmarkCircle24, ThemeTokens.Success, false, nameof(QuarantineRow.ReleaseTip)));
-         panel.AppendChild(IconButton_("delete", SymbolRegular.DismissCircle24, ThemeTokens.Danger, false, nameof(QuarantineRow.DeleteTip)));
-         panel.AppendChild(IconButton_("allow", SymbolRegular.TextBulletListSquare24, ThemeTokens.Success, false, nameof(QuarantineRow.AllowTip)));
-         panel.AppendChild(IconButton_("block", SymbolRegular.TextBulletListSquare24, ThemeTokens.Danger, true, nameof(QuarantineRow.BlockTip)));
+         panel.AppendChild(IconButton_("release", SymbolRegular.CheckmarkCircle24, KeepColourKey, false, nameof(QuarantineRow.ReleaseTip)));
+         panel.AppendChild(IconButton_("delete", SymbolRegular.DismissCircle24, RemoveColourKey, false, nameof(QuarantineRow.DeleteTip)));
+         panel.AppendChild(IconButton_("allow", SymbolRegular.TextBulletListSquare24, KeepColourKey, false, nameof(QuarantineRow.AllowTip)));
+         panel.AppendChild(IconButton_("block", SymbolRegular.TextBulletListSquare24, RemoveColourKey, true, nameof(QuarantineRow.BlockTip)));
          return panel;
       }
 
@@ -453,10 +466,10 @@ namespace hMailServer.ControlPanel.Views
          list_.Columns.Add(TemplateColumn_(selectAll_, CheckBox_(BoxWidth, new Thickness(0)), new DataGridLength(CheckWidth), null));
 
          var headerActions = new StackPanel { Orientation = Orientation.Horizontal };
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.CheckmarkCircle24, ThemeTokens.Success, false, L("Release the checked messages"), () => Act_(review_.CheckedIds, "release", checkedSet: true)));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.DismissCircle24, ThemeTokens.Danger, false, L("Delete the checked messages"), () => Act_(review_.CheckedIds, "delete")));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Success, false, L("Allow the checked messages' senders, then release"), () => Act_(review_.CheckedIds, "allow")));
-         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, ThemeTokens.Danger, true, L("Block the checked messages' senders, then delete"), () => Act_(review_.CheckedIds, "block")));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.CheckmarkCircle24, KeepColourKey, false, L("Release the checked messages"), () => Act_(review_.CheckedIds, "release", checkedSet: true)));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.DismissCircle24, RemoveColourKey, false, L("Delete the checked messages"), () => Act_(review_.CheckedIds, "delete")));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, KeepColourKey, false, L("Allow the checked messages' senders, then release"), () => Act_(review_.CheckedIds, "allow")));
+         headerActions.Children.Add(HeaderButton_(SymbolRegular.TextBulletListSquare24, RemoveColourKey, true, L("Block the checked messages' senders, then delete"), () => Act_(review_.CheckedIds, "block")));
 
          list_.Columns.Add(TemplateColumn_(headerActions, FourActions_(), new DataGridLength(ActionsWidth), null));
 
@@ -534,8 +547,13 @@ namespace hMailServer.ControlPanel.Views
          list_.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnRowClick_));
       }
 
-      private static Button HeaderButton_(SymbolRegular symbol, Brush colour, bool filled, string tip, Action onClick)
+      private static Button HeaderButton_(SymbolRegular symbol, string colourKey, bool filled, string tip, Action onClick)
       {
+         // The glyph's colour by its key, as the rows' (IconButton_): a held brush
+         // keeps the theme it was taken in.
+         var icon = new SymbolIcon { Symbol = symbol, Filled = filled, FontSize = 16 };
+         icon.SetResourceReference(IconElement.ForegroundProperty, colourKey);
+
          var button = new Wpf.Ui.Controls.Button
          {
             Appearance = ControlAppearance.Transparent,
@@ -543,7 +561,7 @@ namespace hMailServer.ControlPanel.Views
             Margin = new Thickness(1, 0, 1, 0),
             BorderThickness = new Thickness(0),
             ToolTip = tip,
-            Content = new SymbolIcon { Symbol = symbol, Filled = filled, FontSize = 16, Foreground = colour }
+            Content = icon
          };
 
          AutomationProperties.SetName(button, tip);
