@@ -7,7 +7,7 @@ using static hMailServer.ControlPanel.Services.Loc;
 namespace hMailServer.ControlPanel.Services
 {
    /// <summary>
-   /// The Update row of the Status page: one line from Status.UpdateState and its
+   /// The Update status row of the Updates page: one line from Status.UpdateState and its
    /// companions. The last apply's outcome, reported when the service came back,
    /// comes first when there is one: it is what the administrator who clicked
    /// Install update is waiting for. Out of StatusView so that every state is
@@ -39,7 +39,26 @@ namespace hMailServer.ControlPanel.Services
             case 5: return F("The last update step failed: {0}", error);
             case 6: return F("Preparing the install of {0}: {1}", version, PreparationStep(preparationStep));
             case 7: return F("{0} is ready to be installed; the install goes on in its window", version);
-            default: return L("Not checked yet (Check for updates, or turn on the daily check under Updates on the API & monitoring page)");
+            default: return L("Not checked yet (Check for updates, or turn on the daily check below)");
+         }
+      }
+
+      /// <summary>
+      /// The one line Server status, the Dashboard and About say while a newer
+      /// release is waiting - known, or downloaded and verified - and null while
+      /// none is, or its version is not known: the Updates page says the rest.
+      /// </summary>
+      public static string Waiting(int state, string version)
+      {
+         if (string.IsNullOrEmpty(version))
+            return null;
+
+         switch (state)
+         {
+            case 2: return F("hMailServer {0} is available.", version);
+            case 3:
+            case 7: return F("hMailServer {0} is downloaded and verified, ready to install.", version);
+            default: return null;
          }
       }
 

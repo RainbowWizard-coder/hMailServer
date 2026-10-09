@@ -19,6 +19,11 @@ namespace hMailServer.ControlPanel.Views
    {
       private readonly TextBlock serverVersion_ = new();
 
+      // A newer release waiting, in one line with the page that installs it
+      // (Views/UpdateNotice): About said the version and not that a newer one was
+      // waiting (review finding F272).
+      private readonly StackPanel updateNotice_ = new() { Visibility = Visibility.Collapsed };
+
       public AboutView()
       {
          var panel = new StackPanel { MaxWidth = 880, HorizontalAlignment = HorizontalAlignment.Left };
@@ -31,6 +36,7 @@ namespace hMailServer.ControlPanel.Views
          serverVersion_.SetResourceReference(StyleProperty, "TextCaption");
          serverVersion_.Margin = new Thickness(0, 0, 0, 12);
          inner.Children.Add(serverVersion_);
+         inner.Children.Add(updateNotice_);
 
          inner.Children.Add(Text(L("A modern administration app for hMailServer: live dashboard, domains and accounts, delivery queue, log streaming, full server settings and the 6.x transport-security features (DANE, MTA-STS, ARC, TLS-RPT, ACME)."),
             "TextBody", new Thickness(0, 0, 0, 12)));
@@ -119,6 +125,8 @@ namespace hMailServer.ControlPanel.Views
          {
             serverVersion_.Text = "";
          }
+
+         UpdateNotice.ShowIn(updateNotice_, "about-update-available");
       }
 
       public void OnLeave()

@@ -2181,6 +2181,20 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   distribution lists." `PageTitlesTests` holds every page MainWindow builds to naming its key, and no page header to a
   title of its own (review findings F215, F025 and F080).
 
+- **New: an Updates page in the Control Panel.** Check for updates, Download update and Install update were on
+  Server status, under a row of its Server card, and the policy that drives them - the daily check, the channel, the
+  download, the unattended window, the signature checks - was a card on API & monitoring; About showed the version
+  but not whether a newer one was waiting, and nothing was called Updates or Upgrade, so Ctrl+K "update" found only
+  setting rows, ranked last. The Updates page, under Maintenance beside Backup & restore, holds the version this
+  server runs, the update check's verdict and the three steps above the policy, which is the same card under the
+  title "How this server updates"; its help is UpdateFeed.md, and the palette finds it by Update, Upgrade, New
+  version, Live update, Patch, Release channel and Automatic updates, and by the tasks "install a new version",
+  "turn on automatic updates" and "is there a new version". Server status, the Dashboard and About say in one line
+  when a release is waiting - "hMailServer 6.3.7 is available." - with Open Updates beside it, shown to a credential
+  that may open the page; the Control Panel that opens again after an administrator's install says how it ended on
+  the Updates page, and "Not checked yet" points at the daily check below it rather than at API & monitoring. API &
+  monitoring names the page under On other pages (review finding F272).
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

@@ -2392,6 +2392,9 @@
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Перевіряти наявність нового випуску раз на день</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Перевірте, чи є новіший випуск, завантажте й установіть його - або доручіть це серверу в межах вікна, яке ви задаєте.</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Перевіряти ім’я вузла в HELO</value>
   </data>
@@ -2430,6 +2433,9 @@
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Перевірка всіх записів домену {0}…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>Перевірка й установлення нового випуску, а також політика оновлень</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Перевірка інсталятора</value>
@@ -3077,6 +3083,9 @@
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Не вдалося прочитати список придушення: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Не вдалося прочитати стан оновлення: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Не вдалося прочитати {0}: {1}</value>
@@ -5498,6 +5507,9 @@
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Як цей сервер розв'язує запити MX, PTR, SPF, DKIM, DMARC і списків блокування.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>Як оновлюється цей сервер</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Я п_ідтверджую позначені вище зміни.</value>
   </data>
@@ -5708,6 +5720,9 @@
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>У межах цього вікна заплановане завдання застосовує перевірений інсталятор без жодного клацання: служба зупиняється, оновлюються файли та схема, служба запускається, а результат потрапляє до журналу, журналу подій Windows і на сторінку «Стан сервера». Службу, яка не повертається, відкочують до попереднього інсталятора, хіба що нова версія вже змінила базу даних.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>У межах цього вікна заплановане завдання застосовує перевірений інсталятор без жодного клацання: служба зупиняється, оновлюються файли та схема, служба запускається, а результат потрапляє до журналу, журналу подій Windows і на картку вище. Службу, яка не повертається, відкочують до попереднього інсталятора, хіба що нова версія вже змінила базу даних.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Установити оновлення зараз?
 
@@ -5724,6 +5739,9 @@
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>«Установити оновлення» зупинилося до будь-яких змін: {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Установлена версія</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Установлення</value>
@@ -7427,8 +7445,8 @@
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Звідси не перевіряється, чесно кажучи: для перевірки PTR потрібна ПУБЛІЧНА IP-адреса сервера, яку ця панель не може визначити (за NAT комп’ютер і сам її не знає), а перевірник цієї сторінки читає лише TXT- і MX-записи. Перевірте натомість ззовні: nslookup &lt;your public IP&gt; показує PTR; він має називати вузол, наведений вище.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Ще не перевірялося (натисніть «Перевірити оновлення» або ввімкніть щоденну перевірку в розділі «Оновлення» на сторінці «API та моніторинг»)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Ще не перевірялося (натисніть «Перевірити наявність оновлень» або ввімкніть нижче щоденну перевірку)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Не перевірено: не вдалося прочитати налаштування сервера.</value>
@@ -12596,6 +12614,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Сервер відповів так, що цей Control Panel не зміг прочитати відповідь ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його - клацанням кнопки «Установити оновлення» вище або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Сервер може помітити новий випуск, перевірити його за власним підписом Sigstore цього випуску та застосувати його — клацанням на сторінці «Стан сервера» або самостійно в межах вікна, яке ви задаєте. Вимкнено, доки ви не ввімкнете перевірку; перевірка не надсилає нічого, крім самого запиту.</value>
   </data>
@@ -12821,6 +12842,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Помічник оновлення запущено. Ця Панель керування зараз закриється, щоб інсталятор міг замінити її файли; відкрийте її знову за хвилину, щоб побачити результат.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>Стан оновлення показує, чи чекає новіший випуск; кнопка «Перевірити наявність оновлень» одразу запитує канал.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Крок оновлення не вдалося виконати: {0}</value>
@@ -13272,6 +13296,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Увімкніть журнал, сумісний з AWStats. Це окремий файл - параметр формату рядка журналу на нього не впливає.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Увімкніть щоденну перевірку, завантаження та вікно без участі адміністратора, і перевірений випуск буде застосовано самостійно.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Увімкніть параметри обов'язкової автентифікації для діапазону, що охоплює ваших клієнтів.</value>
   </data>
@@ -13520,6 +13547,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Version" xml:space="preserve">
     <value>Версія</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Версія та оновлення</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Версія {0}  -  .NET {1}</value>
@@ -13874,6 +13904,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Не вдалося прочитати, затримується чи доставляється повідомлення, яке не зміг перевірити жоден сканер.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Чи чекає новіший випуск і як цей сервер шукає його, завантажує та встановлює - клацанням або самостійно в межах вікна, яке ви задаєте.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Не вдалося прочитати, чи збережено парольну фразу - для читання потрібен обліковий запис адміністратора сервера. Зберегти нову звідси, як і раніше, можна.</value>
@@ -15198,6 +15231,12 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} не запустився, тож {1} повернуто і він працює: {2}. Журнал інсталятора: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>Доступний hMailServer {0}.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} завантажено й перевірено, усе готово до встановлення.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} встановлено, і його крок бази даних змінив базу даних або міг її змінити, але встановлення не завершилося, тож {1} не повернуто: він може не працювати з цією базою даних. Що не завершилося: {2}. Журнал інсталятора: {3}</value>
   </data>
@@ -15289,6 +15328,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   <data name="install a certificate" xml:space="preserve">
     <value>установити сертифікат</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>установити нову версію</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>вже в списку</value>
   </data>
@@ -15312,6 +15354,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>в INI задано як «{0}»</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>чи є нова версія</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>він завершився з кодом {0}</value>
@@ -15801,6 +15846,9 @@ SMTP 25 і 587, POP3 110, IMAP 143 — без захисту підключен�
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>надто багато спаму проходить</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>увімкнути автоматичні оновлення</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>увімкнути докладніше журналювання</value>

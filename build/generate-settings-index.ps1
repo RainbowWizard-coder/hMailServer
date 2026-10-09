@@ -44,7 +44,7 @@ $outputPath = Join-Path $cpRoot 'Services\SettingsSearchIndex.g.cs'
 
 # Section -> nav page key, matching MainWindow's page factories.
 $featurePages = @{ 'Security' = 'security'; 'Automation' = 'acme'; 'Integration' = 'api'; 'Hardening' = 'hardening';
-                   'Authentication' = 'authentication'; 'Dns' = 'dns'; 'WebServices' = 'webservices' }
+                   'Authentication' = 'authentication'; 'Dns' = 'dns'; 'WebServices' = 'webservices'; 'Updates' = 'updates' }
 $serverPages = @{ 'Protocols' = 'protocols'; 'Delivery' = 'delivery'; 'AntiSpam' = 'antispam'; 'AntiVirus' = 'antivirus';
                   'Tls' = 'tls'; 'Logging' = 'logging'; 'Performance' = 'performance'; 'Advanced' = 'advanced';
                   'AdminAccess' = 'adminaccess'; 'AutoBan' = 'autoban'; 'Webmail' = 'webmail' }

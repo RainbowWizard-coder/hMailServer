@@ -26,6 +26,10 @@
             <scaffold:InlineNotice x:Name="ReadNotice" Visibility="Collapsed" Margin="{StaticResource AppCardGap}"
                                    AutomationProperties.AutomationId="dashboard-read-failure" />
 
+            <!-- A newer release waiting, in one line with the page that installs it
+                 (Views/UpdateNotice); nothing while there is none. -->
+            <StackPanel x:Name="UpdateNoticeHost" Visibility="Collapsed" />
+
             <!-- "Needs attention" summary. The dashboard is the page an
                  administrator lands on, so the one question the setup checklist
                  can answer - "is this server actually set up, and if not

@@ -395,14 +395,14 @@ namespace hMailServer.ControlPanel.Services
       public static bool InProgressMarkIsLive(DateTime writtenUtc, DateTime nowUtc) =>
          nowUtc - writtenUtc <= InProgressLifetime && writtenUtc - nowUtc <= TimeSpan.FromMinutes(5);
 
-      /// <summary>How often, and how many times, the Status page of a Control Panel
+      /// <summary>How often, and how many times, the Updates page of a Control Panel
       /// opened again after an install asks the service again while it still says
       /// the install is under way.</summary>
       public static readonly TimeSpan SettleInterval = TimeSpan.FromSeconds(2);
       public const int SettleAttempts = 30;
 
       /// <summary>
-      /// Whether the Status page of a Control Panel the Updater opened again should
+      /// Whether the Updates page of a Control Panel the Updater opened again should
       /// ask the service again in a moment. An install that ended without stopping
       /// the service - refused, cancelled, or failed before the installer stopped
       /// anything - leaves the service saying "installing" (UpdateState 4) until it

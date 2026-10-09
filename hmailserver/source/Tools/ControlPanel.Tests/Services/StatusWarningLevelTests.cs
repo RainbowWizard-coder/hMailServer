@@ -99,8 +99,7 @@ namespace hMailServer.ControlPanel.Tests.Services
          string show = WithheldRowTests.MemberText(source, "private void ShowReadFailure_()");
          Assert.True(show != null, "StatusView.ShowReadFailure_ is gone.");
          Assert.Contains("ReadFailure.Show(ReadNotice,", show, StringComparison.Ordinal);
-         foreach (string button in new[] { "PauseButton", "CheckUpdateButton", "DownloadUpdateButton", "InstallUpdateButton" })
-            Assert.Contains(button, show, StringComparison.Ordinal);
+         Assert.Contains("PauseButton", show, StringComparison.Ordinal);
 
          // A readout that could not be read says so; "-" is what an empty value shows.
          Assert.DoesNotContain("L(\"Version\"), \"-\")", source, StringComparison.Ordinal);

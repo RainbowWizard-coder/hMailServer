@@ -951,6 +951,17 @@ namespace hMailServer.ControlPanel.Services
                   aliases: "Backup|Restore|Export|Import|Disaster recovery|Copy to another server|Migrate",
                   seeAlso: "hardening|domains"),
 
+               // Its own page since review finding F272: Check, Download and Install
+               // were on Server status and the policy that drives them a card on API
+               // & monitoring, nothing was called Updates, and Ctrl+K "update" found
+               // only setting rows ranked last. Beside Backup & restore, because an
+               // unattended apply backs up first. Server status, the Dashboard and
+               // About say in one line when a release is waiting, with the way here.
+               Page("updates", N("Updates"),
+                  N("Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set."),
+                  aliases: "Update|Upgrade|New version|New release|Live update|Patch|Release channel|Prerelease|Automatic updates|Unattended update|Update window|Check for updates|Install update|Update feed|Update policy|Sigstore",
+                  seeAlso: "status|backup|about"),
+
                Page("performance", N("Performance"),
                   N("Thread counts, database connections and caching - what to change when the server is slow."),
                   aliases: "Threads|Workers|Database connections|Cache|Slow server|Tuning|Concurrency|Memory",

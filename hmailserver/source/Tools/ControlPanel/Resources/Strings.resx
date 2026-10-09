@@ -2368,6 +2368,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Check for a new release once a day</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Check for a newer release, download it and install it - or let the server do it inside a window you set.</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Check host in HELO</value>
   </data>
@@ -2406,6 +2409,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Checking every record of {0}…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>Checking for a new release and installing it, and the update policy</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Checking the installer</value>
@@ -3053,6 +3059,9 @@ Restart the Control Panel now? Without a restart it may carry on, or meet the sa
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Could not read the suppression list: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Could not read the update status: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Could not read {0}: {1}</value>
@@ -5434,6 +5443,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>How this server updates</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>I _confirm the changes marked above.</value>
   </data>
@@ -5644,6 +5656,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Install the update now?
 
@@ -5660,6 +5675,9 @@ The verified installer is handed to the update helper: the service stops, the ne
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>Install update stopped before anything was changed: {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Installed version</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Installing</value>
@@ -7345,8 +7363,8 @@ Nothing already there is removed.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Not checked yet (Check for updates, or turn on the daily check below)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Not checked: the server's settings could not be read.</value>
@@ -12433,6 +12451,9 @@ Add it anyway?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>The server answered something this Control Panel could not read ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request.</value>
   </data>
@@ -12658,6 +12679,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>The update status says whether a newer release is waiting; Check for updates asks the feed now.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>The update step could not be run: {0}</value>
@@ -13106,6 +13130,9 @@ It will keep trying as you use the application.</value>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Turn on the daily check, the download and the unattended window, and a verified release is applied on its own.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Turn on the require-authentication options for the range that covers your clients.</value>
   </data>
@@ -13351,6 +13378,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Version and updates</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Version {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Whether a message no scanner could examine is held or delivered could not be read.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works.</value>
@@ -15020,6 +15053,12 @@ It will keep trying as you use the application.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} is available.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} is downloaded and verified, ready to install.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}</value>
   </data>
@@ -15111,6 +15150,9 @@ It will keep trying as you use the application.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>install a certificate</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>install a new version</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>is already on the list</value>
   </data>
@@ -15134,6 +15176,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>is set to "{0}" in the INI</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>is there a new version</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>it ended with code {0}</value>
@@ -15614,6 +15659,9 @@ It will keep trying as you use the application.</value>
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>too much spam is getting through</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>turn on automatic updates</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>turn on more detailed logging</value>

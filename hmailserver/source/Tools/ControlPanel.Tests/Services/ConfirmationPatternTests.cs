@@ -188,7 +188,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       {
          ("MainWindow.xaml.cs", "private void ApplyPending_Click(object sender, RoutedEventArgs e)", "_Apply now", "_Later"),
          ("Views/TcpIpPortsView.xaml.cs", "private void OfferReinitialize_()", "Reinitialise _now", "_Later"),
-         ("Views/StatusView.xaml.cs", "private void RunUpdateAction_(string action)", "_Install the update", "_Later"),
+         ("Views/FeatureSettingsView.Updates.cs", "private void RunUpdateAction_(string action)", "_Install the update", "_Later"),
          ("Views/StatusView.xaml.cs", "private void PauseResume_Click(object sender, RoutedEventArgs e)", "_Pause the mail server", ""),
       };
 

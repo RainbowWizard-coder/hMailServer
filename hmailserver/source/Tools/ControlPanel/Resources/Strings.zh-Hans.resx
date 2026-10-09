@@ -2368,6 +2368,9 @@
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>每天检查一次是否有新的发行版</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>检查是否有更新的发行版，下载并安装它 - 或者让服务器在您设定的窗口内自行完成。</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>检查 HELO 中的主机</value>
   </data>
@@ -2406,6 +2409,9 @@
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>正在检查 {0} 的所有记录…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>检查并安装新发行版，以及更新策略</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>检查安装程序</value>
@@ -3053,6 +3059,9 @@
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>无法读取抑制列表： </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>无法读取更新状态： </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>无法读取 {0}：{1}</value>
@@ -5434,6 +5443,9 @@
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>本服务器如何解析 MX、PTR、SPF、DKIM、DMARC 和拦截列表查询。</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>本服务器如何更新</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>我确认上面标出的更改(_C)</value>
   </data>
@@ -5644,6 +5656,9 @@
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和“服务器状态”页。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>在该窗口内，计划任务无需点击即可安装经过验证的安装程序：服务停止，文件和数据库架构升级，服务启动，结果写入日志、Windows 事件日志和上方的卡片。未能恢复运行的服务会回滚到上一个安装程序（除非新版本已更改了数据库）。</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>是否立即安装更新？
 
@@ -5660,6 +5675,9 @@
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>“安装更新”在做出任何更改之前已停止：{0}。</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>已安装版本</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>安装</value>
@@ -7345,8 +7363,8 @@
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>坦率地说，此处未做检查：验证 PTR 需要服务器的公网 IP 地址，而此面板无法确定它（在 NAT 之后机器自己也不知道），而且本页的检查器只读取 TXT 和 MX 记录。请改为从外部测试：nslookup &lt;your public IP&gt; 会显示 PTR；它应当指向上面的主机名。</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>尚未检查（请检查更新，或在“API 与监控”页面的“更新”下开启每日检查）</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>尚未检查（请检查更新，或在下方开启每日检查）</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>未检查：无法读取服务器的设置。</value>
@@ -12433,6 +12451,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>服务器返回了此控制面板无法读取的内容 ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以点击上方的“安装更新”，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>服务器可以发现新的发行版，用该发行版自带的 Sigstore 签名对其进行验证，然后安装它 - 可以在“服务器状态”页上点击安装，也可以由服务器在您设定的窗口内自行安装。在您打开该检查之前，它一直处于关闭状态；该检查除请求本身之外不发送任何内容。</value>
   </data>
@@ -12658,6 +12679,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新助手已启动。为了让安装程序能够替换其文件，此控制面板现在将关闭；一分钟后请重新打开以查看结果。</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>更新状态会说明是否有更新的发行版在等待；“检查更新”会立即查询发布源。</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>无法运行更新步骤: {0}</value>
@@ -13106,6 +13130,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>开启与 AWStats 兼容的日志。那是一个单独的文件 - 日志行格式设置不会改变它。</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>开启每日检查、下载和无人值守窗口后，经过验证的发行版会自行应用。</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>为覆盖您客户端的范围开启要求身份验证的选项。</value>
   </data>
@@ -13351,6 +13378,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Version" xml:space="preserve">
     <value>版本</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>版本和更新</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>版本 {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>无法读取没有任何扫描器能够检查的邮件是被暂留还是投递。</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>是否有更新的发行版在等待，以及本服务器如何检查、下载并安装它 - 可以点击执行，也可以由服务器在您设定的窗口内自行完成。</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>无法读取是否存储了密码短语 - 读取它需要服务器管理员账户。从此处保存新的密码短语仍然可以。</value>
@@ -15020,6 +15053,12 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} 未能启动，因此已恢复 {1} 并正在运行：{2}。安装程序日志：{3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} 已可用。</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} 已下载并通过验证，可以安装。</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} 已安装，其数据库步骤已更改数据库（或可能已更改），但安装未完成，因此未恢复 {1}：它可能无法在该数据库上运行。未完成的内容：{2}。安装程序日志：{3}</value>
   </data>
@@ -15111,6 +15150,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   <data name="install a certificate" xml:space="preserve">
     <value>安装证书</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>安装新版本</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>已在名单中</value>
   </data>
@@ -15134,6 +15176,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>在 INI 中被设置为 "{0}"</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>有没有新版本</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>它以代码 {0} 结束</value>
@@ -15614,6 +15659,9 @@ SMTP 25 和 587、POP3 110、IMAP 143 - 均不带连接安全，两个 SMTP 端�
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>太多垃圾邮件漏了过来</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>开启自动更新</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>开启更详细的日志记录</value>

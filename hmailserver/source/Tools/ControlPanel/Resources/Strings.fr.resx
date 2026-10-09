@@ -2368,6 +2368,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Rechercher une nouvelle version une fois par jour</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Recherchez une version plus récente, téléchargez-la et installez-la - ou laissez le serveur le faire dans une fenêtre que vous définissez.</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Vérifier l'hôte dans HELO</value>
   </data>
@@ -2406,6 +2409,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Vérification de tous les enregistrements de {0}…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>La recherche d'une nouvelle version et son installation, et la politique de mise à jour</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Vérification de l'installateur</value>
@@ -3053,6 +3059,9 @@ Redémarrer le Control Panel maintenant ? Sans redémarrage, il peut continuer, 
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Impossible de lire la liste de suppression : </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Impossible de lire l'état de la mise à jour : </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Impossible de lire {0} : {1}</value>
@@ -5434,6 +5443,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Comment ce serveur résout les recherches MX, PTR, SPF, DKIM, DMARC et de listes de blocage.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>Comment ce serveur se met à jour</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Je _confirme les changements signalés ci-dessus.</value>
   </data>
@@ -5644,6 +5656,9 @@ Aucun courrier n'est touché - l'index en est dérivé - mais jusqu'à ce que la
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Dans la fenêtre, la tâche planifiée applique un installateur vérifié sans le moindre clic : le service s'arrête, les fichiers et le schéma sont mis à niveau, le service démarre, et le résultat va dans le journal, le journal d'événements Windows et la page État du serveur. Un service qui ne revient pas est ramené à l'installateur précédent, sauf si la nouvelle version a déjà modifié la base de données.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Dans la fenêtre, la tâche planifiée applique un installateur vérifié sans le moindre clic : le service s'arrête, les fichiers et le schéma sont mis à niveau, le service démarre, et le résultat va dans le journal, le journal d'événements Windows et la carte ci-dessus. Un service qui ne revient pas est ramené à l'installateur précédent, sauf si la nouvelle version a déjà modifié la base de données.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Installer la mise à jour maintenant ?
 
@@ -5660,6 +5675,9 @@ L'installateur vérifié est remis à l'assistant de mise à jour : le service s
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>« Installer la mise à jour » s'est arrêté avant toute modification : {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Version installée</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Installation</value>
@@ -7345,8 +7363,8 @@ Rien de ce qui s'y trouve déjà n'est supprimé.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Pas vérifié d'ici, en toute franchise : vérifier le PTR nécessite l'adresse IP PUBLIQUE du serveur, que ce panneau ne peut pas déterminer (derrière un NAT, la machine ne la connaît pas non plus), et le vérificateur de cette page ne lit que les enregistrements TXT et MX. Testez plutôt depuis l'extérieur : nslookup &lt;your public IP&gt; affiche le PTR ; il devrait nommer l'hôte ci-dessus.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Pas encore vérifié (Rechercher des mises à jour, ou activez la vérification quotidienne sous Mises à jour sur la page API et supervision)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Pas encore vérifié (Rechercher des mises à jour, ou activez la vérification quotidienne ci-dessous)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Non vérifié : les paramètres du serveur n'ont pas pu être lus.</value>
@@ -12433,6 +12451,9 @@ L'ajouter quand même ?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Le serveur a répondu quelque chose que ce Control Panel n'a pas pu lire ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Le serveur peut repérer une nouvelle version, la vérifier contre la signature Sigstore propre à cette version, et l'installer - d'un clic sur Installer la mise à jour ci-dessus, ou de lui-même dans une fenêtre que vous définissez. Désactivé tant que vous n'activez pas la recherche ; la recherche n'envoie rien d'autre que la requête.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Le serveur peut repérer une nouvelle version, la vérifier contre la signature Sigstore propre à cette version, et l'installer - d'un clic sur la page État du serveur, ou de lui-même dans une fenêtre que vous définissez. Désactivé tant que vous n'activez pas la recherche ; la recherche n'envoie rien d'autre que la requête.</value>
   </data>
@@ -12658,6 +12679,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>L'assistant de mise à jour a démarré. Ce Control Panel se ferme maintenant pour que l'installateur puisse remplacer ses fichiers ; rouvrez-le dans une minute pour voir le résultat.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>L'état de la mise à jour indique si une version plus récente attend ; Rechercher des mises à jour interroge le flux tout de suite.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>L'étape de mise à jour n'a pas pu être exécutée : {0}</value>
@@ -13106,6 +13130,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Activez le journal compatible AWStats. C'est un fichier distinct - le réglage du format de ligne de journal ne le change pas.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Activez la recherche quotidienne, le téléchargement et la fenêtre sans surveillance, et une version vérifiée s'applique d'elle-même.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Activez les options d'authentification obligatoire pour la plage qui couvre vos clients.</value>
   </data>
@@ -13351,6 +13378,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Version et mises à jour</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Version {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Impossible de lire si un message qu'aucun analyseur n'a pu examiner est retenu ou distribué.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Si une version plus récente attend, et comment ce serveur la recherche, la télécharge et l'installe - d'un clic, ou de lui-même dans une fenêtre que vous définissez.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Savoir si une phrase secrète est stockée n'a pas pu être lu - le lire nécessite le compte d'administrateur du serveur. En enregistrer une nouvelle depuis ici fonctionne tout de même.</value>
@@ -15020,6 +15053,12 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} n'a pas démarré, donc {1} a été remis en place et tourne : {2}. Le journal de l'installateur : {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} est disponible.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} est téléchargé et vérifié, prêt à être installé.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} est installé et son étape de base de données a modifié la base, ou a pu la modifier, mais l'installation ne s'est pas terminée, donc {1} n'a pas été remis en place : il risque de ne pas fonctionner avec cette base. Ce qui ne s'est pas terminé : {2}. Le journal de l'installateur : {3}</value>
   </data>
@@ -15111,6 +15150,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>installer un certificat</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>installer une nouvelle version</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>est déjà sur la liste</value>
   </data>
@@ -15134,6 +15176,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>est défini à « {0} » dans le fichier INI</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>y a-t-il une nouvelle version</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>il s'est terminé avec le code {0}</value>
@@ -15614,6 +15659,9 @@ Il continuera d'essayer au fil de votre utilisation de l'application.</value>
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>trop de spam passe au travers</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>activer les mises à jour automatiques</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>activer une journalisation plus détaillée</value>

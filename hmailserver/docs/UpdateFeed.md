@@ -2,7 +2,7 @@ The update feed
 ===============
 
 An installed server finds out whether a newer release exists by reading a
-release feed (`UpdateCheckEnabled`, the Control Panel's Status page, `POST
+release feed (`UpdateCheckEnabled`, the Control Panel's Updates page, `POST
 /api/v1/update/check`). Until 18 September 2026 that feed was GitHub's Releases
 API for this project. GitHub suspended the project's account that day, and the
 API has answered 404 since, so every server's check has failed with "The update
@@ -86,7 +86,8 @@ AppImage again.
 
 ### Checking that it worked
 
-Run a check: Check for updates on the Control Panel's Status page, `POST
+Run a check: Check for updates on the Control Panel's Updates page (on Server
+status before 6.3.7), `POST
 /api/v1/update/check` where the REST API is on, or `Status.CheckForUpdate()`
 over COM. The check reads the feed then, whether or not the daily check is on.
 
@@ -578,8 +579,9 @@ An administrator's install
 A Windows service running as `NT SERVICE\hMailServer` - a new installation's
 account since 6.3.4 - is not an administrator and cannot run an installer. It
 checks for the update, downloads it and verifies it as any server does, and
-from 6.3.6 an administrator installs it with *Install update* on the Status page
-of the Control Panel on the server. Windows asks for permission once; the
+from 6.3.6 an administrator installs it with *Install update* on the Updates page
+of the Control Panel on the server (on Server status in 6.3.6). Windows asks
+for permission once; the
 Control Panel then starts `hMailServer.exe /InstallUpdate` elevated, which copies
 the installer and its bundle out of the `Updates` folder into
 `AdminUpdate\<id>`, a folder only administrators can change, and checks the copy

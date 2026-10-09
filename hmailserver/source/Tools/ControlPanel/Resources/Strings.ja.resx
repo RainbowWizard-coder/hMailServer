@@ -2368,6 +2368,9 @@
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>1 日に 1 回、新しいリリースを確認する</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>新しいリリースを確認し、ダウンロードしてインストールします。指定した時間帯の中でサーバーに任せることもできます。</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>HELO のホストを確認する</value>
   </data>
@@ -2406,6 +2409,9 @@
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>{0} のすべてのレコードを確認しています…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>新しいリリースの確認とインストール、および更新ポリシー</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>インストーラーの確認</value>
@@ -3053,6 +3059,9 @@
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>抑止リストを読み取れませんでした: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>更新の状態を読み取れませんでした: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>{0} を読み取れませんでした: {1}</value>
@@ -5434,6 +5443,9 @@
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>このサーバーが MX、PTR、SPF、DKIM、DMARC、ブロック リストの参照をどう解決するか。</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>このサーバーの更新方法</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>上で印の付いた変更を確認します(_C)</value>
   </data>
@@ -5644,6 +5656,9 @@
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および [サーバーの状態] ページに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>この時間帯の中では、スケジュールされたタスクが、検証済みのインストーラーをクリックなしで適用します。サービスが停止し、ファイルとスキーマがアップグレードされ、サービスが開始され、その結果はログ、Windows イベント ログ、および上のカードに報告されます。サービスが戻ってこない場合は、以前のインストーラーへロールバックされます (新しいバージョンがすでにデータベースを変更している場合を除きます)。</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>今すぐ更新プログラムをインストールしますか?
 
@@ -5660,6 +5675,9 @@
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>「更新をインストール」は何も変更しないうちに停止しました: {0}。</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>インストールされているバージョン</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>インストール</value>
@@ -7345,8 +7363,8 @@
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>正直に言って、ここからは確認していません: PTR の検証にはサーバーの「公開」IP アドレスが必要ですが、このパネルはそれを特定できず (NAT の背後ではコンピューター自身も知りません)、このページのチェッカーは TXT レコードと MX レコードしか読み取りません。代わりに外部からテストしてください: nslookup &lt;your public IP&gt; で PTR が表示され、上のホスト名を指しているはずです。</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>未確認です (更新プログラムを確認するか、API と監視ページの更新プログラムで毎日の確認をオンにしてください)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>未確認です (更新プログラムを確認するか、下で毎日の確認をオンにしてください)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>未チェック: サーバーの設定を読み取れませんでした。</value>
@@ -12433,6 +12451,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>サーバーの応答を、このコントロール パネルが読み取れませんでした ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、上の「更新をインストール」をクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>サーバーは、新しいリリースを検知し、そのリリース自身の Sigstore 署名と照合して検証し、適用できます。適用は、[サーバーの状態] ページでクリックして行うか、指定した時間帯の中でサーバー自身が行います。チェックを有効にするまでは無効です。チェックは要求以外に何も送信しません。</value>
   </data>
@@ -12658,6 +12679,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>更新ヘルパーが起動しました。インストーラーがファイルを置き換えられるように、このコントロールパネルは今すぐ閉じます。結果を確認するには、1 分ほど後にもう一度開いてください。</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>更新の状態は新しいリリースが待機しているかどうかを示します。「更新プログラムを確認」を押すと、すぐにフィードに問い合わせます。</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>更新ステップを実行できませんでした: {0}</value>
@@ -13106,6 +13130,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>AWStats 互換ログをオンにします。これは別のファイルであり、ログ行フォーマットの設定では変わりません。</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>毎日の確認、ダウンロード、無人適用の時間帯をオンにすると、検証済みのリリースが自動的に適用されます。</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>クライアントを含む範囲で、認証を要求するオプションをオンにしてください。</value>
   </data>
@@ -13351,6 +13378,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Version" xml:space="preserve">
     <value>バージョン</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>バージョンと更新プログラム</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>バージョン {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>どのスキャナーも検査できなかったメッセージを保留するか配信するかを読み取れませんでした。</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>新しいリリースが待機しているかどうかと、このサーバーがそれを確認、ダウンロード、インストールする方法。クリックで行うか、指定した時間帯の中でサーバー自身が行います。</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>パスフレーズが保存されているかどうかを読み取れませんでした。読み取りにはサーバー管理者アカウントが必要です。ここから新しいものを保存することは引き続き可能です。</value>
@@ -15020,6 +15053,12 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} が起動しなかったため、{1} が戻され、動作しています: {2}。インストーラーのログ: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} が利用可能です。</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} はダウンロードと検証が完了し、インストールできます。</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} はインストールされ、そのデータベース手順でデータベースが変更されました (または変更された可能性があります) が、インストールが完了しなかったため、{1} は戻されていません: そのデータベースでは動作しない可能性があります。完了しなかった内容: {2}。インストーラーのログ: {3}</value>
   </data>
@@ -15111,6 +15150,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   <data name="install a certificate" xml:space="preserve">
     <value>証明書をインストールする</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>新しいバージョンをインストールする</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>すでに一覧にあります</value>
   </data>
@@ -15134,6 +15176,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>INI では "{0}" に設定されています</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>新しいバージョンはあるか</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>コード {0} で終了しました</value>
@@ -15614,6 +15659,9 @@ SMTP 25 と 587、POP3 110、IMAP 143 で、接続のセキュリティはなく
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>スパムが通り抜けすぎている</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>自動更新をオンにする</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>より詳細なログを有効にする</value>

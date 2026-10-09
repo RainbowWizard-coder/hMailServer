@@ -35,6 +35,10 @@
             <scaffold:InlineNotice x:Name="ReadNotice" Visibility="Collapsed"
                                    AutomationProperties.AutomationId="status-read-failure" />
 
+            <!-- A newer release waiting, in one line with the page that installs it
+                 (Views/UpdateNotice); nothing while there is none. -->
+            <StackPanel x:Name="UpdateNoticeHost" Visibility="Collapsed" />
+
             <!-- The configuration checks first, under the header: one notice per
                  finding, at its level, with the page that puts it right. They were
                  the last card, below the fold, under the title Warnings. -->
@@ -48,8 +52,9 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Server. The update actions sit under the Update readout they
-                     act on, in the card's footer. -->
+                <!-- Server. Checking for, downloading and installing an update are on
+                     the Updates page, with the policy that drives them (review finding
+                     F272); a release that is waiting is said under the header. -->
                 <scaffold:Card Title="{loc:L 'Server'}" Margin="0,0,6,0">
                     <Grid x:Name="ServerGrid">
                         <Grid.ColumnDefinitions>
@@ -57,7 +62,6 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -70,26 +74,8 @@
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:L 'Started'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
                         <TextBlock Grid.Row="2" Grid.Column="1" x:Name="StartedValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:L 'Uptime'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
-                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="UptimeValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" />
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:L 'Update status'}" Style="{StaticResource TextCaption}" Margin="0,0,16,0" VerticalAlignment="Top" />
-                        <TextBlock Grid.Row="4" Grid.Column="1" x:Name="UpdateValue" Style="{StaticResource TextBody}" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="UptimeValue" Style="{StaticResource TextBody}" />
                     </Grid>
-                    <scaffold:Card.Footer>
-                        <WrapPanel Orientation="Horizontal">
-                            <ui:Button x:Name="CheckUpdateButton" Content="{loc:L 'Check for _updates'}" Click="CheckUpdate_Click" Margin="0,0,8,4"
-                                       ToolTip="{loc:L 'Reads the project\'s release feed now and says whether a newer release exists. Nothing is downloaded or installed by this.'}">
-                                <ui:Button.Icon><ui:SymbolIcon Symbol="Globe24" /></ui:Button.Icon>
-                            </ui:Button>
-                            <ui:Button x:Name="DownloadUpdateButton" Content="{loc:L '_Download update'}" Click="DownloadUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
-                                       ToolTip="{loc:L 'Fetches the newer release\'s installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes.'}">
-                                <ui:Button.Icon><ui:SymbolIcon Symbol="DocumentText24" /></ui:Button.Icon>
-                            </ui:Button>
-                            <ui:Button x:Name="InstallUpdateButton" Content="{loc:L '_Install update'}" Click="InstallUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
-                                       ToolTip="{loc:L 'Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back.'}">
-                                <ui:Button.Icon><ui:SymbolIcon Symbol="Server24" /></ui:Button.Icon>
-                            </ui:Button>
-                        </WrapPanel>
-                    </scaffold:Card.Footer>
                 </scaffold:Card>
 
                 <!-- Database -->

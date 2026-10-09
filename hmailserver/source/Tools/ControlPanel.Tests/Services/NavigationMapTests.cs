@@ -100,6 +100,7 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("webservices", "Web services & autoconfiguration")]
       [InlineData("api", "API & monitoring")]
       [InlineData("backup", "Backup & restore")]
+      [InlineData("updates", "Updates")]
       [InlineData("mxquery", "MX query")]
       [InlineData("sendout", "Server sendout")]
       [InlineData("diagnostics", "Diagnostics")]

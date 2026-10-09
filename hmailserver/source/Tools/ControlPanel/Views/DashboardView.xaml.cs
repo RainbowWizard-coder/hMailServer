@@ -319,6 +319,9 @@ namespace hMailServer.ControlPanel.Views
          if (Refresh())
             timer_.Start();
          BeginSetupCheck_();
+
+         // Once as the page opens, not every two seconds: the check runs once a day.
+         UpdateNotice.ShowIn(UpdateNoticeHost, "dashboard-update-available");
       }
 
       /// <summary>F5: the numbers and the setup check now, rather than at the next tick.</summary>
@@ -326,6 +329,7 @@ namespace hMailServer.ControlPanel.Views
       {
          Refresh();
          BeginSetupCheck_();
+         UpdateNotice.ShowIn(UpdateNoticeHost, "dashboard-update-available");
       }
 
       public void OnLeave()

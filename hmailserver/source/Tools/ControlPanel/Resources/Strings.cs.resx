@@ -2387,10 +2387,13 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
     <value>Zkontrolovat všechny záznamy domény a shrnout, co je zveřejněno</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
-    <value>Zkontrolovat akt_ualizace</value>
+    <value>Zkontrolovat a_ktualizace</value>
   </data>
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Jednou denně kontrolovat, zda nevyšlo nové vydání</value>
+  </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Zkontrolujte, zda je k dispozici novější vydání, stáhněte je a nainstalujte - nebo to nechte na serveru uvnitř okna, které nastavíte.</value>
   </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Kontrolovat hostitele v HELO</value>
@@ -2430,6 +2433,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Kontroluji všechny záznamy domény {0}…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>Kontrola nového vydání a jeho instalace a zásady aktualizací</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontrola instalátoru</value>
@@ -3077,6 +3083,9 @@ Restartovat nyní Control Panel? Bez restartu může pracovat dál, nebo znovu n
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Nepodařilo se přečíst seznam blokovaných: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Nepodařilo se přečíst stav aktualizace: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Nepodařilo se přečíst {0}: {1}</value>
@@ -5498,6 +5507,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Jak tento server řeší dotazy MX, PTR, SPF, DKIM, DMARC a blokovacích seznamů.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>Jak se tento server aktualizuje</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Po_tvrzuji změny označené výše.</value>
   </data>
@@ -5708,6 +5720,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na stránku Stav serveru. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Uvnitř okna naplánovaná úloha bez jediného kliknutí použije ověřený instalační program: služba se zastaví, soubory a schéma se aktualizují, služba se spustí a výsledek jde do logu, do protokolu událostí systému Windows a na kartu výše. Pokud se služba nevrátí, provede se návrat k předchozímu instalačnímu programu, ledaže nová verze už změnila databázi.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Nainstalovat aktualizaci teď?
 
@@ -5724,6 +5739,9 @@ Ověřený instalátor se předá pomocníkovi aktualizace: služba se zastaví,
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>Nainstalovat aktualizaci se zastavilo dřív, než se cokoli změnilo: {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Nainstalovaná verze</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Instalace</value>
@@ -7427,8 +7445,8 @@ Nic, co tam již je, se neodstraní.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Odsud se to upřímně řečeno nekontroluje: ověření PTR vyžaduje VEŘEJNOU IP adresu serveru, kterou tento panel nedokáže zjistit (za NATem ji nezná ani samotný počítač), a kontrola na této stránce čte pouze záznamy TXT a MX. Otestujte to místo toho zvenčí: nslookup &lt;your public IP&gt; zobrazí PTR; měl by uvádět hostitele výše.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Zatím nezkontrolováno (klikněte na Zkontrolovat aktualizace nebo zapněte denní kontrolu v části Aktualizace na stránce API a monitorování)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Zatím nezkontrolováno (klikněte na Zkontrolovat aktualizace nebo níže zapněte denní kontrolu)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Nezkontrolováno: nastavení serveru se nepodařilo přečíst.</value>
@@ -12596,6 +12614,9 @@ Přesto přidat?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Server odpověděl něčím, co tento Control Panel neumí přečíst ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je - kliknutím na Nainstalovat aktualizaci výše, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Server umí zaznamenat nové vydání, ověřit je proti vlastnímu podpisu Sigstore daného vydání a nainstalovat je – kliknutím na stránce Stav serveru, nebo sám od sebe uvnitř okna, které nastavíte. Vypnuto, dokud kontrolu nezapnete; kontrola neposílá nic než samotný požadavek.</value>
   </data>
@@ -12821,6 +12842,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Pomocník aktualizace byl spuštěn. Tento Control Panel se nyní zavře, aby instalátor mohl nahradit jeho soubory; za minutu jej znovu otevřete a uvidíte výsledek.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>Stav aktualizace říká, zda čeká novější vydání; Zkontrolovat aktualizace se zeptá zdroje hned teď.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Krok aktualizace nešlo spustit: {0}</value>
@@ -13272,6 +13296,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Zapněte log kompatibilní s AWStats. Je to samostatný soubor - nastavení formátu řádku logu ho nemění.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Zapněte denní kontrolu, stahování a okno bez obsluhy a ověřené vydání se použije samo.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Zapněte volby vyžadovaného ověření pro rozsah, který pokrývá vaše klienty.</value>
   </data>
@@ -13520,6 +13547,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Verze</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Verze a aktualizace</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Verze {0}  -  .NET {1}</value>
@@ -13874,6 +13904,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Nepodařilo se přečíst, zda je zpráva, kterou žádný skener nemohl prověřit, zadržena nebo doručena.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Zda čeká novější vydání a jak je tento server hledá, stahuje a instaluje - kliknutím, nebo sám od sebe uvnitř okna, které nastavíte.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Zda je uloženo přístupové heslo, nešlo přečíst - čtení vyžaduje účet správce serveru. Uložení nového odsud stále funguje.</value>
@@ -15198,6 +15231,12 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} se nespustil, takže byl vrácen {1} a běží: {2}. Protokol instalátoru: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} je k dispozici.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} je stažen a ověřen, připraven k instalaci.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} je nainstalován a jeho databázový krok změnil databázi, nebo ji možná změnil, instalace se však nedokončila, a proto {1} nebyl vrácen: na této databázi nemusí běžet. Co se nedokončilo: {2}. Protokol instalátoru: {3}</value>
   </data>
@@ -15289,6 +15328,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>nainstalovat certifikát</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>nainstalovat novou verzi</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>je již na seznamu</value>
   </data>
@@ -15312,6 +15354,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>je v INI nastaveno na „{0}“</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>je k dispozici nová verze</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>skončil s kódem {0}</value>
@@ -15801,6 +15846,9 @@ Bude to zkoušet dál, zatímco aplikaci používáte.</value>
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>prochází příliš mnoho spamu</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>zapnout automatické aktualizace</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>zapnout podrobnější logování</value>

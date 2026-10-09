@@ -92,9 +92,11 @@ namespace hMailServer.ControlPanel.Tests.Services
             && xaml.IndexOf("'Connected now'", StringComparison.Ordinal) < xaml.IndexOf("'SMTP sessions'", StringComparison.Ordinal),
             "The statistics are not under the lines that say which are since the start and which are now.");
 
-         // The update row has a caption of its own, not the verb.
-         Assert.Contains("{loc:L 'Update status'}", xaml, StringComparison.Ordinal);
-         Assert.DoesNotContain("{loc:L 'Update'}", xaml, StringComparison.Ordinal);
+         // The update row has a caption of its own, not the verb - on the Updates page,
+         // where the row went with the three steps (review finding F272).
+         string updates = ReadControlPanelFile(Path.Join("Views", "FeatureSettingsView.xaml"));
+         Assert.Contains("{loc:L 'Update status'}", updates, StringComparison.Ordinal);
+         Assert.DoesNotContain("{loc:L 'Update'}", xaml + updates, StringComparison.Ordinal);
 
          // Both pages work the uptime out in one place, and neither from this computer's clock alone.
          Assert.DoesNotContain("FormatUptime", code + dashboardCode, StringComparison.Ordinal);

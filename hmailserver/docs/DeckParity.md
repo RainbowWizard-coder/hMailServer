@@ -17,7 +17,7 @@ The page itself is the webmail's design: one `:root` block declares the palette 
 | over REST but not reached by any Deck view | 0 |
 | assignments left out of the count | 5 |
 | COM interfaces in the IDL | 100 |
-| desktop pages read | 84 |
+| desktop pages read | 86 |
 | REST routes (path and method) | 595, 263 of them writes |
 | Deck views | 40 |
 
@@ -775,9 +775,9 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 |---|---|---|---|
 | Status | `BeginUpdateForAdministrator` | UpdateInstallWindow | - |
 | Status | `CancelUpdateForAdministrator` | UpdateInstallWindow | - |
-| Status | `CheckForUpdate` | StatusView | `POST /api/v1/update/check` |
-| Status | `DownloadUpdate` | StatusView | `POST /api/v1/update/download` |
-| Status | `InstallUpdate` | StatusView | `POST /api/v1/update/install` |
+| Status | `CheckForUpdate` | FeatureSettingsView.Updates | `POST /api/v1/update/check` |
+| Status | `DownloadUpdate` | FeatureSettingsView.Updates | `POST /api/v1/update/download` |
+| Status | `InstallUpdate` | FeatureSettingsView.Updates | `POST /api/v1/update/install` |
 | Status | `PrepareUpdateForAdministrator` | UpdateInstallWindow | - |
 | Settings | `AddAutoBanNeverBanName` | ServerSettingsView.NeverBanNames | - |
 | Settings | `ApplyDirectorySync` | DirectorySyncView | `PUT /api/v1/accounts/{address}/directory`<br>`POST /api/v1/settings/profiles/{name}/apply` |
@@ -789,7 +789,7 @@ Secondary and looser still: a COM method counts as covered when a non-GET route'
 | Settings | `DiscardProfileSnapshot` | ProfilesView | `POST /api/v1/settings/profiles/discard` |
 | Settings | `EnrolAdministratorTOTP` | AdministratorTwoFactorDialog | - |
 | Settings | `GenerateWebPushKeys` | ServerSettingsView | `DELETE /api/v1/accounts/{address}/push`<br>`PUT /api/v1/settings/push` |
-| Settings | `GetIniSetting` | StatusView | - |
+| Settings | `GetIniSetting` | FeatureSettingsView.Updates | - |
 | Settings | `GetProfile` | ProfilesView | - |
 | Settings | `GetProfiles` | ProfilesView | - |
 | Settings | `PreviewDirectorySync` | DirectorySyncView | `DELETE /api/v1/review/{id}`<br>`PUT /api/v1/accounts/{address}/review`<br>`PUT /api/v1/accounts/{address}/directory` |

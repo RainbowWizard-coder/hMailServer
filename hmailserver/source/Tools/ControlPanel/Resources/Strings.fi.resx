@@ -2368,6 +2368,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Tarkista kerran päivässä, onko uutta julkaisua saatavilla</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Tarkista, onko uudempaa julkaisua, lataa se ja asenna se - tai anna palvelimen tehdä se määrittämäsi aikaikkunan sisällä.</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Tarkista HELO:n kone</value>
   </data>
@@ -2406,6 +2409,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Tarkistetaan kaikki tietueet: {0}…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>Uuden julkaisun tarkistus ja asennus sekä päivityskäytäntö</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Asennusohjelman tarkistus</value>
@@ -3053,6 +3059,9 @@ Käynnistetäänkö Control Panel nyt uudelleen? Ilman uudelleenkäynnistystä s
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Estolistaa ei voitu lukea: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Päivityksen tilaa ei voitu lukea: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kohdetta {0} ei voitu lukea: {1}</value>
@@ -5434,6 +5443,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Miten tämä palvelin selvittää MX-, PTR-, SPF-, DKIM-, DMARC- ja estolistahaut.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>Miten tämä palvelin päivittyy</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>_Vahvistan yllä merkityt muutokset.</value>
   </data>
@@ -5644,6 +5656,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Aikaikkunan sisällä ajastettu tehtävä asentaa varmennetun asennusohjelman ilman napsautusta: palvelu pysäytetään, tiedostot ja skeema päivitetään, palvelu käynnistetään, ja lopputulos päätyy lokiin, Windowsin tapahtumalokiin ja sivulle Palvelimen tila. Palvelu, joka ei palaa käyntiin, palautetaan edelliseen asennusohjelmaan, ellei uusi versio ole jo muuttanut tietokantaa.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Aikaikkunan sisällä ajastettu tehtävä asentaa varmennetun asennusohjelman ilman napsautusta: palvelu pysäytetään, tiedostot ja skeema päivitetään, palvelu käynnistetään, ja lopputulos päätyy lokiin, Windowsin tapahtumalokiin ja yllä olevaan korttiin. Palvelu, joka ei palaa käyntiin, palautetaan edelliseen asennusohjelmaan, ellei uusi versio ole jo muuttanut tietokantaa.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Asennetaanko päivitys nyt?
 
@@ -5660,6 +5675,9 @@ Tarkistettu asennusohjelma luovutetaan päivitysapurille: palvelu pysähtyy, uus
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>Asenna päivitys pysähtyi ennen kuin mitään muutettiin: {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Asennettu versio</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Asennus</value>
@@ -7345,8 +7363,8 @@ Mitään jo olemassa olevaa ei poisteta.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Ei tarkistettu täältä, rehellisesti sanoen: PTR:n tarkistaminen vaatii palvelimen JULKISEN IP-osoitteen, jota tämä paneeli ei voi selvittää (NAT:n takana kone ei tiedä sitä itsekään), ja tämän sivun tarkistin lukee vain TXT- ja MX-tietueita. Testaa sen sijaan ulkopuolelta: nslookup &lt;your public IP&gt; näyttää PTR:n; sen pitäisi nimetä yllä oleva kone.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Ei vielä tarkistettu (Tarkista päivitykset tai ota päivittäinen tarkistus käyttöön kohdassa Päivitykset sivulla API ja valvonta)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Ei vielä tarkistettu (Tarkista päivitykset tai ota päivittäinen tarkistus käyttöön alempana)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Ei tarkistettu: palvelimen asetuksia ei voitu lukea.</value>
@@ -12433,6 +12451,9 @@ Lisätäänkö silti?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Palvelin vastasi jotain, mitä tämä Control Panel ei pystynyt lukemaan ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen - napsauttamalla yllä Asenna päivitys tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Palvelin osaa huomata uuden julkaisun, varmentaa sen julkaisun omaa Sigstore-allekirjoitusta vasten ja asentaa sen – yhdellä napsautuksella sivulla Palvelimen tila tai omin päin määrittämäsi aikaikkunan sisällä. Pois käytöstä, kunnes otat tarkistuksen käyttöön; tarkistus ei lähetä muuta kuin pyynnön.</value>
   </data>
@@ -12658,6 +12679,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Päivitysapuri on käynnistynyt. Tämä Control Panel sulkeutuu nyt, jotta asennusohjelma voi korvata sen tiedostot; avaa se uudelleen minuutin kuluttua nähdäksesi tuloksen.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>Päivityksen tila kertoo, odottaako uudempi julkaisu; Tarkista päivitykset kysyy syötteeltä heti.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Päivitysvaihetta ei voitu ajaa: {0}</value>
@@ -13106,6 +13130,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Ota AWStats-yhteensopiva loki käyttöön. Se on erillinen tiedosto - lokirivin muodon asetus ei muuta sitä.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Ota käyttöön päivittäinen tarkistus, lataus ja valvomaton aikaikkuna, niin varmennettu julkaisu otetaan käyttöön itsestään.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Ota todennuksen vaatimisen asetukset käyttöön alueelle, joka kattaa asiakkaasi.</value>
   </data>
@@ -13351,6 +13378,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Versio</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Versio ja päivitykset</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Versio {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Ei voitu lukea, pidätetäänkö vai toimitetaanko viesti, jota yksikään skanneri ei voinut tutkia.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Odottaako uudempi julkaisu, ja miten tämä palvelin etsii sen, lataa sen ja asentaa sen - napsautuksella tai omin päin määrittämäsi aikaikkunan sisällä.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Sitä, onko tunnuslause tallennettu, ei voitu lukea - sen lukeminen vaatii palvelimen järjestelmänvalvojan tilin. Uuden tallentaminen täältä toimii silti.</value>
@@ -15020,6 +15053,12 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} ei käynnistynyt, joten {1} palautettiin ja on käynnissä: {2}. Asennusohjelman loki: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} on saatavilla.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} on ladattu ja tarkistettu, valmis asennettavaksi.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} on asennettu ja sen tietokantavaihe muutti tietokantaa tai saattoi muuttaa sitä, mutta asennus ei valmistunut, joten versiota {1} ei palautettu: se ei ehkä toimi sillä tietokannalla. Mikä ei valmistunut: {2}. Asennusohjelman loki: {3}</value>
   </data>
@@ -15111,6 +15150,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>asenna varmenne</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>asenna uusi versio</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>on jo listalla</value>
   </data>
@@ -15134,6 +15176,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>on asetettu arvoon "{0}" INI-tiedostossa</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>onko uutta versiota</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>se päättyi koodiin {0}</value>
@@ -15614,6 +15659,9 @@ Se yrittää edelleen, kun käytät sovellusta.</value>
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>liian paljon roskapostia pääsee läpi</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>ota automaattiset päivitykset käyttöön</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>kytke yksityiskohtaisempi lokitus päälle</value>

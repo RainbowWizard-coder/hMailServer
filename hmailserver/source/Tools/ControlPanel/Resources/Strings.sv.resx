@@ -2363,10 +2363,13 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
     <value>Kontrollera alla domänens poster och sammanfatta vad som är publicerat</value>
   </data>
   <data name="Check for _updates" xml:space="preserve">
-    <value>_Sök efter uppdateringar</value>
+    <value>Sök efter _uppdateringar</value>
   </data>
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Sök efter en ny utgåva en gång om dagen</value>
+  </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Sök efter en nyare utgåva, hämta den och installera den - eller låt servern göra det inom ett fönster du anger.</value>
   </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Kontrollera värden i HELO</value>
@@ -2406,6 +2409,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Kontrollerar alla poster för {0}…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>Att söka efter en ny utgåva och installera den, och uppdateringspolicyn</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Kontroll av installationsprogrammet</value>
@@ -3053,6 +3059,9 @@ Starta om Kontrollpanelen nu? Utan omstart kan den fortsätta, eller stöta på 
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kunde inte läsa spärrlistan: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Kunde inte läsa uppdateringsstatus: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kunde inte läsa {0}: {1}</value>
@@ -5434,6 +5443,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Hur den här servern slår upp MX, PTR, SPF, DKIM, DMARC och spärrlistor.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>Så uppdateras den här servern</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Jag bekräftar ändringarna som är _markerade ovan.</value>
   </data>
@@ -5644,6 +5656,9 @@ Ingen post rörs - indexet härleds från den - men tills ombyggnaden kommer ika
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Inom fönstret installerar den schemalagda uppgiften ett verifierat installationsprogram utan ett klick: tjänsten stoppas, filer och schema uppgraderas, tjänsten startas, och utfallet går till loggen, Windows händelselogg och sidan Serverstatus. En tjänst som inte kommer tillbaka återställs till det föregående installationsprogrammet, såvida inte den nya versionen redan har ändrat databasen.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Inom fönstret installerar den schemalagda uppgiften ett verifierat installationsprogram utan ett klick: tjänsten stoppas, filer och schema uppgraderas, tjänsten startas, och utfallet går till loggen, Windows händelselogg och kortet ovan. En tjänst som inte kommer tillbaka återställs till det föregående installationsprogrammet, såvida inte den nya versionen redan har ändrat databasen.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>Installera uppdateringen nu?
 
@@ -5660,6 +5675,9 @@ Det verifierade installationsprogrammet lämnas över till uppdateringshjälpen:
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>Installera uppdatering stoppades innan något ändrades: {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Installerad version</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Installation</value>
@@ -7345,8 +7363,8 @@ Inget som redan finns där tas bort.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Kontrolleras ärligt talat inte härifrån: att verifiera PTR-posten kräver serverns PUBLIKA IP-adress, som den här panelen inte kan avgöra (bakom NAT vet datorn den inte heller), och den här sidans kontroll läser bara TXT- och MX-poster. Testa från utsidan i stället: nslookup &lt;your public IP&gt; visar PTR-posten; den ska namnge värden ovan.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Inte kontrollerat ännu (Sök efter uppdateringar, eller slå på den dagliga kontrollen under Uppdateringar på sidan API &amp; övervakning)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Inte kontrollerat ännu (Sök efter uppdateringar, eller slå på den dagliga kontrollen nedan)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Inte kontrollerat: serverns inställningar kunde inte läsas.</value>
@@ -12433,6 +12451,9 @@ Lägg till det ändå?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>Servern svarade något som den här Control Panel inte kunde läsa ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>Servern kan upptäcka en ny utgåva, verifiera den mot utgåvans egen Sigstore-signatur och installera den - med ett klick på Installera uppdatering ovan, eller på egen hand inom ett fönster du anger. Av tills du slår på kontrollen; kontrollen skickar inget annat än förfrågan.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>Servern kan upptäcka en ny utgåva, verifiera den mot utgåvans egen Sigstore-signatur och installera den - med ett klick på sidan Serverstatus, eller på egen hand inom ett fönster du anger. Av tills du slår på kontrollen; kontrollen skickar inget annat än förfrågan.</value>
   </data>
@@ -12658,6 +12679,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>Uppdateringshjälpen har startat. Den här Kontrollpanelen stängs nu så att installationsprogrammet kan ersätta dess filer; öppna den igen om en minut för att se resultatet.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>Uppdateringsstatus säger om en nyare utgåva väntar; Sök efter uppdateringar frågar flödet nu.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>Uppdateringssteget kunde inte köras: {0}</value>
@@ -13106,6 +13130,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Slå på den AWStats-kompatibla loggen. Det är en separat fil - inställningen för loggradsformat ändrar den inte.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Slå på den dagliga kontrollen, hämtningen och det obevakade fönstret, så tas en verifierad utgåva i bruk av sig själv.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Slå på alternativen kräv-autentisering för intervallet som täcker dina klienter.</value>
   </data>
@@ -13351,6 +13378,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Version och uppdateringar</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Version {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Det gick inte att läsa om ett meddelande som ingen skanner kunde granska hålls kvar eller levereras.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Om en nyare utgåva väntar, och hur den här servern söker efter den, hämtar den och installerar den - med ett klick, eller på egen hand inom ett fönster du anger.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Om en lösenfras är sparad kunde inte läsas - det kräver serveradministratörskontot. Att spara en ny härifrån fungerar ändå.</value>
@@ -15020,6 +15053,12 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} startade inte, så {1} lades tillbaka och körs: {2}. Installationsprogrammets logg: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} finns tillgänglig.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} är hämtad och verifierad, redo att installeras.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} är installerad och dess databassteg ändrade databasen, eller kan ha gjort det, men installationen slutfördes inte, så {1} lades inte tillbaka: den kanske inte kan köras mot den databasen. Det som inte slutfördes: {2}. Installationsprogrammets logg: {3}</value>
   </data>
@@ -15111,6 +15150,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>installera ett certifikat</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>installera en ny version</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>finns redan på listan</value>
   </data>
@@ -15134,6 +15176,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>är satt till "{0}" i INI-filen</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>finns det en ny version</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>det avslutades med koden {0}</value>
@@ -15614,6 +15659,9 @@ Den fortsätter försöka medan du använder programmet.</value>
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>för mycket skräppost slinker igenom</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>slå på automatiska uppdateringar</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>slå på mer detaljerad loggning</value>

@@ -258,9 +258,10 @@ namespace hMailServer.ControlPanel
 
          ServerSession.SetCurrent(session);
          OnConnected();
-         NavigateTo("status"); // no-loc: a page key
-         if (outcome != null && ContentHost.Content is StatusView status)
-            status.ShowInstallOutcome(outcome);
+         // The Updates page, where the install was started and its outcome is said.
+         NavigateTo("updates"); // no-loc: a page key
+         if (outcome != null && ContentHost.Content is FeatureSettingsView updates)
+            updates.ShowInstallOutcome(outcome);
       }
 
       private void RegisterPages()
@@ -320,6 +321,7 @@ namespace hMailServer.ControlPanel
          pageFactories_["dns"] = () => new FeatureSettingsView(FeatureSettingsView.Section.Dns);
          pageFactories_["webservices"] = () => new FeatureSettingsView(FeatureSettingsView.Section.WebServices);
          pageFactories_["backup"] = () => new BackupView();
+         pageFactories_["updates"] = () => new FeatureSettingsView(FeatureSettingsView.Section.Updates);
          pageFactories_["profiles"] = () => new ProfilesView();
          pageFactories_["mxquery"] = () => new MxQueryView();
          pageFactories_["sendout"] = () => new SendoutView();

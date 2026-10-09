@@ -2368,6 +2368,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   <data name="Check for a new release once a day" xml:space="preserve">
     <value>Eenmaal per dag op een nieuwe release controleren</value>
   </data>
+  <data name="Check for a newer release, download it and install it - or let the server do it inside a window you set." xml:space="preserve">
+    <value>Zoek naar een nieuwere release, download die en installeer die - of laat de server dat doen binnen een venster dat u instelt.</value>
+  </data>
   <data name="Check host in HELO" xml:space="preserve">
     <value>Host in HELO controleren</value>
   </data>
@@ -2406,6 +2409,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Checking every record of {0}…" xml:space="preserve">
     <value>Alle records van {0} worden gecontroleerd…</value>
+  </data>
+  <data name="Checking for a new release and installing it, and the update policy" xml:space="preserve">
+    <value>Zoeken naar een nieuwe release en die installeren, en het updatebeleid</value>
   </data>
   <data name="Checking the installer" xml:space="preserve">
     <value>Controle van het installatieprogramma</value>
@@ -3053,6 +3059,9 @@ Het Control Panel nu herstarten? Zonder herstart werkt het misschien door, of lo
   </data>
   <data name="Could not read the suppression list: " xml:space="preserve">
     <value>Kon de onderdrukkingslijst niet lezen: </value>
+  </data>
+  <data name="Could not read the update status: " xml:space="preserve">
+    <value>Kon de updatestatus niet lezen: </value>
   </data>
   <data name="Could not read {0}: {1}" xml:space="preserve">
     <value>Kon {0} niet lezen: {1}</value>
@@ -5434,6 +5443,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="How this server resolves MX, PTR, SPF, DKIM, DMARC and block list lookups." xml:space="preserve">
     <value>Hoe deze server MX-, PTR-, SPF-, DKIM-, DMARC- en blokkeerlijstopzoekingen uitvoert.</value>
   </data>
+  <data name="How this server updates" xml:space="preserve">
+    <value>Hoe deze server wordt bijgewerkt</value>
+  </data>
   <data name="I _confirm the changes marked above." xml:space="preserve">
     <value>Ik _bevestig de hierboven gemarkeerde wijzigingen.</value>
   </data>
@@ -5644,6 +5656,9 @@ Er wordt geen mail aangeraakt - de index is ervan afgeleid - maar totdat het opn
   <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
     <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de pagina Serverstatus. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
   </data>
+  <data name="Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database." xml:space="preserve">
+    <value>Binnen het venster installeert de geplande taak een geverifieerd installatieprogramma zonder een klik: de service stopt, de bestanden en het databaseschema worden bijgewerkt, de service start, en de uitkomst gaat naar het logboek, het Windows-gebeurtenislogboek en de kaart hierboven. Een service die niet terugkomt, wordt teruggedraaid naar het vorige installatieprogramma, tenzij de nieuwe versie de database al heeft gewijzigd.</value>
+  </data>
   <data name="Install the update now?&#10;&#10;The verified installer is handed to the update helper: the service stops, the new version is installed, and the service starts again. If it does not come back, the previous version is reinstalled, unless the new version has already changed the database. This Control Panel loses its connection while that happens; reconnect afterwards to see the outcome here." xml:space="preserve">
     <value>De update nu installeren?
 
@@ -5660,6 +5675,9 @@ Het geverifieerde installatieprogramma wordt aan de updatehelper doorgegeven: de
   </data>
   <data name="Install update stopped before anything was changed: {0}." xml:space="preserve">
     <value>"Update installeren" is gestopt voordat er iets was gewijzigd: {0}.</value>
+  </data>
+  <data name="Installed version" xml:space="preserve">
+    <value>Geïnstalleerde versie</value>
   </data>
   <data name="Installing" xml:space="preserve">
     <value>Installatie</value>
@@ -7345,8 +7363,8 @@ Niets wat er al staat wordt verwijderd.</value>
   <data name="Not checked from here, honestly: verifying the PTR needs the server's PUBLIC IP address, which this panel cannot determine (behind NAT the machine does not know it either), and this page's checker reads TXT and MX records only. Test from outside instead: nslookup &lt;your public IP&gt; shows the PTR; it should name the host above." xml:space="preserve">
     <value>Eerlijk gezegd wordt dit hiervandaan niet gecontroleerd: het verifiëren van de PTR vereist het PUBLIEKE IP-adres van de server, dat dit paneel niet kan bepalen (achter NAT weet de machine het zelf ook niet), en de controlefunctie van deze pagina leest alleen TXT- en MX-records. Test in plaats daarvan van buitenaf: nslookup &lt;your public IP&gt; toont de PTR; die hoort de host hierboven te noemen.</value>
   </data>
-  <data name="Not checked yet (Check for updates, or turn on the daily check under Updates on the API &amp; monitoring page)" xml:space="preserve">
-    <value>Nog niet gecontroleerd (Controleren op updates, of zet de dagelijkse controle aan onder Updates op de pagina API en monitoring)</value>
+  <data name="Not checked yet (Check for updates, or turn on the daily check below)" xml:space="preserve">
+    <value>Nog niet gecontroleerd (Op updates controleren, of zet hieronder de dagelijkse controle aan)</value>
   </data>
   <data name="Not checked: the server's settings could not be read." xml:space="preserve">
     <value>Niet gecontroleerd: de instellingen van de server konden niet worden gelezen.</value>
@@ -12433,6 +12451,9 @@ Toch toevoegen?</value>
   <data name="The server answered something this Control Panel could not read ({0})" xml:space="preserve">
     <value>De server antwoordde iets wat dit Control Panel niet kon lezen ({0})</value>
   </data>
+  <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
+    <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op Update installeren hierboven, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
+  </data>
   <data name="The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request." xml:space="preserve">
     <value>De server kan een nieuwe release opmerken, die verifiëren tegen de eigen Sigstore-handtekening van de release, en die installeren - met een klik op de pagina Serverstatus, of uit zichzelf binnen een venster dat u instelt. Uit totdat u de controle aanzet; de controle verstuurt niets anders dan het verzoek.</value>
   </data>
@@ -12658,6 +12679,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="The update helper has started. This Control Panel closes now so that the installer can replace its files; open it again in a minute to see the outcome." xml:space="preserve">
     <value>De updatehelper is gestart. Dit Control Panel sluit nu, zodat het installatieprogramma zijn bestanden kan vervangen; open het over een minuut opnieuw om de uitkomst te zien.</value>
+  </data>
+  <data name="The update status says whether a newer release is waiting; Check for updates asks the feed now." xml:space="preserve">
+    <value>De updatestatus zegt of er een nieuwere release klaarstaat; Op updates controleren vraagt de feed nu.</value>
   </data>
   <data name="The update step could not be run: {0}" xml:space="preserve">
     <value>De updatestap kon niet worden uitgevoerd: {0}</value>
@@ -13106,6 +13130,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="Turn on the AWStats-compatible log. That is a separate file - the log line format setting does not change it." xml:space="preserve">
     <value>Zet het AWStats-compatibele logboek aan. Dat is een apart bestand - de instelling voor de indeling van logregels verandert het niet.</value>
   </data>
+  <data name="Turn on the daily check, the download and the unattended window, and a verified release is applied on its own." xml:space="preserve">
+    <value>Zet de dagelijkse controle, de download en het onbeheerde venster aan, en een geverifieerde release wordt vanzelf toegepast.</value>
+  </data>
   <data name="Turn on the require-authentication options for the range that covers your clients." xml:space="preserve">
     <value>Zet de opties die authenticatie vereisen aan voor het bereik dat uw clients dekt.</value>
   </data>
@@ -13351,6 +13378,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Versie</value>
+  </data>
+  <data name="Version and updates" xml:space="preserve">
+    <value>Versie en updates</value>
   </data>
   <data name="Version {0}  -  .NET {1}" xml:space="preserve">
     <value>Versie {0}  -  .NET {1}</value>
@@ -13705,6 +13735,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="Whether a message no scanner could examine is held or delivered could not be read." xml:space="preserve">
     <value>Of een bericht dat geen enkele scanner kon onderzoeken wordt vastgehouden of bezorgd, kon niet worden gelezen.</value>
+  </data>
+  <data name="Whether a newer release is waiting, and how this server checks for one, downloads it and installs it - by a click, or on its own inside a window you set." xml:space="preserve">
+    <value>Of er een nieuwere release klaarstaat, en hoe deze server ernaar zoekt, die downloadt en installeert - met een klik, of uit zichzelf binnen een venster dat u instelt.</value>
   </data>
   <data name="Whether a passphrase is stored could not be read - reading it requires the server-administrator account. Saving a new one from here still works." xml:space="preserve">
     <value>Of er een wachtwoordzin is opgeslagen, kon niet worden gelezen - dat lezen vereist het beheerdersaccount van de server. Er hiervandaan een nieuwe opslaan werkt wel.</value>
@@ -15020,6 +15053,12 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="hMailServer {0} did not start, so {1} was put back and is running: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} is niet gestart, dus {1} is teruggezet en draait: {2}. Het logboek van het installatieprogramma: {3}</value>
   </data>
+  <data name="hMailServer {0} is available." xml:space="preserve">
+    <value>hMailServer {0} is beschikbaar.</value>
+  </data>
+  <data name="hMailServer {0} is downloaded and verified, ready to install." xml:space="preserve">
+    <value>hMailServer {0} is gedownload en geverifieerd, klaar om te installeren.</value>
+  </data>
   <data name="hMailServer {0} is installed and its database step changed the database, or may have, but the install did not complete, so {1} was not put back: it may not run on that database. What did not complete: {2}. The installer's log: {3}" xml:space="preserve">
     <value>hMailServer {0} is geïnstalleerd en de databasestap heeft de database gewijzigd, of mogelijk gewijzigd, maar de installatie is niet voltooid, dus {1} is niet teruggezet: het draait mogelijk niet op die database. Wat niet is voltooid: {2}. Het logboek van het installatieprogramma: {3}</value>
   </data>
@@ -15111,6 +15150,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   <data name="install a certificate" xml:space="preserve">
     <value>een certificaat installeren</value>
   </data>
+  <data name="install a new version" xml:space="preserve">
+    <value>een nieuwe versie installeren</value>
+  </data>
   <data name="is already on the list" xml:space="preserve">
     <value>staat al op de lijst</value>
   </data>
@@ -15134,6 +15176,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="is set to &quot;{0}&quot; in the INI" xml:space="preserve">
     <value>staat in de INI op "{0}"</value>
+  </data>
+  <data name="is there a new version" xml:space="preserve">
+    <value>is er een nieuwe versie</value>
   </data>
   <data name="it ended with code {0}" xml:space="preserve">
     <value>het eindigde met code {0}</value>
@@ -15614,6 +15659,9 @@ Het blijft het proberen terwijl u de toepassing gebruikt.</value>
   </data>
   <data name="too much spam is getting through" xml:space="preserve">
     <value>er komt te veel spam door</value>
+  </data>
+  <data name="turn on automatic updates" xml:space="preserve">
+    <value>automatische updates aanzetten</value>
   </data>
   <data name="turn on more detailed logging" xml:space="preserve">
     <value>gedetailleerdere logging inschakelen</value>

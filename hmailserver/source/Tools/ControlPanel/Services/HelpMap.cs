@@ -161,6 +161,7 @@ namespace hMailServer.ControlPanel.Services
             // tabulates are on Server limits, where ServiceAccount.md opened.
             ["profiles"] = new HelpTarget("Profiles.md"),
             ["backup"] = new HelpTarget("Backup.md"),
+            ["updates"] = new HelpTarget("UpdateFeed.md"),
             ["performance"] = HelpTarget.NoGuide,
             ["advanced"] = HelpTarget.NoGuide,
             ["scripts"] = new HelpTarget("EventScripts.md", "Which language, where"),
@@ -291,7 +292,6 @@ namespace hMailServer.ControlPanel.Services
          "SourcePackages.md",
          "SourceTarball.md",
          "ThirdPartyBinaries.md",
-         "UpdateFeed.md",
          "WarmStandby.md",
          "WindowsOnArm.md",
          "ZeroAccess.md",

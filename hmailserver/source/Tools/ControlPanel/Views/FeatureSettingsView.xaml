@@ -33,6 +33,50 @@
             </scaffold:PageHeader>
 
             <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                <!-- The Updates page's own card, above its policy: the version this
+                     server runs, whether a newer release is waiting, and the three
+                     steps that take it there (FeatureSettingsView.Updates.cs). They
+                     were on Server status, a page away from the policy that drives
+                     them (review finding F272). Shown on the Updates page alone. -->
+                <scaffold:Card x:Name="UpdateCard" Title="{loc:L 'Version and updates'}" Visibility="Collapsed"
+                               Margin="{StaticResource AppCardGap}" AutomationProperties.AutomationId="updates-status">
+                    <StackPanel>
+                        <scaffold:InlineNotice x:Name="UpdateReadNotice" Visibility="Collapsed" Margin="0,0,0,8"
+                                               AutomationProperties.AutomationId="updates-read-failure" />
+                        <StackPanel x:Name="UpdateOutcomePanel" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:L 'Installed version'}" Style="{StaticResource TextCaption}" Margin="0,0,16,8" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="InstalledVersionValue" Style="{StaticResource TextBody}" Margin="0,0,0,8" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:L 'Update status'}" Style="{StaticResource TextCaption}" Margin="0,0,16,0" VerticalAlignment="Top" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="UpdateValue" Style="{StaticResource TextBody}" TextWrapping="Wrap" />
+                        </Grid>
+                    </StackPanel>
+                    <scaffold:Card.Footer>
+                        <WrapPanel Orientation="Horizontal">
+                            <ui:Button x:Name="CheckUpdateButton" Content="{loc:L 'Check for _updates'}" Click="CheckUpdate_Click" Margin="0,0,8,4"
+                                       ToolTip="{loc:L 'Reads the project\'s release feed now and says whether a newer release exists. Nothing is downloaded or installed by this.'}">
+                                <ui:Button.Icon><ui:SymbolIcon Symbol="Globe24" /></ui:Button.Icon>
+                            </ui:Button>
+                            <ui:Button x:Name="DownloadUpdateButton" Content="{loc:L '_Download update'}" Click="DownloadUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
+                                       ToolTip="{loc:L 'Fetches the newer release\'s installer and verifies it against its Sigstore bundle before keeping it. The Control Panel waits while it does; an installer is tens of megabytes.'}">
+                                <ui:Button.Icon><ui:SymbolIcon Symbol="DocumentText24" /></ui:Button.Icon>
+                            </ui:Button>
+                            <ui:Button x:Name="InstallUpdateButton" Content="{loc:L '_Install update'}" Click="InstallUpdate_Click" IsEnabled="False" Margin="0,0,8,4"
+                                       ToolTip="{loc:L 'Hands the verified installer to the update helper. The service stops and starts; if it does not come back, the previous version is reinstalled, unless the new version has already changed the database. The outcome is reported here when the service is back.'}">
+                                <ui:Button.Icon><ui:SymbolIcon Symbol="Server24" /></ui:Button.Icon>
+                            </ui:Button>
+                        </WrapPanel>
+                    </scaffold:Card.Footer>
+                </scaffold:Card>
+
                 <scaffold:InlineNotice x:Name="StatusNotice" Visibility="Collapsed" />
                 <TextBlock x:Name="PathText" Style="{StaticResource TextCaptionTertiary}" Margin="{StaticResource AppCardGap}" />
                 <StackPanel x:Name="CardsPanel" />

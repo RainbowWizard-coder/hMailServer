@@ -23,7 +23,9 @@ namespace hMailServer.ControlPanel.Views
    /// transport security (DANE, DNSSEC, MTA-STS, ARC, TLS-RPT), automatic
    /// certificates (ACME), integrations (REST API, Prometheus metrics,
    /// ManageSieve), authentication (OAuth2, password storage), the DNS
-   /// resolver and the public web services listener.
+   /// resolver and the public web services listener; and the Updates page, whose
+   /// update policy is one of its cards, under a card of the page's own - the
+   /// version and the three update steps (FeatureSettingsView.Updates.cs).
    ///
    /// On the scaffold since the fourth wave: the header is a PageHeader with a
    /// StatusPill for where the page stands (SettingsPageStatus, kept by
@@ -44,7 +46,8 @@ namespace hMailServer.ControlPanel.Views
          Hardening,
          Authentication,
          Dns,
-         WebServices
+         WebServices,
+         Updates
       }
 
       private abstract class Setting
@@ -1936,6 +1939,7 @@ namespace hMailServer.ControlPanel.Views
          InitializeComponent();
          saveState_ = new IniPageSaveState(StatePill, StatusNotice, () => HasUnsavedChanges);
          section_ = section;
+         UpdateCard.Visibility = IsUpdatesPage_ ? Visibility.Visible : Visibility.Collapsed;
          BuildDefinition();
          BuildUi();
       }
@@ -1961,11 +1965,12 @@ namespace hMailServer.ControlPanel.Views
 
          BuildDefinition();
          BuildUi();
+
+         // The Updates page's own card reads the server's update state as the page opens.
+         EnterUpdates_();
       }
 
-      public void OnLeave()
-      {
-      }
+      public void OnLeave() => LeaveUpdates_();
 
       /// <summary>
       /// Whether any editor holds something other than what it was filled with or
@@ -2493,74 +2498,6 @@ namespace hMailServer.ControlPanel.Views
                });
                cards_.Add(new CardDef
                {
-                  // Every key the live update reads is on this card. That is checked
-                  // rather than maintained by hand: build/check-ini-coverage.py fails
-                  // when a setting the server reads has no editor anywhere in the
-                  // Control Panel, which is how the five trust settings below were
-                  // found missing after the feature had shipped. The Status page has
-                  // the buttons. Everything is off until the check is turned on, and
-                  // the check sends nothing but the request.
-                  Title = L("Updates"),
-                  Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on the Server status page, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
-                  Settings =
-                  {
-                     new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
-                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
-                     new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
-                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.progressiverobot.com/releases.json" },
-                     new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)"), Placeholder = "proxy.example.net:3128" },
-                     new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
-                     new TextSetting
-                     {
-                        Key = "UpdateWindow",
-                        Label = L("Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)"),
-                        Placeholder = "Sun 03:00", // no-loc
-                        Blurb = L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the Server status page. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.")
-                     },
-                     new BoolSetting { Key = "UpdateBackupBeforeApply", Default = true, Label = L("Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)") },
-                     new BoolSetting
-                     {
-                        Key = "UpdateRequireAuthenticode",
-                        Default = false,
-                        Label = L("Also require a valid Authenticode signature on the installer"),
-                        Blurb = L("This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way.")
-                     },
-                     new NumberSetting { Key = "UpdateServiceWaitSeconds", Minimum = 5, Maximum = 86400, Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back"), Placeholder = "180" },
-                     new TextSetting
-                     {
-                        Key = "UpdateSourceRepository",
-                        Label = L("Repository the signing certificate must name (empty = this project; - = do not check)"),
-                        Placeholder = "https://gitlab.example.net/mail/hmailserver", // no-loc
-                        Blurb = L("The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's.")
-                     },
-                     new TextSetting
-                     {
-                        Key = "UpdateSigningIdentity",
-                        Label = L("Signing identity the certificate must begin with (empty = this project's two release workflows)"),
-                        Placeholder = "https://gitlab.example.net/mail/hmailserver//.gitlab-ci.yml@refs/tags/v" // no-loc
-                     },
-                     new TextSetting
-                     {
-                        Key = "UpdateSigningIssuer",
-                        Label = L("Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)"),
-                        Placeholder = "https://gitlab.example.net" // no-loc
-                     },
-                     new TextSetting
-                     {
-                        Key = "UpdateTrustRootsFile",
-                        Label = L("Certificate authority file for a private Sigstore (PEM; empty = the public Fulcio roots)"),
-                        Placeholder = "C:\\hMailServer\\Data\\fulcio-roots.pem" // no-loc
-                     },
-                     new TextSetting
-                     {
-                        Key = "UpdateLogPublicKeyFile",
-                        Label = L("Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)"),
-                        Placeholder = "C:\\hMailServer\\Data\\rekor.pub" // no-loc
-                     }
-                  }
-               });
-               cards_.Add(new CardDef
-               {
                   // Verified in WindowsEventLog.cpp: the sink hooks ErrorManager, not
                   // the Logger, so it fires independently of the log mask - which is
                   // the whole case for shipping it on. A healthy server writes zero
@@ -2627,7 +2564,88 @@ namespace hMailServer.ControlPanel.Views
                   Settings =
                   {
                      new ElsewhereSetting("logging", L("The SNMP agent, alerts, outbound webhooks and the audit trail")),
+                     new ElsewhereSetting("updates", L("Checking for a new release and installing it, and the update policy")),
                      new ElsewhereSetting("webmail", L("What the webmail and the Control Deck offer: sign-in, sessions, Web Push"))
+                  }
+               });
+               break;
+
+            // The Updates page (review finding F272): the update policy, moved here
+            // from API & monitoring, under the page's own card - the version, the
+            // update check's verdict and the three steps (FeatureSettingsView.Updates.cs),
+            // which were on Server status. Its settings are hMailServer.ini's, as the
+            // rest of this view's are; the subtitle is the page's navigation
+            // description (PageHeader.PageKey).
+            case Section.Updates:
+               Header.PageKey = "updates";
+               cards_.Add(new CardDef
+               {
+                  // Every key the live update reads is on this card. That is checked
+                  // rather than maintained by hand: build/check-ini-coverage.py fails
+                  // when a setting the server reads has no editor anywhere in the
+                  // Control Panel, which is how the five trust settings below were
+                  // found missing after the feature had shipped. The card above it has
+                  // the buttons (FeatureSettingsView.Updates.cs); the two were a page
+                  // apart, on Server status and API & monitoring, until the Updates
+                  // page (review finding F272). Everything is off until the check is
+                  // turned on, and the check sends nothing but the request.
+                  Title = L("How this server updates"),
+                  Blurb = L("The server can notice a new release, verify it against the release's own Sigstore signature, and apply it - by a click on Install update above, or on its own inside a window you set. Off until you turn the check on; the check sends nothing but the request."),
+                  Settings =
+                  {
+                     new BoolSetting { Key = "UpdateCheckEnabled", Default = false, Label = L("Check for a new release once a day") },
+                     new NumberSetting { Key = "UpdateCheckHours", Minimum = 1, Maximum = 168, Default = "24", Label = L("Hours between checks (1 to 168)"), Placeholder = "24" },
+                     new TextSetting { Key = "UpdateChannel", Default = "stable", Label = L("Channel: stable, or prerelease to run ahead on a test machine"), Placeholder = "stable" },
+                     new TextSetting { Key = "UpdateFeedUrl", Label = L("Update feed URL (empty = the built-in feed; set for a mirror)"), Placeholder = "https://updates.progressiverobot.com/releases.json" },
+                     new TextSetting { Key = "HttpProxy", Label = L("Forward proxy for every web request this server makes - the feed, its downloads, JWKS, token introspection (host:port; empty = direct; no proxy credentials)"), Placeholder = "proxy.example.net:3128" },
+                     new BoolSetting { Key = "UpdateAutoDownload", Default = false, Label = L("Download and verify the installer as soon as a release is found") },
+                     new TextSetting
+                     {
+                        Key = "UpdateWindow",
+                        Label = L("Unattended window (empty = never apply on its own; e.g. 03:00, Sun 03:00, Sat,Sun 02:00-05:00)"),
+                        Placeholder = "Sun 03:00", // no-loc
+                        Blurb = L("Inside the window the scheduled task applies a verified installer without a click: the service stops, files and schema upgrade, the service starts, and the outcome goes to the log, the Windows event log and the card above. A service that does not come back is rolled back to the previous installer, unless the new version has already changed the database.")
+                     },
+                     new BoolSetting { Key = "UpdateBackupBeforeApply", Default = true, Label = L("Back up to the configured destination before an unattended apply (no destination or a failed backup means no apply)") },
+                     new BoolSetting
+                     {
+                        Key = "UpdateRequireAuthenticode",
+                        Default = false,
+                        Label = L("Also require a valid Authenticode signature on the installer"),
+                        Blurb = L("This project's installers have been Authenticode-signed since 6.3.1, by Progressive Robot Ltd through Azure Artifact Signing; the releases before 6.3.1 carry no signature, and this refuses them. It checks, when an installer is downloaded, that Windows trusts the signature - WinVerifyTrust against this machine's trusted roots, with no revocation check - and not who made it: that is the job of the Sigstore signature, which every release carries and which is checked either way.")
+                     },
+                     new NumberSetting { Key = "UpdateServiceWaitSeconds", Minimum = 5, Maximum = 86400, Default = "180", Label = L("Seconds to wait for the service after an apply before rolling back"), Placeholder = "180" },
+                     new TextSetting
+                     {
+                        Key = "UpdateSourceRepository",
+                        Label = L("Repository the signing certificate must name (empty = this project; - = do not check)"),
+                        Placeholder = "https://gitlab.example.net/mail/hmailserver", // no-loc
+                        Blurb = L("The last five settings on this card are for a site that builds its own releases and signs them with its own Sigstore, or that mirrors this project's. Leave every one of them empty and the server trusts only an installer signed by one of this project's two release workflows - the GitHub one for the releases up to 6.3.3, the GitLab one for the releases after - and recorded in the public transparency log. Setting any of them narrows or replaces that for both, and getting one wrong means either refusing genuine releases or trusting somebody else's.")
+                     },
+                     new TextSetting
+                     {
+                        Key = "UpdateSigningIdentity",
+                        Label = L("Signing identity the certificate must begin with (empty = this project's two release workflows)"),
+                        Placeholder = "https://gitlab.example.net/mail/hmailserver//.gitlab-ci.yml@refs/tags/v" // no-loc
+                     },
+                     new TextSetting
+                     {
+                        Key = "UpdateSigningIssuer",
+                        Label = L("Identity provider that issued the signing certificate (empty = GitHub's or GitLab's)"),
+                        Placeholder = "https://gitlab.example.net" // no-loc
+                     },
+                     new TextSetting
+                     {
+                        Key = "UpdateTrustRootsFile",
+                        Label = L("Certificate authority file for a private Sigstore (PEM; empty = the public Fulcio roots)"),
+                        Placeholder = "C:\\hMailServer\\Data\\fulcio-roots.pem" // no-loc
+                     },
+                     new TextSetting
+                     {
+                        Key = "UpdateLogPublicKeyFile",
+                        Label = L("Transparency log's public key for a private Sigstore (PEM; empty = the public Rekor key)"),
+                        Placeholder = "C:\\hMailServer\\Data\\rekor.pub" // no-loc
+                     }
                   }
                });
                break;
@@ -3434,6 +3452,7 @@ namespace hMailServer.ControlPanel.Views
 
          BuildDefinition();
          BuildUi();
+         EnterUpdates_();
       }
 
       /// <summary>
