@@ -1128,9 +1128,6 @@ O Control Panel só consegue ler arquivos de mensagens quando roda na mesma máq
   <data name="Address" xml:space="preserve">
     <value>Endereço</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Endereço e senha são obrigatórios.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>Atri_buto de endereço</value>
   </data>
@@ -4294,11 +4291,17 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Informe um nome de domínio, como example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Informe primeiro um nome de host e uma porta.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Informe um nome para a nova regra.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Informe uma senha ou pressione Gerar.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Informe primeiro uma caixa de relatórios - um registro sem uma caixa rua= real não pede nada.</value>
@@ -4324,14 +4327,23 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Digite o código de 6 dígitos do seu aplicativo autenticador:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Informe o endereço da conta.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Informe o endereço da conta cuja caixa de correio será restaurada.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Informe o endereço do apelido.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Informe primeiro o caminho do clamscan.exe.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Informe a validade como YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Informe o endereço da lista.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Digite a frase secreta com que o arquivo será criptografado e digite-a novamente abaixo.</value>
@@ -4341,6 +4353,9 @@ Nenhum e-mail é tocado - o índice é derivado deles - mas até a reconstruçã
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Digite a senha da conta de serviço</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Informe para onde o apelido entrega.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

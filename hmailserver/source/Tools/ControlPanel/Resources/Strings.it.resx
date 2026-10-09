@@ -1128,9 +1128,6 @@ Il Control Panel può leggere i file dei messaggi solo quando è in esecuzione s
   <data name="Address" xml:space="preserve">
     <value>Indirizzo</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Indirizzo e password sono obbligatori.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>Attri_buto dell'indirizzo</value>
   </data>
@@ -4294,11 +4291,17 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enter" xml:space="preserve">
     <value>Invio</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Indica un nome di dominio, ad esempio example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Indica prima un nome host e una porta.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Indica un nome per la nuova regola.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Indica una password oppure premi Genera.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Indica prima una casella per i rapporti - un record senza una vera casella rua= non chiede nulla.</value>
@@ -4324,14 +4327,23 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Inserisci il codice a 6 cifre della tua app di autenticazione:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Indica l'indirizzo dell'account.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Indicare l'indirizzo dell'account di cui ripristinare la casella.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Indica l'indirizzo dell'alias.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Indica prima il percorso di clamscan.exe.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Indica la scadenza come YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Indica l'indirizzo della lista.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Inserire la passphrase con cui cifrare l'archivio e digitarla di nuovo qui sotto.</value>
@@ -4341,6 +4353,9 @@ Nessuna posta viene toccata - l'indice ne è derivato - ma finché la ricostruzi
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Inserisci la password dell'account di servizio</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Indica dove consegna l'alias.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Invio, F2</value>

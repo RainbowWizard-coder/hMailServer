@@ -1865,6 +1865,15 @@ prompt. Found by the project's own review (work item 78; CVE requested).
   the message away; the dialogs whose field can be refused - Allow or block a domain, the never-ban name and the
   suppression list's Add - keep a line of room for the message, so that their buttons stay where they were.
 
+- **Fixed: the Domains & accounts page's four forms answered a bad value with a message box or with nothing at all.**
+  Add domain said "Enter a valid domain name." in a message box, Create account said "Address and password are
+  required." in one that named neither box, and Add alias and Add list did nothing with an empty box. Each refusal is
+  said under the box at fault now, with the keyboard put in it and every empty box marked on one press: "Enter a
+  domain name such as example.com.", "Enter the account's address.", "Enter a password, or press Generate.", "Enter
+  the alias address.", "Enter where the alias delivers." and "Enter the list's address."; the messages go with the
+  next press, an edit of the box, the domain changed or the page opened again, and a message box is left for the
+  server's own refusal. Each form's button stays beside its box when a message appears under it.
+
 ### Administration
 
 - **Fixed: the Control Panel's IP ranges page could show no list of ranges at all (reported in work item 79), and the

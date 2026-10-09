@@ -153,6 +153,26 @@ namespace hMailServer.ControlPanel.Views
       }
 
       /// <summary>
+      /// After a form's checks have set the message of every row they refuse, so
+      /// that every box at fault is marked on one press: brings the first such row
+      /// into view and puts the keyboard in its editor, as <see cref="ShowError"/>
+      /// does. Whether any row was refused.
+      /// </summary>
+      public static bool ShowFirstError(params FieldRow[] rows)
+      {
+         foreach (FieldRow row in rows)
+         {
+            if (row.Error != null)
+            {
+               ShowError(row, row.Error);
+               return true;
+            }
+         }
+
+         return false;
+      }
+
+      /// <summary>
       /// Sizes a tab control to its tallest tab, within what the dialog may be.
       /// A window sized to its content takes the height of the tab on screen,
       /// and would grow and shrink with every click on the strip; measured once

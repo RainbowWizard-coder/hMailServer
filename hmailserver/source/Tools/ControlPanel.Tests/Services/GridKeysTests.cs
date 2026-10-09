@@ -89,10 +89,10 @@ namespace hMailServer.ControlPanel.Tests.Services
       [InlineData("UtilityViews.cs", "FormSubmit.Bind(inputRow, run_);")]
       [InlineData("JournalingView.cs", "FormSubmit.Bind(form, add_, target_, address_, note_);")]
       [InlineData("RolesView.cs", "FormSubmit.Bind(form, give_, address_, domains_);")]
-      [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind((UIElement)AddDomainButton.Parent, AddDomainButton, NewDomainBox);")]
+      [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind(AddDomainForm, AddDomainButton, NewDomainBox);")]
       [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind(AccountForm, AddAccountButton, NewAccountBox, NewAccountPassword);")]
-      [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind((UIElement)AddAliasButton.Parent, AddAliasButton, NewAliasName, NewAliasValue);")]
-      [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind((UIElement)AddListButton.Parent, AddListButton, NewDistAddress);")]
+      [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind(AddAliasForm, AddAliasButton, NewAliasName, NewAliasValue);")]
+      [InlineData("DomainsView.Rows.cs", "FormSubmit.Bind(AddListForm, AddListButton, NewDistAddress);")]
       public void EveryFormOnAPage_SubmitsOnEnter(string file, string binding)
       {
          Assert.Contains(binding, Read(Path.Join("Views", file)), StringComparison.Ordinal);

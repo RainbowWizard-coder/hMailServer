@@ -38,7 +38,18 @@ namespace hMailServer.ControlPanel.Views
          WireForms_();
       }
 
-      public void OnEnter() => ReloadDomains();
+      public void OnEnter()
+      {
+         // A message under a form's box answers the press that refused it: the
+         // page met anew starts without one.
+         DialogFields.ClearErrors(NewDomainRow);
+         ClearDomainFormErrors_();
+         ReloadDomains();
+      }
+
+      /// <summary>The messages of the forms that act on the selected domain, which are about that domain's boxes.</summary>
+      private void ClearDomainFormErrors_()
+         => DialogFields.ClearErrors(NewAccountRow, PasswordRow, NewAliasNameRow, NewAliasValueRow, NewDistAddressRow);
 
       /// <summary>F5: the domains again, the selected one kept, and with it its accounts, aliases and lists.</summary>
       void IRefreshablePage.Refresh() => ReloadDomains();
@@ -101,10 +112,15 @@ namespace hMailServer.ControlPanel.Views
          bool beside = e.NewSize.Width >= PasswordMinWidth + 8 + buttons;
          Grid.SetColumnSpan(PasswordRow, beside ? 1 : 2);
          PasswordRow.Margin = beside ? new Thickness(0, 0, 8, 0) : new Thickness(0);
-         Grid.SetRow(AccountButtons, beside ? 1 : 2);
-         Grid.SetColumn(AccountButtons, beside ? 1 : 0);
-         Grid.SetColumnSpan(AccountButtons, beside ? 1 : 2);
-         AccountButtons.Margin = beside ? new Thickness(0) : new Thickness(0, 8, 0, 0);
+         Grid.SetRow(AccountButtonsLine, beside ? 1 : 2);
+         Grid.SetColumn(AccountButtonsLine, beside ? 1 : 0);
+         Grid.SetColumnSpan(AccountButtonsLine, beside ? 1 : 2);
+         AccountButtonsLine.Margin = beside ? new Thickness(0) : new Thickness(0, 8, 0, 0);
+
+         // Beside the password, the buttons sit under a row as tall as its caption,
+         // so that they stay beside the box when a message appears under it; under
+         // the password, the row takes no height.
+         AccountButtonsCaption.SharedSizeGroup = beside ? "PasswordLine" : null;
       }
 
       public void OnLeave()
@@ -196,6 +212,7 @@ namespace hMailServer.ControlPanel.Views
 
       private void DomainList_SelectionChanged(object sender, SelectionChangedEventArgs e)
       {
+         ClearDomainFormErrors_();
          ReloadAccounts();
          ReloadAliases();
          ReloadDistLists();
@@ -318,7 +335,17 @@ namespace hMailServer.ControlPanel.Views
       {
          string name = NewAliasName.Text.Trim();
          string value = NewAliasValue.Text.Trim();
-         if (DomainList.SelectedItem == null || name.Length == 0 || value.Length == 0)
+         if (DomainList.SelectedItem == null)
+            return;
+
+         // An empty box is said on its box, where the press did nothing at all
+         // (review finding F064); both on one press, the keyboard in the first.
+         DialogFields.ClearErrors(NewAliasNameRow, NewAliasValueRow);
+         if (name.Length == 0)
+            NewAliasNameRow.Error = L("Enter the alias address.");
+         if (value.Length == 0)
+            NewAliasValueRow.Error = L("Enter where the alias delivers.");
+         if (DialogFields.ShowFirstError(NewAliasNameRow, NewAliasValueRow))
             return;
 
          dynamic domains = ServerSession.Current.Application.Domains;
@@ -398,8 +425,15 @@ namespace hMailServer.ControlPanel.Views
       private void AddDistList_Click(object sender, RoutedEventArgs e)
       {
          string address = NewDistAddress.Text.Trim();
-         if (DomainList.SelectedItem == null || address.Length == 0)
+         if (DomainList.SelectedItem == null)
             return;
+
+         DialogFields.ClearErrors(NewDistAddressRow);
+         if (address.Length == 0)
+         {
+            DialogFields.ShowError(NewDistAddressRow, L("Enter the list's address."));
+            return;
+         }
 
          dynamic domains = ServerSession.Current.Application.Domains;
          try
@@ -633,9 +667,14 @@ namespace hMailServer.ControlPanel.Views
       private void AddDomain_Click(object sender, RoutedEventArgs e)
       {
          string name = NewDomainBox.Text.Trim();
+
+         // Said on the box, with the keyboard put in it, where a message box said
+         // it away from the box and took the keyboard with it (review finding
+         // F064). A message box is left for the server's own refusal.
+         DialogFields.ClearErrors(NewDomainRow);
          if (name.Length == 0 || !name.Contains('.'))
          {
-            MessageBox.Show(L("Enter a valid domain name."), L("Control Panel"));
+            DialogFields.ShowError(NewDomainRow, L("Enter a domain name such as example.com."));
             return;
          }
 
@@ -684,11 +723,18 @@ namespace hMailServer.ControlPanel.Views
          string address = NewAccountBox.Text.Trim();
          string password = NewAccountPassword.Password;
 
-         if (domainName == null || address.Length == 0 || password.Length == 0)
-         {
-            MessageBox.Show(L("Address and password are required."), L("Control Panel"));
+         if (domainName == null)
             return;
-         }
+
+         // Each box left empty is said on that box, both on one press, where one
+         // message box named neither (review finding F064).
+         DialogFields.ClearErrors(NewAccountRow, PasswordRow);
+         if (address.Length == 0)
+            NewAccountRow.Error = L("Enter the account's address.");
+         if (password.Length == 0)
+            PasswordRow.Error = L("Enter a password, or press Generate.");
+         if (DialogFields.ShowFirstError(NewAccountRow, PasswordRow))
+            return;
 
          dynamic domains = ServerSession.Current.Application.Domains;
          try

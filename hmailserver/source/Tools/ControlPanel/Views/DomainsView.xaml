@@ -118,17 +118,27 @@
                          yet. Add the first one" with nothing to press on screen.
                          At the top, the thing to do is on screen whatever the
                          window's height. -->
-                    <Grid Margin="0,0,0,12">
+                    <!-- A refused value is said under its box (F064), and every
+                         button of the page's forms sits under a row as tall as
+                         the caption beside it (FieldRow.LabelGroup), so that it
+                         stays beside the box when a message appears under it. -->
+                    <Grid x:Name="AddDomainForm" Margin="0,0,0,12" Grid.IsSharedSizeScope="True">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <scaffold:FieldRow Label="{loc:L 'Do_main'}" Margin="0,0,8,0">
+                        <scaffold:FieldRow x:Name="NewDomainRow" Label="{loc:L 'Do_main'}" Margin="0,0,8,0" LabelGroup="DomainLine">
                             <ui:TextBox x:Name="NewDomainBox" PlaceholderText="newdomain.com" />
                         </scaffold:FieldRow>
-                        <ui:Button x:Name="AddDomainButton" Grid.Column="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
-                                   AutomationProperties.AutomationId="domains-add"
-                                   VerticalAlignment="Bottom" Margin="0" />
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" SharedSizeGroup="DomainLine" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ui:Button x:Name="AddDomainButton" Grid.Row="1" Content="{loc:L '_Add domain'}" Click="AddDomain_Click"
+                                       AutomationProperties.AutomationId="domains-add"
+                                       VerticalAlignment="Top" Margin="0" />
+                        </Grid>
                     </Grid>
                     <!-- The list's floor is three rows of 40 pixels, the pixel a
                          ListView keeps above and below its rows and one for layout
@@ -225,7 +235,7 @@
                          (AccountForm_SizeChanged): in the narrowest window Create
                          account ran off the card's right edge. Above the list, as
                          every form on this page is. -->
-                    <Grid x:Name="AccountForm" Margin="0,0,0,12" SizeChanged="AccountForm_SizeChanged">
+                    <Grid x:Name="AccountForm" Margin="0,0,0,12" SizeChanged="AccountForm_SizeChanged" Grid.IsSharedSizeScope="True">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -235,19 +245,28 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Add_ress'}">
+                        <scaffold:FieldRow x:Name="NewAccountRow" Grid.ColumnSpan="2" Label="{loc:L 'Add_ress'}">
                             <ui:TextBox x:Name="NewAccountBox" PlaceholderText="user@domain" />
                         </scaffold:FieldRow>
-                        <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L '_Password'}" Margin="0,0,8,0">
+                        <scaffold:FieldRow x:Name="PasswordRow" Grid.Row="1" Label="{loc:L '_Password'}" Margin="0,0,8,0" LabelGroup="PasswordLine">
                             <local:PasswordField x:Name="NewAccountPassword" />
                         </scaffold:FieldRow>
-                        <WrapPanel x:Name="AccountButtons" Grid.Row="1" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                            <ui:Button Content="{loc:L '_Generate'}" Margin="0,0,8,0"
-                                       Click="GenerateAccountPassword_Click"
-                                       ToolTip="{loc:L 'Generate a strong password (copied to clipboard)'}" />
-                            <ui:Button x:Name="AddAccountButton" Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
-                                       AutomationProperties.AutomationId="domains-accounts" Margin="0" />
-                        </WrapPanel>
+                        <!-- Beside the password, under a row as tall as its caption;
+                             under the password, where they go in a narrow window,
+                             the row takes no height (AccountForm_SizeChanged). -->
+                        <Grid x:Name="AccountButtonsLine" Grid.Row="1" Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="AccountButtonsCaption" Height="Auto" SharedSizeGroup="PasswordLine" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <WrapPanel x:Name="AccountButtons" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Right">
+                                <ui:Button Content="{loc:L '_Generate'}" Margin="0,0,8,0"
+                                           Click="GenerateAccountPassword_Click"
+                                           ToolTip="{loc:L 'Generate a strong password (copied to clipboard)'}" />
+                                <ui:Button x:Name="AddAccountButton" Content="{loc:L '_Create account'}" Appearance="Primary" Click="AddAccount_Click"
+                                           AutomationProperties.AutomationId="domains-accounts" Margin="0" />
+                            </WrapPanel>
+                        </Grid>
                     </Grid>
 
                     <!-- The floor: three rows of 38 pixels, the list's own pixel above and below them, and one for layout rounding. -->
@@ -307,7 +326,7 @@
                              width however narrow the window. Above the list: at
                              the foot of the card the form was below the fold in a
                              1280 by 800 window. -->
-                        <Grid Margin="0,0,0,8">
+                        <Grid x:Name="AddAliasForm" Margin="0,0,0,8" Grid.IsSharedSizeScope="True">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
@@ -316,14 +335,20 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <scaffold:FieldRow Grid.ColumnSpan="2" Label="{loc:L 'Alias addr_ess'}" Margin="0,0,0,8">
+                            <scaffold:FieldRow x:Name="NewAliasNameRow" Grid.ColumnSpan="2" Label="{loc:L 'Alias addr_ess'}" Margin="0,0,0,8">
                                 <ui:TextBox x:Name="NewAliasName" PlaceholderText="alias@domain" FontSize="12" />
                             </scaffold:FieldRow>
-                            <scaffold:FieldRow Grid.Row="1" Label="{loc:L 'Deli_vers to'}" Margin="0,0,6,0">
+                            <scaffold:FieldRow x:Name="NewAliasValueRow" Grid.Row="1" Label="{loc:L 'Deli_vers to'}" Margin="0,0,6,0" LabelGroup="AliasLine">
                                 <ui:TextBox x:Name="NewAliasValue" PlaceholderText="target@anywhere" FontSize="12" />
                             </scaffold:FieldRow>
-                            <ui:Button x:Name="AddAliasButton" Grid.Row="1" Grid.Column="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
-                                       VerticalAlignment="Bottom" Margin="0" />
+                            <Grid Grid.Row="1" Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" SharedSizeGroup="AliasLine" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ui:Button x:Name="AddAliasButton" Grid.Row="1" Content="{loc:L 'Add a_lias'}" FontSize="12" Click="AddAlias_Click"
+                                           VerticalAlignment="Top" Margin="0" />
+                            </Grid>
                         </Grid>
                         <!-- The floor: three rows of 34 pixels (a row is its 24-pixel
                              button and the margins around it), the list's own pixel
@@ -361,17 +386,23 @@
                 <scaffold:Card x:Name="DistCard" Title="{loc:L 'Distribution lists'}" Padding="12" Margin="6,0,0,0">
                     <scaffold:FillPanel>
                         <!-- Above the list, as the alias form is. -->
-                        <Grid Margin="0,0,0,8">
+                        <Grid x:Name="AddListForm" Margin="0,0,0,8" Grid.IsSharedSizeScope="True">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <scaffold:FieldRow Label="{loc:L 'L_ist address'}" Margin="0,0,6,0">
+                            <scaffold:FieldRow x:Name="NewDistAddressRow" Label="{loc:L 'L_ist address'}" Margin="0,0,6,0" LabelGroup="ListLine">
                                 <ui:TextBox x:Name="NewDistAddress" PlaceholderText="list@domain" FontSize="12" />
                             </scaffold:FieldRow>
-                            <ui:Button x:Name="AddListButton" Grid.Column="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
-                                       VerticalAlignment="Bottom" Margin="0"
-                                       AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
+                            <Grid Grid.Column="1">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" SharedSizeGroup="ListLine" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ui:Button x:Name="AddListButton" Grid.Row="1" Content="{loc:L 'Add li_st'}" FontSize="12" Click="AddDistList_Click"
+                                           VerticalAlignment="Top" Margin="0"
+                                           AutomationProperties.HelpText="{loc:L 'Add distribution list'}" ToolTip="{loc:L 'Add distribution list'}" />
+                            </Grid>
                         </Grid>
                         <!-- The floor: three rows of 34 pixels, the list's own pixel
                              above and below them, and one for layout rounding. -->

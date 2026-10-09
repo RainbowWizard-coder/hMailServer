@@ -1128,9 +1128,6 @@ Denetim Masası, ileti dosyalarını yalnızca sunucuyla aynı makinede ve yeter
   <data name="Address" xml:space="preserve">
     <value>Adres</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Adres ve parola gereklidir.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>Adres öznite_liği</value>
   </data>
@@ -4294,11 +4291,17 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>example.com gibi bir etki alanı adı girin.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Önce bir ana bilgisayar adı ve port girin.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Yeni kural için bir ad girin.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Bir parola girin veya Üret'e basın.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Önce bir rapor posta kutusu girin - gerçek bir rua= posta kutusu olmayan bir kayıt hiçbir şey istemez.</value>
@@ -4324,14 +4327,23 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Kimlik doğrulayıcı uygulamanızdaki 6 haneli kodu girin:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Hesabın adresini girin.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Posta kutusu geri yüklenecek hesabın adresini girin.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Takma ad adresini girin.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Önce clamscan.exe yolunu girin.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Süre sonunu YYYY-MM-DD HH:MM:SS olarak girin.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Listenin adresini girin.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Arşivin şifreleneceği parola tümcesini girin ve aşağıya bir kez daha yazın.</value>
@@ -4341,6 +4353,9 @@ Postaya dokunulmaz - indeks ondan türetilir - ama yeniden oluşturma yetişene 
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Hizmet hesabı parolasını girin</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Takma adın teslim edeceği adresi girin.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

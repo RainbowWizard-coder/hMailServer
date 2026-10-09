@@ -1128,9 +1128,6 @@ The Control Panel can only read message files when it runs on the same machine a
   <data name="Address" xml:space="preserve">
     <value>Address</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Address and password are required.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>Address attri_bute</value>
   </data>
@@ -4294,11 +4291,17 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Enter a domain name such as example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Enter a host name and port first.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Enter a name for the new rule.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Enter a password, or press Generate.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Enter a report mailbox first - a record without a real rua= mailbox asks for nothing.</value>
@@ -4324,14 +4327,23 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>Enter the 6-digit _code from your authenticator app:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Enter the account's address.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Enter the address of the account whose mailbox to restore.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Enter the alias address.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Enter the clamscan.exe path first.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Enter the expiry as YYYY-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Enter the list's address.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Enter the passphrase the archive is to be encrypted with, and type it again below.</value>
@@ -4341,6 +4353,9 @@ No mail is touched - the index is derived from it - but until the rebuild catche
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Enter the service account password</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Enter where the alias delivers.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

@@ -1134,9 +1134,6 @@ Control Panel может читать файлы сообщений только
   <data name="Address" xml:space="preserve">
     <value>Адрес</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Требуются адрес и пароль.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>_Атрибут адреса</value>
   </data>
@@ -4340,11 +4337,17 @@ Control Panel может читать файлы сообщений только
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Введите имя домена, например example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Сначала укажите имя узла и порт.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Укажите имя нового правила.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Введите пароль или нажмите «Сгенерировать».</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Сначала укажите почтовый ящик для отчётов — запись без настоящего почтового ящика в rua= ни о чём не просит.</value>
@@ -4370,14 +4373,23 @@ Control Panel может читать файлы сообщений только
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Введите 6-значный код из приложения-аутентификатора:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Введите адрес учётной записи.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Укажите адрес учётной записи, почтовый ящик которой нужно восстановить.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Введите адрес псевдонима.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Сначала укажите путь к clamscan.exe.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введите срок истечения в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Введите адрес списка.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введите парольную фразу, которой будет зашифрован архив, и наберите её ещё раз ниже.</value>
@@ -4387,6 +4399,9 @@ Control Panel может читать файлы сообщений только
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введите пароль учётной записи службы</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Укажите, куда доставляет псевдоним.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

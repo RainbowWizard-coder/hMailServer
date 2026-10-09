@@ -1128,9 +1128,6 @@ Control Panel voi lukea viestitiedostoja vain, kun se on käynnissä samalla kon
   <data name="Address" xml:space="preserve">
     <value>Osoite</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Osoite ja salasana ovat pakollisia.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>Osoiteattri_buutti</value>
   </data>
@@ -4294,11 +4291,17 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Anna verkkotunnus, esimerkiksi example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Anna ensin konenimi ja portti.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Anna uudelle säännölle nimi.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Anna salasana tai paina Luo.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Anna ensin raporttipostilaatikko - tietue ilman todellista rua=-postilaatikkoa ei pyydä mitään.</value>
@@ -4324,14 +4327,23 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Anna 6-numeroinen koodi todennussovelluksestasi:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Anna tilin osoite.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Anna sen tilin osoite, jonka postilaatikko palautetaan.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Anna aliasosoite.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Anna ensin clamscan.exe-tiedoston polku.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Anna vanheneminen muodossa VVVV-KK-PP TT:MM:SS.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Anna jakelulistan osoite.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Anna salasanalause, jolla arkisto salataan, ja kirjoita se uudelleen alle.</value>
@@ -4341,6 +4353,9 @@ Postiin ei kosketa - indeksi johdetaan siitä - mutta kunnes uudelleenrakennus s
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Anna palvelutilin salasana</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Anna osoite, johon alias toimittaa.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

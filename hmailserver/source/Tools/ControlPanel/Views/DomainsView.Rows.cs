@@ -187,10 +187,10 @@ namespace hMailServer.ControlPanel.Views
       /// </summary>
       private void WireForms_()
       {
-         FormSubmit.Bind((UIElement)AddDomainButton.Parent, AddDomainButton, NewDomainBox);
+         FormSubmit.Bind(AddDomainForm, AddDomainButton, NewDomainBox);
          FormSubmit.Bind(AccountForm, AddAccountButton, NewAccountBox, NewAccountPassword);
-         FormSubmit.Bind((UIElement)AddAliasButton.Parent, AddAliasButton, NewAliasName, NewAliasValue);
-         FormSubmit.Bind((UIElement)AddListButton.Parent, AddListButton, NewDistAddress);
+         FormSubmit.Bind(AddAliasForm, AddAliasButton, NewAliasName, NewAliasValue);
+         FormSubmit.Bind(AddListForm, AddListButton, NewDistAddress);
       }
    }
 }

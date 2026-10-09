@@ -1134,9 +1134,6 @@
   <data name="Address" xml:space="preserve">
     <value>Адреса</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Адреса та пароль обов’язкові.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>_Атрибут адреси</value>
   </data>
@@ -4340,11 +4337,17 @@
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Введіть ім'я домену, наприклад example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Спершу введіть ім'я вузла та порт.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Введіть назву нового правила.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Введіть пароль або натисніть «Згенерувати».</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Спершу введіть поштову скриньку для звітів - запис без справжньої скриньки rua= нічого не просить.</value>
@@ -4370,14 +4373,23 @@
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Введіть 6-значний код із застосунку-автентифікатора:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Введіть адресу облікового запису.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Вкажіть адресу облікового запису, поштову скриньку якого потрібно відновити.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Введіть адресу псевдоніма.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Спершу введіть шлях до clamscan.exe.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Введіть час закінчення у форматі РРРР-ММ-ДД ГГ:ХХ:СС.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Введіть адресу списку.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Введіть парольну фразу, якою буде зашифровано архів, і наберіть її ще раз нижче.</value>
@@ -4387,6 +4399,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Введіть пароль облікового запису служби</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Вкажіть, куди доставляє псевдонім.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

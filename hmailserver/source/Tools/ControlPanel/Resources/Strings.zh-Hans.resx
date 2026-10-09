@@ -1128,9 +1128,6 @@
   <data name="Address" xml:space="preserve">
     <value>地址</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>必须填写地址和密码。</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>地址属性(_B)</value>
   </data>
@@ -4294,11 +4291,17 @@
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>请输入域名，例如 example.com。</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>请先输入主机名和端口。</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>请为新规则输入名称。</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>请输入密码，或按“生成”。</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>请先输入报告邮箱 - 没有真实 rua= 邮箱的记录不会索取任何东西。</value>
@@ -4324,14 +4327,23 @@
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>输入身份验证器应用中的 6 位代码(_C)：</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>请输入账户的地址。</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>请输入要恢复其邮箱的账户地址。</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>请输入别名地址。</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>请先输入 clamscan.exe 的路径。</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>请以 YYYY-MM-DD HH:MM:SS 格式输入到期时间。</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>请输入列表的地址。</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>请输入用来加密存档的口令，并在下面再输入一次。</value>
@@ -4341,6 +4353,9 @@
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>输入服务账户密码</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>请输入别名投递到的地址。</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter、F2</value>

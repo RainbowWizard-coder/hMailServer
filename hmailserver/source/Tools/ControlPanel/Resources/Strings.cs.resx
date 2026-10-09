@@ -1134,9 +1134,6 @@ Control Panel může číst soubory zpráv pouze tehdy, když běží na stejné
   <data name="Address" xml:space="preserve">
     <value>Adresa</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Adresa a heslo jsou povinné.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>Atri_but adresy</value>
   </data>
@@ -4340,11 +4337,17 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Zadejte název domény, například example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Nejdřív zadejte název hostitele a port.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Zadejte název nového pravidla.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Zadejte heslo, nebo stiskněte Generovat.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Nejdřív zadejte schránku pro hlášení - záznam bez skutečné schránky rua= o nic nežádá.</value>
@@ -4370,14 +4373,23 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Zadejte 6místný kód z ověřovací aplikace:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Zadejte adresu účtu.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Zadejte adresu účtu, jehož schránku chcete obnovit.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Zadejte adresu aliasu.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Nejdřív zadejte cestu k clamscan.exe.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Zadejte vypršení ve tvaru RRRR-MM-DD HH:MM:SS.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Zadejte adresu seznamu.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Zadejte heslo, kterým se má archiv šifrovat, a napište je znovu níže.</value>
@@ -4387,6 +4399,9 @@ Pošty se to nedotkne - index je z ní odvozen - ale dokud přestavba nedožene,
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Zadejte heslo servisního účtu</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Zadejte, kam alias doručuje.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>

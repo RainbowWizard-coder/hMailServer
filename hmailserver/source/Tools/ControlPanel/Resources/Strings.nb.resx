@@ -1128,9 +1128,6 @@ Control Panel kan bare lese meldingsfiler når det kjører på den samme maskine
   <data name="Address" xml:space="preserve">
     <value>Adresse</value>
   </data>
-  <data name="Address and password are required." xml:space="preserve">
-    <value>Adresse og passord er påkrevd.</value>
-  </data>
   <data name="Address attri_bute" xml:space="preserve">
     <value>_Adresseattributt</value>
   </data>
@@ -4294,11 +4291,17 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="Enter a domain name such as example.com." xml:space="preserve">
+    <value>Skriv inn et domenenavn, for eksempel example.com.</value>
+  </data>
   <data name="Enter a host name and port first." xml:space="preserve">
     <value>Skriv inn et vertsnavn og en port først.</value>
   </data>
   <data name="Enter a name for the new rule." xml:space="preserve">
     <value>Skriv inn et navn på den nye regelen.</value>
+  </data>
+  <data name="Enter a password, or press Generate." xml:space="preserve">
+    <value>Skriv inn et passord, eller trykk på Generer.</value>
   </data>
   <data name="Enter a report mailbox first - a record without a real rua= mailbox asks for nothing." xml:space="preserve">
     <value>Skriv inn en rapportpostboks først - en oppføring uten en ekte rua=-postboks ber om ingenting.</value>
@@ -4324,14 +4327,23 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   <data name="Enter the 6-digit _code from your authenticator app:" xml:space="preserve">
     <value>_Skriv inn den 6-sifrede koden fra autentiseringsappen din:</value>
   </data>
+  <data name="Enter the account's address." xml:space="preserve">
+    <value>Skriv inn kontoens adresse.</value>
+  </data>
   <data name="Enter the address of the account whose mailbox to restore." xml:space="preserve">
     <value>Oppgi adressen til kontoen som skal få postkassen gjenopprettet.</value>
+  </data>
+  <data name="Enter the alias address." xml:space="preserve">
+    <value>Skriv inn aliasadressen.</value>
   </data>
   <data name="Enter the clamscan.exe path first." xml:space="preserve">
     <value>Skriv inn stien til clamscan.exe først.</value>
   </data>
   <data name="Enter the expiry as YYYY-MM-DD HH:MM:SS." xml:space="preserve">
     <value>Skriv inn utløpet som ÅÅÅÅ-MM-DD TT:MM:SS.</value>
+  </data>
+  <data name="Enter the list's address." xml:space="preserve">
+    <value>Skriv inn listens adresse.</value>
   </data>
   <data name="Enter the passphrase the archive is to be encrypted with, and type it again below." xml:space="preserve">
     <value>Skriv inn passordfrasen arkivet skal krypteres med, og skriv den igjen nedenfor.</value>
@@ -4341,6 +4353,9 @@ Ingen post røres - indeksen er utledet fra den - men til gjenoppbyggingen har t
   </data>
   <data name="Enter the service account password" xml:space="preserve">
     <value>Skriv inn tjenestekontoens passord</value>
+  </data>
+  <data name="Enter where the alias delivers." xml:space="preserve">
+    <value>Angi hvor aliaset leverer til.</value>
   </data>
   <data name="Enter, F2" xml:space="preserve">
     <value>Enter, F2</value>
